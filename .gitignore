@@ -149,6 +149,7 @@ activemq-data/
 
 # Environments
 .env
+.env.proxy
 .envrc
 .venv
 env/
@@ -156,6 +157,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Base SQLite de Kairos (générée au premier démarrage)
+*.db
 
 # Spyder project settings
 .spyderproject

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Kairos{% endblock %}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  {% from "_icons.html" import icon %}
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <a class="sb-brand" href="/kairos" style="text-decoration:none">
+        <span class="sb-logo" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="30" height="30">
+            <rect width="64" height="64" rx="14" fill="var(--accent)"></rect>
+            <path d="M20 22 L44 42" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity="0.7"></path>
+            <circle cx="20" cy="22" r="7" fill="#fff"></circle>
+            <circle cx="44" cy="42" r="6.6" fill="var(--accent-2-bright)" stroke="#fff" stroke-width="3.2"></circle>
+          </svg>
+        </span>
+        <div class="sb-titles">
+          <div class="sb-app">Kairos</div>
+          <div class="sb-sub">Tâches &amp; deep work</div>
+        </div>
+      </a>
+      <nav class="sb-nav">
+        <a class="sb-item {% if page == 'kairos' %}active{% endif %}" href="/kairos">
+          {{ icon('check_circle') }}<span class="sb-label">Aujourd’hui</span></a>
+        <a class="sb-item {% if page == 'kairos_stats' %}active{% endif %}" href="/kairos/stats">
+          {{ icon('trending_up') }}<span class="sb-label">Statistiques</span></a>
+      </nav>
+      <div class="sb-foot">
+        <button class="sb-collapse" type="button" id="sb-collapse">
+          {{ icon('chevron_left') }}<span class="sb-label">Replier</span></button>
+      </div>
+    </aside>
+    <main class="content">
+      <header class="topbar">
+        <h1>{% block topbar_title %}Kairos{% endblock %}</h1>
+        <div class="tb-actions">{% block topbar_actions %}{% endblock %}</div>
+      </header>
+      <div class="page">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <script>
+    /* Repli de la barre latérale, persisté dans localStorage. */
+    (function () {
+      var sb = document.getElementById('sidebar');
+      if (!sb) return;
+      if (localStorage.getItem('mj-sb-collapsed') === '1') sb.classList.add('collapsed');
+      var btn = document.getElementById('sb-collapse');
+      if (btn) btn.addEventListener('click', function () {
+        sb.classList.toggle('collapsed');
+        localStorage.setItem('mj-sb-collapsed', sb.classList.contains('collapsed') ? '1' : '0');
+      });
+    })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
