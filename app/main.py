@@ -15,6 +15,7 @@ from contextlib import asynccontextmanager
 from datetime import date, datetime, time as dt_time, timedelta, timezone
 from pathlib import Path
 
+import markdown
 from fastapi import Depends, FastAPI, Form, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -100,10 +101,33 @@ def favicon() -> Response:
     return FileResponse(BASE_DIR / "static" / "favicon.svg", media_type="image/svg+xml")
 
 
-@app.get("/", include_in_schema=False)
-def root() -> RedirectResponse:
-    """La page d'accueil EST « Kairos »."""
-    return RedirectResponse("/kairos", status_code=307)
+@app.get("/SPEC_KAIROS.md", include_in_schema=False)
+def spec_kairos() -> FileResponse:
+    """Sert le fichier référencé par un lien relatif du README, sans le dupliquer."""
+    return FileResponse(BASE_DIR / "SPEC_KAIROS.md", media_type="text/markdown")
+
+
+def _render_readme() -> tuple[str, list[dict]]:
+    """Rend ``README.md`` en HTML pour la page d'accueil : source **unique**, jamais
+    dupliquée à la main — toute modification du README y apparaît sans autre effort.
+    Le sommaire (``toc_tokens``) alimente la navigation latérale de la page."""
+    converter = markdown.Markdown(
+        extensions=["extra", "sane_lists", "toc"],
+        extension_configs={"toc": {"permalink": False}},
+    )
+    html = converter.convert((BASE_DIR / "README.md").read_text(encoding="utf-8"))
+    # Racine unique (le H1 « Kairos ») : ses enfants (H2/H3) forment le sommaire —
+    # le H1 lui-même est déjà repris dans le bandeau de bienvenue, inutile en double.
+    toc = converter.toc_tokens[0]["children"] if converter.toc_tokens else []
+    return html, toc
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def home(request: Request) -> HTMLResponse:
+    """Page d'accueil : bienvenue + README rendu (voir ``_render_readme``)."""
+    readme_html, readme_toc = _render_readme()
+    context = {"page": "home", "readme_html": readme_html, "readme_toc": readme_toc}
+    return templates.TemplateResponse(request, "home.html", context)
 
 
 def _fetch_busy_blocks(

@@ -14,6 +14,7 @@ dependencies = [
     "timetree-exporter>=0.4",
     "icalendar>=5.0",
     "httpx>=0.27",
+    "markdown>=3.6",
 ]
 
 [project.optional-dependencies]
