@@ -88,6 +88,25 @@ reste « À traiter »).
 - **Aide à l'estimation** : barème Fibonacci (1 → 21, taille relative, volume ×
   complexité × incertitude) repliable dans le panneau d'édition.
 
+**Points de Fibonacci** : dans le panneau d'édition, chaque tâche peut recevoir un
+nombre de points sur l'échelle `1, 2, 3, 5, 8, 13, 21` — une taille **relative**
+(jamais des heures), estimée en quelques secondes par rapport à tes tâches
+habituelles : volume × complexité × **incertitude** (« est-ce que je sais comment
+faire ? »). Repère indicatif : `1` trivial et expédié (valider une MR triviale),
+`2` à `3` petit à modéré sans inconnue (dev bien cadré), `5` conséquent ou avec un peu
+d'inconnu, `8` gros ou vraiment incertain, `13`/`21` trop gros pour une seule tâche
+→ à découper en sous-tâches. Ces points forment l'**effort**, au **dénominateur** du
+score WSJF (`(valeur(priorité) + criticité(échéance)) / effort`) : à priorité et
+échéance égales, plus une tâche a de points, plus son score baisse et plus elle
+recule dans l'ordre — le petit et prioritaire passe toujours devant le gros et
+lointain. Distinct de la **durée estimée (min)**, qui sert uniquement au
+*placement* dans l'agenda (combien de temps le créneau occupe) : une tâche peut
+être courte mais tordue (peu de minutes, beaucoup de points) ou longue mais
+mécanique (l'inverse). Sans points renseignés, l'effort se rabat sur la durée
+estimée (≈ 1 point / 30 min, borné 1-21), puis sur `DEFAULT_FIBONACCI_POINTS`
+(3 par défaut) si rien n'est saisi du tout — le tri reste donc utilisable sans
+estimation, mais s'affine à mesure que le Fibo est renseigné.
+
 ### Dépendances entre tâches
 « Bloqué par » (menu de sélection multiple) : une tâche dont un bloqueur est encore
 à faire sort du planning (section « Bloquées », levée automatique et **transitive**) ;
