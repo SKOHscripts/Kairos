@@ -21,28 +21,29 @@ la phase d'extraction dans ce dépôt dédié y est consignée.
 
 ## Démarrage rapide
 
+Sur un poste Linux, une seule commande installe tout (venv + dépendances) **et**
+active le service systemd utilisateur (démarrage automatique, y compris au
+prochain boot) :
+
 ```bash
 git clone <url-de-ce-dépôt> kairos
 cd kairos
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-uvicorn app.main:app --port 8001        # → http://127.0.0.1:8001
+make service
 ```
 
-Aucune configuration requise : la base `tasks.db` est créée au premier démarrage et
-migrée automatiquement aux versions suivantes (aucune donnée n'est jamais perdue).
-Pour personnaliser : `cp .env.example .env` puis ajuster (tous les réglages y sont
-commentés).
+C'est tout : http://127.0.0.1:8001. Aucune configuration requise : la base
+`tasks.db` est créée au premier démarrage et migrée automatiquement aux versions
+suivantes (aucune donnée n'est jamais perdue). Pour personnaliser : `cp
+.env.example .env` puis ajuster (tous les réglages y sont commentés), puis
+`systemctl --user restart kairos`.
 
-Le makefile fait tout, depuis la racine du dépôt :
+Sans service (usage ponctuel, développement, ou plateforme sans systemd) :
 
 ```bash
-make install           # crée le venv + installe les dépendances
-make test              # venv + suite de tests complète
-make dev                # lancement en développement (rechargement auto), port 8001
-make run                # lancement en mode normal, port 8001
-make service            # service systemd utilisateur (démarrage auto, port 8001)
-make service-uninstall
+make install   # crée le venv + installe les dépendances
+make run       # lancement en mode normal, port 8001
+make dev       # lancement en développement (rechargement auto), port 8001
+make test      # venv + suite de tests complète
 ```
 
 ---
@@ -189,11 +190,13 @@ proprement de l'interface. « Kairos » n'écrit **jamais** dans la base pilotag
 
 ---
 
-## Démarrage automatique (service systemd utilisateur)
+## Service systemd (démarrage automatique)
+
+`make service` (§ Démarrage rapide) fait tout : venv, dépendances, unité
+systemd utilisateur activée. Équivalent à la main, si tu préfères ne pas passer
+par `make` :
 
 ```bash
-make service        # depuis la racine du dépôt
-# ou à la main, depuis la racine du dépôt :
 mkdir -p ~/.config/systemd/user
 sed "s#__PROJECT_DIR__#$(pwd)#g" deploy/kairos.service \
   > ~/.config/systemd/user/kairos.service
@@ -205,6 +208,7 @@ Le service écoute sur le **port 8001** (si tu fais aussi tourner l'outil de
 pilotage sur le même poste, il occupe le port 8000 : les deux coexistent).
 Exploitation : `systemctl --user status kairos`, `journalctl --user -u kairos -f`,
 `systemctl --user restart kairos` après un `git pull` ou un changement de `.env`.
+Désinstallation : `make service-uninstall`.
 
 ---
 
