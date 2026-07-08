@@ -1,0 +1,37 @@
+# kairos.service — service systemd « utilisateur » lançant « Kairos »
+# (FastAPI/Uvicorn) au démarrage de la machine.
+#
+# Installation (depuis la racine du dépôt) : make service
+# À la main (depuis la racine du dépôt) :
+#   mkdir -p ~/.config/systemd/user
+#   sed "s#__PROJECT_DIR__#$(pwd)#g" deploy/kairos.service \
+#     > ~/.config/systemd/user/kairos.service
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now kairos.service
+#   loginctl enable-linger "$USER"   # optionnel : démarrage au boot sans session
+#
+# __PROJECT_DIR__ doit être le chemin ABSOLU de la racine du dépôt : WorkingDirectory
+# doit pointer dessus car .env et tasks.db y sont lus en chemin relatif.
+#
+# Proxy sortant (réseau d'entreprise) : un service systemd démarre avec un
+# environnement minimal — un export HTTP_PROXY/HTTPS_PROXY de ton shell n'est jamais
+# vu par ce service. EnvironmentFile=-...env.proxy (optionnel grâce au « - ») règle
+# ça, notamment pour timetree-exporter.
+#
+# Port 8001 (l'outil de pilotage occupe 8000 : les deux coexistent sur un poste).
+
+[Unit]
+Description=Kairos (FastAPI/Uvicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=__PROJECT_DIR__
+EnvironmentFile=-__PROJECT_DIR__/.env.proxy
+ExecStart=__PROJECT_DIR__/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8001
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

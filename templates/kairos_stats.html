@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Kairos · statistiques{% endblock %}
+{% block topbar_title %}Statistiques{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn" href="/kairos?view=day">{{ icon('arrow_left') }} Retour au jour</a>
+{% endblock %}
+
+{% block content %}
+
+{% if not stats.has_any_data %}
+<section class="panel">
+  <h2>{{ icon('trending_up') }} Statistiques</h2>
+  <p class="empty">Aucune donnée à analyser pour l'instant. Créez des tâches, chronométrez
+  votre temps et renseignez les points/estimations : les indicateurs se construisent au fil
+  de l'usage.</p>
+</section>
+{% else %}
+
+{# ------------------------------------------------------------------ KPIs #}
+<section class="stats" style="margin-bottom:1rem;">
+  <div class="stat"><span class="stat-num">{{ stats.completed_in_window }}</span>
+    tâche(s) terminée(s) · {{ stats.window_weeks }} sem.</div>
+  <div class="stat"><span class="stat-num">{{ fmt_minutes(stats.tracked_minutes_window) }}</span>
+    temps réel tracké</div>
+  <div class="stat {% if stats.flow.completion_delay_days is none %}{% elif stats.flow.completion_delay_days > 7 %}tone-amber{% endif %}">
+    <span class="stat-num">{{ stats.flow.completion_delay_days if stats.flow.completion_delay_days is not none else '—' }}</span>
+    j délai médian de complétion</div>
+  <div class="stat {% if stats.flow.deadline_hit_pct is none %}{% elif stats.flow.deadline_hit_pct < 70 %}tone-red{% else %}tone-green{% endif %}">
+    <span class="stat-num">{{ stats.flow.deadline_hit_pct ~ ' %' if stats.flow.deadline_hit_pct is not none else '—' }}</span>
+    échéances respectées</div>
+</section>
+
+<div class="grid2">
+
+  {# ---------------------------------------------------------- Débit hebdo #}
+  <section class="panel">
+    <h2>{{ icon('trending_up') }} Débit hebdomadaire</h2>
+    <p class="hint">Tâches terminées par semaine (points de Fibonacci cumulés = vélocité).</p>
+    {% set max_completed = stats.throughput | map(attribute='completed') | max %}
+    {% for w in stats.throughput %}
+    <div class="barrow">
+      <span class="barlabel" title="Semaine du {{ w.label }}">{{ w.label }}</span>
+      <div class="track"><div class="fill done"
+        style="width: {{ (100 * w.completed / max_completed) if max_completed else 0 }}%"></div></div>
+      <span class="barval">{{ w.completed }}{% if w.points %} <span class="muted">· {{ w.points }} pts</span>{% endif %}</span>
+    </div>
+    {% endfor %}
+  </section>
+
+  {# ------------------------------------------------ Calibration estimation #}
+  <section class="panel">
+    <h2>{{ icon('clock') }} Calibration de l'estimation</h2>
+    <p class="hint">Temps réel médian par palier de points : si deux paliers se
+    rejoignent, l'échelle ne discrimine pas — à recalibrer.</p>
+    {% if stats.calibration %}
+    {% set max_median = stats.calibration | map(attribute='median_minutes') | max %}
+    {% for c in stats.calibration %}
+    <div class="barrow">
+      <span class="barlabel">{{ c.points }} pts</span>
+      <div class="track"><div class="fill"
+        style="width: {{ (100 * c.median_minutes / max_median) if max_median else 0 }}%"></div></div>
+      <span class="barval">{{ fmt_minutes(c.median_minutes) }}
+        <span class="muted">· n={{ c.count }}</span>{% if not c.reliable %} <span class="badge warn" title="Peu de données : indicateur peu fiable">{{ icon('warning') }}</span>{% endif %}</span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="empty">Aucune tâche terminée à la fois estimée en points et chronométrée.
+    Posez des points et lancez le chrono pour alimenter cet indicateur.</p>
+    {% endif %}
+    {% if stats.bias %}
+    <p class="hint" style="margin-top:0.6rem;">
+      <strong>Biais estimé vs réel</strong> :
+      <span class="badge {% if stats.bias.ratio > 1.25 or stats.bias.ratio < 0.8 %}warn{% else %}ok{% endif %}">
+        ×{{ '%.2f' | format(stats.bias.ratio) }}</span>
+      — {{ fmt_minutes(stats.bias.real_minutes) }} réel pour
+      {{ fmt_minutes(stats.bias.estimated_minutes) }} estimé
+      <span class="muted">(n={{ stats.bias.count }}{% if not stats.bias.reliable %}, peu fiable{% endif %})</span>.
+      {% if stats.bias.ratio > 1.1 %}Vous sous-estimez.{% elif stats.bias.ratio < 0.9 %}Vous surestimez.{% else %}Estimations justes.{% endif %}
+    </p>
+    {% endif %}
+  </section>
+
+  {# ------------------------------------------ Répartition du temps par type #}
+  <section class="panel">
+    <h2>{{ icon('layers') }} Répartition du temps réel</h2>
+    <p class="hint">Où passe réellement le temps chronométré, sur {{ stats.window_weeks }}
+    semaines.</p>
+    {% if stats.time_by_type %}
+    {% for t in stats.time_by_type %}
+    <div class="barrow">
+      <span class="barlabel" title="{{ t.label }}">{{ t.label }}</span>
+      <div class="track"><div class="fill" style="width: {{ t.pct }}%"></div></div>
+      <span class="barval">{{ fmt_minutes(t.minutes) }} <span class="muted">· {{ t.pct }} %</span></span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="empty">Aucun temps chronométré sur la période.</p>
+    {% endif %}
+    {% if stats.focus and stats.focus.session_count %}
+    <p class="hint" style="margin-top:0.6rem;">
+      <strong>Focus</strong> : {{ stats.focus.session_count }} session(s),
+      {{ fmt_minutes(stats.focus.avg_session_minutes) }} en moyenne
+      <span class="muted">(sessions courtes et nombreuses = attention morcelée)</span>.
+    </p>
+    {% endif %}
+  </section>
+
+  {# ------------------------------------------------------- Flux & backlog #}
+  <section class="panel">
+    <h2>{{ icon('dashboard') }} Flux &amp; backlog</h2>
+    <p class="hint">État courant du travail en cours (tout l'ouvert).</p>
+    <div class="stats">
+      <div class="stat"><span class="stat-num">{{ stats.flow.open_count }}</span> en cours (WIP)</div>
+      <div class="stat"><span class="stat-num">{{ stats.flow.median_age_days if stats.flow.median_age_days is not none else '—' }}</span> j âge médian</div>
+      <div class="stat {% if stats.flow.overdue_count %}tone-red{% endif %}">
+        <span class="stat-num">{{ stats.flow.overdue_count }}</span> en retard</div>
+      <div class="stat {% if stats.flow.stale_count %}tone-amber{% endif %}">
+        <span class="stat-num">{{ stats.flow.stale_count }}</span> qui traînent</div>
+    </div>
+  </section>
+
+  {# ------------------------------------------ Complétude des métadonnées #}
+  <section class="panel">
+    <h2>{{ icon('check_circle') }} Complétude des métadonnées</h2>
+    <p class="hint">Part des tâches en cours qualifiées — les stats de calibration en
+    dépendent : plus vous renseignez, plus le tri et les analyses sont fins.</p>
+    {% set c = stats.completeness %}
+    {% for label, pct, n in [
+        ('Points de Fibonacci', c.points_pct, c.with_points),
+        ('Durée estimée', c.estimate_pct, c.with_estimate),
+        ('Type de tâche', c.type_pct, c.with_type)] %}
+    <div class="barrow">
+      <span class="barlabel">{{ label }}</span>
+      <div class="track"><div class="fill {% if pct >= 70 %}done{% endif %}" style="width: {{ pct }}%"></div></div>
+      <span class="barval">{{ pct }} % <span class="muted">· {{ n }}/{{ c.total }}</span></span>
+    </div>
+    {% endfor %}
+  </section>
+
+</div>
+{% endif %}
+{% endblock %}

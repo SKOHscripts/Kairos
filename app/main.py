@@ -1,0 +1,896 @@
+"""Application web FastAPI « Kairos » : tâches, time blocking, deep work, stats.
+
+Kairos (καιρός) : en grec, *le moment opportun* — c'est le métier de l'outil, poser
+chaque tâche au bon créneau. Nom de code : **14h55**, le creux post-déjeuner, l'heure
+la moins productive de la journée — l'exact opposé, en clin d'œil.
+
+Outil autonome (extrait de `pilotage-pleiade-gitlab`, phase 14). L'intégration avec
+l'outil de pilotage MSI est optionnelle et en lecture seule (voir `pilotage_link.py`).
+"""
+
+from __future__ import annotations
+
+import logging
+from contextlib import asynccontextmanager
+from datetime import date, datetime, time as dt_time, timedelta, timezone
+from pathlib import Path
+
+from fastapi import Depends, FastAPI, Form, Request
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from .calendar.timetree_source import fetch_busy_slots
+from .config import get_settings
+from .gitlab_direct import fetch_assigned_issues
+from .pilotage_link import CachedGitLabIssue, LinkedTicket, get_pilotage_session
+from .tasks_db import get_tasks_session, init_tasks_db
+from .tasks_dependencies import (
+    blocked_task_ids,
+    blocking_reason,
+    derived_urgency,
+    would_create_cycle,
+)
+from .tasks_models import (
+    FIBONACCI_SCALE,
+    TASK_TYPE_LABELS,
+    Task,
+    TaskDependency,
+    TimeBlock,
+    WorkSession,
+)
+from .tasks_recurrence import (
+    BLOCK_RECURRENCE_RULES,
+    ensure_calendar_occurrences,
+    expand_recurring_blocks,
+    next_snooze_date,
+    spawn_next_occurrence,
+)
+from .tasks_scheduling import (
+    build_day_schedule,
+    build_timeline,
+    count_max_priority_tasks,
+    session_timeline_entries,
+    urgency_bucket,
+    urgency_key,
+    wsjf_score,
+)
+from .tasks_staleness import days_stale
+from .tasks_stats import compute_dashboard_stats
+from .tasks_gitlab_sync import sync_assigned_gitlab_tasks, write_sync_meta
+from .tasks_time import (
+    running_session,
+    sessions_in_range,
+    sessions_on_day,
+    spent_minutes_by_task,
+    spent_minutes_by_type,
+    total_minutes,
+)
+
+logger = logging.getLogger("kairos")
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _optional_int(value: str | None) -> int | None:
+    """Convertit une valeur de formulaire en entier, vide → None."""
+    if value is None or not str(value).strip():
+        return None
+    return int(value)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    logging.basicConfig(level=get_settings().log_level.upper())
+    init_tasks_db()
+    yield
+
+
+app = FastAPI(title="Kairos", lifespan=lifespan)
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon() -> Response:
+    """Sert l'icône (les navigateurs sollicitent /favicon.ico même sans lien)."""
+    return FileResponse(BASE_DIR / "static" / "favicon.svg", media_type="image/svg+xml")
+
+
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    """La page d'accueil EST « Kairos »."""
+    return RedirectResponse("/kairos", status_code=307)
+
+
+def _fetch_busy_blocks(
+    tasks_session: Session, settings, range_start: date, range_end: date
+):
+    """Blocs manuels (base) + TimeTree (best-effort), fusionnés sur ``[range_start, range_end]``.
+
+    Ne filtre PAS journée entière/période ici : chaque appelant décide comment traiter
+    ces cas particuliers (voir ``_render_kairos``). Les blocs récurrents (phase 13)
+    sont stockés comme un modèle unique (jamais un par occurrence) : projetés à la
+    volée sur la plage demandée par ``expand_recurring_blocks``, jamais persistés.
+    """
+    timetree_result = fetch_busy_slots(range_start, range_end, settings=settings)
+    range_start_dt = datetime.combine(range_start, datetime.min.time())
+    range_end_dt = datetime.combine(range_end, datetime.max.time())
+    one_off_blocks = list(
+        tasks_session.scalars(
+            select(TimeBlock).where(
+                TimeBlock.source == "manual",
+                TimeBlock.recurrence == "",
+                TimeBlock.start < range_end_dt,
+                TimeBlock.end > range_start_dt,
+            )
+        )
+    )
+    recurring_templates = list(
+        tasks_session.scalars(
+            select(TimeBlock).where(
+                TimeBlock.source == "manual",
+                TimeBlock.recurrence != "",
+            )
+        )
+    )
+    manual_blocks = one_off_blocks + expand_recurring_blocks(
+        recurring_templates, range_start, range_end
+    )
+    return manual_blocks, timetree_result
+
+
+def _build_week_view(
+    tasks: list[Task], blocks: list[TimeBlock], monday: date, indication_slots=None
+) -> list[dict]:
+    """Grille 7 jours : tâches groupées par ``deadline``, blocs horaires du jour, et
+    événements « journée entière » ou « sur une période » en puces (jamais posés comme
+    des créneaux — voir ``_render_kairos``)."""
+    days = [monday + timedelta(days=i) for i in range(7)]
+    week = []
+    for day in days:
+        day_tasks = sorted(
+            (t for t in tasks if t.deadline == day),
+            key=lambda t: (t.priority is None, t.priority if t.priority is not None else 999),
+        )
+        day_blocks = sorted(
+            (b for b in blocks if b.start.date() == day), key=lambda b: b.start
+        )
+        day_all_day = sorted(
+            b.title for b in (indication_slots or []) if b.covers(day)
+        )
+        week.append({
+            "date": day, "tasks": day_tasks, "blocks": day_blocks,
+            "all_day": day_all_day,
+        })
+    return week
+
+
+def _render_kairos(
+    request: Request,
+    tasks_session: Session,
+    pilotage_session: Session | None,
+    *,
+    view: str = "day",
+    day: date | None = None,
+) -> HTMLResponse:
+    """« Kairos » : tâches ordonnées par urgence, compte tenu des créneaux occupés.
+
+    Best-effort sur les sources externes (TimeTree, GitLab) : un échec se traduit
+    par un bandeau d'avertissement dans le template, jamais par une page en erreur
+    (voir SPEC_KAIROS.md § Success Criteria). ``pilotage_session`` (base de
+    l'outil de pilotage, lecture seule) est None si l'intégration n'est pas
+    configurée : la liaison de fiches (« Fiche liée ») est alors désactivée
+    proprement. L'import des issues GitLab assignées suit, lui, deux chemins
+    possibles — le cache pilotage (zéro appel réseau) s'il est configuré, sinon
+    l'appel direct à l'API GitLab (``gitlab_direct_configured``) pour un collègue
+    sans l'outil de pilotage ; sans aucun des deux, l'import reste désactivé,
+    silencieusement (pas de bandeau, cas normal).
+    """
+    settings = get_settings()
+    target_day = day or date.today()
+    gitlab_direct_error = ""
+    if pilotage_session is not None:
+        cached_issues = list(pilotage_session.scalars(select(CachedGitLabIssue)))
+        sync_assigned_gitlab_tasks(
+            cached_issues, tasks_session, settings.gitlab_assignee_username
+        )
+    elif settings.gitlab_direct_configured:
+        fetch_result = fetch_assigned_issues(settings)
+        if fetch_result.ok:
+            sync_assigned_gitlab_tasks(
+                fetch_result.issues, tasks_session, settings.gitlab_assignee_username
+            )
+        else:
+            # Dégradation propre : les tâches déjà importées restent affichées telles
+            # quelles, un bandeau signale juste que ce rafraîchissement a échoué.
+            write_sync_meta(tasks_session, ok=False, detail=fetch_result.detail, count=0)
+            gitlab_direct_error = fetch_result.detail
+    ensure_calendar_occurrences(tasks_session, target_day, settings.holiday_set)
+    all_tasks = list(tasks_session.scalars(select(Task).where(Task.status != "archived")))
+    tasks = [t for t in all_tasks if t.status == "todo"]
+
+    # Détection des tâches qui traînent (phase 7) : signal d'affichage seul,
+    # calculé après coup — ne modifie jamais le tri ni les buckets d'urgence.
+    stale_days_of = {
+        t.id: days
+        for t in tasks
+        if (days := days_stale(
+            t, target_day,
+            overdue_days=settings.stale_overdue_days,
+            untouched_days=settings.stale_untouched_days,
+        )) is not None
+    }
+
+    # Garde-fou de surcharge de priorité maximale (phase 7) : purement informatif.
+    priority_overload_count = count_max_priority_tasks(tasks)
+
+    # Liaison manuelle vers une fiche de dette technique (phase 6) : lecture seule,
+    # choix proposés au panneau d'édition + résolution du libellé pour le badge.
+    all_tickets = (
+        list(pilotage_session.scalars(select(LinkedTicket)))
+        if pilotage_session is not None else []
+    )
+    ticket_by_id = {t.id: t for t in all_tickets}
+    ticket_choices = sorted(
+        (
+            {"id": t.id, "label": f"#{t.pleiade_id} — {t.pleiade_subject[:60]}"}
+            for t in all_tickets
+        ),
+        key=lambda c: c["label"],
+    )
+
+    # Hiérarchie : avancement n/m des tâches mères, et titre de la mère pour chaque
+    # fille (fil d'Ariane dans les listes, qui restent triées par heure).
+    by_id = {t.id: t for t in all_tasks}
+    children_of: dict[int, list[Task]] = {}
+    for t in all_tasks:
+        if t.parent_id is not None:
+            children_of.setdefault(t.parent_id, []).append(t)
+    parents_progress = [
+        {
+            "task": parent,
+            "done": sum(1 for c in children if c.status == "done"),
+            "total": len(children),
+        }
+        for parent_id, children in children_of.items()
+        if (parent := by_id.get(parent_id)) is not None
+        and parent.status == "todo"
+        and any(c.status == "todo" for c in children)
+    ]
+    parent_title_of = {
+        t.id: by_id[t.parent_id].title
+        for t in all_tasks
+        if t.parent_id is not None and t.parent_id in by_id
+    }
+
+    # Dépendances : arêtes (bloquée, bloquante), tâches bloquées, urgence dérivée.
+    dep_edges = [
+        (d.task_id, d.blocker_id)
+        for d in tasks_session.scalars(select(TaskDependency))
+    ]
+    status_by_id = {t.id: t.status for t in all_tasks}
+    title_by_id = {t.id: t.title for t in all_tasks}
+    blocked_ids = blocked_task_ids(dep_edges, status_by_id)
+    block_reasons = blocking_reason(dep_edges, status_by_id, title_by_id)
+    own_urgency = {t.id: urgency_key(t, target_day, settings=settings) for t in tasks}
+    effective_urgency = derived_urgency(dep_edges, own_urgency)
+    # Tâches dont l'urgence a été relevée par une dépendance (badge « sur le chemin
+    # critique ») : clé effective plus forte (plus petite) que la clé propre.
+    raised_ids = {
+        tid for tid, key in effective_urgency.items()
+        if key < own_urgency.get(tid, key)
+    }
+    # Bordure colorée du template : palier d'urgence PROPRE 0-4 (pression temporelle),
+    # volontairement découplé de l'ordre WSJF (phase 9). L'ordre suit le score ; la
+    # couleur reste une lecture rapide « à quel point c'est pressé », le badge
+    # « chemin critique » (raised_ids) signale à part le relèvement par dépendance.
+    bucket_of = {t.id: urgency_bucket(t, target_day) for t in tasks}
+    # Score WSJF affiché à côté de chaque tâche (transparence : on voit *pourquoi* cet
+    # ordre) + détail valeur/urgence/effort au survol. Phase 9.
+    wsjf_of = {t.id: round(wsjf_score(t, target_day, settings=settings), 1) for t in tasks}
+    blocked_tasks = [
+        {"task": by_id[tid], "reasons": block_reasons.get(tid, [])}
+        for tid in blocked_ids
+        if tid in by_id
+    ]
+    blocked_tasks.sort(key=lambda e: e["task"].title)
+    # Choix des bloqueurs candidats pour l'UI (toute autre tâche à faire).
+    blocker_choices = sorted(
+        ({"id": t.id, "title": t.title} for t in tasks),
+        key=lambda c: c["title"],
+    )
+
+    # Suivi du temps réel : total passé par tâche + session en cours (minuteur vivant).
+    sessions = list(tasks_session.scalars(select(WorkSession)))
+    spent_by_task = spent_minutes_by_task(sessions)
+    running = running_session(sessions)
+    running_task_id = running.task_id if running is not None else None
+    running_started_iso = (
+        (running.started_at if running.started_at.tzinfo
+         else running.started_at.replace(tzinfo=timezone.utc)).isoformat()
+        if running is not None else None
+    )
+    # Alertes de chrono (phase 11) : la tâche en cours nourrit le script client
+    # (dépassement de l'estimé, titre d'onglet vivant, notification).
+    running_task = by_id.get(running_task_id) if running_task_id is not None else None
+    running_task_title = running_task.title if running_task is not None else ""
+    running_task_estimate = (
+        running_task.estimated_minutes if running_task is not None else None
+    )
+    # Phase 7 : le total « aujourd'hui » ne doit compter que les sessions du jour
+    # affiché — corrige un bug où `sessions` (toutes, jamais filtrées) gonflait ce
+    # total avec l'historique complet. Ventilation par type en plus, pour un usage
+    # immédiat du suivi du temps déjà collecté.
+    task_type_by_id = {t.id: t.task_type for t in all_tasks}
+    today_sessions = sessions_on_day(sessions, target_day)
+    spent_by_type_today = {
+        TASK_TYPE_LABELS.get(k, k): v
+        for k, v in spent_minutes_by_type(today_sessions, task_type_by_id).items()
+        if k and v > 0
+    }
+
+    context = {
+        "page": "kairos",
+        "settings": settings,
+        "view": view,
+        "day": target_day,
+        "timetree_configured": settings.timetree_configured,
+        "gitlab_direct_error": gitlab_direct_error,
+        "blocked_tasks": blocked_tasks,
+        "block_reasons": block_reasons,
+        "raised_ids": raised_ids,
+        "bucket_of": bucket_of,
+        "wsjf_of": wsjf_of,
+        "task_type_labels": TASK_TYPE_LABELS,
+        "fibonacci_scale": FIBONACCI_SCALE,
+        "spent_by_task": spent_by_task,
+        "running_task_id": running_task_id,
+        "running_started_iso": running_started_iso,
+        "running_task_title": running_task_title,
+        "running_task_estimate": running_task_estimate,
+        "spent_total_str": _fmt_minutes(total_minutes(today_sessions)),
+        "spent_by_type_today": spent_by_type_today,
+        "deps_of": {  # bloqueurs directs par tâche, pour le panneau d'édition
+            tid: [
+                {"id": bid, "title": title_by_id.get(bid, f"#{bid}")}
+                for (t2, bid) in dep_edges if t2 == tid
+            ]
+            for tid in {e[0] for e in dep_edges}
+        },
+        "blocker_choices": blocker_choices,
+        "ticket_choices": ticket_choices,
+        "ticket_by_id": ticket_by_id,
+        "stale_days_of": stale_days_of,
+        "priority_overload_count": priority_overload_count,
+        "priority_overload_threshold": settings.priority_overload_threshold,
+    }
+
+    if view == "week":
+        monday = target_day - timedelta(days=target_day.weekday())
+        sunday = monday + timedelta(days=6)
+        manual_blocks, timetree_result = _fetch_busy_blocks(
+            tasks_session, settings, monday, sunday
+        )
+        # Les événements « journée entière » ET les événements « sur une période »
+        # (plusieurs jours, horaires réels) ne sont pas des créneaux horaires : ils
+        # sont affichés en puce sur leur(s) jour(s), jamais posés sur la grille — un
+        # horaire réel ne dit rien sur les jours intermédiaires d'un déplacement de
+        # plusieurs jours (phase 12).
+        timed_slots = [
+            b for b in timetree_result.blocks
+            if not b.all_day and b.start.date() == b.end.date()
+        ]
+        indication_slots = [
+            b for b in timetree_result.blocks
+            if b.all_day or b.start.date() != b.end.date()
+        ]
+        # Agrégat hebdomadaire du temps réel par type (phase 7) : synthèse compacte
+        # à partir des données déjà collectées, pas un nouveau dashboard de stats.
+        week_sessions = sessions_in_range(sessions, monday, sunday)
+        spent_by_type_week = {
+            TASK_TYPE_LABELS.get(k, k): v
+            for k, v in spent_minutes_by_type(week_sessions, task_type_by_id).items()
+            if k and v > 0
+        }
+        context.update(
+            week_start=monday,
+            week_days=_build_week_view(tasks, manual_blocks + [
+                TimeBlock(title=b.title, start=b.start, end=b.end, source="timetree")
+                for b in timed_slots
+            ], monday, indication_slots),
+            timetree_ok=timetree_result.ok,
+            timetree_detail=timetree_result.detail,
+            spent_by_type_week=spent_by_type_week,
+            week_spent_total_str=_fmt_minutes(total_minutes(week_sessions)),
+        )
+    else:
+        manual_blocks, timetree_result = _fetch_busy_blocks(
+            tasks_session, settings, target_day, target_day
+        )
+        # Journées entières ET événements « sur une période » (plusieurs jours, horaires
+        # réels) TimeTree : simple indication sur le jour, jamais un obstacle qui
+        # mangerait la journée entière (l'horaire réel ne dit rien des jours
+        # intermédiaires d'un déplacement de plusieurs jours — phase 12).
+        timetree_blocks = [
+            TimeBlock(title=b.title, start=b.start, end=b.end, source="timetree")
+            for b in timetree_result.blocks
+            if not b.all_day and b.start.date() == b.end.date()
+        ]
+        indication_events = sorted(
+            b.title for b in timetree_result.blocks
+            if b.all_day and b.covers(target_day)
+        ) + sorted(
+            f"{b.title} ({b.start.strftime('%d/%m')} → {b.end.strftime('%d/%m')})"
+            for b in timetree_result.blocks
+            if not b.all_day and b.start.date() != b.end.date() and b.covers(target_day)
+        )
+        schedule = build_day_schedule(
+            tasks, manual_blocks + timetree_blocks, target_day,
+            now=datetime.now(), settings=settings,
+            blocked_ids=blocked_ids, urgency_keys=effective_urgency,
+        )
+        # Section « Fait » : les tâches terminées dans la journée affichée (repère
+        # d'avancement ; updated_at est en UTC naïf, précision au jour suffisante ici).
+        done_today = [
+            t for t in tasks_session.scalars(select(Task).where(Task.status == "done"))
+            if t.updated_at is not None and t.updated_at.date() == target_day
+        ]
+        timeline = build_timeline(
+            schedule, manual_blocks + timetree_blocks, target_day, settings=settings
+        )
+        # Sessions de travail RÉELLES du jour, projetées sur la même timeline (« réel »
+        # à côté du « planifié ») — phase 11.
+        session_timeline = session_timeline_entries(
+            today_sessions, target_day, {t.id: t.title for t in all_tasks},
+            settings=settings, now=datetime.now(),
+        )
+        # Créneaux manuels ÉDITABLES pertinents pour le jour affiché : les ponctuels du
+        # jour + les modèles récurrents dont une occurrence tombe ce jour-là. Ce sont les
+        # lignes RÉELLES (avec id), pas les projections transitoires — éditer un récurrent
+        # porte sur le modèle, donc sur toutes ses occurrences.
+        all_manual = list(
+            tasks_session.scalars(select(TimeBlock).where(TimeBlock.source == "manual"))
+        )
+        editable_blocks = sorted(
+            (
+                b for b in all_manual
+                if (not b.recurrence and b.start.date() == target_day)
+                or (b.recurrence and expand_recurring_blocks([b], target_day, target_day))
+            ),
+            key=lambda b: b.start.time(),
+        )
+        context.update(
+            schedule=schedule,
+            session_timeline=session_timeline,
+            manual_blocks=sorted(manual_blocks, key=lambda b: b.start),
+            editable_blocks=editable_blocks,
+            block_recurrence_labels={
+                "daily": "quotidien", "weekdays": "jours ouvrés", "weekly": "hebdomadaire",
+            },
+            done_today=done_today,
+            indication_events=indication_events,
+            parents_progress=parents_progress,
+            parent_title_of=parent_title_of,
+            timeline=timeline,
+            timeline_height=(settings.workday_end_hour - settings.workday_start_hour) * 60,
+            timeline_hours=list(range(settings.workday_start_hour, settings.workday_end_hour + 1)),
+            required_str=_fmt_minutes(schedule.stats.required_minutes),
+            available_str=_fmt_minutes(schedule.stats.available_minutes),
+            overflow_str=_fmt_minutes(schedule.stats.overflow_minutes),
+            # « À faire maintenant » : la première planifiée, sinon (soirée, journée
+            # pleine) la première non planifiée — il y a toujours un « prochain pas ».
+            next_up_task=(
+                schedule.scheduled[0].task if schedule.scheduled
+                else (schedule.unscheduled[0] if schedule.unscheduled else None)
+            ),
+            next_up_time=(schedule.scheduled[0].start_at if schedule.scheduled else None),
+            timetree_ok=timetree_result.ok,
+            timetree_detail=timetree_result.detail,
+        )
+
+    return templates.TemplateResponse(request, "kairos.html", context)
+
+
+@app.get("/kairos", response_class=HTMLResponse)
+def kairos(
+    request: Request,
+    view: str = "day",
+    start: str | None = None,
+    tasks_session: Session = Depends(get_tasks_session),
+    pilotage_session: Session | None = Depends(get_pilotage_session),
+) -> HTMLResponse:
+    day = date.fromisoformat(start) if start else None
+    return _render_kairos(request, tasks_session, pilotage_session, view=view, day=day)
+
+
+@app.get("/kairos/stats", response_class=HTMLResponse)
+def kairos_stats(
+    request: Request,
+    tasks_session: Session = Depends(get_tasks_session),
+) -> HTMLResponse:
+    """Dashboard de statistiques (phase 10) : indicateurs constructifs à partir des
+    tâches et sessions déjà collectées. Lecture seule, aucun appel réseau ni synchro."""
+    settings = get_settings()
+    today = date.today()
+    tasks = list(tasks_session.scalars(select(Task)))
+    sessions = list(tasks_session.scalars(select(WorkSession)))
+    stats = compute_dashboard_stats(tasks, sessions, today, settings=settings)
+    context = {
+        "page": "kairos_stats",
+        "settings": settings,
+        "day": today,
+        "stats": stats,
+        "fmt_minutes": _fmt_minutes,
+    }
+    return templates.TemplateResponse(request, "kairos_stats.html", context)
+
+
+def _optional_date(value: str | None) -> date | None:
+    """Convertit une valeur de formulaire en date ISO, vide/invalide → None."""
+    if not value or not str(value).strip():
+        return None
+    try:
+        return date.fromisoformat(value.strip())
+    except ValueError:
+        return None
+
+
+def _fmt_minutes(minutes: int) -> str:
+    """Formatage lisible d'une durée en minutes (« 1 h 30 », « 45 min »)."""
+    hours, mins = divmod(max(0, minutes), 60)
+    if hours and mins:
+        return f"{hours} h {mins:02d}"
+    if hours:
+        return f"{hours} h"
+    return f"{mins} min"
+
+
+@app.post("/kairos/tasks")
+def create_native_task(
+    title: str = Form(...),
+    priority: str = Form(""),
+    deadline: str = Form(""),
+    scheduled_date: str = Form(""),
+    project_tag: str = Form(""),
+    estimated_minutes: str = Form(""),
+    parent_id: str = Form(""),
+    tasks_session: Session = Depends(get_tasks_session),
+) -> RedirectResponse:
+    """Création rapide d'une tâche native (ou d'une sous-tâche si ``parent_id``)."""
+    title = title.strip()
+    parent_key = _optional_int(parent_id)
+    if parent_key is not None and tasks_session.get(Task, parent_key) is None:
+        parent_key = None  # mère disparue : la tâche naît au premier niveau
+    if title:
+        tasks_session.add(
+            Task(
+                title=title,
+                priority=_optional_int(priority),
+                deadline=_optional_date(deadline),
+                scheduled_date=_optional_date(scheduled_date),
+                project_tag=project_tag.strip(),
+                estimated_minutes=_optional_int(estimated_minutes),
+                parent_id=parent_key,
+                source="native",
+            )
+        )
+        tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
+
+@app.post("/kairos/tasks/{task_id}/priority")
+def update_task_priority(
+    task_id: int,
+    priority: str = Form(""),
+    tasks_session: Session = Depends(get_tasks_session),
+) -> RedirectResponse:
+    task = tasks_session.get(Task, task_id)
+    if task is not None:
+        task.priority = _optional_int(priority)
+        tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
+
+def _stop_running_sessions(tasks_session: Session) -> None:
+    """Ferme toute session de travail encore ouverte (invariant : au plus une en cours)."""
+    now = datetime.now(timezone.utc)
+    for session in tasks_session.scalars(
+        select(WorkSession).where(WorkSession.ended_at.is_(None))
+    ):
+        session.ended_at = now
+
+
+@app.post("/kairos/tasks/{task_id}/timer/start")
+def start_timer(
+    task_id: int,
+    tasks_session: Session = Depends(get_tasks_session),
+) -> RedirectResponse:
+    """Démarre le chrono sur une tâche (ferme d'abord toute session en cours ailleurs)."""
+    task = tasks_session.get(Task, task_id)
+    if task is not None:
+        _stop_running_sessions(tasks_session)
+        tasks_session.add(WorkSession(task_id=task_id))
+        tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
+
+@app.post("/kairos/tasks/{task_id}/timer/stop")
+def stop_timer(
+    task_id: int,
+    tasks_session: Session = Depends(get_tasks_session),
+) -> RedirectResponse:
+    """Arrête le chrono en cours sur cette tâche."""
+    now = datetime.now(timezone.utc)
+    for session in tasks_session.scalars(
+        select(WorkSession).where(
+            WorkSession.task_id == task_id, WorkSession.ended_at.is_(None)
+        )
+    ):
+        session.ended_at = now
+    tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
+
+@app.post("/kairos/tasks/{task_id}/edit")
+def edit_task(
+    task_id: int,
+    title: str = Form(""),
+    description: str = Form(""),
+    priority: str = Form(""),
+    deadline: str = Form(""),
+    scheduled_date: str = Form(""),
+    project_tag: str = Form(""),
+    estimated_minutes: str = Form(""),
+    recurrence: str = Form(""),
+    recurrence_day_of_month: str = Form(""),
+    task_type: str = Form(""),
+    fibonacci_points: str = Form(""),
+    pin_time: str = Form(""),
+    pin_day: str = Form(""),
+    linked_ticket_id: str = Form(""),
+    new_subtasks: str = Form(""),
+    blocker_ids: list[str] = Form([]),
+    tasks_session: Session = Depends(get_tasks_session),
+    pilotage_session: Session | None = Depends(get_pilotage_session),
+) -> RedirectResponse:
+    """Édition complète d'une tâche (tous champs), y compris une tâche importée de SP.
+
+    Fusionne l'épinglage (heure fixe) dans le même enregistrement : `pin_time` vide
+    désépingle, une heure valide pose `pinned_start` sur le jour affiché — un seul
+    « Enregistrer » plutôt que deux soumissions séparées (phase 5).
+
+    `linked_ticket_id` (phase 6) : référence en lecture seule vers une fiche
+    `LinkedTicket` (base dette technique) — validée contre son existence (``pilotage_session``),
+    jamais d'écriture vers Redmine/GitLab.
+
+    `new_subtasks` (phase 6) : une ligne = une sous-tâche créée dans le même
+    enregistrement (ajout en lot, en plus de la création rapide d'une seule
+    sous-tâche qui reste disponible séparément). `blocker_ids` : l'**ensemble
+    cible complet** des bloqueurs — la route calcule le diff avec l'existant
+    (ajoute/retire), ignore silencieusement toute arête qui créerait un cycle
+    (reprend `would_create_cycle`, comme l'ancienne route dédiée) sans faire
+    échouer le reste de l'enregistrement.
+    """
+    task = tasks_session.get(Task, task_id)
+    if task is not None:
+        if title.strip():
+            task.title = title.strip()
+        task.description = description
+        task.priority = _optional_int(priority)
+        task.deadline = _optional_date(deadline)
+        task.scheduled_date = _optional_date(scheduled_date)
+        task.project_tag = project_tag.strip()
+        task.estimated_minutes = _optional_int(estimated_minutes)
+        if recurrence in ("", "daily", "weekdays", "weekly", "monthly", "monthly_on_day"):
+            task.recurrence = recurrence
+        # Le jour du mois n'a de sens que pour la récurrence calendaire ; le vider
+        # sinon évite une valeur résiduelle trompeuse si l'utilisateur change d'avis.
+        task.recurrence_day_of_month = (
+            _optional_int(recurrence_day_of_month) if recurrence == "monthly_on_day" else None
+        )
+        task.task_type = task_type if task_type in TASK_TYPE_LABELS else ""
+        task.fibonacci_points = _optional_int(fibonacci_points)
+        if pin_time.strip():
+            target_day = _optional_date(pin_day) or date.today()
+            try:
+                hour, minute = (int(part) for part in pin_time.strip().split(":", 1))
+                task.pinned_start = datetime.combine(target_day, dt_time(hour=hour, minute=minute))
+            except (ValueError, TypeError):
+                pass  # heure invalide : on ignore, cohérent avec la validation minimale de l'app
+        else:
+            task.pinned_start = None
+        ticket_id = _optional_int(linked_ticket_id)
+        task.linked_ticket_id = (
+            ticket_id
+            if ticket_id is not None and pilotage_session is not None
+            and pilotage_session.get(LinkedTicket, ticket_id) is not None
+            else None
+        )
+
+        # Sous-tâches en lot : une ligne non vide = une sous-tâche native de plus.
+        for line in new_subtasks.splitlines():
+            subtask_title = line.strip()
+            if subtask_title:
+                tasks_session.add(Task(title=subtask_title, parent_id=task_id, source="native"))
+
+        # Bloqueurs : l'ensemble soumis est la cible complète, on calcule le diff.
+        target_blocker_ids = {
+            bid for raw in blocker_ids
+            if (bid := _optional_int(raw)) is not None and bid != task_id
+        }
+        existing_deps = list(
+            tasks_session.scalars(
+                select(TaskDependency).where(TaskDependency.task_id == task_id)
+            )
+        )
+        existing_blocker_ids = {d.blocker_id for d in existing_deps}
+        for dep in existing_deps:
+            if dep.blocker_id not in target_blocker_ids:
+                tasks_session.delete(dep)
+        edges = [
+            (d.task_id, d.blocker_id) for d in tasks_session.scalars(select(TaskDependency))
+        ]
+        for blocker_id in target_blocker_ids - existing_blocker_ids:
+            if tasks_session.get(Task, blocker_id) is None:
+                continue
+            if would_create_cycle(edges, task_id, blocker_id):
+                continue  # ignoré silencieusement : le reste de l'enregistrement réussit quand même
+            tasks_session.add(TaskDependency(task_id=task_id, blocker_id=blocker_id))
+            edges.append((task_id, blocker_id))
+
+        tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
+
+@app.post("/kairos/tasks/{task_id}/done")
+def toggle_task_done(
+    task_id: int,
+    tasks_session: Session = Depends(get_tasks_session),
+) -> RedirectResponse:
+    """Bascule fait ↔ à faire. Terminer une récurrente crée l'occurrence suivante."""
+    task = tasks_session.get(Task, task_id)
+    if task is not None:
+        if task.status == "todo":
+            task.status = "done"
+            # Arrêter le chrono éventuellement en cours sur cette tâche terminée.
+            now = datetime.now(timezone.utc)
+            for session in tasks_session.scalars(
+                select(WorkSession).where(
+                    WorkSession.task_id == task_id, WorkSession.ended_at.is_(None)
+                )
+            ):
+                session.ended_at = now
+            spawn_next_occurrence(tasks_session, task)
+        elif task.status == "done":
+            task.status = "todo"
+        tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
+
+@app.post("/kairos/tasks/{task_id}/snooze")
+def snooze_task(
+    task_id: int,
+    tasks_session: Session = Depends(get_tasks_session),
+) -> RedirectResponse:
+    """« Demain » : décale la deadline au prochain jour ouvré (week-ends et jours
+    fériés sautés — un vendredi décale à lundi, pas à samedi)."""
+    task = tasks_session.get(Task, task_id)
+    if task is not None:
+        settings = get_settings()
+        task.deadline = next_snooze_date(task.deadline, date.today(), settings.holiday_set)
+        tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
+
+@app.post("/kairos/tasks/{task_id}/delete")
+def delete_task(
+    task_id: int,
+    tasks_session: Session = Depends(get_tasks_session),
+) -> RedirectResponse:
+    """Supprime une tâche native ; archive une tâche SP (le sync la recréerait sinon)."""
+    task = tasks_session.get(Task, task_id)
+    if task is not None:
+        if task.source == "native":
+            # Nettoyer les dépendances où la tâche figure (bloquée ou bloquante), sinon
+            # des arêtes orphelines subsisteraient.
+            for dep in tasks_session.scalars(
+                select(TaskDependency).where(
+                    (TaskDependency.task_id == task_id)
+                    | (TaskDependency.blocker_id == task_id)
+                )
+            ):
+                tasks_session.delete(dep)
+            tasks_session.delete(task)
+        else:
+            task.status = "archived"
+        tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
+
+@app.post("/kairos/blocks")
+def create_manual_block(
+    title: str = Form(...),
+    start: str = Form(...),
+    end: str = Form(...),
+    deepwork: str = Form(""),
+    recurrence: str = Form(""),
+    tasks_session: Session = Depends(get_tasks_session),
+) -> RedirectResponse:
+    """Ajoute un créneau : indisponibilité (réunion) ou bloc deep-work protégé.
+
+    Un bloc deep-work (case cochée) réserve la fenêtre à une seule tâche, sans
+    fragmentation ; sinon c'est un créneau occupé que l'ordonnancement contourne.
+
+    ``recurrence`` (phase 13) : le créneau saisi devient le **modèle** (heure de
+    début/fin canonique) — ex. un bloc déjeuner quotidien, un bloc deep-work chaque
+    mardi. Whitelist côté route (même patron que ``recurrence`` sur une tâche) ;
+    aucune occurrence n'est jamais persistée, voir ``expand_recurring_blocks``.
+    """
+    try:
+        start_at = datetime.fromisoformat(start)
+        end_at = datetime.fromisoformat(end)
+    except ValueError:
+        return RedirectResponse("/kairos", status_code=303)
+    if end_at > start_at:
+        kind = "deepwork" if deepwork else "busy"
+        recurrence = recurrence if recurrence in BLOCK_RECURRENCE_RULES else ""
+        tasks_session.add(
+            TimeBlock(title=title, start=start_at, end=end_at, source="manual",
+                     kind=kind, recurrence=recurrence)
+        )
+        tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
+
+@app.post("/kairos/blocks/{block_id}/edit")
+def edit_manual_block(
+    block_id: int,
+    title: str = Form(""),
+    start: str = Form(...),
+    end: str = Form(...),
+    deepwork: str = Form(""),
+    recurrence: str = Form(""),
+    tasks_session: Session = Depends(get_tasks_session),
+) -> RedirectResponse:
+    """Édite un créneau manuel existant (titre, horaires, deep-work, récurrence).
+
+    Pour un créneau **récurrent**, la ligne éditée est le **modèle** : la modification
+    porte donc sur **toutes** ses occurrences (aucune occurrence n'est persistée
+    séparément). Seuls les blocs ``source='manual'`` sont éditables (les créneaux
+    TimeTree sont transitoires, jamais en base). Horaires invalides → ignorés.
+    """
+    block = tasks_session.get(TimeBlock, block_id)
+    if block is None or block.source != "manual":
+        return RedirectResponse("/kairos", status_code=303)
+    try:
+        start_at = datetime.fromisoformat(start)
+        end_at = datetime.fromisoformat(end)
+    except ValueError:
+        return RedirectResponse("/kairos", status_code=303)
+    if end_at > start_at:
+        block.title = title
+        block.start = start_at
+        block.end = end_at
+        block.kind = "deepwork" if deepwork else "busy"
+        block.recurrence = recurrence if recurrence in BLOCK_RECURRENCE_RULES else ""
+        tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
+
+@app.post("/kairos/blocks/{block_id}/delete")
+def delete_manual_block(
+    block_id: int,
+    tasks_session: Session = Depends(get_tasks_session),
+) -> RedirectResponse:
+    """Supprime un créneau manuel (pour un récurrent : le modèle, donc toutes ses
+    occurrences). Sans effet sur un bloc non-manuel ou inexistant."""
+    block = tasks_session.get(TimeBlock, block_id)
+    if block is not None and block.source == "manual":
+        tasks_session.delete(block)
+        tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
