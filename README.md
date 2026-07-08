@@ -1,5 +1,9 @@
 # Kairos
 
+> **Charte visuelle** : couleurs, typographie, formes et composants sont
+> documentés dans [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) — toute
+> nouvelle page ou tout nouveau composant doit réutiliser ces jetons.
+
 Dashboard personnel de tâches : **« qu'est-ce que je fais maintenant, et dans quel
 ordre, sachant qu'une réunion 13h-14h m'empêche de traiter le sujet urgent avant
 14h05 ? »**. Outil web local, mono-utilisateur, sans compte ni cloud : une base
