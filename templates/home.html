@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Kairos · accueil{% endblock %}
+{% block topbar_title %}Bienvenue{% endblock %}
+{% block topbar_actions %}
+<a class="btn primary" href="/kairos">{{ icon('check_circle') }} Ouvrir « Aujourd’hui »</a>
+{% endblock %}
+
+{% macro toc_entry(entry) %}
+<li>
+  <a href="#{{ entry.id }}">{{ entry.name | safe }}</a>
+  {% if entry.children %}
+  <ul>
+    {% for child in entry.children %}{{ toc_entry(child) }}{% endfor %}
+  </ul>
+  {% endif %}
+</li>
+{% endmacro %}
+
+{% block content %}
+<section class="home-hero">
+  <h2>Le bon créneau, pour la bonne tâche, au bon moment.</h2>
+  <p>Kairos est ton dashboard personnel de tâches : il répond à « qu'est-ce que je fais
+  maintenant, et dans quel ordre », en tenant compte de tes créneaux occupés, de tes
+  échéances et de l'effort estimé. Cette page reprend directement le <code>README.md</code>
+  du dépôt : la documentation ci-dessous reste donc toujours à jour, sans double
+  maintenance.</p>
+  <div class="home-hero-actions">
+    <a class="btn primary" href="/kairos">{{ icon('check_circle') }} Ouvrir « Aujourd’hui »</a>
+    <a class="btn" href="/kairos?view=week">{{ icon('calendar') }} Vue semaine</a>
+    <a class="btn" href="/kairos/stats">{{ icon('trending_up') }} Statistiques</a>
+  </div>
+</section>
+
+<div class="home-layout">
+  <article class="prose card">
+    {{ readme_html | safe }}
+  </article>
+  {% if readme_toc %}
+  <nav class="home-toc panel" aria-label="Sommaire du README">
+    <h2>{{ icon('layers') }} Sommaire</h2>
+    <ul class="home-toc-list">
+      {% for entry in readme_toc %}{{ toc_entry(entry) }}{% endfor %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

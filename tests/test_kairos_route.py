@@ -61,6 +61,30 @@ def route_client(monkeypatch):
         main.app.dependency_overrides.clear()
 
 
+def test_get_home_renders_readme_content() -> None:
+    """La page d'accueil (`/`) rend le README (mutualisé) : pas de DB requise."""
+    client = TestClient(main.app)
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert "Bienvenue" in resp.text
+    assert "Ordonnancement automatique" in resp.text  # section du README
+    assert "&amp;amp;" not in resp.text  # pas de double-échappement du sommaire
+
+
+def test_get_home_toc_links_to_readme_sections() -> None:
+    client = TestClient(main.app)
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert 'href="#fonctionnalites"' in resp.text
+
+
+def test_get_spec_kairos_file_served() -> None:
+    """Le lien relatif `SPEC_KAIROS.md` du README reste résolvable depuis la page."""
+    client = TestClient(main.app)
+    resp = client.get("/SPEC_KAIROS.md")
+    assert resp.status_code == 200
+
+
 def test_get_kairos_returns_200_even_without_data(route_client) -> None:
     client, _ = route_client
     resp = client.get("/kairos")

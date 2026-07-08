@@ -1009,4 +1009,52 @@ tr.lot-row:hover td { background: var(--surface-2); }
   border: 1px dashed var(--ok-fg); }
 .mj-tl-entry.deepwork-task { background: var(--ok-bg); color: var(--ok-fg);
   border: 1px solid var(--ok-fg); font-weight: 600; }
+
+/* =========================================================================
+   Page d'accueil (bienvenue + README rendu, voir _render_readme() dans main.py)
+   ========================================================================= */
+.home-hero {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+  box-shadow: var(--shadow-1); padding: 1.4rem 1.6rem; margin-bottom: 1.25rem;
+}
+.home-hero h2 { margin: 0 0 0.5rem; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+.home-hero p { margin: 0 0 1rem; color: var(--text-2); max-width: 74ch; }
+.home-hero-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+.home-layout { display: grid; grid-template-columns: 1fr 230px; gap: 1.25rem; align-items: start; }
+@media (max-width: 960px) { .home-layout { grid-template-columns: 1fr; } }
+
+.home-toc { position: sticky; top: 72px; }
+.home-toc h2 { margin: 0 0 0.6rem; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 0.45rem; }
+.home-toc h2 .ico { color: var(--accent-2); font-size: 16px; }
+.home-toc-list, .home-toc-list ul { list-style: none; margin: 0; padding: 0; }
+.home-toc-list ul { padding-left: 0.85rem; margin-top: 0.15rem; }
+.home-toc-list li { margin: 0.1rem 0; }
+.home-toc-list a { display: block; padding: 0.18rem 0.4rem; border-radius: var(--r-sm);
+  font-size: 12px; color: var(--text-2); }
+.home-toc-list a:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
+
+/* README rendu (markdown → HTML, voir _render_readme()) */
+.prose { padding: 1.5rem 1.8rem 1.8rem; max-width: 78ch; }
+.prose h1 { display: none; } /* titre déjà repris dans .home-hero */
+.prose h2 { font-size: 16.5px; font-weight: 600; margin: 1.9rem 0 0.7rem; padding-top: 1.1rem;
+  border-top: 1px solid var(--border); letter-spacing: -0.005em; }
+.prose h2:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+.prose h3 { font-size: 13.5px; font-weight: 600; margin: 1.2rem 0 0.5rem; color: var(--text); }
+.prose p { margin: 0 0 0.85rem; color: var(--text-2); }
+.prose strong { color: var(--text); }
+.prose ul, .prose ol { margin: 0 0 0.85rem; padding-left: 1.3rem; color: var(--text-2); }
+.prose li { margin: 0.25rem 0; }
+.prose li > ul, .prose li > ol { margin-top: 0.25rem; }
+.prose blockquote { margin: 0 0 1rem; padding: 0.6rem 0.9rem; border-left: 3px solid var(--accent-2);
+  background: var(--accent-2-soft); border-radius: 0 var(--r-sm) var(--r-sm) 0; color: var(--text-2); }
+.prose blockquote p:last-child { margin-bottom: 0; }
+.prose code { font-size: 0.87em; }
+.prose pre { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm);
+  padding: 0.75rem 0.9rem; overflow-x: auto; margin: 0 0 1rem; }
+.prose pre code { background: none; padding: 0; color: var(--text); }
+.prose hr { border: none; border-top: 1px solid var(--border); margin: 1.4rem 0; }
+.prose table { display: block; overflow-x: auto; white-space: nowrap; margin: 0 0 1rem;
+  border: 1px solid var(--border); border-radius: var(--r-sm); }
+.prose a { font-weight: 500; }
 .mj-check { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; }
