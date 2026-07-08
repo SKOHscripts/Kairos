@@ -65,6 +65,15 @@ def test_wsjf_defaults() -> None:
     assert settings.default_fibonacci_points == 3
 
 
+def test_cognitive_dip_defaults() -> None:
+    settings = Settings()
+    assert settings.cognitive_dip_enabled is True
+    assert settings.cognitive_dip_start_hour == 13
+    assert settings.cognitive_dip_trough_hour == 15
+    assert settings.cognitive_dip_end_hour == 16
+    assert settings.cognitive_dip_penalty == 1.0
+
+
 def test_stats_window_default() -> None:
     assert Settings().stats_window_weeks == 8
 

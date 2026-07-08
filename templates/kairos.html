@@ -394,6 +394,10 @@
       <span class="badge at_risk" title="Créneau repoussé par une indisponibilité">
         {{ icon('warning') }} {{ item.pushed_note }}</span>
       {% endif %}
+      {% if item.dip_note %}
+      <span class="badge neutral" title="Creux de l'après-midi : on y place les tâches légères, pas les plus complexes">
+        {{ icon('clock') }} {{ item.dip_note }}</span>
+      {% endif %}
       {% if item.conflict %}
       <span class="badge bad" title="Cette tâche épinglée chevauche un créneau occupé">
         {{ icon('warning') }} {{ item.conflict_note }}</span>

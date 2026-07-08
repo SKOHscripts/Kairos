@@ -36,7 +36,11 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta, timezone
 
 from .config import Settings
-from .tasks_models import Task, TimeBlock, WorkSession
+from .tasks_models import FIBONACCI_SCALE, Task, TimeBlock, WorkSession
+
+# Complexité maximale de l'échelle (21) : borne de normalisation du creux (voir
+# _dip_adjusted_effort) — une tâche à 21 points est « aussi complexe que possible ».
+_MAX_FIBONACCI = float(FIBONACCI_SCALE[-1])
 
 
 @dataclass
@@ -52,6 +56,10 @@ class ScheduledTask:
     conflict_note: str = ""
     # Placée dans un bloc deep-work réservé (fenêtre dédiée, non fragmentée).
     deepwork: bool = False
+    # Posée ici parce que le créneau tombe dans le creux de l'après-midi et que cette
+    # tâche légère y a été préférée à une tâche plus complexe (transparence — voir
+    # _selection_key). Vide si le creux n'a pas influé sur ce placement.
+    dip_note: str = ""
 
     @property
     def end_at(self) -> datetime:
@@ -201,6 +209,55 @@ def wsjf_score(task: Task, day: date, *, settings: Settings) -> float:
     return cost_of_delay / _effort_points(task, settings)
 
 
+# --------------------------------------------------------------------------- #
+# Creux de l'après-midi (post-lunch dip) : modulation du PLACEMENT par l'heure
+# --------------------------------------------------------------------------- #
+# Le score WSJF affiché ne bouge pas (c'est une propriété de la tâche). Ce qui bouge,
+# c'est *où* une tâche est posée : pendant le creux, l'effort effectif d'une tâche est
+# gonflé PROPORTIONNELLEMENT À SA COMPLEXITÉ (points de Fibonacci), donc son score de
+# placement baisse et une tâche légère lui prend le créneau. Hors du creux, l'effort
+# effectif == effort réel ⇒ placement identique à l'ordonnancement d'urgence pur.
+
+
+def _dip_intensity(when: datetime, settings: Settings) -> float:
+    """Intensité du creux ∈ [0, 1] à l'instant ``when`` : triangle asymétrique, 0 aux
+    bords de la fenêtre, 1 au tronc (le point le plus creux). 0 si désactivé, pénalité
+    nulle, ou hors de la fenêtre ``[start_hour, end_hour]``."""
+    if not settings.cognitive_dip_enabled or settings.cognitive_dip_penalty <= 0:
+        return 0.0
+    start = settings.cognitive_dip_start_hour
+    trough = settings.cognitive_dip_trough_hour
+    end = settings.cognitive_dip_end_hour
+    hour = when.hour + when.minute / 60.0
+    if hour <= start or hour >= end:
+        return 0.0
+    if hour <= trough:
+        return (hour - start) / (trough - start) if trough > start else 1.0
+    return (end - hour) / (end - trough) if end > trough else 1.0
+
+
+def _dip_adjusted_effort(task: Task, when: datetime, settings: Settings) -> float:
+    """Effort effectif au créneau ``when`` : l'effort réel, renchéri pendant le creux en
+    proportion de la complexité de la tâche. Une tâche à 1 point n'est jamais pénalisée
+    (elle « passe » partout) ; une tâche à 21 points l'est au maximum (au tronc, pénalité
+    1.0 ⇒ effort ×2, score de placement ÷2). Hors creux, retourne l'effort réel."""
+    effort = _effort_points(task, settings)
+    intensity = _dip_intensity(when, settings)
+    if intensity <= 0:
+        return effort
+    norm = max(0.0, min(1.0, (effort - 1.0) / (_MAX_FIBONACCI - 1.0)))
+    return effort * (1.0 + settings.cognitive_dip_penalty * intensity * norm)
+
+
+def _placement_score(task: Task, day: date, when: datetime, *, settings: Settings) -> float:
+    """Score de PLACEMENT au créneau ``when`` : même numérateur que WSJF (coût du retard),
+    divisé par l'effort renchéri par le creux. Égal à ``wsjf_score`` hors du creux."""
+    cost_of_delay = _priority_value(task.priority, settings) + _time_criticality(
+        task, day, settings
+    )
+    return cost_of_delay / _dip_adjusted_effort(task, when, settings)
+
+
 def count_max_priority_tasks(tasks: list[Task]) -> int:
     """Nombre de tâches à priorité maximale (0 ou 1, même seuil que le bucket
     d'urgence 1) parmi ``tasks`` — l'appelant est censé n'y passer que des tâches
@@ -251,6 +308,45 @@ def urgency_key(task: Task, day: date, *, settings: Settings) -> tuple:
     """Clé de tri d'urgence propre d'une tâche (publique : base de l'urgence dérivée
     des dépendances, calculée côté route avant d'appeler ``build_day_schedule``)."""
     return _sort_key(task, day, settings)
+
+
+def _selection_key(
+    task: Task, day: date, cursor: datetime, settings: Settings,
+    urgency_keys: dict[int, tuple],
+) -> tuple:
+    """Clé de choix d'une tâche POUR le créneau ``cursor`` (plus petite = choisie).
+
+    Réduit **exactement** à la clé d'urgence là où il ne faut rien changer :
+    - hors du creux (``cursor`` en dehors de la fenêtre) → ordre d'urgence pur ;
+    - tâche remontée par une dépendance (chemin critique) → intouchable, ordre d'urgence.
+    Sinon (tâche ordinaire, pendant le creux) : on garde le **palier dur** (0/1, en
+    retard/critique vs reste, jamais réordonné entre paliers) et on remplace le score
+    intra-palier par le score de placement horaire — une tâche légère passe devant une
+    tâche complexe sur ce créneau creux.
+    """
+    own = _sort_key(task, day, settings)
+    effective = urgency_keys.get(task.id, own)
+    if effective != own or _dip_intensity(cursor, settings) <= 0:
+        return effective
+    return (
+        own[0],
+        -_placement_score(task, day, cursor, settings=settings),
+        own[2], own[3], own[4],
+    )
+
+
+def _advance_past_obstacles(cursor: datetime, obstacles: list["_Obstacle"]) -> datetime:
+    """Premier instant ≥ ``cursor`` hors de tout obstacle (marge incluse) — enchaîne les
+    obstacles adjacents. Sert à évaluer l'énergie du créneau à l'heure de placement
+    RÉELLE (un curseur au milieu d'une réunion 13h-14h ⇒ créneau évalué à 14h05)."""
+    moved = True
+    while moved:
+        moved = False
+        for obstacle in obstacles:
+            if obstacle.start <= cursor < obstacle.end:
+                cursor = obstacle.end + obstacle.buffer
+                moved = True
+    return cursor
 
 
 def _duration_minutes(task: Task, settings: Settings) -> int:
@@ -509,12 +605,32 @@ def build_day_schedule(
                       kind="pinned")
         )
 
-    auto = [t for t in auto if t.id not in assigned_ids]
+    remaining = [t for t in auto if t.id not in assigned_ids]
 
-    # 2. Placement automatique dans les trous, par urgence, durées réelles.
+    # 2. Placement automatique par CURSEUR : à chaque créneau, on choisit la meilleure
+    #    tâche POUR CETTE HEURE (le creux de l'après-midi renchérit l'effort des tâches
+    #    complexes → les légères y remontent ; hors du creux, l'ordre reste celui de
+    #    l'urgence pure). Le palier dur et le chemin critique ne sont jamais réordonnés
+    #    (voir _selection_key). Durées réelles, contournement des obstacles.
     obstacles.sort(key=lambda o: o.start)
     cursor = effective_start
-    for task in auto:
+    while remaining:
+        # Heure de placement RÉELLE du prochain créneau (curseur sauté hors des obstacles) :
+        # c'est à cette heure qu'on évalue l'énergie cognitive, pas au curseur brut.
+        slot_start = _advance_past_obstacles(cursor, obstacles)
+        task = min(
+            remaining,
+            key=lambda t: _selection_key(t, day, slot_start, settings, urgency_keys),
+        )
+        dip_active = _dip_intensity(slot_start, settings) > 0
+        # Repère du choix « urgence pure » pour n'annoter (dip_note) que si le creux a
+        # réellement changé la tâche retenue sur ce créneau.
+        urgency_pick = (
+            min(remaining, key=lambda t: urgency_keys.get(t.id, _sort_key(t, day, settings)))
+            if dip_active else task
+        )
+        remaining.remove(task)
+
         duration = timedelta(minutes=_duration_minutes(task, settings))
         start = cursor
         pushed = False
@@ -537,11 +653,14 @@ def build_day_schedule(
             result.unscheduled.append(task)
             continue  # une tâche plus courte peut encore tenir : on n'abandonne pas la suite
 
+        dip_note = ""
+        if dip_active and task is not urgency_pick:
+            dip_note = f"créneau creux (~{settings.cognitive_dip_trough_hour}h) — tâche légère privilégiée"
         result.scheduled.append(
             ScheduledTask(
                 task=task, start_at=start,
                 duration_minutes=_duration_minutes(task, settings),
-                pushed=pushed, pushed_note=pushed_note,
+                pushed=pushed, pushed_note=pushed_note, dip_note=dip_note,
             )
         )
         cursor = start + duration

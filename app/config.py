@@ -80,6 +80,21 @@ class Settings(BaseSettings):
     urgency_peak: float = 8.0
     # Effort d'une tâche sans points de Fibonacci ni estimation (dénominateur neutre).
     default_fibonacci_points: int = 3
+    # --- Creux de l'après-midi (« post-lunch dip », clin d'œil au nom de code 14h55) ---
+    # Pendant une fenêtre creuse, l'ordonnancement gonfle l'effort effectif des tâches
+    # COMPLEXES (points de Fibonacci élevés) → elles perdent leur créneau au profit des
+    # tâches légères, qui remontent sur ces heures peu propices à la réflexion. L'urgence
+    # et les échéances priment toujours ; le score WSJF affiché ne change pas (c'est un
+    # choix de placement, pas de valeur). Le matin reste piloté par l'urgence pure.
+    cognitive_dip_enabled: bool = True
+    # Fenêtre du creux (heures, 24h) : rampe triangulaire 0 → 1 de `start` au tronc, puis
+    # 1 → 0 du tronc à `end`. Décale ces bornes selon ton chronotype (alouette/hibou).
+    cognitive_dip_start_hour: int = 13
+    cognitive_dip_trough_hour: int = 15  # creux le plus profond (tronc statistique ~15h)
+    cognitive_dip_end_hour: int = 16
+    # Force de la pénalité au tronc pour une tâche de complexité maximale (21 pts) :
+    # 1.0 → effort ×2 (score ÷2) au creux ; 0 = neutralisé même si activé.
+    cognitive_dip_penalty: float = 1.0
     # --- Dashboard de statistiques ---
     # Fenêtre (semaines) des indicateurs « récents » (débit, temps ventilé, délais).
     stats_window_weeks: int = 8

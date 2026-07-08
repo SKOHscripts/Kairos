@@ -109,6 +109,28 @@ estimée (≈ 1 point / 30 min, borné 1-21), puis sur `DEFAULT_FIBONACCI_POINTS
 (3 par défaut) si rien n'est saisi du tout — le tri reste donc utilisable sans
 estimation, mais s'affine à mesure que le Fibo est renseigné.
 
+#### Creux de l'après-midi (14h55)
+
+Le nom de code de l'outil — **14h55** — est le creux post-déjeuner (*post-lunch dip*),
+l'heure la moins propice à la réflexion : un vrai phénomène circadien, le plus marqué
+pour les tâches **complexes**, et qui récupère vers 15h-16h. Kairos le **matérialise
+dans l'ordonnancement** : pendant une fenêtre creuse configurable (par défaut 13h→16h,
+le plus profond à 15h), l'outil **évite d'y poser les tâches trop complexes** (points de
+Fibonacci élevés) et y fait **remonter les tâches légères**. Concrètement, à ces heures
+l'**effort effectif** d'une tâche est gonflé en proportion de sa complexité — une tâche
+de 21 points voit son score de *placement* divisé par deux au tronc, une tâche de 1
+point n'est jamais pénalisée — si bien qu'une tâche simple prend le créneau creux et la
+complexe se pose juste avant ou après. C'est un **effet gradué, pas un interdit** : une
+tâche complexe suffisamment urgente peut encore l'emporter.
+
+Trois garde-fous : les **échéances et le chemin critique priment toujours** (une tâche
+en retard ou un bloqueur d'une tâche urgente n'est jamais décalé par le creux) ; le
+**score WSJF affiché ne change pas** (c'est un choix de *placement*, pas de valeur — la
+transparence est préservée, une note « créneau creux » signale les tâches remontées) ;
+et la **matinée reste pilotée par l'urgence pure**. Actif par défaut, entièrement
+réglable — décale la fenêtre selon ton chronotype (alouette matinale → creux plus tôt)
+ou désactive-le (`COGNITIVE_DIP_ENABLED=false`) via `.env`.
+
 ### Dépendances entre tâches
 « Bloqué par » (menu de sélection multiple) : une tâche dont un bloqueur est encore
 à faire sort du planning (section « Bloquées », levée automatique et **transitive**) ;
@@ -168,6 +190,7 @@ Copier `.env.example` en `.env` : chaque réglage y est documenté. Résumé :
 | TimeTree | `TIMETREE_EMAIL/PASSWORD/CALENDAR_CODE`, `TIMETREE_CACHE_TTL_MINUTES` | désactivé |
 | Journée | `WORKDAY_START_HOUR`/`END_HOUR`, `MEETING_BUFFER_MINUTES`, `DEFAULT_TASK_DURATION_MINUTES` | 9-18, 5, 30 |
 | WSJF | `PRIORITY_VALUE_BASE`, `URGENCY_HORIZON_DAYS`, `URGENCY_PEAK`, `DEFAULT_FIBONACCI_POINTS` | 2.0, 14, 8, 3 |
+| Creux après-midi | `COGNITIVE_DIP_ENABLED`, `COGNITIVE_DIP_START/TROUGH/END_HOUR`, `COGNITIVE_DIP_PENALTY` | on, 13-15-16, 1.0 |
 | Garde-fous | `STALE_OVERDUE_DAYS`, `STALE_UNTOUCHED_DAYS`, `PRIORITY_OVERLOAD_THRESHOLD` | 7, 14, 5 |
 | Stats | `STATS_WINDOW_WEEKS` | 8 |
 | Alertes chrono | `TIMER_IDLE_ALERT_MINUTES`, `POMODORO_FOCUS_MINUTES` | 180, 50 |

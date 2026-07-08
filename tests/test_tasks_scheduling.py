@@ -766,3 +766,96 @@ def test_session_timeline_clamps_outside_workday() -> None:
     s = WorkSession(task_id=1, started_at=_utc_of_local(2026, 7, 2, 6, 0),
                     ended_at=_utc_of_local(2026, 7, 2, 7, 0))
     assert session_timeline_entries([s], DAY, {1: "Tôt"}, settings=_settings()) == []
+
+
+# --------------------------------------------------------------------------- #
+# Creux de l'après-midi (post-lunch dip) : placement conscient de l'heure
+# --------------------------------------------------------------------------- #
+
+def _at(hh, mm=0) -> datetime:
+    return datetime.combine(DAY, time(hh, mm))
+
+
+def test_dip_intensity_triangular_shape() -> None:
+    from app.tasks_scheduling import _dip_intensity
+    s = _settings()  # 13 / 15 / 16 par défaut, activé
+    assert _dip_intensity(_at(15, 0), s) == 1.0            # tronc
+    assert _dip_intensity(_at(14, 0), s) == 0.5            # mi-rampe montante
+    assert _dip_intensity(_at(15, 30), s) == 0.5           # mi-rampe descendante
+    assert _dip_intensity(_at(13, 0), s) == 0.0            # bord gauche (exclu)
+    assert _dip_intensity(_at(16, 0), s) == 0.0            # bord droit (exclu)
+    assert _dip_intensity(_at(9, 0), s) == 0.0             # matin, hors fenêtre
+
+
+def test_dip_intensity_zero_when_disabled_or_penalty_null() -> None:
+    from app.tasks_scheduling import _dip_intensity
+    assert _dip_intensity(_at(15, 0), _settings(cognitive_dip_enabled=False)) == 0.0
+    assert _dip_intensity(_at(15, 0), _settings(cognitive_dip_penalty=0.0)) == 0.0
+
+
+def test_dip_defers_complex_task_and_promotes_simple_one() -> None:
+    """Au tronc du creux, une tâche légère passe devant une tâche complexe pourtant plus
+    urgente au sens WSJF pur — le créneau creux lui est préféré."""
+    settings = _settings(workday_start_hour=15, workday_end_hour=18)  # 1er créneau = tronc
+    complex_urgent = Task(id=1, title="Complexe", priority=0, fibonacci_points=13,
+                          estimated_minutes=30, status="todo")
+    simple = Task(id=2, title="Simple", priority=4, fibonacci_points=1,
+                  estimated_minutes=30, status="todo")
+
+    # Contrôle : sans le creux, la complexe (WSJF plus élevé) prend le 1er créneau.
+    off = build_day_schedule([complex_urgent, simple], [], DAY,
+                             settings=_settings(workday_start_hour=15, workday_end_hour=18,
+                                                cognitive_dip_enabled=False))
+    assert [s.task.id for s in off.scheduled] == [1, 2]
+
+    # Avec le creux : la simple remonte au tronc, la complexe est repoussée après.
+    on = build_day_schedule([complex_urgent, simple], [], DAY, settings=settings)
+    assert [s.task.id for s in on.scheduled] == [2, 1]
+    assert on.scheduled[0].start_at == _at(15, 0)
+    assert on.scheduled[0].dip_note  # la tâche promue est annotée (transparence)
+    assert not on.scheduled[1].dip_note
+
+
+def test_dip_never_defers_an_overdue_task() -> None:
+    """Palier dur : une tâche EN RETARD (et complexe) garde la priorité de placement,
+    le creux ne la relègue jamais derrière une tâche simple non urgente."""
+    settings = _settings(workday_start_hour=15, workday_end_hour=18)
+    overdue_complex = Task(id=1, title="En retard", priority=0, fibonacci_points=13,
+                           deadline=DAY - timedelta(days=1), estimated_minutes=30, status="todo")
+    simple = Task(id=2, title="Simple", priority=4, fibonacci_points=1,
+                  estimated_minutes=30, status="todo")
+
+    schedule = build_day_schedule([overdue_complex, simple], [], DAY, settings=settings)
+    assert schedule.scheduled[0].task.id == 1        # en retard placée d'abord (tier 0)
+    assert schedule.scheduled[0].start_at == _at(15, 0)
+
+
+def test_dip_does_not_disturb_dependency_raised_task() -> None:
+    """Chemin critique : une tâche remontée par une dépendance (urgency_keys) n'est pas
+    réordonnée par le creux."""
+    settings = _settings(workday_start_hour=15, workday_end_hour=18)
+    raised_complex = Task(id=1, title="Bloqueur", priority=4, fibonacci_points=13,
+                          estimated_minutes=30, status="todo")
+    simple = Task(id=2, title="Simple", priority=4, fibonacci_points=1,
+                  estimated_minutes=30, status="todo")
+    # La complexe est remontée au palier dur (0) par une dépendance urgente qu'elle bloque.
+    urgency_keys = {1: (0, -100.0, 4, date.max, 1)}
+
+    schedule = build_day_schedule([raised_complex, simple], [], DAY, settings=settings,
+                                  urgency_keys=urgency_keys)
+    assert schedule.scheduled[0].task.id == 1        # chemin critique intact malgré le creux
+    assert not schedule.scheduled[0].dip_note
+
+
+def test_dip_leaves_morning_untouched() -> None:
+    """Le matin (hors fenêtre) reste piloté par l'urgence pure, même creux activé."""
+    settings = _settings(workday_start_hour=9, workday_end_hour=12)
+    complex_urgent = Task(id=1, title="Complexe", priority=0, fibonacci_points=13,
+                          estimated_minutes=30, status="todo")
+    simple = Task(id=2, title="Simple", priority=4, fibonacci_points=1,
+                  estimated_minutes=30, status="todo")
+
+    schedule = build_day_schedule([complex_urgent, simple], [], DAY, settings=settings)
+    assert schedule.scheduled[0].start_at == _at(9, 0)
+    assert schedule.scheduled[0].task.id == 1        # WSJF pur : complexe urgente d'abord
+    assert not schedule.scheduled[0].dip_note
