@@ -88,7 +88,7 @@ reste « À traiter »).
 - **Aide à l'estimation** : barème Fibonacci (1 → 21, taille relative, volume ×
   complexité × incertitude) repliable dans le panneau d'édition.
 
-#### Points de Fibonacci
+### Points de Fibonacci
 
 Dans le panneau d'édition, chaque tâche peut recevoir un
 nombre de points sur l'échelle `1, 2, 3, 5, 8, 13, 21` — une taille **relative**
