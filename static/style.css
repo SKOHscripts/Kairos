@@ -21,7 +21,8 @@
   --accent-line: #bcc5d1;
 
   /* Accent secondaire (sarcelle) — repère d'emplacement, rôle limité :
-     onglets actifs · filet de .section-head · puce de .sb-sec · nœud GitLab du logo.
+     onglets actifs · filet de .section-head · puce de .sb-sec · centre de l'horloge du logo
+     (le point pivot des aiguilles : l'instant « Kairos »).
      Jamais sur boutons, badges d'état, identifiants, liens, focus, data-viz. */
   --accent-2:      #0a8b95;
   --accent-2-700:  #07676e;
