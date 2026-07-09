@@ -112,7 +112,9 @@ def _end_of_week(day: date) -> date:
 
 # Priorité maximale de l'échelle (0 = la plus forte … PRIORITY_MAX = la plus faible).
 # Sert d'exposant de référence à la valeur exponentielle : `base ** (PRIORITY_MAX - p)`.
-_PRIORITY_MAX = 4
+# Échelle volontairement resserrée à P0/P1/P2 (3 crans) : plus de crans dilue le
+# signal plutôt que de l'affiner.
+_PRIORITY_MAX = 2
 
 
 def _is_overdue(task: Task, day: date) -> bool:
@@ -151,11 +153,12 @@ def urgency_bucket(task: Task, day: date) -> int:
 
 
 def _priority_value(priority: int | None, settings: Settings) -> float:
-    """Valeur (numérateur) d'une priorité, **exponentielle** : `base ** (4 - priorité)`.
+    """Valeur (numérateur) d'une priorité, **exponentielle** : `base ** (PRIORITY_MAX - priorité)`.
 
     Une P0 vaut ``base`` fois plus qu'une P1, etc. — « critique » n'est pas juste « un cran
-    au-dessus d'important ». Une tâche sans priorité vaut ``base ** -1`` (sous P4) : elle
-    reste derrière une priorité affirmée à effort et échéance égaux, sans valoir zéro.
+    au-dessus d'important ». Une tâche sans priorité vaut ``base ** -1`` (sous P2, la plus
+    faible du barème) : elle reste derrière une priorité affirmée à effort et échéance
+    égaux, sans valoir zéro.
     """
     base = settings.priority_value_base
     if priority is None:
@@ -259,12 +262,13 @@ def _placement_score(task: Task, day: date, when: datetime, *, settings: Setting
 
 
 def count_max_priority_tasks(tasks: list[Task]) -> int:
-    """Nombre de tâches à priorité maximale (0 ou 1, même seuil que le bucket
-    d'urgence 1) parmi ``tasks`` — l'appelant est censé n'y passer que des tâches
-    ``todo``. Sert de garde-fou de surcharge (phase 7) : si trop de tâches
-    partagent la priorité maximale, le signal de priorité se dilue.
+    """Nombre de tâches à priorité **strictement maximale** (P0 uniquement) parmi
+    ``tasks`` — l'appelant est censé n'y passer que des tâches ``todo``. Sert de
+    garde-fou de surcharge (phase 7) : si trop de tâches partagent la priorité
+    maximale, le signal de priorité se dilue. Échelle resserrée à P0/P1/P2 : élargir
+    à P1 diluerait déjà le garde-fou lui-même (2 des 3 crans du barème).
     """
-    return sum(1 for t in tasks if t.priority is not None and t.priority <= 1)
+    return sum(1 for t in tasks if t.priority == 0)
 
 
 def is_eligible_today(task: Task, day: date, *, pinned_for_today: bool = False) -> bool:

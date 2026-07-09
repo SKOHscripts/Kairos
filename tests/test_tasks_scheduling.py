@@ -626,12 +626,14 @@ def test_every_eligible_todo_task_lands_in_exactly_one_bucket() -> None:
 # Y2 — Garde-fou de surcharge de priorité maximale (phase 7)
 # --------------------------------------------------------------------------- #
 
-def test_count_max_priority_tasks_counts_priority_0_and_1() -> None:
+def test_count_max_priority_tasks_counts_p0_only() -> None:
+    """Échelle resserrée à P0/P1/P2 : le garde-fou ne compte que P0 (P1 n'est déjà
+    plus la priorité maximale du barème, il ne doit pas diluer son propre signal)."""
     tasks = [
         Task(id=1, priority=0), Task(id=2, priority=1), Task(id=3, priority=2),
         Task(id=4, priority=None), Task(id=5, priority=0),
     ]
-    assert count_max_priority_tasks(tasks) == 3
+    assert count_max_priority_tasks(tasks) == 2
 
 
 def test_count_max_priority_tasks_zero_when_none_at_max() -> None:
@@ -653,15 +655,16 @@ def test_wsjf_priority_value_is_exponential() -> None:
     s = _settings(priority_value_base=2.0)
     p0 = Task(id=1, priority=0, fibonacci_points=1)
     p1 = Task(id=2, priority=1, fibonacci_points=1)
-    assert wsjf_score(p0, DAY, settings=s) == 16.0  # 2**(4-0)
-    assert wsjf_score(p1, DAY, settings=s) == 8.0   # 2**(4-1)
+    assert wsjf_score(p0, DAY, settings=s) == 4.0  # 2**(2-0)
+    assert wsjf_score(p1, DAY, settings=s) == 2.0  # 2**(2-1)
 
 
-def test_wsjf_missing_priority_sits_below_p4() -> None:
+def test_wsjf_missing_priority_sits_below_p2() -> None:
+    """Échelle resserrée à P0/P1/P2 (P2 = la plus faible du barème)."""
     s = _settings(priority_value_base=2.0)
-    p4 = Task(id=1, priority=4, fibonacci_points=1)
+    p2 = Task(id=1, priority=2, fibonacci_points=1)
     none = Task(id=2, priority=None, fibonacci_points=1)
-    assert wsjf_score(none, DAY, settings=s) < wsjf_score(p4, DAY, settings=s)
+    assert wsjf_score(none, DAY, settings=s) < wsjf_score(p2, DAY, settings=s)
 
 
 def test_wsjf_effort_denominator_uses_fibonacci() -> None:
@@ -688,7 +691,7 @@ def test_wsjf_time_criticality_ramps_within_horizon() -> None:
     s = _settings(urgency_horizon_days=14, urgency_peak=8.0)
     far = Task(id=1, priority=2, fibonacci_points=1, deadline=DAY + timedelta(days=30))
     near = Task(id=2, priority=2, fibonacci_points=1, deadline=DAY + timedelta(days=2))
-    assert wsjf_score(far, DAY, settings=s) == 4.0  # criticité nulle : valeur P2 seule
+    assert wsjf_score(far, DAY, settings=s) == 1.0  # criticité nulle : valeur P2 seule
     assert wsjf_score(near, DAY, settings=s) > wsjf_score(far, DAY, settings=s)
 
 

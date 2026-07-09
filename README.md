@@ -56,7 +56,7 @@ make test      # venv + suite de tests complète
 
 ### Gestion des tâches
 - **Création rapide** en une ligne (titre seul suffit) ; édition complète : titre,
-  description, priorité 0-4, échéance, date programmée, projet, durée estimée,
+  description, priorité 0-2 (P0 = la plus forte), échéance, date programmée, projet, durée estimée,
   récurrence, type, points de Fibonacci, heure fixe, fiche liée, sous-tâches en lot,
   bloqueurs. Un seul « Enregistrer » applique tout.
 - **Sous-tâches** : avancement n/m sur la mère ; seules les **feuilles** sont

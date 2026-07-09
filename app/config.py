@@ -73,15 +73,19 @@ class Settings(BaseSettings):
     # depuis `stale_untouched_days`. Signal d'affichage seul, ne change jamais le tri.
     stale_overdue_days: int = 7
     stale_untouched_days: int = 14
-    # Nombre de tâches à priorité maximale (0-1) au-delà duquel un bandeau avertit
-    # que le signal de priorité se dilue.
+    # Nombre de tâches à priorité maximale (P0 uniquement) au-delà duquel un
+    # bandeau avertit que le signal de priorité se dilue.
     priority_overload_threshold: int = 5
     # --- Ordonnancement WSJF : score = coût du retard / effort ---
-    # Base de la valeur EXPONENTIELLE d'un cran de priorité : `base ** (4 - priorité)`.
-    priority_value_base: float = 2.0
+    # Base de la valeur EXPONENTIELLE d'un cran de priorité : `base ** (PRIORITY_MAX -
+    # priorité)`, PRIORITY_MAX = 2 (barème P0/P1/P2 : voir `tasks_scheduling._PRIORITY_MAX`).
+    # 4.0 (et non 2.0) : l'échelle resserrée à 3 crans (au lieu de 5) ne doit pas diluer
+    # le poids de la priorité dans le score — P0=16/P1=4/P2=1, même amplitude bout-à-bout
+    # (16 → 1) que l'ancien barème à 5 crans.
+    priority_value_base: float = 4.0
     # Horizon (jours) où une échéance commence à peser (rampe linéaire en deçà).
     urgency_horizon_days: int = 14
-    # Poids max de la criticité temporelle (même unité que la valeur ; 8 ≈ P1).
+    # Poids max de la criticité temporelle (même unité que la valeur ; entre P1 (4) et P0 (16)).
     urgency_peak: float = 8.0
     # Effort d'une tâche sans points de Fibonacci ni estimation (dénominateur neutre).
     default_fibonacci_points: int = 3

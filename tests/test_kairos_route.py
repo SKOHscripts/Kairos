@@ -402,7 +402,7 @@ def test_priority_badge_shown_when_priority_set(route_client) -> None:
 
 def test_wsjf_score_badge_shown(route_client) -> None:
     """Transparence phase 9 : le score WSJF qui ordonne la liste est affiché sur la tâche.
-    Une P1 à 1 point Fibonacci → score 8.0 (valeur 8 / effort 1)."""
+    Une P1 à 1 point Fibonacci → score 4.0 (valeur 4 / effort 1)."""
     client, TestSession = route_client
     with TestSession() as db:
         db.add(Task(title="Rapide et prioritaire", status="todo",
@@ -411,7 +411,7 @@ def test_wsjf_score_badge_shown(route_client) -> None:
 
     resp = client.get("/kairos")
     assert 'class="badge mj-score"' in resp.text
-    assert "8.0" in resp.text
+    assert "4.0" in resp.text
 
 
 def test_fibonacci_estimation_help_present(route_client) -> None:

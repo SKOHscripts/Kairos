@@ -92,7 +92,7 @@ def test_timetree_configured_false_when_only_email_set() -> None:
 
 def test_wsjf_defaults() -> None:
     settings = Settings()
-    assert settings.priority_value_base == 2.0
+    assert settings.priority_value_base == 4.0
     assert settings.urgency_horizon_days == 14
     assert settings.urgency_peak == 8.0
     assert settings.default_fibonacci_points == 3
