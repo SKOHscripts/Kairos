@@ -212,6 +212,14 @@ input.prio { width: 56px; text-align: right; }
 .panel h2 .ico { color: var(--text-3); font-size: 15px; }
 .panel h3 { margin: 0.9rem 0 0.4rem; font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em;
   text-transform: uppercase; color: var(--text-3); }
+/* Sépare visuellement les sous-sections empilées dans une même carte (agenda du
+   jour : « sans créneau », « bloquées », « tâches mères ») — sans ce liseré,
+   elles s'enchaînaient sans coupure nette. */
+.mj-section-heading {
+  margin: 1.3rem 0 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
+  text-transform: uppercase; color: var(--text-3);
+}
 .count { color: var(--text-2); font-size: 12px; }
 .muted { color: var(--text-3); }
 .hint, .empty { color: var(--text-3); font-size: 12px; }

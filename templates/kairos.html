@@ -403,7 +403,7 @@
   </ol>
 
   {% if schedule.unscheduled %}
-  <h3>À faire, sans créneau aujourd'hui</h3>
+  <h3 class="mj-section-heading">À faire, sans créneau aujourd'hui</h3>
   <ul class="kairos-list">
     {% for task in schedule.unscheduled %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
@@ -420,7 +420,7 @@
   {% endif %}
 
   {% if blocked_tasks %}
-  <h3>Bloquées</h3>
+  <h3 class="mj-section-heading">Bloquées</h3>
   <ul class="kairos-list">
     {% for entry in blocked_tasks %}
     <li class="kairos-item mj-blocked">
@@ -455,7 +455,7 @@
   {% endif %}
 
   {% if parents_progress %}
-  <h3>Tâches mères en cours</h3>
+  <h3 class="mj-section-heading">Tâches mères en cours</h3>
   <ul class="kairos-list">
     {% for entry in parents_progress %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(entry.task.id, 4) }}">
