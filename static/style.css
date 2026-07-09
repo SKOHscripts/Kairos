@@ -110,6 +110,7 @@ code {
 .tn-sub { font-size: 10.5px; color: var(--text-3); font-weight: 500; white-space: nowrap; }
 
 .tn-nav { display: flex; align-items: center; gap: 4px; margin-left: 1.1rem; flex-wrap: wrap; }
+.tn-quit { margin-left: auto; }
 .tn-item {
   display: flex; align-items: center; gap: 6px;
   padding: 0.44rem 0.9rem; border-radius: var(--r-pill);

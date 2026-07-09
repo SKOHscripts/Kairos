@@ -11,6 +11,8 @@ l'outil de pilotage MSI est optionnelle et en lecture seule (voir `pilotage_link
 from __future__ import annotations
 
 import logging
+import os
+import signal
 import sys
 from contextlib import asynccontextmanager
 from datetime import date, datetime, time as dt_time, timedelta, timezone
@@ -109,6 +111,10 @@ app = FastAPI(title="Kairos", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+# Exécutable de bureau (PyInstaller, `console=False`) : pas de fenêtre de terminal à
+# fermer pour arrêter le serveur — voir le bouton « Quitter » de base.html, affiché
+# seulement dans ce cas (sinon, en dev/systemd, Ctrl+C / `systemctl stop` suffisent).
+templates.env.globals["is_frozen"] = getattr(sys, "frozen", False)
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -690,6 +696,20 @@ async def kairos_settings_save(request: Request) -> Response:
     # l'erreur silencieusement.
     context = _settings_context(current, errors=errors, values=candidate, saved=False)
     return templates.TemplateResponse(request, "settings.html", context)
+
+
+@app.post("/kairos/shutdown")
+def shutdown() -> HTMLResponse:
+    """Arrête proprement le serveur (bouton « Quitter », exécutable de bureau
+    uniquement — voir `is_frozen` : pas de fenêtre de terminal à fermer sinon).
+
+    SIGTERM déclenche l'arrêt normal d'uvicorn (draine les requêtes en cours,
+    dont celle-ci) — équivalent à un Ctrl+C, sans avoir à garder une référence
+    au `Server` lancé par `app/launcher.py`."""
+    os.kill(os.getpid(), signal.SIGTERM)
+    return HTMLResponse(
+        "<p>Kairos s'arrête. Vous pouvez fermer cette page.</p>"
+    )
 
 
 def _optional_date(value: str | None) -> date | None:

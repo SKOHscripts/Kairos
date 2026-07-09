@@ -40,6 +40,16 @@
         <a class="tn-item {% if page == 'settings' %}active{% endif %}" href="/kairos/settings">
           {{ icon('gear') }}<span>Réglages</span></a>
       </nav>
+      {% if is_frozen %}
+      {# Exécutable de bureau (console=False) : pas de fenêtre de terminal à fermer
+         pour arrêter le serveur — ce bouton est donc son seul moyen d'arrêt propre.
+         Absent en dev/systemd (Ctrl+C / systemctl stop suffisent déjà, et on évite
+         un bouton qui coupe un service potentiellement partagé d'un clic malheureux). #}
+      <form method="post" action="/kairos/shutdown" class="tn-quit"
+            onsubmit="return confirm('Quitter Kairos ? Le serveur va s\'arrêter : il faudra relancer l\'exécutable pour y revenir.');">
+        <button type="submit" class="btn sm" title="Arrêter Kairos">{{ icon('close') }}<span>Quitter</span></button>
+      </form>
+      {% endif %}
     </header>
     <main class="content">
       <header class="topbar">

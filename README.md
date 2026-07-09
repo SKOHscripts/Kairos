@@ -34,6 +34,11 @@ dossier de données standard de ton système d'exploitation, entièrement
 éditables depuis la page **Réglages** de l'application — pas de fichier `.env`
 à copier ni éditer à la main.
 
+Fermer l'onglet du navigateur n'arrête **pas** le serveur (il continue en
+arrière-plan) : utilise le bouton **Quitter** en haut à droite de l'application
+pour l'arrêter proprement — sans quoi le prochain lancement choisira un autre
+port (8002, 8003…) puisque 8001 restera occupé par l'instance précédente.
+
 Le mode « git clone + venv » ci-dessous reste disponible pour un usage avancé
 (développement, service systemd démarré au boot) : il partage exactement le
 même mécanisme de configuration que l'exécutable.

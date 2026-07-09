@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import signal
 from datetime import date, timedelta
 
 import pytest
@@ -1878,3 +1880,32 @@ def test_blocked_dateless_task_excluded_from_backlog_panel(route_client) -> None
     resp = client.get("/kairos")
     assert "Bloquée sans date" in resp.text  # présente (section Bloquées)
     assert "Backlog" not in resp.text  # mais pas dans le panneau Backlog
+
+
+def test_quit_button_hidden_outside_frozen_executable(route_client) -> None:
+    """Le bouton « Quitter » n'a de sens que pour l'exécutable de bureau (pas de
+    fenêtre de terminal à fermer) — absent en dev/systemd."""
+    client, _ = route_client
+    resp = client.get("/kairos")
+    assert "Quitter" not in resp.text
+
+
+def test_quit_button_shown_when_frozen(route_client, monkeypatch) -> None:
+    monkeypatch.setitem(main.templates.env.globals, "is_frozen", True)
+    client, _ = route_client
+    resp = client.get("/kairos")
+    assert "Quitter" in resp.text
+    assert 'action="/kairos/shutdown"' in resp.text
+
+
+def test_shutdown_route_sends_sigterm_to_self(monkeypatch) -> None:
+    """Vérifie l'appel exact (jamais réellement exécuté ici, sous peine de tuer le
+    process pytest) : SIGTERM sur son propre PID, équivalent à un Ctrl+C propre."""
+    calls = []
+    monkeypatch.setattr(main.os, "kill", lambda pid, sig: calls.append((pid, sig)))
+    client = TestClient(main.app)
+
+    resp = client.post("/kairos/shutdown")
+
+    assert resp.status_code == 200
+    assert calls == [(os.getpid(), signal.SIGTERM)]
