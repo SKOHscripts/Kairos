@@ -348,6 +348,20 @@ def _render_kairos(
         if tid in by_id
     ]
     blocked_tasks.sort(key=lambda e: e["task"].title)
+
+    # Backlog (sans échéance ni date programmée) : sans section dédiée, ces tâches
+    # n'apparaissent JAMAIS en vue semaine (groupée strictement par échéance,
+    # `_build_week_view`) et se perdent facilement dans l'agenda du jour. Affiché
+    # quelle que soit la vue (jour ou semaine), donc placé hors de `schedule`
+    # (lui-même calculé seulement pour la vue jour, plus bas).
+    backlog_tasks = sorted(
+        (
+            t for t in tasks
+            if t.deadline is None and t.scheduled_date is None and t.id not in blocked_ids
+        ),
+        key=lambda t: (t.priority is None, t.priority if t.priority is not None else 999, t.title),
+    )
+
     # Choix des bloqueurs candidats pour l'UI (toute autre tâche à faire).
     blocker_choices = sorted(
         ({"id": t.id, "title": t.title} for t in tasks),
@@ -391,6 +405,10 @@ def _render_kairos(
         "timetree_configured": settings.timetree_configured,
         "gitlab_direct_error": gitlab_direct_error,
         "blocked_tasks": blocked_tasks,
+        "backlog_tasks": backlog_tasks,
+        # Utilisé par le panneau Backlog (affiché quelle que soit la vue) autant que
+        # par la vue jour ; ajouté ici pour être disponible dans les deux.
+        "parent_title_of": parent_title_of,
         "block_reasons": block_reasons,
         "raised_ids": raised_ids,
         "bucket_of": bucket_of,
@@ -805,8 +823,9 @@ def edit_task(
     """Édition complète d'une tâche (tous champs), y compris une tâche importée de SP.
 
     Fusionne l'épinglage (heure fixe) dans le même enregistrement : `pin_time` vide
-    désépingle, une heure valide pose `pinned_start` sur le jour affiché — un seul
-    « Enregistrer » plutôt que deux soumissions séparées (phase 5).
+    désépingle, une heure valide pose `pinned_start` sur la date programmée si elle
+    est renseignée, sinon sur le jour affiché (`pin_day`) — un seul « Enregistrer »
+    plutôt que deux soumissions séparées (phase 5).
 
     `linked_ticket_id` (phase 6) : référence en lecture seule vers une fiche
     `LinkedTicket` (base dette technique) — validée contre son existence (``pilotage_session``),
@@ -840,7 +859,10 @@ def edit_task(
         task.task_type = task_type if task_type in TASK_TYPE_LABELS else ""
         task.fibonacci_points = _optional_int(fibonacci_points)
         if pin_time.strip():
-            target_day = _optional_date(pin_day) or date.today()
+            # La date programmée (si renseignée) prime sur le jour affiché : épingler
+            # une tâche programmée pour un autre jour doit poser l'heure fixe CE
+            # jour-là, pas sur la page actuellement consultée (`pin_day`).
+            target_day = task.scheduled_date or _optional_date(pin_day) or date.today()
             try:
                 hour, minute = (int(part) for part in pin_time.strip().split(":", 1))
                 task.pinned_start = datetime.combine(target_day, dt_time(hour=hour, minute=minute))

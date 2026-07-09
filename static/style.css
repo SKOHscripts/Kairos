@@ -361,25 +361,27 @@ summary:focus-visible,
 .mj-check.is-done { border-color: var(--ok-fg); background: var(--ok-bg); }
 .kairos-item.mj-done { opacity: 0.6; }
 .kairos-item.mj-done .mj-title { text-decoration: line-through; }
-.mj-edit > summary { list-style: none; cursor: pointer; }
-.mj-edit > summary::-webkit-details-marker { display: none; }
 .mj-edit { display: contents; }
-.mj-edit > summary { display: inline-flex; }
-/* Panneau de modification d'une tâche : présenté comme une modale centrée, tout
-   en gardant <details>/<summary> comme mécanisme d'ouverture/fermeture natif —
-   pas de JS. Astuce : une fois ouvert, le <summary> (le crayon) lui-même devient
+.mj-edit-toggle { display: inline-flex; }
+/* Panneau de modification d'une tâche : présenté comme une modale centrée. Bascule
+   en JS (voir le script en bas de kairos.html) plutôt que <details>/<summary> natif :
+   un <details> fermé reste retrouvable (et auto-ouvert) par le Ctrl+F du navigateur
+   depuis Chrome 97/Firefox 139 — avec un panneau d'édition par tâche, un Ctrl+F sur
+   un mot présent dans le texte d'aide (répété dans chacun) les ouvrait tous d'un
+   coup. Un `hidden` (booléen, pas `until-found`) reste lui exclu de la recherche.
+   Astuce conservée : le bouton lui-même devient, une fois ouvert (aria-expanded),
    le fond assombri plein écran — cliquer n'importe où en dehors de la carte la
-   referme nativement (c'est un vrai <summary>, pas une simple décoration).
+   referme (même bouton, un second clic bascule aria-expanded à false).
    Le glyphe ✕ est son ::after, positionné juste à côté du coin haut-droit de la
    carte plutôt que par-dessus : un pseudo-élément ne peut pas peindre au-dessus
    d'une AUTRE boîte empilée plus haut (ici `.mj-edit-body`), donc le faire
    chevaucher la carte le rendrait invisible malgré un z-index élevé. */
-details.mj-edit[open] > summary.icbtn {
+.mj-edit-toggle[aria-expanded="true"] {
   position: fixed; inset: 0; z-index: 79;
   width: auto; height: auto; border-radius: 0;
   background: rgba(43, 36, 30, 0.4); color: transparent; border: none;
 }
-details.mj-edit[open] > summary.icbtn::after {
+.mj-edit-toggle[aria-expanded="true"]::after {
   content: "✕"; position: fixed; z-index: 79;
   top: calc(6vh - 4px); left: calc(50% + min(320px, 46vw) + 10px);
   width: 30px; height: 30px; border-radius: var(--r-sm);
@@ -388,9 +390,9 @@ details.mj-edit[open] > summary.icbtn::after {
   font-size: 13px; font-weight: 700; box-shadow: var(--shadow-pop);
 }
 @media (max-width: 700px) {
-  details.mj-edit[open] > summary.icbtn::after { left: auto; right: 12px; top: 10px; }
+  .mj-edit-toggle[aria-expanded="true"]::after { left: auto; right: 12px; top: 10px; }
 }
-/* Pas de règle :hover sur ce glyphe : une fois ouvert, le <summary> couvre tout
+/* Pas de règle :hover sur ce glyphe : une fois ouvert, le bouton couvre tout
    l'écran (backdrop cliquable), donc il serait "survolé" en permanence. */
 .mj-edit-body {
   position: fixed; z-index: 80; top: 6vh; left: 50%; transform: translateX(-50%);
@@ -399,6 +401,10 @@ details.mj-edit[open] > summary.icbtn::after {
   border-radius: var(--r-xl); background: var(--surface); display: flex; flex-direction: column; gap: 0.7rem;
   box-shadow: var(--shadow-pop);
 }
+/* `display: flex` ci-dessus l'emporterait sinon sur le `display: none` implicite
+   de l'attribut `hidden` (même spécificité CSS, mais règle d'auteur) : override
+   explicite nécessaire pour que la bascule JS (voir kairos.html) fonctionne. */
+.mj-edit-body[hidden] { display: none; }
 .mj-edit-form { display: flex; flex-direction: column; gap: 0.5rem; }
 .mj-edit-form label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 11px; color: var(--text-3); font-weight: 600; }
 .mj-edit-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }

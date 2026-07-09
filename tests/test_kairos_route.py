@@ -632,6 +632,36 @@ def test_pin_and_unpin_via_edit_form(route_client) -> None:
         assert db.get(Task, task_id).pinned_start is None
 
 
+def test_pin_time_follows_scheduled_date_not_displayed_day(route_client) -> None:
+    """Régression : l'heure fixe posée en même temps qu'une date programmée future
+    doit s'appliquer CE jour-là, pas au jour actuellement affiché (`pin_day`,
+    toujours aujourd'hui par défaut dans le formulaire)."""
+    from datetime import datetime as _dt
+
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Programmée plus tard", status="todo")
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    future_day = TODAY + timedelta(days=5)
+    resp = client.post(
+        f"/kairos/tasks/{task_id}/edit",
+        data={
+            "title": "Programmée plus tard",
+            "scheduled_date": future_day.isoformat(),
+            "pin_time": "09:30",
+            "pin_day": TODAY.isoformat(),  # jour affiché : aujourd'hui, doit être ignoré
+        },
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
+    with TestSession() as db:
+        pinned = db.get(Task, task_id).pinned_start
+        assert pinned == _dt.combine(future_day, _dt.min.time()).replace(hour=9, minute=30)
+
+
 def test_edit_with_invalid_pin_time_is_ignored(route_client) -> None:
     client, TestSession = route_client
     with TestSession() as db:
@@ -1800,3 +1830,51 @@ def test_only_priority_still_lands_in_a_traiter(route_client) -> None:
     resp = client.get("/kairos")
     assert "priorité manquante" not in resp.text  # priorité posée
     assert "points manquants" in resp.text
+
+
+def test_dateless_task_appears_in_backlog_panel(route_client) -> None:
+    """Sans échéance ni date programmée, une tâche n'apparaît jamais en vue semaine
+    (groupée par échéance) : le panneau Backlog est le seul endroit qui la montre."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Sans aucune date", status="todo", priority=1, fibonacci_points=2))
+        db.commit()
+
+    day_page = client.get("/kairos")
+    assert "Sans aucune date" in day_page.text
+    assert "Backlog" in day_page.text
+
+    week_page = client.get("/kairos?view=week")
+    assert "Backlog" in week_page.text
+    assert "Sans aucune date" in week_page.text
+
+
+def test_task_with_deadline_absent_from_backlog_panel(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Avec échéance", status="todo", deadline=TODAY + timedelta(days=10)))
+        db.commit()
+
+    resp = client.get("/kairos")
+    assert "Backlog" not in resp.text
+
+
+def test_blocked_dateless_task_excluded_from_backlog_panel(route_client) -> None:
+    """Une tâche bloquée sans date apparaît déjà dans « Bloquées » : pas de doublon
+    dans le panneau Backlog."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        blocked = Task(title="Bloquée sans date", status="todo")
+        # Échéance sur la bloqueuse : n'atterrit pas elle-même dans le backlog,
+        # pour isoler l'assertion sur l'exclusion de la tâche bloquée seule.
+        blocker = Task(title="Bloqueuse", status="todo", deadline=TODAY + timedelta(days=10))
+        db.add_all([blocked, blocker])
+        db.commit()
+        blocked_id, blocker_id = blocked.id, blocker.id
+        from app.tasks_models import TaskDependency
+        db.add(TaskDependency(task_id=blocked_id, blocker_id=blocker_id))
+        db.commit()
+
+    resp = client.get("/kairos")
+    assert "Bloquée sans date" in resp.text  # présente (section Bloquées)
+    assert "Backlog" not in resp.text  # mais pas dans le panneau Backlog
