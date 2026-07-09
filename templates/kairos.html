@@ -351,7 +351,7 @@
 <section class="card" style="padding:0.8rem 1rem;">
   <form method="post" action="/kairos/tasks" class="filters" style="align-items:flex-end;">
     <label style="flex:1;min-width:220px;">Nouvelle tâche
-      <input type="text" name="title" placeholder="ex. Relire le rapport MSI" required></label>
+      <input type="text" name="title" placeholder="ex. Répondre à tel mail" required></label>
     <label>Priorité
       <select name="priority">
         <option value="">—</option>
@@ -365,6 +365,68 @@
     <button type="submit" class="btn primary">{{ icon('plus') }} Ajouter</button>
   </form>
 </section>
+
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Ajouter un créneau (réunion ou bloc deep-work)</summary>
+  <div style="padding: 0 1rem 1rem;">
+    <form method="post" action="/kairos/blocks" class="filters" style="align-items:flex-end;">
+      <label>Titre<input type="text" name="title" placeholder="ex. Réunion hebdo / Focus" required style="width:220px;"></label>
+      <label>Début<input type="datetime-local" name="start" required></label>
+      <label>Fin<input type="datetime-local" name="end" required></label>
+      <label class="mj-check" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
+        <input type="checkbox" name="deepwork" value="1"> Bloc deep-work</label>
+      <label title="Le créneau saisi devient le modèle (heure de début/fin) répété selon la règle — ex. déjeuner tous les jours, deep-work chaque mardi">Récurrence
+        <select name="recurrence">
+          <option value="">aucune</option>
+          <option value="daily">quotidienne</option>
+          <option value="weekdays">jours ouvrés</option>
+          <option value="weekly">hebdomadaire (même jour)</option>
+        </select>
+      </label>
+      <button type="submit" class="btn primary">{{ icon('plus') }} Ajouter</button>
+    </form>
+    {% if editable_blocks %}
+    <p class="hint mt-s">Créneaux du jour (éditer un créneau récurrent modifie toutes ses occurrences) :</p>
+    <ul class="ma-journee-list">
+      {% for block in editable_blocks %}
+      <li class="ma-journee-item">
+        <span class="mj-time">{{ block.start.strftime('%Hh%M') }}–{{ block.end.strftime('%Hh%M') }}</span>
+        <span class="mj-title">{{ block.title or '(sans titre)' }}</span>
+        {% if block.kind == 'deepwork' %}<span class="badge ok" title="Bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
+        {% if block.recurrence %}<span class="badge info" title="Créneau récurrent — l'édition porte sur toutes les occurrences">{{ icon('refresh') }} {{ block_recurrence_labels.get(block.recurrence, block.recurrence) }}</span>{% endif %}
+        <span class="mj-edit">
+          <button type="button" class="icbtn mj-edit-toggle" title="Éditer le créneau" aria-expanded="false">{{ icon('pencil') }}</button>
+          <div class="mj-edit-body" hidden>
+            <form method="post" action="/kairos/blocks/{{ block.id }}/edit" class="mj-edit-form">
+              <label>Titre<input type="text" name="title" value="{{ block.title }}"></label>
+              <div class="mj-edit-row">
+                <label>Début<input type="datetime-local" name="start" value="{{ block.start.strftime('%Y-%m-%dT%H:%M') }}" required></label>
+                <label>Fin<input type="datetime-local" name="end" value="{{ block.end.strftime('%Y-%m-%dT%H:%M') }}" required></label>
+                <label class="mj-check" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
+                  <input type="checkbox" name="deepwork" value="1" {% if block.kind == 'deepwork' %}checked{% endif %}> Bloc deep-work</label>
+                <label>Récurrence
+                  <select name="recurrence">
+                    <option value="" {% if not block.recurrence %}selected{% endif %}>aucune</option>
+                    <option value="daily" {% if block.recurrence == 'daily' %}selected{% endif %}>quotidienne</option>
+                    <option value="weekdays" {% if block.recurrence == 'weekdays' %}selected{% endif %}>jours ouvrés</option>
+                    <option value="weekly" {% if block.recurrence == 'weekly' %}selected{% endif %}>hebdomadaire (même jour)</option>
+                  </select>
+                </label>
+              </div>
+              <button type="submit" class="btn primary">{{ icon('save') }} Enregistrer</button>
+            </form>
+            <form method="post" action="/kairos/blocks/{{ block.id }}/delete" class="inline"
+                  onsubmit="return confirm('Supprimer ce créneau{% if block.recurrence %} récurrent (toutes ses occurrences){% endif %} ?');">
+              <button type="submit" class="btn danger">{{ icon('trash') }} Supprimer</button>
+            </form>
+          </div>
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</details>
 
 <div class="mj-day-grid">
 <div class="mj-day-main">
@@ -541,67 +603,6 @@
 </div>
 </div>
 
-<details class="card">
-  <summary class="collapser">{{ icon('chevron_right', '') }} Ajouter un créneau (réunion ou bloc deep-work)</summary>
-  <div style="padding: 0 1rem 1rem;">
-    <form method="post" action="/kairos/blocks" class="filters" style="align-items:flex-end;">
-      <label>Titre<input type="text" name="title" placeholder="ex. Réunion budget / Focus rédaction" required style="width:220px;"></label>
-      <label>Début<input type="datetime-local" name="start" required></label>
-      <label>Fin<input type="datetime-local" name="end" required></label>
-      <label class="mj-check" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
-        <input type="checkbox" name="deepwork" value="1"> Bloc deep-work</label>
-      <label title="Le créneau saisi devient le modèle (heure de début/fin) répété selon la règle — ex. déjeuner tous les jours, deep-work chaque mardi">Récurrence
-        <select name="recurrence">
-          <option value="">aucune</option>
-          <option value="daily">quotidienne</option>
-          <option value="weekdays">jours ouvrés</option>
-          <option value="weekly">hebdomadaire (même jour)</option>
-        </select>
-      </label>
-      <button type="submit" class="btn primary">{{ icon('plus') }} Ajouter</button>
-    </form>
-    {% if editable_blocks %}
-    <p class="hint mt-s">Créneaux du jour (éditer un créneau récurrent modifie toutes ses occurrences) :</p>
-    <ul class="ma-journee-list">
-      {% for block in editable_blocks %}
-      <li class="ma-journee-item">
-        <span class="mj-time">{{ block.start.strftime('%Hh%M') }}–{{ block.end.strftime('%Hh%M') }}</span>
-        <span class="mj-title">{{ block.title or '(sans titre)' }}</span>
-        {% if block.kind == 'deepwork' %}<span class="badge ok" title="Bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
-        {% if block.recurrence %}<span class="badge info" title="Créneau récurrent — l'édition porte sur toutes les occurrences">{{ icon('refresh') }} {{ block_recurrence_labels.get(block.recurrence, block.recurrence) }}</span>{% endif %}
-        <span class="mj-edit">
-          <button type="button" class="icbtn mj-edit-toggle" title="Éditer le créneau" aria-expanded="false">{{ icon('pencil') }}</button>
-          <div class="mj-edit-body" hidden>
-            <form method="post" action="/kairos/blocks/{{ block.id }}/edit" class="mj-edit-form">
-              <label>Titre<input type="text" name="title" value="{{ block.title }}"></label>
-              <div class="mj-edit-row">
-                <label>Début<input type="datetime-local" name="start" value="{{ block.start.strftime('%Y-%m-%dT%H:%M') }}" required></label>
-                <label>Fin<input type="datetime-local" name="end" value="{{ block.end.strftime('%Y-%m-%dT%H:%M') }}" required></label>
-                <label class="mj-check" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
-                  <input type="checkbox" name="deepwork" value="1" {% if block.kind == 'deepwork' %}checked{% endif %}> Bloc deep-work</label>
-                <label>Récurrence
-                  <select name="recurrence">
-                    <option value="" {% if not block.recurrence %}selected{% endif %}>aucune</option>
-                    <option value="daily" {% if block.recurrence == 'daily' %}selected{% endif %}>quotidienne</option>
-                    <option value="weekdays" {% if block.recurrence == 'weekdays' %}selected{% endif %}>jours ouvrés</option>
-                    <option value="weekly" {% if block.recurrence == 'weekly' %}selected{% endif %}>hebdomadaire (même jour)</option>
-                  </select>
-                </label>
-              </div>
-              <button type="submit" class="btn primary">{{ icon('save') }} Enregistrer</button>
-            </form>
-            <form method="post" action="/kairos/blocks/{{ block.id }}/delete" class="inline"
-                  onsubmit="return confirm('Supprimer ce créneau{% if block.recurrence %} récurrent (toutes ses occurrences){% endif %} ?');">
-              <button type="submit" class="btn danger">{{ icon('trash') }} Supprimer</button>
-            </form>
-          </div>
-        </span>
-      </li>
-      {% endfor %}
-    </ul>
-    {% endif %}
-  </div>
-</details>
 
 {% endif %}
 
