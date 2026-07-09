@@ -86,6 +86,7 @@ def test_next_snooze_date_future_deadline_advances_from_it() -> None:
 def test_spawn_copies_fields_and_advances_deadline(tasks_session) -> None:
     task = Task(
         title="Point hebdo", description="Ordre du jour", priority=1,
+        fibonacci_points=3,
         deadline=TODAY, project_tag="MSI", estimated_minutes=30,
         recurrence="weekly", status="done",
     )
@@ -98,12 +99,65 @@ def test_spawn_copies_fields_and_advances_deadline(tasks_session) -> None:
     assert occurrence is not None
     assert occurrence.title == "Point hebdo"
     assert occurrence.priority == 1
+    # Priorité et points Fibonacci hérités : la prochaine occurrence n'a pas à
+    # être requalifiée à chaque fois, elle reprend la dernière analyse posée.
+    assert occurrence.fibonacci_points == 3
     assert occurrence.estimated_minutes == 30
     assert occurrence.recurrence == "weekly"
     assert occurrence.deadline == TODAY + timedelta(days=7)
     assert occurrence.status == "todo"
     assert occurrence.source == "native"
     assert occurrence.external_id is None
+
+
+def test_spawn_sets_scheduled_date_to_new_deadline(tasks_session) -> None:
+    """`scheduled_date` (pas seulement `deadline`) pilote la présence dans l'agenda
+    du jour (voir `tasks_scheduling.is_eligible_today`) : sans elle, une occurrence
+    hebdomadaire/mensuelle apparaîtrait dans « aujourd'hui » dès sa création, alors
+    que son échéance est dans plusieurs jours."""
+    task = Task(title="Point hebdo", deadline=TODAY, recurrence="weekly", status="done")
+    tasks_session.add(task)
+    tasks_session.commit()
+
+    occurrence = spawn_next_occurrence(tasks_session, task)
+
+    assert occurrence.scheduled_date == TODAY + timedelta(days=7)
+    assert occurrence.scheduled_date == occurrence.deadline
+
+
+def test_spawn_shifts_pinned_time_to_new_deadline_same_hour(tasks_session) -> None:
+    """Heure fixe héritée : même heure, reportée sur la nouvelle échéance."""
+    task = Task(
+        title="Point hebdo", deadline=TODAY, recurrence="weekly", status="done",
+        pinned_start=datetime.combine(TODAY, time(10, 30)),
+    )
+    tasks_session.add(task)
+    tasks_session.commit()
+
+    occurrence = spawn_next_occurrence(tasks_session, task)
+
+    assert occurrence.pinned_start == datetime.combine(TODAY + timedelta(days=7), time(10, 30))
+
+
+def test_spawn_leaves_pinned_start_none_when_not_pinned(tasks_session) -> None:
+    task = Task(title="Point hebdo", deadline=TODAY, recurrence="weekly", status="done")
+    tasks_session.add(task)
+    tasks_session.commit()
+
+    occurrence = spawn_next_occurrence(tasks_session, task)
+
+    assert occurrence.pinned_start is None
+
+
+def test_spawn_copies_task_type(tasks_session) -> None:
+    task = Task(title="Point hebdo", deadline=TODAY, recurrence="weekly", status="done",
+                task_type="reunion")
+    tasks_session.add(task)
+    tasks_session.commit()
+
+    occurrence = spawn_next_occurrence(tasks_session, task)
+
+    assert occurrence.task_type == "reunion"
 
 
 def test_spawn_does_nothing_for_non_recurring(tasks_session) -> None:
@@ -164,7 +218,8 @@ def test_spawn_recurring_task_from_import_creates_native_occurrence(tasks_sessio
 def test_calendar_recurrence_generates_this_month_once(tasks_session) -> None:
     """Première mise en place d'une série : une occurrence créée, jamais deux."""
     seed = Task(title="Rapport mensuel", recurrence="monthly_on_day",
-                recurrence_day_of_month=15, priority=2, project_tag="MSI",
+                recurrence_day_of_month=15, priority=2, fibonacci_points=5,
+                project_tag="MSI",
                 estimated_minutes=45, status="done", deadline=date(2026, 5, 20))
     tasks_session.add(seed)
     tasks_session.commit()
@@ -174,9 +229,14 @@ def test_calendar_recurrence_generates_this_month_once(tasks_session) -> None:
     occurrence = created[0]
     assert occurrence.title == "Rapport mensuel"
     assert occurrence.priority == 2
+    # Hérités comme la priorité : pas de requalification à chaque occurrence.
+    assert occurrence.fibonacci_points == 5
     assert occurrence.project_tag == "MSI"
     assert occurrence.estimated_minutes == 45
     assert occurrence.deadline == date(2026, 7, 15)
+    # Comme pour spawn_next_occurrence : sans quoi l'occurrence apparaîtrait dans
+    # l'agenda du jour bien avant son échéance réelle du 15.
+    assert occurrence.scheduled_date == date(2026, 7, 15)
     assert occurrence.recurrence == "monthly_on_day"
     assert occurrence.recurrence_period == "2026-07"
     assert occurrence.source == "native"
@@ -185,6 +245,20 @@ def test_calendar_recurrence_generates_this_month_once(tasks_session) -> None:
     again = ensure_calendar_occurrences(tasks_session, date(2026, 7, 20))
     assert again == []
     assert tasks_session.query(Task).count() == 2
+
+
+def test_calendar_recurrence_shifts_pinned_time_and_copies_task_type(tasks_session) -> None:
+    seed = Task(title="Rapport mensuel", recurrence="monthly_on_day",
+                recurrence_day_of_month=15, status="done", deadline=date(2026, 5, 20),
+                pinned_start=datetime(2026, 5, 15, 9, 0), task_type="dev")
+    tasks_session.add(seed)
+    tasks_session.commit()
+
+    created = ensure_calendar_occurrences(tasks_session, date(2026, 7, 3))
+
+    assert len(created) == 1
+    assert created[0].pinned_start == datetime(2026, 7, 15, 9, 0)
+    assert created[0].task_type == "dev"
 
 
 def test_calendar_recurrence_skips_if_seed_deadline_already_this_month(tasks_session) -> None:
@@ -246,15 +320,17 @@ def test_calendar_recurrence_never_overwrites_prior_month_still_open(tasks_sessi
 
 
 def test_calendar_recurrence_uses_most_recent_representative(tasks_session) -> None:
-    """Le titre/priorité/durée copiés viennent de l'occurrence la plus récente de la
-    série, pas de la toute première (dont les détails ont pu changer depuis)."""
+    """Le titre/priorité/fibo/durée copiés viennent de l'occurrence la plus récente
+    de la série, pas de la toute première (dont les détails ont pu changer depuis)."""
     old = Task(title="Revue mensuelle", recurrence="monthly_on_day",
-               recurrence_day_of_month=5, priority=4, deadline=date(2026, 5, 5),
+               recurrence_day_of_month=5, priority=2, fibonacci_points=13,
+               deadline=date(2026, 5, 5),
                recurrence_period="2026-05", status="done")
     tasks_session.add(old)
     tasks_session.commit()
     newer = Task(title="Revue mensuelle", recurrence="monthly_on_day",
-                 recurrence_day_of_month=5, priority=0, estimated_minutes=90,
+                 recurrence_day_of_month=5, priority=0, fibonacci_points=2,
+                 estimated_minutes=90,
                  deadline=date(2026, 6, 5), recurrence_period="2026-06", status="done")
     tasks_session.add(newer)
     tasks_session.commit()
@@ -262,6 +338,7 @@ def test_calendar_recurrence_uses_most_recent_representative(tasks_session) -> N
     created = ensure_calendar_occurrences(tasks_session, date(2026, 7, 1))
     assert len(created) == 1
     assert created[0].priority == 0
+    assert created[0].fibonacci_points == 2
     assert created[0].estimated_minutes == 90
 
 

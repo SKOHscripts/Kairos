@@ -552,6 +552,30 @@ def test_done_on_recurring_task_creates_next_occurrence(route_client) -> None:
         assert occurrence.deadline == TODAY + _td(days=1)
 
 
+def test_recurring_occurrence_deferred_to_later_not_todays_agenda(route_client) -> None:
+    """La nouvelle occurrence d'une récurrente hebdomadaire (échéance dans 7 j) ne
+    doit pas apparaître dans l'agenda du jour dès sa création — seulement dans
+    « Programmées plus tard », jusqu'à ce que son échéance approche."""
+    from datetime import timedelta as _td
+
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Point hebdo", recurrence="weekly", deadline=TODAY, status="todo",
+                    priority=1, fibonacci_points=2)
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    client.post(f"/kairos/tasks/{task_id}/done", follow_redirects=False)
+
+    page = client.get("/kairos")
+    assert "Programmées plus tard" in page.text
+    assert "Point hebdo" in page.text
+    with TestSession() as db:
+        occurrence = db.query(Task).filter_by(status="todo").one()
+        assert occurrence.scheduled_date == TODAY + _td(days=7)
+
+
 def test_snooze_moves_deadline_to_next_business_day(route_client) -> None:
     """« Demain » avance au prochain jour ouvré (week-ends et fériés sautés) — la
     route utilise le même réglage `holiday_set` par défaut que la fixture."""

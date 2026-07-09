@@ -49,6 +49,14 @@ def next_deadline(rule: str, base: date) -> date:
     raise ValueError(f"Règle de récurrence inconnue : {rule!r}")
 
 
+def _shift_pinned_time(pinned_start: datetime | None, new_date: date) -> datetime | None:
+    """Reporte l'heure fixe d'une occurrence sur ``new_date`` (même heure, nouveau jour) —
+    ``None`` si la tâche n'était pas épinglée : le placement reste automatique."""
+    if pinned_start is None:
+        return None
+    return datetime.combine(new_date, pinned_start.time())
+
+
 def spawn_next_occurrence(session: Session, task: Task) -> Task | None:
     """Crée l'occurrence suivante d'une tâche récurrente qui vient d'être terminée.
 
@@ -60,6 +68,15 @@ def spawn_next_occurrence(session: Session, task: Task) -> Task | None:
       occurrence créée ici n'existe dans aucune source externe).
     - Garde anti-doublon : si une occurrence identique (titre + règle + échéance) est
       déjà à faire — cas du double aller-retour fait/rouvert/fait — rien n'est créé.
+    - Priorité, points Fibonacci, type et heure fixe (reportée sur la nouvelle
+      échéance, même heure) sont hérités de l'occurrence qui vient d'être
+      complétée : une tâche récurrente n'a pas à être requalifiée à chaque fois,
+      la prochaine occurrence reprend la dernière analyse posée.
+    - ``scheduled_date`` est posée sur la nouvelle échéance : sans quoi la nouvelle
+      occurrence (échéance dans plusieurs jours pour une récurrence hebdomadaire/
+      mensuelle) apparaîtrait immédiatement dans l'agenda du jour au lieu de
+      « Programmées plus tard » (c'est ``scheduled_date``, pas ``deadline``, qui
+      pilote la présence dans l'agenda — voir ``tasks_scheduling.is_eligible_today``).
     """
     if task.recurrence not in RECURRENCE_RULES:
         return None
@@ -82,7 +99,11 @@ def spawn_next_occurrence(session: Session, task: Task) -> Task | None:
         title=task.title,
         description=task.description,
         priority=task.priority,
+        fibonacci_points=task.fibonacci_points,
+        task_type=task.task_type,
         deadline=deadline,
+        scheduled_date=deadline,
+        pinned_start=_shift_pinned_time(task.pinned_start, deadline),
         project_tag=task.project_tag,
         estimated_minutes=task.estimated_minutes,
         recurrence=task.recurrence,
@@ -125,6 +146,13 @@ def ensure_calendar_occurrences(
     N'agit jamais rétroactivement (une seule occurrence générée : celle de
     ``today``, pas de rattrapage des mois où l'app n'aurait pas tourné) et ne
     modifie jamais une occurrence existante — la génération est purement additive.
+
+    Priorité, points Fibonacci, type et heure fixe (reportée sur la nouvelle
+    échéance) sont hérités du représentant le plus récent de la série, comme
+    pour :func:`spawn_next_occurrence` — même raison d'être : pas de
+    requalification à chaque occurrence. ``scheduled_date`` est posée sur la
+    nouvelle échéance pour la même raison (ne pas apparaître dans l'agenda du
+    jour avant l'échéance réelle).
     """
     period = _period_str(today)
     candidates = list(
@@ -162,7 +190,11 @@ def ensure_calendar_occurrences(
             title=title,
             description=representative.description,
             priority=representative.priority,
+            fibonacci_points=representative.fibonacci_points,
+            task_type=representative.task_type,
             deadline=deadline,
+            scheduled_date=deadline,
+            pinned_start=_shift_pinned_time(representative.pinned_start, deadline),
             project_tag=representative.project_tag,
             estimated_minutes=representative.estimated_minutes,
             recurrence=CALENDAR_RECURRENCE,
