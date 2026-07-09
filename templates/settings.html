@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Kairos · réglages{% endblock %}
+{% block topbar_title %}Réglages{% endblock %}
+
+{% block content %}
+
+{% if saved %}
+<div class="banner">{{ icon('check_circle') }} Réglages enregistrés.</div>
+{% endif %}
+
+{% if errors.get('_general') %}
+<div class="banner warning">{{ icon('warning') }} {{ errors['_general'] }}</div>
+{% endif %}
+
+{% if not keyring_available %}
+<div class="banner warning">{{ icon('warning') }} Trousseau système indisponible sur ce poste :
+  le jeton GitLab et le mot de passe TimeTree sont stockés dans le fichier de configuration
+  local (non chiffré), pas dans le trousseau système.</div>
+{% endif %}
+
+<section class="panel mj-settings-section">
+  <h2>{{ icon('folder') }} Emplacement des données</h2>
+  <p class="hint">Fichier de réglages : <code>{{ settings_path }}</code></p>
+  <p class="hint">Dossier de données (base de tâches incluse) : <code>{{ data_dir }}</code></p>
+  {% if migrated_at %}
+  <p class="hint">Réglages importés automatiquement depuis un ancien fichier <code>.env</code>
+    le {{ migrated_at[:10] }} — vous pouvez le supprimer.</p>
+  {% endif %}
+</section>
+
+<form method="post" action="/kairos/settings">
+  {% for section_title, field_names in sections %}
+  <section class="panel mj-settings-section">
+    <h2>{{ icon('gear') }} {{ section_title }}</h2>
+    <div class="mj-settings-grid">
+      {% for name in field_names %}
+      <div class="mj-settings-field">
+        {% set kind = field_kind[name] %}
+        {% if kind != 'bool' %}
+        <label for="f_{{ name }}">{{ field_labels.get(name, name) }}
+          {%- if name in restart_required_fields %} <span class="badge neutral">redémarrage requis</span>{% endif %}
+        </label>
+        {% endif %}
+
+        {% if kind == 'bool' %}
+        <label class="mj-settings-checkbox-row" for="f_{{ name }}">
+          <input type="checkbox" id="f_{{ name }}" name="{{ name }}" {% if values.get(name) %}checked{% endif %}>
+          {{ field_labels.get(name, name) }}
+        </label>
+        {% elif kind == 'secret' %}
+        <p class="hint">Statut : {% if secret_status[name] %}<strong>défini</strong>{% else %}non défini{% endif %}</p>
+        <input type="password" id="f_{{ name }}" name="{{ name }}"
+               placeholder="laisser vide pour ne pas modifier" autocomplete="new-password">
+        <label class="mj-settings-checkbox-row">
+          <input type="checkbox" name="{{ name }}_clear"> Effacer ce réglage
+        </label>
+        {% elif kind == 'int' %}
+        <input type="number" step="1" id="f_{{ name }}" name="{{ name }}" value="{{ values.get(name, '') }}">
+        {% elif kind == 'float' %}
+        <input type="number" step="0.1" id="f_{{ name }}" name="{{ name }}" value="{{ values.get(name, '') }}">
+        {% else %}
+        <input type="text" id="f_{{ name }}" name="{{ name }}" value="{{ values.get(name, '') }}">
+        {% endif %}
+
+        {% if errors.get(name) %}<p class="hint error">{{ errors[name] }}</p>{% endif %}
+        <p class="hint">{{ field_meta[name].description }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+
+  <p class="hint">En cas d'erreur de validation sur un autre champ, les identifiants (jeton
+    GitLab, mot de passe TimeTree) doivent être ressaisis : ils ne sont jamais conservés
+    d'une tentative à l'autre tant que l'enregistrement échoue.</p>
+
+  <div class="mj-settings-actions">
+    <button type="submit" class="btn primary">{{ icon('save') }} Enregistrer</button>
+  </div>
+</form>
+
+{% endblock %}

@@ -540,3 +540,21 @@ details.mj-edit[open] > summary.icbtn::after {
   border: 1px solid var(--border); border-radius: var(--r-sm); }
 .prose a { font-weight: 600; }
 .mj-check { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; }
+
+/* Page Réglages (/kairos/settings) */
+.mj-settings-section { margin-bottom: 1.1rem; }
+.mj-settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem 1.3rem; }
+.mj-settings-field { display: flex; flex-direction: column; gap: 0.3rem; }
+.mj-settings-field > label:first-child { font-size: 12px; font-weight: 700; color: var(--text-2); }
+.mj-settings-field input[type="text"],
+.mj-settings-field input[type="number"],
+.mj-settings-field input[type="password"] {
+  padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface); color: var(--text); font-size: 13px;
+}
+.mj-settings-checkbox-row { display: flex; align-items: center; gap: 0.4rem; font-size: 12.5px;
+  color: var(--text-2); }
+.mj-settings-checkbox-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); }
+.mj-settings-field .hint.error { color: var(--bad-fg); }
+.mj-settings-actions { position: sticky; bottom: 0; padding: 0.9rem 0; margin-top: 0.5rem; }

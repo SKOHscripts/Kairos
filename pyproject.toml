@@ -8,13 +8,13 @@ dependencies = [
     "uvicorn[standard]>=0.27",
     "sqlalchemy>=2.0",
     "pydantic>=2.6",
-    "pydantic-settings>=2.2",
     "jinja2>=3.1",
     "python-multipart>=0.0.9",
-    "timetree-exporter>=0.4",
-    "icalendar>=5.0",
+    "timetree-exporter>=0.8,<0.9",
     "httpx>=0.27",
     "markdown>=3.6",
+    "platformdirs>=4.0",
+    "keyring>=25.0",
 ]
 
 [project.optional-dependencies]
@@ -22,6 +22,9 @@ dev = [
     "pytest>=8.0",
     "respx>=0.21",
 ]
+
+[project.scripts]
+kairos = "app.launcher:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
