@@ -703,10 +703,12 @@ def shutdown() -> HTMLResponse:
     """Arrête proprement le serveur (bouton « Quitter », exécutable de bureau
     uniquement — voir `is_frozen` : pas de fenêtre de terminal à fermer sinon).
 
-    SIGTERM déclenche l'arrêt normal d'uvicorn (draine les requêtes en cours,
-    dont celle-ci) — équivalent à un Ctrl+C, sans avoir à garder une référence
-    au `Server` lancé par `app/launcher.py`."""
-    os.kill(os.getpid(), signal.SIGTERM)
+    SIGINT (littéralement un Ctrl+C), pas SIGTERM : les deux déclenchent l'arrêt
+    normal d'uvicorn (draine les requêtes en cours, dont celle-ci), mais après un
+    SIGTERM le process est ensuite tué par l'OS avant que `app/launcher.py` ne
+    puisse exécuter son `finally` (nettoyage du verrou d'instance unique) —
+    vérifié empiriquement, SIGINT laisse ce `finally` s'exécuter normalement."""
+    os.kill(os.getpid(), signal.SIGINT)
     return HTMLResponse(
         "<p>Kairos s'arrête. Vous pouvez fermer cette page.</p>"
     )

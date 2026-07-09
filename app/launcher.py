@@ -6,18 +6,31 @@ erreur de démarrage, ni de shell pour taper une commande : ce module choisit un
 port libre, ouvre le navigateur tout seul, et journalise tout échec de
 démarrage dans un fichier avant de remonter l'erreur.
 
+**Instance unique** : un fichier de verrou (`kairos.lock`, dans le dossier de
+données) retient le port de la dernière instance lancée. Relancer l'exécutable
+pendant qu'une instance tourne déjà rouvre simplement le navigateur dessus au
+lieu d'en démarrer une seconde — sans ça, le port avance à chaque lancement
+(8001, 8002, ...) puisque l'instance précédente reste en arrière-plan tant que
+personne ne clique sur « Quitter » (fermer l'onglet du navigateur n'arrête pas
+le serveur). Un verrou obsolète (process tué, jamais nettoyé) est détecté sans
+vérification de PID — multiplateforme plus simple — en sondant directement le
+port : s'il ne répond plus, on démarre normalement et on écrase le verrou.
+
 Aussi accessible en mode venv via `pip install -e .` (`[project.scripts]` dans
 `pyproject.toml` : commande `kairos`), pour une expérience de lancement identique.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import multiprocessing
+import os
 import socket
-import sys
 import threading
 import traceback
+import urllib.error
+import urllib.request
 import webbrowser
 
 import uvicorn
@@ -35,6 +48,7 @@ from app.settings_store import data_dir
 _DEFAULT_PORT = 8001
 _HOST = "127.0.0.1"  # jamais 0.0.0.0 : contrairement au service systemd (exposé
 # volontairement sur le LAN), l'exécutable de bureau ne doit pas s'exposer par défaut.
+_LOCK_FILENAME = "kairos.lock"
 
 
 def _port_available(port: int) -> bool:
@@ -53,10 +67,54 @@ def _open_browser_later(url: str, delay: float = 1.2) -> None:
     threading.Timer(delay, lambda: webbrowser.open(url)).start()
 
 
+def _lock_path():
+    return data_dir() / _LOCK_FILENAME
+
+
+def _read_lock_port() -> int | None:
+    try:
+        return json.loads(_lock_path().read_text(encoding="utf-8"))["port"]
+    except (OSError, ValueError, KeyError):
+        return None  # absent, illisible ou corrompu : traité comme « pas d'instance »
+
+
+def _instance_already_running(port: int) -> bool:
+    """Vrai si une vraie instance Kairos répond déjà sur ``port``.
+
+    Sonde `/favicon.ico` (toujours 200 sur une instance réelle) plutôt que le
+    PID enregistré : évite toute logique de vivacité de process spécifique à
+    l'OS, et un port répondant avec autre chose (204/404/refus de connexion)
+    est traité comme « pas une instance Kairos réutilisable », pas une erreur.
+    """
+    try:
+        with urllib.request.urlopen(f"http://{_HOST}:{port}/favicon.ico", timeout=0.5):
+            return True
+    except (OSError, urllib.error.URLError):
+        return False
+
+
+def _write_lock(port: int) -> None:
+    _lock_path().write_text(json.dumps({"port": port, "pid": os.getpid()}), encoding="utf-8")
+
+
+def _clear_lock() -> None:
+    _lock_path().unlink(missing_ok=True)
+
+
 def main() -> None:
     multiprocessing.freeze_support()  # requis sous Windows/PyInstaller (ré-exécution figée)
+
+    existing_port = _read_lock_port()
+    if existing_port is not None and _instance_already_running(existing_port):
+        # Une instance tourne déjà (le cas courant si l'utilisateur a relancé
+        # l'exécutable sans avoir cliqué « Quitter ») : on la rouvre, sans
+        # démarrer un second serveur ni consommer un nouveau port.
+        webbrowser.open(f"http://{_HOST}:{existing_port}")
+        return
+
     try:
         port = _pick_port()
+        _write_lock(port)
         _open_browser_later(f"http://{_HOST}:{port}")
         # `reload`/`workers>1` reposent tous deux sur un ré-exec du process
         # (rechargeur, workers multiples) : incompatible avec un exécutable figé.
@@ -66,6 +124,15 @@ def main() -> None:
         log_path.write_text(traceback.format_exc(), encoding="utf-8")
         logging.getLogger("kairos").error("Échec du démarrage, trace dans %s", log_path)
         raise
+    finally:
+        # Atteint après un arrêt propre (bouton Quitter → SIGINT → uvicorn.run
+        # revient normalement ; SIGTERM, lui, laisse l'OS tuer le process avant ce
+        # `finally`, voir app/main.py::shutdown) : le prochain lancement ne doit
+        # pas croire qu'une instance tourne encore. Un arrêt brutal (process tué,
+        # ex. Gestionnaire des tâches) laisse le verrou en place, mais
+        # _instance_already_running le détecte comme obsolète dès que le port ne
+        # répond plus, plutôt que de bloquer les lancements suivants.
+        _clear_lock()
 
 
 if __name__ == "__main__":

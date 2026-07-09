@@ -1898,9 +1898,11 @@ def test_quit_button_shown_when_frozen(route_client, monkeypatch) -> None:
     assert 'action="/kairos/shutdown"' in resp.text
 
 
-def test_shutdown_route_sends_sigterm_to_self(monkeypatch) -> None:
+def test_shutdown_route_sends_sigint_to_self(monkeypatch) -> None:
     """Vérifie l'appel exact (jamais réellement exécuté ici, sous peine de tuer le
-    process pytest) : SIGTERM sur son propre PID, équivalent à un Ctrl+C propre."""
+    process pytest) : SIGINT (littéralement Ctrl+C) sur son propre PID — SIGTERM
+    a été essayé puis abandonné : uvicorn s'arrête bien, mais l'OS tue ensuite le
+    process avant que `app/launcher.py` ne puisse nettoyer son verrou d'instance."""
     calls = []
     monkeypatch.setattr(main.os, "kill", lambda pid, sig: calls.append((pid, sig)))
     client = TestClient(main.app)
@@ -1908,4 +1910,4 @@ def test_shutdown_route_sends_sigterm_to_self(monkeypatch) -> None:
     resp = client.post("/kairos/shutdown")
 
     assert resp.status_code == 200
-    assert calls == [(os.getpid(), signal.SIGTERM)]
+    assert calls == [(os.getpid(), signal.SIGINT)]
