@@ -16,12 +16,16 @@
 </form>
 {% endmacro %}
 
+{% macro done_toggle(task) %}
+<form method="post" action="/kairos/tasks/{{ task.id }}/done" class="inline">
+  <button type="submit" class="mj-check {% if task.status == 'done' %}is-done{% endif %}"
+    title="{% if task.status == 'done' %}Rouvrir{% else %}Marquer fait{% endif %}">
+    {% if task.status == 'done' %}{{ icon('check') }}{% endif %}</button>
+</form>
+{% endmacro %}
+
 {% macro task_actions(task) %}
 <span class="mj-actions">
-  <form method="post" action="/kairos/tasks/{{ task.id }}/done" class="inline">
-    <button type="submit" class="icbtn" title="{% if task.status == 'done' %}Rouvrir{% else %}Marquer fait{% endif %}">
-      {{ icon('check') }}</button>
-  </form>
   {% if task.status == 'todo' %}
   {% if running_task_id == task.id %}
   <form method="post" action="/kairos/tasks/{{ task.id }}/timer/stop" class="inline">
@@ -277,6 +281,7 @@
   <ul class="kairos-list">
     {% for task in schedule.to_process %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
+      {{ done_toggle(task) }}
       <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
       <span class="badge warn" title="Cette tâche ne rentre dans aucun tri tant qu'elle n'est pas qualifiée">
         {{ icon('warning') }}
@@ -349,33 +354,7 @@
 </section>
 
 <div class="mj-day-grid">
-{# --- Timeline verticale : la journée comme un agenda (1 min = 1 px). --- #}
-<section class="card mj-timeline-card">
-  <h2>Agenda</h2>
-  <div class="mj-timeline" style="height: {{ timeline_height }}px;">
-    {% for h in timeline_hours %}
-    <div class="mj-tl-hour" style="top: {{ (h - timeline_hours[0]) * 60 }}px;"><span>{{ h }}h</span></div>
-    {% endfor %}
-    {% for e in timeline %}
-    <div class="mj-tl-entry {{ e.kind }}" style="top: {{ e.top_min }}px; height: {{ e.height_min }}px;"
-         title="{{ e.title }} ({{ e.start.strftime('%Hh%M') }}-{{ e.end.strftime('%Hh%M') }})">
-      <span>{{ e.start.strftime('%Hh%M') }} · {{ e.title }}</span>
-    </div>
-    {% endfor %}
-    {# Rail « réel » : sessions de travail chronométrées, dans la gouttière gauche, pour
-       comparer d'un coup d'œil le travail réel au planifié (phase 11). #}
-    {% for e in session_timeline %}
-    <div class="mj-tl-session" style="top: {{ e.top_min }}px; height: {{ e.height_min }}px;"
-         title="Travaillé : {{ e.title }} ({{ e.start.strftime('%Hh%M') }}-{{ e.end.strftime('%Hh%M') }})"></div>
-    {% endfor %}
-  </div>
-  {% if session_timeline %}
-  <p class="hint" style="margin-top:0.5rem;">{{ icon('clock') }} Le rail à gauche marque le
-  temps réellement chronométré.</p>
-  {% endif %}
-</section>
-
-<section class="card" style="padding:1rem;flex:1;min-width:300px;">
+<section class="card" style="padding:1rem;">
   <h2 style="margin-top:0;">À faire aujourd'hui, dans l'ordre</h2>
   {% if not schedule.scheduled %}
   <p class="muted">Aucune tâche à faire n'est actuellement planifiée.</p>
@@ -383,6 +362,7 @@
   <ol class="kairos-list">
     {% for item in schedule.scheduled %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(item.task.id, 4) }} {% if item.pushed %}pushed{% endif %} {% if item.conflict %}pushed{% endif %}">
+      {{ done_toggle(item.task) }}
       <span class="mj-time">{{ item.start_at.strftime('%Hh%M') }}</span>
       <span class="mj-title">{% if parent_title_of.get(item.task.id) %}<span class="muted">{{ parent_title_of[item.task.id] }} › </span>{% endif %}{{ item.task.title }}</span>
       {% if item.pinned %}<span class="badge info" title="Tâche épinglée à heure fixe">{{ icon('dot') }} épinglée</span>{% endif %}
@@ -414,6 +394,7 @@
   <ul class="kairos-list">
     {% for task in schedule.unscheduled %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
+      {{ done_toggle(task) }}
       <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
       {{ task_meta(task) }}
       {{ time_spent(task) }}
@@ -430,6 +411,7 @@
   <ul class="kairos-list">
     {% for entry in blocked_tasks %}
     <li class="kairos-item mj-blocked">
+      {{ done_toggle(entry.task) }}
       <span class="mj-title">{% if parent_title_of.get(entry.task.id) %}<span class="muted">{{ parent_title_of[entry.task.id] }} › </span>{% endif %}{{ entry.task.title }}</span>
       <span class="badge bad" title="Ne sera planifiable qu'une fois ces tâches faites">
         {{ icon('blocked') }} en attente de : {{ entry.reasons | join(', ') }}</span>
@@ -447,6 +429,7 @@
     <ul class="kairos-list">
       {% for task in schedule.later %}
       <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
+        {{ done_toggle(task) }}
         <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
         {{ task_meta(task) }}
         {{ priority_form(task) }}
@@ -463,6 +446,7 @@
   <ul class="kairos-list">
     {% for entry in parents_progress %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(entry.task.id, 4) }}">
+      {{ done_toggle(entry.task) }}
       <span class="mj-title">{{ entry.task.title }}</span>
       <span class="badge {% if entry.done == entry.total %}ok{% else %}neutral{% endif %}"
             title="Avancement des sous-tâches">{{ entry.done }}/{{ entry.total }} sous-tâche(s)</span>
@@ -481,6 +465,7 @@
     <ul class="kairos-list">
       {% for task in done_today %}
       <li class="kairos-item mj-done">
+        {{ done_toggle(task) }}
         <span class="mj-title">{{ task.title }}</span>
         {{ task_meta(task) }}
         {{ task_actions(task) }}
@@ -490,6 +475,49 @@
   </details>
   {% endif %}
 </section>
+
+<div class="mj-side-col">
+  {# --- Carte « En ce moment » : reprise du chrono en cours, mise en avant. --- #}
+  <section class="card mj-now-card">
+    <div class="mj-now-label">En ce moment</div>
+    {% if running_task_id %}
+    <div class="mj-now-title">{{ running_task_title }}</div>
+    <div class="mj-now-timer">{{ spent_by_task.get(running_task_id, 0) }} min</div>
+    {% if running_task_estimate %}<div class="mj-now-sub">estimé {{ running_task_estimate }} min</div>{% endif %}
+    <form method="post" action="/kairos/tasks/{{ running_task_id }}/timer/stop">
+      <button type="submit" class="mj-now-stop">{{ icon('clock') }} Arrêter le chrono</button>
+    </form>
+    {% else %}
+    <p class="mj-now-empty">Aucun chrono en cours. Lance-le sur la tâche en cours pour suivre ton temps réel.</p>
+    {% endif %}
+  </section>
+
+  {# --- Timeline verticale : la journée comme un agenda (1 min = 1 px). --- #}
+  <section class="card mj-timeline-card">
+    <h2>Agenda</h2>
+    <div class="mj-timeline" style="height: {{ timeline_height }}px;">
+      {% for h in timeline_hours %}
+      <div class="mj-tl-hour" style="top: {{ (h - timeline_hours[0]) * 60 }}px;"><span>{{ h }}h</span></div>
+      {% endfor %}
+      {% for e in timeline %}
+      <div class="mj-tl-entry {{ e.kind }}" style="top: {{ e.top_min }}px; height: {{ e.height_min }}px;"
+           title="{{ e.title }} ({{ e.start.strftime('%Hh%M') }}-{{ e.end.strftime('%Hh%M') }})">
+        <span>{{ e.start.strftime('%Hh%M') }} · {{ e.title }}</span>
+      </div>
+      {% endfor %}
+      {# Rail « réel » : sessions de travail chronométrées, dans la gouttière gauche, pour
+         comparer d'un coup d'œil le travail réel au planifié (phase 11). #}
+      {% for e in session_timeline %}
+      <div class="mj-tl-session" style="top: {{ e.top_min }}px; height: {{ e.height_min }}px;"
+           title="Travaillé : {{ e.title }} ({{ e.start.strftime('%Hh%M') }}-{{ e.end.strftime('%Hh%M') }})"></div>
+      {% endfor %}
+    </div>
+    {% if session_timeline %}
+    <p class="hint" style="margin-top:0.5rem;">{{ icon('clock') }} Le rail à gauche marque le
+    temps réellement chronométré.</p>
+    {% endif %}
+  </section>
+</div>
 </div>
 
 <details class="card">

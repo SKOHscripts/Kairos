@@ -349,18 +349,42 @@ summary:focus-visible,
 .mj-week-day h3 { margin: 0 0 0.45rem; font-size: 0.82rem; font-weight: 700; text-transform: capitalize; color: var(--text-2); }
 .mj-week-day .kairos-item { padding: 0.4rem 0.6rem; }
 .mj-actions { display: inline-flex; gap: 0.3rem; }
+/* Case à cocher, en tête de ligne : coche la tâche faite / la rouvre. */
+.mj-check {
+  flex: none;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid var(--border-strong); background: none;
+  color: var(--ok-fg); cursor: pointer; font-size: 13px;
+  display: inline-grid; place-items: center; padding: 0;
+}
+.mj-check:hover { border-color: var(--ok-fg); background: var(--ok-bg); }
+.mj-check.is-done { border-color: var(--ok-fg); background: var(--ok-bg); }
 .kairos-item.mj-done { opacity: 0.6; }
 .kairos-item.mj-done .mj-title { text-decoration: line-through; }
 .mj-edit > summary { list-style: none; cursor: pointer; }
 .mj-edit > summary::-webkit-details-marker { display: none; }
-.mj-edit-body { flex-basis: 100%; margin-top: 0.6rem; padding: 0.9rem; border: 1px solid var(--border);
-  border-radius: var(--r); background: var(--surface); display: flex; flex-direction: column; gap: 0.6rem;
-  box-shadow: var(--shadow-pop); }
+.mj-edit { display: contents; }
+.mj-edit > summary { display: inline-flex; }
+/* Panneau de modification d'une tâche : présenté comme une modale centrée, tout
+   en gardant <details>/<summary> comme mécanisme d'ouverture/fermeture natif —
+   cliquer à nouveau sur le crayon referme le panneau. */
+.mj-edit > summary.icbtn { position: relative; z-index: 81; }
+details.mj-edit[open] > summary.icbtn { background: var(--dark-surface); color: var(--dark-text); border-color: var(--dark-surface); }
+.mj-edit-body {
+  position: fixed; z-index: 80; top: 6vh; left: 50%; transform: translateX(-50%);
+  width: min(640px, 92vw); max-height: 88vh; overflow-y: auto;
+  margin-top: 0; padding: 1.2rem 1.4rem; border: 1px solid var(--border);
+  border-radius: var(--r-xl); background: var(--surface); display: flex; flex-direction: column; gap: 0.7rem;
+  box-shadow: var(--shadow-pop);
+}
+.mj-edit-body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background: rgba(43, 36, 30, 0.32);
+}
 .mj-edit-form { display: flex; flex-direction: column; gap: 0.5rem; }
 .mj-edit-form label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 11px; color: var(--text-3); font-weight: 600; }
 .mj-edit-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }
-.mj-edit { display: contents; }
-.mj-edit > summary { display: inline-flex; }
+.mj-edit-form > label:first-child input { font-size: 16px; font-weight: 700; color: var(--text); padding: 0.5rem 0.6rem; }
 
 /* Progression du jour : bandeau d'accueil dégradé, façon accroche du matin. */
 .mj-progress {
@@ -375,9 +399,34 @@ summary:focus-visible,
 .mj-next strong { font-weight: 600; }
 .mj-progress-stats { display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }
 
-/* Timeline verticale (1 minute = 1 pixel, rendu serveur) */
+/* Mise en page du jour : liste des tâches (large, à gauche) + colonne latérale
+   (chrono en cours + agenda), comme dans les maquettes. */
 .mj-day-grid { display: flex; gap: 1.1rem; align-items: flex-start; flex-wrap: wrap; }
-.mj-timeline-card { padding: 1.1rem; width: 280px; flex-shrink: 0; border-radius: var(--r-md); }
+.mj-day-grid > section:first-child { flex: 1.7 1 420px; }
+.mj-side-col { display: flex; flex-direction: column; gap: 1.1rem; width: 300px; flex: none; }
+@media (max-width: 860px) { .mj-side-col { width: 100%; } }
+
+/* Carte « En ce moment » : reprend le chrono en cours, mise en avant (fond sombre). */
+.mj-now-card {
+  padding: 1.1rem 1.2rem; border-radius: var(--r-xl);
+  background: var(--dark-surface); border-color: var(--dark-surface); color: var(--dark-text);
+}
+.mj-now-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--dark-muted); margin-bottom: 0.5rem; }
+.mj-now-title { font-size: 15px; font-weight: 700; margin-bottom: 0.4rem; }
+.mj-now-timer { font-size: 32px; font-weight: 800; letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums; color: var(--dark-accent); }
+.mj-now-sub { font-size: 12px; color: var(--dark-muted); margin: 0.3rem 0 0.9rem; }
+.mj-now-stop {
+  width: 100%; border: none; background: var(--accent-soft); color: var(--accent-700);
+  font-weight: 700; font-size: 12.5px; padding: 0.6rem; border-radius: var(--r-sm);
+  cursor: pointer; margin-top: 0.9rem; display: inline-flex; align-items: center;
+  justify-content: center; gap: 0.4rem;
+}
+.mj-now-stop:hover { background: #fff; }
+.mj-now-empty { font-size: 13px; color: var(--dark-muted); line-height: 1.5; margin: 0; }
+
+.mj-timeline-card { padding: 1.1rem; border-radius: var(--r-md); }
 .mj-timeline-card h2 { margin: 0 0 0.65rem; }
 .mj-timeline { position: relative; margin-left: 2.4rem; border-left: 1px solid var(--border); }
 .mj-tl-hour { position: absolute; left: -2.4rem; right: 0; border-top: 1px solid var(--border);

@@ -83,13 +83,38 @@ Barre horizontale sticky (`.topnav`) : logo + titre à gauche, 3 items en pilule
 Une sous-barre (`.topbar`) porte le titre de page et les actions contextuelles
 (bascule Jour/Semaine, retour, etc.).
 
+## Panneau de modification d'une tâche
+
+`edit_panel(task)` (`.mj-edit` / `.mj-edit-body` dans `templates/kairos.html`)
+se présente comme une **modale centrée avec fond assombri**, en CSS pur : le
+mécanisme d'ouverture/fermeture reste le `<details>`/`<summary>` natif existant
+(cliquer sur le crayon rouvre/referme), mais `.mj-edit-body` passe en
+`position: fixed`, centrée, avec un `::before` en fond plein écran dès que le
+`<details>` porte l'attribut `[open]`. Pas de JavaScript ajouté.
+
+## Case à cocher
+
+Chaque ligne de tâche (`.kairos-item`) porte désormais un rond `.mj-check` en
+tête de ligne (avant l'heure/le titre) qui bascule le statut fait/à faire —
+même formulaire `POST .../done` qu'avant, juste déplacé en premier enfant du
+`<li>` et sorti du groupe d'actions de droite (`.mj-actions`, qui ne garde que
+chrono et décaler).
+
+## Carte « En ce moment »
+
+Le chrono en cours est maintenant aussi repris en évidence dans une carte
+sombre dédiée (`.mj-now-card`, colonne latérale de la vue jour, à côté de
+l'agenda) — en plus du badge `.mj-timer` déjà présent sur la ligne de la
+tâche (conservé tel quel, y compris son minuteur vivant en JS). La carte
+utilise les champs de contexte `running_task_title`/`running_task_estimate`
+déjà calculés côté serveur mais jusqu'ici inutilisés côté template.
+
 ## Écarts assumés par rapport aux maquettes `.dc.html`
 
-Les maquettes du dossier `design_handoff_kairos_redesign/` (non versionné) montrent
-une modale de tâche avec pilules cliquables pour la priorité/les points Fibonacci et
-des chips à bascule pour les tâches bloquantes. L'implémentation réelle garde des
-`<select>`/`<select multiple>` HTML natifs (mêmes noms de champs, mêmes tests) — le
-style pilule est appliqué en surface, mais leur interaction reste un menu déroulant
-classique, pour ne pas ajouter de JavaScript ni changer la sémantique des
-formulaires. Le panneau de modification reste un `<details>` ancré sous la ligne
-plutôt qu'une vraie modale centrée, pour la même raison.
+Les maquettes du dossier `design_handoff_kairos_redesign/` (non versionné)
+montrent des pilules cliquables pour la priorité/les points Fibonacci et des
+chips à bascule pour les tâches bloquantes, dans le panneau de modification.
+L'implémentation réelle garde des `<select>`/`<select multiple>` HTML natifs
+(mêmes noms de champs, mêmes tests) — le style pilule n'est pas repris pour
+ces champs précis, pour ne pas ajouter de JavaScript ni changer la sémantique
+des formulaires.
