@@ -6,10 +6,12 @@ from __future__ import annotations
 
 import http.server
 import socket
+import sys
 import threading
 
 from app.launcher import (
     _clear_lock,
+    _ensure_std_streams,
     _instance_already_running,
     _pick_port,
     _port_available,
@@ -93,3 +95,28 @@ def test_instance_already_running_true_for_a_responding_server() -> None:
     finally:
         server.shutdown()
         thread.join()
+
+
+def test_ensure_std_streams_replaces_none_stdout_and_stderr(monkeypatch) -> None:
+    """Régression Windows : PyInstaller en mode fenêtré (console=False) laisse
+    sys.stdout/stderr à None (pas de console attachée), ce qui fait planter
+    uvicorn dès la configuration de son logging par défaut."""
+    monkeypatch.setattr(sys, "stdout", None)
+    monkeypatch.setattr(sys, "stderr", None)
+
+    _ensure_std_streams()
+
+    assert sys.stdout is not None
+    assert sys.stderr is not None
+    assert sys.stdout.isatty() is False
+    sys.stdout.write("ignoré")  # ne doit pas lever
+    sys.stdout.flush()
+
+
+def test_ensure_std_streams_leaves_real_streams_untouched() -> None:
+    real_stdout, real_stderr = sys.stdout, sys.stderr
+
+    _ensure_std_streams()
+
+    assert sys.stdout is real_stdout
+    assert sys.stderr is real_stderr

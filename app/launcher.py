@@ -27,6 +27,7 @@ import logging
 import multiprocessing
 import os
 import socket
+import sys
 import threading
 import traceback
 import urllib.error
@@ -101,7 +102,36 @@ def _clear_lock() -> None:
     _lock_path().unlink(missing_ok=True)
 
 
+class _NullStream:
+    """Flux minimal pour remplacer un `sys.stdout`/`sys.stderr` absent (voir
+    `_ensure_std_streams`) : `write`/`flush`/`isatty` sont les seules méthodes
+    dont uvicorn et le module `logging` ont besoin au démarrage."""
+
+    def write(self, *_args, **_kwargs) -> int:
+        return 0
+
+    def flush(self) -> None:
+        return None
+
+    def isatty(self) -> bool:
+        return False
+
+
+def _ensure_std_streams() -> None:
+    """Sous Windows, un exécutable PyInstaller en mode fenêtré (``console=False``,
+    voir `packaging/kairos.spec`) n'a pas de console attachée : `sys.stdout`/
+    `sys.stderr` valent `None` plutôt qu'un flux réel. uvicorn plante dès la
+    configuration de son logging par défaut (`ColourizedFormatter.__init__`
+    appelle `stream.isatty()`) — remplacer `None` par un flux nul avant tout
+    évite ce crash, ici et pour tout autre code qui suppose un flux réel."""
+    if sys.stdout is None:
+        sys.stdout = _NullStream()
+    if sys.stderr is None:
+        sys.stderr = _NullStream()
+
+
 def main() -> None:
+    _ensure_std_streams()
     multiprocessing.freeze_support()  # requis sous Windows/PyInstaller (ré-exécution figée)
 
     existing_port = _read_lock_port()
