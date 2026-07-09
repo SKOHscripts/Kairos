@@ -402,7 +402,7 @@ def test_priority_badge_shown_when_priority_set(route_client) -> None:
 
 def test_wsjf_score_badge_shown(route_client) -> None:
     """Transparence phase 9 : le score WSJF qui ordonne la liste est affiché sur la tâche.
-    Une P1 à 1 point Fibonacci → score 8.0 (valeur 8 / effort 1)."""
+    Une P1 à 1 point Fibonacci → score 4.0 (valeur 4 / effort 1)."""
     client, TestSession = route_client
     with TestSession() as db:
         db.add(Task(title="Rapide et prioritaire", status="todo",
@@ -411,7 +411,7 @@ def test_wsjf_score_badge_shown(route_client) -> None:
 
     resp = client.get("/kairos")
     assert 'class="badge mj-score"' in resp.text
-    assert "8.0" in resp.text
+    assert "4.0" in resp.text
 
 
 def test_fibonacci_estimation_help_present(route_client) -> None:
@@ -477,6 +477,30 @@ def test_priority_overload_banner_absent_under_threshold(route_client) -> None:
     assert "priorité maximale" not in resp.text
 
 
+def test_priority_overload_excludes_blocked_tasks(route_client) -> None:
+    """Une tâche à priorité maximale mais bloquée ne peut être traitée dans
+    l'immédiat : elle ne doit pas compter dans le garde-fou de surcharge, sous
+    peine de déclencher le bandeau pour des tâches sur lesquelles on ne peut
+    de toute façon rien faire."""
+    from app.tasks_models import TaskDependency
+
+    client, TestSession = route_client
+    with TestSession() as db:
+        for i in range(5):
+            db.add(Task(title=f"Urgente {i}", status="todo", priority=0))
+        blocked = Task(title="Urgente bloquée", status="todo", priority=0)
+        blocker = Task(title="Bloqueuse", status="todo", priority=3)
+        db.add_all([blocked, blocker])
+        db.commit()
+        db.add(TaskDependency(task_id=blocked.id, blocker_id=blocker.id))
+        db.commit()
+
+    resp = client.get("/kairos")
+    # 6 tâches à priorité maximale au total, mais une est bloquée : le
+    # décompte effectif (5) reste sous le seuil par défaut (5) → pas de bandeau.
+    assert "priorité maximale" not in resp.text
+
+
 def test_done_section_is_collapsed_by_default(route_client) -> None:
     """« Fait » est repliée par défaut (même idiome que « Programmées plus tard »),
     mais les tâches y restent présentes dans le HTML (dépliable en un clic)."""
@@ -526,6 +550,30 @@ def test_done_on_recurring_task_creates_next_occurrence(route_client) -> None:
         occurrence = db.query(Task).filter_by(status="todo").one()
         assert occurrence.title == "Stand-up"
         assert occurrence.deadline == TODAY + _td(days=1)
+
+
+def test_recurring_occurrence_deferred_to_later_not_todays_agenda(route_client) -> None:
+    """La nouvelle occurrence d'une récurrente hebdomadaire (échéance dans 7 j) ne
+    doit pas apparaître dans l'agenda du jour dès sa création — seulement dans
+    « Programmées plus tard », jusqu'à ce que son échéance approche."""
+    from datetime import timedelta as _td
+
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Point hebdo", recurrence="weekly", deadline=TODAY, status="todo",
+                    priority=1, fibonacci_points=2)
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    client.post(f"/kairos/tasks/{task_id}/done", follow_redirects=False)
+
+    page = client.get("/kairos")
+    assert "Programmées plus tard" in page.text
+    assert "Point hebdo" in page.text
+    with TestSession() as db:
+        occurrence = db.query(Task).filter_by(status="todo").one()
+        assert occurrence.scheduled_date == TODAY + _td(days=7)
 
 
 def test_snooze_moves_deadline_to_next_business_day(route_client) -> None:

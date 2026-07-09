@@ -1,5 +1,9 @@
 # Kairos
 
+> **Charte visuelle** : couleurs, typographie, formes et composants sont
+> documentés dans [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) — toute
+> nouvelle page ou tout nouveau composant doit réutiliser ces jetons.
+
 Dashboard personnel de tâches : **« qu'est-ce que je fais maintenant, et dans quel
 ordre, sachant qu'une réunion 13h-14h m'empêche de traiter le sujet urgent avant
 14h05 ? »**. Outil web local, mono-utilisateur, sans compte ni cloud : une base
@@ -52,7 +56,7 @@ make test      # venv + suite de tests complète
 
 ### Gestion des tâches
 - **Création rapide** en une ligne (titre seul suffit) ; édition complète : titre,
-  description, priorité 0-4, échéance, date programmée, projet, durée estimée,
+  description, priorité 0-2 (P0 = la plus forte), échéance, date programmée, projet, durée estimée,
   récurrence, type, points de Fibonacci, heure fixe, fiche liée, sous-tâches en lot,
   bloqueurs. Un seul « Enregistrer » applique tout.
 - **Sous-tâches** : avancement n/m sur la mère ; seules les **feuilles** sont
@@ -223,7 +227,13 @@ la fonctionnalité disparaît proprement de l'interface (cas normal, aucune erre
    lecture seule à l'API REST GitLab, mis en cache (`GITLAB_CACHE_TTL_MINUTES`,
    même patron anti rate-limiting que TimeTree) ; un échec (réseau, jeton
    invalide) se dégrade en bandeau, jamais en erreur — les tâches déjà importées
-   restent affichées.
+   restent affichées. `GITLAB_TOKEN` est optionnel : laissé vide, le jeton est
+   résolu depuis les moyens d'authentification déjà configurés pour `git` sur ce
+   poste — `git credential fill` (trousseau GNOME/libsecret, Keychain macOS,
+   Windows Credential Manager, ou tout autre `credential.helper` déjà en place),
+   puis `~/.netrc` en repli — pour éviter de dupliquer un jeton en clair dans
+   `.env` (voir `app/git_credentials.py`). Résolution mise en cache pour la durée
+   du processus : redémarre le service après une rotation de jeton.
 
 Si `PILOTAGE_DATABASE_PATH` est renseigné, il **prime toujours** sur l'import
 direct (zéro appel réseau). Dans les deux cas : issue fermée/réassignée → tâche

@@ -138,7 +138,7 @@ def fetch_assigned_issues(settings: Settings, *, client: httpx.Client | None = N
 
 
 def _fetch_from_gitlab(settings: Settings, *, client: httpx.Client | None) -> GitLabFetchResult:
-    gitlab_client = GitLabClient(settings.gitlab_url, settings.gitlab_token, client=client)
+    gitlab_client = GitLabClient(settings.gitlab_url, settings.gitlab_token_effective, client=client)
     issues: list[GitLabIssue] = []
     try:
         for project in settings.gitlab_project_list:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from app import git_credentials
 from app.config import Settings
 
 
@@ -40,6 +41,38 @@ def test_gitlab_direct_configured_false_when_pilotage_path_set() -> None:
     assert settings.gitlab_direct_configured is False
 
 
+def test_gitlab_token_effective_prefers_explicit_env_token(monkeypatch) -> None:
+    """`GITLAB_TOKEN` explicite : jamais de résolution via git credential/netrc."""
+    def _boom(url):
+        raise AssertionError("resolve_gitlab_token ne doit pas être appelée")
+
+    monkeypatch.setattr(git_credentials, "resolve_gitlab_token", _boom)
+
+    settings = Settings(gitlab_url="https://gitlab.test", gitlab_token="explicit-tok")
+    assert settings.gitlab_token_effective == "explicit-tok"
+
+
+def test_gitlab_token_effective_falls_back_to_git_credentials(monkeypatch) -> None:
+    monkeypatch.setattr(git_credentials, "resolve_gitlab_token", lambda url: "resolved-tok")
+
+    settings = Settings(gitlab_url="https://gitlab.test", gitlab_token="")
+    assert settings.gitlab_token_effective == "resolved-tok"
+
+
+def test_gitlab_token_effective_empty_without_url() -> None:
+    assert Settings(gitlab_token="").gitlab_token_effective == ""
+
+
+def test_gitlab_direct_configured_true_via_resolved_git_credentials(monkeypatch) -> None:
+    monkeypatch.setattr(git_credentials, "resolve_gitlab_token", lambda url: "resolved-tok")
+
+    settings = Settings(
+        gitlab_url="https://gitlab.test", gitlab_token="",
+        gitlab_projects="equipe/projet", gitlab_assignee_username="corentin",
+    )
+    assert settings.gitlab_direct_configured is True
+
+
 def test_gitlab_project_list_splits_and_strips() -> None:
     settings = Settings(gitlab_projects=" equipe/a , equipe/b ,,")
     assert settings.gitlab_project_list == ["equipe/a", "equipe/b"]
@@ -59,7 +92,7 @@ def test_timetree_configured_false_when_only_email_set() -> None:
 
 def test_wsjf_defaults() -> None:
     settings = Settings()
-    assert settings.priority_value_base == 2.0
+    assert settings.priority_value_base == 4.0
     assert settings.urgency_horizon_days == 14
     assert settings.urgency_peak == 8.0
     assert settings.default_fibonacci_points == 3
