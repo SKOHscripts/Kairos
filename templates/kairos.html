@@ -144,7 +144,7 @@
         </label>
       </div>
       {{ fibo_help() }}
-      <label title="Une par ligne — créées en même temps que le reste, en plus de l'ajout ponctuel ci-dessous">
+      <label title="Une ligne = une sous-tâche, créée en même temps que le reste">
         Nouvelles sous-tâches
         <textarea name="new_subtasks" rows="2" placeholder="ex.&#10;Première étape&#10;Deuxième étape"></textarea>
       </label>
@@ -159,11 +159,6 @@
         </select>
       </label>
       <button type="submit" class="btn primary">{{ icon('save') }} Enregistrer</button>
-    </form>
-    <form method="post" action="/kairos/tasks" class="inline" style="display:inline-flex;gap:0.4rem;align-items:flex-end;">
-      <input type="hidden" name="parent_id" value="{{ task.id }}">
-      <label>Sous-tâche<input type="text" name="title" placeholder="ex. Première étape" required style="width:220px;"></label>
-      <button type="submit" class="btn">{{ icon('plus') }} Ajouter une sous-tâche</button>
     </form>
     <div class="mj-edit-row">
       <form method="post" action="/kairos/tasks/{{ task.id }}/delete" class="inline"
