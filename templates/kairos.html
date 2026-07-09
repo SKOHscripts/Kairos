@@ -81,9 +81,9 @@
 {% endmacro %}
 
 {% macro edit_panel(task) %}
-<details class="mj-edit">
-  <summary class="icbtn" title="Éditer">{{ icon('pencil') }}</summary>
-  <div class="mj-edit-body">
+<span class="mj-edit">
+  <button type="button" class="icbtn mj-edit-toggle" title="Éditer" aria-expanded="false">{{ icon('pencil') }}</button>
+  <div class="mj-edit-body" hidden>
     <form method="post" action="/kairos/tasks/{{ task.id }}/edit" class="mj-edit-form">
       <label>Titre<input type="text" name="title" value="{{ task.title }}" required></label>
       <label>Description<textarea name="description" rows="2">{{ task.description }}</textarea></label>
@@ -131,7 +131,7 @@
             {% endfor %}
           </select>
         </label>
-        <label title="Pose la tâche à heure fixe le jour affiché ; vide = désépinglée">Heure fixe
+        <label title="Pose la tâche à heure fixe le jour programmé (« Programmée pour » ci-dessus) si renseigné, sinon le jour affiché ; vide = désépinglée">Heure fixe
           <input type="time" name="pin_time" value="{{ task.pinned_start.strftime('%H:%M') if task.pinned_start else '' }}"></label>
         <input type="hidden" name="pin_day" value="{{ day.isoformat() }}">
         <label title="Référence en lecture vers une fiche de dette technique existante — aucune écriture vers Redmine/GitLab">Fiche liée
@@ -168,7 +168,7 @@
       </form>
     </div>
   </div>
-</details>
+</span>
 {% endmacro %}
 
 {% macro task_meta(task) %}
@@ -193,12 +193,6 @@
 {% set stale_days = stale_days_of.get(task.id) %}
 {% if stale_days %}<span class="badge warn" title="Aucune reprise depuis longtemps">{{ icon('warning') }} traîne depuis {{ stale_days }} j</span>{% endif %}
 {% endmacro %}
-
-{% block topbar_actions %}
-<a class="btn {% if view == 'day' %}primary{% endif %}" href="/kairos?view=day">{{ icon('clock') }} Jour</a>
-<a class="btn {% if view == 'week' %}primary{% endif %}" href="/kairos?view=week">{{ icon('calendar') }} Semaine</a>
-<a class="btn" href="/kairos/stats">{{ icon('trending_up') }} Statistiques</a>
-{% endblock %}
 
 {% block content %}
 
@@ -226,6 +220,30 @@
 <div class="banner warning">
   {{ icon('warning') }} <span>{{ priority_overload_count }} tâches sont déjà à priorité maximale — le signal de priorité se dilue. Dépriorise ce qui peut attendre.</span>
 </div>
+{% endif %}
+
+{# --- Backlog : tâches sans échéance ni date programmée. Sans cette section, elles
+     n'apparaissent jamais en vue semaine (groupée par échéance) et se perdent dans
+     l'agenda du jour — affiché quelle que soit la vue (jour ou semaine). --- #}
+{% if backlog_tasks %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Backlog — sans date ({{ backlog_tasks|length }})</summary>
+  <p class="hint">Tâches sans échéance ni date programmée : ni pour aujourd'hui, ni
+  visibles en vue semaine. Pose une échéance ou une date programmée pour les faire
+  atterrir dans l'agenda.</p>
+  <ul class="kairos-list">
+    {% for task in backlog_tasks %}
+    <li class="kairos-item">
+      {{ done_toggle(task) }}
+      <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
+      {{ task_meta(task) }}
+      {{ priority_form(task) }}
+      {{ task_actions(task) }}
+      {{ edit_panel(task) }}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
 {% endif %}
 
 {% if view == 'week' %}
@@ -333,7 +351,7 @@
 <section class="card" style="padding:0.8rem 1rem;">
   <form method="post" action="/kairos/tasks" class="filters" style="align-items:flex-end;">
     <label style="flex:1;min-width:220px;">Nouvelle tâche
-      <input type="text" name="title" placeholder="ex. Relire le rapport MSI" required></label>
+      <input type="text" name="title" placeholder="ex. Répondre à tel mail" required></label>
     <label>Priorité
       <select name="priority">
         <option value="">—</option>
@@ -348,7 +366,70 @@
   </form>
 </section>
 
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Ajouter un créneau (réunion ou bloc deep-work)</summary>
+  <div style="padding: 0 1rem 1rem;">
+    <form method="post" action="/kairos/blocks" class="filters" style="align-items:flex-end;">
+      <label>Titre<input type="text" name="title" placeholder="ex. Réunion hebdo / Focus" required style="width:220px;"></label>
+      <label>Début<input type="datetime-local" name="start" required></label>
+      <label>Fin<input type="datetime-local" name="end" required></label>
+      <label class="mj-check" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
+        <input type="checkbox" name="deepwork" value="1"> Bloc deep-work</label>
+      <label title="Le créneau saisi devient le modèle (heure de début/fin) répété selon la règle — ex. déjeuner tous les jours, deep-work chaque mardi">Récurrence
+        <select name="recurrence">
+          <option value="">aucune</option>
+          <option value="daily">quotidienne</option>
+          <option value="weekdays">jours ouvrés</option>
+          <option value="weekly">hebdomadaire (même jour)</option>
+        </select>
+      </label>
+      <button type="submit" class="btn primary">{{ icon('plus') }} Ajouter</button>
+    </form>
+    {% if editable_blocks %}
+    <p class="hint mt-s">Créneaux du jour (éditer un créneau récurrent modifie toutes ses occurrences) :</p>
+    <ul class="ma-journee-list">
+      {% for block in editable_blocks %}
+      <li class="ma-journee-item">
+        <span class="mj-time">{{ block.start.strftime('%Hh%M') }}–{{ block.end.strftime('%Hh%M') }}</span>
+        <span class="mj-title">{{ block.title or '(sans titre)' }}</span>
+        {% if block.kind == 'deepwork' %}<span class="badge ok" title="Bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
+        {% if block.recurrence %}<span class="badge info" title="Créneau récurrent — l'édition porte sur toutes les occurrences">{{ icon('refresh') }} {{ block_recurrence_labels.get(block.recurrence, block.recurrence) }}</span>{% endif %}
+        <span class="mj-edit">
+          <button type="button" class="icbtn mj-edit-toggle" title="Éditer le créneau" aria-expanded="false">{{ icon('pencil') }}</button>
+          <div class="mj-edit-body" hidden>
+            <form method="post" action="/kairos/blocks/{{ block.id }}/edit" class="mj-edit-form">
+              <label>Titre<input type="text" name="title" value="{{ block.title }}"></label>
+              <div class="mj-edit-row">
+                <label>Début<input type="datetime-local" name="start" value="{{ block.start.strftime('%Y-%m-%dT%H:%M') }}" required></label>
+                <label>Fin<input type="datetime-local" name="end" value="{{ block.end.strftime('%Y-%m-%dT%H:%M') }}" required></label>
+                <label class="mj-check" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
+                  <input type="checkbox" name="deepwork" value="1" {% if block.kind == 'deepwork' %}checked{% endif %}> Bloc deep-work</label>
+                <label>Récurrence
+                  <select name="recurrence">
+                    <option value="" {% if not block.recurrence %}selected{% endif %}>aucune</option>
+                    <option value="daily" {% if block.recurrence == 'daily' %}selected{% endif %}>quotidienne</option>
+                    <option value="weekdays" {% if block.recurrence == 'weekdays' %}selected{% endif %}>jours ouvrés</option>
+                    <option value="weekly" {% if block.recurrence == 'weekly' %}selected{% endif %}>hebdomadaire (même jour)</option>
+                  </select>
+                </label>
+              </div>
+              <button type="submit" class="btn primary">{{ icon('save') }} Enregistrer</button>
+            </form>
+            <form method="post" action="/kairos/blocks/{{ block.id }}/delete" class="inline"
+                  onsubmit="return confirm('Supprimer ce créneau{% if block.recurrence %} récurrent (toutes ses occurrences){% endif %} ?');">
+              <button type="submit" class="btn danger">{{ icon('trash') }} Supprimer</button>
+            </form>
+          </div>
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</details>
+
 <div class="mj-day-grid">
+<div class="mj-day-main">
 <section class="card" style="padding:1rem;">
   <h2 style="margin-top:0;">À faire aujourd'hui, dans l'ordre</h2>
   {% if not schedule.scheduled %}
@@ -383,9 +464,11 @@
     </li>
     {% endfor %}
   </ol>
+</section>
 
-  {% if schedule.unscheduled %}
-  <h3>À faire, sans créneau aujourd'hui</h3>
+{% if schedule.unscheduled %}
+<section class="card" style="padding:1rem;">
+  <h2 style="margin-top:0;">{{ icon('clock') }} À faire, sans créneau aujourd'hui</h2>
   <ul class="kairos-list">
     {% for task in schedule.unscheduled %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
@@ -399,10 +482,12 @@
     </li>
     {% endfor %}
   </ul>
-  {% endif %}
+</section>
+{% endif %}
 
-  {% if blocked_tasks %}
-  <h3>Bloquées</h3>
+{% if blocked_tasks %}
+<section class="card" style="padding:1rem;">
+  <h2 style="margin-top:0;">{{ icon('blocked') }} Bloquées</h2>
   <ul class="kairos-list">
     {% for entry in blocked_tasks %}
     <li class="kairos-item mj-blocked">
@@ -416,28 +501,30 @@
     </li>
     {% endfor %}
   </ul>
-  {% endif %}
+</section>
+{% endif %}
 
-  {% if schedule.later %}
-  <details class="card">
-    <summary class="collapser">{{ icon('chevron_right', '') }} Programmées plus tard ({{ schedule.later|length }})</summary>
-    <ul class="kairos-list">
-      {% for task in schedule.later %}
-      <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
-        {{ done_toggle(task) }}
-        <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
-        {{ task_meta(task) }}
-        {{ priority_form(task) }}
-        {{ task_actions(task) }}
-        {{ edit_panel(task) }}
-      </li>
-      {% endfor %}
-    </ul>
-  </details>
-  {% endif %}
+{% if schedule.later %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Programmées plus tard ({{ schedule.later|length }})</summary>
+  <ul class="kairos-list">
+    {% for task in schedule.later %}
+    <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
+      {{ done_toggle(task) }}
+      <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
+      {{ task_meta(task) }}
+      {{ priority_form(task) }}
+      {{ task_actions(task) }}
+      {{ edit_panel(task) }}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
 
-  {% if parents_progress %}
-  <h3>Tâches mères en cours</h3>
+{% if parents_progress %}
+<section class="card" style="padding:1rem;">
+  <h2 style="margin-top:0;">{{ icon('layers') }} Tâches mères en cours</h2>
   <ul class="kairos-list">
     {% for entry in parents_progress %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(entry.task.id, 4) }}">
@@ -452,24 +539,25 @@
     </li>
     {% endfor %}
   </ul>
-  {% endif %}
-
-  {% if done_today %}
-  <details class="card">
-    <summary class="collapser">{{ icon('chevron_right', '') }} Fait ({{ done_today|length }})</summary>
-    <ul class="kairos-list">
-      {% for task in done_today %}
-      <li class="kairos-item mj-done">
-        {{ done_toggle(task) }}
-        <span class="mj-title">{{ task.title }}</span>
-        {{ task_meta(task) }}
-        {{ task_actions(task) }}
-      </li>
-      {% endfor %}
-    </ul>
-  </details>
-  {% endif %}
 </section>
+{% endif %}
+
+{% if done_today %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Fait ({{ done_today|length }})</summary>
+  <ul class="kairos-list">
+    {% for task in done_today %}
+    <li class="kairos-item mj-done">
+      {{ done_toggle(task) }}
+      <span class="mj-title">{{ task.title }}</span>
+      {{ task_meta(task) }}
+      {{ task_actions(task) }}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
+</div>
 
 <div class="mj-side-col">
   {# --- Carte « En ce moment » : reprise du chrono en cours, mise en avant. --- #}
@@ -515,67 +603,6 @@
 </div>
 </div>
 
-<details class="card">
-  <summary class="collapser">{{ icon('chevron_right', '') }} Ajouter un créneau (réunion ou bloc deep-work)</summary>
-  <div style="padding: 0 1rem 1rem;">
-    <form method="post" action="/kairos/blocks" class="filters" style="align-items:flex-end;">
-      <label>Titre<input type="text" name="title" placeholder="ex. Réunion budget / Focus rédaction" required style="width:220px;"></label>
-      <label>Début<input type="datetime-local" name="start" required></label>
-      <label>Fin<input type="datetime-local" name="end" required></label>
-      <label class="mj-check" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
-        <input type="checkbox" name="deepwork" value="1"> Bloc deep-work</label>
-      <label title="Le créneau saisi devient le modèle (heure de début/fin) répété selon la règle — ex. déjeuner tous les jours, deep-work chaque mardi">Récurrence
-        <select name="recurrence">
-          <option value="">aucune</option>
-          <option value="daily">quotidienne</option>
-          <option value="weekdays">jours ouvrés</option>
-          <option value="weekly">hebdomadaire (même jour)</option>
-        </select>
-      </label>
-      <button type="submit" class="btn primary">{{ icon('plus') }} Ajouter</button>
-    </form>
-    {% if editable_blocks %}
-    <p class="hint mt-s">Créneaux du jour (éditer un créneau récurrent modifie toutes ses occurrences) :</p>
-    <ul class="ma-journee-list">
-      {% for block in editable_blocks %}
-      <li class="ma-journee-item">
-        <span class="mj-time">{{ block.start.strftime('%Hh%M') }}–{{ block.end.strftime('%Hh%M') }}</span>
-        <span class="mj-title">{{ block.title or '(sans titre)' }}</span>
-        {% if block.kind == 'deepwork' %}<span class="badge ok" title="Bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
-        {% if block.recurrence %}<span class="badge info" title="Créneau récurrent — l'édition porte sur toutes les occurrences">{{ icon('refresh') }} {{ block_recurrence_labels.get(block.recurrence, block.recurrence) }}</span>{% endif %}
-        <details class="mj-edit">
-          <summary class="icbtn" title="Éditer le créneau">{{ icon('pencil') }}</summary>
-          <div class="mj-edit-body">
-            <form method="post" action="/kairos/blocks/{{ block.id }}/edit" class="mj-edit-form">
-              <label>Titre<input type="text" name="title" value="{{ block.title }}"></label>
-              <div class="mj-edit-row">
-                <label>Début<input type="datetime-local" name="start" value="{{ block.start.strftime('%Y-%m-%dT%H:%M') }}" required></label>
-                <label>Fin<input type="datetime-local" name="end" value="{{ block.end.strftime('%Y-%m-%dT%H:%M') }}" required></label>
-                <label class="mj-check" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
-                  <input type="checkbox" name="deepwork" value="1" {% if block.kind == 'deepwork' %}checked{% endif %}> Bloc deep-work</label>
-                <label>Récurrence
-                  <select name="recurrence">
-                    <option value="" {% if not block.recurrence %}selected{% endif %}>aucune</option>
-                    <option value="daily" {% if block.recurrence == 'daily' %}selected{% endif %}>quotidienne</option>
-                    <option value="weekdays" {% if block.recurrence == 'weekdays' %}selected{% endif %}>jours ouvrés</option>
-                    <option value="weekly" {% if block.recurrence == 'weekly' %}selected{% endif %}>hebdomadaire (même jour)</option>
-                  </select>
-                </label>
-              </div>
-              <button type="submit" class="btn primary">{{ icon('save') }} Enregistrer</button>
-            </form>
-            <form method="post" action="/kairos/blocks/{{ block.id }}/delete" class="inline"
-                  onsubmit="return confirm('Supprimer ce créneau{% if block.recurrence %} récurrent (toutes ses occurrences){% endif %} ?');">
-              <button type="submit" class="btn danger">{{ icon('trash') }} Supprimer</button>
-            </form>
-          </div>
-        </details>
-      </li>
-      {% endfor %}
-    </ul>
-    {% endif %}
-  </div>
-</details>
 
 {% endif %}
 
@@ -583,6 +610,19 @@
 
 {% block scripts %}
 <script>
+  /* Bascule des panneaux d'édition (tâche ou créneau) : voir le commentaire CSS de
+     `.mj-edit-toggle` (style.css) pour le pourquoi (Ctrl+F du navigateur qui
+     auto-ouvrait tous les <details> fermés). Un seul écouteur délégué, quel que
+     soit le nombre de panneaux sur la page. */
+  document.addEventListener('click', function (ev) {
+    var toggle = ev.target.closest('.mj-edit-toggle');
+    if (!toggle) return;
+    var body = toggle.closest('.mj-edit').querySelector('.mj-edit-body');
+    var opening = body.hidden;
+    body.hidden = !opening;
+    toggle.setAttribute('aria-expanded', String(opening));
+  });
+
   /* Chrono vivant + alertes (phase 11). Aucun appel réseau, rafraîchi chaque seconde.
      - Minuteur vivant : temps réel qui s'écoule (data-started + data-base déjà accumulé).
      - Titre d'onglet vivant : le compteur reste visible quand l'onglet est en arrière-plan.

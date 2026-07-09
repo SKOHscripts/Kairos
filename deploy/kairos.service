@@ -11,12 +11,14 @@
 #   loginctl enable-linger "$USER"   # optionnel : démarrage au boot sans session
 #
 # __PROJECT_DIR__ doit être le chemin ABSOLU de la racine du dépôt : WorkingDirectory
-# doit pointer dessus car .env et tasks.db y sont lus en chemin relatif.
+# doit pointer dessus pour que ExecStart (chemin relatif du venv) fonctionne, et pour
+# qu'un éventuel .env d'une ancienne installation soit repéré au premier démarrage
+# (migration automatique et unique, voir app/settings_store.py). Les réglages et la
+# base de tâches vivent ensuite dans le dossier de données de l'utilisateur système
+# (voir la page /kairos/settings de l'application), pas dans __PROJECT_DIR__.
 #
-# Proxy sortant (réseau d'entreprise) : un service systemd démarre avec un
-# environnement minimal — un export HTTP_PROXY/HTTPS_PROXY de ton shell n'est jamais
-# vu par ce service. EnvironmentFile=-...env.proxy (optionnel grâce au « - ») règle
-# ça, notamment pour timetree-exporter.
+# Proxy sortant (réseau d'entreprise) : réglable directement depuis la page Réglages
+# de l'application (section « Réseau ») — plus besoin de fichier .env.proxy séparé.
 #
 # Port 8001 (l'outil de pilotage occupe 8000 : les deux coexistent sur un poste).
 
@@ -28,7 +30,6 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=__PROJECT_DIR__
-EnvironmentFile=-__PROJECT_DIR__/.env.proxy
 ExecStart=__PROJECT_DIR__/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8001
 Restart=on-failure
 RestartSec=3

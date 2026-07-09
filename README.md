@@ -23,6 +23,28 @@ la phase d'extraction dans ce dépôt dédié y est consignée.
 
 ---
 
+## Télécharger l'application (Windows/Linux)
+
+Pas besoin de Python, de venv ni de terminal : les [releases GitHub](../../releases)
+proposent un exécutable autonome par OS (`kairos-linux-x86_64`,
+`kairos-windows-x86_64.exe`). Télécharge, double-clique (sous Linux : rendre le
+fichier exécutable au préalable — `chmod +x kairos-linux-x86_64`), le navigateur
+s'ouvre tout seul sur Kairos. Réglages et base de tâches sont stockés dans le
+dossier de données standard de ton système d'exploitation, entièrement
+éditables depuis la page **Réglages** de l'application — pas de fichier `.env`
+à copier ni éditer à la main.
+
+Fermer l'onglet du navigateur n'arrête **pas** le serveur (il continue en
+arrière-plan) : utilise le bouton **Quitter** en haut à droite de l'application
+pour l'arrêter proprement — sans quoi le prochain lancement choisira un autre
+port (8002, 8003…) puisque 8001 restera occupé par l'instance précédente.
+
+Le mode « git clone + venv » ci-dessous reste disponible pour un usage avancé
+(développement, service systemd démarré au boot) : il partage exactement le
+même mécanisme de configuration que l'exécutable.
+
+---
+
 ## Démarrage rapide
 
 Sur un poste Linux, une seule commande installe tout (venv + dépendances) **et**
@@ -35,11 +57,11 @@ cd kairos
 make service
 ```
 
-C'est tout : http://127.0.0.1:8001. Aucune configuration requise : la base
-`tasks.db` est créée au premier démarrage et migrée automatiquement aux versions
-suivantes (aucune donnée n'est jamais perdue). Pour personnaliser : `cp
-.env.example .env` puis ajuster (tous les réglages y sont commentés), puis
-`systemctl --user restart kairos`.
+C'est tout : http://127.0.0.1:8001. Aucune configuration requise : la base de
+tâches est créée au premier démarrage et migrée automatiquement aux versions
+suivantes (aucune donnée n'est jamais perdue). Pour personnaliser : page
+**Réglages** de l'application (`/kairos/settings`, chaque réglage y est
+expliqué) — s'applique sans redémarrage pour la quasi-totalité des réglages.
 
 Sans service (usage ponctuel, développement, ou plateforme sans systemd) :
 
@@ -82,7 +104,7 @@ reste « À traiter »).
   Smith/Reinertsen). Valeur **exponentielle** par cran de priorité ; criticité en
   rampe à l'approche de l'échéance ; « en retard » reste un **palier dur** qui passe
   toujours devant. Le score est **affiché** sur chaque tâche (transparence), tous
-  les poids sont réglables (`.env`).
+  les poids sont réglables (page **Réglages**).
 - **Placement temporel** : les tâches sont posées dans les trous de la journée avec
   leurs **durées réelles**, une **marge** après chaque réunion (13h-14h → 14h05,
   avec note explicative), débordement signalé. **Épinglage** à heure fixe (jamais
@@ -132,8 +154,8 @@ en retard ou un bloqueur d'une tâche urgente n'est jamais décalé par le creux
 **score WSJF affiché ne change pas** (c'est un choix de *placement*, pas de valeur — la
 transparence est préservée, une note « créneau creux » signale les tâches remontées) ;
 et la **matinée reste pilotée par l'urgence pure**. Actif par défaut, entièrement
-réglable — décale la fenêtre selon ton chronotype (alouette matinale → creux plus tôt)
-ou désactive-le (`COGNITIVE_DIP_ENABLED=false`) via `.env`.
+réglable depuis la page **Réglages** — décale la fenêtre selon ton chronotype
+(alouette matinale → creux plus tôt) ou désactive-le entièrement.
 
 ### Dépendances entre tâches
 « Bloqué par » (menu de sélection multiple) : une tâche dont un bloqueur est encore
@@ -183,59 +205,75 @@ métadonnées. Honnêteté statistique : effectif `n` affiché, faible échantil
 
 ---
 
-## Configuration (`.env`, tout est optionnel)
+## Configuration (page Réglages, tout est optionnel)
 
-Copier `.env.example` en `.env` : chaque réglage y est documenté. Résumé :
+Tous les réglages se modifient depuis la page **Réglages** (`/kairos/settings`)
+de l'application, chacun accompagné de son explication — plus de fichier
+`.env` à copier ni éditer à la main. La quasi-totalité s'applique
+immédiatement, sans redémarrage (seul le chemin de la base de tâches demande un
+redémarrage ; la page l'indique sur place). Résumé des réglages disponibles :
 
-| Bloc | Réglages | Défaut |
+| Section | Réglages | Défaut |
 |---|---|---|
-| Base | `TASKS_DATABASE_PATH` | `tasks.db` |
-| Import GitLab assigné | `GITLAB_ASSIGNEE_USERNAME` + (`PILOTAGE_DATABASE_PATH` **ou** `GITLAB_URL/TOKEN/PROJECTS/CACHE_TTL_MINUTES`) | désactivé |
-| TimeTree | `TIMETREE_EMAIL/PASSWORD/CALENDAR_CODE`, `TIMETREE_CACHE_TTL_MINUTES` | désactivé |
-| Journée | `WORKDAY_START_HOUR`/`END_HOUR`, `MEETING_BUFFER_MINUTES`, `DEFAULT_TASK_DURATION_MINUTES` | 9-18, 5, 30 |
-| WSJF | `PRIORITY_VALUE_BASE`, `URGENCY_HORIZON_DAYS`, `URGENCY_PEAK`, `DEFAULT_FIBONACCI_POINTS` | 2.0, 14, 8, 3 |
-| Creux après-midi | `COGNITIVE_DIP_ENABLED`, `COGNITIVE_DIP_START/TROUGH/END_HOUR`, `COGNITIVE_DIP_PENALTY` | on, 13-15-16, 1.0 |
-| Garde-fous | `STALE_OVERDUE_DAYS`, `STALE_UNTOUCHED_DAYS`, `PRIORITY_OVERLOAD_THRESHOLD` | 7, 14, 5 |
-| Stats | `STATS_WINDOW_WEEKS` | 8 |
-| Alertes chrono | `TIMER_IDLE_ALERT_MINUTES`, `POMODORO_FOCUS_MINUTES` | 180, 50 |
-| Fériés | `HOLIDAYS_FR`, `EXTRA_HOLIDAYS` | FR activé |
+| Base de données | Chemin de la base de tâches | dossier de données de l'OS |
+| Import GitLab assigné | Nom d'utilisateur assigné + (base de pilotage **ou** URL/jeton/projets/cache) | désactivé |
+| TimeTree | E-mail, mot de passe, code du calendrier, cache | désactivé |
+| Ordonnancement | Durée par défaut, marge après réunion, journée de travail | 30 min, 5 min, 9h-18h |
+| WSJF | Base de valeur, horizon/poids d'urgence, points par défaut | 4.0, 14 j, 8, 3 |
+| Creux après-midi | Activé, fenêtre 13h-15h-16h, force de la pénalité | activé, 1.0 |
+| Garde-fous | Seuils « en retard »/« sans date », surcharge P0 | 7 j, 14 j, 5 |
+| Statistiques | Fenêtre des indicateurs récents | 8 semaines |
+| Alertes chrono | Chrono oublié, rappel pomodoro | 180 min, 50 min |
+| Jours fériés | Calendrier français, dates supplémentaires | FR activé |
+| Réseau | Proxy HTTP/HTTPS sortant, domaines exclus | aucun |
+
+Identifiants sensibles (jeton GitLab, mot de passe TimeTree) : stockés dans le
+trousseau système (Windows Credential Manager, GNOME Keyring/SecretService,
+Keychain macOS) quand disponible, sinon repli automatique — sans erreur —
+vers le fichier de réglages local ; jamais réaffichés en clair dans le formulaire.
+
+**Mise à niveau depuis une ancienne installation `.env`** : au premier
+démarrage après mise à jour, un `.env` existant est importé automatiquement,
+une seule fois, dans le nouveau système de réglages (la page Réglages affiche
+la date de cette migration). Le fichier `.env` n'est jamais supprimé
+automatiquement ; tu peux le retirer une fois la migration confirmée.
 
 ### Calendrier TimeTree (optionnel)
-Utilise le paquet **non-officiel** `timetree-exporter` (API reverse-engineerée :
-peut casser sans préavis ; les échecs sont toujours dégradés en bandeau, jamais en
-erreur). Les créneaux importés bloquent la planification ; les événements « journée
-entière » ou « sur une période » (plusieurs jours) ne sont que des **indications**
-(puces datées), jamais des obstacles. Cache local anti rate-limiting.
-Réseau d'entreprise avec proxy sortant : voir `.env.proxy.example` (chargé par le
-service systemd via `EnvironmentFile=`).
+Utilise l'API **non-officielle** du paquet `timetree-exporter` (reverse-
+engineerée : peut casser sans préavis ; les échecs sont toujours dégradés en
+bandeau, jamais en erreur). Les créneaux importés bloquent la planification ;
+les événements « journée entière » ou « sur une période » (plusieurs jours) ne
+sont que des **indications** (puces datées), jamais des obstacles. Cache local
+anti rate-limiting. Réseau d'entreprise avec proxy sortant : réglable
+directement dans la section « Réseau » de la page Réglages.
 
 ### Import des issues GitLab assignées (optionnel, lecture seule)
 Deux façons **mutuellement exclusives** d'obtenir tes issues GitLab ouvertes comme
-tâches (`GITLAB_ASSIGNEE_USERNAME` commun aux deux) — sans aucune des deux,
+tâches (nom d'utilisateur assigné commun aux deux) — sans aucune des deux,
 la fonctionnalité disparaît proprement de l'interface (cas normal, aucune erreur) :
 
 1. **Via l'outil de pilotage MSI**, si tu l'utilises aussi sur ce poste (dépôt
-   séparé) : renseigne `PILOTAGE_DATABASE_PATH` (chemin absolu vers son
-   `pilotage.db`). Relit le cache entretenu par son onglet « Pilotage GitLab » —
-   **aucun appel réseau**, aucune configuration GitLab à dupliquer ici. Donne
-   accès en plus à la **liaison manuelle « Fiche liée »** vers une fiche de dette
-   technique (badge cliquable, lecture seule — aucune écriture vers
-   Redmine/GitLab, jamais). C'est la seule des deux voies qui l'active.
+   séparé) : renseigne le chemin absolu de sa base `pilotage.db`. Relit le
+   cache entretenu par son onglet « Pilotage GitLab » — **aucun appel
+   réseau**, aucune configuration GitLab à dupliquer ici. Donne accès en plus
+   à la **liaison manuelle « Fiche liée »** vers une fiche de dette technique
+   (badge cliquable, lecture seule — aucune écriture vers Redmine/GitLab,
+   jamais). C'est la seule des deux voies qui l'active.
 2. **Import direct** (cas normal d'un collègue sans pilotage) : renseigne
-   `GITLAB_URL`, `GITLAB_TOKEN` (jeton personnel, scope `read_api` suffit) et
-   `GITLAB_PROJECTS` (un ou plusieurs projets séparés par des virgules). Appel en
-   lecture seule à l'API REST GitLab, mis en cache (`GITLAB_CACHE_TTL_MINUTES`,
-   même patron anti rate-limiting que TimeTree) ; un échec (réseau, jeton
-   invalide) se dégrade en bandeau, jamais en erreur — les tâches déjà importées
-   restent affichées. `GITLAB_TOKEN` est optionnel : laissé vide, le jeton est
-   résolu depuis les moyens d'authentification déjà configurés pour `git` sur ce
-   poste — `git credential fill` (trousseau GNOME/libsecret, Keychain macOS,
-   Windows Credential Manager, ou tout autre `credential.helper` déjà en place),
-   puis `~/.netrc` en repli — pour éviter de dupliquer un jeton en clair dans
-   `.env` (voir `app/git_credentials.py`). Résolution mise en cache pour la durée
-   du processus : redémarre le service après une rotation de jeton.
+   l'URL de l'instance GitLab, un jeton personnel (scope `read_api` suffit) et
+   le(s) projet(s) (un ou plusieurs, séparés par des virgules). Appel en
+   lecture seule à l'API REST GitLab, mis en cache (même patron anti
+   rate-limiting que TimeTree) ; un échec (réseau, jeton invalide) se dégrade
+   en bandeau, jamais en erreur — les tâches déjà importées restent
+   affichées. Le jeton est optionnel : laissé vide, il est résolu depuis les
+   moyens d'authentification déjà configurés pour `git` sur ce poste —
+   `git credential fill` (trousseau GNOME/libsecret, Keychain macOS, Windows
+   Credential Manager, ou tout autre `credential.helper` déjà en place), puis
+   `~/.netrc` en repli — pour éviter de dupliquer un jeton en clair (voir
+   `app/git_credentials.py`). Résolution mise en cache pour la durée du
+   processus : redémarre l'application après une rotation de jeton.
 
-Si `PILOTAGE_DATABASE_PATH` est renseigné, il **prime toujours** sur l'import
+Si la base de pilotage est renseignée, elle **prime toujours** sur l'import
 direct (zéro appel réseau). Dans les deux cas : issue fermée/réassignée → tâche
 archivée ; ta priorité et ton temps passé ne sont jamais écrasés.
 
@@ -261,7 +299,8 @@ loginctl enable-linger "$USER"   # optionnel : démarre au boot sans session ouv
 Le service écoute sur le **port 8001** (si tu fais aussi tourner l'outil de
 pilotage sur le même poste, il occupe le port 8000 : les deux coexistent).
 Exploitation : `systemctl --user status kairos`, `journalctl --user -u kairos -f`,
-`systemctl --user restart kairos` après un `git pull` ou un changement de `.env`.
+`systemctl --user restart kairos` après un `git pull` (la plupart des réglages
+s'appliquent sans redémarrage depuis la page Réglages — voir Configuration).
 Désinstallation : `make service-uninstall`.
 
 ---
@@ -274,11 +313,24 @@ pytest                       # aucun accès réseau réel
 uvicorn app.main:app --reload --port 8001
 ```
 
+### Empaquetage (exécutables Windows/Linux)
+`make build-exe` construit l'exécutable de bureau pour l'OS courant via
+PyInstaller (voir [`packaging/README.md`](packaging/README.md) pour le détail
+et les points d'attention). Les exécutables Windows **et** Linux publiés en
+release GitHub sont construits automatiquement par
+[`.github/workflows/release.yml`](.github/workflows/release.yml) au push d'un
+tag `vX.Y.Z` (PyInstaller ne fait pas de cross-compile : la CI build chaque OS
+sur un runner de cet OS).
+
 ### Architecture (`app/`)
 | Module | Rôle |
 |---|---|
 | `main.py` | Application FastAPI : routes, rendu, formulaires |
-| `config.py` | Réglages (pydantic-settings, `.env`) |
+| `config.py` | Modèle des réglages (pydantic `BaseModel`) |
+| `settings_store.py` | Persistance des réglages (JSON, dossier de données de l'OS) + migration `.env` unique |
+| `secret_store.py` | Jeton GitLab / mot de passe TimeTree : trousseau système, repli fichier local |
+| `settings_sections.py` | Regroupement des réglages pour l'affichage de la page Réglages |
+| `launcher.py` | Point d'entrée de l'exécutable de bureau (choix de port, ouverture du navigateur) |
 | `tasks_models.py` | Modèles SQLAlchemy : `Task`, `TimeBlock`, `TaskDependency`, `WorkSession`, `TaskSyncMeta` |
 | `tasks_db.py` | Engine/sessions + **migrations légères** automatiques (ADD COLUMN, correctifs de données) |
 | `tasks_scheduling.py` | Cœur **pur** : score WSJF, buckets, placement, timeline, gate « À traiter » |
@@ -290,7 +342,7 @@ uvicorn app.main:app --reload --port 8001
 | `tasks_gitlab_sync.py` | Upsert **pur** des issues assignées → tâches (source indifférente : cache pilotage ou import direct) |
 | `pilotage_link.py` | Seul point de contact (optionnel, lecture seule) avec `pilotage.db` — cache GitLab + « Fiche liée » |
 | `gitlab_direct.py` | Seam GitLab direct (sans pilotage) : client REST minimal, cache, dégradation propre |
-| `calendar/timetree_source.py` | Seam TimeTree : subprocess `timetree-exporter`, cache, dégradation propre |
+| `calendar/timetree_source.py` | Seam TimeTree : appel Python natif de `timetree-exporter`, cache, dégradation propre |
 | `workdays.py` | Jours ouvrés + jours fériés français |
 
 Principes tenus depuis la première phase : **logique métier en fonctions pures**

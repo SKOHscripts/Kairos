@@ -1,4 +1,4 @@
-.PHONY: all install test dev run service service-uninstall clean help
+.PHONY: all install test dev run service service-uninstall build-exe clean help
 
 # Venv du projet
 VENV := .venv
@@ -82,6 +82,16 @@ service-uninstall:
 	fi
 	@echo "Service désinstallé (linger éventuel conservé : loginctl disable-linger $$(id -un) pour le retirer)."
 
+# Exécutable de bureau (onefile PyInstaller) pour l'OS courant — voir packaging/README.md.
+# Les builds Windows/Linux publiés en release GitHub sont construits en CI
+# (.github/workflows/release.yml), pas avec cette cible (PyInstaller ne fait pas
+# de cross-compile : un build local produit l'exécutable de la machine courante).
+build-exe: install
+	@echo "=== Construction de l'exécutable Kairos (PyInstaller) ==="
+	$(VENV)/bin/pip install pyinstaller pyinstaller-hooks-contrib
+	$(VENV)/bin/pyinstaller packaging/kairos.spec --distpath dist --noconfirm
+	@echo "Exécutable : dist/kairos"
+
 # Suppression du venv (repart de zéro)
 clean:
 	rm -rf $(VENV)
@@ -98,6 +108,7 @@ help:
 	@echo "  make run              # Lance en mode normal, port 8001"
 	@echo "  make service          # Installe/active le service systemd (démarrage auto)"
 	@echo "  make service-uninstall # Désinstalle le service systemd"
+	@echo "  make build-exe        # Construit l'exécutable de bureau (dist/kairos)"
 	@echo "  make clean            # Supprime le venv"
 	@echo "  make help             # Affiche cette aide"
 	@echo ""

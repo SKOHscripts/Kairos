@@ -11,6 +11,9 @@ l'outil de pilotage MSI est optionnelle et en lecture seule (voir `pilotage_link
 from __future__ import annotations
 
 import logging
+import os
+import signal
+import sys
 from contextlib import asynccontextmanager
 from datetime import date, datetime, time as dt_time, timedelta, timezone
 from pathlib import Path
@@ -20,13 +23,16 @@ from fastapi import Depends, FastAPI, Form, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from . import secret_store, settings_store
 from .calendar.timetree_source import fetch_busy_slots
-from .config import get_settings
+from .config import Settings, apply_proxy_env, get_settings, invalidate_settings_cache
 from .gitlab_direct import fetch_assigned_issues
 from .pilotage_link import CachedGitLabIssue, LinkedTicket, get_pilotage_session
+from .settings_sections import FIELD_LABELS, RESTART_REQUIRED_FIELDS, SECRET_FIELDS, SECTIONS
 from .tasks_db import get_tasks_session, init_tasks_db
 from .tasks_dependencies import (
     blocked_task_ids,
@@ -72,7 +78,17 @@ from .tasks_time import (
 
 logger = logging.getLogger("kairos")
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+def _resolve_base_dir() -> Path:
+    """Dossier contenant `templates/`, `static/`, `README.md`, `SPEC_KAIROS.md`.
+
+    Dans un exécutable PyInstaller (onefile), ces fichiers sont extraits dans un
+    dossier temporaire (`sys._MEIPASS`), pas à côté de ce fichier source."""
+    if getattr(sys, "frozen", False):
+        return Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
+    return Path(__file__).resolve().parent.parent
+
+
+BASE_DIR = _resolve_base_dir()
 
 
 def _optional_int(value: str | None) -> int | None:
@@ -84,7 +100,9 @@ def _optional_int(value: str | None) -> int | None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    logging.basicConfig(level=get_settings().log_level.upper())
+    settings = get_settings()  # première lecture : déclenche la migration .env si besoin
+    logging.basicConfig(level=settings.log_level.upper())
+    apply_proxy_env(settings)
     init_tasks_db()
     yield
 
@@ -93,6 +111,10 @@ app = FastAPI(title="Kairos", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+# Exécutable de bureau (PyInstaller, `console=False`) : pas de fenêtre de terminal à
+# fermer pour arrêter le serveur — voir le bouton « Quitter » de base.html, affiché
+# seulement dans ce cas (sinon, en dev/systemd, Ctrl+C / `systemctl stop` suffisent).
+templates.env.globals["is_frozen"] = getattr(sys, "frozen", False)
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -332,6 +354,20 @@ def _render_kairos(
         if tid in by_id
     ]
     blocked_tasks.sort(key=lambda e: e["task"].title)
+
+    # Backlog (sans échéance ni date programmée) : sans section dédiée, ces tâches
+    # n'apparaissent JAMAIS en vue semaine (groupée strictement par échéance,
+    # `_build_week_view`) et se perdent facilement dans l'agenda du jour. Affiché
+    # quelle que soit la vue (jour ou semaine), donc placé hors de `schedule`
+    # (lui-même calculé seulement pour la vue jour, plus bas).
+    backlog_tasks = sorted(
+        (
+            t for t in tasks
+            if t.deadline is None and t.scheduled_date is None and t.id not in blocked_ids
+        ),
+        key=lambda t: (t.priority is None, t.priority if t.priority is not None else 999, t.title),
+    )
+
     # Choix des bloqueurs candidats pour l'UI (toute autre tâche à faire).
     blocker_choices = sorted(
         ({"id": t.id, "title": t.title} for t in tasks),
@@ -375,6 +411,10 @@ def _render_kairos(
         "timetree_configured": settings.timetree_configured,
         "gitlab_direct_error": gitlab_direct_error,
         "blocked_tasks": blocked_tasks,
+        "backlog_tasks": backlog_tasks,
+        # Utilisé par le panneau Backlog (affiché quelle que soit la vue) autant que
+        # par la vue jour ; ajouté ici pour être disponible dans les deux.
+        "parent_title_of": parent_title_of,
         "block_reasons": block_reasons,
         "raised_ids": raised_ids,
         "bucket_of": bucket_of,
@@ -563,6 +603,117 @@ def kairos_stats(
     return templates.TemplateResponse(request, "kairos_stats.html", context)
 
 
+_FIELD_KIND_BY_ANNOTATION = {bool: "bool", int: "int", float: "float"}
+
+
+def _field_kind(name: str) -> str:
+    if name in SECRET_FIELDS:
+        return "secret"
+    return _FIELD_KIND_BY_ANNOTATION.get(Settings.model_fields[name].annotation, "text")
+
+
+def _settings_context(
+    settings: Settings, *, errors: dict[str, str], values: dict[str, object] | None, saved: bool
+) -> dict:
+    """Contexte partagé entre le GET (valeurs actuelles) et le POST invalide
+    (valeurs ressaisies) de la page Réglages — les secrets ne sont jamais mis à
+    disposition du template en clair, dans un cas comme dans l'autre."""
+    display_values = dict(values if values is not None else settings.model_dump())
+    for name in SECRET_FIELDS:
+        display_values.pop(name, None)
+    return {
+        "page": "settings",
+        "settings": settings,
+        "sections": SECTIONS,
+        "field_labels": FIELD_LABELS,
+        "field_meta": Settings.model_fields,
+        "field_kind": {name: _field_kind(name) for name in Settings.model_fields},
+        "values": display_values,
+        "errors": errors,
+        "secret_fields": SECRET_FIELDS,
+        "secret_status": {name: bool(getattr(settings, name)) for name in SECRET_FIELDS},
+        "restart_required_fields": RESTART_REQUIRED_FIELDS,
+        "data_dir": str(settings_store.data_dir()),
+        "settings_path": str(settings_store.settings_path()),
+        "migrated_at": settings_store.meta().get("migrated_from_env_at"),
+        "keyring_available": secret_store.keyring_available(),
+        "saved": saved,
+    }
+
+
+@app.get("/kairos/settings", response_class=HTMLResponse)
+def kairos_settings(request: Request, saved: str | None = None) -> HTMLResponse:
+    context = _settings_context(get_settings(), errors={}, values=None, saved=bool(saved))
+    return templates.TemplateResponse(request, "settings.html", context)
+
+
+def _settings_candidate_from_form(form, current: Settings) -> tuple[dict, dict[str, str]]:
+    """Construit le dict candidat pour `Settings(**candidate)` à partir du
+    formulaire, et les erreurs de conversion de type (avant même la validation
+    pydantic) — un champ non numérique ne doit jamais faire planter la route."""
+    candidate: dict[str, object] = current.model_dump()
+    errors: dict[str, str] = {}
+    for name in Settings.model_fields:
+        kind = _field_kind(name)
+        if kind == "secret":
+            if form.get(f"{name}_clear"):
+                candidate[name] = ""
+            elif form.get(name):
+                candidate[name] = form.get(name)
+            continue
+        if kind == "bool":
+            candidate[name] = form.get(name) is not None
+            continue
+        raw = str(form.get(name, "")).strip()
+        try:
+            candidate[name] = int(raw) if kind == "int" else float(raw) if kind == "float" else raw
+        except ValueError:
+            errors[name] = "Valeur numérique invalide."
+            candidate[name] = raw
+    return candidate, errors
+
+
+@app.post("/kairos/settings")
+async def kairos_settings_save(request: Request) -> Response:
+    current = get_settings()
+    form = await request.form()
+    candidate, errors = _settings_candidate_from_form(form, current)
+    if not errors:
+        try:
+            new_settings = Settings(**candidate)
+        except ValidationError as exc:
+            for err in exc.errors():
+                key = str(err["loc"][0]) if err["loc"] else "_general"
+                errors[key] = err["msg"]
+        else:
+            settings_store.save(new_settings)
+            invalidate_settings_cache()
+            apply_proxy_env(get_settings())
+            return RedirectResponse("/kairos/settings?saved=1", status_code=303)
+
+    # Erreur de validation : réaffiche le formulaire avec les valeurs ressaisies
+    # (sauf secrets, jamais réaffichés) plutôt qu'une redirection qui avalerait
+    # l'erreur silencieusement.
+    context = _settings_context(current, errors=errors, values=candidate, saved=False)
+    return templates.TemplateResponse(request, "settings.html", context)
+
+
+@app.post("/kairos/shutdown")
+def shutdown() -> HTMLResponse:
+    """Arrête proprement le serveur (bouton « Quitter », exécutable de bureau
+    uniquement — voir `is_frozen` : pas de fenêtre de terminal à fermer sinon).
+
+    SIGINT (littéralement un Ctrl+C), pas SIGTERM : les deux déclenchent l'arrêt
+    normal d'uvicorn (draine les requêtes en cours, dont celle-ci), mais après un
+    SIGTERM le process est ensuite tué par l'OS avant que `app/launcher.py` ne
+    puisse exécuter son `finally` (nettoyage du verrou d'instance unique) —
+    vérifié empiriquement, SIGINT laisse ce `finally` s'exécuter normalement."""
+    os.kill(os.getpid(), signal.SIGINT)
+    return HTMLResponse(
+        "<p>Kairos s'arrête. Vous pouvez fermer cette page.</p>"
+    )
+
+
 def _optional_date(value: str | None) -> date | None:
     """Convertit une valeur de formulaire en date ISO, vide/invalide → None."""
     if not value or not str(value).strip():
@@ -694,8 +845,9 @@ def edit_task(
     """Édition complète d'une tâche (tous champs), y compris une tâche importée de SP.
 
     Fusionne l'épinglage (heure fixe) dans le même enregistrement : `pin_time` vide
-    désépingle, une heure valide pose `pinned_start` sur le jour affiché — un seul
-    « Enregistrer » plutôt que deux soumissions séparées (phase 5).
+    désépingle, une heure valide pose `pinned_start` sur la date programmée si elle
+    est renseignée, sinon sur le jour affiché (`pin_day`) — un seul « Enregistrer »
+    plutôt que deux soumissions séparées (phase 5).
 
     `linked_ticket_id` (phase 6) : référence en lecture seule vers une fiche
     `LinkedTicket` (base dette technique) — validée contre son existence (``pilotage_session``),
@@ -729,7 +881,10 @@ def edit_task(
         task.task_type = task_type if task_type in TASK_TYPE_LABELS else ""
         task.fibonacci_points = _optional_int(fibonacci_points)
         if pin_time.strip():
-            target_day = _optional_date(pin_day) or date.today()
+            # La date programmée (si renseignée) prime sur le jour affiché : épingler
+            # une tâche programmée pour un autre jour doit poser l'heure fixe CE
+            # jour-là, pas sur la page actuellement consultée (`pin_day`).
+            target_day = task.scheduled_date or _optional_date(pin_day) or date.today()
             try:
                 hour, minute = (int(part) for part in pin_time.strip().split(":", 1))
                 task.pinned_start = datetime.combine(target_day, dt_time(hour=hour, minute=minute))

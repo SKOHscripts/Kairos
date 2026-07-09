@@ -3,10 +3,6 @@
 {% block title %}Kairos · statistiques{% endblock %}
 {% block topbar_title %}Statistiques{% endblock %}
 
-{% block topbar_actions %}
-<a class="btn" href="/kairos?view=day">{{ icon('arrow_left') }} Retour au jour</a>
-{% endblock %}
-
 {% block content %}
 
 {% if not stats.has_any_data %}

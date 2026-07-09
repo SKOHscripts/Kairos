@@ -2,44 +2,48 @@
 
 Isolé du reste de l'app derrière :func:`fetch_busy_slots` : c'est le **seul** point
 d'entrée que la route « Kairos » consomme (voir ``app/main.py``). L'intégration
-réelle invoque le paquet PyPI ``timetree-exporter`` — **non-officiel, reverse-
-engineeré**, qui prévient explicitement d'un risque de panne sans préavis et de
-rate-limiting en cas d'appels trop fréquents.
+réelle appelle directement l'API Python interne du paquet PyPI
+``timetree-exporter`` — **non-officiel, reverse-engineeré**, qui prévient
+explicitement d'un risque de panne sans préavis et de rate-limiting en cas
+d'appels trop fréquents.
+
+Appel **en-process** (pas de `subprocess` vers le CLI du paquet) : nécessaire
+pour fonctionner dans un exécutable packagé (PyInstaller), où il n'existe plus
+de binaire `timetree-exporter` installé à côté de l'interpréteur.
 
 **Contrat** : ``fetch_busy_slots`` ne lève **jamais** d'exception. Toute erreur
-(identifiants absents, TimeTree indisponible, subprocess en échec, `.ics`
-imparsable) se traduit par ``TimeTreeFetchResult(ok=False, ...)`` avec un
-``detail`` lisible, affiché comme avertissement par le dashboard — jamais une
-page en erreur 500.
+(identifiants absents, TimeTree indisponible, calendrier introuvable) se
+traduit par ``TimeTreeFetchResult(ok=False, ...)`` avec un ``detail`` lisible,
+affiché comme avertissement par le dashboard — jamais une page en erreur 500.
 
 **Cache** : un cache en mémoire (par processus), à la clé (identifiants + plage de
-dates), TTL ``settings.timetree_cache_ttl_minutes``. Évite d'invoquer le binaire à
+dates), TTL ``settings.timetree_cache_ttl_minutes``. Évite d'invoquer l'API à
 chaque chargement de « Kairos » et respecte ainsi le risque de rate-limiting
-signalé par le mainteneur du paquet. Volontairement simple (pas de persistance en
-base) : le seam reste sans dépendance à une session SQLAlchemy.
+signalé par le mainteneur du paquet.
 """
 
 from __future__ import annotations
 
-import os
-import shutil
-import subprocess
-import sys
-import tempfile
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
-from pathlib import Path
+from zoneinfo import ZoneInfo
+
+from timetree_exporter.api.auth import login
+from timetree_exporter.api.calendar import TimeTreeCalendar
+from timetree_exporter.calendar import Calendar
+from timetree_exporter.event import TimeTreeEvent, TimeTreeEventCategory, TimeTreeEventType
+from timetree_exporter.utils import convert_timestamp_to_datetime
 
 from ..config import Settings
 
 
 @dataclass
 class BusySlot:
-    """Créneau occupé importé de TimeTree (avant conversion en `TimeBlock` local).
+    """Créneau occupé importé de TimeTree.
 
-    ``all_day`` distingue les événements « journée entière » (DTSTART de type date
-    dans le `.ics`) : ils n'occupent **pas** d'heures — ils ne doivent ni bloquer
-    l'ordonnancement ni remplir la timeline, juste être affichés en puce sur le jour.
+    ``all_day`` distingue les événements « journée entière » : ils n'occupent
+    **pas** d'heures — ils ne doivent ni bloquer l'ordonnancement ni remplir la
+    timeline, juste être affichés en puce sur le jour.
     """
 
     title: str
@@ -84,78 +88,58 @@ def fetch_busy_slots(start: date, end: date, *, settings: Settings) -> TimeTreeF
     return result
 
 
-def _resolve_timetree_binary() -> str:
-    """Chemin du binaire ``timetree-exporter``, résolu dans le même venv que ce process.
-
-    Le service systemd invoque directement ``.venv/bin/uvicorn`` sans « activer »
-    le venv (pas de ``source .venv/bin/activate``) : ``PATH`` ne contient donc pas
-    ``.venv/bin``, et une recherche par simple nom échoue avec
-    ``FileNotFoundError: [Errno 2] No such file or directory``. On résout donc le
-    binaire à côté de l'interpréteur Python courant (même venv que ce process, où
-    `pip install -e ".[dev]"` l'a installé), avec un repli sur ``PATH`` pour les
-    environnements où le venv est bien activé (ex. lancement manuel en dev).
-    """
-    sibling = Path(sys.executable).with_name("timetree-exporter")
-    if sibling.exists():
-        return str(sibling)
-    return shutil.which("timetree-exporter") or "timetree-exporter"
-
-
 def _fetch_from_timetree(start: date, end: date, settings: Settings) -> TimeTreeFetchResult:
+    # Capture large, délibérée : au-delà des exceptions documentées du paquet
+    # (échec de connexion, jeton de session absent), `TimeTreeCalendar.get_events`
+    # ne lève pas toujours sur une réponse HTTP en échec (elle logue puis tente
+    # `response.json()["events"]`, qui peut lever `KeyError`/`ValueError` sur une
+    # réponse malformée) — cette frontière avec un paquet non-officiel, non
+    # versionné strictement, ne doit jamais faire remonter une page en erreur.
     try:
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            output_path = Path(tmp_dir) / "timetree.ics"
-            subprocess.run(
-                [
-                    _resolve_timetree_binary(),
-                    "-o", str(output_path),
-                    "-e", settings.timetree_email,
-                    "-c", settings.timetree_calendar_code,
-                ],
-                env={
-                    **os.environ,
-                    "TIMETREE_EMAIL": settings.timetree_email,
-                    "TIMETREE_PASSWORD": settings.timetree_password,
-                },
-                capture_output=True,
-                timeout=30,
-                check=True,
+        session_id = login(settings.timetree_email, settings.timetree_password)
+        api = TimeTreeCalendar(session_id, capture_raw_responses=False)
+        metadatas = [m for m in api.get_metadata() if m.get("deactivated_at") is None]
+        matches = [m for m in metadatas if m.get("alias_code") == settings.timetree_calendar_code]
+        if not matches:
+            return TimeTreeFetchResult(
+                ok=False, blocks=[],
+                detail="Calendrier TimeTree introuvable (code invalide ou calendrier désactivé).",
             )
-            blocks = _parse_ics(output_path, start, end)
-    except (subprocess.SubprocessError, OSError, ValueError) as exc:
-        return TimeTreeFetchResult(
-            ok=False, blocks=[], detail=f"Échec de l'export TimeTree : {exc}"
-        )
+        calendar = Calendar(api, matches[0])
+        raw_events = calendar.get_events(include_comments=False)
+        blocks = [
+            slot for event_data in raw_events
+            if (slot := _to_busy_slot(event_data, start, end)) is not None
+        ]
+    except Exception as exc:
+        return TimeTreeFetchResult(ok=False, blocks=[], detail=f"Échec de l'export TimeTree : {exc}")
     return TimeTreeFetchResult(ok=True, blocks=blocks, detail="")
 
 
-def _parse_ics(path: Path, start: date, end: date) -> list[BusySlot]:
-    from icalendar import Calendar
+def _to_busy_slot(event_data: dict, range_start: date, range_end: date) -> BusySlot | None:
+    event = TimeTreeEvent.from_dict(event_data)
+    # Réplique le filtre silencieux qu'appliquait l'ancien export iCal
+    # (`ICalEventFormatter.to_ical`) : anniversaires et mémos n'ont jamais été
+    # des créneaux occupés, ne pas les faire apparaître soudainement comme tels.
+    if event.event_type == TimeTreeEventType.BIRTHDAY or event.category == TimeTreeEventCategory.MEMO:
+        return None
 
-    with open(path, "rb") as f:
-        calendar = Calendar.from_ical(f.read())
+    start_at = _event_datetime(event.start_at, event.start_timezone)
+    end_at = _event_datetime(event.end_at, event.end_timezone)
+    if event.all_day:
+        # DTEND exclusif au sens RFC 5545 : le paquet l'appliquait via son
+        # formatter iCal (+1 jour), qu'on ne traverse plus ici.
+        start_at = datetime.combine(start_at.date(), datetime.min.time())
+        end_at = datetime.combine(end_at.date() + timedelta(days=1), datetime.min.time())
 
-    blocks: list[BusySlot] = []
-    for component in calendar.walk("VEVENT"):
-        dtstart = component.get("dtstart")
-        dtend = component.get("dtend")
-        if dtstart is None or dtend is None:
-            continue
-        # Événement « journée entière » : DTSTART est une date (pas un datetime).
-        all_day = not isinstance(dtstart.dt, datetime)
-        start_at = _to_datetime(dtstart.dt)
-        end_at = _to_datetime(dtend.dt)
-        if end_at.date() < start or start_at.date() > end:
-            continue  # événement hors de la plage demandée
-        blocks.append(
-            BusySlot(title=str(component.get("summary", "")), start=start_at,
-                     end=end_at, all_day=all_day)
-        )
-    return blocks
+    if end_at.date() < range_start or start_at.date() > range_end:
+        return None  # événement hors de la plage demandée
+    return BusySlot(title=event.title or "", start=start_at, end=end_at, all_day=bool(event.all_day))
 
 
-def _to_datetime(value: date | datetime) -> datetime:
-    if isinstance(value, datetime):
-        return value.replace(tzinfo=None)
-    # Événement « journée entière » (date seule côté .ics) : minuit à minuit.
-    return datetime.combine(value, datetime.min.time())
+def _event_datetime(epoch_ms: int | None, tz_name: str | None) -> datetime:
+    """Convertit un timestamp TimeTree (millisecondes epoch) en heure murale
+    naïve dans son propre fuseau — même repli que l'ancien `_to_datetime` (issu
+    du parsing iCal d'un DTSTART/DTEND qualifié TZID)."""
+    aware = convert_timestamp_to_datetime((epoch_ms or 0) / 1000, ZoneInfo(tz_name or "UTC"))
+    return aware.replace(tzinfo=None)

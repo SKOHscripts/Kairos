@@ -127,7 +127,9 @@ def _is_overdue(task: Task, day: date) -> bool:
 def _urgency_bucket(task: Task, day: date) -> int:
     if _is_overdue(task, day):
         return 0
-    if task.priority is not None and task.priority <= 1:
+    # Mis en avant (bordure) : seule P0 (la plus forte de l'échelle P0/P1/P2) —
+    # `<= 1` incluait encore P1, artefact de l'ancienne échelle à 5 crans (P0-P4).
+    if task.priority == 0:
         return 1
     if task.scheduled_date is not None and task.scheduled_date == day:
         return 2

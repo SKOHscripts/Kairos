@@ -19,16 +19,28 @@
 
 {% block content %}
 <section class="home-hero">
-  <h2>Le bon créneau, pour la bonne tâche, au bon moment.</h2>
-  <p>Kairos est ton dashboard personnel de tâches : il répond à « qu'est-ce que je fais
-  maintenant, et dans quel ordre », en tenant compte de tes créneaux occupés, de tes
-  échéances et de l'effort estimé. Cette page reprend directement le <code>README.md</code>
-  du dépôt : la documentation ci-dessous reste donc toujours à jour, sans double
-  maintenance.</p>
-  <div class="home-hero-actions">
-    <a class="btn primary" href="/kairos">{{ icon('check_circle') }} Ouvrir « Aujourd’hui »</a>
-    <a class="btn" href="/kairos?view=week">{{ icon('calendar') }} Vue semaine</a>
-    <a class="btn" href="/kairos/stats">{{ icon('trending_up') }} Statistiques</a>
+  <div class="home-hero-text">
+    <h2>Le bon créneau, pour la bonne tâche, au bon moment.</h2>
+    <p>Kairos est ton dashboard personnel de tâches : il répond à « qu'est-ce que je fais
+    maintenant, et dans quel ordre », en tenant compte de tes créneaux occupés, de tes
+    échéances et de l'effort estimé. Cette page reprend directement le <code>README.md</code>
+    du dépôt : la documentation ci-dessous reste donc toujours à jour, sans double
+    maintenance.</p>
+    <div class="home-hero-actions">
+      <a class="btn primary" href="/kairos">{{ icon('check_circle') }} Ouvrir « Aujourd’hui »</a>
+      <a class="btn" href="/kairos?view=week">{{ icon('calendar') }} Vue semaine</a>
+      <a class="btn" href="/kairos/stats">{{ icon('trending_up') }} Statistiques</a>
+    </div>
+  </div>
+  <div class="home-hero-brand" aria-hidden="true">
+    <svg width="88" height="88" viewBox="0 0 40 40">
+      <circle cx="20" cy="20" r="18.5" fill="#FBEEDF"></circle>
+      <circle cx="20" cy="20" r="18.5" fill="none" stroke="#E7C4A2" stroke-width="1.6"></circle>
+      <path d="M20 20 L20 4 A16 16 0 0 1 35.76 17.22 Z" fill="#D9713C"></path>
+      <circle cx="20" cy="20" r="2.6" fill="#2B241E"></circle>
+    </svg>
+    <div class="home-hero-brand-name">Kairos</div>
+    <div class="home-hero-brand-code">nom de code · 14h55</div>
   </div>
 </section>
 
