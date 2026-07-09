@@ -53,7 +53,7 @@ def test_creates_task_from_assigned_open_issue(pilotage_session, tasks_session) 
     assert result.ok is True
     assert result.count == 1
     task = tasks_session.query(Task).one()
-    assert task.title == "Corriger le crash"
+    assert task.title == "#42 Corriger le crash"
     assert task.source == "gitlab"
     assert task.external_id == f"{PROJECT}#42"
     assert task.deadline.isoformat() == "2026-07-10"
@@ -104,7 +104,7 @@ def test_priority_never_overwritten(pilotage_session, tasks_session) -> None:
     _sync(pilotage_session, tasks_session, "corentin")
 
     tasks_session.refresh(task)
-    assert task.title == "Titre v2"
+    assert task.title == "#1 Titre v2"
     assert task.priority == 1  # jamais écrasée
 
 
@@ -164,7 +164,7 @@ def test_assigned_issue_from_any_cached_project_is_imported(pilotage_session, ta
 
     assert result.count == 1
     task = tasks_session.query(Task).one()
-    assert task.title == "Depuis un autre projet"
+    assert task.title == "#1 Depuis un autre projet"
     assert task.project_tag == OTHER_PROJECT
 
 
@@ -179,7 +179,7 @@ def test_same_iid_in_different_projects_creates_two_distinct_tasks(pilotage_sess
 
     assert result.count == 2
     tasks = tasks_session.query(Task).order_by(Task.title).all()
-    assert [t.title for t in tasks] == ["Issue A", "Issue B"]
+    assert [t.title for t in tasks] == ["#5 Issue A", "#5 Issue B"]
     assert {t.external_id for t in tasks} == {f"{PROJECT}#5", f"{OTHER_PROJECT}#5"}
 
 
@@ -205,4 +205,4 @@ def test_legacy_external_id_format_is_rekeyed_not_duplicated(pilotage_session, t
     task = tasks_session.get(Task, legacy_id)
     assert task.external_id == f"{PROJECT}#42"
     assert task.priority == 1  # priorité déjà posée, préservée
-    assert task.title == "Ancien format (màj)"  # titre resynchronisé normalement
+    assert task.title == "#42 Ancien format (màj)"  # titre resynchronisé normalement

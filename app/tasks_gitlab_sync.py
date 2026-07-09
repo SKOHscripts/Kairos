@@ -108,7 +108,7 @@ def sync_assigned_gitlab_tasks(
                 local = Task(source=SOURCE, external_id=qualified)
                 tasks_session.add(local)
             existing[qualified] = local
-        local.title = issue.title
+        local.title = f"#{issue.iid} {issue.title}"
         local.deadline = _parse_due_date(issue.due_date)
         local.project_tag = issue.project
         local.status = "todo"
