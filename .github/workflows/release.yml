@@ -46,6 +46,12 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    # Le GITHUB_TOKEN auto-généré est en lecture seule par défaut sur ce dépôt :
+    # sans ce bloc, la création de release échoue en 403 (« Resource not
+    # accessible by integration ») — pas besoin d'un token/PAT personnel, juste
+    # de déclarer explicitement la permission nécessaire à ce job.
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
