@@ -212,14 +212,6 @@ input.prio { width: 56px; text-align: right; }
 .panel h2 .ico { color: var(--text-3); font-size: 15px; }
 .panel h3 { margin: 0.9rem 0 0.4rem; font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em;
   text-transform: uppercase; color: var(--text-3); }
-/* Sépare visuellement les sous-sections empilées dans une même carte (agenda du
-   jour : « sans créneau », « bloquées », « tâches mères ») — sans ce liseré,
-   elles s'enchaînaient sans coupure nette. */
-.mj-section-heading {
-  margin: 1.3rem 0 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border);
-  font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
-  text-transform: uppercase; color: var(--text-3);
-}
 .count { color: var(--text-2); font-size: 12px; }
 .muted { color: var(--text-3); }
 .hint, .empty { color: var(--text-3); font-size: 12px; }
@@ -434,7 +426,10 @@ summary:focus-visible,
 /* Mise en page du jour : liste des tâches (large, à gauche) + colonne latérale
    (chrono en cours + agenda), comme dans les maquettes. */
 .mj-day-grid { display: flex; gap: 1.1rem; align-items: flex-start; flex-wrap: wrap; }
-.mj-day-grid > section:first-child { flex: 1.7 1 420px; }
+/* Colonne principale : chaque sous-section (sans créneau, bloquées, tâches mères...)
+   est sa propre carte à part entière (même traitement que Backlog/À traiter), pas un
+   sous-titre à l'intérieur d'une carte partagée — séparation nette entre chacune. */
+.mj-day-main { flex: 1.7 1 420px; min-width: 0; }
 .mj-side-col { display: flex; flex-direction: column; gap: 1.1rem; width: 300px; flex: none; }
 @media (max-width: 860px) { .mj-side-col { width: 100%; } }
 

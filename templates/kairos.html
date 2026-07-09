@@ -367,6 +367,7 @@
 </section>
 
 <div class="mj-day-grid">
+<div class="mj-day-main">
 <section class="card" style="padding:1rem;">
   <h2 style="margin-top:0;">À faire aujourd'hui, dans l'ordre</h2>
   {% if not schedule.scheduled %}
@@ -401,9 +402,11 @@
     </li>
     {% endfor %}
   </ol>
+</section>
 
-  {% if schedule.unscheduled %}
-  <h3 class="mj-section-heading">À faire, sans créneau aujourd'hui</h3>
+{% if schedule.unscheduled %}
+<section class="card" style="padding:1rem;">
+  <h2 style="margin-top:0;">{{ icon('clock') }} À faire, sans créneau aujourd'hui</h2>
   <ul class="kairos-list">
     {% for task in schedule.unscheduled %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
@@ -417,10 +420,12 @@
     </li>
     {% endfor %}
   </ul>
-  {% endif %}
+</section>
+{% endif %}
 
-  {% if blocked_tasks %}
-  <h3 class="mj-section-heading">Bloquées</h3>
+{% if blocked_tasks %}
+<section class="card" style="padding:1rem;">
+  <h2 style="margin-top:0;">{{ icon('blocked') }} Bloquées</h2>
   <ul class="kairos-list">
     {% for entry in blocked_tasks %}
     <li class="kairos-item mj-blocked">
@@ -434,28 +439,30 @@
     </li>
     {% endfor %}
   </ul>
-  {% endif %}
+</section>
+{% endif %}
 
-  {% if schedule.later %}
-  <details class="card">
-    <summary class="collapser">{{ icon('chevron_right', '') }} Programmées plus tard ({{ schedule.later|length }})</summary>
-    <ul class="kairos-list">
-      {% for task in schedule.later %}
-      <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
-        {{ done_toggle(task) }}
-        <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
-        {{ task_meta(task) }}
-        {{ priority_form(task) }}
-        {{ task_actions(task) }}
-        {{ edit_panel(task) }}
-      </li>
-      {% endfor %}
-    </ul>
-  </details>
-  {% endif %}
+{% if schedule.later %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Programmées plus tard ({{ schedule.later|length }})</summary>
+  <ul class="kairos-list">
+    {% for task in schedule.later %}
+    <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
+      {{ done_toggle(task) }}
+      <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
+      {{ task_meta(task) }}
+      {{ priority_form(task) }}
+      {{ task_actions(task) }}
+      {{ edit_panel(task) }}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
 
-  {% if parents_progress %}
-  <h3 class="mj-section-heading">Tâches mères en cours</h3>
+{% if parents_progress %}
+<section class="card" style="padding:1rem;">
+  <h2 style="margin-top:0;">{{ icon('layers') }} Tâches mères en cours</h2>
   <ul class="kairos-list">
     {% for entry in parents_progress %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(entry.task.id, 4) }}">
@@ -470,24 +477,25 @@
     </li>
     {% endfor %}
   </ul>
-  {% endif %}
-
-  {% if done_today %}
-  <details class="card">
-    <summary class="collapser">{{ icon('chevron_right', '') }} Fait ({{ done_today|length }})</summary>
-    <ul class="kairos-list">
-      {% for task in done_today %}
-      <li class="kairos-item mj-done">
-        {{ done_toggle(task) }}
-        <span class="mj-title">{{ task.title }}</span>
-        {{ task_meta(task) }}
-        {{ task_actions(task) }}
-      </li>
-      {% endfor %}
-    </ul>
-  </details>
-  {% endif %}
 </section>
+{% endif %}
+
+{% if done_today %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Fait ({{ done_today|length }})</summary>
+  <ul class="kairos-list">
+    {% for task in done_today %}
+    <li class="kairos-item mj-done">
+      {{ done_toggle(task) }}
+      <span class="mj-title">{{ task.title }}</span>
+      {{ task_meta(task) }}
+      {{ task_actions(task) }}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
+</div>
 
 <div class="mj-side-col">
   {# --- Carte « En ce moment » : reprise du chrono en cours, mise en avant. --- #}
