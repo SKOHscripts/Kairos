@@ -498,13 +498,35 @@ summary:focus-visible,
   background: linear-gradient(135deg, var(--surface-tint), var(--accent-soft) 130%);
   border: 1px solid var(--accent-line); border-radius: var(--r-xl);
   padding: 1.6rem 1.8rem; margin-bottom: 1.3rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 2rem;
 }
+.home-hero-text { flex: 1; min-width: 0; }
 .home-hero h2 {
   margin: 0 0 0.5rem; font-size: 24px; font-weight: 500; letter-spacing: -0.01em;
   font-family: "Newsreader", Georgia, serif; font-style: italic; color: var(--text);
 }
 .home-hero p { margin: 0 0 1.1rem; color: var(--text-2); max-width: 74ch; }
 .home-hero-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+/* Bloc de marque à droite du bandeau : même logo/police que .tn-brand (topnav),
+   agrandis, plus le nom de code de l'outil (voir README « Pourquoi Kairos ? »). */
+.home-hero-brand {
+  flex: none; display: flex; flex-direction: column; align-items: center;
+  gap: 0.3rem; text-align: center;
+}
+.home-hero-brand svg { display: block; filter: drop-shadow(0 6px 14px rgba(184, 90, 42, 0.18)); }
+.home-hero-brand-name {
+  font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 500;
+  font-size: 22px; letter-spacing: -0.01em; color: var(--text);
+}
+.home-hero-brand-code {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-3);
+}
+@media (max-width: 720px) {
+  .home-hero { flex-direction: column; align-items: stretch; }
+  .home-hero-brand { flex-direction: row; justify-content: flex-start; text-align: left; }
+}
 
 .home-layout { display: grid; grid-template-columns: 1fr 230px; gap: 1.3rem; align-items: start; }
 @media (max-width: 960px) { .home-layout { grid-template-columns: 1fr; } }
