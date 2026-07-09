@@ -227,7 +227,13 @@ la fonctionnalité disparaît proprement de l'interface (cas normal, aucune erre
    lecture seule à l'API REST GitLab, mis en cache (`GITLAB_CACHE_TTL_MINUTES`,
    même patron anti rate-limiting que TimeTree) ; un échec (réseau, jeton
    invalide) se dégrade en bandeau, jamais en erreur — les tâches déjà importées
-   restent affichées.
+   restent affichées. `GITLAB_TOKEN` est optionnel : laissé vide, le jeton est
+   résolu depuis les moyens d'authentification déjà configurés pour `git` sur ce
+   poste — `git credential fill` (trousseau GNOME/libsecret, Keychain macOS,
+   Windows Credential Manager, ou tout autre `credential.helper` déjà en place),
+   puis `~/.netrc` en repli — pour éviter de dupliquer un jeton en clair dans
+   `.env` (voir `app/git_credentials.py`). Résolution mise en cache pour la durée
+   du processus : redémarre le service après une rotation de jeton.
 
 Si `PILOTAGE_DATABASE_PATH` est renseigné, il **prime toujours** sur l'import
 direct (zéro appel réseau). Dans les deux cas : issue fermée/réassignée → tâche

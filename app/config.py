@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     # aucune écriture, jamais. Si `pilotage_database_path` est renseigné, le cache
     # pilotage prime (zéro appel réseau) et cette intégration est ignorée.
     gitlab_url: str = ""
+    # Optionnel : si vide, le jeton est résolu depuis les moyens d'authentification
+    # déjà configurés pour `git` sur ce poste (`git credential fill` — trousseau
+    # GNOME/libsecret, Keychain, Windows Credential Manager... — puis `~/.netrc`
+    # en repli), pour ne pas avoir à dupliquer un jeton en clair dans `.env`. Voir
+    # `gitlab_token_effective` / `app/git_credentials.py`.
     gitlab_token: str = ""
     # Un ou plusieurs projets ("groupe/projet" ou id numérique), séparés par des virgules.
     gitlab_projects: str = ""
@@ -128,12 +133,24 @@ class Settings(BaseSettings):
         return [p.strip() for p in self.gitlab_projects.split(",") if p.strip()]
 
     @property
+    def gitlab_token_effective(self) -> str:
+        """`gitlab_token` (`.env`) si renseigné, sinon résolu via `git credential
+        fill`/`~/.netrc` pour `gitlab_url` (voir `app/git_credentials.py`)."""
+        if self.gitlab_token:
+            return self.gitlab_token
+        if not self.gitlab_url:
+            return ""
+        from .git_credentials import resolve_gitlab_token
+
+        return resolve_gitlab_token(self.gitlab_url)
+
+    @property
     def gitlab_direct_configured(self) -> bool:
         """Vrai si l'import direct GitLab (sans pilotage) est activé et utilisable."""
         return bool(
             not self.pilotage_configured
             and self.gitlab_url
-            and self.gitlab_token
+            and self.gitlab_token_effective
             and self.gitlab_project_list
             and self.gitlab_assignee_username
         )
