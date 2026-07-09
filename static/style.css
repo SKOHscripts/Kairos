@@ -367,19 +367,37 @@ summary:focus-visible,
 .mj-edit > summary { display: inline-flex; }
 /* Panneau de modification d'une tâche : présenté comme une modale centrée, tout
    en gardant <details>/<summary> comme mécanisme d'ouverture/fermeture natif —
-   cliquer à nouveau sur le crayon referme le panneau. */
-.mj-edit > summary.icbtn { position: relative; z-index: 81; }
-details.mj-edit[open] > summary.icbtn { background: var(--dark-surface); color: var(--dark-text); border-color: var(--dark-surface); }
+   pas de JS. Astuce : une fois ouvert, le <summary> (le crayon) lui-même devient
+   le fond assombri plein écran — cliquer n'importe où en dehors de la carte la
+   referme nativement (c'est un vrai <summary>, pas une simple décoration).
+   Le glyphe ✕ est son ::after, positionné juste à côté du coin haut-droit de la
+   carte plutôt que par-dessus : un pseudo-élément ne peut pas peindre au-dessus
+   d'une AUTRE boîte empilée plus haut (ici `.mj-edit-body`), donc le faire
+   chevaucher la carte le rendrait invisible malgré un z-index élevé. */
+details.mj-edit[open] > summary.icbtn {
+  position: fixed; inset: 0; z-index: 79;
+  width: auto; height: auto; border-radius: 0;
+  background: rgba(43, 36, 30, 0.4); color: transparent; border: none;
+}
+details.mj-edit[open] > summary.icbtn::after {
+  content: "✕"; position: fixed; z-index: 79;
+  top: calc(6vh - 4px); left: calc(50% + min(320px, 46vw) + 10px);
+  width: 30px; height: 30px; border-radius: var(--r-sm);
+  background: var(--surface); color: var(--text-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; box-shadow: var(--shadow-pop);
+}
+@media (max-width: 700px) {
+  details.mj-edit[open] > summary.icbtn::after { left: auto; right: 12px; top: 10px; }
+}
+/* Pas de règle :hover sur ce glyphe : une fois ouvert, le <summary> couvre tout
+   l'écran (backdrop cliquable), donc il serait "survolé" en permanence. */
 .mj-edit-body {
   position: fixed; z-index: 80; top: 6vh; left: 50%; transform: translateX(-50%);
   width: min(640px, 92vw); max-height: 88vh; overflow-y: auto;
   margin-top: 0; padding: 1.2rem 1.4rem; border: 1px solid var(--border);
   border-radius: var(--r-xl); background: var(--surface); display: flex; flex-direction: column; gap: 0.7rem;
   box-shadow: var(--shadow-pop);
-}
-.mj-edit-body::before {
-  content: ""; position: fixed; inset: 0; z-index: -1;
-  background: rgba(43, 36, 30, 0.32);
 }
 .mj-edit-form { display: flex; flex-direction: column; gap: 0.5rem; }
 .mj-edit-form label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 11px; color: var(--text-3); font-weight: 600; }

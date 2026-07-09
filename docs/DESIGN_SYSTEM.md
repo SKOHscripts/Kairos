@@ -86,11 +86,25 @@ Une sous-barre (`.topbar`) porte le titre de page et les actions contextuelles
 ## Panneau de modification d'une tâche
 
 `edit_panel(task)` (`.mj-edit` / `.mj-edit-body` dans `templates/kairos.html`)
-se présente comme une **modale centrée avec fond assombri**, en CSS pur : le
-mécanisme d'ouverture/fermeture reste le `<details>`/`<summary>` natif existant
-(cliquer sur le crayon rouvre/referme), mais `.mj-edit-body` passe en
-`position: fixed`, centrée, avec un `::before` en fond plein écran dès que le
-`<details>` porte l'attribut `[open]`. Pas de JavaScript ajouté.
+se présente comme une **modale centrée avec fond assombri**, en CSS pur, sans
+JavaScript. Mécanique :
+- `.mj-edit-body` (la carte visible) passe en `position: fixed`, centrée,
+  quand le `<details>` porte l'attribut `[open]`.
+- Le `<summary>` (le crayon) devient, lui, un calque plein écran
+  (`position: fixed; inset: 0`) semi-transparent dès l'ouverture : c'est un
+  vrai `<summary>`, donc cliquer n'importe où en dehors de la carte referme
+  nativement le panneau (pas de JS, pas de `pointer-events` factice).
+- Un glyphe ✕ (`::after` de ce même `<summary>`) est positionné juste à côté
+  du coin haut-droit de la carte — **jamais par-dessus** : un pseudo-élément
+  ne peut pas peindre au-dessus d'une boîte empilée plus haut (ici
+  `.mj-edit-body`, qui doit rester au-dessus pour que ses propres champs/
+  boutons restent cliquables), donc le faire chevaucher la carte le rendrait
+  invisible malgré un z-index élevé sur le pseudo-élément lui-même — l'ordre
+  d'empilement se décide au niveau du contexte parent (`<summary>`, plus bas),
+  pas du descendant.
+- Piège évité : ne **jamais** mettre de règle `:hover` sur ce glyphe — une
+  fois ouvert, le `<summary>` couvre tout l'écran, donc il serait « survolé »
+  en permanence et resterait bloqué dans son état hover.
 
 ## Case à cocher
 
