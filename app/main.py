@@ -237,6 +237,15 @@ def _render_kairos(
     all_tasks = list(tasks_session.scalars(select(Task).where(Task.status != "archived")))
     tasks = [t for t in all_tasks if t.status == "todo"]
 
+    # Dépendances, calculées tôt : `blocked_ids` sert dès le garde-fou de priorité
+    # ci-dessous (une tâche bloquée ne concourt pas pour l'attention du jour).
+    dep_edges = [
+        (d.task_id, d.blocker_id)
+        for d in tasks_session.scalars(select(TaskDependency))
+    ]
+    status_by_id = {t.id: t.status for t in all_tasks}
+    blocked_ids = blocked_task_ids(dep_edges, status_by_id)
+
     # Détection des tâches qui traînent (phase 7) : signal d'affichage seul,
     # calculé après coup — ne modifie jamais le tri ni les buckets d'urgence.
     stale_days_of = {
@@ -250,7 +259,13 @@ def _render_kairos(
     }
 
     # Garde-fou de surcharge de priorité maximale (phase 7) : purement informatif.
-    priority_overload_count = count_max_priority_tasks(tasks)
+    # Une tâche bloquée est exclue du décompte : elle ne peut pas être traitée
+    # tant qu'elle est bloquée, donc ne dilue pas le signal de priorité du jour —
+    # sans quoi le bandeau se déclenchait pour des tâches sur lesquelles on ne
+    # peut de toute façon rien faire dans l'immédiat.
+    priority_overload_count = count_max_priority_tasks(
+        [t for t in tasks if t.id not in blocked_ids]
+    )
 
     # Liaison manuelle vers une fiche de dette technique (phase 6) : lecture seule,
     # choix proposés au panneau d'édition + résolution du libellé pour le badge.
@@ -291,14 +306,9 @@ def _render_kairos(
         if t.parent_id is not None and t.parent_id in by_id
     }
 
-    # Dépendances : arêtes (bloquée, bloquante), tâches bloquées, urgence dérivée.
-    dep_edges = [
-        (d.task_id, d.blocker_id)
-        for d in tasks_session.scalars(select(TaskDependency))
-    ]
-    status_by_id = {t.id: t.status for t in all_tasks}
+    # Dépendances (arêtes, tâches bloquées) déjà calculées plus haut ; reste
+    # l'urgence dérivée et les motifs de blocage à afficher.
     title_by_id = {t.id: t.title for t in all_tasks}
-    blocked_ids = blocked_task_ids(dep_edges, status_by_id)
     block_reasons = blocking_reason(dep_edges, status_by_id, title_by_id)
     own_urgency = {t.id: urgency_key(t, target_day, settings=settings) for t in tasks}
     effective_urgency = derived_urgency(dep_edges, own_urgency)
