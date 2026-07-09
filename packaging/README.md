@@ -17,6 +17,20 @@ L'exécutable généré : `dist/kairos` (Linux) ou `dist/kairos.exe` (Windows).
 Au lancement, il choisit un port libre à partir de 8001, ouvre le navigateur
 par défaut automatiquement, et sert Kairos comme en développement.
 
+## Icône
+
+Le logo de l'application (`packaging/kairos.ico`, même dessin que
+`static/favicon.svg`) est embarqué dans le `.exe` Windows (barre des tâches,
+explorateur). Il est ignoré sans erreur pour le binaire Linux, qui ne porte pas
+d'icône (côté bureau, elle viendrait d'un fichier `.desktop`, pas du binaire).
+
+Pour régénérer l'`.ico` après une évolution du logo :
+
+```bash
+pip install Pillow
+python packaging/make_icon.py
+```
+
 ## Points d'attention
 
 - Les données (réglages, base de tâches) vivent dans le dossier utilisateur de

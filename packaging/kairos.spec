@@ -75,4 +75,9 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    # Logo de l'application (voir packaging/make_icon.py pour la régénération) :
+    # embarqué dans le .exe Windows (barre des tâches, explorateur). Ignoré sans
+    # erreur pour le binaire Linux, qui ne porte pas d'icône (celle-ci vient d'un
+    # fichier .desktop côté bureau, pas du binaire).
+    icon=str(ROOT / "packaging" / "kairos.ico"),
 )
