@@ -320,11 +320,13 @@ summary:focus-visible,
 .kairos-item { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
   padding: 0.55rem 0.8rem; border: 1px solid var(--border); border-left-width: 3px;
   border-radius: var(--r-md); background: var(--surface); }
-.kairos-item.pushed { border-color: var(--warn-fg); }
-/* Bordure gauche par bucket d'urgence : l'urgent se voit sans lire le texte. */
+/* Un seul signal de couleur, réservé au palier vraiment actionnable (retard /
+   échéance atteinte) : P0 et « programmée aujourd'hui » sont déjà lisibles via
+   leurs badges texte, un second encodage par couleur n'ajoutait qu'une confusion
+   orange/rouge sans information nouvelle. Le décalage par obstacle (« pushed »)
+   fait partie du fonctionnement normal de l'algorithme de placement — expliqué
+   par son propre badge texte, pas par un encadré. */
 .kairos-item.mj-bucket-0 { border-left-color: var(--bad-fg); }
-.kairos-item.mj-bucket-1 { border-left-color: var(--accent-700); }
-.kairos-item.mj-bucket-2 { border-left-color: var(--border-strong); }
 .badge.mj-tag { background: var(--neu-bg); color: var(--neu-fg); }
 /* Score WSJF : c'est LUI qui ordonne la liste, donc mis en avant (accent). */
 .badge.mj-score { background: var(--accent-soft); color: var(--accent-700); font-weight: 800; }

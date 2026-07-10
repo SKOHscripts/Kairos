@@ -437,7 +437,7 @@
   {% endif %}
   <ol class="kairos-list">
     {% for item in schedule.scheduled %}
-    <li class="kairos-item mj-bucket-{{ bucket_of.get(item.task.id, 4) }} {% if item.pushed %}pushed{% endif %} {% if item.conflict %}pushed{% endif %}">
+    <li class="kairos-item mj-bucket-{{ bucket_of.get(item.task.id, 4) }}">
       {{ done_toggle(item.task) }}
       <span class="mj-time">{{ item.start_at.strftime('%Hh%M') }}</span>
       <span class="mj-title">{% if parent_title_of.get(item.task.id) %}<span class="muted">{{ parent_title_of[item.task.id] }} › </span>{% endif %}{{ item.task.title }}</span>
