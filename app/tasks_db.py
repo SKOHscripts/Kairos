@@ -45,6 +45,8 @@ _TASKS_MIGRATION_COLUMNS: dict[str, dict[str, str]] = {
         "fibonacci_points": "INTEGER",
         # Phase 6 : liaison manuelle en lecture vers une fiche `Ticket`.
         "linked_ticket_id": "INTEGER",
+        # Temps passé saisi à la main, en complément du chrono (issue #6).
+        "manual_time_spent_minutes": "INTEGER",
     },
     "time_block": {
         # Phase 3 : distingue les créneaux occupés des blocs deep-work protégés.
@@ -82,6 +84,27 @@ def _ensure_tasks_columns() -> None:
                     " WHERE source = 'native' AND external_id = ''"
                 )
             )
+        # Issue #7 : Task.task_type stockait la clé interne d'une typologie fixe
+        # (TASK_TYPE_LABELS, aujourd'hui retirée) ; les types sont désormais une liste
+        # configurable (Settings.task_types) où la valeur stockée EST le libellé
+        # affiché. On remappe une fois les anciennes clés vers leur libellé d'origine
+        # pour ne pas perdre la catégorisation déjà posée sur des tâches existantes —
+        # idempotent (plus aucune ligne à mettre à jour après le premier passage).
+        _legacy_task_type_labels = {
+            "dev": "Développement",
+            "revue_code": "Revue de code",
+            "reunion": "Réunion",
+            "documentation": "Documentation",
+            "administratif": "Administratif",
+            "veille": "Veille/formation",
+            "pilotage": "Pilotage/dette technique",
+        }
+        with tasks_engine.begin() as conn:
+            for legacy_key, label in _legacy_task_type_labels.items():
+                conn.execute(
+                    text("UPDATE task SET task_type = :label WHERE task_type = :legacy_key"),
+                    {"label": label, "legacy_key": legacy_key},
+                )
         # Retrait de l'intégration Superproductivity (réseau pro incompatible) :
         # toute tâche déjà synchronisée devient native une fois pour toutes, sans
         # jamais être recréée ni dupliquée. `external_id` est conservé comme trace

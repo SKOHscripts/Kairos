@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
 
-from app.tasks_models import WorkSession
+from app.tasks_models import Task, WorkSession
 from app.tasks_time import (
     running_session,
     sessions_in_range,
@@ -36,6 +36,25 @@ def test_spent_minutes_aggregates_by_task() -> None:
     ]
     totals = spent_minutes_by_task(sessions, now=NOW)
     assert totals == {1: 30, 2: 5}
+
+
+def test_spent_minutes_by_task_adds_manual_minutes_on_top_of_sessions() -> None:
+    """Issue #6 : le temps saisi à la main s'additionne au temps chronométré, il ne
+    le remplace jamais — comble ce que le chrono n'a pas mesuré (oubli partiel)."""
+    sessions = [
+        WorkSession(task_id=1, started_at=NOW - timedelta(minutes=30), ended_at=NOW),
+    ]
+    tasks = [
+        Task(id=1, manual_time_spent_minutes=15),
+        Task(id=2, manual_time_spent_minutes=20),  # jamais chronométrée : tout est manuel
+        Task(id=3, manual_time_spent_minutes=None),  # rien de saisi : ignorée
+    ]
+    totals = spent_minutes_by_task(sessions, now=NOW, tasks=tasks)
+    assert totals == {1: 45, 2: 20}
+
+
+def test_spent_minutes_by_task_ignores_tasks_without_sessions_or_manual_entry() -> None:
+    assert spent_minutes_by_task([], now=NOW, tasks=[Task(id=1)]) == {}
 
 
 def test_running_session_is_the_open_one() -> None:

@@ -82,14 +82,21 @@ class Task(TasksBase):
     # de `ensure_calendar_occurrences` : "" pour toute tâche non calendaire.
     recurrence_period: Mapped[str] = mapped_column(String(16), default="")
     # --- Phase 5 : préparation de futures analyses (métadonnées pures) ---
-    # '' | une clé de TASK_TYPE_LABELS. Purement informatif : aucun impact sur
-    # l'ordonnancement ni sur aucune autre logique métier (voir SPEC_KAIROS.md
-    # § Phase 5) — sert uniquement à catégoriser en vue d'analyses futures.
+    # '' | une valeur de Settings.task_type_list (configurable, page Réglages).
+    # Purement informatif : aucun impact sur l'ordonnancement ni sur aucune autre
+    # logique métier (voir SPEC_KAIROS.md § Phase 5) — sert à catégoriser en vue
+    # d'analyses futures et à la suggestion de durée (tasks_stats.calibration_by_type).
+    # Une tâche dont le type a été retiré de la liste garde sa valeur enregistrée
+    # (jamais de perte de donnée silencieuse), elle n'apparaît juste plus dans le menu.
     task_type: Mapped[str] = mapped_column(String(32), default="")
     # Estimation agile en points de Fibonacci (échelle FIBONACCI_SCALE), en
     # complément de `estimated_minutes` — pas de conversion entre les deux,
     # `estimated_minutes` reste seul à piloter l'ordonnancement.
     fibonacci_points: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Temps passé saisi à la main (minutes), pour les cas où le chrono a été oublié
+    # pendant tout ou partie du travail. Additionné (jamais substitué) au temps mesuré
+    # par les `WorkSession` — voir `app/tasks_time.py::spent_minutes_by_task`.
+    manual_time_spent_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # --- Phase 6 : liaison manuelle vers une fiche de dette technique ---
     # Référence locale vers `Ticket.id` (base `pilotage.db`), sans contrainte FK
     # cross-base (les deux bases SQLite restent des fichiers séparés — cohérent
@@ -105,19 +112,6 @@ class Task(TasksBase):
 # Échelle fixe (suite de Fibonacci classique) pour `Task.fibonacci_points` — pas de
 # champ libre, un `<select>` restreint à ces valeurs côté formulaire d'édition.
 FIBONACCI_SCALE: tuple[int, ...] = (1, 2, 3, 5, 8, 13, 21)
-
-# Typologie fixe pour `Task.task_type` — valeur → libellé affiché. Source unique
-# réutilisée par la route (validation, patron identique à `recurrence`) et par le
-# template (options du `<select>` et libellé des badges).
-TASK_TYPE_LABELS: dict[str, str] = {
-    "dev": "Développement",
-    "revue_code": "Revue de code",
-    "reunion": "Réunion",
-    "documentation": "Documentation",
-    "administratif": "Administratif",
-    "veille": "Veille/formation",
-    "pilotage": "Pilotage/dette technique",
-}
 
 
 class TimeBlock(TasksBase):

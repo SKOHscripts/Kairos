@@ -222,13 +222,13 @@ def test_edit_task_sets_task_type_and_fibonacci_points(route_client) -> None:
 
     resp = client.post(
         f"/kairos/tasks/{task_id}/edit",
-        data={"title": "À catégoriser", "task_type": "dev", "fibonacci_points": "5"},
+        data={"title": "À catégoriser", "task_type": "Développement", "fibonacci_points": "5"},
         follow_redirects=False,
     )
     assert resp.status_code == 303
     with TestSession() as db:
         task = db.get(Task, task_id)
-        assert task.task_type == "dev"
+        assert task.task_type == "Développement"
         assert task.fibonacci_points == 5
 
 
@@ -251,6 +251,71 @@ def test_edit_task_rejects_unknown_task_type(route_client) -> None:
         assert db.get(Task, task_id).task_type == ""
 
 
+def test_edit_task_whitelist_reflects_custom_settings_task_types(route_client, monkeypatch) -> None:
+    """Issue #7 : la liste blanche des types n'est plus figée en dur, elle suit
+    ``Settings.task_types`` — un type ajouté aux réglages devient acceptable, un des
+    sept types historiques absent des réglages ne l'est plus."""
+    client, TestSession = route_client
+    monkeypatch.setattr(main, "get_settings", lambda: Settings(task_types="Coaching,Support client"))
+    with TestSession() as db:
+        task = Task(title="À catégoriser", status="todo")
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    client.post(
+        f"/kairos/tasks/{task_id}/edit",
+        data={"title": "À catégoriser", "task_type": "Coaching"},
+        follow_redirects=False,
+    )
+    with TestSession() as db:
+        assert db.get(Task, task_id).task_type == "Coaching"
+
+    client.post(
+        f"/kairos/tasks/{task_id}/edit",
+        data={"title": "À catégoriser", "task_type": "Développement"},
+        follow_redirects=False,
+    )
+    with TestSession() as db:
+        assert db.get(Task, task_id).task_type == ""
+
+
+def test_edit_task_sets_manual_time_spent_minutes(route_client) -> None:
+    """Issue #6 : champ « temps passé cumulé », pour quand le chrono a été oublié."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Chrono oublié", status="todo")
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    resp = client.post(
+        f"/kairos/tasks/{task_id}/edit",
+        data={"title": "Chrono oublié", "manual_time_spent_minutes": "45"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
+    with TestSession() as db:
+        assert db.get(Task, task_id).manual_time_spent_minutes == 45
+
+
+def test_edit_task_clears_manual_time_spent_minutes_when_left_blank(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Déjà saisi", status="todo", manual_time_spent_minutes=30)
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    client.post(
+        f"/kairos/tasks/{task_id}/edit",
+        data={"title": "Déjà saisi", "manual_time_spent_minutes": ""},
+        follow_redirects=False,
+    )
+    with TestSession() as db:
+        assert db.get(Task, task_id).manual_time_spent_minutes is None
+
+
 def test_edit_task_pose_type_points_and_pin_in_one_submit(route_client) -> None:
     """Un seul POST /edit pose les infos, la typologie/points ET l'heure fixe —
     plus besoin de deux soumissions séparées (ergonomie phase 5)."""
@@ -264,7 +329,7 @@ def test_edit_task_pose_type_points_and_pin_in_one_submit(route_client) -> None:
     resp = client.post(
         f"/kairos/tasks/{task_id}/edit",
         data={
-            "title": "Tout en un", "priority": "1", "task_type": "reunion",
+            "title": "Tout en un", "priority": "1", "task_type": "Réunion",
             "fibonacci_points": "3", "pin_time": "14:00", "pin_day": TODAY.isoformat(),
         },
         follow_redirects=False,
@@ -273,7 +338,7 @@ def test_edit_task_pose_type_points_and_pin_in_one_submit(route_client) -> None:
     with TestSession() as db:
         task = db.get(Task, task_id)
         assert task.priority == 1
-        assert task.task_type == "reunion"
+        assert task.task_type == "Réunion"
         assert task.fibonacci_points == 3
         assert task.pinned_start is not None
         assert task.pinned_start.hour == 14
@@ -357,7 +422,7 @@ def test_linked_ticket_badge_appears_in_rendered_page(route_client) -> None:
 def test_task_type_and_fibonacci_badges_appear_in_rendered_page(route_client) -> None:
     client, TestSession = route_client
     with TestSession() as db:
-        db.add(Task(title="Badge test", status="todo", task_type="pilotage",
+        db.add(Task(title="Badge test", status="todo", task_type="Pilotage/dette technique",
                      fibonacci_points=8))
         db.commit()
 
@@ -820,8 +885,8 @@ def test_today_time_breakdown_by_type_shown(route_client) -> None:
 
     client, TestSession = route_client
     with TestSession() as db:
-        dev_task = Task(title="Coder", status="todo", task_type="dev")
-        meeting_task = Task(title="Point", status="todo", task_type="reunion")
+        dev_task = Task(title="Coder", status="todo", task_type="Développement")
+        meeting_task = Task(title="Point", status="todo", task_type="Réunion")
         db.add_all([dev_task, meeting_task])
         db.commit()
         today_9am = _dt.combine(TODAY, _time(9, 0))
@@ -836,6 +901,25 @@ def test_today_time_breakdown_by_type_shown(route_client) -> None:
     page = client.get("/kairos")
     assert "Développement 45 min" in page.text
     assert "Réunion 30 min" in page.text
+
+
+def test_manual_time_spent_is_added_to_chrono_total_on_dashboard(route_client) -> None:
+    """Issue #6 : le temps saisi à la main s'ajoute au temps chronométré affiché."""
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    from app.tasks_models import WorkSession
+
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Mixte", status="todo", manual_time_spent_minutes=20)
+        db.add(task)
+        db.commit()
+        tid = task.id
+        now = _dt.now(_tz.utc)
+        db.add(WorkSession(task_id=tid, started_at=now - _td(minutes=30), ended_at=now))
+        db.commit()
+
+    page = client.get("/kairos")
+    assert "50 min" in page.text  # 30 min de chrono + 20 min saisies à la main
 
 
 def test_running_timer_shown_on_dashboard(route_client) -> None:
@@ -1487,7 +1571,7 @@ def test_week_view_shows_time_aggregate_by_type(route_client) -> None:
     client, TestSession = route_client
     monday = TODAY - timedelta(days=TODAY.weekday())
     with TestSession() as db:
-        dev_task = Task(title="Coder", status="todo", task_type="dev")
+        dev_task = Task(title="Coder", status="todo", task_type="Développement")
         db.add(dev_task)
         db.commit()
         session_start = _dt.combine(monday, _time(9, 0))

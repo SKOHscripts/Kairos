@@ -100,8 +100,11 @@
         <label title="Quand tu comptes t'y mettre — distinct de l'échéance">Programmée pour
           <input type="date" name="scheduled_date" value="{{ task.scheduled_date.isoformat() if task.scheduled_date else '' }}"></label>
         <label>Projet<input type="text" name="project_tag" value="{{ task.project_tag }}" style="width:110px;"></label>
-        <label>Durée (min)<input type="number" name="estimated_minutes" min="1"
+        <label>Durée (min)<input type="number" name="estimated_minutes" min="1" class="mj-estimated-minutes"
           value="{{ task.estimated_minutes if task.estimated_minutes else '' }}" style="width:80px;"></label>
+        <label title="Ajouté au temps mesuré par le chrono — pratique si vous l'avez oublié pendant tout ou partie du travail">Temps passé manuel (min)
+          <input type="number" name="manual_time_spent_minutes" min="0"
+            value="{{ task.manual_time_spent_minutes if task.manual_time_spent_minutes else '' }}" style="width:90px;"></label>
         <label>Récurrence
           <select name="recurrence">
             <option value="" {% if not task.recurrence %}selected{% endif %}>aucune</option>
@@ -116,10 +119,11 @@
           <input type="number" name="recurrence_day_of_month" min="1" max="31" style="width:70px;"
             value="{{ task.recurrence_day_of_month if task.recurrence_day_of_month else '' }}"></label>
         <label>Type
-          <select name="task_type">
+          <select name="task_type" class="mj-task-type-select">
             <option value="" {% if not task.task_type %}selected{% endif %}>—</option>
-            {% for value, label in task_type_labels.items() %}
-            <option value="{{ value }}" {% if task.task_type == value %}selected{% endif %}>{{ label }}</option>
+            {% for value in settings.task_type_list %}
+            <option value="{{ value }}" data-avg-minutes="{{ avg_minutes_by_type.get(value, '') }}"
+              {% if task.task_type == value %}selected{% endif %}>{{ value }}</option>
             {% endfor %}
           </select>
         </label>
@@ -176,7 +180,7 @@
 {% if score is not none %}<span class="badge mj-score" title="Score WSJF = (valeur de la priorité + criticité de l'échéance) ÷ effort (points Fibonacci). Plus élevé = à faire en premier. C'est ce score qui ordonne la liste.">{{ icon('trending_up') }} {{ score }}</span>{% endif %}
 {% if task.priority is not none %}<span class="badge prio" title="Priorité">P{{ task.priority }}</span>{% endif %}
 {% if task.project_tag %}<span class="badge">{{ task.project_tag }}</span>{% endif %}
-{% if task.task_type %}<span class="badge mj-tag" title="Type de tâche">{{ task_type_labels.get(task.task_type, task.task_type) }}</span>{% endif %}
+{% if task.task_type %}<span class="badge mj-tag" title="Type de tâche">{{ task.task_type }}</span>{% endif %}
 {% if task.fibonacci_points %}<span class="badge mj-tag" title="Estimation agile (informatif)">{{ task.fibonacci_points }} pts</span>{% endif %}
 {% set linked = ticket_by_id.get(task.linked_ticket_id) if task.linked_ticket_id else none %}
 {% if linked %}
@@ -621,6 +625,21 @@
     var opening = body.hidden;
     body.hidden = !opening;
     toggle.setAttribute('aria-expanded', String(opening));
+  });
+
+  /* Suggestion de durée par type (issue #7) : au choix d'un type dans le panneau
+     d'édition, pré-remplit « Durée (min) » avec la médiane du temps réel observé sur
+     ce type (data-avg-minutes, posée côté serveur par tasks_stats.calibration_by_type)
+     — seulement si le champ est encore vide, pour ne jamais écraser une estimation
+     déjà saisie à la main. */
+  document.addEventListener('change', function (ev) {
+    var select = ev.target.closest('.mj-task-type-select');
+    if (!select) return;
+    var form = select.closest('form');
+    var estimateInput = form && form.querySelector('.mj-estimated-minutes');
+    if (!estimateInput || estimateInput.value) return;
+    var avg = select.selectedOptions[0] && select.selectedOptions[0].dataset.avgMinutes;
+    if (avg) estimateInput.value = avg;
   });
 
   /* Chrono vivant + alertes (phase 11). Aucun appel réseau, rafraîchi chaque seconde.

@@ -40,6 +40,18 @@ def test_post_valid_settings_persists_and_redirects(settings_client) -> None:
     assert get_settings().workday_end_hour == 17
 
 
+def test_post_valid_settings_persists_custom_task_types(settings_client) -> None:
+    """Issue #7 : la liste des types (CSV, même patron que `gitlab_projects`) est
+    librement éditable depuis la page Réglages."""
+    resp = settings_client.post(
+        "/kairos/settings",
+        data=_full_form(task_types="Coaching, Support client"),
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
+    assert get_settings().task_type_list == ["Coaching", "Support client"]
+
+
 def test_post_invalid_settings_rerenders_with_error_and_does_not_save(settings_client) -> None:
     resp = settings_client.post(
         "/kairos/settings",
@@ -164,6 +176,10 @@ def _full_form(**overrides: str) -> dict[str, str]:
         "cognitive_dip_trough_hour": "15",
         "cognitive_dip_end_hour": "16",
         "cognitive_dip_penalty": "1.0",
+        "task_types": (
+            "Développement,Revue de code,Réunion,Documentation,Administratif,"
+            "Veille/formation,Pilotage/dette technique"
+        ),
         "stats_window_weeks": "8",
         "timer_idle_alert_minutes": "180",
         "pomodoro_focus_minutes": "50",

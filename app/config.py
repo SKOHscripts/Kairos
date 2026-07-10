@@ -245,6 +245,20 @@ class Settings(BaseModel):
         default="", description="Dates fériées supplémentaires (ISO AAAA-MM-JJ), séparées par des virgules.",
     )
     log_level: str = Field(default="INFO", description="Niveau de log console : DEBUG, INFO, WARNING, ERROR.")
+    # --- Types de tâches ---
+    # Typologie utilisée pour catégoriser les tâches (voir `Task.task_type`) : sert aux
+    # statistiques de temps par type et à la suggestion de durée (voir
+    # `app/tasks_stats.py::calibration_by_type`). Même patron que `gitlab_projects`
+    # (chaîne séparée par des virgules) : librement éditable, sans plomberie de
+    # formulaire dédiée à une liste. Une tâche dont le type a disparu de cette liste
+    # garde sa valeur enregistrée, elle n'apparaît juste plus dans le menu.
+    task_types: str = Field(
+        default=(
+            "Développement,Revue de code,Réunion,Documentation,Administratif,"
+            "Veille/formation,Pilotage/dette technique"
+        ),
+        description="Types de tâches proposés dans la fiche (menu déroulant), séparés par des virgules.",
+    )
     # --- Réseau (proxy sortant, ex. réseau d'entreprise) ---
     # Utile notamment pour joindre TimeTree depuis un poste derrière un proxy sortant.
     # Injectées dans l'environnement du processus au démarrage et après chaque
@@ -292,6 +306,10 @@ class Settings(BaseModel):
     @property
     def gitlab_project_list(self) -> list[str]:
         return [p.strip() for p in self.gitlab_projects.split(",") if p.strip()]
+
+    @property
+    def task_type_list(self) -> list[str]:
+        return [t.strip() for t in self.task_types.split(",") if t.strip()]
 
     @property
     def gitlab_token_effective(self) -> str:

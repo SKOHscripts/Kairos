@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
 from .config import Settings
-from .tasks_models import TASK_TYPE_LABELS, Task, WorkSession
+from .tasks_models import Task, WorkSession
 from .tasks_scheduling import urgency_bucket
 from .tasks_staleness import days_stale
 from .tasks_time import (
@@ -101,6 +101,17 @@ class TypeShare:
     label: str
     minutes: int
     pct: int    # part du temps réel tracké de la fenêtre (0-100)
+
+
+@dataclass
+class TypeCalibration:
+    key: str                    # valeur de Task.task_type (le libellé lui-même)
+    count: int                  # nb de tâches terminées chronométrées de ce type
+    median_minutes: int | None  # temps réel médian passé sur ces tâches
+
+    @property
+    def reliable(self) -> bool:
+        return self.count >= MIN_SAMPLE
 
 
 @dataclass
@@ -281,13 +292,15 @@ def time_by_type(
     now: datetime | None = None,
 ) -> list[TypeShare]:
     """Répartition du temps réel par type de tâche (parts en %), du plus au moins chronophage.
-    Les sessions sans type rattaché sont regroupées sous « Sans type »."""
+    Les sessions sans type rattaché sont regroupées sous « Sans type ». ``Task.task_type``
+    est la valeur configurable (Settings.task_types) : ici directement le libellé affiché,
+    pas de table de correspondance à part."""
     minutes = spent_minutes_by_type(sessions, task_type_by_id, now=now)
     total = sum(minutes.values())
     shares = [
         TypeShare(
             key=key,
-            label=TASK_TYPE_LABELS.get(key, "Sans type") if key else "Sans type",
+            label=key or "Sans type",
             minutes=mins,
             pct=round(100 * mins / total) if total else 0,
         )
@@ -296,6 +309,38 @@ def time_by_type(
     ]
     shares.sort(key=lambda s: s.minutes, reverse=True)
     return shares
+
+
+def calibration_by_type(
+    tasks: list[Task], spent_by_task: dict[int, int]
+) -> list[TypeCalibration]:
+    """Temps réel médian par type de tâche, sur les tâches terminées et effectivement
+    chronométrées (type renseigné, temps réel > 0) — même patron que
+    :func:`fibonacci_calibration`, mais par type plutôt que par palier d'effort.
+
+    Sert à suggérer une durée par défaut quand l'utilisateur choisit un type dans le
+    formulaire d'édition (voir le JS de ``templates/kairos.html``) : plus on ferme de
+    tâches d'un type donné, plus la suggestion se rapproche du temps réel observé."""
+    minutes_by_type: dict[str, list[float]] = defaultdict(list)
+    for task in tasks:
+        if task.status != "done" or not task.task_type:
+            continue
+        spent = spent_by_task.get(task.id, 0)
+        if spent <= 0:
+            continue
+        minutes_by_type[task.task_type].append(spent)
+    result = []
+    for key in sorted(minutes_by_type):
+        samples = minutes_by_type[key]
+        median = _median(samples)
+        result.append(
+            TypeCalibration(
+                key=key,
+                count=len(samples),
+                median_minutes=round(median) if median is not None else None,
+            )
+        )
+    return result
 
 
 def focus_stats(
@@ -385,7 +430,7 @@ def compute_dashboard_stats(
     window_start = _monday(today) - timedelta(weeks=weeks - 1)
     window_sessions = sessions_in_range(sessions, window_start, today)
 
-    spent_all = spent_minutes_by_task(sessions, now=now)
+    spent_all = spent_minutes_by_task(sessions, now=now, tasks=tasks)
     task_type_by_id = {t.id: t.task_type for t in tasks}
 
     return DashboardStats(
