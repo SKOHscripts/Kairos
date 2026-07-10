@@ -8,9 +8,10 @@ les routes gèrent l'ouverture/fermeture des sessions.
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Iterable
 from datetime import date, datetime, timezone
 
-from .tasks_models import WorkSession
+from .tasks_models import Task, WorkSession
 
 
 def _aware(dt: datetime) -> datetime:
@@ -26,12 +27,19 @@ def session_minutes(session: WorkSession, *, now: datetime | None = None) -> int
 
 
 def spent_minutes_by_task(
-    sessions: list[WorkSession], *, now: datetime | None = None
+    sessions: list[WorkSession], *, now: datetime | None = None,
+    tasks: Iterable[Task] | None = None,
 ) -> dict[int, int]:
-    """Temps réel total (minutes) passé par tâche, sessions ouvertes incluses."""
+    """Temps total (minutes) passé par tâche : sessions chronométrées (ouvertes
+    incluses) + temps saisi à la main (``Task.manual_time_spent_minutes``, issue #6)
+    quand ``tasks`` est fourni. Les deux s'additionnent, jamais l'un ne remplace
+    l'autre — le manuel comble ce que le chrono n'a pas mesuré."""
     totals: dict[int, int] = defaultdict(int)
     for session in sessions:
         totals[session.task_id] += session_minutes(session, now=now)
+    for task in tasks or ():
+        if task.manual_time_spent_minutes:
+            totals[task.id] += task.manual_time_spent_minutes
     return dict(totals)
 
 

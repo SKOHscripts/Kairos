@@ -414,7 +414,9 @@ def test_init_tasks_db_migrates_phase5_schema_without_data_loss(tmp_path: Path) 
             assert task.title == "Fiche GitLab (ancien format)"
             assert task.priority == 2  # données antérieures intactes
             assert task.external_id == "42"  # rekey géré par tasks_gitlab_sync, pas la migration
-            assert task.task_type == "dev"
+            # Issue #7 : remappage one-shot de l'ancienne clé interne vers son libellé
+            # d'origine (task_type stocke désormais directement le libellé configurable).
+            assert task.task_type == "Développement"
             assert task.fibonacci_points == 5
             assert task.linked_ticket_id is None  # défaut SQL appliqué
     finally:

@@ -42,7 +42,6 @@ from .tasks_dependencies import (
 )
 from .tasks_models import (
     FIBONACCI_SCALE,
-    TASK_TYPE_LABELS,
     Task,
     TaskDependency,
     TimeBlock,
@@ -65,7 +64,7 @@ from .tasks_scheduling import (
     wsjf_score,
 )
 from .tasks_staleness import days_stale
-from .tasks_stats import compute_dashboard_stats
+from .tasks_stats import calibration_by_type, compute_dashboard_stats
 from .tasks_gitlab_sync import sync_assigned_gitlab_tasks, write_sync_meta
 from .tasks_time import (
     running_session,
@@ -374,9 +373,10 @@ def _render_kairos(
         key=lambda c: c["title"],
     )
 
-    # Suivi du temps réel : total passé par tâche + session en cours (minuteur vivant).
+    # Suivi du temps réel : total passé par tâche (chrono + saisie manuelle, issue #6)
+    # + session en cours (minuteur vivant).
     sessions = list(tasks_session.scalars(select(WorkSession)))
-    spent_by_task = spent_minutes_by_task(sessions)
+    spent_by_task = spent_minutes_by_task(sessions, tasks=all_tasks)
     running = running_session(sessions)
     running_task_id = running.task_id if running is not None else None
     running_started_iso = (
@@ -398,9 +398,18 @@ def _render_kairos(
     task_type_by_id = {t.id: t.task_type for t in all_tasks}
     today_sessions = sessions_on_day(sessions, target_day)
     spent_by_type_today = {
-        TASK_TYPE_LABELS.get(k, k): v
+        k: v
         for k, v in spent_minutes_by_type(today_sessions, task_type_by_id).items()
         if k and v > 0
+    }
+    # Suggestion de durée par type (issue #7) : médiane du temps réel des tâches
+    # terminées de ce type, pour pré-remplir « Durée (min) » quand l'utilisateur
+    # choisit un type dans le panneau d'édition (voir le JS de kairos.html). Seuls
+    # les types avec assez d'échantillons (`reliable`) sont proposés.
+    avg_minutes_by_type = {
+        c.key: c.median_minutes
+        for c in calibration_by_type(all_tasks, spent_by_task)
+        if c.reliable and c.median_minutes
     }
 
     context = {
@@ -419,9 +428,9 @@ def _render_kairos(
         "raised_ids": raised_ids,
         "bucket_of": bucket_of,
         "wsjf_of": wsjf_of,
-        "task_type_labels": TASK_TYPE_LABELS,
         "fibonacci_scale": FIBONACCI_SCALE,
         "spent_by_task": spent_by_task,
+        "avg_minutes_by_type": avg_minutes_by_type,
         "running_task_id": running_task_id,
         "running_started_iso": running_started_iso,
         "running_task_title": running_task_title,
@@ -466,7 +475,7 @@ def _render_kairos(
         # à partir des données déjà collectées, pas un nouveau dashboard de stats.
         week_sessions = sessions_in_range(sessions, monday, sunday)
         spent_by_type_week = {
-            TASK_TYPE_LABELS.get(k, k): v
+            k: v
             for k, v in spent_minutes_by_type(week_sessions, task_type_by_id).items()
             if k and v > 0
         }
@@ -834,6 +843,7 @@ def edit_task(
     recurrence_day_of_month: str = Form(""),
     task_type: str = Form(""),
     fibonacci_points: str = Form(""),
+    manual_time_spent_minutes: str = Form(""),
     pin_time: str = Form(""),
     pin_day: str = Form(""),
     linked_ticket_id: str = Form(""),
@@ -861,6 +871,7 @@ def edit_task(
     (reprend `would_create_cycle`, comme l'ancienne route dédiée) sans faire
     échouer le reste de l'enregistrement.
     """
+    settings = get_settings()
     task = tasks_session.get(Task, task_id)
     if task is not None:
         if title.strip():
@@ -878,8 +889,9 @@ def edit_task(
         task.recurrence_day_of_month = (
             _optional_int(recurrence_day_of_month) if recurrence == "monthly_on_day" else None
         )
-        task.task_type = task_type if task_type in TASK_TYPE_LABELS else ""
+        task.task_type = task_type if task_type in settings.task_type_list else ""
         task.fibonacci_points = _optional_int(fibonacci_points)
+        task.manual_time_spent_minutes = _optional_int(manual_time_spent_minutes)
         if pin_time.strip():
             # La date programmée (si renseignée) prime sur le jour affiché : épingler
             # une tâche programmée pour un autre jour doit poser l'heure fixe CE

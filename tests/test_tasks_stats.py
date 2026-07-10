@@ -10,6 +10,7 @@ from app.tasks_stats import (
     MIN_SAMPLE,
     _median,
     backlog_flow,
+    calibration_by_type,
     compute_dashboard_stats,
     estimation_bias,
     fibonacci_calibration,
@@ -117,6 +118,37 @@ def test_fibonacci_calibration_reliability_flag() -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Calibration par type de tâche (issue #7)
+# --------------------------------------------------------------------------- #
+
+def test_calibration_by_type_medians_by_type() -> None:
+    tasks = [
+        _done(1, TODAY, task_type="Développement"),
+        _done(2, TODAY, task_type="Développement"),
+        _done(3, TODAY, task_type="Réunion"),
+    ]
+    spent = {1: 60, 2: 80, 3: 15}
+    calib = calibration_by_type(tasks, spent)
+    by_key = {c.key: c for c in calib}
+    assert by_key["Développement"].count == 2 and by_key["Développement"].median_minutes == 70
+    assert by_key["Réunion"].count == 1 and by_key["Réunion"].median_minutes == 15
+
+
+def test_calibration_by_type_skips_untyped_and_untimed_tasks() -> None:
+    tasks = [_done(1, TODAY), _done(2, TODAY, task_type="Développement")]
+    assert calibration_by_type(tasks, {}) == []
+
+
+def test_calibration_by_type_reliability_flag() -> None:
+    tasks = [_done(i, TODAY, task_type="Développement") for i in range(MIN_SAMPLE)]
+    spent = {i: 30 for i in range(MIN_SAMPLE)}
+    calib = calibration_by_type(tasks, spent)
+    assert calib[0].reliable is True
+    single = calibration_by_type([_done(9, TODAY, task_type="Réunion")], {9: 15})
+    assert single[0].reliable is False
+
+
+# --------------------------------------------------------------------------- #
 # Biais d'estimation
 # --------------------------------------------------------------------------- #
 
@@ -146,8 +178,8 @@ def test_time_by_type_shares_sorted_desc_with_percentages() -> None:
         _session(1, datetime(2026, 7, 6, 9, tzinfo=timezone.utc), 30),
         _session(2, datetime(2026, 7, 6, 10, tzinfo=timezone.utc), 90),
     ]
-    shares = time_by_type(sessions, {1: "reunion", 2: "dev"})
-    assert [s.key for s in shares] == ["dev", "reunion"]  # trié par temps décroissant
+    shares = time_by_type(sessions, {1: "Réunion", 2: "Développement"})
+    assert [s.key for s in shares] == ["Développement", "Réunion"]  # trié par temps décroissant
     assert shares[0].pct == 75 and shares[1].pct == 25
     assert shares[0].label == "Développement"
 

@@ -115,3 +115,15 @@ def test_timer_alert_defaults() -> None:
     settings = Settings()
     assert settings.timer_idle_alert_minutes == 180
     assert settings.pomodoro_focus_minutes == 50
+
+
+def test_task_type_list_defaults_to_the_seven_historical_types() -> None:
+    assert Settings().task_type_list == [
+        "Développement", "Revue de code", "Réunion", "Documentation",
+        "Administratif", "Veille/formation", "Pilotage/dette technique",
+    ]
+
+
+def test_task_type_list_splits_and_strips_custom_value() -> None:
+    settings = Settings(task_types=" Coaching , , Support client ,")
+    assert settings.task_type_list == ["Coaching", "Support client"]
