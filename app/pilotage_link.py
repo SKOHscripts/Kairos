@@ -13,7 +13,7 @@ avec la base ``pilotage.db`` de `pilotage-pleiade-gitlab`, activé uniquement si
 Seules les colonnes lues sont mappées : SQLAlchemy ignore les autres, aucune
 migration ni écriture n'est jamais faite ici (métadonnées séparées, jamais de
 ``create_all`` sur la base pilotage). Sans le fichier ou sans le réglage, tout
-dégrade proprement : la dépendance FastAPI rend ``None`` et les fonctionnalités
+dégrade proprement : ``get_pilotage_session`` rend ``None`` et les fonctionnalités
 concernées disparaissent de l'interface sans erreur.
 """
 
@@ -81,7 +81,8 @@ def _get_engine():
 
 
 def get_pilotage_session() -> Iterator[Session | None]:
-    """Dépendance FastAPI : session lecture seule sur la base pilotage, ou None."""
+    """Générateur de session lecture seule sur la base pilotage (ou None), une par
+    requête — consommé par ``main._request_session``, substituable dans les tests."""
     engine = _get_engine()
     if engine is None:
         yield None

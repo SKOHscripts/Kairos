@@ -53,14 +53,14 @@ def route_client(monkeypatch):
 
     test_settings = Settings()
     monkeypatch.setattr(main, "get_settings", lambda: test_settings)
-    main.app.dependency_overrides[main.get_tasks_session] = override_tasks_session
-    main.app.dependency_overrides[main.get_pilotage_session] = override_session
+    # Les routes résolvent ces fabriques au moment de l'appel (variables globales
+    # du module, voir `main._request_session`) : monkeypatcher l'attribut remplace
+    # l'ancien `app.dependency_overrides` de FastAPI, et se défait tout seul.
+    monkeypatch.setattr(main, "get_tasks_session", override_tasks_session)
+    monkeypatch.setattr(main, "get_pilotage_session", override_session)
     client = TestClient(main.app)
     client.ticket_session_factory = TicketTestSession  # base dette technique (GitLab)
-    try:
-        yield client, TestSession
-    finally:
-        main.app.dependency_overrides.clear()
+    yield client, TestSession
 
 
 def test_get_home_renders_readme_content() -> None:

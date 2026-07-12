@@ -9,10 +9,16 @@ installation `.env` est importée une seule fois automatiquement, voir
 
 from __future__ import annotations
 
+import dataclasses
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from .settings_fields import (
+    Field,
+    SettingsValidationError,
+    build_field_registry,
+    validate_fields,
+)
 
 
 def _default_tasks_database_path() -> str:
@@ -24,15 +30,19 @@ def _default_tasks_database_path() -> str:
     return str(Path(user_data_dir("Kairos", appauthor=False)) / "tasks.db")
 
 
-class Settings(BaseModel):
+@dataclasses.dataclass
+class Settings:
     """Paramètres de l'outil « Kairos » (autonome depuis la phase 14).
 
     Modifiables depuis la page Réglages de l'application ; persistés par
     `app/settings_store.py`. Les identifiants ne doivent jamais être exposés
     tels quels dans l'interface (voir `app/secret_store.py`).
-    """
 
-    model_config = ConfigDict(extra="ignore")
+    Dataclass « maison » (plus de Pydantic depuis le portage Android, voir
+    `app/settings_fields.py`) : types et bornes validés à la construction
+    (`SettingsValidationError`), registre `Settings.model_fields` conservé sous
+    le même nom pour la page Réglages et `settings_store`.
+    """
 
     # Base SQLite des tâches. Par défaut : dossier de données standard de l'OS
     # (ex. ~/.local/share/Kairos sous Linux, %LOCALAPPDATA%\Kairos sous Windows).
@@ -274,21 +284,31 @@ class Settings(BaseModel):
         description="Domaines/IPs à ne jamais faire passer par le proxy, séparés par des virgules.",
     )
 
-    @model_validator(mode="after")
-    def _validate_ranges(self) -> "Settings":
-        if self.workday_start_hour >= self.workday_end_hour:
-            raise ValueError(
-                "L'heure de début de journée doit être avant l'heure de fin."
-            )
-        if not (
-            self.cognitive_dip_start_hour
-            <= self.cognitive_dip_trough_hour
-            <= self.cognitive_dip_end_hour
-        ):
-            raise ValueError(
-                "Le creux de l'après-midi doit respecter début ≤ tronc ≤ fin."
-            )
-        return self
+    def __post_init__(self) -> None:
+        """Validation à la construction (même moment que Pydantic avant la
+        migration) : types et bornes de chaque champ, puis règles inter-champs
+        (clé ``_general``, affichée en bandeau par la page Réglages)."""
+        errors = validate_fields(self)
+        if not errors:
+            if self.workday_start_hour >= self.workday_end_hour:
+                errors["_general"] = (
+                    "L'heure de début de journée doit être avant l'heure de fin."
+                )
+            elif not (
+                self.cognitive_dip_start_hour
+                <= self.cognitive_dip_trough_hour
+                <= self.cognitive_dip_end_hour
+            ):
+                errors["_general"] = (
+                    "Le creux de l'après-midi doit respecter début ≤ tronc ≤ fin."
+                )
+        if errors:
+            raise SettingsValidationError(errors)
+
+    def model_dump(self, mode: str | None = None) -> dict:
+        """Compat Pydantic conservée telle quelle (appelants et page Réglages) :
+        tous les champs sont des types JSON natifs, ``mode`` est donc sans effet."""
+        return dataclasses.asdict(self)
 
     @property
     def tasks_database_url(self) -> str:
@@ -348,6 +368,12 @@ class Settings(BaseModel):
         return build_holidays(
             range(current - 1, current + 3), france=self.holidays_fr, extra=extra
         )
+
+
+# Registre `nom → FieldInfo` (annotation, description, bornes) : même rôle — et
+# même nom — que le `model_fields` de Pydantic qu'il remplace, consommé par la
+# page Réglages, `settings_store` et `main._field_kind`.
+Settings.model_fields = build_field_registry(Settings)
 
 
 @lru_cache

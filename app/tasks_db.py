@@ -168,7 +168,8 @@ def tasks_session_scope() -> Iterator[Session]:
 
 
 def get_tasks_session() -> Iterator[Session]:
-    """Dépendance FastAPI : une session (base tâches) par requête."""
+    """Générateur de session (base tâches), une par requête — consommé par
+    ``main._request_session`` ; les tests substituent la fabrique via monkeypatch."""
     session = TasksSessionLocal()
     try:
         yield session
