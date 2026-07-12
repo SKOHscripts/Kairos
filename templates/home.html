@@ -21,11 +21,9 @@
 <section class="home-hero">
   <div class="home-hero-text">
     <h2>Le bon créneau, pour la bonne tâche, au bon moment.</h2>
-    <p>Kairos est ton dashboard personnel de tâches : il répond à « qu'est-ce que je fais
+    <p>Kairos est ton dashboard personnel de tâches. Il répond à « qu'est-ce que je fais
     maintenant, et dans quel ordre », en tenant compte de tes créneaux occupés, de tes
-    échéances et de l'effort estimé. Cette page reprend directement le <code>README.md</code>
-    du dépôt : la documentation ci-dessous reste donc toujours à jour, sans double
-    maintenance.</p>
+    échéances et de l'effort estimé.</p>
     <div class="home-hero-actions">
       <a class="btn primary" href="/kairos">{{ icon('check_circle') }} Ouvrir « Aujourd’hui »</a>
       <a class="btn" href="/kairos?view=week">{{ icon('calendar') }} Vue semaine</a>
@@ -42,6 +40,46 @@
     <div class="home-hero-brand-name">Kairos</div>
     <div class="home-hero-brand-code">nom de code · 14h55</div>
   </div>
+</section>
+
+<section class="home-brief">
+  <div class="home-brief-actions">
+    <h2>{{ icon('check_circle') }} Ce que fait Kairos</h2>
+    <ul>
+      <li>Classe les tâches du jour par un score de priorité, affiché sur chacune.</li>
+      <li>Pose chaque tâche dans les trous de l'agenda, autour des réunions (marge comprise).</li>
+      <li>Protège des blocs de deep-work et allège le creux de l'après-midi.</li>
+      <li>Suit le temps réel passé et le compare à l'estimé.</li>
+      <li>Importe, en option, tes issues GitLab assignées et ton agenda TimeTree.</li>
+    </ul>
+  </div>
+  <figure class="home-formula">
+    <figcaption>Score de priorité</figcaption>
+    <div class="formula" role="img"
+         aria-label="score égale valeur de la priorité plus criticité de l'échéance, le tout divisé par l'effort en points de Fibonacci">
+      <span class="formula-var">score</span>
+      <span class="formula-eq">=</span>
+      <span class="formula-frac">
+        <span class="formula-num">valeur(priorité) + criticité(échéance)</span>
+        <span class="formula-den">effort (points de Fibonacci)</span>
+      </span>
+    </div>
+    <dl class="formula-legend">
+      <div>
+        <dt>valeur(priorité)</dt>
+        <dd>4<sup>(2−p)</sup> : P0 = 16, P1 = 4, P2 = 1.</dd>
+      </div>
+      <div>
+        <dt>criticité(échéance)</dt>
+        <dd>monte à l'approche de l'échéance ou de la date programmée, la plus proche des
+        deux. Une tâche en retard passe toujours devant, hors score.</dd>
+      </div>
+      <div>
+        <dt>effort</dt>
+        <dd>points de Fibonacci, de 1 à 21 ; à défaut, la durée estimée.</dd>
+      </div>
+    </dl>
+  </figure>
 </section>
 
 <div class="home-layout">

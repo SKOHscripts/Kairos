@@ -6,14 +6,18 @@ un fichier SQLite séparé de celui du suivi dette technique (``pilotage.db``).
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Iterator
 from contextlib import contextmanager
+from datetime import date
 
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from .config import get_settings
 from .tasks_models import TasksBase
+
+logger = logging.getLogger(__name__)
 
 _settings = get_settings()
 tasks_engine = create_engine(
@@ -121,9 +125,32 @@ def _ensure_tasks_columns() -> None:
 
 
 def init_tasks_db() -> None:
-    """Crée les tables si elles n'existent pas, puis applique la migration légère."""
+    """Crée les tables si elles n'existent pas, puis applique la migration légère.
+
+    Sur une base **vierge** (aucune table avant création, donc tout premier lancement),
+    pose un jeu de tâches et créneaux d'exemple pour que la première ouverture ne soit pas
+    vide (voir ``app/tasks_seed.py``). La détection porte sur l'absence de **toute** table,
+    jamais sur le contenu : supprimer tous les exemples ne les fait donc **jamais**
+    réapparaître, et une base pré-existante (même partielle, en cours de migration) n'est
+    jamais semée.
+    """
+    fresh = not set(inspect(tasks_engine).get_table_names())
     TasksBase.metadata.create_all(bind=tasks_engine)
     _ensure_tasks_columns()
+    if fresh:
+        _seed_example_data_safely()
+
+
+def _seed_example_data_safely() -> None:
+    """Sème les données d'exemple sans jamais faire échouer le démarrage (dégradation
+    propre, cohérente avec le reste du projet)."""
+    from .tasks_seed import seed_example_data
+
+    try:
+        with tasks_session_scope() as session:
+            seed_example_data(session, today=date.today())
+    except Exception:  # pragma: no cover - garde-fou de démarrage
+        logger.exception("Échec de la pose des données d'exemple (ignoré au démarrage)")
 
 
 @contextmanager
