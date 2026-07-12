@@ -534,6 +534,50 @@ summary:focus-visible,
   .home-hero-brand { flex-direction: row; justify-content: flex-start; text-align: left; }
 }
 
+/* Vision synthétique (actions + formule de score) entre le bandeau et le README. */
+.home-brief {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem;
+  margin-bottom: 1.3rem;
+}
+@media (max-width: 760px) { .home-brief { grid-template-columns: 1fr; } }
+.home-brief-actions, .home-formula {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 1.3rem 1.5rem; margin: 0;
+}
+.home-brief-actions h2, .home-formula figcaption {
+  margin: 0 0 0.7rem; font-size: 13.5px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 0.45rem;
+}
+.home-brief-actions h2 .ico { color: var(--accent); font-size: 16px; }
+.home-brief-actions ul { margin: 0; padding-left: 1.2rem; color: var(--text-2); }
+.home-brief-actions li { margin: 0.35rem 0; }
+
+/* Formule de score en vraie fraction (HTML + CSS, sans JS ni dépendance). La barre
+   de fraction est la bordure haute du dénominateur. */
+.formula {
+  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+  flex-wrap: wrap; padding: 0.9rem 0.5rem 1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text);
+}
+.formula-var { font-size: 15px; font-weight: 600; }
+.formula-eq { font-size: 15px; color: var(--text-2); }
+.formula-frac {
+  display: inline-flex; flex-direction: column; align-items: center; text-align: center;
+}
+.formula-num { padding: 0 0.7rem 0.35rem; font-size: 13px; }
+.formula-den {
+  padding: 0.35rem 0.7rem 0; font-size: 13px; color: var(--text-2);
+  border-top: 2px solid var(--accent); width: 100%;
+}
+.formula-legend { margin: 0.4rem 0 0; display: grid; gap: 0.5rem; }
+.formula-legend > div { display: grid; gap: 0.1rem; }
+.formula-legend dt {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px; font-weight: 700; color: var(--text);
+}
+.formula-legend dd { margin: 0; font-size: 12.5px; color: var(--text-2); }
+.formula-legend sup { font-size: 0.75em; }
+
 .home-layout { display: grid; grid-template-columns: 1fr 230px; gap: 1.3rem; align-items: start; }
 @media (max-width: 960px) { .home-layout { grid-template-columns: 1fr; } }
 
