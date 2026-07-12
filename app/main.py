@@ -1,4 +1,4 @@
-"""Application web FastAPI « Kairos » : tâches, time blocking, deep work, stats.
+"""Application web Starlette « Kairos » : tâches, time blocking, deep work, stats.
 
 Kairos (καιρός) : en grec, *le moment opportun* — c'est le métier de l'outil, poser
 chaque tâche au bon créneau. Nom de code : **14h55**, le creux post-déjeuner, l'heure
@@ -6,6 +6,12 @@ la moins productive de la journée — l'exact opposé, en clin d'œil.
 
 Outil autonome (extrait de `pilotage-pleiade-gitlab`, phase 14). L'intégration avec
 l'outil de pilotage MSI est optionnelle et en lecture seule (voir `pilotage_link.py`).
+
+Starlette pur depuis le portage Android (auparavant FastAPI, qui n'était utilisé que
+pour les décorateurs de routage, `Form` et `Depends`) : FastAPI dépend de Pydantic v2,
+donc de `pydantic-core` — un module Rust sans wheel Android (voir
+`docs/ANDROID_PACKAGING.md` et `app/settings_fields.py`). Les réponses, fichiers
+statiques et gabarits Jinja2 étaient déjà ceux de Starlette, ré-exportés par FastAPI.
 """
 
 from __future__ import annotations
@@ -14,24 +20,25 @@ import logging
 import os
 import signal
 import sys
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from datetime import date, datetime, time as dt_time, timedelta, timezone
 from pathlib import Path
 
 import markdown
-from fastapi import Depends, FastAPI, Form, Request
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from starlette.staticfiles import StaticFiles
+from starlette.templating import Jinja2Templates
 
 from . import secret_store, settings_store
 from .calendar.timetree_source import fetch_busy_slots
 from .config import Settings, apply_proxy_env, get_settings, invalidate_settings_cache
 from .gitlab_direct import fetch_assigned_issues
 from .pilotage_link import CachedGitLabIssue, LinkedTicket, get_pilotage_session
+from .settings_fields import SettingsValidationError
 from .settings_sections import FIELD_LABELS, RESTART_REQUIRED_FIELDS, SECRET_FIELDS, SECTIONS
 from .tasks_db import get_tasks_session, init_tasks_db
 from .tasks_dependencies import (
@@ -98,7 +105,7 @@ def _optional_int(value: str | None) -> int | None:
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(_: Starlette):
     settings = get_settings()  # première lecture : déclenche la migration .env si besoin
     logging.basicConfig(level=settings.log_level.upper())
     apply_proxy_env(settings)
@@ -106,8 +113,45 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="Kairos", lifespan=lifespan)
+class _RoutedApp(Starlette):
+    """Starlette + décorateurs `@app.get(path)` / `@app.post(path)` — la seule
+    surface de routage que le projet utilisait de FastAPI, conservée telle quelle
+    pour que les déclarations de routes ne changent pas. Un endpoint reçoit la
+    ``Request`` seule ; paramètres de chemin via ``request.path_params`` (converti
+    par le chemin, ex. ``{task_id:int}``), de requête via ``request.query_params``,
+    de formulaire via ``await request.form()``."""
+
+    def get(self, path: str):
+        return self._register(path, ["GET"])
+
+    def post(self, path: str):
+        return self._register(path, ["POST"])
+
+    def _register(self, path: str, methods: list[str]):
+        def decorator(endpoint):
+            self.router.add_route(path, endpoint, methods=methods)
+            return endpoint
+
+        return decorator
+
+
+app = _RoutedApp(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+
+
+@contextmanager
+def _request_session(dependency):
+    """Session par requête depuis un générateur de dépendance (`get_tasks_session`,
+    `get_pilotage_session`) : remplace le `Depends` de FastAPI. Les routes résolvent
+    le nom au moment de l'appel (variable globale du module) — les tests substituent
+    donc la fabrique en monkeypatchant `main.get_tasks_session`/`main.get_pilotage_session`,
+    à la place de l'ancien `app.dependency_overrides`."""
+    generator = dependency()
+    value = next(generator)
+    try:
+        yield value
+    finally:
+        generator.close()
 
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 # Exécutable de bureau (PyInstaller, `console=False`) : pas de fenêtre de terminal à
@@ -116,14 +160,14 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 templates.env.globals["is_frozen"] = getattr(sys, "frozen", False)
 
 
-@app.get("/favicon.ico", include_in_schema=False)
-def favicon() -> Response:
+@app.get("/favicon.ico")
+def favicon(request: Request) -> Response:
     """Sert l'icône (les navigateurs sollicitent /favicon.ico même sans lien)."""
     return FileResponse(BASE_DIR / "static" / "favicon.svg", media_type="image/svg+xml")
 
 
-@app.get("/SPEC_KAIROS.md", include_in_schema=False)
-def spec_kairos() -> FileResponse:
+@app.get("/SPEC_KAIROS.md")
+def spec_kairos(request: Request) -> FileResponse:
     """Sert le fichier référencé par un lien relatif du README, sans le dupliquer."""
     return FileResponse(BASE_DIR / "SPEC_KAIROS.md", media_type="text/markdown")
 
@@ -143,7 +187,7 @@ def _render_readme() -> tuple[str, list[dict]]:
     return html, toc
 
 
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/")
 def home(request: Request) -> HTMLResponse:
     """Page d'accueil : bienvenue + README rendu (voir ``_render_readme``)."""
     readme_html, readme_toc = _render_readme()
@@ -578,29 +622,27 @@ def _render_kairos(
     return templates.TemplateResponse(request, "kairos.html", context)
 
 
-@app.get("/kairos", response_class=HTMLResponse)
-def kairos(
-    request: Request,
-    view: str = "day",
-    start: str | None = None,
-    tasks_session: Session = Depends(get_tasks_session),
-    pilotage_session: Session | None = Depends(get_pilotage_session),
-) -> HTMLResponse:
+@app.get("/kairos")
+def kairos(request: Request) -> HTMLResponse:
+    view = request.query_params.get("view", "day")
+    start = request.query_params.get("start")
     day = date.fromisoformat(start) if start else None
-    return _render_kairos(request, tasks_session, pilotage_session, view=view, day=day)
+    with (
+        _request_session(get_tasks_session) as tasks_session,
+        _request_session(get_pilotage_session) as pilotage_session,
+    ):
+        return _render_kairos(request, tasks_session, pilotage_session, view=view, day=day)
 
 
-@app.get("/kairos/stats", response_class=HTMLResponse)
-def kairos_stats(
-    request: Request,
-    tasks_session: Session = Depends(get_tasks_session),
-) -> HTMLResponse:
+@app.get("/kairos/stats")
+def kairos_stats(request: Request) -> HTMLResponse:
     """Dashboard de statistiques (phase 10) : indicateurs constructifs à partir des
     tâches et sessions déjà collectées. Lecture seule, aucun appel réseau ni synchro."""
     settings = get_settings()
     today = date.today()
-    tasks = list(tasks_session.scalars(select(Task)))
-    sessions = list(tasks_session.scalars(select(WorkSession)))
+    with _request_session(get_tasks_session) as tasks_session:
+        tasks = list(tasks_session.scalars(select(Task)))
+        sessions = list(tasks_session.scalars(select(WorkSession)))
     stats = compute_dashboard_stats(tasks, sessions, today, settings=settings)
     context = {
         "page": "kairos_stats",
@@ -650,8 +692,9 @@ def _settings_context(
     }
 
 
-@app.get("/kairos/settings", response_class=HTMLResponse)
-def kairos_settings(request: Request, saved: str | None = None) -> HTMLResponse:
+@app.get("/kairos/settings")
+def kairos_settings(request: Request) -> HTMLResponse:
+    saved = request.query_params.get("saved")
     context = _settings_context(get_settings(), errors={}, values=None, saved=bool(saved))
     return templates.TemplateResponse(request, "settings.html", context)
 
@@ -659,7 +702,7 @@ def kairos_settings(request: Request, saved: str | None = None) -> HTMLResponse:
 def _settings_candidate_from_form(form, current: Settings) -> tuple[dict, dict[str, str]]:
     """Construit le dict candidat pour `Settings(**candidate)` à partir du
     formulaire, et les erreurs de conversion de type (avant même la validation
-    pydantic) — un champ non numérique ne doit jamais faire planter la route."""
+    des réglages) — un champ non numérique ne doit jamais faire planter la route."""
     candidate: dict[str, object] = current.model_dump()
     errors: dict[str, str] = {}
     for name in Settings.model_fields:
@@ -690,10 +733,8 @@ async def kairos_settings_save(request: Request) -> Response:
     if not errors:
         try:
             new_settings = Settings(**candidate)
-        except ValidationError as exc:
-            for err in exc.errors():
-                key = str(err["loc"][0]) if err["loc"] else "_general"
-                errors[key] = err["msg"]
+        except SettingsValidationError as exc:
+            errors.update(exc.errors)
         else:
             settings_store.save(new_settings)
             invalidate_settings_cache()
@@ -708,7 +749,7 @@ async def kairos_settings_save(request: Request) -> Response:
 
 
 @app.post("/kairos/shutdown")
-def shutdown() -> HTMLResponse:
+def shutdown(request: Request) -> HTMLResponse:
     """Arrête proprement le serveur (bouton « Quitter », exécutable de bureau
     uniquement — voir `is_frozen` : pas de fenêtre de terminal à fermer sinon).
 
@@ -744,48 +785,39 @@ def _fmt_minutes(minutes: int) -> str:
 
 
 @app.post("/kairos/tasks")
-def create_native_task(
-    title: str = Form(...),
-    priority: str = Form(""),
-    deadline: str = Form(""),
-    scheduled_date: str = Form(""),
-    project_tag: str = Form(""),
-    estimated_minutes: str = Form(""),
-    parent_id: str = Form(""),
-    tasks_session: Session = Depends(get_tasks_session),
-) -> RedirectResponse:
+async def create_native_task(request: Request) -> RedirectResponse:
     """Création rapide d'une tâche native (ou d'une sous-tâche si ``parent_id``)."""
-    title = title.strip()
-    parent_key = _optional_int(parent_id)
-    if parent_key is not None and tasks_session.get(Task, parent_key) is None:
-        parent_key = None  # mère disparue : la tâche naît au premier niveau
-    if title:
-        tasks_session.add(
-            Task(
-                title=title,
-                priority=_optional_int(priority),
-                deadline=_optional_date(deadline),
-                scheduled_date=_optional_date(scheduled_date),
-                project_tag=project_tag.strip(),
-                estimated_minutes=_optional_int(estimated_minutes),
-                parent_id=parent_key,
-                source="native",
+    form = await request.form()
+    title = str(form.get("title", "")).strip()
+    with _request_session(get_tasks_session) as tasks_session:
+        parent_key = _optional_int(form.get("parent_id"))
+        if parent_key is not None and tasks_session.get(Task, parent_key) is None:
+            parent_key = None  # mère disparue : la tâche naît au premier niveau
+        if title:
+            tasks_session.add(
+                Task(
+                    title=title,
+                    priority=_optional_int(form.get("priority")),
+                    deadline=_optional_date(form.get("deadline")),
+                    scheduled_date=_optional_date(form.get("scheduled_date")),
+                    project_tag=str(form.get("project_tag", "")).strip(),
+                    estimated_minutes=_optional_int(form.get("estimated_minutes")),
+                    parent_id=parent_key,
+                    source="native",
+                )
             )
-        )
-        tasks_session.commit()
+            tasks_session.commit()
     return RedirectResponse("/kairos", status_code=303)
 
 
-@app.post("/kairos/tasks/{task_id}/priority")
-def update_task_priority(
-    task_id: int,
-    priority: str = Form(""),
-    tasks_session: Session = Depends(get_tasks_session),
-) -> RedirectResponse:
-    task = tasks_session.get(Task, task_id)
-    if task is not None:
-        task.priority = _optional_int(priority)
-        tasks_session.commit()
+@app.post("/kairos/tasks/{task_id:int}/priority")
+async def update_task_priority(request: Request) -> RedirectResponse:
+    form = await request.form()
+    with _request_session(get_tasks_session) as tasks_session:
+        task = tasks_session.get(Task, request.path_params["task_id"])
+        if task is not None:
+            task.priority = _optional_int(form.get("priority"))
+            tasks_session.commit()
     return RedirectResponse("/kairos", status_code=303)
 
 
@@ -798,60 +830,37 @@ def _stop_running_sessions(tasks_session: Session) -> None:
         session.ended_at = now
 
 
-@app.post("/kairos/tasks/{task_id}/timer/start")
-def start_timer(
-    task_id: int,
-    tasks_session: Session = Depends(get_tasks_session),
-) -> RedirectResponse:
+@app.post("/kairos/tasks/{task_id:int}/timer/start")
+def start_timer(request: Request) -> RedirectResponse:
     """Démarre le chrono sur une tâche (ferme d'abord toute session en cours ailleurs)."""
-    task = tasks_session.get(Task, task_id)
-    if task is not None:
-        _stop_running_sessions(tasks_session)
-        tasks_session.add(WorkSession(task_id=task_id))
+    task_id = request.path_params["task_id"]
+    with _request_session(get_tasks_session) as tasks_session:
+        task = tasks_session.get(Task, task_id)
+        if task is not None:
+            _stop_running_sessions(tasks_session)
+            tasks_session.add(WorkSession(task_id=task_id))
+            tasks_session.commit()
+    return RedirectResponse("/kairos", status_code=303)
+
+
+@app.post("/kairos/tasks/{task_id:int}/timer/stop")
+def stop_timer(request: Request) -> RedirectResponse:
+    """Arrête le chrono en cours sur cette tâche."""
+    task_id = request.path_params["task_id"]
+    now = datetime.now(timezone.utc)
+    with _request_session(get_tasks_session) as tasks_session:
+        for session in tasks_session.scalars(
+            select(WorkSession).where(
+                WorkSession.task_id == task_id, WorkSession.ended_at.is_(None)
+            )
+        ):
+            session.ended_at = now
         tasks_session.commit()
     return RedirectResponse("/kairos", status_code=303)
 
 
-@app.post("/kairos/tasks/{task_id}/timer/stop")
-def stop_timer(
-    task_id: int,
-    tasks_session: Session = Depends(get_tasks_session),
-) -> RedirectResponse:
-    """Arrête le chrono en cours sur cette tâche."""
-    now = datetime.now(timezone.utc)
-    for session in tasks_session.scalars(
-        select(WorkSession).where(
-            WorkSession.task_id == task_id, WorkSession.ended_at.is_(None)
-        )
-    ):
-        session.ended_at = now
-    tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
-
-
-@app.post("/kairos/tasks/{task_id}/edit")
-def edit_task(
-    task_id: int,
-    title: str = Form(""),
-    description: str = Form(""),
-    priority: str = Form(""),
-    deadline: str = Form(""),
-    scheduled_date: str = Form(""),
-    project_tag: str = Form(""),
-    estimated_minutes: str = Form(""),
-    recurrence: str = Form(""),
-    recurrence_day_of_month: str = Form(""),
-    task_type: str = Form(""),
-    fibonacci_points: str = Form(""),
-    manual_time_spent_minutes: str = Form(""),
-    pin_time: str = Form(""),
-    pin_day: str = Form(""),
-    linked_ticket_id: str = Form(""),
-    new_subtasks: str = Form(""),
-    blocker_ids: list[str] = Form([]),
-    tasks_session: Session = Depends(get_tasks_session),
-    pilotage_session: Session | None = Depends(get_pilotage_session),
-) -> RedirectResponse:
+@app.post("/kairos/tasks/{task_id:int}/edit")
+async def edit_task(request: Request) -> RedirectResponse:
     """Édition complète d'une tâche (tous champs), y compris une tâche importée de SP.
 
     Fusionne l'épinglage (heure fixe) dans le même enregistrement : `pin_time` vide
@@ -871,32 +880,46 @@ def edit_task(
     (reprend `would_create_cycle`, comme l'ancienne route dédiée) sans faire
     échouer le reste de l'enregistrement.
     """
+    task_id = request.path_params["task_id"]
+    form = await request.form()
     settings = get_settings()
-    task = tasks_session.get(Task, task_id)
-    if task is not None:
+    with (
+        _request_session(get_tasks_session) as tasks_session,
+        _request_session(get_pilotage_session) as pilotage_session,
+    ):
+        task = tasks_session.get(Task, task_id)
+        if task is None:
+            return RedirectResponse("/kairos", status_code=303)
+        title = str(form.get("title", ""))
         if title.strip():
             task.title = title.strip()
-        task.description = description
-        task.priority = _optional_int(priority)
-        task.deadline = _optional_date(deadline)
-        task.scheduled_date = _optional_date(scheduled_date)
-        task.project_tag = project_tag.strip()
-        task.estimated_minutes = _optional_int(estimated_minutes)
+        task.description = str(form.get("description", ""))
+        task.priority = _optional_int(form.get("priority"))
+        task.deadline = _optional_date(form.get("deadline"))
+        task.scheduled_date = _optional_date(form.get("scheduled_date"))
+        task.project_tag = str(form.get("project_tag", "")).strip()
+        task.estimated_minutes = _optional_int(form.get("estimated_minutes"))
+        recurrence = str(form.get("recurrence", ""))
         if recurrence in ("", "daily", "weekdays", "weekly", "monthly", "monthly_on_day"):
             task.recurrence = recurrence
         # Le jour du mois n'a de sens que pour la récurrence calendaire ; le vider
         # sinon évite une valeur résiduelle trompeuse si l'utilisateur change d'avis.
         task.recurrence_day_of_month = (
-            _optional_int(recurrence_day_of_month) if recurrence == "monthly_on_day" else None
+            _optional_int(form.get("recurrence_day_of_month"))
+            if recurrence == "monthly_on_day" else None
         )
+        task_type = str(form.get("task_type", ""))
         task.task_type = task_type if task_type in settings.task_type_list else ""
-        task.fibonacci_points = _optional_int(fibonacci_points)
-        task.manual_time_spent_minutes = _optional_int(manual_time_spent_minutes)
+        task.fibonacci_points = _optional_int(form.get("fibonacci_points"))
+        task.manual_time_spent_minutes = _optional_int(form.get("manual_time_spent_minutes"))
+        pin_time = str(form.get("pin_time", ""))
         if pin_time.strip():
             # La date programmée (si renseignée) prime sur le jour affiché : épingler
             # une tâche programmée pour un autre jour doit poser l'heure fixe CE
             # jour-là, pas sur la page actuellement consultée (`pin_day`).
-            target_day = task.scheduled_date or _optional_date(pin_day) or date.today()
+            target_day = (
+                task.scheduled_date or _optional_date(form.get("pin_day")) or date.today()
+            )
             try:
                 hour, minute = (int(part) for part in pin_time.strip().split(":", 1))
                 task.pinned_start = datetime.combine(target_day, dt_time(hour=hour, minute=minute))
@@ -904,7 +927,7 @@ def edit_task(
                 pass  # heure invalide : on ignore, cohérent avec la validation minimale de l'app
         else:
             task.pinned_start = None
-        ticket_id = _optional_int(linked_ticket_id)
+        ticket_id = _optional_int(form.get("linked_ticket_id"))
         task.linked_ticket_id = (
             ticket_id
             if ticket_id is not None and pilotage_session is not None
@@ -913,14 +936,14 @@ def edit_task(
         )
 
         # Sous-tâches en lot : une ligne non vide = une sous-tâche native de plus.
-        for line in new_subtasks.splitlines():
+        for line in str(form.get("new_subtasks", "")).splitlines():
             subtask_title = line.strip()
             if subtask_title:
                 tasks_session.add(Task(title=subtask_title, parent_id=task_id, source="native"))
 
         # Bloqueurs : l'ensemble soumis est la cible complète, on calcule le diff.
         target_blocker_ids = {
-            bid for raw in blocker_ids
+            bid for raw in form.getlist("blocker_ids")
             if (bid := _optional_int(raw)) is not None and bid != task_id
         }
         existing_deps = list(
@@ -947,80 +970,69 @@ def edit_task(
     return RedirectResponse("/kairos", status_code=303)
 
 
-@app.post("/kairos/tasks/{task_id}/done")
-def toggle_task_done(
-    task_id: int,
-    tasks_session: Session = Depends(get_tasks_session),
-) -> RedirectResponse:
+@app.post("/kairos/tasks/{task_id:int}/done")
+def toggle_task_done(request: Request) -> RedirectResponse:
     """Bascule fait ↔ à faire. Terminer une récurrente crée l'occurrence suivante."""
-    task = tasks_session.get(Task, task_id)
-    if task is not None:
-        if task.status == "todo":
-            task.status = "done"
-            # Arrêter le chrono éventuellement en cours sur cette tâche terminée.
-            now = datetime.now(timezone.utc)
-            for session in tasks_session.scalars(
-                select(WorkSession).where(
-                    WorkSession.task_id == task_id, WorkSession.ended_at.is_(None)
-                )
-            ):
-                session.ended_at = now
-            spawn_next_occurrence(tasks_session, task)
-        elif task.status == "done":
-            task.status = "todo"
-        tasks_session.commit()
+    task_id = request.path_params["task_id"]
+    with _request_session(get_tasks_session) as tasks_session:
+        task = tasks_session.get(Task, task_id)
+        if task is not None:
+            if task.status == "todo":
+                task.status = "done"
+                # Arrêter le chrono éventuellement en cours sur cette tâche terminée.
+                now = datetime.now(timezone.utc)
+                for session in tasks_session.scalars(
+                    select(WorkSession).where(
+                        WorkSession.task_id == task_id, WorkSession.ended_at.is_(None)
+                    )
+                ):
+                    session.ended_at = now
+                spawn_next_occurrence(tasks_session, task)
+            elif task.status == "done":
+                task.status = "todo"
+            tasks_session.commit()
     return RedirectResponse("/kairos", status_code=303)
 
 
-@app.post("/kairos/tasks/{task_id}/snooze")
-def snooze_task(
-    task_id: int,
-    tasks_session: Session = Depends(get_tasks_session),
-) -> RedirectResponse:
+@app.post("/kairos/tasks/{task_id:int}/snooze")
+def snooze_task(request: Request) -> RedirectResponse:
     """« Demain » : décale la deadline au prochain jour ouvré (week-ends et jours
     fériés sautés — un vendredi décale à lundi, pas à samedi)."""
-    task = tasks_session.get(Task, task_id)
-    if task is not None:
-        settings = get_settings()
-        task.deadline = next_snooze_date(task.deadline, date.today(), settings.holiday_set)
-        tasks_session.commit()
+    with _request_session(get_tasks_session) as tasks_session:
+        task = tasks_session.get(Task, request.path_params["task_id"])
+        if task is not None:
+            settings = get_settings()
+            task.deadline = next_snooze_date(task.deadline, date.today(), settings.holiday_set)
+            tasks_session.commit()
     return RedirectResponse("/kairos", status_code=303)
 
 
-@app.post("/kairos/tasks/{task_id}/delete")
-def delete_task(
-    task_id: int,
-    tasks_session: Session = Depends(get_tasks_session),
-) -> RedirectResponse:
+@app.post("/kairos/tasks/{task_id:int}/delete")
+def delete_task(request: Request) -> RedirectResponse:
     """Supprime une tâche native ; archive une tâche SP (le sync la recréerait sinon)."""
-    task = tasks_session.get(Task, task_id)
-    if task is not None:
-        if task.source == "native":
-            # Nettoyer les dépendances où la tâche figure (bloquée ou bloquante), sinon
-            # des arêtes orphelines subsisteraient.
-            for dep in tasks_session.scalars(
-                select(TaskDependency).where(
-                    (TaskDependency.task_id == task_id)
-                    | (TaskDependency.blocker_id == task_id)
-                )
-            ):
-                tasks_session.delete(dep)
-            tasks_session.delete(task)
-        else:
-            task.status = "archived"
-        tasks_session.commit()
+    task_id = request.path_params["task_id"]
+    with _request_session(get_tasks_session) as tasks_session:
+        task = tasks_session.get(Task, task_id)
+        if task is not None:
+            if task.source == "native":
+                # Nettoyer les dépendances où la tâche figure (bloquée ou bloquante), sinon
+                # des arêtes orphelines subsisteraient.
+                for dep in tasks_session.scalars(
+                    select(TaskDependency).where(
+                        (TaskDependency.task_id == task_id)
+                        | (TaskDependency.blocker_id == task_id)
+                    )
+                ):
+                    tasks_session.delete(dep)
+                tasks_session.delete(task)
+            else:
+                task.status = "archived"
+            tasks_session.commit()
     return RedirectResponse("/kairos", status_code=303)
 
 
 @app.post("/kairos/blocks")
-def create_manual_block(
-    title: str = Form(...),
-    start: str = Form(...),
-    end: str = Form(...),
-    deepwork: str = Form(""),
-    recurrence: str = Form(""),
-    tasks_session: Session = Depends(get_tasks_session),
-) -> RedirectResponse:
+async def create_manual_block(request: Request) -> RedirectResponse:
     """Ajoute un créneau : indisponibilité (réunion) ou bloc deep-work protégé.
 
     Un bloc deep-work (case cochée) réserve la fenêtre à une seule tâche, sans
@@ -1031,32 +1043,27 @@ def create_manual_block(
     mardi. Whitelist côté route (même patron que ``recurrence`` sur une tâche) ;
     aucune occurrence n'est jamais persistée, voir ``expand_recurring_blocks``.
     """
+    form = await request.form()
     try:
-        start_at = datetime.fromisoformat(start)
-        end_at = datetime.fromisoformat(end)
+        start_at = datetime.fromisoformat(str(form.get("start") or ""))
+        end_at = datetime.fromisoformat(str(form.get("end") or ""))
     except ValueError:
         return RedirectResponse("/kairos", status_code=303)
     if end_at > start_at:
-        kind = "deepwork" if deepwork else "busy"
+        kind = "deepwork" if form.get("deepwork") else "busy"
+        recurrence = str(form.get("recurrence", ""))
         recurrence = recurrence if recurrence in BLOCK_RECURRENCE_RULES else ""
-        tasks_session.add(
-            TimeBlock(title=title, start=start_at, end=end_at, source="manual",
-                     kind=kind, recurrence=recurrence)
-        )
-        tasks_session.commit()
+        with _request_session(get_tasks_session) as tasks_session:
+            tasks_session.add(
+                TimeBlock(title=str(form.get("title", "")), start=start_at, end=end_at,
+                          source="manual", kind=kind, recurrence=recurrence)
+            )
+            tasks_session.commit()
     return RedirectResponse("/kairos", status_code=303)
 
 
-@app.post("/kairos/blocks/{block_id}/edit")
-def edit_manual_block(
-    block_id: int,
-    title: str = Form(""),
-    start: str = Form(...),
-    end: str = Form(...),
-    deepwork: str = Form(""),
-    recurrence: str = Form(""),
-    tasks_session: Session = Depends(get_tasks_session),
-) -> RedirectResponse:
+@app.post("/kairos/blocks/{block_id:int}/edit")
+async def edit_manual_block(request: Request) -> RedirectResponse:
     """Édite un créneau manuel existant (titre, horaires, deep-work, récurrence).
 
     Pour un créneau **récurrent**, la ligne éditée est le **modèle** : la modification
@@ -1064,34 +1071,35 @@ def edit_manual_block(
     séparément). Seuls les blocs ``source='manual'`` sont éditables (les créneaux
     TimeTree sont transitoires, jamais en base). Horaires invalides → ignorés.
     """
-    block = tasks_session.get(TimeBlock, block_id)
-    if block is None or block.source != "manual":
-        return RedirectResponse("/kairos", status_code=303)
-    try:
-        start_at = datetime.fromisoformat(start)
-        end_at = datetime.fromisoformat(end)
-    except ValueError:
-        return RedirectResponse("/kairos", status_code=303)
-    if end_at > start_at:
-        block.title = title
-        block.start = start_at
-        block.end = end_at
-        block.kind = "deepwork" if deepwork else "busy"
-        block.recurrence = recurrence if recurrence in BLOCK_RECURRENCE_RULES else ""
-        tasks_session.commit()
+    form = await request.form()
+    with _request_session(get_tasks_session) as tasks_session:
+        block = tasks_session.get(TimeBlock, request.path_params["block_id"])
+        if block is None or block.source != "manual":
+            return RedirectResponse("/kairos", status_code=303)
+        try:
+            start_at = datetime.fromisoformat(str(form.get("start") or ""))
+            end_at = datetime.fromisoformat(str(form.get("end") or ""))
+        except ValueError:
+            return RedirectResponse("/kairos", status_code=303)
+        if end_at > start_at:
+            recurrence = str(form.get("recurrence", ""))
+            block.title = str(form.get("title", ""))
+            block.start = start_at
+            block.end = end_at
+            block.kind = "deepwork" if form.get("deepwork") else "busy"
+            block.recurrence = recurrence if recurrence in BLOCK_RECURRENCE_RULES else ""
+            tasks_session.commit()
     return RedirectResponse("/kairos", status_code=303)
 
 
-@app.post("/kairos/blocks/{block_id}/delete")
-def delete_manual_block(
-    block_id: int,
-    tasks_session: Session = Depends(get_tasks_session),
-) -> RedirectResponse:
+@app.post("/kairos/blocks/{block_id:int}/delete")
+def delete_manual_block(request: Request) -> RedirectResponse:
     """Supprime un créneau manuel (pour un récurrent : le modèle, donc toutes ses
     occurrences). Sans effet sur un bloc non-manuel ou inexistant."""
-    block = tasks_session.get(TimeBlock, block_id)
-    if block is not None and block.source == "manual":
-        tasks_session.delete(block)
-        tasks_session.commit()
+    with _request_session(get_tasks_session) as tasks_session:
+        block = tasks_session.get(TimeBlock, request.path_params["block_id"])
+        if block is not None and block.source == "manual":
+            tasks_session.delete(block)
+            tasks_session.commit()
     return RedirectResponse("/kairos", status_code=303)
 

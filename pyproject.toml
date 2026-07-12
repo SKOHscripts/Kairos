@@ -4,10 +4,12 @@ version = "1.0.0"
 description = "« Kairos » : dashboard personnel de tâches — ordonnancement WSJF, time blocking, deep work, statistiques"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.110",
+    # Starlette pur (pas FastAPI) : FastAPI dépend de Pydantic v2, donc de
+    # pydantic-core (Rust) qui n'a pas de wheel Android — voir
+    # docs/ANDROID_PACKAGING.md et app/settings_fields.py.
+    "starlette>=0.37",
     "uvicorn[standard]>=0.27",
     "sqlalchemy>=2.0",
-    "pydantic>=2.6",
     "jinja2>=3.1",
     "python-multipart>=0.0.9",
     "timetree-exporter>=0.8,<0.9",

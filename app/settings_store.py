@@ -16,10 +16,9 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pydantic import ValidationError
-
 from . import secret_store
 from .config import Settings
+from .settings_fields import SettingsValidationError
 from .settings_sections import SECRET_FIELDS
 
 _APP_NAME = "Kairos"
@@ -76,9 +75,13 @@ def load() -> Settings:
     data = dict(envelope.get("settings", {}))
     for field in SECRET_FIELDS:
         data[field] = secret_store.get_secret(field, plain_fallback=data.get(field, ""))
+    # Clés inconnues (réglage retiré/renommé par une mise à jour) ignorées : même
+    # tolérance que l'ancien `extra="ignore"` de Pydantic — une dataclass, elle,
+    # refuserait le kwarg inattendu.
+    data = {name: value for name, value in data.items() if name in Settings.model_fields}
     try:
         return Settings(**data)
-    except ValidationError:
+    except SettingsValidationError:
         # Fichier corrompu/champ invalide après une modification manuelle : on ne
         # bloque jamais le démarrage de l'application pour un fichier de réglages,
         # dégradation propre vers les valeurs par défaut (cohérent avec le reste
@@ -171,7 +174,7 @@ def _migrate_legacy_env_if_needed() -> Settings | None:
             continue  # valeur illisible pour ce type : ignorée, le défaut s'applique
     try:
         settings = Settings(**candidate)
-    except ValidationError:
+    except SettingsValidationError:
         settings = Settings()
     save(settings)
     envelope = _read_envelope()
