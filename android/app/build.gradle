@@ -1,0 +1,107 @@
+plugins {
+    id 'com.android.application'
+    id 'com.chaquo.python'
+}
+
+// Version de l'application depuis le tag de release (CI : KAIROS_VERSION=vX.Y.Z),
+// avec un défaut lisible pour les builds de développement. versionCode doit être
+// strictement croissant d'une release à l'autre pour qu'Android accepte la mise à
+// jour par-dessus : X*10000 + Y*100 + Z le garantit pour un versionnage semver.
+def kairosVersionName = (System.getenv("KAIROS_VERSION") ?: "0.0.0-dev").replaceFirst(/^v/, "")
+def kairosVersionCode = {
+    def m = kairosVersionName =~ /^(\d+)\.(\d+)\.(\d+)/
+    m.find() ? m.group(1).toInteger() * 10000 + m.group(2).toInteger() * 100 + m.group(3).toInteger() : 1
+}()
+
+// Racine du dépôt : android/ est un sous-projet, le code Python vit à la racine.
+def kairosRepoRoot = rootProject.projectDir.parentFile
+
+// Copie le code et les assets de l'application dans un paquet Python embarqué
+// unique `kairos_dist` (app/, templates/, static/, README.md, SPEC_KAIROS.md).
+// Un seul paquet → une seule entrée `extractPackages` pour que Jinja2, StaticFiles
+// et le rendu du README lisent de vrais fichiers extraits de l'APK, avec la même
+// arborescence que le dépôt (BASE_DIR = dossier parent de app/, inchangé).
+def stageKairosPython = tasks.register("stageKairosPython", Sync) {
+    description = "Copie le code Python et les assets de Kairos dans build/kairos-python/kairos_dist."
+    into layout.buildDirectory.dir("kairos-python")
+    into("kairos_dist/app") { from new File(kairosRepoRoot, "app") }
+    into("kairos_dist/templates") { from new File(kairosRepoRoot, "templates") }
+    into("kairos_dist/static") { from new File(kairosRepoRoot, "static") }
+    into("kairos_dist") {
+        from new File(kairosRepoRoot, "README.md")
+        from new File(kairosRepoRoot, "SPEC_KAIROS.md")
+    }
+    exclude "**/__pycache__/**"
+    doLast {
+        new File(destinationDir, "kairos_dist/__init__.py").text =
+                '"""Distribution Kairos embarquée (générée par Gradle — ne pas éditer)."""\n'
+    }
+}
+preBuild.dependsOn(stageKairosPython)
+
+android {
+    namespace "com.skohscripts.kairos"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.skohscripts.kairos"
+        minSdk 24          // plancher Chaquopy 17 (Android 7.0)
+        targetSdk 35
+        versionCode kairosVersionCode
+        versionName kairosVersionName
+        ndk { abiFilters "arm64-v8a" }   // release : appareils réels uniquement
+    }
+
+    // Keystore de release fourni par la CI via l'environnement (secrets GitHub,
+    // voir .github/workflows/release.yml). Sans keystore : assembleRelease produit
+    // un APK non signé (build local) ; assembleDebug reste signé debug comme
+    // d'habitude pour l'émulateur.
+    signingConfigs {
+        release {
+            def keystorePath = System.getenv("KAIROS_KEYSTORE_FILE")
+            if (keystorePath) {
+                storeFile file(keystorePath)
+                storePassword System.getenv("KAIROS_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KAIROS_KEY_ALIAS")
+                keyPassword System.getenv("KAIROS_KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            ndk { abiFilters "arm64-v8a", "x86_64" }   // + émulateur de développement
+        }
+        release {
+            minifyEnabled false
+            if (System.getenv("KAIROS_KEYSTORE_FILE")) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+chaquopy {
+    defaultConfig {
+        version "3.13"
+        pip {
+            // uvicorn nu (pas [standard] : uvloop/httptools/watchfiles sont des
+            // extensions natives sans intérêt ici) + dépendances du projet.
+            install "-r", "../../packaging/android-requirements.txt"
+        }
+        // Extrait le paquet en vrais fichiers au premier lancement : Jinja2
+        // (templates/), StaticFiles (static/) et le rendu du README lisent par
+        // chemin, pas via un chargeur d'assets.
+        extractPackages "kairos_dist"
+    }
+    sourceSets {
+        main {
+            srcDir "build/kairos-python"   // kairos_dist généré par stageKairosPython
+        }
+    }
+}

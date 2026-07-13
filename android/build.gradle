@@ -1,0 +1,7 @@
+// Versions des plugins du build Android. Chaquopy embarque CPython et les
+// dépendances pip dans l'APK ; sa grille de compatibilité (Python, AGP, minSdk)
+// est sur https://chaquo.com/chaquopy/doc/current/versions.html
+plugins {
+    id 'com.android.application' version '8.7.3' apply false
+    id 'com.chaquo.python' version '17.0.0' apply false
+}

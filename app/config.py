@@ -24,7 +24,13 @@ from .settings_fields import (
 def _default_tasks_database_path() -> str:
     """Chemin par défaut de la base tâches : dossier de données de l'OS (voir
     `app/settings_store.py::data_dir`), pas le répertoire de lancement — un
-    exécutable packagé n'a pas de répertoire de travail fiable."""
+    exécutable packagé n'a pas de répertoire de travail fiable. ``KAIROS_DATA_DIR``
+    prime quand il est posé (Android, mode portable) — même règle que `data_dir`."""
+    import os
+
+    override = os.environ.get("KAIROS_DATA_DIR")
+    if override:
+        return str(Path(override) / "tasks.db")
     from platformdirs import user_data_dir
 
     return str(Path(user_data_dir("Kairos", appauthor=False)) / "tasks.db")

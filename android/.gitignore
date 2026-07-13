@@ -1,0 +1,6 @@
+# Sorties et caches du build Android (le wrapper Gradle, lui, est versionné).
+.gradle/
+build/
+app/build/
+local.properties
+*.keystore

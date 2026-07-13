@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- HTTP en clair autorisé UNIQUEMENT vers le serveur local embarqué (la WebView
+     charge http://127.0.0.1:<port>) ; tout le reste garde la politique par défaut
+     (HTTPS seulement) — TimeTree et GitLab passent en HTTPS normalement. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>

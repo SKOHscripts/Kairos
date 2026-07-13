@@ -1,0 +1,20 @@
+// Projet Android de Kairos (APK WebView + serveur local embarqué, voir
+// docs/ANDROID_PACKAGING.md). Sous-dossier autonome du dépôt : le code Python
+// est copié depuis la racine au build (tâche stageKairosPython de app/build.gradle).
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "Kairos"
+include ":app"

@@ -27,10 +27,19 @@ _SCHEMA_VERSION = 1
 
 
 def data_dir() -> Path:
-    """Dossier de données de l'OS pour Kairos (créé si besoin)."""
-    from platformdirs import user_data_dir
+    """Dossier de données de l'OS pour Kairos (créé si besoin).
 
-    path = Path(user_data_dir(_APP_NAME, appauthor=False))
+    ``KAIROS_DATA_DIR`` prime quand il est posé : l'appli Android y met le
+    stockage privé de l'application (`Context.getFilesDir()`), sans dépendre de
+    la détection de plateforme de `platformdirs` — utilisable aussi sur un poste
+    de bureau pour un mode « portable »."""
+    override = os.environ.get("KAIROS_DATA_DIR")
+    if override:
+        path = Path(override)
+    else:
+        from platformdirs import user_data_dir
+
+        path = Path(user_data_dir(_APP_NAME, appauthor=False))
     path.mkdir(parents=True, exist_ok=True)
     return path
 
