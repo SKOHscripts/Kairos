@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Barre de statut/navigation à la couleur de fond de l'app (--bg dans
+    <!-- Barre de statut/navigation à la couleur de fond de l'app (variable bg dans
          static/style.css) : sans ça, l'edge-to-edge forcé par targetSdk 35
          (Android 15+) laisse le contenu du WebView passer sous une barre de
          statut sans couleur ni icônes contrastées (invisible / blanc sur blanc). -->
