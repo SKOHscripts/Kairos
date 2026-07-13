@@ -208,10 +208,16 @@ def spec_kairos(request: Request) -> FileResponse:
     return FileResponse(BASE_DIR / "SPEC_KAIROS.md", media_type="text/markdown")
 
 
-def _render_readme() -> tuple[str, list[dict]]:
+def _render_readme() -> tuple[str, str, list[dict]]:
     """Rend ``README.md`` en HTML pour la page d'accueil : source **unique**, jamais
     dupliquée à la main — toute modification du README y apparaît sans autre effort.
-    Le sommaire (``toc_tokens``) alimente la navigation latérale de la page."""
+    Le sommaire (``toc_tokens``) alimente la navigation latérale de la page.
+
+    Le HTML est coupé en deux juste avant le second H2 (donc juste après la section
+    « En bref ») : sur mobile (issue #13.5), le sommaire s'intercale entre les deux
+    morceaux — juste après « En bref », pas avant tout l'article — alors que sur
+    desktop les deux morceaux se recollent visuellement en un article continu, le
+    sommaire restant dans sa colonne latérale."""
     converter = markdown.Markdown(
         extensions=["extra", "sane_lists", "toc"],
         extension_configs={"toc": {"permalink": False}},
@@ -220,14 +226,25 @@ def _render_readme() -> tuple[str, list[dict]]:
     # Racine unique (le H1 « Kairos ») : ses enfants (H2/H3) forment le sommaire —
     # le H1 lui-même est déjà repris dans le bandeau de bienvenue, inutile en double.
     toc = converter.toc_tokens[0]["children"] if converter.toc_tokens else []
-    return html, toc
+    intro_html, rest_html = html, ""
+    if len(toc) >= 2:
+        marker = f'<h2 id="{toc[1]["id"]}"'
+        split_at = html.find(marker)
+        if split_at != -1:
+            intro_html, rest_html = html[:split_at], html[split_at:]
+    return intro_html, rest_html, toc
 
 
 @app.get("/")
 def home(request: Request) -> HTMLResponse:
     """Page d'accueil : bienvenue + README rendu (voir ``_render_readme``)."""
-    readme_html, readme_toc = _render_readme()
-    context = {"page": "home", "readme_html": readme_html, "readme_toc": readme_toc}
+    readme_intro_html, readme_rest_html, readme_toc = _render_readme()
+    context = {
+        "page": "home",
+        "readme_intro_html": readme_intro_html,
+        "readme_rest_html": readme_rest_html,
+        "readme_toc": readme_toc,
+    }
     return templates.TemplateResponse(request, "home.html", context)
 
 

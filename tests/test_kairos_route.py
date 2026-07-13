@@ -80,6 +80,22 @@ def test_get_home_toc_links_to_readme_sections() -> None:
     assert 'href="#fonctionnalites"' in resp.text
 
 
+def test_get_home_toc_inline_copy_sits_right_after_en_bref() -> None:
+    """#13.5 : sur mobile, le sommaire tombe entre la section « En bref » du README
+    rendu et la section suivante — pas juste avant tout l'article (deux rendus,
+    voir home.html : sidebar desktop + copie inline mobile intercalée)."""
+    client = TestClient(main.app)
+    resp = client.get("/")
+    assert resp.status_code == 200
+    text = resp.text
+    en_bref_end = text.index("id=\"en-bref\"")
+    toc_inline_pos = text.index("home-toc-inline")
+    next_section_pos = text.index("id=\"telecharger-lapplication-windowslinuxandroid\"")
+    assert en_bref_end < toc_inline_pos < next_section_pos
+    # Les deux copies existent, une seule visible par taille d'écran (voir style.css).
+    assert "home-toc-sidebar" in text
+
+
 def test_get_spec_kairos_file_served() -> None:
     """Le lien relatif `SPEC_KAIROS.md` du README reste résolvable depuis la page."""
     client = TestClient(main.app)
