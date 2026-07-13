@@ -2,7 +2,10 @@ package com.skohscripts.kairos;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.os.Bundle;
+import android.webkit.JsResult;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -50,6 +53,33 @@ public class MainActivity extends Activity {
         webView.getSettings().setJavaScriptEnabled(true);   // chrono vivant, alertes
         webView.getSettings().setDomStorageEnabled(true);
         webView.setWebViewClient(new WebViewClient());      // navigation interne, pas de navigateur externe
+        webView.setWebChromeClient(new WebChromeClient() {
+            // Sans WebChromeClient, le WebView système n'affiche jamais les dialogues
+            // JS confirm()/alert() : confirm() résout silencieusement à false, donc les
+            // formulaires de suppression (tâche, créneau) ne se soumettent jamais.
+            @Override
+            public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setMessage(message)
+                        .setPositiveButton(android.R.string.ok, (d, w) -> result.confirm())
+                        .setOnCancelListener(d -> result.cancel())
+                        .setCancelable(false)
+                        .show();
+                return true;
+            }
+
+            @Override
+            public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setMessage(message)
+                        .setPositiveButton(android.R.string.ok, (d, w) -> result.confirm())
+                        .setNegativeButton(android.R.string.cancel, (d, w) -> result.cancel())
+                        .setOnCancelListener(d -> result.cancel())
+                        .setCancelable(false)
+                        .show();
+                return true;
+            }
+        });
         setContentView(webView);
 
         loadWhenServerReady();
