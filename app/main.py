@@ -123,13 +123,19 @@ def _matches_query(task: Task, q: str) -> bool:
 
 
 def _matches_filters(
-    task: Task, *, priority: int | None, project: str | None
+    task: Task, *, priority: int | None, project: str | None,
+    task_type: str | None, fibonacci_points: int | None,
 ) -> bool:
     """Filtre à facettes (issue #15.4) : ne masque jamais, ne réordonne jamais — montre
-    seulement les tâches correspondant à la priorité et/ou au projet sélectionnés."""
+    seulement les tâches correspondant à la priorité/au projet/au type/aux points de
+    Fibonacci sélectionnés."""
     if priority is not None and task.priority != priority:
         return False
     if project and task.project_tag != project:
+        return False
+    if task_type and task.task_type != task_type:
+        return False
+    if fibonacci_points is not None and task.fibonacci_points != fibonacci_points:
         return False
     return True
 
@@ -326,10 +332,13 @@ def _render_kairos(
     search_q = (request.query_params.get("q") or "").strip()
     filter_priority = _optional_int(request.query_params.get("priority"))
     filter_project = (request.query_params.get("project") or "").strip() or None
+    filter_type = (request.query_params.get("task_type") or "").strip() or None
+    filter_fibo = _optional_int(request.query_params.get("fibonacci_points"))
 
     def _visible(task: Task) -> bool:
         return _matches_query(task, search_q) and _matches_filters(
-            task, priority=filter_priority, project=filter_project
+            task, priority=filter_priority, project=filter_project,
+            task_type=filter_type, fibonacci_points=filter_fibo,
         )
 
     gitlab_direct_error = ""
@@ -568,6 +577,8 @@ def _render_kairos(
         "search_q": search_q,
         "filter_priority": filter_priority,
         "filter_project": filter_project,
+        "filter_type": filter_type,
+        "filter_fibo": filter_fibo,
         "project_choices": project_choices,
     }
 

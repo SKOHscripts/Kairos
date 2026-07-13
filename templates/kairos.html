@@ -215,9 +215,9 @@
 {% endif %}
 
 {# --- Recherche + filtres à facettes (issue #15.4) : n'affiche, dans chaque section,
-     que les tâches correspondant au mot-clé/à la priorité/au projet sélectionnés —
-     ne réordonne jamais rien (le time-blocking d'« À faire aujourd'hui » reste par
-     heure). S'applique aussi à la vue semaine. --- #}
+     que les tâches correspondant au mot-clé/à la priorité/au projet/au type/aux points
+     de Fibonacci sélectionnés — ne réordonne jamais rien (le time-blocking d'« À faire
+     aujourd'hui » reste par heure). S'applique aussi à la vue semaine. --- #}
 <form method="get" action="/kairos" class="filters" style="margin-bottom:1rem;align-items:flex-end;">
   <input type="hidden" name="view" value="{{ view }}">
   {% if day %}<input type="hidden" name="start" value="{{ day.isoformat() }}">{% endif %}
@@ -239,8 +239,24 @@
       {% endfor %}
     </select>
   </label>
+  <label>Type
+    <select name="task_type">
+      <option value="">Tous</option>
+      {% for value in settings.task_type_list %}
+      <option value="{{ value }}" {% if filter_type == value %}selected{% endif %}>{{ value }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Points Fibo
+    <select name="fibonacci_points">
+      <option value="">Tous</option>
+      {% for p in fibonacci_scale %}
+      <option value="{{ p }}" {% if filter_fibo == p %}selected{% endif %}>{{ p }}</option>
+      {% endfor %}
+    </select>
+  </label>
   <button type="submit" class="btn sm">{{ icon('search') }} Filtrer</button>
-  {% if search_q or filter_priority is not none or filter_project %}
+  {% if search_q or filter_priority is not none or filter_project or filter_type or filter_fibo is not none %}
   <a class="btn sm" href="/kairos?view={{ view }}{% if day %}&start={{ day.isoformat() }}{% endif %}">Réinitialiser</a>
   {% endif %}
 </form>
@@ -670,11 +686,25 @@
      — seulement si le champ est encore vide, pour ne jamais écraser une estimation
      déjà saisie à la main. */
   document.addEventListener('change', function (ev) {
-    var select = ev.target.closest('.mj-task-type-select, .mj-fibo-select');
+    var select = ev.target.closest('.mj-task-type-select');
     if (!select) return;
     var form = select.closest('form');
     var estimateInput = form && form.querySelector('.mj-estimated-minutes');
     if (!estimateInput || estimateInput.value) return;
+    var avg = select.selectedOptions[0] && select.selectedOptions[0].dataset.avgMinutes;
+    if (avg) estimateInput.value = avg;
+  });
+
+  /* Auto-estimation par palier Fibonacci calibré (issue #15.6) : contrairement à la
+     suggestion par type ci-dessus, l'issue demande explicitement que la durée estimée
+     CHANGE dès qu'on choisit un fibo calibré — pas seulement si le champ est vide.
+     L'utilisateur reste libre de la modifier ensuite à la main. */
+  document.addEventListener('change', function (ev) {
+    var select = ev.target.closest('.mj-fibo-select');
+    if (!select) return;
+    var form = select.closest('form');
+    var estimateInput = form && form.querySelector('.mj-estimated-minutes');
+    if (!estimateInput) return;
     var avg = select.selectedOptions[0] && select.selectedOptions[0].dataset.avgMinutes;
     if (avg) estimateInput.value = avg;
   });
