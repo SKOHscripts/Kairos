@@ -71,7 +71,7 @@ from .tasks_scheduling import (
     wsjf_score,
 )
 from .tasks_staleness import days_stale
-from .tasks_stats import calibration_by_type, compute_dashboard_stats
+from .tasks_stats import calibration_by_type, compute_dashboard_stats, fibonacci_calibration
 from .tasks_gitlab_sync import sync_assigned_gitlab_tasks, write_sync_meta
 from .tasks_time import (
     running_session,
@@ -108,6 +108,30 @@ def _optional_int(value: str | None) -> int | None:
     if value is None or not str(value).strip():
         return None
     return int(value)
+
+
+def _matches_query(task: Task, q: str) -> bool:
+    """Recherche par mot-clé (issue #15.4) : sous-chaîne insensible à la casse sur le
+    titre, la description ou le projet. Filtre d'affichage seul — ne touche jamais à
+    l'ordonnancement (voir `_render_kairos`)."""
+    if not q:
+        return True
+    haystack = " ".join(
+        filter(None, [task.title, task.description, task.project_tag])
+    ).lower()
+    return q.lower() in haystack
+
+
+def _matches_filters(
+    task: Task, *, priority: int | None, project: str | None
+) -> bool:
+    """Filtre à facettes (issue #15.4) : ne masque jamais, ne réordonne jamais — montre
+    seulement les tâches correspondant à la priorité et/ou au projet sélectionnés."""
+    if priority is not None and task.priority != priority:
+        return False
+    if project and task.project_tag != project:
+        return False
+    return True
 
 
 @asynccontextmanager
@@ -239,17 +263,25 @@ def _fetch_busy_blocks(
 
 
 def _build_week_view(
-    tasks: list[Task], blocks: list[TimeBlock], monday: date, indication_slots=None
+    tasks: list[Task], blocks: list[TimeBlock], monday: date, indication_slots=None,
+    done_tasks: list[Task] | None = None,
 ) -> list[dict]:
     """Grille 7 jours : tâches groupées par ``deadline``, blocs horaires du jour, et
     événements « journée entière » ou « sur une période » en puces (jamais posés comme
-    des créneaux — voir ``_render_kairos``)."""
+    des créneaux — voir ``_render_kairos``). ``done_tasks`` (issue #15.7) : tâches
+    terminées de la semaine, groupées par jour de complétion (``updated_at``, même
+    convention que ``done_today``) — la vue « semaine » montre ainsi à la fois ce qui
+    vient de se faire et ce qui reste à faire."""
     days = [monday + timedelta(days=i) for i in range(7)]
     week = []
     for day in days:
         day_tasks = sorted(
             (t for t in tasks if t.deadline == day),
             key=lambda t: (t.priority is None, t.priority if t.priority is not None else 999),
+        )
+        day_done = sorted(
+            (t for t in (done_tasks or []) if t.updated_at is not None and t.updated_at.date() == day),
+            key=lambda t: t.title,
         )
         day_blocks = sorted(
             (b for b in blocks if b.start.date() == day), key=lambda b: b.start
@@ -258,7 +290,7 @@ def _build_week_view(
             b.title for b in (indication_slots or []) if b.covers(day)
         )
         week.append({
-            "date": day, "tasks": day_tasks, "blocks": day_blocks,
+            "date": day, "tasks": day_tasks, "done_tasks": day_done, "blocks": day_blocks,
             "all_day": day_all_day,
         })
     return week
@@ -287,6 +319,19 @@ def _render_kairos(
     """
     settings = get_settings()
     target_day = day or date.today()
+    # Recherche + filtres à facettes (issue #15.4) : affinent l'affichage de chaque
+    # section (mot-clé, priorité, projet), sans jamais réordonner ni toucher à
+    # l'ordonnancement lui-même (`build_day_schedule`/`_build_week_view` restent
+    # calculés sur l'intégralité des tâches).
+    search_q = (request.query_params.get("q") or "").strip()
+    filter_priority = _optional_int(request.query_params.get("priority"))
+    filter_project = (request.query_params.get("project") or "").strip() or None
+
+    def _visible(task: Task) -> bool:
+        return _matches_query(task, search_q) and _matches_filters(
+            task, priority=filter_priority, project=filter_project
+        )
+
     gitlab_direct_error = ""
     if pilotage_session is not None:
         cached_issues = list(pilotage_session.scalars(select(CachedGitLabIssue)))
@@ -370,6 +415,7 @@ def _render_kairos(
         if (parent := by_id.get(parent_id)) is not None
         and parent.status == "todo"
         and any(c.status == "todo" for c in children)
+        and _visible(parent)
     ]
     parent_title_of = {
         t.id: by_id[t.parent_id].title
@@ -380,7 +426,13 @@ def _render_kairos(
     # Dépendances (arêtes, tâches bloquées) déjà calculées plus haut ; reste
     # l'urgence dérivée et les motifs de blocage à afficher.
     title_by_id = {t.id: t.title for t in all_tasks}
-    block_reasons = blocking_reason(dep_edges, status_by_id, title_by_id)
+    # Titres préfixés par la tâche mère (si elle existe) pour lever l'ambiguïté entre
+    # tâches de même nom sous des mères différentes dans le motif de blocage affiché.
+    breadcrumb_title_by_id = {
+        tid: (f"{parent_title_of[tid]} › {title}" if tid in parent_title_of else title)
+        for tid, title in title_by_id.items()
+    }
+    block_reasons = blocking_reason(dep_edges, status_by_id, breadcrumb_title_by_id)
     own_urgency = {t.id: urgency_key(t, target_day, settings=settings) for t in tasks}
     effective_urgency = derived_urgency(dep_edges, own_urgency)
     # Tâches dont l'urgence a été relevée par une dépendance (badge « sur le chemin
@@ -400,7 +452,7 @@ def _render_kairos(
     blocked_tasks = [
         {"task": by_id[tid], "reasons": block_reasons.get(tid, [])}
         for tid in blocked_ids
-        if tid in by_id
+        if tid in by_id and _visible(by_id[tid])
     ]
     blocked_tasks.sort(key=lambda e: e["task"].title)
 
@@ -413,9 +465,14 @@ def _render_kairos(
         (
             t for t in tasks
             if t.deadline is None and t.scheduled_date is None and t.id not in blocked_ids
+            and _visible(t)
         ),
         key=lambda t: (t.priority is None, t.priority if t.priority is not None else 999, t.title),
     )
+
+    # Projets distincts (issue #15.4) : options du filtre "projet", sur les tâches
+    # actives seulement (pas archivées/faites), triés pour un menu stable.
+    project_choices = sorted({t.project_tag for t in tasks if t.project_tag})
 
     # Choix des bloqueurs candidats pour l'UI (toute autre tâche à faire).
     blocker_choices = sorted(
@@ -461,6 +518,13 @@ def _render_kairos(
         for c in calibration_by_type(all_tasks, spent_by_task)
         if c.reliable and c.median_minutes
     }
+    # Même principe pour les points de Fibonacci calibrés (issue #15.6) : pré-remplit
+    # « Durée (min) » quand l'utilisateur choisit un palier dont le calibrage est fiable.
+    avg_minutes_by_fibo = {
+        c.points: c.median_minutes
+        for c in fibonacci_calibration(all_tasks, spent_by_task)
+        if c.reliable and c.median_minutes
+    }
 
     context = {
         "page": "kairos",
@@ -481,6 +545,7 @@ def _render_kairos(
         "fibonacci_scale": FIBONACCI_SCALE,
         "spent_by_task": spent_by_task,
         "avg_minutes_by_type": avg_minutes_by_type,
+        "avg_minutes_by_fibo": avg_minutes_by_fibo,
         "running_task_id": running_task_id,
         "running_started_iso": running_started_iso,
         "running_task_title": running_task_title,
@@ -500,6 +565,10 @@ def _render_kairos(
         "stale_days_of": stale_days_of,
         "priority_overload_count": priority_overload_count,
         "priority_overload_threshold": settings.priority_overload_threshold,
+        "search_q": search_q,
+        "filter_priority": filter_priority,
+        "filter_project": filter_project,
+        "project_choices": project_choices,
     }
 
     if view == "week":
@@ -529,12 +598,28 @@ def _render_kairos(
             for k, v in spent_minutes_by_type(week_sessions, task_type_by_id).items()
             if k and v > 0
         }
+        # Tâches terminées PENDANT la semaine affichée (même repère que `done_today` en
+        # vue jour) : sans ça, la vue semaine n'affiche que ce qui reste à faire, jamais
+        # ce qui vient d'être fait — issue #15.7.
+        done_week = [
+            t for t in all_tasks
+            if t.status == "done" and t.updated_at is not None
+            and monday <= t.updated_at.date() <= sunday
+        ]
+        week_days = _build_week_view(tasks, manual_blocks + [
+            TimeBlock(title=b.title, start=b.start, end=b.end, source="timetree")
+            for b in timed_slots
+        ], monday, indication_slots, done_tasks=done_week)
+        # Recherche/filtres (issue #15.4) : s'appliquent aussi à la vue semaine, en
+        # masquant des lignes dans chaque jour — jamais en réordonnant la grille.
+        for entry in week_days:
+            entry["tasks"] = [t for t in entry["tasks"] if _visible(t)]
+            entry["done_tasks"] = [t for t in entry["done_tasks"] if _visible(t)]
         context.update(
             week_start=monday,
-            week_days=_build_week_view(tasks, manual_blocks + [
-                TimeBlock(title=b.title, start=b.start, end=b.end, source="timetree")
-                for b in timed_slots
-            ], monday, indication_slots),
+            prev_week_start=monday - timedelta(days=7),
+            next_week_start=monday + timedelta(days=7),
+            week_days=week_days,
             timetree_ok=timetree_result.ok,
             timetree_detail=timetree_result.detail,
             spent_by_type_week=spent_by_type_week,
@@ -570,8 +655,15 @@ def _render_kairos(
         # d'avancement ; updated_at est en UTC naïf, précision au jour suffisante ici).
         done_today = [
             t for t in tasks_session.scalars(select(Task).where(Task.status == "done"))
-            if t.updated_at is not None and t.updated_at.date() == target_day
+            if t.updated_at is not None and t.updated_at.date() == target_day and _visible(t)
         ]
+        # Recherche/filtres (issue #15.4) : listes séparées pour l'affichage seul — le
+        # `schedule` lui-même (stats, timeline, « à faire maintenant ») reste calculé
+        # sur l'intégralité des tâches, jamais sur ce sous-ensemble filtré.
+        visible_to_process = [t for t in schedule.to_process if _visible(t)]
+        visible_scheduled = [s for s in schedule.scheduled if _visible(s.task)]
+        visible_unscheduled = [t for t in schedule.unscheduled if _visible(t)]
+        visible_later = [t for t in schedule.later if _visible(t)]
         timeline = build_timeline(
             schedule, manual_blocks + timetree_blocks, target_day, settings=settings
         )
@@ -598,6 +690,10 @@ def _render_kairos(
         )
         context.update(
             schedule=schedule,
+            visible_to_process=visible_to_process,
+            visible_scheduled=visible_scheduled,
+            visible_unscheduled=visible_unscheduled,
+            visible_later=visible_later,
             session_timeline=session_timeline,
             manual_blocks=sorted(manual_blocks, key=lambda b: b.start),
             editable_blocks=editable_blocks,

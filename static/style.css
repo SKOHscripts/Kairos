@@ -342,15 +342,17 @@ summary:focus-visible,
 .mj-help-scale .badge { min-width: 2.6rem; justify-content: center; }
 .mj-time { font-weight: 700; min-width: 3.6rem; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .mj-title { font-weight: 600; color: var(--text); }
-.mj-priority-form { margin-left: auto; }
-.mj-priority-form select { padding: 0.2rem 1.4rem 0.2rem 0.5rem; }
-.mj-week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+.mj-add-toggle { display: flex; gap: 1rem; margin-bottom: 0.7rem; }
+.mj-week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 0.75rem; margin-top: 0.6rem; }
 .mj-week-day { border: 1px solid var(--border); border-radius: var(--r-md); padding: 0.7rem;
   background: var(--surface); }
 .mj-week-day.today { background: var(--surface-tint); border-color: var(--accent-line); }
 .mj-week-day h3 { margin: 0 0 0.45rem; font-size: 0.82rem; font-weight: 700; text-transform: capitalize; color: var(--text-2); }
-.mj-week-day .kairos-item { padding: 0.4rem 0.6rem; }
+.mj-week-day .kairos-item { padding: 0.4rem 0.6rem; min-width: 0; }
+.mj-week-day .kairos-item .mj-title {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; display: block;
+}
 .mj-actions { display: inline-flex; gap: 0.3rem; }
 /* Case à cocher, en tête de ligne : coche la tâche faite / la rouvre. */
 .mj-check {
