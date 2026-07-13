@@ -41,6 +41,15 @@ def stageKairosPython = tasks.register("stageKairosPython", Sync) {
     }
 }
 preBuild.dependsOn(stageKairosPython)
+// `preBuild.dependsOn` seul ne suffit pas : les tâches `merge<Variant>PythonSources`
+// générées par Chaquopy pour chaque variante ne dépendent pas de `preBuild` et
+// peuvent s'exécuter avant `stageKairosPython` (constaté en CI - Gradle le signale
+// lui-même comme dépendance implicite manquante). `configureEach` sur une
+// collection `matching` reste vivante : elle capture aussi les tâches que
+// Chaquopy enregistre après ce point (evaluation différée du plugin).
+tasks.matching { it.name.matches(/merge.*PythonSources/) }.configureEach {
+    dependsOn(stageKairosPython)
+}
 
 android {
     namespace "com.skohscripts.kairos"
