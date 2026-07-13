@@ -493,6 +493,25 @@ def test_fibonacci_estimation_help_present(route_client) -> None:
     assert "mj-help-scale" in resp.text
 
 
+def test_fibo_calibration_wired_into_edit_panel(route_client) -> None:
+    """#15.6 : un palier de Fibonacci suffisamment calibré (assez d'échantillons
+    fiables) porte data-avg-minutes sur son option, pour l'auto-remplissage JS de
+    la durée (même mécanisme que la calibration par type)."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        for i in range(3):
+            db.add(Task(
+                title=f"Calibrée {i}", status="done", fibonacci_points=3,
+                manual_time_spent_minutes=90,
+            ))
+        db.add(Task(title="En cours", status="todo"))
+        db.commit()
+
+    resp = client.get("/kairos")
+    assert 'class="mj-fibo-select"' in resp.text
+    assert 'data-avg-minutes="90"' in resp.text
+
+
 def test_stale_task_shows_badge(route_client) -> None:
     """Phase 7 : une tâche en retard bien au-delà du seuil (défaut 7 j) affiche
     un badge « traîne », en plus (pas à la place) de la bordure d'urgence."""
@@ -962,6 +981,30 @@ def test_add_dependency_removes_blocked_task_from_agenda(route_client) -> None:
     client.post(f"/kairos/tasks/{b_id}/done", follow_redirects=False)
     page2 = client.get("/kairos")
     assert "en attente de : B bloqueuse" not in page2.text
+
+
+def test_blocked_reason_shows_blocker_parent_title(route_client) -> None:
+    """#15.5 : le motif de blocage affiche aussi la tâche mère du bloqueur, pour
+    lever l'ambiguïté entre tâches de même nom sous des mères différentes."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        parent = Task(title="Projet X", status="todo")
+        db.add(parent)
+        db.commit()
+        blocker = Task(title="Étape 1", status="todo", parent_id=parent.id)
+        blocked = Task(title="A bloquée", priority=0, status="todo")
+        db.add_all([blocker, blocked])
+        db.commit()
+        blocked_id, blocker_id = blocked.id, blocker.id
+
+    client.post(
+        f"/kairos/tasks/{blocked_id}/edit",
+        data={"title": "A bloquée", "blocker_ids": [str(blocker_id)]},
+        follow_redirects=False,
+    )
+
+    page = client.get("/kairos")
+    assert "en attente de : Projet X › Étape 1" in page.text
 
 
 def test_dependency_cycle_is_refused(route_client) -> None:
@@ -1608,6 +1651,30 @@ def test_week_view_places_task_and_block_on_correct_day(route_client) -> None:
     assert page.status_code == 200
     assert "Tâche mercredi" in page.text
     assert "Point mercredi" in page.text
+
+
+def test_week_view_shows_task_completed_this_week(route_client) -> None:
+    """#15.7 : la vue semaine affiche aussi les tâches terminées pendant la semaine
+    (sous leur jour de complétion), pas seulement ce qui reste à faire."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Terminée cette semaine", status="done"))
+        db.commit()
+
+    page = client.get("/kairos?view=week")
+    assert page.status_code == 200
+    assert "Terminée cette semaine" in page.text
+
+
+def test_week_view_has_previous_and_next_navigation(route_client) -> None:
+    client, _ = route_client
+    monday = TODAY - timedelta(days=TODAY.weekday())
+    prev_monday = monday - timedelta(days=7)
+    next_monday = monday + timedelta(days=7)
+
+    resp = client.get("/kairos?view=week")
+    assert f"/kairos?view=week&start={prev_monday.isoformat()}" in resp.text
+    assert f"/kairos?view=week&start={next_monday.isoformat()}" in resp.text
 
 
 def test_day_view_link_toggles_to_week_view(route_client) -> None:

@@ -268,7 +268,10 @@ def test_parent_becomes_schedulable_once_children_are_done() -> None:
     assert [s.task.id for s in schedule.scheduled] == [1]
 
 
-def test_deepwork_block_reserves_one_task() -> None:
+def test_deepwork_block_fills_with_multiple_tasks_keeping_own_duration() -> None:
+    """Régression #12 : une tâche de 30 min dans un bloc deep-work de 2h garde ses
+    30 min (pas la durée du bloc), et une autre tâche vient occuper le reste de la
+    fenêtre avec le même label deep-work."""
     dw = TimeBlock(title="Focus", kind="deepwork",
                    start=datetime.combine(DAY, time(9, 0)),
                    end=datetime.combine(DAY, time(11, 0)), source="manual")
@@ -280,13 +283,50 @@ def test_deepwork_block_reserves_one_task() -> None:
     schedule = build_day_schedule([a, b], [dw], DAY, settings=_settings())
 
     by_id = {s.task.id: s for s in schedule.scheduled}
-    # A (la plus urgente) occupe le bloc deep-work, sur toute la fenêtre (2 h), dédiée.
+    # A (la plus urgente) occupe le début du bloc, avec SA PROPRE durée (30 min).
     assert by_id[1].deepwork is True
     assert by_id[1].start_at == datetime.combine(DAY, time(9, 0))
-    assert by_id[1].duration_minutes == 120
-    # B contourne le bloc : placée après 11h.
+    assert by_id[1].duration_minutes == 30
+    # B vient occuper la suite de la fenêtre, avec le même label deep-work.
+    assert by_id[2].deepwork is True
+    assert by_id[2].start_at == datetime.combine(DAY, time(9, 30))
+    assert by_id[2].duration_minutes == 30
+
+
+def test_deepwork_block_exact_fill_with_two_tasks() -> None:
+    dw = TimeBlock(title="Focus", kind="deepwork",
+                   start=datetime.combine(DAY, time(9, 0)),
+                   end=datetime.combine(DAY, time(10, 0)), source="manual")
+    a = Task(id=1, title="A", priority=0, fibonacci_points=1, status="todo",
+            estimated_minutes=30)
+    b = Task(id=2, title="B", priority=1, fibonacci_points=1, status="todo",
+            estimated_minutes=30)
+
+    schedule = build_day_schedule([a, b], [dw], DAY, settings=_settings())
+
+    by_id = {s.task.id: s for s in schedule.scheduled}
+    assert by_id[1].deepwork is True and by_id[1].duration_minutes == 30
+    assert by_id[2].deepwork is True and by_id[2].duration_minutes == 30
+    assert by_id[2].start_at == datetime.combine(DAY, time(9, 30))
+
+
+def test_deepwork_block_skips_task_too_big_for_remaining_time() -> None:
+    dw = TimeBlock(title="Focus", kind="deepwork",
+                   start=datetime.combine(DAY, time(9, 0)),
+                   end=datetime.combine(DAY, time(10, 0)), source="manual")
+    a = Task(id=1, title="A", priority=0, fibonacci_points=1, status="todo",
+            estimated_minutes=30)
+    b = Task(id=2, title="B trop grande", priority=1, fibonacci_points=1, status="todo",
+            estimated_minutes=40)
+
+    schedule = build_day_schedule([a, b], [dw], DAY, settings=_settings())
+
+    by_id = {s.task.id: s for s in schedule.scheduled}
+    assert by_id[1].deepwork is True
+    # B ne tient pas dans les 30 min restantes du bloc : elle n'est pas deep-work et
+    # est placée normalement, en dehors de la fenêtre protégée.
     assert by_id[2].deepwork is False
-    assert by_id[2].start_at >= datetime.combine(DAY, time(11, 0))
+    assert by_id[2].start_at >= datetime.combine(DAY, time(10, 0))
 
 
 def test_deepwork_block_is_available_time_not_busy() -> None:

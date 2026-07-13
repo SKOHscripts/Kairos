@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Barre de statut/navigation à la couleur de fond de l'app (--bg dans
+         static/style.css) : sans ça, l'edge-to-edge forcé par targetSdk 35
+         (Android 15+) laisse le contenu du WebView passer sous une barre de
+         statut sans couleur ni icônes contrastées (invisible / blanc sur blanc). -->
+    <style name="Theme.Kairos" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/kairos_bg</item>
+        <item name="android:navigationBarColor">@color/kairos_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement" tools:targetApi="35">true</item>
+    </style>
+</resources>

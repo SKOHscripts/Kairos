@@ -63,5 +63,33 @@
   </div>
 
   {% block scripts %}{% endblock %}
+
+  <script>
+    // Chaque action (suppression, "fait", ajout de créneau...) redirige en plein
+    // rechargement de page — sans ça la position de scroll saute en haut à chaque
+    // fois. On la sauvegarde à la soumission d'un formulaire POST et on la restaure
+    // après le rechargement suivant.
+    (function () {
+      var KEY = 'kairos-scroll-y';
+
+      document.addEventListener('submit', function (ev) {
+        var form = ev.target;
+        if (!(form instanceof HTMLFormElement)) return;
+        if ((form.method || 'get').toLowerCase() !== 'post') return;
+        try { sessionStorage.setItem(KEY, String(window.scrollY)); } catch (e) {}
+      }, true);
+
+      document.addEventListener('DOMContentLoaded', function () {
+        var saved;
+        try { saved = sessionStorage.getItem(KEY); } catch (e) { return; }
+        if (saved === null) return;
+        try { sessionStorage.removeItem(KEY); } catch (e) {}
+        var y = parseInt(saved, 10);
+        if (!isNaN(y)) {
+          requestAnimationFrame(function () { window.scrollTo(0, y); });
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
