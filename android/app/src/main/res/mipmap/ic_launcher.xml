@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Repli API 24-25 (avant les icônes adaptatives) : le logo complet de
+     static/favicon.svg en vector drawable, cercles convertis en arcs. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="40"
+    android:viewportHeight="40">
+    <path
+        android:fillColor="#FBEEDF"
+        android:pathData="M1.5,20 A18.5,18.5 0 1 1 38.5,20 A18.5,18.5 0 1 1 1.5,20 Z" />
+    <path
+        android:strokeColor="#E7C4A2"
+        android:strokeWidth="1.6"
+        android:fillColor="#00000000"
+        android:pathData="M1.5,20 A18.5,18.5 0 1 1 38.5,20 A18.5,18.5 0 1 1 1.5,20 Z" />
+    <path
+        android:fillColor="#D9713C"
+        android:pathData="M20,20 L20,4 A16,16 0 0 1 35.76,17.22 Z" />
+    <path
+        android:fillColor="#2B241E"
+        android:pathData="M17.4,20 A2.6,2.6 0 1 1 22.6,20 A2.6,2.6 0 1 1 17.4,20 Z" />
+</vector>

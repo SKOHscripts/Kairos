@@ -47,16 +47,24 @@ complet est dans [`SPEC_KAIROS.md`](SPEC_KAIROS.md).
 
 ---
 
-## Télécharger l'application (Windows/Linux)
+## Télécharger l'application (Windows/Linux/Android)
 
 Pas besoin de Python, de venv ni de terminal. Les
 [releases GitHub](https://github.com/SKOHscripts/Kairos/releases) proposent un exécutable
-autonome par OS (`kairos-linux-x86_64`, `kairos-windows-x86_64.exe`). Télécharge,
-double-clique (sous Linux, rends d'abord le fichier exécutable avec
-`chmod +x kairos-linux-x86_64`), et le navigateur s'ouvre tout seul sur Kairos. Les
-réglages et la base de tâches vivent dans le dossier de données standard de ton système,
-entièrement éditables depuis la page **Réglages**. Aucun fichier `.env` à copier ou à
-éditer à la main.
+autonome par OS (`kairos-linux-x86_64`, `kairos-windows-x86_64.exe`) et un APK Android
+(`kairos-android-arm64.apk`). Télécharge, double-clique (sous Linux, rends d'abord le
+fichier exécutable avec `chmod +x kairos-linux-x86_64`), et le navigateur s'ouvre tout
+seul sur Kairos. Les réglages et la base de tâches vivent dans le dossier de données
+standard de ton système, entièrement éditables depuis la page **Réglages**. Aucun
+fichier `.env` à copier ou à éditer à la main.
+
+**Android** : télécharge l'APK depuis la release et ouvre-le (autorise l'installation
+depuis cette source si Android le demande). L'application embarque le serveur et
+affiche la même interface ; les données vivent dans le stockage privé de l'appli. Les
+mises à jour s'installent par-dessus l'ancienne version, sans perte de données (même
+clé de signature d'une release à l'autre). Limite connue de cette première version :
+pas de service en arrière-plan, un chrono en cours ne survit pas à une mise en veille
+agressive de l'appli.
 
 Fermer l'onglet du navigateur n'arrête pas le serveur : il continue en arrière-plan.
 Utilise le bouton **Quitter** en haut à droite pour l'arrêter proprement. Sans quoi le
@@ -326,12 +334,30 @@ pytest                       # aucun accès réseau réel
 uvicorn app.main:app --reload --port 8001
 ```
 
-### Empaquetage (exécutables Windows/Linux)
+### Empaquetage (exécutables Windows/Linux, APK Android)
 `make build-exe` construit l'exécutable de bureau pour l'OS courant via PyInstaller (voir
 [`packaging/README.md`](packaging/README.md) pour le détail et les points d'attention). Les
 exécutables Windows et Linux publiés en release GitHub sont construits automatiquement par
 [`.github/workflows/release.yml`](.github/workflows/release.yml) au push d'un tag `vX.Y.Z`
 (PyInstaller ne fait pas de cross-compile : la CI build chaque OS sur un runner de cet OS).
+
+L'**APK Android** est construit par le même workflow (job `build-android`) : projet Gradle
+dans [`android/`](android/) (Chaquopy embarque CPython 3.13 et les dépendances pip, une
+WebView affiche le serveur local), décisions et architecture dans
+[`docs/ANDROID_PACKAGING.md`](docs/ANDROID_PACKAGING.md). Build local :
+`cd android && ./gradlew assembleDebug` (SDK Android et JDK 17 requis, plus un
+`python3.13` sur le poste pour le pip de Chaquopy).
+
+La signature de release utilise un keystore dédié, fourni à la CI par quatre secrets
+GitHub (`KAIROS_KEYSTORE_BASE64`, `KAIROS_KEYSTORE_PASSWORD`, `KAIROS_KEY_ALIAS`,
+`KAIROS_KEY_PASSWORD`). Création (une seule fois, à conserver précieusement : le perdre
+oblige les utilisateurs à désinstaller/réinstaller) :
+
+```bash
+keytool -genkeypair -v -keystore kairos-release.keystore -alias kairos \
+  -keyalg RSA -keysize 4096 -validity 10000
+base64 -w0 kairos-release.keystore   # → valeur du secret KAIROS_KEYSTORE_BASE64
+```
 
 ### Architecture (`app/`)
 | Module | Rôle |
@@ -342,6 +368,7 @@ exécutables Windows et Linux publiés en release GitHub sont construits automat
 | `secret_store.py` | Jeton GitLab / mot de passe TimeTree : trousseau système, repli fichier local |
 | `settings_sections.py` | Regroupement des réglages pour l'affichage de la page Réglages |
 | `launcher.py` | Point d'entrée de l'exécutable de bureau (choix de port, ouverture du navigateur) |
+| `android_launcher.py` | Point d'entrée Android : environnement, port, uvicorn (WebView côté `android/`) |
 | `tasks_models.py` | Modèles SQLAlchemy : `Task`, `TimeBlock`, `TaskDependency`, `WorkSession`, `TaskSyncMeta` |
 | `tasks_db.py` | Engine/sessions + migrations légères + pose des données d'exemple sur base vierge |
 | `tasks_seed.py` | Données d'exemple de la première utilisation (tâches et créneaux natifs) |

@@ -42,8 +42,74 @@ jobs:
           name: kairos-${{ runner.os }}
           path: out/*
 
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Python 3.13 : la version embarquée par Chaquopy dans l'APK (voir
+      # android/app/build.gradle) — son pip de build cherche `python3.13`.
+      # Les tests tournent avec la même version : garde-fou avant packaging,
+      # et validation de la compatibilité 3.13 au passage.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Installer les dépendances et lancer les tests (garde-fou)
+        run: |
+          pip install -e ".[dev]"
+          pytest
+
+      # AGP 8 exige un JDK 17 pour exécuter Gradle ; le SDK Android est
+      # préinstallé sur les runners ubuntu-latest (ANDROID_HOME défini).
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Une release taguée DOIT être signée (échec dur sans les secrets, sinon on
+      # publierait un APK que personne ne peut mettre à jour par-dessus). Un
+      # workflow_dispatch sans secrets reste utile : il valide toute la chaîne
+      # Gradle/Chaquopy en produisant un APK non signé (jamais publié en release).
+      - name: Restaurer le keystore de signature (secrets GitHub)
+        id: keystore
+        env:
+          KAIROS_KEYSTORE_BASE64: ${{ secrets.KAIROS_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KAIROS_KEYSTORE_BASE64" ]; then
+            echo "$KAIROS_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/kairos-release.keystore"
+            echo "file=$RUNNER_TEMP/kairos-release.keystore" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "::error::Secret KAIROS_KEYSTORE_BASE64 absent : générer un keystore (voir README § Empaquetage) et ajouter les 4 secrets KAIROS_KEYSTORE_*/KAIROS_KEY_*."
+            exit 1
+          else
+            echo "::warning::Secrets de signature absents : APK de validation NON signé."
+          fi
+
+      - name: Construire l'APK (Gradle + Chaquopy)
+        working-directory: android
+        env:
+          KAIROS_KEYSTORE_FILE: ${{ steps.keystore.outputs.file }}
+          KAIROS_KEYSTORE_PASSWORD: ${{ secrets.KAIROS_KEYSTORE_PASSWORD }}
+          KAIROS_KEY_ALIAS: ${{ secrets.KAIROS_KEY_ALIAS }}
+          KAIROS_KEY_PASSWORD: ${{ secrets.KAIROS_KEY_PASSWORD }}
+          # versionName/versionCode dérivés du tag (vX.Y.Z) ; défaut de dev sinon.
+          KAIROS_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+        run: ./gradlew --no-daemon assembleRelease
+
+      - name: Nommer l'artefact
+        run: |
+          mkdir -p out
+          # app-release.apk signé, app-release-unsigned.apk sans keystore (dispatch).
+          cp android/app/build/outputs/apk/release/app-release*.apk out/kairos-android-arm64.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kairos-android
+          path: out/*
+
   release:
-    needs: build
+    needs: [build, build-android]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     # Le GITHUB_TOKEN auto-généré est en lecture seule par défaut sur ce dépôt :

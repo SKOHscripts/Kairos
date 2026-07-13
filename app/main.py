@@ -88,7 +88,13 @@ def _resolve_base_dir() -> Path:
     """Dossier contenant `templates/`, `static/`, `README.md`, `SPEC_KAIROS.md`.
 
     Dans un exécutable PyInstaller (onefile), ces fichiers sont extraits dans un
-    dossier temporaire (`sys._MEIPASS`), pas à côté de ce fichier source."""
+    dossier temporaire (`sys._MEIPASS`), pas à côté de ce fichier source. Sur
+    Android (Chaquopy), ils sont extraits de l'APK vers un dossier désigné par
+    ``KAIROS_BASE_DIR`` (posé par l'amorce avant l'import de ce module — voir
+    `android/app/src/main/python/kairos_boot.py`)."""
+    override = os.environ.get("KAIROS_BASE_DIR")
+    if override:
+        return Path(override)
     if getattr(sys, "frozen", False):
         return Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
     return Path(__file__).resolve().parent.parent

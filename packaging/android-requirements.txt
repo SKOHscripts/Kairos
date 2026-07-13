@@ -1,0 +1,19 @@
+# Dépendances Python embarquées dans l'APK Android (installées par le pip de
+# Chaquopy, voir android/app/build.gradle). Liste explicite plutôt que
+# `pyproject.toml` pour une seule différence : uvicorn NU, pas uvicorn[standard]
+# — uvloop/httptools/watchfiles sont des extensions natives sans wheel Android
+# et sans intérêt pour un serveur local mono-utilisateur.
+#
+# Extensions natives restantes (markupsafe via jinja2, greenlet via sqlalchemy,
+# cryptography/cffi via keyring) : toutes disponibles dans le dépôt de wheels
+# Android de Chaquopy (vérifié le 2026-07-12, voir docs/ANDROID_PACKAGING.md).
+starlette>=0.37
+uvicorn>=0.27
+sqlalchemy>=2.0
+jinja2>=3.1
+python-multipart>=0.0.9
+timetree-exporter>=0.8,<0.9
+httpx>=0.27
+markdown>=3.6
+platformdirs>=4.0
+keyring>=25.0
