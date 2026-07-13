@@ -4,13 +4,16 @@ plugins {
 }
 
 // Version de l'application depuis le tag de release (CI : KAIROS_VERSION=vX.Y.Z),
-// avec un défaut lisible pour les builds de développement. versionCode doit être
-// strictement croissant d'une release à l'autre pour qu'Android accepte la mise à
-// jour par-dessus : X*10000 + Y*100 + Z le garantit pour un versionnage semver.
+// avec un défaut lisible pour les builds de développement/validation (dispatch sans
+// tag). versionCode doit être strictement croissant d'une release à l'autre pour
+// qu'Android accepte la mise à jour par-dessus : X*10000 + Y*100 + Z le garantit
+// pour un versionnage semver — mais doit aussi rester un entier STRICTEMENT
+// POSITIF (Android rejette 0), d'où le plancher à 1 (couvre le défaut "0.0.0-dev").
 def kairosVersionName = (System.getenv("KAIROS_VERSION") ?: "0.0.0-dev").replaceFirst(/^v/, "")
 def kairosVersionCode = {
     def m = kairosVersionName =~ /^(\d+)\.(\d+)\.(\d+)/
-    m.find() ? m.group(1).toInteger() * 10000 + m.group(2).toInteger() * 100 + m.group(3).toInteger() : 1
+    def code = m.find() ? m.group(1).toInteger() * 10000 + m.group(2).toInteger() * 100 + m.group(3).toInteger() : 0
+    Math.max(1, code)
 }()
 
 // Racine du dépôt : android/ est un sous-projet, le code Python vit à la racine.
