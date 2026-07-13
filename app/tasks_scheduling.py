@@ -589,22 +589,31 @@ def build_day_schedule(
                       buffer=timedelta(0), kind="pinned")
         )
 
-    # 1bis. Blocs deep-work : chaque fenêtre réservée reçoit UNE tâche (la plus urgente
-    # non encore placée), dédiée à toute la fenêtre. Le bloc devient un obstacle pour
-    # les autres tâches auto (qui le contournent), qu'il soit rempli ou non (protégé).
+    # 1bis. Blocs deep-work : chaque fenêtre réservée est remplie par autant de tâches
+    # que nécessaire (les plus urgentes non encore placées), chacune gardant SA PROPRE
+    # durée (_duration_minutes) — jamais la durée du bloc. Le bloc entier reste ensuite
+    # un obstacle pour le placement automatique général, rempli en totalité ou non :
+    # c'est une fenêtre dédiée, les tâches "normales" ne s'y intercalent jamais entre
+    # deux tâches deep-work.
     for block in deepwork_blocks:
-        candidate = next(
-            (t for t in auto if t.id not in assigned_ids), None
-        )
-        if candidate is not None:
-            duration = int((block.end - block.start).total_seconds() // 60)
+        slot_cursor = block.start
+        while slot_cursor < block.end:
+            candidate = next(
+                (t for t in auto if t.id not in assigned_ids), None
+            )
+            if candidate is None:
+                break
+            duration = _duration_minutes(candidate, settings)
+            if slot_cursor + timedelta(minutes=duration) > block.end:
+                break
             result.scheduled.append(
                 ScheduledTask(
-                    task=candidate, start_at=block.start,
-                    duration_minutes=max(1, duration), deepwork=True,
+                    task=candidate, start_at=slot_cursor,
+                    duration_minutes=duration, deepwork=True,
                 )
             )
             assigned_ids.add(candidate.id)
+            slot_cursor += timedelta(minutes=duration)
         obstacles.append(
             _Obstacle(start=block.start, end=block.end,
                       title=block.title or "Deep work", buffer=timedelta(0),
