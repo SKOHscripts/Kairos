@@ -400,6 +400,34 @@ summary:focus-visible,
 .mj-edit-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }
 .mj-edit-form > label:first-child input { font-size: 15px; font-weight: 700; color: var(--text); padding: 0.5rem 0.6rem; }
 
+/* Modale d'édition, divulgation progressive (Phase 4) : Titre/Priorité/Points
+   Fibo/Échéance/Durée toujours visibles (`.mj-edit-essentials`) ; le reste
+   (description, programmation, projet, récurrence, type, heure fixe, fiche
+   liée, sous-tâches, bloqueurs) replié dans `.mj-edit-advanced`. */
+.mj-edit-advanced { margin-top: 0.1rem; }
+.mj-edit-advanced > summary { cursor: pointer; color: var(--text-2); font-weight: 600;
+  font-size: 12px; width: fit-content; display: flex; align-items: center; gap: 0.3rem; }
+.mj-edit-advanced > summary:hover { color: var(--text); }
+.mj-edit-advanced-body { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.55rem; }
+/* Bloqueurs en cases à cocher (Phase 4) : remplace le <select multiple> Ctrl-clic
+   — même name= côté serveur (`edit_task` traite l'ensemble soumis comme la
+   cible complète, diff calculé côté backend). */
+.mj-edit-blockers-label { display: block; font-size: 11px; color: var(--text-3); font-weight: 600; margin-bottom: 0.35rem; }
+.mj-blocker-checks { display: flex; flex-direction: column; gap: 0.3rem; max-height: 9rem;
+  overflow-y: auto; padding: 0.55rem 0.65rem; border: 1px solid var(--border);
+  border-radius: var(--r-sm); background: var(--surface-tint); }
+.mj-blocker-checks .mj-check-label { font-size: 12.5px; font-weight: 500; color: var(--text-2);
+  white-space: normal; } /* titres longs : jamais de débordement horizontal (~375px) */
+/* `.mj-edit-form label` (générique, `display:flex; flex-direction:column`, pour les
+   champs texte/select du panneau d'édition) est plus spécifique que `.mj-check-label`
+   seul et l'écraserait sinon (case au-dessus du texte au lieu d'à côté) — les
+   checkbox-labels du panneau d'édition (bloqueurs, « Bloc deep-work ») doivent rester
+   en ligne : sélecteur à deux classes pour regagner la priorité. */
+.mj-edit-form .mj-check-label { flex-direction: row; align-items: center; gap: 0.4rem; }
+.mj-blocker-checks input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); flex: none; }
+/* Zone Supprimer/Archiver : nettement séparée en pied de panneau. */
+.mj-edit-danger { border-top: 1px solid var(--border); padding-top: 0.65rem; margin-top: 0.15rem; }
+
 /* Progression du jour : élément principal de la vue Jour — exception assumée et
    scopée à cette seule carte au reste de la charte (accent unique bleu, pas de
    dégradé, une seule police) : même traitement que .mj-to-process (« À traiter »,
@@ -416,7 +444,65 @@ summary:focus-visible,
   font-size: 19px; color: var(--text);
 }
 .mj-next strong { font-weight: 600; }
+.mj-next-actions { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.1rem; }
 .mj-progress-stats { display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }
+
+/* =========================================================================
+   Refonte Jour v2 — flux GTD (capturer → traiter la boîte de réception →
+   faire). Composants nouveaux : barre de capture toujours visible, boîte de
+   réception avec qualification en ligne, contrôle de filtrage compact — voir
+   docs/DESIGN_SYSTEM.md. Jetons existants uniquement, aucune couleur neuve.
+   ========================================================================= */
+
+/* Barre de capture (Phase 1) : plus un <details> replié — toujours visible en
+   tête de la vue Jour, deux volets par onglet (radios .mj-add-toggle déjà
+   stylé plus haut). Le CTA « Ajouter » (`.btn.primary`) reste le seul bouton
+   bleu de la zone. */
+.mj-capture { padding: 0.95rem 1.1rem 1.05rem; }
+
+/* En-tête de section « carte » non repliable (boîte de réception) : titre +
+   compte à gauche, aide repliable (`.mj-help`) à droite. */
+.mj-section-head { display: flex; align-items: center; justify-content: space-between;
+  gap: 0.6rem; flex-wrap: wrap; }
+.mj-section-title { font-size: 13.5px; font-weight: 700; color: var(--text);
+  display: flex; align-items: baseline; gap: 0.4rem; }
+.mj-section-title .count { font-weight: 600; }
+
+/* Boîte de réception (« À traiter ») : même traitement crème/ambre que
+   .mj-progress (exception assumée, voir CLAUDE.md) — jamais masquée, jamais
+   un <details> : la carte porte elle-même le padding (pas de <div> imbriqué). */
+.mj-to-process {
+  padding: 0.95rem 1.2rem; display: flex; flex-direction: column; gap: 0.5rem;
+  border-left: 3px solid var(--warn-fg); background: #FFFAF1;
+}
+.mj-to-process .kairos-list, .mj-to-process > .hint { margin-top: 0; }
+/* État vide (Phase 1) : discret — moins de hauteur, pas de liste. */
+.mj-to-process.mj-inbox-empty { padding-top: 0.7rem; padding-bottom: 0.7rem; }
+.mj-inbox-empty-msg { margin: 0; color: var(--text-2); }
+
+/* Qualification en ligne (Phase 2) : deux mini-formulaires côte à côte,
+   soumission automatique au `change` (`data-autosubmit`, voir kairos.html) —
+   distincte de `.mj-fibo-select`/`.mj-task-type-select` (édition complète) qui
+   déclenchent en plus le remplissage de durée. */
+.mj-inline-qualify { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+.mj-inline-form { display: inline-flex; align-items: center; margin: 0; }
+.mj-inline-label { display: inline-flex; flex-direction: column; gap: 0.15rem;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em;
+  color: var(--text-3); font-weight: 700; }
+.mj-inline-label select { padding: 0.25rem 1.5rem 0.25rem 0.45rem; font-size: 12px; min-width: 4rem; }
+
+/* Contrôle de filtrage compact (Phase 1 point 6) : replié par défaut, un seul
+   marqueur visible (`.badge.info`) quand un filtre est posé. */
+.mj-filter-form { padding: 0 1.1rem 1rem; }
+
+@media (max-width: 720px) {
+  /* Cibles tactiles ≥44px sur les contrôles à un tap introduits par cette
+     refonte (qualification en ligne, onglets de capture) — le reste de l'UI
+     (icônes 28px, cases 15px) suit une convention établie plus ancienne,
+     hors périmètre de ce chantier. */
+  .mj-inline-label select { min-height: 30px; }
+  .mj-add-toggle .mj-check-label { min-height: 30px; display: inline-flex; align-items: center; }
+}
 
 .mj-day-grid { display: flex; gap: 1.1rem; align-items: flex-start; flex-wrap: wrap; }
 .mj-day-main { flex: 1.7 1 420px; min-width: 0; }
@@ -462,7 +548,8 @@ summary:focus-visible,
 
 /* Dépendances */
 .kairos-item.mj-blocked { opacity: 0.75; border-style: dashed; }
-.mj-to-process { border-left: 3px solid var(--warn-fg); background: #FFFAF1; }
+/* .mj-to-process : voir bloc « Refonte Jour v2 » plus haut (fusionné avec le
+   padding/flex de la boîte de réception, même exception crème/ambre). */
 
 /* Suivi du temps réel */
 .icbtn.timer-on { color: var(--accent-700); background: var(--accent-soft); border-color: var(--accent-line); }
