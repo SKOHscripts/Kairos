@@ -6,6 +6,63 @@ composant doit réutiliser ces jetons plutôt que d'en réinventer. Implémenté
 `static/style.css` (variables `:root`) et `templates/base.html` (police, logo,
 navigation).
 
+## Architecture de l'information — vue Jour (flux GTD)
+
+La vue Jour (`templates/kairos.html` + `templates/_kairos_day.html`) est organisée
+autour du flux GTD **capturer → traiter la boîte de réception → faire**, de haut en
+bas :
+
+1. **Barre de capture** (`.mj-capture`) — toujours visible, jamais dans un `<details>`
+   replié : la capture ne doit jamais coûter un clic de plus. Deux volets par onglet
+   (radios `mj-add-mode`) : « Tâche » (titre seul — capture GTD volontairement sans
+   friction, la clarification vient après) et « Créneau / deep work » (avec la liste
+   d'édition des créneaux du jour). Le CTA « Ajouter » (`.btn.primary`) est le seul
+   bouton bleu de la zone.
+2. **Boîte de réception** (`.mj-to-process`, id `#mj-inbox`) — juste sous la capture,
+   pour qu'une tâche capturée y apparaisse immédiatement. Jamais masquée (pas de
+   `<details>`) : affiche un état vide discret (`.mj-inbox-empty`) plutôt que de
+   disparaître, pour toujours rappeler où regarder en premier. Qualification **en
+   ligne** (priorité + points Fibonacci, voir « Composants » plus bas) : une tâche
+   qualifiée quitte la boîte de réception et entre dans l'agenda ordonné, sans ouvrir
+   l'édition complète.
+3. **« Maintenant »** (`.mj-progress`) — poste de pilotage, prochaine tâche
+   actionnable sur place (fait / chrono / décaler), toujours dépliée. Exception de
+   teinte assumée, voir « Couleurs » plus bas.
+4. **Bannières d'alerte** (TimeTree, GitLab, surcharge de priorité) — sous
+   « Maintenant », pas en tout premier : ce ne sont que des avertissements de
+   dégradation, pas le point d'entrée du flux.
+5. **Filtres compacts** (`.mj-filter-compact`) et **Backlog** — utilitaires
+   secondaires, repliés par défaut, avant la liste ordonnée.
+6. **Agenda ordonné** (« Aujourd'hui, dans l'ordre », `<details open>`) — la liste
+   centrale, triée par score WSJF, toujours dépliée.
+7. **Sections secondaires condensées** (Sans créneau / Bloquées / Plus tard / Mères /
+   Fait) — `<details>` repliés, chaque `<summary>` porte un compte et une courte
+   phrase de rôle (`.hint`).
+8. **Colonne latérale** (`.mj-day-grid` → `.mj-side-col`) — inchangée : carte
+   « En ce moment » (chrono) + Agenda (timeline verticale).
+
+La vue Semaine reste un gabarit simple, non concernée par cette réorganisation.
+
+### Partiels et mise à jour AJAX
+
+- `templates/_kairos_macros.html` porte les macros partagées (`done_toggle`,
+  `task_actions`, `time_spent`, `fibo_help`, `edit_panel`, `task_meta`), importées
+  `with context` par `kairos.html` et `_kairos_day.html` — évite un cycle d'import
+  entre les deux gabarits.
+- `templates/_kairos_day.html` est le partiel de la vue Jour : rendu à l'intérieur de
+  `<div id="mj-day-content">` par `kairos.html` (page pleine), **et** rendu
+  directement (sans cette enveloppe) par `app.main.render_kairos_response(fragment=True)`
+  pour les réponses AJAX. Un seul `id="mj-day-content"` dans toute l'app.
+- **Amélioration progressive, jamais de JS obligatoire** : un `<form data-ajax>`
+  se soumet en `fetch` (en-tête `X-Requested-With: fetch`), remplace
+  `#mj-day-content` par le fragment renvoyé, puis réinitialise le chrono vivant
+  (`initDayScripts`, réappelable). Sans JS (ou en cas d'échec réseau), le même
+  formulaire se soumet normalement → POST → redirection 303 côté serveur,
+  identique au comportement historique — indispensable pour la WebView Android et
+  l'accessibilité. Un `<select data-autosubmit>` déclenche seul la soumission de son
+  formulaire au `change` (`form.requestSubmit()`), intercepté ensuite par le même
+  mécanisme `data-ajax`.
+
 ## Couleurs
 
 | Rôle | Variable CSS | Valeur |
@@ -107,28 +164,79 @@ masqué (`.tn-sub`), pilules resserrées pour tenir sur un écran de téléphone
 sous-barre (`.topbar`) porte le titre de page et les actions contextuelles (bascule
 Jour/Semaine, retour, etc.).
 
+## Composants de la refonte GTD (vue Jour)
+
+### Barre de capture
+
+`.mj-capture` : carte non repliable, toujours en tête de la vue Jour. Deux volets
+(`[data-mj-add-pane="task"]` / `[data-mj-add-pane="slot"]`) basculés par les radios
+`mj-add-mode` (écouteur délégué, portée sur `.mj-capture` — pas sur un `<details>`,
+la capture n'en est plus un). Réutilise `.mj-add-toggle` (existant) et `.filters`
+(champs de formulaire) : aucun nouveau jeton de mise en page.
+
+### Boîte de réception + qualification en ligne
+
+`.mj-to-process` (fusionné avec `.card` sur le même élément, comme `.mj-progress` :
+pas de `<div>` imbriqué) reprend le traitement crème `#FFFAF1` + puce ambre
+`border-left: 3px solid var(--warn-fg)` — **même exception assumée que
+`.mj-progress`**, décrite plus haut. `.mj-section-head` porte le titre + le compte
+(`.count`) et une aide repliable (`.mj-help`, motif déjà utilisé pour l'aide
+Fibonacci). État vide : `.mj-inbox-empty` (padding réduit, pas de liste), présent
+plutôt que la section entière disparaissant du DOM.
+
+Chaque ligne de la boîte de réception porte deux mini-formulaires
+`.mj-inline-form[data-ajax]` (priorité, points Fibonacci) avec un `<select
+data-autosubmit>` — auto-soumis au `change`, distincts de `.mj-fibo-select`/
+`.mj-task-type-select` (édition complète) qui déclenchent en plus le remplissage de
+durée. Une fois les deux champs posés, la tâche quitte la boîte de réception et entre
+dans l'agenda ordonné (rendu par le fragment AJAX, sans rechargement de page).
+
+### Contrôle de filtrage compact
+
+`.mj-filter-compact` : la recherche + les 4 filtres à facettes (issue #15.4) tiennent
+dans un `<details class="card mj-filter-compact">`, replié par défaut — par défaut,
+aucun de ces champs n'occupe le haut de page. Un seul marqueur visible
+(`<span class="badge info">filtre actif</span>`) quand un filtre est posé, plutôt que
+les 5 champs déployés en permanence.
+
 ## Panneau de modification d'une tâche
 
-`edit_panel(task)` (`.mj-edit` / `.mj-edit-body` dans `templates/kairos.html`) se
-présente comme une **modale centrée avec fond assombri**, en CSS pur, sans
-JavaScript. Mécanique :
-- `.mj-edit-body` (la carte visible) passe en `position: fixed`, centrée,
-  quand le `<details>` porte l'attribut `[open]`.
-- Le `<summary>` (le crayon) devient, lui, un calque plein écran
-  (`position: fixed; inset: 0`) semi-transparent dès l'ouverture : c'est un
-  vrai `<summary>`, donc cliquer n'importe où en dehors de la carte referme
-  nativement le panneau (pas de JS, pas de `pointer-events` factice).
-- Un glyphe ✕ (`::after` de ce même `<summary>`) est positionné juste à côté
-  du coin haut-droit de la carte — **jamais par-dessus** : un pseudo-élément
-  ne peut pas peindre au-dessus d'une boîte empilée plus haut (ici
-  `.mj-edit-body`, qui doit rester au-dessus pour que ses propres champs/
-  boutons restent cliquables), donc le faire chevaucher la carte le rendrait
-  invisible malgré un z-index élevé sur le pseudo-élément lui-même — l'ordre
-  d'empilement se décide au niveau du contexte parent (`<summary>`, plus bas),
-  pas du descendant.
-- Piège évité : ne **jamais** mettre de règle `:hover` sur ce glyphe — une
-  fois ouvert, le `<summary>` couvre tout l'écran, donc il serait « survolé »
-  en permanence et resterait bloqué dans son état hover.
+`edit_panel(task)` (`.mj-edit` / `.mj-edit-body` dans `templates/_kairos_macros.html`)
+se présente comme une **modale centrée avec fond assombri**, en CSS + JS minimal (un
+seul écouteur `click` délégué sur `document`, voir `templates/kairos.html`) :
+- Un bouton `.mj-edit-toggle` (le crayon) bascule `hidden` sur le `.mj-edit-body`
+  associé (`aria-expanded` reflète l'état). Quand il est ouvert
+  (`[aria-expanded="true"]`), ce même bouton devient un calque plein écran
+  (`position: fixed; inset: 0`) semi-transparent : cliquer n'importe où en dehors de
+  la carte referme le panneau (même écouteur `click`, la cible ne matche plus
+  `.mj-edit-toggle` à l'intérieur de la carte). **Échap** referme aussi le panneau
+  ouvert (écouteur `keydown` délégué), pour les utilisateurs clavier.
+- Un glyphe ✕ (`::after` de ce même bouton, seulement quand ouvert) est positionné
+  juste à côté du coin haut-droit de la carte — **jamais par-dessus** : un
+  pseudo-élément ne peut pas peindre au-dessus d'une boîte empilée plus haut (ici
+  `.mj-edit-body`, qui doit rester au-dessus pour que ses propres champs/boutons
+  restent cliquables), donc le faire chevaucher la carte le rendrait invisible malgré
+  un z-index élevé sur le pseudo-élément lui-même.
+- Piège évité : ne **jamais** mettre de règle `:hover` sur ce glyphe — une fois
+  ouvert, le bouton couvre tout l'écran, donc il serait « survolé » en permanence et
+  resterait bloqué dans son état hover.
+
+**Divulgation progressive (Phase 4)** : deux niveaux, mêmes `name=` de champs (donc
+`edit_task`, `app/main.py`, inchangé) —
+- **Essentiels**, toujours visibles : Titre, Priorité, Points Fibo, Échéance, Durée.
+- **Options avancées** (`<details class="mj-edit-advanced">`, repliées) : description,
+  programmation, projet, temps passé manuel, récurrence, type, heure fixe, fiche
+  liée, sous-tâches, bloqueurs.
+
+**Bloqueurs en cases à cocher** (`.mj-blocker-checks`, `<input type="checkbox"
+name="blocker_ids">`) — remplace le `<select multiple>` Ctrl-clic. Même `name=` pour
+chaque case : `edit_task` traite déjà l'ensemble soumis comme la **cible complète**
+(diff calculé côté backend, `app/main.py`) — aucun changement backend. Piège de
+spécificité CSS rencontré et corrigé : la règle générique `.mj-edit-form label`
+(`display:flex; flex-direction:column`, pour les champs texte/select) est plus
+spécifique qu'`.mj-check-label` seul et empilait la case au-dessus du texte au lieu
+de l'aligner à côté — `.mj-edit-form .mj-check-label { flex-direction: row; }`
+regagne la priorité.
 
 ## Case à cocher
 
@@ -148,8 +256,10 @@ endroit sombre de l'interface.
 ## Écarts assumés par rapport aux maquettes `.dc.html`
 
 Les maquettes du dossier `design_handoff_kairos_redesign/` (non versionné) montrent
-des pilules cliquables pour la priorité/les points Fibonacci et des chips à bascule
-pour les tâches bloquantes, dans le panneau de modification. L'implémentation réelle
-garde des `<select>`/`<select multiple>` HTML natifs (mêmes noms de champs, mêmes
-tests) — le style pilule n'est pas repris pour ces champs précis, pour ne pas ajouter
-de JavaScript ni changer la sémantique des formulaires.
+des pilules cliquables pour la priorité/les points Fibonacci dans le panneau de
+modification. L'implémentation réelle garde des `<select>` HTML natifs (mêmes noms
+de champs, mêmes tests) — le style pilule n'est pas repris pour ce champ précis, pour
+ne pas ajouter de JavaScript ni changer la sémantique du formulaire. Les tâches
+bloquantes, elles, sont passées de `<select multiple>` à des cases à cocher lors de
+la refonte GTD (Phase 4, voir « Panneau de modification d'une tâche » plus haut) — ni
+pilule ni chip à bascule, mais un HTML natif plus simple d'accès que le Ctrl-clic.
