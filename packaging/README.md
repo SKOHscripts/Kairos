@@ -17,6 +17,18 @@ L'exécutable généré : `dist/kairos` (Linux) ou `dist/kairos.exe` (Windows).
 Au lancement, il choisit un port libre à partir de 8001, ouvre le navigateur
 par défaut automatiquement, et sert Kairos comme en développement.
 
+## Vérifier qu'il démarre (smoke test)
+
+`packaging/smoke_test.py` lance l'exécutable construit et vérifie qu'il répond
+bien en HTTP, avant de le publier — `.github/workflows/release.yml` l'exécute
+automatiquement pour chaque OS juste après le build PyInstaller (échec du
+smoke test = pas de publication) :
+
+```bash
+python packaging/smoke_test.py dist/kairos        # Linux/macOS
+python packaging/smoke_test.py dist/kairos.exe    # Windows
+```
+
 ## Icône
 
 Le logo de l'application (`packaging/kairos.ico`, même dessin que

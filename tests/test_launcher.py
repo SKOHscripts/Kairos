@@ -5,6 +5,7 @@ n'est pas exercé ici."""
 from __future__ import annotations
 
 import http.server
+import os
 import socket
 import sys
 import threading
@@ -13,6 +14,7 @@ from app.launcher import (
     _clear_lock,
     _ensure_std_streams,
     _instance_already_running,
+    _open_browser,
     _pick_port,
     _port_available,
     _read_lock_port,
@@ -120,3 +122,44 @@ def test_ensure_std_streams_leaves_real_streams_untouched() -> None:
 
     assert sys.stdout is real_stdout
     assert sys.stderr is real_stderr
+
+
+def test_open_browser_uses_sanitized_environment(monkeypatch) -> None:
+    """Régression Linux : PyInstaller (onefile) détourne LD_LIBRARY_PATH vers
+    ses bibliothèques embarquées, ce qu'hériterait le navigateur/`xdg-open`
+    lancé par `webbrowser.open` sans cette précaution (voir
+    `app/subprocess_env.py` pour le détail du bug, `rl_print_keybinding`)."""
+    monkeypatch.delenv("KAIROS_NO_BROWSER", raising=False)
+    monkeypatch.setenv("LD_LIBRARY_PATH", "/tmp/_MEIxxxxxx")
+    monkeypatch.delenv("LD_LIBRARY_PATH_ORIG", raising=False)
+    seen = {}
+
+    def fake_open(url):
+        seen["LD_LIBRARY_PATH"] = os.environ.get("LD_LIBRARY_PATH")
+        return True
+
+    monkeypatch.setattr("app.launcher.webbrowser.open", fake_open)
+
+    _open_browser("http://127.0.0.1:8001")
+
+    assert seen["LD_LIBRARY_PATH"] is None
+    # L'environnement du process est restauré après l'appel.
+    assert os.environ["LD_LIBRARY_PATH"] == "/tmp/_MEIxxxxxx"
+
+
+def test_open_browser_skips_when_disabled_via_env(monkeypatch) -> None:
+    """KAIROS_NO_BROWSER (voir packaging/smoke_test.py) : les lancements
+    automatisés ne doivent pas faire apparaître un vrai navigateur."""
+    monkeypatch.setenv("KAIROS_NO_BROWSER", "1")
+    called = False
+
+    def fake_open(url):
+        nonlocal called
+        called = True
+        return True
+
+    monkeypatch.setattr("app.launcher.webbrowser.open", fake_open)
+
+    _open_browser("http://127.0.0.1:8001")
+
+    assert called is False

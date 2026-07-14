@@ -111,6 +111,25 @@ def test_returns_empty_string_for_url_without_host(monkeypatch) -> None:
     assert called["run"] is False
 
 
+def test_git_credential_fill_sanitizes_ld_library_path(monkeypatch) -> None:
+    """Régression Linux : `git credential fill` délègue au helper configuré via
+    un `sh -c` interne, qui hériterait sinon du `LD_LIBRARY_PATH` détourné par
+    PyInstaller (mode onefile) vers ses propres bibliothèques embarquées."""
+    monkeypatch.setenv("LD_LIBRARY_PATH", "/tmp/_MEIxxxxxx")
+    monkeypatch.delenv("LD_LIBRARY_PATH_ORIG", raising=False)
+    captured = {}
+
+    def run(cmd, input, env, **kwargs):
+        captured["env"] = env
+        return subprocess.CompletedProcess(cmd, 0, stdout="password=xyz\n", stderr="")
+
+    monkeypatch.setattr(git_credentials.subprocess, "run", run)
+
+    git_credentials.resolve_gitlab_token("https://gitlab.example.com")
+
+    assert "LD_LIBRARY_PATH" not in captured["env"]
+
+
 def test_result_is_cached_per_url(monkeypatch) -> None:
     calls = {"count": 0}
 
