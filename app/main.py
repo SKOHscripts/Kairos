@@ -113,7 +113,7 @@ def _optional_int(value: str | None) -> int | None:
 def _matches_query(task: Task, q: str) -> bool:
     """Recherche par mot-clé (issue #15.4) : sous-chaîne insensible à la casse sur le
     titre, la description ou le projet. Filtre d'affichage seul — ne touche jamais à
-    l'ordonnancement (voir `_render_kairos`)."""
+    l'ordonnancement (voir `_build_kairos_context`)."""
     if not q:
         return True
     haystack = " ".join(
@@ -264,7 +264,7 @@ def _fetch_busy_blocks(
     """Blocs manuels (base) + TimeTree (best-effort), fusionnés sur ``[range_start, range_end]``.
 
     Ne filtre PAS journée entière/période ici : chaque appelant décide comment traiter
-    ces cas particuliers (voir ``_render_kairos``). Les blocs récurrents (phase 13)
+    ces cas particuliers (voir ``_build_kairos_context``). Les blocs récurrents (phase 13)
     sont stockés comme un modèle unique (jamais un par occurrence) : projetés à la
     volée sur la plage demandée par ``expand_recurring_blocks``, jamais persistés.
     """
@@ -301,7 +301,7 @@ def _build_week_view(
 ) -> list[dict]:
     """Grille 7 jours : tâches groupées par ``deadline``, blocs horaires du jour, et
     événements « journée entière » ou « sur une période » en puces (jamais posés comme
-    des créneaux — voir ``_render_kairos``). ``done_tasks`` (issue #15.7) : tâches
+    des créneaux — voir ``_build_kairos_context``). ``done_tasks`` (issue #15.7) : tâches
     terminées de la semaine, groupées par jour de complétion (``updated_at``, même
     convention que ``done_today``) — la vue « semaine » montre ainsi à la fois ce qui
     vient de se faire et ce qui reste à faire."""
@@ -329,15 +329,18 @@ def _build_week_view(
     return week
 
 
-def _render_kairos(
+def _build_kairos_context(
     request: Request,
     tasks_session: Session,
     pilotage_session: Session | None,
     *,
     view: str = "day",
     day: date | None = None,
-) -> HTMLResponse:
-    """« Kairos » : tâches ordonnées par urgence, compte tenu des créneaux occupés.
+) -> dict:
+    """« Kairos » : construit le contexte de rendu (tâches ordonnées par urgence,
+    compte tenu des créneaux occupés) — utilisé aussi bien pour la page pleine
+    (``kairos.html``) que pour le partiel de la vue jour (``_kairos_day.html``,
+    voir ``render_kairos_response``).
 
     Best-effort sur les sources externes (TimeTree, GitLab) : un échec se traduit
     par un bandeau d'avertissement dans le template, jamais par une page en erreur
@@ -759,11 +762,20 @@ def _render_kairos(
             timetree_detail=timetree_result.detail,
         )
 
-    return templates.TemplateResponse(request, "kairos.html", context)
+    return context
 
 
-@app.get("/kairos")
-def kairos(request: Request) -> HTMLResponse:
+def render_kairos_response(request: Request, *, fragment: bool) -> Response:
+    """Point d'entrée unique de rendu de la vue Kairos, ouvrant les DEUX sessions
+    (tâches + pilotage) comme le faisait ``kairos()`` — voir ``_build_kairos_context``.
+
+    ``fragment=False`` rend la page pleine (``kairos.html``, comportement historique) ;
+    ``fragment=True`` rend seulement le partiel de la vue jour (``_kairos_day.html``,
+    id ``#mj-day-content``), utilisé par les handlers d'action pour l'amélioration
+    progressive AJAX (voir Étape C du guide d'exécution). Les handlers d'action
+    doivent committer et FERMER leur propre session tâches avant d'appeler cette
+    fonction, qui rouvre des sessions fraîches : ne jamais imbriquer les sessions.
+    """
     view = request.query_params.get("view", "day")
     start = request.query_params.get("start")
     day = date.fromisoformat(start) if start else None
@@ -771,7 +783,16 @@ def kairos(request: Request) -> HTMLResponse:
         _request_session(get_tasks_session) as tasks_session,
         _request_session(get_pilotage_session) as pilotage_session,
     ):
-        return _render_kairos(request, tasks_session, pilotage_session, view=view, day=day)
+        context = _build_kairos_context(
+            request, tasks_session, pilotage_session, view=view, day=day
+        )
+        template_name = "_kairos_day.html" if fragment else "kairos.html"
+        return templates.TemplateResponse(request, template_name, context)
+
+
+@app.get("/kairos")
+def kairos(request: Request) -> HTMLResponse:
+    return render_kairos_response(request, fragment=False)
 
 
 @app.get("/kairos/stats")
