@@ -3,9 +3,12 @@ package com.skohscripts.kairos;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -53,7 +56,21 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         webView.getSettings().setJavaScriptEnabled(true);   // chrono vivant, alertes
         webView.getSettings().setDomStorageEnabled(true);
-        webView.setWebViewClient(new WebViewClient());      // navigation interne, pas de navigateur externe
+        webView.setWebViewClient(new WebViewClient() {
+            // Issue #14 : Google refuse son écran de consentement OAuth dans une
+            // WebView embarquée (`disallowed_useragent`). Seul le loopback local
+            // (127.0.0.1, le serveur Kairos) reste dans la WebView ; tout autre host
+            // (accounts.google.com...) s'ouvre dans le navigateur système.
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Uri uri = request.getUrl();
+                if ("127.0.0.1".equals(uri.getHost())) {
+                    return false;
+                }
+                startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                return true;
+            }
+        });
         webView.setWebChromeClient(new WebChromeClient() {
             // Sans WebChromeClient, le WebView système n'affiche jamais les dialogues
             // JS confirm()/alert() : confirm() résout silencieusement à false, donc les

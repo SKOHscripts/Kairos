@@ -86,6 +86,19 @@ Points notables :
   (`kairos-android-permission-changed`) redéclenché depuis
   `onRequestPermissionsResult`, faute de canal message natif→JS synchrone sans
   AndroidX.
+- **Google Calendar via navigateur système (issue #14)** : Google refuse son
+  écran de consentement OAuth dans une WebView embarquée
+  (`disallowed_useragent`). `MainActivity` surcharge
+  `WebViewClient#shouldOverrideUrlLoading` : tout host qui n'est pas
+  `127.0.0.1` (le serveur Kairos lui-même) est ouvert dans le navigateur
+  système via un `Intent(ACTION_VIEW)` ; la navigation loopback reste dans la
+  WebView, inchangée. **Limite v1** : le retour de Google
+  (`http://127.0.0.1:<port>/kairos/settings/google/callback`) atterrit donc
+  dans le navigateur externe, pas dans la WebView — l'échange de jeton aboutit
+  quand même (même serveur local, même appareil), mais l'utilisateur doit
+  revenir manuellement sur Kairos ensuite. Pas de deep link/intent-filter
+  personnalisé pour rester sans AndroidX et sans complexité de manifeste
+  supplémentaire.
 
 ## Build
 

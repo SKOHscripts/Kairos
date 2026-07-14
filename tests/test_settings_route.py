@@ -2,11 +2,21 @@
 
 from __future__ import annotations
 
+import httpx
 import pytest
+import respx
 from starlette.testclient import TestClient
 
 from app import main
+from app.calendar import google_oauth
 from app.config import get_settings
+
+
+@pytest.fixture(autouse=True)
+def _clear_google_oauth_pending():
+    google_oauth._pending.clear()
+    yield
+    google_oauth._pending.clear()
 
 
 @pytest.fixture
@@ -125,6 +135,65 @@ def test_keyring_unavailable_shows_warning_banner(settings_client, monkeypatch) 
     assert "Trousseau système indisponible" in page.text
 
 
+def test_google_calendar_connect_redirects_to_google(settings_client, monkeypatch) -> None:
+    _use_fake_keyring(monkeypatch)
+    settings_client.post(
+        "/kairos/settings",
+        data=_full_form(google_client_id="cid", google_client_secret="csecret"),
+        follow_redirects=False,
+    )
+    get_settings.cache_clear()
+
+    resp = settings_client.get("/kairos/settings/google/connect", follow_redirects=False)
+
+    assert resp.status_code == 303
+    location = resp.headers["location"]
+    assert location.startswith("https://accounts.google.com/o/oauth2/v2/auth?")
+    assert "client_id=cid" in location
+
+
+@respx.mock
+def test_google_calendar_callback_success_persists_refresh_token(settings_client, monkeypatch) -> None:
+    _use_fake_keyring(monkeypatch)
+    settings_client.post(
+        "/kairos/settings",
+        data=_full_form(google_client_id="cid", google_client_secret="csecret"),
+        follow_redirects=False,
+    )
+    get_settings.cache_clear()
+    connect_resp = settings_client.get("/kairos/settings/google/connect", follow_redirects=False)
+    state = connect_resp.headers["location"].split("state=")[1].split("&")[0]
+    respx.post("https://oauth2.googleapis.com/token").mock(
+        return_value=httpx.Response(200, json={"access_token": "at", "refresh_token": "rt"})
+    )
+
+    resp = settings_client.get(
+        "/kairos/settings/google/callback", params={"code": "auth-code", "state": state},
+    )
+
+    assert resp.status_code == 200
+    assert "connecté avec succès" in resp.text
+    get_settings.cache_clear()
+    assert get_settings().google_refresh_token == "rt"
+
+
+def test_google_calendar_callback_shows_error_from_google(settings_client) -> None:
+    resp = settings_client.get("/kairos/settings/google/callback", params={"error": "access_denied"})
+
+    assert resp.status_code == 200
+    assert "Échec de la connexion" in resp.text
+    assert "access_denied" in resp.text
+
+
+def test_google_calendar_callback_rejects_unknown_state(settings_client) -> None:
+    resp = settings_client.get(
+        "/kairos/settings/google/callback", params={"code": "auth-code", "state": "unknown"},
+    )
+
+    assert resp.status_code == 200
+    assert "Échec de la connexion" in resp.text
+
+
 def _use_fake_keyring(monkeypatch) -> dict[str, str]:
     """Trousseau système simulé (dict en mémoire) — un vrai `get_password` doit
     retrouver ce qu'un `set_password` précédent a stocké, sinon les tests de
@@ -161,6 +230,10 @@ def _full_form(**overrides: str) -> dict[str, str]:
         "timetree_password": "",
         "timetree_calendar_code": "",
         "timetree_cache_ttl_minutes": "30",
+        "google_client_id": "",
+        "google_client_secret": "",
+        "google_calendar_ids": "",
+        "google_cache_ttl_minutes": "30",
         "default_task_duration_minutes": "30",
         "meeting_buffer_minutes": "5",
         "workday_start_hour": "9",

@@ -90,6 +90,28 @@ def test_timetree_configured_false_when_only_email_set() -> None:
     assert Settings(timetree_email="a@b.com").timetree_configured is False
 
 
+def test_google_calendar_id_list_splits_and_strips() -> None:
+    settings = Settings(google_calendar_ids=" primary , equipe@group.calendar.google.com ,,")
+    assert settings.google_calendar_id_list == ["primary", "equipe@group.calendar.google.com"]
+
+
+def test_google_calendar_configured_false_by_default() -> None:
+    assert Settings().google_calendar_configured is False
+
+
+def test_google_calendar_configured_true_when_fully_set() -> None:
+    settings = Settings(
+        google_client_id="id", google_client_secret="secret",
+        google_refresh_token="token", google_calendar_ids="primary",
+    )
+    assert settings.google_calendar_configured is True
+
+
+def test_google_calendar_configured_false_without_calendar_ids() -> None:
+    settings = Settings(google_client_id="id", google_client_secret="secret", google_refresh_token="token")
+    assert settings.google_calendar_configured is False
+
+
 def test_wsjf_defaults() -> None:
     settings = Settings()
     assert settings.priority_value_base == 4.0
