@@ -402,13 +402,14 @@ summary:focus-visible,
 
 /* Progression du jour : élément principal de la vue Jour — exception assumée et
    scopée à cette seule carte au reste de la charte (accent unique bleu, pas de
-   dégradé, une seule police) : aplat terracotta et registre Newsreader italique
-   repris tels quels de l'ancienne charte, pour la mettre en avant. Ne pas
-   généraliser cette teinte/police ailleurs (badges, boutons, autres titres...). */
+   dégradé, une seule police) : même traitement que .mj-to-process (« À traiter »,
+   ci-dessus) — fond crème + puce ambre à gauche — et registre Newsreader italique
+   repris tel quel de l'ancienne charte, pour la mettre en avant. Ne pas généraliser
+   cette teinte/police ailleurs (badges, boutons, autres titres...). Classes fusionnées
+   avec .card (pas de <div> imbriqué) pour que le fond suive les coins arrondis.  */
 .mj-progress {
   padding: 0.95rem 1.2rem; display: flex; flex-direction: column; gap: 0.5rem;
-  background: #F7DDC8;
-  border-color: #EFCDA9;
+  background: #FFFAF1; border-left: 3px solid var(--warn-fg);
 }
 .mj-next {
   font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 500;

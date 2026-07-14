@@ -32,10 +32,12 @@ aux deux seuls badges « clés » : score WSJF (`.badge.mj-score`) et priorité
 
 **Exception assumée, scopée à une seule carte** : `.mj-progress` (« Progression du
 jour », élément principal de la vue Jour, toujours dépliée — plus un `<details>`
-repliable comme le reste des sections de la page, mais un `<div class="card">` fixe)
-garde un aplat terracotta — `#F7DDC8`, bordure `#EFCDA9` — même famille de couleur que
-le logo, pour se démarquer visuellement. Décision produit délibérée, à ne pas
-généraliser à d'autres cartes/badges ni « corriger » vers bleu/neutre.
+repliable comme le reste des sections de la page, mais un `<div class="card
+mj-progress">` fixe, classes fusionnées sur le même élément pour que le fond suive les
+coins arrondis) reprend le traitement de `.mj-to-process` (section « À traiter » de la
+vue Jour, `templates/kairos.html`) : fond crème `#FFFAF1` + puce ambre `border-left:
+3px solid var(--warn-fg)`. Décision produit délibérée, à ne pas généraliser à d'autres
+cartes/badges ni « corriger » vers bleu/neutre.
 
 ### Badges sémantiques (pilules, `border-radius: 999px`)
 

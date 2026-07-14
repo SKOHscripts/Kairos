@@ -357,8 +357,7 @@
 {# --- Progression du jour : où j'en suis, ce qui vient, est-ce que ça déborde.
      Élément principal de la vue Jour : toujours affichée, non repliable
      (contrairement au reste des sections de cette page). --- #}
-<div class="card">
-  <div class="mj-progress">
+<div class="card mj-progress">
   {% if next_up_task %}
   <div class="mj-next">{{ icon('chevron_right') }} <strong>À faire maintenant :</strong>
     {{ next_up_task.title }}{% if next_up_time %} <span class="muted">({{ next_up_time.strftime('%Hh%M') }})</span>{% endif %}</div>
@@ -389,7 +388,6 @@
        data-pomodoro="{{ settings.pomodoro_focus_minutes }}">
     <button type="button" class="btn sm" id="mj-alert-enable" hidden>{{ icon('clock') }} Activer les alertes chrono</button>
     <span class="muted" id="mj-alert-status" hidden></span>
-  </div>
   </div>
 </div>
 

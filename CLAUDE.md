@@ -19,10 +19,12 @@ complet : `docs/DESIGN_SYSTEM.md` (mêmes noms de classes/variables que
 - Un seul thème clair — pas de mode sombre.
 - **Exception assumée** : la carte « Progression du jour » (`.mj-progress`,
   élément principal de la vue Jour, toujours dépliée — pas de `<details>`,
-  jamais repliable) garde un aplat terracotta doux (`#F7DDC8` / bordure
-  `#EFCDA9`, même famille que le logo) pour se distinguer — décision produit
-  explicite, à ne pas « corriger » vers le neutre/bleu. Ne pas étendre cette
-  teinte à d'autres cartes ou badges.
+  jamais repliable) reprend le traitement de `.mj-to-process` (« À traiter ») :
+  fond crème `#FFFAF1` + puce ambre `border-left: 3px solid var(--warn-fg)` —
+  décision produit explicite, à ne pas « corriger » vers le neutre/bleu. Les
+  classes `.card` et `.mj-progress` sont fusionnées sur le même élément (pas
+  de `<div>` imbriqué) pour que le fond suive les coins arrondis de la carte.
+  Ne pas étendre cette teinte à d'autres cartes ou badges.
 
 ## Typographie
 - IBM Plex Sans (400/500/600/700) partout, y compris les nombres
