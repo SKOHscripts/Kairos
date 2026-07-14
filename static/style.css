@@ -580,19 +580,15 @@ summary:focus-visible,
 .formula-legend dd { margin: 0; font-size: 12.5px; color: var(--text-2); }
 .formula-legend sup { font-size: 0.75em; }
 
-.home-layout { display: grid; grid-template-columns: 1fr 230px; gap: 1.3rem; align-items: start; }
-@media (max-width: 960px) { .home-layout { grid-template-columns: 1fr; } }
+/* Une seule mise en page, identique petit/grand écran : colonne unique centrée à
+   une largeur de lecture confortable (proche des 74ch déjà utilisés pour le
+   paragraphe du hero) — occupe toute la largeur disponible en dessous de 760px. */
+.home-content { max-width: 760px; margin: 0 auto; }
 
-/* Deux rendus du sommaire (issue #13.5) : la copie « sidebar », sticky, réservée au
-   desktop ; la copie « inline », intercalée dans le README rendu juste après la
-   section « En bref » (voir _render_readme), réservée au mobile — jamais les deux à
-   la fois, pour ne pas dupliquer visuellement le sommaire sur un même écran. */
-.home-toc-sidebar { position: sticky; top: 128px; }
-.home-toc-inline { display: none; margin: 1.3rem 0; }
-@media (max-width: 960px) {
-  .home-toc-sidebar { display: none; }
-  .home-toc-inline { display: block; }
-}
+/* Sommaire (issue #13.5) : une seule occurrence dans le flux, juste après la
+   section « En bref » du README rendu (voir _render_readme) — plus de copie
+   sidebar/inline distincte selon le viewport. */
+.home-toc { margin: 1.3rem 0; }
 .home-toc h2 { margin: 0 0 0.6rem; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 0.45rem; }
 .home-toc h2 .ico { color: var(--text-3); font-size: 15px; }
 .home-toc-list, .home-toc-list ul { list-style: none; margin: 0; padding: 0; }
@@ -602,11 +598,11 @@ summary:focus-visible,
   font-size: 12px; color: var(--text-2); }
 .home-toc-list a:hover { background: var(--surface-tint); color: var(--text); text-decoration: none; }
 
-/* README rendu (markdown → HTML, voir _render_readme()) : remplit sa colonne de
-   grille (`.home-layout`, 1fr à côté du sommaire de 230px), texte compris. Coupé en
-   deux `.prose` (intro/reste, voir home.html) à l'intérieur d'un même `.prose-wrap` :
-   le padding vertical ne va qu'aux bords EXTÉRIEURS du wrapper, pas à la coupure
-   interne (où s'intercale le sommaire mobile). */
+/* README rendu (markdown → HTML, voir _render_readme()) : remplit la colonne
+   unique `.home-content`, texte compris. Coupé en deux `.prose` (intro/reste,
+   voir home.html) à l'intérieur d'un même `.prose-wrap` : le padding vertical ne
+   va qu'aux bords EXTÉRIEURS du wrapper, pas à la coupure interne (où s'intercale
+   le sommaire). */
 .prose-wrap { min-width: 0; }
 .prose { padding: 0 1.9rem; min-width: 0; }
 .prose:first-child { padding-top: 1.6rem; }

@@ -211,13 +211,12 @@ def spec_kairos(request: Request) -> FileResponse:
 def _render_readme() -> tuple[str, str, list[dict]]:
     """Rend ``README.md`` en HTML pour la page d'accueil : source **unique**, jamais
     dupliquée à la main — toute modification du README y apparaît sans autre effort.
-    Le sommaire (``toc_tokens``) alimente la navigation latérale de la page.
+    Le sommaire (``toc_tokens``) alimente la navigation de la page.
 
     Le HTML est coupé en deux juste avant le second H2 (donc juste après la section
-    « En bref ») : sur mobile (issue #13.5), le sommaire s'intercale entre les deux
-    morceaux — juste après « En bref », pas avant tout l'article — alors que sur
-    desktop les deux morceaux se recollent visuellement en un article continu, le
-    sommaire restant dans sa colonne latérale."""
+    « En bref ») : le sommaire s'intercale entre les deux morceaux — juste après
+    « En bref », pas avant tout l'article (issue #13.5) — dans une mise en page
+    unique, identique quelle que soit la taille d'écran (voir home.html)."""
     converter = markdown.Markdown(
         extensions=["extra", "sane_lists", "toc"],
         extension_configs={"toc": {"permalink": False}},
