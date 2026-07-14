@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Kairos</string>
+    <string name="notification_channel_name">Alertes chrono</string>
+    <string name="notification_channel_description">Dépassement d\'estimé, chrono oublié, rappel de pause pendant une tâche en cours.</string>
 </resources>

@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     private static int serverPort = -1;
 
     private WebView webView;
+    private KairosNotificationBridge notificationBridge;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -80,6 +81,10 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
+
+        notificationBridge = new KairosNotificationBridge(this, webView);
+        webView.addJavascriptInterface(notificationBridge, "KairosAndroid");
+
         setContentView(webView);
 
         loadWhenServerReady();
@@ -118,6 +123,15 @@ public class MainActivity extends Activity {
             webView.goBack();
         } else {
             super.onBackPressed();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == KairosNotificationBridge.REQUEST_CODE_POST_NOTIFICATIONS
+                && notificationBridge != null) {
+            notificationBridge.notifyPermissionChanged();
         }
     }
 }
