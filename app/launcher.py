@@ -45,6 +45,7 @@ import uvicorn
 # ou le `.pth` du mode editable).
 from app.main import app
 from app.settings_store import data_dir
+from app.subprocess_env import external_process_environ
 
 _DEFAULT_PORT = 8001
 _HOST = "127.0.0.1"  # jamais 0.0.0.0 : contrairement au service systemd (exposé
@@ -64,8 +65,16 @@ def _pick_port(preferred: int = _DEFAULT_PORT, tries: int = 20) -> int:
     return preferred  # aucun port libre trouvé : laisse uvicorn échouer avec une erreur claire
 
 
+def _open_browser(url: str) -> None:
+    # `external_process_environ()` : voir `app/subprocess_env.py` — évite
+    # qu'un navigateur/`xdg-open` lancé par PyInstaller (mode onefile) hérite
+    # du `LD_LIBRARY_PATH` détourné vers ses bibliothèques embarquées.
+    with external_process_environ():
+        webbrowser.open(url)
+
+
 def _open_browser_later(url: str, delay: float = 1.2) -> None:
-    threading.Timer(delay, lambda: webbrowser.open(url)).start()
+    threading.Timer(delay, lambda: _open_browser(url)).start()
 
 
 def _lock_path():
@@ -139,7 +148,7 @@ def main() -> None:
         # Une instance tourne déjà (le cas courant si l'utilisateur a relancé
         # l'exécutable sans avoir cliqué « Quitter ») : on la rouvre, sans
         # démarrer un second serveur ni consommer un nouveau port.
-        webbrowser.open(f"http://{_HOST}:{existing_port}")
+        _open_browser(f"http://{_HOST}:{existing_port}")
         return
 
     try:

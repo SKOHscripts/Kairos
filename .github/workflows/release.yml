@@ -27,6 +27,15 @@ jobs:
       - name: Construire l'exécutable (PyInstaller)
         run: pyinstaller packaging/kairos.spec --distpath dist --noconfirm
 
+      - name: Vérifier que l'exécutable démarre (smoke test)
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            python packaging/smoke_test.py dist/kairos.exe
+          else
+            python packaging/smoke_test.py dist/kairos
+          fi
+
       - name: Nommer l'artefact par OS
         shell: bash
         run: |

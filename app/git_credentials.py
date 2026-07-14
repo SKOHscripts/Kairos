@@ -18,23 +18,28 @@ traîne. Aucune exception ne remonte — absence de jeton = chaîne vide, comme
 from __future__ import annotations
 
 import netrc
-import os
 import subprocess
 from functools import lru_cache
 from urllib.parse import urlparse
+
+from app.subprocess_env import external_process_env
 
 
 def _git_credential_fill(url: str, host: str) -> str | None:
     scheme = urlparse(url).scheme or "https"
     request = f"protocol={scheme}\nhost={host}\n\n"
     try:
+        # `external_process_env()` (voir app/subprocess_env.py) : `git`
+        # délègue au helper de credential.helper via un `sh -c` interne, qui
+        # hériterait sinon du `LD_LIBRARY_PATH` détourné par PyInstaller vers
+        # ses propres bibliothèques embarquées (mode onefile).
         result = subprocess.run(
             ["git", "credential", "fill"],
             input=request,
             capture_output=True,
             text=True,
             timeout=5,
-            env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
+            env={**external_process_env(), "GIT_TERMINAL_PROMPT": "0"},
         )
     except (OSError, subprocess.TimeoutExpired):
         return None
