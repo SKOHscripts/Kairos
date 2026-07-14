@@ -1,54 +1,57 @@
 /* =========================================================================
-   Kairos — Design system « appli perso chaleureuse »
-   Palette papier chaud (ivoire) + terracotta · Figtree + Newsreader
-   Voir docs/DESIGN_SYSTEM.md pour la table de correspondance des tokens.
+   Kairos — Design system « sobre & professionnel »
+   Palette ardoise (slate) + un seul accent bleu, réservé aux actions et aux
+   signaux clés (score WSJF, priorité, CTA). IBM Plex Sans, densité inchangée.
+   Remplace static/style.css 1:1 (mêmes noms de classes/variables).
    ========================================================================= */
 
 :root {
-  /* Surfaces & texte (papier chaud) */
-  --bg:            #FBF6EE;
+  /* Surfaces & texte (ardoise neutre) */
+  --bg:            #F3F5F8;
   --surface:       #FFFFFF;
-  --surface-tint:  #FBEEDF;
-  --border:        #EAE0D2;
-  --border-strong: #E7B27E;
-  --text:          #2B241E;
-  --text-2:        #6E6155;
-  --text-3:        #A0917F;
-  --text-inverse:  #FBF6EE;
+  --surface-tint:  #EEF2FA;
+  --border:        #E2E6EB;
+  --border-strong: #C9D2DC;
+  --text:          #16202B;
+  --text-2:        #55606D;
+  --text-3:        #8A94A0;
+  --text-inverse:  #F5F6F8;
 
-  /* Accent primaire (terracotta) — seul accent transverse de l'appli. */
-  --accent:      #D9713C;
-  --accent-700:  #B85A2A;
-  --accent-soft: #F7DDC8;
-  --accent-line: #EFCDA9;
+  /* Accent primaire (bleu) — seul accent transverse, réservé aux CTA et aux
+     signaux clés (score WSJF, priorité). Tout le reste reste en gris. */
+  --accent:      #2F6FED;
+  --accent-700:  #2557C0;
+  --accent-soft: #E4ECFB;
+  --accent-line: #C7D8F7;
 
-  /* Lien / focus — reprend l'accent, pas de bleu. */
-  --link:  #B85A2A;
-  --focus: rgba(184, 90, 42, 0.28);
+  /* Lien / focus — reprend l'accent. */
+  --link:  #2557C0;
+  --focus: rgba(47, 111, 237, 0.25);
 
   /* Surface sombre (carte « en ce moment », pilule nav active). */
-  --dark-surface: #2B241E;
-  --dark-text:    #FBF6EE;
-  --dark-muted:   #C9B8A5;
-  --dark-accent:  #F0A868;
+  --dark-surface: #16202B;
+  --dark-text:    #F5F6F8;
+  --dark-muted:   #97A1AE;
+  --dark-accent:  #7FA8FF;
 
-  /* Badges sémantiques (fond doux + texte lisible, faible chroma). */
-  --prio-bg: #EFE4F2; --prio-fg: #7A5E86; /* priorité */
-  --ok-bg:   #E3EEDD; --ok-fg:   #57845A; /* deep work / ok / fait */
-  --bad-bg:  #F8DED5; --bad-fg:  #C1503A; /* urgent / critique / erreur */
-  --neu-bg:  #F1E6D6; --neu-fg:  #6E6155; /* neutre / tag projet */
-  --info-bg: #FBEEDF; --info-fg: #B85A2A; /* info / avertissement */
-  --warn-bg: #FBEEDF; --warn-fg: #B85A2A; /* alias de info : un seul ton chaud */
+  /* Badges sémantiques (fond doux + texte lisible, faible chroma). Priorité et
+     score partagent l'accent (seuls signaux "clés" à porter la couleur). */
+  --prio-bg: #E4ECFB; --prio-fg: #2557C0; /* priorité */
+  --ok-bg:   #E1F3E7; --ok-fg:   #1F7A46; /* deep work / ok / fait */
+  --bad-bg:  #FBE4E1; --bad-fg:  #B3261E; /* urgent / critique / erreur */
+  --neu-bg:  #EEF1F4; --neu-fg:  #55606D; /* neutre / tag projet / info */
+  --info-bg: #EEF1F4; --info-fg: #55606D; /* info neutre (pas d'accent) */
+  --warn-bg: #FDF0D8; --warn-fg: #92660A; /* avertissement (ambre, distinct du rouge) */
 
-  --c-done: #57845A;
+  --c-done: #1F7A46;
 
-  --r-xl: 20px;  /* bandeaux d'accueil, carte « en ce moment » */
-  --r:    16px;  /* cartes / panneaux */
-  --r-md: 14px;  /* cartes imbriquées (tâche, jour de semaine, agenda) */
-  --r-sm: 10px;  /* contrôles (boutons, champs, icônes) */
+  --r-xl: 12px;  /* bandeaux d'accueil, carte « en ce moment » */
+  --r:    10px;  /* cartes / panneaux */
+  --r-md: 8px;   /* cartes imbriquées (tâche, jour de semaine, agenda) */
+  --r-sm: 6px;   /* contrôles (boutons, champs, icônes) */
   --r-pill: 999px;
 
-  --shadow-pop: 0 16px 40px rgba(43, 36, 30, 0.18);
+  --shadow-pop: 0 20px 45px rgba(15, 23, 32, 0.16);
 }
 
 * { box-sizing: border-box; }
@@ -57,9 +60,9 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  font-family: "Figtree", -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 13.5px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -84,11 +87,13 @@ code {
 
 .ico { width: 1em; height: 1em; display: inline-block; vertical-align: -0.13em; flex: none; }
 
-/* --- Accroche éditoriale : Newsreader italique, jamais pour du texte fonctionnel. --- */
+/* --- Accroche éditoriale : anciennement Newsreader italique. Un design sobre
+   n'a pas de registre décoratif séparé : même police, poids 600, jamais
+   d'italique. Conservée pour compatibilité de nommage uniquement. --- */
 .editorial {
-  font-family: "Newsreader", Georgia, serif;
-  font-style: italic;
-  font-weight: 500;
+  font-family: inherit;
+  font-style: normal;
+  font-weight: 600;
 }
 
 /* =========================================================================
@@ -100,16 +105,16 @@ code {
   position: sticky; top: 0; z-index: 40;
   display: flex; align-items: center; gap: 14px;
   padding: 0.7rem 1.6rem;
-  background: rgba(251, 246, 238, 0.88); backdrop-filter: blur(10px);
+  background: rgba(243, 245, 248, 0.92); backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
 }
 .tn-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
 .tn-logo { flex: none; display: block; line-height: 0; }
 .tn-titles { min-width: 0; line-height: 1.15; }
-.tn-app { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; color: var(--text); }
-.tn-sub { font-size: 10.5px; color: var(--text-3); font-weight: 500; white-space: nowrap; }
+.tn-app { font-size: 15.5px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+.tn-sub { font-size: 10px; color: var(--text-3); font-weight: 500; white-space: nowrap; }
 
-.tn-nav { display: flex; align-items: center; gap: 4px; margin-left: 1.1rem; flex-wrap: wrap; }
+.tn-nav { display: flex; align-items: center; gap: 3px; margin-left: 1rem; flex-wrap: wrap; }
 .tn-quit { margin-left: auto; }
 .tn-item {
   display: flex; align-items: center; gap: 6px;
@@ -122,13 +127,12 @@ code {
 .tn-item.active:hover { background: var(--dark-surface); }
 .tn-item .ico { display: none; } /* la pilule seule suffit à distinguer la page active */
 
-/* Sous-en-tête de page : titre + actions contextuelles (vue jour/semaine, retour…). */
 .content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .topbar {
-  position: sticky; top: 53px; z-index: 20;
+  position: sticky; top: 52px; z-index: 20;
   display: flex; align-items: center; gap: 1rem;
   padding: 0.7rem 1.6rem;
-  background: rgba(251, 246, 238, 0.88); backdrop-filter: blur(10px);
+  background: rgba(243, 245, 248, 0.92); backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
 }
 .topbar h1 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
@@ -138,17 +142,19 @@ code {
 .page { padding: 1.35rem 1.6rem 2.6rem; max-width: 1400px; width: 100%; margin: 0 auto; }
 
 /* =========================================================================
-   Bannières
+   Bannières — plates, pas de dégradé
    ========================================================================= */
 .banner {
   display: flex; gap: 0.6rem; align-items: flex-start;
-  padding: 0.75rem 1rem; border-radius: var(--r-md); margin-bottom: 1.1rem;
-  font-size: 12.5px; background: var(--info-bg); color: var(--info-fg);
-  border: 1px solid var(--accent-line);
+  padding: 0.7rem 0.9rem; border-radius: var(--r-md); margin-bottom: 1.1rem;
+  font-size: 12.5px; background: var(--neu-bg); color: var(--text-2);
+  border: 1px solid var(--border);
 }
 .banner .ico { font-size: 16px; margin-top: 1px; }
 .banner.warning { background: var(--bad-bg); color: var(--bad-fg);
   border-color: color-mix(in srgb, var(--bad-fg) 22%, transparent); }
+.banner.success { background: var(--ok-bg); color: var(--ok-fg);
+  border-color: color-mix(in srgb, var(--ok-fg) 22%, transparent); }
 .banner a { color: inherit; text-decoration: underline; font-weight: 600; }
 
 /* =========================================================================
@@ -175,21 +181,22 @@ code {
 
 /* bouton-icône nu (actions de ligne) */
 .icbtn {
-  display: inline-grid; place-items: center; width: 30px; height: 30px;
+  display: inline-grid; place-items: center; width: 28px; height: 28px;
   border: 1px solid var(--border); border-radius: var(--r-sm);
-  background: none; color: var(--text-3); cursor: pointer; font-size: 15px;
+  background: none; color: var(--text-3); cursor: pointer; font-size: 14px;
 }
 .icbtn:hover { background: var(--surface-tint); color: var(--text); border-color: var(--border-strong); }
 .icbtn.danger:hover { background: var(--bad-bg); color: var(--bad-fg); border-color: var(--bad-fg); }
 
 select, input[type="text"], input[type="number"], input[type="date"],
-input[type="time"], input[type="datetime-local"], textarea {
+input[type="time"], input[type="datetime-local"], input[type="search"],
+input[type="password"], textarea {
   padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: var(--r-sm);
   font: inherit; font-size: 12.5px; color: var(--text); background: var(--surface);
   transition: border-color .12s, box-shadow .12s;
 }
 select { padding-right: 1.7rem; appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16' fill='none' stroke='%23A0917F' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3 5.5 8 10.5 13 5.5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16' fill='none' stroke='%238A94A0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3 5.5 8 10.5 13 5.5'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 0.55rem center; cursor: pointer; }
 input:focus, select:focus, textarea:focus {
   outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus); }
@@ -242,8 +249,8 @@ details[open] .collapser .chev { transform: rotate(90deg); }
 }
 .stat .stat-num { font-weight: 800; font-size: 18px; color: var(--text); letter-spacing: -0.01em; }
 .stat .muted { font-size: 11px; }
-.stat.tone-amber { background: var(--info-bg); border-color: var(--accent-line); }
-.stat.tone-amber .stat-num { color: var(--accent-700); }
+.stat.tone-amber { background: var(--warn-bg); border-color: color-mix(in srgb, var(--warn-fg) 25%, transparent); }
+.stat.tone-amber .stat-num { color: var(--warn-fg); }
 .stat.tone-red .stat-num { color: var(--bad-fg); }
 .stat.tone-green .stat-num { color: var(--ok-fg); }
 .stat .pbar { width: 64px; }
@@ -262,7 +269,8 @@ details[open] .collapser .chev { transform: rotate(90deg); }
 .inline { display: inline; margin: 0; }
 
 /* =========================================================================
-   Badges (système d'états unifié — pilules)
+   Badges (système d'états unifié — pilules). Priorité et score portent
+   l'accent (seuls signaux "clés") ; tout le reste reste gris/sémantique bas-chroma.
    ========================================================================= */
 .badge {
   display: inline-flex; align-items: center; gap: 0.25rem;
@@ -308,8 +316,11 @@ summary:focus-visible,
 
 @media (max-width: 720px) {
   .topnav { padding: 0.6rem 0.9rem; flex-wrap: wrap; }
-  .topbar { padding: 0.6rem 0.9rem; }
+  .topbar { padding: 0.6rem 0.9rem; top: 0; }
   .page { padding: 1rem 0.9rem 2rem; }
+  .tn-nav { gap: 2px; margin-left: 0; }
+  .tn-item { padding: 0.4rem 0.65rem; font-size: 12px; }
+  .tn-sub { display: none; } /* évite la surcharge de la barre sur petit écran */
 }
 
 /* =========================================================================
@@ -320,20 +331,13 @@ summary:focus-visible,
 .kairos-item { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
   padding: 0.55rem 0.8rem; border: 1px solid var(--border); border-left-width: 3px;
   border-radius: var(--r-md); background: var(--surface); }
-/* Un seul signal de couleur, réservé au palier vraiment actionnable (retard /
-   échéance atteinte) : P0 et « programmée aujourd'hui » sont déjà lisibles via
-   leurs badges texte, un second encodage par couleur n'ajoutait qu'une confusion
-   orange/rouge sans information nouvelle. Le décalage par obstacle (« pushed »)
-   fait partie du fonctionnement normal de l'algorithme de placement — expliqué
-   par son propre badge texte, pas par un encadré. */
 .kairos-item.mj-bucket-0 { border-left-color: var(--bad-fg); }
 .badge.mj-tag { background: var(--neu-bg); color: var(--neu-fg); }
-/* Score WSJF : c'est LUI qui ordonne la liste, donc mis en avant (accent). */
+/* Score WSJF : c'est LUI qui ordonne la liste, un des deux seuls badges à accent. */
 .badge.mj-score { background: var(--accent-soft); color: var(--accent-700); font-weight: 800; }
-/* Aide d'estimation Fibonacci : repliée par défaut, discrète, sous la ligne d'édition. */
 .mj-help { margin: 0.15rem 0 0.2rem; font-size: 12.5px; }
 .mj-help > summary { cursor: pointer; color: var(--accent-700); font-weight: 600; width: fit-content; }
-.mj-help-body { margin-top: 0.5rem; padding: 0.65rem 0.85rem; border: 1px solid var(--accent-line);
+.mj-help-body { margin-top: 0.5rem; padding: 0.65rem 0.85rem; border: 1px solid var(--border);
   border-radius: var(--r-md); background: var(--surface-tint); max-width: 44rem; }
 .mj-help-body p { margin: 0 0 0.5rem; color: var(--text-2); }
 .mj-help-body p:last-child { margin-bottom: 0; }
@@ -347,19 +351,18 @@ summary:focus-visible,
   gap: 0.75rem; margin-top: 0.6rem; }
 .mj-week-day { border: 1px solid var(--border); border-radius: var(--r-md); padding: 0.7rem;
   background: var(--surface); }
-.mj-week-day.today { background: var(--surface-tint); border-color: var(--accent-line); }
+.mj-week-day.today { background: #F6F9FE; border-color: var(--accent-line); }
 .mj-week-day h3 { margin: 0 0 0.45rem; font-size: 0.82rem; font-weight: 700; text-transform: capitalize; color: var(--text-2); }
 .mj-week-day .kairos-item { padding: 0.4rem 0.6rem; min-width: 0; }
 .mj-week-day .kairos-item .mj-title {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; display: block;
 }
 .mj-actions { display: inline-flex; gap: 0.3rem; }
-/* Case à cocher, en tête de ligne : coche la tâche faite / la rouvre. */
 .mj-check {
   flex: none;
-  width: 24px; height: 24px; border-radius: 50%;
+  width: 22px; height: 22px; border-radius: 50%;
   border: 2px solid var(--border-strong); background: none;
-  color: var(--ok-fg); cursor: pointer; font-size: 13px;
+  color: var(--ok-fg); cursor: pointer; font-size: 12px;
   display: inline-grid; place-items: center; padding: 0;
 }
 .mj-check:hover { border-color: var(--ok-fg); background: var(--ok-bg); }
@@ -368,28 +371,15 @@ summary:focus-visible,
 .kairos-item.mj-done .mj-title { text-decoration: line-through; }
 .mj-edit { display: contents; }
 .mj-edit-toggle { display: inline-flex; }
-/* Panneau de modification d'une tâche : présenté comme une modale centrée. Bascule
-   en JS (voir le script en bas de kairos.html) plutôt que <details>/<summary> natif :
-   un <details> fermé reste retrouvable (et auto-ouvert) par le Ctrl+F du navigateur
-   depuis Chrome 97/Firefox 139 — avec un panneau d'édition par tâche, un Ctrl+F sur
-   un mot présent dans le texte d'aide (répété dans chacun) les ouvrait tous d'un
-   coup. Un `hidden` (booléen, pas `until-found`) reste lui exclu de la recherche.
-   Astuce conservée : le bouton lui-même devient, une fois ouvert (aria-expanded),
-   le fond assombri plein écran — cliquer n'importe où en dehors de la carte la
-   referme (même bouton, un second clic bascule aria-expanded à false).
-   Le glyphe ✕ est son ::after, positionné juste à côté du coin haut-droit de la
-   carte plutôt que par-dessus : un pseudo-élément ne peut pas peindre au-dessus
-   d'une AUTRE boîte empilée plus haut (ici `.mj-edit-body`), donc le faire
-   chevaucher la carte le rendrait invisible malgré un z-index élevé. */
 .mj-edit-toggle[aria-expanded="true"] {
   position: fixed; inset: 0; z-index: 79;
   width: auto; height: auto; border-radius: 0;
-  background: rgba(43, 36, 30, 0.4); color: transparent; border: none;
+  background: rgba(22, 32, 43, 0.42); color: transparent; border: none;
 }
 .mj-edit-toggle[aria-expanded="true"]::after {
   content: "✕"; position: fixed; z-index: 79;
   top: calc(6vh - 4px); left: calc(50% + min(320px, 46vw) + 10px);
-  width: 30px; height: 30px; border-radius: var(--r-sm);
+  width: 28px; height: 28px; border-radius: var(--r-sm);
   background: var(--surface); color: var(--text-2);
   display: flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 700; box-shadow: var(--shadow-pop);
@@ -397,29 +387,29 @@ summary:focus-visible,
 @media (max-width: 700px) {
   .mj-edit-toggle[aria-expanded="true"]::after { left: auto; right: 12px; top: 10px; }
 }
-/* Pas de règle :hover sur ce glyphe : une fois ouvert, le bouton couvre tout
-   l'écran (backdrop cliquable), donc il serait "survolé" en permanence. */
 .mj-edit-body {
   position: fixed; z-index: 80; top: 6vh; left: 50%; transform: translateX(-50%);
-  width: min(640px, 92vw); max-height: 88vh; overflow-y: auto;
-  margin-top: 0; padding: 1.2rem 1.4rem; border: 1px solid var(--border);
-  border-radius: var(--r-xl); background: var(--surface); display: flex; flex-direction: column; gap: 0.7rem;
+  width: min(620px, 92vw); max-height: 88vh; overflow-y: auto;
+  margin-top: 0; padding: 1.35rem 1.6rem; border: 1px solid var(--border);
+  border-radius: 14px; background: var(--surface); display: flex; flex-direction: column; gap: 0.7rem;
   box-shadow: var(--shadow-pop);
 }
-/* `display: flex` ci-dessus l'emporterait sinon sur le `display: none` implicite
-   de l'attribut `hidden` (même spécificité CSS, mais règle d'auteur) : override
-   explicite nécessaire pour que la bascule JS (voir kairos.html) fonctionne. */
 .mj-edit-body[hidden] { display: none; }
 .mj-edit-form { display: flex; flex-direction: column; gap: 0.5rem; }
 .mj-edit-form label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 11px; color: var(--text-3); font-weight: 600; }
 .mj-edit-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }
-.mj-edit-form > label:first-child input { font-size: 16px; font-weight: 700; color: var(--text); padding: 0.5rem 0.6rem; }
+.mj-edit-form > label:first-child input { font-size: 15px; font-weight: 700; color: var(--text); padding: 0.5rem 0.6rem; }
 
-/* Progression du jour : bandeau d'accueil dégradé, façon accroche du matin. */
+/* Progression du jour : élément principal de la vue Jour — exception assumée et
+   scopée à cette seule carte au reste de la charte (accent unique bleu, pas de
+   dégradé, une seule police) : même traitement que .mj-to-process (« À traiter »,
+   ci-dessus) — fond crème + puce ambre à gauche — et registre Newsreader italique
+   repris tel quel de l'ancienne charte, pour la mettre en avant. Ne pas généraliser
+   cette teinte/police ailleurs (badges, boutons, autres titres...). Classes fusionnées
+   avec .card (pas de <div> imbriqué) pour que le fond suive les coins arrondis.  */
 .mj-progress {
   padding: 0.95rem 1.2rem; display: flex; flex-direction: column; gap: 0.5rem;
-  background: linear-gradient(135deg, var(--surface-tint), var(--accent-soft) 130%);
-  border-color: var(--accent-line);
+  background: #FFFAF1; border-left: 3px solid var(--warn-fg);
 }
 .mj-next {
   font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 500;
@@ -428,17 +418,12 @@ summary:focus-visible,
 .mj-next strong { font-weight: 600; }
 .mj-progress-stats { display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }
 
-/* Mise en page du jour : liste des tâches (large, à gauche) + colonne latérale
-   (chrono en cours + agenda), comme dans les maquettes. */
 .mj-day-grid { display: flex; gap: 1.1rem; align-items: flex-start; flex-wrap: wrap; }
-/* Colonne principale : chaque sous-section (sans créneau, bloquées, tâches mères...)
-   est sa propre carte à part entière (même traitement que Backlog/À traiter), pas un
-   sous-titre à l'intérieur d'une carte partagée — séparation nette entre chacune. */
 .mj-day-main { flex: 1.7 1 420px; min-width: 0; }
 .mj-side-col { display: flex; flex-direction: column; gap: 1.1rem; width: 300px; flex: none; }
 @media (max-width: 860px) { .mj-side-col { width: 100%; } }
 
-/* Carte « En ce moment » : reprend le chrono en cours, mise en avant (fond sombre). */
+/* Carte « En ce moment » : reprend le chrono en cours, fond ardoise sombre. */
 .mj-now-card {
   padding: 1.1rem 1.2rem; border-radius: var(--r-xl);
   background: var(--dark-surface); border-color: var(--dark-surface); color: var(--dark-text);
@@ -446,16 +431,16 @@ summary:focus-visible,
 .mj-now-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--dark-muted); margin-bottom: 0.5rem; }
 .mj-now-title { font-size: 15px; font-weight: 700; margin-bottom: 0.4rem; }
-.mj-now-timer { font-size: 32px; font-weight: 800; letter-spacing: -0.01em;
+.mj-now-timer { font-size: 30px; font-weight: 800; letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums; color: var(--dark-accent); }
 .mj-now-sub { font-size: 12px; color: var(--dark-muted); margin: 0.3rem 0 0.9rem; }
 .mj-now-stop {
-  width: 100%; border: none; background: var(--accent-soft); color: var(--accent-700);
+  width: 100%; border: none; background: #243244; color: var(--dark-text);
   font-weight: 700; font-size: 12.5px; padding: 0.6rem; border-radius: var(--r-sm);
   cursor: pointer; margin-top: 0.9rem; display: inline-flex; align-items: center;
   justify-content: center; gap: 0.4rem;
 }
-.mj-now-stop:hover { background: #fff; }
+.mj-now-stop:hover { background: #2C3D52; }
 .mj-now-empty { font-size: 13px; color: var(--dark-muted); line-height: 1.5; margin: 0; }
 
 .mj-timeline-card { padding: 1.1rem; border-radius: var(--r-md); }
@@ -464,7 +449,7 @@ summary:focus-visible,
 .mj-tl-hour { position: absolute; left: -2.4rem; right: 0; border-top: 1px solid var(--border);
   color: var(--text-3); font-size: 0.7rem; }
 .mj-tl-hour span { position: relative; top: -0.55em; background: var(--surface); padding-right: 0.2rem; }
-.mj-tl-entry { position: absolute; left: 0.35rem; right: 0.15rem; border-radius: 6px;
+.mj-tl-entry { position: absolute; left: 0.35rem; right: 0.15rem; border-radius: 5px;
   padding: 0.12rem 0.45rem; font-size: 0.72rem; overflow: hidden; border: 1px solid transparent; }
 .mj-tl-entry span { display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 .mj-tl-entry.busy { background: var(--neu-bg); color: var(--neu-fg); border-color: var(--border); }
@@ -472,18 +457,16 @@ summary:focus-visible,
 .mj-tl-entry.pinned { background: var(--prio-bg); color: var(--prio-fg);
   border-style: dashed; border-color: currentColor; }
 .mj-tl-entry.conflict { background: var(--bad-bg); color: var(--bad-fg); border-color: var(--bad-fg); }
-/* Rail « réel » : temps chronométré, fin trait dans la gouttière gauche de la timeline. */
 .mj-tl-session { position: absolute; left: -3px; width: 4px; border-radius: var(--r-pill);
   background: var(--c-done); }
 
 /* Dépendances */
 .kairos-item.mj-blocked { opacity: 0.75; border-style: dashed; }
-/* « À traiter » (GTD) : carte mise en avant, jamais repliée. */
-.mj-to-process { border-left: 3px solid var(--warn-fg); background: var(--surface-tint); }
+.mj-to-process { border-left: 3px solid var(--warn-fg); background: #FFFAF1; }
 
 /* Suivi du temps réel */
 .icbtn.timer-on { color: var(--accent-700); background: var(--accent-soft); border-color: var(--accent-line); }
-.badge.mj-timer { font-variant-numeric: tabular-nums; }
+.badge.mj-timer { font-variant-numeric: tabular-nums; background: var(--accent-soft); color: var(--accent-700); }
 
 /* Blocs deep-work sur la timeline : fond réservé (hachures) + tâche dédiée. */
 .mj-tl-entry.deepwork { background: repeating-linear-gradient(45deg,
@@ -503,32 +486,29 @@ summary:focus-visible,
    Page d'accueil (bienvenue + README rendu, voir _render_readme() dans main.py)
    ========================================================================= */
 .home-hero {
-  background: linear-gradient(135deg, var(--surface-tint), var(--accent-soft) 130%);
-  border: 1px solid var(--accent-line); border-radius: var(--r-xl);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl);
   padding: 1.6rem 1.8rem; margin-bottom: 1.3rem;
   display: flex; align-items: center; justify-content: space-between; gap: 2rem;
 }
 .home-hero-text { flex: 1; min-width: 0; }
 .home-hero h2 {
-  margin: 0 0 0.5rem; font-size: 24px; font-weight: 500; letter-spacing: -0.01em;
-  font-family: "Newsreader", Georgia, serif; font-style: italic; color: var(--text);
+  margin: 0 0 0.5rem; font-size: 21px; font-weight: 700; letter-spacing: -0.01em;
+  font-family: inherit; font-style: normal; color: var(--text);
 }
 .home-hero p { margin: 0 0 1.1rem; color: var(--text-2); max-width: 74ch; }
 .home-hero-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 
-/* Bloc de marque à droite du bandeau : même logo/police que .tn-brand (topnav),
-   agrandis, plus le nom de code de l'outil (voir README « Pourquoi Kairos ? »). */
 .home-hero-brand {
   flex: none; display: flex; flex-direction: column; align-items: center;
   gap: 0.3rem; text-align: center;
 }
-.home-hero-brand svg { display: block; filter: drop-shadow(0 6px 14px rgba(184, 90, 42, 0.18)); }
+.home-hero-brand svg { display: block; }
 .home-hero-brand-name {
-  font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 500;
-  font-size: 22px; letter-spacing: -0.01em; color: var(--text);
+  font-family: inherit; font-style: normal; font-weight: 700;
+  font-size: 17px; letter-spacing: -0.01em; color: var(--text);
 }
 .home-hero-brand-code {
-  font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--text-3);
 }
 @media (max-width: 720px) {
@@ -536,7 +516,6 @@ summary:focus-visible,
   .home-hero-brand { flex-direction: row; justify-content: flex-start; text-align: left; }
 }
 
-/* Vision synthétique (actions + formule de score) entre le bandeau et le README. */
 .home-brief {
   display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem;
   margin-bottom: 1.3rem;
@@ -554,21 +533,21 @@ summary:focus-visible,
 .home-brief-actions ul { margin: 0; padding-left: 1.2rem; color: var(--text-2); }
 .home-brief-actions li { margin: 0.35rem 0; }
 
-/* Formule de score en vraie fraction (HTML + CSS, sans JS ni dépendance). La barre
-   de fraction est la bordure haute du dénominateur. */
+/* Formule de score : compacte, tient sur une seule ligne (fraction réduite). */
 .formula {
-  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
-  flex-wrap: wrap; padding: 0.9rem 0.5rem 1rem;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  flex-wrap: nowrap; overflow-x: auto; padding: 0.75rem 0.4rem 0.85rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text);
 }
-.formula-var { font-size: 15px; font-weight: 600; }
-.formula-eq { font-size: 15px; color: var(--text-2); }
+.formula-var { font-size: 13px; font-weight: 600; }
+.formula-eq { font-size: 13px; color: var(--text-2); }
 .formula-frac {
   display: inline-flex; flex-direction: column; align-items: center; text-align: center;
+  line-height: 1.3;
 }
-.formula-num { padding: 0 0.7rem 0.35rem; font-size: 13px; }
+.formula-num { padding: 0 0.5rem 0.2rem; font-size: 10.5px; }
 .formula-den {
-  padding: 0.35rem 0.7rem 0; font-size: 13px; color: var(--text-2);
+  padding: 0.2rem 0.5rem 0; font-size: 10.5px; color: var(--text-2);
   border-top: 2px solid var(--accent); width: 100%;
 }
 .formula-legend { margin: 0.4rem 0 0; display: grid; gap: 0.5rem; }
@@ -580,15 +559,11 @@ summary:focus-visible,
 .formula-legend dd { margin: 0; font-size: 12.5px; color: var(--text-2); }
 .formula-legend sup { font-size: 0.75em; }
 
-/* Une seule mise en page, identique petit/grand écran : colonne unique centrée à
-   une largeur de lecture confortable (proche des 74ch déjà utilisés pour le
-   paragraphe du hero) — occupe toute la largeur disponible en dessous de 760px. */
 .home-content { max-width: 760px; margin: 0 auto; }
 
-/* Sommaire (issue #13.5) : une seule occurrence dans le flux, juste après la
-   section « En bref » du README rendu (voir _render_readme) — plus de copie
-   sidebar/inline distincte selon le viewport. */
-.home-toc { margin: 1.3rem 0; }
+/* Sommaire : placé avant le corps du README rendu (avant « En bref »), pas
+   sticky — ne doit pas suivre le défilement. */
+.home-toc { margin: 0; padding: 1.25rem 1.6rem 0.9rem; }
 .home-toc h2 { margin: 0 0 0.6rem; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 0.45rem; }
 .home-toc h2 .ico { color: var(--text-3); font-size: 15px; }
 .home-toc-list, .home-toc-list ul { list-style: none; margin: 0; padding: 0; }
@@ -598,23 +573,18 @@ summary:focus-visible,
   font-size: 12px; color: var(--text-2); }
 .home-toc-list a:hover { background: var(--surface-tint); color: var(--text); text-decoration: none; }
 
-/* README rendu (markdown → HTML, voir _render_readme()) : remplit la colonne
-   unique `.home-content`, texte compris. Coupé en deux `.prose` (intro/reste,
-   voir home.html) à l'intérieur d'un même `.prose-wrap` : le padding vertical ne
-   va qu'aux bords EXTÉRIEURS du wrapper, pas à la coupure interne (où s'intercale
-   le sommaire). */
 .prose-wrap { min-width: 0; }
 .prose { padding: 0 1.9rem; min-width: 0; }
-.prose:first-child { padding-top: 1.6rem; }
+.prose:first-child { padding-top: 0.9rem; border-top: 1px solid var(--border); }
 .prose:last-child { padding-bottom: 1.9rem; }
-.prose h1 { display: none; } /* titre déjà repris dans .home-hero */
-.prose h2 { font-size: 17px; font-weight: 700; margin: 1.9rem 0 0.7rem; padding-top: 1.1rem;
+.prose h1 { display: none; }
+.prose h2 { font-size: 16px; font-weight: 700; margin: 1.9rem 0 0.7rem; padding-top: 1.1rem;
   border-top: 1px solid var(--border); letter-spacing: -0.005em; color: var(--text); }
 .prose h2:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
 .prose h3 { font-size: 13.5px; font-weight: 700; margin: 1.2rem 0 0.5rem; color: var(--text); }
 .prose h4 { font-size: 11px; font-weight: 700; margin: 1rem 0 0.4rem; color: var(--text-3);
   text-transform: uppercase; letter-spacing: 0.04em; }
-.prose h2, .prose h3, .prose h4 { scroll-margin-top: 128px; }
+.prose h2, .prose h3, .prose h4 { scroll-margin-top: 112px; }
 .prose p { margin: 0 0 0.85rem; color: var(--text-2); }
 .prose strong { color: var(--text); }
 .prose ul, .prose ol { margin: 0 0 0.85rem; padding-left: 1.3rem; color: var(--text-2); }
@@ -649,4 +619,5 @@ summary:focus-visible,
   color: var(--text-2); }
 .mj-settings-checkbox-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); }
 .mj-settings-field .hint.error { color: var(--bad-fg); }
-.mj-settings-actions { position: sticky; bottom: 0; padding: 0.9rem 0; margin-top: 0.5rem; }
+.mj-settings-actions { position: sticky; bottom: 0; padding: 0.9rem 0; margin-top: 0.5rem;
+  background: linear-gradient(to top, var(--bg) 60%, transparent); }

@@ -194,6 +194,17 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 # fermer pour arrêter le serveur — voir le bouton « Quitter » de base.html, affiché
 # seulement dans ce cas (sinon, en dev/systemd, Ctrl+C / `systemctl stop` suffisent).
 templates.env.globals["is_frozen"] = getattr(sys, "frozen", False)
+# Anti-cache navigateur : suffixe `?v=` sur les liens vers static/ dans base.html.
+# Sans lui, un navigateur peut continuer à servir un vieux style.css en cache après
+# une mise à jour de l'app (nouvelle version installée, `git pull`...), ce qui donne
+# une interface à moitié stylée. L'horodatage du fichier suffit : il change dès que
+# style.css change (mise à jour de l'app), et reste stable entre deux requêtes d'un
+# même lancement sinon (cache normal conservé le reste du temps).
+try:
+    _STYLE_MTIME = int((BASE_DIR / "static" / "style.css").stat().st_mtime)
+except OSError:
+    _STYLE_MTIME = 0
+templates.env.globals["asset_version"] = _STYLE_MTIME
 
 
 @app.get("/favicon.ico")

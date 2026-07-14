@@ -4,5 +4,5 @@
     <color name="ic_launcher_background">#FBEEDF</color>
     <!-- Couleur de fond de l'app (variable bg dans static/style.css), pour la barre de
          statut/navigation (voir themes.xml). -->
-    <color name="kairos_bg">#FBF6EE</color>
+    <color name="kairos_bg">#F3F5F8</color>
 </resources>
