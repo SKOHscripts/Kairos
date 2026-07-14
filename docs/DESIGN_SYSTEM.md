@@ -1,71 +1,79 @@
 # Design system Kairos
 
-Charte visuelle de l'application : appli perso chaleureuse, quotidienne — pas un
-tableau de bord de pilotage. Tout nouveau gabarit ou composant doit réutiliser ces
-jetons plutôt que d'en réinventer. Implémentés dans `static/style.css` (variables
-`:root`) et `templates/base.html` (police, logo, navigation).
+Charte visuelle de l'application : sobre et professionnelle, à la manière d'un tableau
+de bord de pilotage — pas une appli perso chaleureuse. Tout nouveau gabarit ou
+composant doit réutiliser ces jetons plutôt que d'en réinventer. Implémentés dans
+`static/style.css` (variables `:root`) et `templates/base.html` (police, logo,
+navigation).
 
 ## Couleurs
 
 | Rôle | Variable CSS | Valeur |
 |---|---|---|
-| Fond de page | `--bg` | `#FBF6EE` (papier ivoire chaud) |
+| Fond de page | `--bg` | `#F3F5F8` (ardoise très clair) |
 | Surface (cartes) | `--surface` | `#FFFFFF` |
-| Surface teintée (hero, bandeaux) | `--surface-tint` | `#FBEEDF` |
-| Bordure | `--border` | `#EAE0D2` |
-| Bordure forte / pointillés | `--border-strong` | `#E7B27E` |
-| Texte principal | `--text` | `#2B241E` |
-| Texte secondaire | `--text-2` | `#6E6155` |
-| Texte tertiaire / muted | `--text-3` | `#A0917F` |
-| Texte inversé (surfaces sombres) | `--text-inverse` | `#FBF6EE` |
-| Accent primaire | `--accent` | `#D9713C` (terracotta) |
-| Accent primaire, hover/texte foncé | `--accent-700` | `#B85A2A` |
-| Accent primaire, fond doux | `--accent-soft` | `#F7DDC8` |
-| Accent primaire, ligne | `--accent-line` | `#EFCDA9` |
-| Lien / focus | `--link` | `#B85A2A` |
-| Surface sombre (carte focus, pilule nav active) | `--dark-surface` | `#2B241E` (texte `--dark-text` `#FBF6EE`, muted `--dark-muted` `#C9B8A5`, accent `--dark-accent` `#F0A868`) |
+| Surface teintée (hover, bandeaux) | `--surface-tint` | `#EEF2FA` |
+| Bordure | `--border` | `#E2E6EB` |
+| Bordure forte / pointillés | `--border-strong` | `#C9D2DC` |
+| Texte principal | `--text` | `#16202B` |
+| Texte secondaire | `--text-2` | `#55606D` |
+| Texte tertiaire / muted | `--text-3` | `#8A94A0` |
+| Texte inversé (surfaces sombres) | `--text-inverse` | `#F5F6F8` |
+| Accent primaire | `--accent` | `#2F6FED` (bleu) |
+| Accent primaire, hover/texte foncé | `--accent-700` | `#2557C0` |
+| Accent primaire, fond doux | `--accent-soft` | `#E4ECFB` |
+| Accent primaire, ligne | `--accent-line` | `#C7D8F7` |
+| Lien / focus | `--link` | `#2557C0` |
+| Surface sombre (carte focus, pilule nav active) | `--dark-surface` | `#16202B` (texte `--dark-text` `#F5F6F8`, muted `--dark-muted` `#97A1AE`, accent `--dark-accent` `#7FA8FF`) |
 
-Il n'y a qu'**un seul accent transverse** (terracotta) : pas de second accent
-« repère d'emplacement » comme dans l'ancienne charte slate/sarcelle.
+Il n'y a qu'**un seul accent transverse** (bleu), réservé aux boutons primaires/CTA et
+aux deux seuls badges « clés » : score WSJF (`.badge.mj-score`) et priorité
+(`.badge.prio`). Tout le reste des badges reste neutre ou sémantique bas-chroma.
 
 ### Badges sémantiques (pilules, `border-radius: 999px`)
 
 | Rôle | Classe | Fond | Texte |
 |---|---|---|---|
-| Priorité | `.badge.prio` | `#EFE4F2` | `#7A5E86` (prune) |
-| Deep work / OK / fait | `.badge.ok` | `#E3EEDD` | `#57845A` (sauge) |
-| Urgent / critique / erreur | `.badge.bad` | `#F8DED5` | `#C1503A` (terracotta foncé) |
-| Neutre / tag projet | `.badge.neutral` | `#F1E6D6` | `#6E6155` |
-| Info / avertissement | `.badge.info`, `.badge.warn` | `#FBEEDF` | `#B85A2A` |
+| Priorité (accent) | `.badge.prio` | `#E4ECFB` | `#2557C0` |
+| Deep work / OK / fait | `.badge.ok` | `#E1F3E7` | `#1F7A46` (vert) |
+| Urgent / critique / erreur | `.badge.bad` | `#FBE4E1` | `#B3261E` (rouge) |
+| Neutre / tag projet | `.badge.neutral` | `#EEF1F4` | `#55606D` |
+| Info | `.badge.info` | `#EEF1F4` | `#55606D` |
+| Avertissement | `.badge.warn` | `#FDF0D8` | `#92660A` (ambre) |
 
 ## Typographie
 
-- **Figtree** (400/500/600/700/800) — tout le texte d'interface, labels, chiffres
-  (nombres en `font-variant-numeric: tabular-nums`, plus besoin de police mono
-  dédiée aux identifiants/chiffres).
-- **Newsreader**, italique, 500 — réservée à l'accroche du jour et aux phrases
-  d'insight (classe utilitaire `.editorial`). Jamais pour du texte fonctionnel
-  (boutons, badges, tableaux, formulaires).
+- **IBM Plex Sans** (400/500/600/700) — tout le texte d'interface, labels, chiffres
+  (nombres en `font-variant-numeric: tabular-nums`, plus besoin de police mono dédiée
+  aux identifiants/chiffres).
+- Aucun registre décoratif/italique séparé : les titres d'accroche restent en Plex
+  Sans, poids 600-700, jamais italique (classe `.editorial` neutralisée, conservée
+  pour compatibilité de nommage uniquement).
 - Échelle : corps ~13.5px · labels majuscules 10–11.5px (`letter-spacing` ~0.04em) ·
-  accroche/insight 17–24px italique · chiffres clés (KPI) 18–26px en 800.
+  chiffres clés (KPI) 18–26px en 800. Densité d'information inchangée par rapport à
+  l'existant.
 
 ## Forme
 
-- Rayon des cartes/panneaux : `--r` 16px (défaut), `--r-md` 14px (cartes
-  imbriquées : ligne de tâche, jour de semaine, agenda), `--r-xl` 20px (bandeaux
-  d'accueil, carte « en ce moment »).
-- Rayon des contrôles (boutons, champs, icônes) : `--r-sm` 10px.
+- Rayon des cartes/panneaux : `--r` 10px (défaut), `--r-md` 8px (cartes imbriquées :
+  ligne de tâche, jour de semaine, agenda), `--r-xl` 12px (bandeaux d'accueil, carte
+  « en ce moment »).
+- Rayon des contrôles (boutons, champs, icônes) : `--r-sm` 6px.
 - Pilules (badges, nav, filtres) : `--r-pill` 999px.
 - Puce de priorité/catégorie sur une ligne de tâche : `border-left: 3px solid
   <couleur>` (jamais de remplissage `box-shadow: inset`).
+- Pas de dégradé (`linear-gradient`) nulle part, sauf le fondu de scroll du bandeau
+  d'actions sticky de la page Réglages (`.mj-settings-actions`).
 - Ombres : supprimées presque partout. Le seul `box-shadow` conservé est celui du
-  panneau de modification de tâche ouvert (`.mj-edit-body`), qui se comporte comme
-  un popup flottant.
+  panneau de modification de tâche ouvert (`.mj-edit-body`), qui se comporte comme un
+  popup flottant.
 
 ## Logo
 
 Mark « cadran solaire » (cercle + un seul secteur terracotta + point pivot),
-`static/favicon.svg` et repris inline dans `templates/base.html` :
+`static/favicon.svg` et repris inline dans `templates/base.html` et
+`templates/home.html` : c'est volontairement le **seul** élément qui garde ses
+couleurs d'origine, au milieu d'une interface sinon neutre.
 
 ```html
 <svg width="34" height="34" viewBox="0 0 40 40">
@@ -78,15 +86,17 @@ Mark « cadran solaire » (cercle + un seul secteur terracotta + point pivot),
 
 ## Navigation
 
-Barre horizontale sticky (`.topnav`) : logo + titre à gauche, 3 items en pilules
-(`.tn-item`, actif = fond `--dark-surface` / texte `--dark-text`) — pas de sidebar.
-Une sous-barre (`.topbar`) porte le titre de page et les actions contextuelles
-(bascule Jour/Semaine, retour, etc.).
+Barre horizontale sticky (`.topnav`) : logo + titre à gauche, items en pilules
+(`.tn-item`, actif = fond `--dark-surface` / texte `--dark-text`) — pas de sidebar, pas
+de barre de navigation basse même sur mobile/APK Android. Sous 720px : sous-titre
+masqué (`.tn-sub`), pilules resserrées pour tenir sur un écran de téléphone. Une
+sous-barre (`.topbar`) porte le titre de page et les actions contextuelles (bascule
+Jour/Semaine, retour, etc.).
 
 ## Panneau de modification d'une tâche
 
-`edit_panel(task)` (`.mj-edit` / `.mj-edit-body` dans `templates/kairos.html`)
-se présente comme une **modale centrée avec fond assombri**, en CSS pur, sans
+`edit_panel(task)` (`.mj-edit` / `.mj-edit-body` dans `templates/kairos.html`) se
+présente comme une **modale centrée avec fond assombri**, en CSS pur, sans
 JavaScript. Mécanique :
 - `.mj-edit-body` (la carte visible) passe en `position: fixed`, centrée,
   quand le `<details>` porte l'attribut `[open]`.
@@ -108,27 +118,24 @@ JavaScript. Mécanique :
 
 ## Case à cocher
 
-Chaque ligne de tâche (`.kairos-item`) porte désormais un rond `.mj-check` en
-tête de ligne (avant l'heure/le titre) qui bascule le statut fait/à faire —
-même formulaire `POST .../done` qu'avant, juste déplacé en premier enfant du
-`<li>` et sorti du groupe d'actions de droite (`.mj-actions`, qui ne garde que
-chrono et décaler).
+Chaque ligne de tâche (`.kairos-item`) porte un rond `.mj-check` en tête de ligne
+(avant l'heure/le titre) qui bascule le statut fait/à faire — même formulaire
+`POST .../done` qu'avant, en premier enfant du `<li>`, sorti du groupe d'actions de
+droite (`.mj-actions`, qui ne garde que chrono et décaler).
 
 ## Carte « En ce moment »
 
-Le chrono en cours est maintenant aussi repris en évidence dans une carte
-sombre dédiée (`.mj-now-card`, colonne latérale de la vue jour, à côté de
-l'agenda) — en plus du badge `.mj-timer` déjà présent sur la ligne de la
-tâche (conservé tel quel, y compris son minuteur vivant en JS). La carte
-utilise les champs de contexte `running_task_title`/`running_task_estimate`
-déjà calculés côté serveur mais jusqu'ici inutilisés côté template.
+Le chrono en cours est repris en évidence dans une carte sombre dédiée
+(`.mj-now-card`, colonne latérale de la vue jour, à côté de l'agenda) — en plus du
+badge `.mj-timer` déjà présent sur la ligne de la tâche (conservé tel quel, y compris
+son minuteur vivant en JS). C'est, avec la pilule de navigation active, le seul
+endroit sombre de l'interface.
 
 ## Écarts assumés par rapport aux maquettes `.dc.html`
 
-Les maquettes du dossier `design_handoff_kairos_redesign/` (non versionné)
-montrent des pilules cliquables pour la priorité/les points Fibonacci et des
-chips à bascule pour les tâches bloquantes, dans le panneau de modification.
-L'implémentation réelle garde des `<select>`/`<select multiple>` HTML natifs
-(mêmes noms de champs, mêmes tests) — le style pilule n'est pas repris pour
-ces champs précis, pour ne pas ajouter de JavaScript ni changer la sémantique
-des formulaires.
+Les maquettes du dossier `design_handoff_kairos_redesign/` (non versionné) montrent
+des pilules cliquables pour la priorité/les points Fibonacci et des chips à bascule
+pour les tâches bloquantes, dans le panneau de modification. L'implémentation réelle
+garde des `<select>`/`<select multiple>` HTML natifs (mêmes noms de champs, mêmes
+tests) — le style pilule n'est pas repris pour ces champs précis, pour ne pas ajouter
+de JavaScript ni changer la sémantique des formulaires.
