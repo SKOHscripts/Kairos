@@ -1,0 +1,383 @@
+{# Partiel de la vue Jour : rendu à l'intérieur de `#mj-day-content` par
+   `kairos.html` (page pleine, `{% include %}`) ET rendu directement, sans
+   enveloppe, par `render_kairos_response(fragment=True)` pour les réponses AJAX
+   (voir app/main.py) — un seul `id="mj-day-content"` dans toute l'app, posé par
+   `kairos.html`, jamais ici. Ordre du flux GTD (capturer → traiter la boîte de
+   réception → faire) : capture, boîte de réception, « Maintenant », bannières,
+   filtres/backlog, agenda ordonné + sections secondaires, colonne latérale. #}
+{% from "_icons.html" import icon %}
+{% from "_kairos_macros.html" import done_toggle, task_actions, time_spent, fibo_help, edit_panel, task_meta with context %}
+
+{# --- 1. Capture GTD : toujours visible, jamais dans un <details> replié — la
+     capture ne doit jamais demander un clic supplémentaire pour être atteinte.
+     Deux volets par onglet (radios), rien n'est retiré ni relégué : Tâche
+     (titre seul — la priorité/les points se posent ensuite, en boîte de
+     réception) et Créneau / deep work (avec la liste d'édition des créneaux du
+     jour). --- #}
+<div class="card mj-capture">
+  <div class="mj-capture-head">{{ icon('plus') }} Capturer</div>
+  <div class="mj-add-toggle">
+    <label class="mj-check-label"><input type="radio" name="mj-add-mode" value="task" checked> Tâche</label>
+    <label class="mj-check-label"><input type="radio" name="mj-add-mode" value="slot"> Créneau / deep work</label>
+  </div>
+
+  <div data-mj-add-pane="task">
+    <form method="post" action="/kairos/tasks" class="filters" style="align-items:flex-end;">
+      <label style="flex:1;min-width:220px;">Titre
+        <input type="text" name="title" placeholder="ex. Répondre à tel mail" required></label>
+      <button type="submit" class="btn primary">{{ icon('plus') }} Ajouter</button>
+    </form>
+  </div>
+
+  <div data-mj-add-pane="slot" hidden>
+    <form method="post" action="/kairos/blocks" class="filters" style="align-items:flex-end;">
+      <label>Titre<input type="text" name="title" placeholder="ex. Réunion hebdo / Focus" required style="width:220px;"></label>
+      <label>Début<input type="datetime-local" name="start" required></label>
+      <label>Fin<input type="datetime-local" name="end" required></label>
+      <label class="mj-check-label" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
+        <input type="checkbox" name="deepwork" value="1"> Bloc deep-work</label>
+      <label title="Le créneau saisi devient le modèle (heure de début/fin) répété selon la règle — ex. déjeuner tous les jours, deep-work chaque mardi">Récurrence
+        <select name="recurrence">
+          <option value="">aucune</option>
+          <option value="daily">quotidienne</option>
+          <option value="weekdays">jours ouvrés</option>
+          <option value="weekly">hebdomadaire (même jour)</option>
+        </select>
+      </label>
+      <button type="submit" class="btn primary">{{ icon('plus') }} Ajouter</button>
+    </form>
+    {% if editable_blocks %}
+    <p class="hint mt-s">Créneaux du jour (éditer un créneau récurrent modifie toutes ses occurrences) :</p>
+    <ul class="ma-journee-list">
+      {% for block in editable_blocks %}
+      <li class="ma-journee-item">
+        <span class="mj-time">{{ block.start.strftime('%Hh%M') }}–{{ block.end.strftime('%Hh%M') }}</span>
+        <span class="mj-title">{{ block.title or '(sans titre)' }}</span>
+        {% if block.kind == 'deepwork' %}<span class="badge ok" title="Bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
+        {% if block.recurrence %}<span class="badge info" title="Créneau récurrent — l'édition porte sur toutes les occurrences">{{ icon('refresh') }} {{ block_recurrence_labels.get(block.recurrence, block.recurrence) }}</span>{% endif %}
+        <span class="mj-edit">
+          <button type="button" class="icbtn mj-edit-toggle" title="Éditer le créneau" aria-expanded="false">{{ icon('pencil') }}</button>
+          <div class="mj-edit-body" hidden>
+            <form method="post" action="/kairos/blocks/{{ block.id }}/edit" class="mj-edit-form">
+              <label>Titre<input type="text" name="title" value="{{ block.title }}"></label>
+              <div class="mj-edit-row">
+                <label>Début<input type="datetime-local" name="start" value="{{ block.start.strftime('%Y-%m-%dT%H:%M') }}" required></label>
+                <label>Fin<input type="datetime-local" name="end" value="{{ block.end.strftime('%Y-%m-%dT%H:%M') }}" required></label>
+                <label class="mj-check-label" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
+                  <input type="checkbox" name="deepwork" value="1" {% if block.kind == 'deepwork' %}checked{% endif %}> Bloc deep-work</label>
+                <label>Récurrence
+                  <select name="recurrence">
+                    <option value="" {% if not block.recurrence %}selected{% endif %}>aucune</option>
+                    <option value="daily" {% if block.recurrence == 'daily' %}selected{% endif %}>quotidienne</option>
+                    <option value="weekdays" {% if block.recurrence == 'weekdays' %}selected{% endif %}>jours ouvrés</option>
+                    <option value="weekly" {% if block.recurrence == 'weekly' %}selected{% endif %}>hebdomadaire (même jour)</option>
+                  </select>
+                </label>
+              </div>
+              <button type="submit" class="btn primary">{{ icon('save') }} Enregistrer</button>
+            </form>
+            <form method="post" action="/kairos/blocks/{{ block.id }}/delete" class="inline"
+                  onsubmit="return confirm('Supprimer ce créneau{% if block.recurrence %} récurrent (toutes ses occurrences){% endif %} ?');">
+              <button type="submit" class="btn danger">{{ icon('trash') }} Supprimer</button>
+            </form>
+          </div>
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</div>
+
+{# --- 2. Boîte de réception (Clarify GTD) : juste sous la capture, pour qu'une
+     tâche capturée y apparaisse immédiatement. Ni priorité ni points Fibonacci
+     renseignés = pas encore qualifiée = jamais dans le tri automatique. Jamais
+     masquée (pas de <details>) : état « boîte vide » discret si rien à traiter,
+     pour toujours rappeler où regarder en premier. --- #}
+{% set inbox_empty = not visible_to_process %}
+<section class="card mj-to-process {% if inbox_empty %}mj-inbox-empty{% endif %}" id="mj-inbox">
+  <div class="mj-section-head">
+    <span class="mj-section-title">Boîte de réception (À traiter)
+      <span class="count">({{ visible_to_process|length }})</span></span>
+    <details class="mj-help">
+      <summary>{{ icon('warning', '') }} pourquoi qualifier ?</summary>
+      <div class="mj-help-body">
+        <p>La <strong>capture</strong> (ci-dessus) ne pose qu'un titre, volontairement : c'est le
+        principe GTD « capturer sans friction ». Une tâche n'entre dans l'agenda ordonné
+        qu'une fois <strong>clarifiée</strong> — priorité et points Fibonacci posés, ici même,
+        en un clic chacun (pas besoin d'ouvrir l'édition complète).</p>
+      </div>
+    </details>
+  </div>
+  {% if inbox_empty %}
+  <p class="hint mj-inbox-empty-msg">{{ icon('check_circle') }} Rien à traiter : tout est déjà clarifié.</p>
+  {% else %}
+  <p class="hint">Ni priorité ni points de Fibonacci renseignés : ces tâches ne sont pas
+  encore ordonnées automatiquement. Qualifie-les directement ci-dessous (ou ouvre
+  l'édition complète pour tout régler d'un coup).</p>
+  <ul class="kairos-list">
+    {% for task in visible_to_process %}
+    <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
+      {{ done_toggle(task) }}
+      <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
+      <span class="badge warn" title="Cette tâche ne rentre dans aucun tri tant qu'elle n'est pas qualifiée">
+        {{ icon('warning') }}
+        {% if task.priority is none and task.fibonacci_points is none %}priorité et points manquants
+        {% elif task.priority is none %}priorité manquante
+        {% else %}points manquants{% endif %}</span>
+      {{ task_meta(task) }}
+      {{ time_spent(task) }}
+      <span class="mj-inline-qualify">
+        <form method="post" action="/kairos/tasks/{{ task.id }}/priority" class="inline mj-inline-form" data-ajax>
+          <label class="mj-inline-label">Priorité
+            <select name="priority" data-autosubmit>
+              <option value="" {% if task.priority is none %}selected{% endif %}>—</option>
+              {% for p in range(0, 3) %}
+              <option value="{{ p }}" {% if task.priority == p %}selected{% endif %}>P{{ p }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        </form>
+        <form method="post" action="/kairos/tasks/{{ task.id }}/points" class="inline mj-inline-form" data-ajax>
+          <label class="mj-inline-label">Points
+            <select name="points" data-autosubmit>
+              <option value="" {% if task.fibonacci_points is none %}selected{% endif %}>—</option>
+              {% for p in fibonacci_scale %}
+              <option value="{{ p }}" {% if task.fibonacci_points == p %}selected{% endif %}>{{ p }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        </form>
+      </span>
+      {{ task_actions(task) }}
+      {{ edit_panel(task) }}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+
+{# --- 3. Maintenant (Engage GTD) : poste de pilotage, crème/ambre + .mj-next en
+     Newsreader italique conservés tels quels (exception assumée) ; la prochaine
+     tâche devient actionnable sur place (fait / chrono / décaler), sans passer par
+     la liste plus bas. Élément principal de la vue Jour : jamais repliable. --- #}
+<div class="card mj-progress">
+  {% if next_up_task %}
+  <div class="mj-next">{{ icon('chevron_right') }} <strong>À faire maintenant :</strong>
+    {{ next_up_task.title }}{% if next_up_time %} <span class="muted">({{ next_up_time.strftime('%Hh%M') }})</span>{% endif %}</div>
+  <div class="mj-next-actions">
+    {{ done_toggle(next_up_task) }}
+    {{ task_actions(next_up_task) }}
+  </div>
+  {% endif %}
+  <div class="mj-progress-stats">
+    <span class="badge ok">{{ icon('check') }} {{ done_today|length }} faite(s)</span>
+    <span class="badge neutral">{{ schedule.scheduled|length + schedule.unscheduled|length }} à faire</span>
+    <span class="muted">requis {{ required_str }} · disponible {{ available_str }}</span>
+    <span class="muted">· temps travaillé aujourd'hui {{ spent_total_str }}</span>
+    {% if spent_by_type_today %}
+    <span class="muted">({% for label, minutes in spent_by_type_today.items() %}{{ label }} {{ minutes }} min{% if not loop.last %} · {% endif %}{% endfor %})</span>
+    {% endif %}
+    {% if schedule.stats.overflow_minutes > 0 %}
+    <span class="badge bad" title="Le temps requis dépasse le temps réellement disponible aujourd'hui : dépriorisez ou décalez à demain.">
+      {{ icon('warning') }} la journée déborde de {{ overflow_str }}</span>
+    {% endif %}
+  </div>
+  {% if indication_events %}
+  <div class="mj-progress-stats">
+    {{ icon('calendar') }} <span class="muted">Indications :</span>
+    {% for title in indication_events %}<span class="badge info">{{ title }}</span>{% endfor %}
+  </div>
+  {% endif %}
+  {# Alertes de chrono (phase 11) : opt-in aux notifications bureau. Les seuils sont
+     passés au script ; l'estimation/le titre de la tâche en cours vivent sur le badge. #}
+  <div class="mj-progress-stats" id="mj-alert-config"
+       data-idle="{{ settings.timer_idle_alert_minutes }}"
+       data-pomodoro="{{ settings.pomodoro_focus_minutes }}">
+    <button type="button" class="btn sm" id="mj-alert-enable" hidden>{{ icon('clock') }} Activer les alertes chrono</button>
+    <span class="muted" id="mj-alert-status" hidden></span>
+  </div>
+</div>
+
+{% include "_kairos_banners.html" %}
+
+{% include "_kairos_filters.html" %}
+
+{% include "_kairos_backlog.html" %}
+
+<div class="mj-day-grid">
+<div class="mj-day-main">
+<details class="card" open>
+  <summary class="collapser">{{ icon('chevron_right', '') }} Aujourd'hui, dans l'ordre
+    <span class="hint">— triée par score WSJF (valeur ÷ effort), pas seulement par heure</span></summary>
+  {% if not visible_scheduled %}
+  <p class="muted">Aucune tâche à faire n'est actuellement planifiée.</p>
+  {% endif %}
+  <ol class="kairos-list">
+    {% for item in visible_scheduled %}
+    <li class="kairos-item mj-bucket-{{ bucket_of.get(item.task.id, 4) }}">
+      {{ done_toggle(item.task) }}
+      <span class="mj-time">{{ item.start_at.strftime('%Hh%M') }}</span>
+      <span class="mj-title">{% if parent_title_of.get(item.task.id) %}<span class="muted">{{ parent_title_of[item.task.id] }} › </span>{% endif %}{{ item.task.title }}</span>
+      {% if item.pinned %}<span class="badge info" title="Tâche épinglée à heure fixe">{{ icon('dot') }} épinglée</span>{% endif %}
+      {% if item.deepwork %}<span class="badge ok" title="Placée dans un bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
+      {% if item.task.id in raised_ids %}<span class="badge prio" title="Remontée : sur le chemin critique d'une tâche plus urgente qu'elle bloque">{{ icon('link') }} chemin critique</span>{% endif %}
+      {{ task_meta(item.task) }}
+      {{ time_spent(item.task) }}
+      {% if item.pushed %}
+      <span class="badge at_risk" title="Créneau repoussé par une indisponibilité">
+        {{ icon('warning') }} {{ item.pushed_note }}</span>
+      {% endif %}
+      {% if item.dip_note %}
+      <span class="badge neutral" title="Creux de l'après-midi : on y place les tâches légères, pas les plus complexes">
+        {{ icon('clock') }} {{ item.dip_note }}</span>
+      {% endif %}
+      {% if item.conflict %}
+      <span class="badge bad" title="Cette tâche épinglée chevauche un créneau occupé">
+        {{ icon('warning') }} {{ item.conflict_note }}</span>
+      {% endif %}
+      {{ task_actions(item.task) }}
+      {{ edit_panel(item.task) }}
+    </li>
+    {% endfor %}
+  </ol>
+</details>
+
+{% if visible_unscheduled %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Sans créneau aujourd'hui ({{ visible_unscheduled|length }})</summary>
+  <p class="hint">À faire aujourd'hui, mais pas encore casées dans un créneau horaire précis.</p>
+  <ul class="kairos-list">
+    {% for task in visible_unscheduled %}
+    <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
+      {{ done_toggle(task) }}
+      <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
+      {{ task_meta(task) }}
+      {{ time_spent(task) }}
+      {{ task_actions(task) }}
+      {{ edit_panel(task) }}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
+
+{% if blocked_tasks %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Bloquées ({{ blocked_tasks|length }})</summary>
+  <p class="hint">En attente qu'une autre tâche soit terminée avant de pouvoir avancer.</p>
+  <ul class="kairos-list">
+    {% for entry in blocked_tasks %}
+    <li class="kairos-item mj-blocked">
+      {{ done_toggle(entry.task) }}
+      <span class="mj-title">{% if parent_title_of.get(entry.task.id) %}<span class="muted">{{ parent_title_of[entry.task.id] }} › </span>{% endif %}{{ entry.task.title }}</span>
+      <span class="badge bad" title="Ne sera planifiable qu'une fois ces tâches faites">
+        {{ icon('blocked') }} en attente de : {{ entry.reasons | join(', ') }}</span>
+      {{ task_meta(entry.task) }}
+      {{ task_actions(entry.task) }}
+      {{ edit_panel(entry.task) }}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
+
+{% if visible_later %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Programmées plus tard ({{ visible_later|length }})</summary>
+  <p class="hint">Programmées pour un autre jour ; reviendront dans l'agenda le moment venu.</p>
+  <ul class="kairos-list">
+    {% for task in visible_later %}
+    <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
+      {{ done_toggle(task) }}
+      <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
+      {{ task_meta(task) }}
+      {{ task_actions(task) }}
+      {{ edit_panel(task) }}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
+
+{% if parents_progress %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Tâches mères en cours ({{ parents_progress|length }})</summary>
+  <p class="hint">Découpées en sous-tâches ; avancement affiché ici.</p>
+  <ul class="kairos-list">
+    {% for entry in parents_progress %}
+    <li class="kairos-item mj-bucket-{{ bucket_of.get(entry.task.id, 4) }}">
+      {{ done_toggle(entry.task) }}
+      <span class="mj-title">{{ entry.task.title }}</span>
+      <span class="badge {% if entry.done == entry.total %}ok{% else %}neutral{% endif %}"
+            title="Avancement des sous-tâches">{{ entry.done }}/{{ entry.total }} sous-tâche(s)</span>
+      {{ task_meta(entry.task) }}
+      {{ task_actions(entry.task) }}
+      {{ edit_panel(entry.task) }}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
+
+{% if done_today %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Fait ({{ done_today|length }})</summary>
+  <p class="hint">Déjà terminées aujourd'hui.</p>
+  <ul class="kairos-list">
+    {% for task in done_today %}
+    <li class="kairos-item mj-done">
+      {{ done_toggle(task) }}
+      <span class="mj-title">{{ task.title }}</span>
+      {{ task_meta(task) }}
+      {{ task_actions(task) }}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
+</div>
+
+<div class="mj-side-col">
+  {# --- Carte « En ce moment » : reprise du chrono en cours, mise en avant. --- #}
+  <section class="card mj-now-card">
+    <div class="mj-now-label">En ce moment</div>
+    {% if running_task_id %}
+    <div class="mj-now-title">{{ running_task_title }}</div>
+    <div class="mj-now-timer">{{ spent_by_task.get(running_task_id, 0) }} min</div>
+    {% if running_task_estimate %}<div class="mj-now-sub">estimé {{ running_task_estimate }} min</div>{% endif %}
+    <form method="post" action="/kairos/tasks/{{ running_task_id }}/timer/stop" data-ajax>
+      <button type="submit" class="mj-now-stop">{{ icon('clock') }} Arrêter le chrono</button>
+    </form>
+    {% else %}
+    <p class="mj-now-empty">Aucun chrono en cours. Lance-le sur la tâche en cours pour suivre ton temps réel.</p>
+    {% endif %}
+  </section>
+
+  {# --- Timeline verticale : la journée comme un agenda (1 min = 1 px). --- #}
+  <section class="card mj-timeline-card">
+    <h2>Agenda</h2>
+    <div class="mj-timeline" style="height: {{ timeline_height }}px;">
+      {% for h in timeline_hours %}
+      <div class="mj-tl-hour" style="top: {{ (h - timeline_hours[0]) * 60 }}px;"><span>{{ h }}h</span></div>
+      {% endfor %}
+      {% for e in timeline %}
+      <div class="mj-tl-entry {{ e.kind }}" style="top: {{ e.top_min }}px; height: {{ e.height_min }}px;"
+           title="{{ e.title }} ({{ e.start.strftime('%Hh%M') }}-{{ e.end.strftime('%Hh%M') }})">
+        <span>{{ e.start.strftime('%Hh%M') }} · {{ e.title }}</span>
+      </div>
+      {% endfor %}
+      {# Rail « réel » : sessions de travail chronométrées, dans la gouttière gauche, pour
+         comparer d'un coup d'œil le travail réel au planifié (phase 11). #}
+      {% for e in session_timeline %}
+      <div class="mj-tl-session" style="top: {{ e.top_min }}px; height: {{ e.height_min }}px;"
+           title="Travaillé : {{ e.title }} ({{ e.start.strftime('%Hh%M') }}-{{ e.end.strftime('%Hh%M') }})"></div>
+      {% endfor %}
+    </div>
+    {% if session_timeline %}
+    <p class="hint" style="margin-top:0.5rem;">{{ icon('clock') }} Le rail à gauche marque le
+    temps réellement chronométré.</p>
+    {% endif %}
+  </section>
+</div>
+</div>

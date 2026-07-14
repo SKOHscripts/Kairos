@@ -971,15 +971,43 @@ async def create_native_task(request: Request) -> RedirectResponse:
     return RedirectResponse("/kairos", status_code=303)
 
 
+def _kairos_action_response(request: Request) -> Response:
+    """Réponse commune des handlers d'action (fait, chrono, décaler, priorité,
+    points) : amélioration progressive AJAX (Étape C/E du chantier GTD) — si
+    l'appelant négocie ``X-Requested-With: fetch``, renvoie le partiel jour
+    (``_kairos_day.html``, mêmes deux sessions fraîches que ``kairos()``) ;
+    sinon la redirection 303 historique (repli complet sans JS, requis pour la
+    WebView Android et l'accessibilité). Les handlers appelants doivent avoir
+    déjà committé et FERMÉ leur propre session tâches avant d'appeler cette
+    fonction — elle rouvre des sessions fraîches, jamais imbriquées."""
+    if request.headers.get("X-Requested-With") == "fetch":
+        return render_kairos_response(request, fragment=True)
+    return RedirectResponse("/kairos", status_code=303)
+
+
 @app.post("/kairos/tasks/{task_id:int}/priority")
-async def update_task_priority(request: Request) -> RedirectResponse:
+async def update_task_priority(request: Request) -> Response:
     form = await request.form()
     with _request_session(get_tasks_session) as tasks_session:
         task = tasks_session.get(Task, request.path_params["task_id"])
         if task is not None:
             task.priority = _optional_int(form.get("priority"))
             tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
+
+
+@app.post("/kairos/tasks/{task_id:int}/points")
+async def update_task_points(request: Request) -> Response:
+    """Symétrique de ``update_task_priority`` : pose les points Fibonacci depuis
+    le contrôle inline de la boîte de réception (Phase 2) — jamais depuis la
+    capture rapide titre-seul, ni un nouveau champ dans ``create_native_task``."""
+    form = await request.form()
+    with _request_session(get_tasks_session) as tasks_session:
+        task = tasks_session.get(Task, request.path_params["task_id"])
+        if task is not None:
+            task.fibonacci_points = _optional_int(form.get("points"))
+            tasks_session.commit()
+    return _kairos_action_response(request)
 
 
 def _stop_running_sessions(tasks_session: Session) -> None:
@@ -992,7 +1020,7 @@ def _stop_running_sessions(tasks_session: Session) -> None:
 
 
 @app.post("/kairos/tasks/{task_id:int}/timer/start")
-def start_timer(request: Request) -> RedirectResponse:
+def start_timer(request: Request) -> Response:
     """Démarre le chrono sur une tâche (ferme d'abord toute session en cours ailleurs)."""
     task_id = request.path_params["task_id"]
     with _request_session(get_tasks_session) as tasks_session:
@@ -1001,11 +1029,11 @@ def start_timer(request: Request) -> RedirectResponse:
             _stop_running_sessions(tasks_session)
             tasks_session.add(WorkSession(task_id=task_id))
             tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
 
 
 @app.post("/kairos/tasks/{task_id:int}/timer/stop")
-def stop_timer(request: Request) -> RedirectResponse:
+def stop_timer(request: Request) -> Response:
     """Arrête le chrono en cours sur cette tâche."""
     task_id = request.path_params["task_id"]
     now = datetime.now(timezone.utc)
@@ -1017,7 +1045,7 @@ def stop_timer(request: Request) -> RedirectResponse:
         ):
             session.ended_at = now
         tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
 
 
 @app.post("/kairos/tasks/{task_id:int}/edit")
@@ -1132,7 +1160,7 @@ async def edit_task(request: Request) -> RedirectResponse:
 
 
 @app.post("/kairos/tasks/{task_id:int}/done")
-def toggle_task_done(request: Request) -> RedirectResponse:
+def toggle_task_done(request: Request) -> Response:
     """Bascule fait ↔ à faire. Terminer une récurrente crée l'occurrence suivante."""
     task_id = request.path_params["task_id"]
     with _request_session(get_tasks_session) as tasks_session:
@@ -1152,12 +1180,12 @@ def toggle_task_done(request: Request) -> RedirectResponse:
             elif task.status == "done":
                 task.status = "todo"
             tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
 
 
 @app.post("/kairos/tasks/{task_id:int}/snooze")
-def snooze_task(request: Request) -> RedirectResponse:
-    """« Demain » : décale la deadline au prochain jour ouvré (week-ends et jours
+def snooze_task(request: Request) -> Response:
+    """« Décaler au prochain jour ouvré » : avance la deadline (week-ends et jours
     fériés sautés — un vendredi décale à lundi, pas à samedi)."""
     with _request_session(get_tasks_session) as tasks_session:
         task = tasks_session.get(Task, request.path_params["task_id"])
@@ -1165,7 +1193,7 @@ def snooze_task(request: Request) -> RedirectResponse:
             settings = get_settings()
             task.deadline = next_snooze_date(task.deadline, date.today(), settings.holiday_set)
             tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
 
 
 @app.post("/kairos/tasks/{task_id:int}/delete")

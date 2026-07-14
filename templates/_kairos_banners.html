@@ -1,0 +1,28 @@
+{# Bannières d'alerte de la vue Kairos : dégradation des sources externes (TimeTree,
+   GitLab) + garde-fou de surcharge de priorité maximale. Partagé entre la vue
+   semaine (haut de page, position historique) et la vue jour (repositionné sous
+   « Maintenant », voir `_kairos_day.html`) — un seul `{% include %}` par vue rendue,
+   jamais les deux à la fois : `{% include %}` transmet le contexte complet par
+   défaut, pas besoin de macro ni de paramètres explicites ici. #}
+{% from "_icons.html" import icon %}
+
+{% if timetree_configured and not timetree_ok %}
+<div class="banner warning">
+  {{ icon('warning') }} <span>Calendrier personnel TimeTree
+  indisponible{% if timetree_detail %} ({{ timetree_detail }}){% endif %}.
+  Seuls les créneaux saisis à la main sont pris en compte.</span>
+</div>
+{% endif %}
+
+{% if gitlab_direct_error %}
+<div class="banner warning">
+  {{ icon('warning') }} <span>Import GitLab (issues assignées) indisponible ({{ gitlab_direct_error }}).
+  Les tâches déjà importées restent affichées telles quelles.</span>
+</div>
+{% endif %}
+
+{% if priority_overload_count > priority_overload_threshold %}
+<div class="banner warning">
+  {{ icon('warning') }} <span>{{ priority_overload_count }} tâches sont déjà à priorité maximale — le signal de priorité se dilue. Dépriorise ce qui peut attendre.</span>
+</div>
+{% endif %}

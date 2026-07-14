@@ -1,0 +1,197 @@
+{# Macros partagées entre `kairos.html` (page pleine, backlog, vue semaine) et
+   `_kairos_day.html` (partiel de la vue jour, rendu aussi tel quel pour les
+   réponses AJAX) — évite un import circulaire entre les deux gabarits. #}
+{% from "_icons.html" import icon %}
+
+{% macro done_toggle(task) %}
+<form method="post" action="/kairos/tasks/{{ task.id }}/done" class="inline">
+  <button type="submit" class="mj-check {% if task.status == 'done' %}is-done{% endif %}"
+    title="{% if task.status == 'done' %}Rouvrir{% else %}Marquer fait{% endif %}">
+    {% if task.status == 'done' %}{{ icon('check') }}{% endif %}</button>
+</form>
+{% endmacro %}
+
+{% macro task_actions(task) %}
+<span class="mj-actions">
+  {% if task.status == 'todo' %}
+  {% if running_task_id == task.id %}
+  <form method="post" action="/kairos/tasks/{{ task.id }}/timer/stop" class="inline" data-ajax>
+    <button type="submit" class="icbtn timer-on" title="Arrêter le chrono">{{ icon('clock') }}</button>
+  </form>
+  {% else %}
+  <form method="post" action="/kairos/tasks/{{ task.id }}/timer/start" class="inline" data-ajax>
+    <button type="submit" class="icbtn" title="Démarrer le chrono">{{ icon('clock') }}</button>
+  </form>
+  {% endif %}
+  {% endif %}
+  <form method="post" action="/kairos/tasks/{{ task.id }}/snooze" class="inline" data-ajax>
+    <button type="submit" class="icbtn" title="Décaler au prochain jour ouvré">{{ icon('chevron_right') }}</button>
+  </form>
+</span>
+{% endmacro %}
+
+{% macro time_spent(task) %}
+{%- set spent = spent_by_task.get(task.id, 0) -%}
+{%- if running_task_id == task.id -%}
+<span class="badge info mj-timer" data-started="{{ running_started_iso }}" data-base="{{ spent }}"
+      data-estimate="{{ task.estimated_minutes or '' }}" data-title="{{ task.title }}"
+      title="Chrono en cours">{{ icon('clock') }} <span class="mj-timer-val">{{ spent }} min</span></span>
+{%- elif spent > 0 -%}
+<span class="badge {% if task.estimated_minutes and spent > task.estimated_minutes %}bad{% else %}neutral{% endif %}"
+      title="Temps réel passé{% if task.estimated_minutes %} vs estimé {{ task.estimated_minutes }} min{% endif %}">
+  {{ spent }} min{% if task.estimated_minutes %} / {{ task.estimated_minutes }}{% endif %}</span>
+{%- endif -%}
+{% endmacro %}
+
+{% macro fibo_help() %}
+<details class="mj-help">
+  <summary>{{ icon('trending_up') }} Comment estimer les points ?</summary>
+  <div class="mj-help-body">
+    <p>Taille <strong>relative</strong> (jamais des heures) : volume × complexité ×
+    <strong>incertitude</strong> (« est-ce que je sais comment faire ? »). Estime par
+    rapport à tes tâches habituelles, en quelques secondes ; dans le doute, arrondis
+    au-dessus.</p>
+    <ul class="mj-help-scale">
+      <li><span class="badge mj-tag">1</span> trivial, expédié (valider une MR triviale)</li>
+      <li><span class="badge mj-tag">2</span> petit, chemin connu (petite revue de code)</li>
+      <li><span class="badge mj-tag">3</span> modéré, zéro inconnue (dev bien cadré)</li>
+      <li><span class="badge mj-tag">5</span> conséquent, plusieurs étapes ou un peu d'inconnu</li>
+      <li><span class="badge mj-tag">8</span> gros, vraie complexité ou inconnues</li>
+      <li><span class="badge mj-tag">13 · 21</span> trop gros pour une seule tâche → découpe en sous-tâches</li>
+    </ul>
+    <p class="muted">Distinct de la <strong>durée (min)</strong> : les points nourrissent
+    l'<strong>ordre</strong> (effort au dénominateur du score WSJF), la durée sert au
+    <strong>placement</strong> dans l'agenda. Une tâche peut être courte mais tordue
+    (peu de minutes, plus de points), ou longue mais mécanique.</p>
+  </div>
+</details>
+{% endmacro %}
+
+{% macro edit_panel(task) %}
+<span class="mj-edit">
+  <button type="button" class="icbtn mj-edit-toggle" title="Éditer" aria-expanded="false">{{ icon('pencil') }}</button>
+  <div class="mj-edit-body" hidden>
+    <form method="post" action="/kairos/tasks/{{ task.id }}/edit" class="mj-edit-form">
+      <label>Titre<input type="text" name="title" value="{{ task.title }}" required></label>
+      <div class="mj-edit-row mj-edit-essentials">
+        <label>Priorité
+          <select name="priority">
+            <option value="" {% if task.priority is none %}selected{% endif %}>—</option>
+            {% for p in range(0, 3) %}
+            <option value="{{ p }}" {% if task.priority == p %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label title="Estimation agile de taille relative (volume × complexité × incertitude) : c'est l'EFFORT au dénominateur du score WSJF qui ordonne la liste. Voir « Comment estimer ? » sous la ligne.">Points Fibo
+          <select name="fibonacci_points" class="mj-fibo-select">
+            <option value="" {% if task.fibonacci_points is none %}selected{% endif %}>—</option>
+            {% for p in fibonacci_scale %}
+            <option value="{{ p }}" data-avg-minutes="{{ avg_minutes_by_fibo.get(p, '') }}"
+              {% if task.fibonacci_points == p %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Échéance<input type="date" name="deadline" value="{{ task.deadline.isoformat() if task.deadline else '' }}"></label>
+        <label>Durée (min)<input type="number" name="estimated_minutes" min="1" class="mj-estimated-minutes"
+          value="{{ task.estimated_minutes if task.estimated_minutes else '' }}" style="width:80px;"></label>
+      </div>
+      {{ fibo_help() }}
+      <details class="mj-edit-advanced">
+        <summary>{{ icon('chevron_right', '') }} Options avancées</summary>
+        <div class="mj-edit-advanced-body">
+          <label>Description<textarea name="description" rows="2">{{ task.description }}</textarea></label>
+          <div class="mj-edit-row">
+            <label title="Quand tu comptes t'y mettre — distinct de l'échéance">Programmée pour
+              <input type="date" name="scheduled_date" value="{{ task.scheduled_date.isoformat() if task.scheduled_date else '' }}"></label>
+            <label>Projet<input type="text" name="project_tag" value="{{ task.project_tag }}" style="width:110px;"></label>
+            <label title="Ajouté au temps mesuré par le chrono — pratique si vous l'avez oublié pendant tout ou partie du travail">Temps passé manuel (min)
+              <input type="number" name="manual_time_spent_minutes" min="0"
+                value="{{ task.manual_time_spent_minutes if task.manual_time_spent_minutes else '' }}" style="width:90px;"></label>
+            <label>Récurrence
+              <select name="recurrence">
+                <option value="" {% if not task.recurrence %}selected{% endif %}>aucune</option>
+                <option value="daily" {% if task.recurrence == 'daily' %}selected{% endif %}>quotidienne</option>
+                <option value="weekdays" {% if task.recurrence == 'weekdays' %}selected{% endif %}>jours ouvrés</option>
+                <option value="weekly" {% if task.recurrence == 'weekly' %}selected{% endif %}>hebdomadaire</option>
+                <option value="monthly" {% if task.recurrence == 'monthly' %}selected{% endif %}>mensuelle</option>
+                <option value="monthly_on_day" {% if task.recurrence == 'monthly_on_day' %}selected{% endif %}>le … du mois</option>
+              </select>
+            </label>
+            <label title="Jour du mois (ex. 23) — décalé au jour ouvré précédent si férié/week-end">Jour du mois
+              <input type="number" name="recurrence_day_of_month" min="1" max="31" style="width:70px;"
+                value="{{ task.recurrence_day_of_month if task.recurrence_day_of_month else '' }}"></label>
+            <label>Type
+              <select name="task_type" class="mj-task-type-select">
+                <option value="" {% if not task.task_type %}selected{% endif %}>—</option>
+                {% for value in settings.task_type_list %}
+                <option value="{{ value }}" data-avg-minutes="{{ avg_minutes_by_type.get(value, '') }}"
+                  {% if task.task_type == value %}selected{% endif %}>{{ value }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label title="Pose la tâche à heure fixe le jour programmé (« Programmée pour » ci-dessus) si renseigné, sinon le jour affiché ; vide = désépinglée">Heure fixe
+              <input type="time" name="pin_time" value="{{ task.pinned_start.strftime('%H:%M') if task.pinned_start else '' }}"></label>
+            <input type="hidden" name="pin_day" value="{{ day.isoformat() }}">
+            <label title="Référence en lecture vers une fiche de dette technique existante — aucune écriture vers Redmine/GitLab">Fiche liée
+              <select name="linked_ticket_id" style="max-width:220px;">
+                <option value="" {% if not task.linked_ticket_id %}selected{% endif %}>—</option>
+                {% for choice in ticket_choices %}
+                <option value="{{ choice.id }}" {% if task.linked_ticket_id == choice.id %}selected{% endif %}>{{ choice.label }}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+          <label title="Une ligne = une sous-tâche, créée en même temps que le reste">
+            Nouvelles sous-tâches
+            <textarea name="new_subtasks" rows="2" placeholder="ex.&#10;Première étape&#10;Deuxième étape"></textarea>
+          </label>
+          {% set current_blocker_ids = deps_of.get(task.id, [])|map(attribute='id')|list %}
+          <div class="mj-edit-blockers" title="Tant qu'un bloqueur coché est encore à faire, cette tâche ne rentre dans aucun tri">
+            <span class="mj-edit-blockers-label">Bloquée par</span>
+            <div class="mj-blocker-checks">
+              {% for choice in blocker_choices if choice.id != task.id %}
+              <label class="mj-check-label">
+                <input type="checkbox" name="blocker_ids" value="{{ choice.id }}" {% if choice.id in current_blocker_ids %}checked{% endif %}>
+                {{ choice.title }}</label>
+              {% else %}
+              <span class="muted">aucune autre tâche</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </details>
+      <button type="submit" class="btn primary">{{ icon('save') }} Enregistrer</button>
+    </form>
+    <div class="mj-edit-row mj-edit-danger">
+      <form method="post" action="/kairos/tasks/{{ task.id }}/delete" class="inline"
+            onsubmit="return confirm('Supprimer cette tâche ?');">
+        <button type="submit" class="btn danger">{{ icon('trash') }}
+          {% if task.source == 'native' %}Supprimer{% else %}Archiver{% endif %}</button>
+      </form>
+    </div>
+  </div>
+</span>
+{% endmacro %}
+
+{% macro task_meta(task) %}
+{% set score = wsjf_of.get(task.id) if wsjf_of else none %}
+{% if score is not none %}<span class="badge mj-score" title="Score WSJF = (valeur de la priorité + criticité de l'échéance) ÷ effort (points Fibonacci). Plus élevé = à faire en premier. C'est ce score qui ordonne la liste.">{{ icon('trending_up') }} {{ score }}</span>{% endif %}
+{% if task.priority is not none %}<span class="badge prio" title="Priorité">P{{ task.priority }}</span>{% endif %}
+{% if task.project_tag %}<span class="badge">{{ task.project_tag }}</span>{% endif %}
+{% if task.task_type %}<span class="badge mj-tag" title="Type de tâche">{{ task.task_type }}</span>{% endif %}
+{% if task.fibonacci_points %}<span class="badge mj-tag" title="Estimation agile (informatif)">{{ task.fibonacci_points }} pts</span>{% endif %}
+{% set linked = ticket_by_id.get(task.linked_ticket_id) if task.linked_ticket_id else none %}
+{% if linked %}
+{% if linked.gitlab_web_url %}
+<a class="badge mj-tag" href="{{ linked.gitlab_web_url }}" target="_blank" rel="noopener" title="Fiche liée (lecture seule)">{{ icon('link') }} #{{ linked.pleiade_id }}</a>
+{% else %}
+<span class="badge mj-tag" title="Fiche liée : {{ linked.pleiade_subject }}">{{ icon('link') }} #{{ linked.pleiade_id }}</span>
+{% endif %}
+{% endif %}
+{% if task.estimated_minutes %}<span class="muted">{{ task.estimated_minutes }} min</span>{% endif %}
+{% if task.deadline %}<span class="muted">échéance {{ task.deadline.strftime('%d/%m') }}</span>{% endif %}
+{% if task.scheduled_date %}<span class="muted">programmée {{ task.scheduled_date.strftime('%d/%m') }}</span>{% endif %}
+{% if task.recurrence %}{{ icon('refresh') }}{% endif %}
+{% set stale_days = stale_days_of.get(task.id) %}
+{% if stale_days %}<span class="badge warn" title="Aucune reprise depuis longtemps">{{ icon('warning') }} traîne depuis {{ stale_days }} j</span>{% endif %}
+{% endmacro %}

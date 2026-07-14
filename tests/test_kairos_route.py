@@ -1174,9 +1174,11 @@ def test_edit_creates_multiple_subtasks_and_sets_blockers_in_one_submit(route_cl
         assert dep.blocker_id == blocker_id
 
 
-def test_blocker_picker_uses_a_select_menu_like_linked_ticket(route_client) -> None:
-    """Le sélecteur de bloqueurs est un menu <select multiple>, même widget que
-    « Fiche liée » (phase 13) — plus une liste de cases à cocher."""
+def test_blocker_picker_uses_checkboxes(route_client) -> None:
+    """Refonte GTD (Phase 4) : le sélecteur de bloqueurs est désormais une liste de
+    cases à cocher (``<input type="checkbox" name="blocker_ids">``), plus un menu
+    ``<select multiple>`` à Ctrl-clic — même nom de champ, `edit_task` traite déjà
+    l'ensemble soumis comme la cible complète (aucun changement backend)."""
     client, TestSession = route_client
     with TestSession() as db:
         task = Task(title="Mère", status="todo")
@@ -1189,9 +1191,9 @@ def test_blocker_picker_uses_a_select_menu_like_linked_ticket(route_client) -> N
         db.commit()
 
     page = client.get("/kairos")
-    assert 'name="blocker_ids" multiple' in page.text
-    assert f'<option value="{blocker_id}" selected>Bloqueur existant</option>' in page.text
-    assert 'type="checkbox" name="blocker_ids"' not in page.text
+    assert 'name="blocker_ids" multiple' not in page.text
+    assert f'<input type="checkbox" name="blocker_ids" value="{blocker_id}" checked>' in page.text
+    assert "Bloqueur existant" in page.text
 
 
 def test_edit_with_blank_subtask_lines_ignored(route_client) -> None:
@@ -1980,14 +1982,20 @@ def test_new_unqualified_task_appears_in_a_traiter_section(route_client) -> None
     assert "priorité et points manquants" in page.text
 
 
-def test_a_traiter_section_absent_when_everything_qualified(route_client) -> None:
+def test_a_traiter_shows_empty_state_when_everything_qualified(route_client) -> None:
+    """Refonte GTD (Phase 1) : la boîte de réception n'est plus masquée quand elle
+    est vide (avant : la section entière — classe ``mj-to-process`` incluse —
+    disparaissait du DOM) — elle reste affichée en tête de page avec un état vide
+    discret, pour toujours rappeler où regarder en premier."""
     client, TestSession = route_client
     with TestSession() as db:
         db.add(Task(title="Déjà clarifiée", status="todo", priority=1, fibonacci_points=3))
         db.commit()
 
     resp = client.get("/kairos")
-    assert "mj-to-process" not in resp.text
+    assert "mj-to-process" in resp.text  # la section reste présente (crème/ambre)
+    assert "mj-inbox-empty" in resp.text  # mais affiche l'état vide
+    assert "priorité et points manquants" not in resp.text
 
 
 def test_qualifying_task_via_edit_removes_it_from_a_traiter(route_client) -> None:
@@ -2001,7 +2009,7 @@ def test_qualifying_task_via_edit_removes_it_from_a_traiter(route_client) -> Non
         task_id = task.id
 
     before = client.get("/kairos")
-    assert "mj-to-process" in before.text
+    assert "mj-inbox-empty" not in before.text
 
     client.post(
         f"/kairos/tasks/{task_id}/edit",
@@ -2010,7 +2018,7 @@ def test_qualifying_task_via_edit_removes_it_from_a_traiter(route_client) -> Non
     )
 
     after = client.get("/kairos")
-    assert "mj-to-process" not in after.text
+    assert "mj-inbox-empty" in after.text
     assert '<span class="badge mj-score"' in after.text
 
 
