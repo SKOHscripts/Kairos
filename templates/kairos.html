@@ -406,8 +406,8 @@
   <summary class="collapser">{{ icon('chevron_right', '') }} Ajouter un créneau ou une tâche</summary>
   <div style="padding: 0 1rem 1rem;">
     <div class="mj-add-toggle">
-      <label class="mj-check"><input type="radio" name="mj-add-mode" value="task" checked> Tâche</label>
-      <label class="mj-check"><input type="radio" name="mj-add-mode" value="slot"> Créneau / deep work</label>
+      <label class="mj-check-label"><input type="radio" name="mj-add-mode" value="task" checked> Tâche</label>
+      <label class="mj-check-label"><input type="radio" name="mj-add-mode" value="slot"> Créneau / deep work</label>
     </div>
 
     <div data-mj-add-pane="task">
@@ -423,7 +423,7 @@
       <label>Titre<input type="text" name="title" placeholder="ex. Réunion hebdo / Focus" required style="width:220px;"></label>
       <label>Début<input type="datetime-local" name="start" required></label>
       <label>Fin<input type="datetime-local" name="end" required></label>
-      <label class="mj-check" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
+      <label class="mj-check-label" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
         <input type="checkbox" name="deepwork" value="1"> Bloc deep-work</label>
       <label title="Le créneau saisi devient le modèle (heure de début/fin) répété selon la règle — ex. déjeuner tous les jours, deep-work chaque mardi">Récurrence
         <select name="recurrence">
@@ -452,7 +452,7 @@
               <div class="mj-edit-row">
                 <label>Début<input type="datetime-local" name="start" value="{{ block.start.strftime('%Y-%m-%dT%H:%M') }}" required></label>
                 <label>Fin<input type="datetime-local" name="end" value="{{ block.end.strftime('%Y-%m-%dT%H:%M') }}" required></label>
-                <label class="mj-check" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
+                <label class="mj-check-label" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
                   <input type="checkbox" name="deepwork" value="1" {% if block.kind == 'deepwork' %}checked{% endif %}> Bloc deep-work</label>
                 <label>Récurrence
                   <select name="recurrence">

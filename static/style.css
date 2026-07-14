@@ -635,7 +635,7 @@ summary:focus-visible,
 .prose table { display: block; overflow-x: auto; white-space: nowrap; margin: 0 0 1rem;
   border: 1px solid var(--border); border-radius: var(--r-sm); }
 .prose a { font-weight: 600; }
-.mj-check { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; }
+.mj-check-label { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; }
 
 /* Page Réglages (/kairos/settings) */
 .mj-settings-section { margin-bottom: 1.1rem; }
