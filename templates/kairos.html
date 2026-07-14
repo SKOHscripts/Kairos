@@ -354,10 +354,10 @@
 </details>
 {% endif %}
 
-{# --- Progression du jour : où j'en suis, ce qui vient, est-ce que ça déborde. Ouverte
-     par défaut (cœur de l'usage quotidien), mais repliable comme le reste. --- #}
-<details class="card" open>
-  <summary class="collapser">{{ icon('chevron_right', '') }} Progression du jour</summary>
+{# --- Progression du jour : où j'en suis, ce qui vient, est-ce que ça déborde.
+     Élément principal de la vue Jour : toujours affichée, non repliable
+     (contrairement au reste des sections de cette page). --- #}
+<div class="card">
   <div class="mj-progress">
   {% if next_up_task %}
   <div class="mj-next">{{ icon('chevron_right') }} <strong>À faire maintenant :</strong>
@@ -391,7 +391,7 @@
     <span class="muted" id="mj-alert-status" hidden></span>
   </div>
   </div>
-</details>
+</div>
 
 {# --- Ajout : capture rapide d'une tâche (titre seul — la priorité, l'échéance, la
      programmation, le projet et la durée se règlent ensuite via l'édition complète de

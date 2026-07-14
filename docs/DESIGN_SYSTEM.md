@@ -31,11 +31,10 @@ aux deux seuls badges « clés » : score WSJF (`.badge.mj-score`) et priorité
 (`.badge.prio`). Tout le reste des badges reste neutre ou sémantique bas-chroma.
 
 **Exception assumée, scopée à une seule carte** : `.mj-progress` (« Progression du
-jour », élément principal de la vue Jour) garde un aplat terracotta — `#F7DDC8`,
-bordure `#EFCDA9` — même famille de couleur que le logo, pour se démarquer
-visuellement. Son texte (`.mj-next`) utilise `#B85A2A`, pas le `#D9713C` du logo :
-plus sombre pour rester lisible (~3.6:1 de contraste sur ce fond, contre ~2.6:1 pour
-le `#D9713C` brut, sous le seuil AA texte large). Décision produit délibérée, à ne pas
+jour », élément principal de la vue Jour, toujours dépliée — plus un `<details>`
+repliable comme le reste des sections de la page, mais un `<div class="card">` fixe)
+garde un aplat terracotta — `#F7DDC8`, bordure `#EFCDA9` — même famille de couleur que
+le logo, pour se démarquer visuellement. Décision produit délibérée, à ne pas
 généraliser à d'autres cartes/badges ni « corriger » vers bleu/neutre.
 
 ### Badges sémantiques (pilules, `border-radius: 999px`)
@@ -57,9 +56,11 @@ généraliser à d'autres cartes/badges ni « corriger » vers bleu/neutre.
 - Aucun registre décoratif/italique séparé : les titres d'accroche restent en Plex
   Sans, poids 600-700, jamais italique (classe `.editorial` neutralisée, conservée
   pour compatibilité de nommage uniquement) — **sauf** `.mj-next` (la ligne « À faire
-  maintenant : ... » dans `.mj-progress`), en italique 19px/600 pour peser sur cet
-  élément principal ; toujours IBM Plex Sans (italique chargé via Google Fonts,
-  `ital,wght@1,600` dans `templates/base.html`), jamais une police séparée.
+  maintenant : ... » dans `.mj-progress`), seule ligne de l'app en **Newsreader**
+  italique 19px/500, `color: var(--text)` : registre historique de l'ancienne charte,
+  repris tel quel pour cet élément principal. Police chargée via Google Fonts
+  (`Newsreader:ital,wght@1,500` dans `templates/base.html`), en plus d'IBM Plex Sans
+  — ne pas étendre à d'autres titres.
 - Échelle : corps ~13.5px · labels majuscules 10–11.5px (`letter-spacing` ~0.04em) ·
   chiffres clés (KPI) 18–26px en 800. Densité d'information inchangée par rapport à
   l'existant.
@@ -74,8 +75,7 @@ généraliser à d'autres cartes/badges ni « corriger » vers bleu/neutre.
 - Puce de priorité/catégorie sur une ligne de tâche : `border-left: 3px solid
   <couleur>` (jamais de remplissage `box-shadow: inset`).
 - Pas de dégradé (`linear-gradient`) nulle part, sauf le fondu de scroll du bandeau
-  d'actions sticky de la page Réglages (`.mj-settings-actions`) et la carte
-  « Progression du jour » (`.mj-progress`, voir Couleurs ci-dessus).
+  d'actions sticky de la page Réglages (`.mj-settings-actions`).
 - Ombres : supprimées presque partout. Le seul `box-shadow` conservé est celui du
   panneau de modification de tâche ouvert (`.mj-edit-body`), qui se comporte comme un
   popup flottant.
