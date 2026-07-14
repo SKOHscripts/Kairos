@@ -30,6 +30,13 @@ Il n'y a qu'**un seul accent transverse** (bleu), réservé aux boutons primaire
 aux deux seuls badges « clés » : score WSJF (`.badge.mj-score`) et priorité
 (`.badge.prio`). Tout le reste des badges reste neutre ou sémantique bas-chroma.
 
+**Exception assumée, scopée à une seule carte** : `.mj-progress` (« Progression du
+jour », élément principal de la vue Jour) garde un dégradé terracotta —
+`linear-gradient(135deg, var(--surface-tint), #F7DDC8 130%)`, bordure `#EFCDA9` —
+même famille de couleur que le logo, pour se démarquer visuellement. Décision produit
+délibérée, à ne pas généraliser à d'autres cartes/badges ni « corriger » vers
+bleu/neutre.
+
 ### Badges sémantiques (pilules, `border-radius: 999px`)
 
 | Rôle | Classe | Fond | Texte |
@@ -48,7 +55,10 @@ aux deux seuls badges « clés » : score WSJF (`.badge.mj-score`) et priorité
   aux identifiants/chiffres).
 - Aucun registre décoratif/italique séparé : les titres d'accroche restent en Plex
   Sans, poids 600-700, jamais italique (classe `.editorial` neutralisée, conservée
-  pour compatibilité de nommage uniquement).
+  pour compatibilité de nommage uniquement) — **sauf** `.mj-next` (la ligne « À faire
+  maintenant : ... » dans `.mj-progress`), en italique 19px/600 pour peser sur cet
+  élément principal ; toujours IBM Plex Sans (italique chargé via Google Fonts,
+  `ital,wght@1,600` dans `templates/base.html`), jamais une police séparée.
 - Échelle : corps ~13.5px · labels majuscules 10–11.5px (`letter-spacing` ~0.04em) ·
   chiffres clés (KPI) 18–26px en 800. Densité d'information inchangée par rapport à
   l'existant.
@@ -63,7 +73,8 @@ aux deux seuls badges « clés » : score WSJF (`.badge.mj-score`) et priorité
 - Puce de priorité/catégorie sur une ligne de tâche : `border-left: 3px solid
   <couleur>` (jamais de remplissage `box-shadow: inset`).
 - Pas de dégradé (`linear-gradient`) nulle part, sauf le fondu de scroll du bandeau
-  d'actions sticky de la page Réglages (`.mj-settings-actions`).
+  d'actions sticky de la page Réglages (`.mj-settings-actions`) et la carte
+  « Progression du jour » (`.mj-progress`, voir Couleurs ci-dessus).
 - Ombres : supprimées presque partout. Le seul `box-shadow` conservé est celui du
   panneau de modification de tâche ouvert (`.mj-edit-body`), qui se comporte comme un
   popup flottant.
