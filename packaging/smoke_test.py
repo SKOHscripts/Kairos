@@ -47,6 +47,34 @@ def _probe_favicon(port: int) -> bool:
         return False
 
 
+def _terminate_tree(process: subprocess.Popen) -> None:
+    """Termine `process` et toute sa descendance.
+
+    PyInstaller (mode onefile) exécute l'application réelle dans un processus
+    enfant du bootloader qu'on a lancé (constaté sur Linux et Windows) :
+    `process.terminate()` seul ne tue que ce bootloader parent et laisse
+    l'enfant orphelin — sous Windows, ce dernier garde alors le fichier de
+    sortie ouvert, ce qui fait échouer la suppression du dossier temporaire
+    juste après (`PermissionError: [WinError 32]`, constaté en conditions
+    réelles). `taskkill /T` cible tout l'arbre de processus, pas seulement le
+    PID direct.
+    """
+    if process.poll() is not None:
+        return
+    if sys.platform == "win32":
+        subprocess.run(
+            ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+            capture_output=True,
+        )
+    else:
+        process.terminate()
+    try:
+        process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=10)
+
+
 def _wait_until_serving(process: subprocess.Popen, data_dir: Path, timeout: float) -> tuple[bool, str]:
     """(succès, message) — sonde le verrou puis `/favicon.ico`, en abandonnant
     tôt si le process est déjà mort plutôt que d'attendre le timeout entier."""
@@ -74,16 +102,20 @@ def main() -> int:
         print(f"introuvable : {exe_path}", file=sys.stderr)
         return 2
 
-    with tempfile.TemporaryDirectory(prefix="kairos-smoke-") as tmp:
+    # ignore_cleanup_errors : filet de sécurité si un descendant du bootloader
+    # PyInstaller garde malgré tout un fichier ouvert au moment du nettoyage
+    # (Windows refuse de supprimer un fichier encore ouvert, contrairement à
+    # Linux) — `_terminate_tree` couvre le cas connu, ceci couvre l'imprévu.
+    with tempfile.TemporaryDirectory(prefix="kairos-smoke-", ignore_cleanup_errors=True) as tmp:
         data_dir = Path(tmp)
         # Sortie redirigée vers un fichier, pas un pipe : `webbrowser.open()`
-        # (déclenché par `app/launcher.py` au démarrage) lance un vrai
+        # (déclenché par `app/launcher.py` au démarrage) lancerait un vrai
         # navigateur sur Windows (contrairement à un runner Linux headless,
-        # sans DISPLAY, où il échoue instantanément) — ce navigateur hérite du
-        # handle de sortie du process et le garde ouvert bien après qu'on ait
-        # tué l'exécutable, ce qui bloquerait `Popen.stdout.read()` (attente
-        # d'un EOF qui n'arrive jamais) indéfiniment avec un pipe. Un fichier
-        # n'a pas ce problème : le lire ne dépend pas des autres porteurs du
+        # sans DISPLAY, où il échoue instantanément), qui hériterait du handle
+        # de sortie du process et le garderait ouvert bien après qu'on ait tué
+        # l'exécutable — ce qui bloquerait `Popen.stdout.read()` (attente d'un
+        # EOF qui n'arrive jamais) indéfiniment avec un pipe. Un fichier n'a
+        # pas ce problème : le lire ne dépend pas des autres porteurs du
         # handle d'écriture. KAIROS_NO_BROWSER (voir app/launcher.py) évite en
         # plus de laisser un vrai navigateur tourner après ce script.
         log_path = data_dir / "output.log"
@@ -97,13 +129,7 @@ def main() -> int:
             try:
                 success, message = _wait_until_serving(process, data_dir, _STARTUP_TIMEOUT)
             finally:
-                if process.poll() is None:
-                    process.terminate()
-                    try:
-                        process.wait(timeout=10)
-                    except subprocess.TimeoutExpired:
-                        process.kill()
-                        process.wait(timeout=10)
+                _terminate_tree(process)
 
         output = log_path.read_text(encoding="utf-8", errors="replace")
 
