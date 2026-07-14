@@ -203,13 +203,6 @@
 </div>
 {% endif %}
 
-{% if google_calendar_error %}
-<div class="banner warning">
-  {{ icon('warning') }} <span>Google Calendar indisponible ({{ google_calendar_error }}).
-  Seuls les créneaux saisis à la main et TimeTree sont pris en compte.</span>
-</div>
-{% endif %}
-
 {% if priority_overload_count > priority_overload_threshold %}
 <div class="banner warning">
   {{ icon('warning') }} <span>{{ priority_overload_count }} tâches sont déjà à priorité maximale — le signal de priorité se dilue. Dépriorise ce qui peut attendre.</span>

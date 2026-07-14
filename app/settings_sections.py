@@ -30,15 +30,6 @@ SECTIONS: list[tuple[str, list[str]]] = [
         ],
     ),
     (
-        "Calendrier(s) Google",
-        [
-            "google_client_id",
-            "google_client_secret",
-            "google_calendar_ids",
-            "google_cache_ttl_minutes",
-        ],
-    ),
-    (
         "Ordonnancement",
         [
             "default_task_duration_minutes",
@@ -80,12 +71,7 @@ SECTIONS: list[tuple[str, list[str]]] = [
 
 # Champs dont la valeur ne doit jamais être réaffichée en clair dans l'interface
 # (stockés en priorité dans le trousseau système — voir `app/secret_store.py`).
-# `google_refresh_token` n'apparaît dans aucune section (écrit uniquement par le
-# flux OAuth, jamais saisi à la main) mais reste listé ici pour ne jamais être
-# exposé en clair par `_settings_context`/`settings_store.save`.
-SECRET_FIELDS: tuple[str, ...] = (
-    "gitlab_token", "timetree_password", "google_client_secret", "google_refresh_token",
-)
+SECRET_FIELDS: tuple[str, ...] = ("gitlab_token", "timetree_password")
 
 # Champ nécessitant un redémarrage de Kairos pour prendre effet (moteur de base
 # de données lié au chemin dès l'import de `app/tasks_db.py`).
@@ -105,10 +91,6 @@ FIELD_LABELS: dict[str, str] = {
     "timetree_password": "Mot de passe TimeTree",
     "timetree_calendar_code": "Code du calendrier TimeTree",
     "timetree_cache_ttl_minutes": "Cache TimeTree (minutes)",
-    "google_client_id": "Identifiant client OAuth Google",
-    "google_client_secret": "Secret client OAuth Google",
-    "google_calendar_ids": "Calendrier(s) Google",
-    "google_cache_ttl_minutes": "Cache Google Calendar (minutes)",
     "default_task_duration_minutes": "Durée par défaut d'une tâche (minutes)",
     "meeting_buffer_minutes": "Marge après une réunion (minutes)",
     "workday_start_hour": "Début de journée (heure)",

@@ -1511,83 +1511,40 @@ rebaptisage de l'ancien format d'`external_id`) inchangée et non dupliquée.
 
 ---
 
-# Phase 18 : calendriers externes — bandeau TimeTree silencieux + Google Calendar (issue #14)
+# Phase 18 : bandeau TimeTree silencieux quand non configuré (issue #14)
 
 ## Contexte
 
-Deux points restaient en suspens sur les intégrations de calendrier externes,
-toutes deux censées être **entièrement optionnelles** (issue #14) :
-
-1. **Bug** : le bandeau d'avertissement TimeTree s'affichait même quand
-   l'intégration était simplement non configurée (cas normal, identifiants
-   absents) — il ne devrait s'afficher que si TimeTree est configuré et que la
-   récupération échoue, comme le fait déjà `gitlab_direct_error`.
-2. **Fonctionnalité manquante** : aucun équivalent de TimeTree/GitLab pour
-   Google Calendar, alors que c'est le calendrier personnel/professionnel le
-   plus répandu.
+Le bandeau d'avertissement TimeTree s'affichait même quand l'intégration était
+simplement non configurée (cas normal, identifiants absents) — il ne devrait
+s'afficher que si TimeTree est configuré et que la récupération échoue
+réellement, comme le fait déjà `gitlab_direct_error`. Les intégrations de
+calendrier externe doivent rester **entièrement optionnelles** (issue #14).
 
 ## Décision actée
 
-**Bandeau TimeTree** : correctif d'un mot dans `templates/kairos.html` — la
-condition passe de `{% if not timetree_ok %}` à
-`{% if timetree_configured and not timetree_ok %}`, et la branche « non
-configuré » (qui affichait un message même en l'absence totale
-d'identifiants) est supprimée. Aucun changement côté `app/main.py` :
+Correctif d'un mot dans `templates/kairos.html` — la condition passe de
+`{% if not timetree_ok %}` à `{% if timetree_configured and not timetree_ok %}`,
+et la branche « non configuré » (qui affichait un message même en l'absence
+totale d'identifiants) est supprimée. Aucun changement côté `app/main.py` :
 `timetree_ok`/`timetree_configured`/`timetree_detail` étaient déjà dans le
 contexte.
 
-**Google Calendar** : intégration OAuth 2.0 (PKCE) intégrée à l'application,
-même contrat que TimeTree/GitLab (jamais d'exception, dégradation propre) :
-
-- `app/calendar/google_oauth.py` : flux PKCE complet (client OAuth «
-  Application de bureau », créé une fois par l'utilisateur dans Google Cloud
-  Console — `google_client_id`/`google_client_secret` saisis dans Réglages).
-  Redirection **loopback** (`http://127.0.0.1:<port>/kairos/settings/google/callback`,
-  RFC 8252 §7.3) : fonctionne à l'identique sur le launcher de bureau et dans
-  la WebView Android, puisque c'est le même serveur local qui répond des deux
-  côtés. `GoogleTokenResult(ok, access_token, refresh_token, detail)`, jamais
-  d'exception.
-- `app/calendar/google_calendar_source.py` : miroir exact du contrat de
-  `timetree_source.py::fetch_busy_slots` — réutilise `BusySlot` tel quel,
-  agrège un ou plusieurs calendriers d'un même compte Google
-  (`google_calendar_ids`, CSV, même patron que `gitlab_projects`), cache TTL en
-  mémoire (`google_cache_ttl_minutes`).
-- `app/config.py`/`app/settings_sections.py` : nouvelle section « Calendrier(s)
-  Google », 4 champs de formulaire classiques + `google_refresh_token` (jamais
-  saisi à la main, écrit uniquement par le flux OAuth, mais protégé comme
-  secret). `google_calendar_configured` suit le même patron que
-  `timetree_configured`/`gitlab_direct_configured`.
-- Deux routes (`app/main.py`) : `GET /kairos/settings/google/connect` (lance le
-  flux, redirection vers Google) et `GET /kairos/settings/google/callback`
-  (échange le code, persiste le jeton via `settings_store.save`, affiche
-  `templates/oauth_result.html`).
-- `_fetch_busy_blocks` fusionne désormais TimeTree et Google Calendar ; un
-  nouveau `google_calendar_error` (silencieux si non configuré) suit le même
-  patron que `gitlab_direct_error`.
-- **Android** : Google refuse son écran de consentement dans une WebView
-  embarquée (`disallowed_useragent`). `MainActivity#shouldOverrideUrlLoading`
-  ouvre le navigateur système pour tout host qui n'est pas `127.0.0.1`, laisse
-  la navigation loopback dans la WebView — voir
-  `docs/ANDROID_PACKAGING.md` pour la limite v1 (retour affiché dans le
-  navigateur externe, pas la WebView).
-
-## Réutilisation
-
-- Contrat `ok`/`blocks`/`detail` et patron de cache TTL en mémoire de
-  `calendar/timetree_source.py`, repris à l'identique.
-- `BusySlot` (dataclass, `covers()`) réutilisée tel quel par
-  `google_calendar_source.py` — aucune duplication.
-- Rendu de la page Réglages entièrement générique (`SECTIONS`/`FIELD_LABELS`/
-  `field_kind`) : les 4 nouveaux champs Google s'affichent sans aucun
-  changement de `templates/settings.html`, à l'exception du bouton « Connecter
-  Google Calendar » (seul ajout non générique).
+Une intégration Google Calendar (OAuth 2.0/PKCE) sur le même principe a été
+explorée puis **retirée avant fusion** : elle exige de créer un client OAuth
+dans Google Cloud Console (identifiant + secret client), une manipulation
+jugée trop lourde par l'utilisateur comparée au simple email/mot de passe de
+TimeTree — voir « Hors périmètre » ci-dessous.
 
 ## Hors périmètre phase 18
 
-- Interface pour connecter plusieurs comptes Google distincts (un seul compte,
-  plusieurs calendriers à l'intérieur).
-- Deep link Android pour ramener automatiquement l'utilisateur dans la WebView
-  après le consentement (voir limite v1 ci-dessus).
+- **Google Calendar** : écarté après une première implémentation testée en
+  conditions réelles — la configuration préalable côté Google Cloud Console
+  (créer un projet, un client OAuth « Application de bureau », activer l'API,
+  configurer l'écran de consentement) est jugée trop complexe pour l'usage
+  personnel visé par Kairos. À reconsidérer seulement si Google propose un
+  jour un mécanisme d'authentification aussi simple qu'un identifiant/mot de
+  passe.
 
 ## Success Criteria phase 18
 
@@ -1595,10 +1552,4 @@ même contrat que TimeTree/GitLab (jamais d'exception, dégradation propre) :
       GitLab non configuré.
 - [x] TimeTree configuré mais en échec : bandeau affiché avec le détail de
       l'erreur.
-- [x] Google Calendar non configuré : dégradation silencieuse, aucun impact sur
-      le reste de l'application.
-- [x] Un compte Google connecté avec plusieurs calendriers : les créneaux
-      occupés de tous les calendriers listés sont fusionnés.
-- [x] Un échec Google Calendar (jeton révoqué, réseau) affiche un bandeau,
-      jamais une page en erreur.
-- [x] `pytest` passe sans réseau réel (appels Google/TimeTree/GitLab mockés).
+- [x] `pytest` passe sans réseau réel.

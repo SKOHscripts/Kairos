@@ -34,8 +34,6 @@ from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 from . import secret_store, settings_store
-from .calendar.google_calendar_source import fetch_busy_slots as fetch_google_busy_slots
-from .calendar.google_oauth import build_authorize_url, exchange_code_for_tokens
 from .calendar.timetree_source import fetch_busy_slots
 from .config import Settings, apply_proxy_env, get_settings, invalidate_settings_cache
 from .gitlab_direct import fetch_assigned_issues
@@ -252,8 +250,7 @@ def home(request: Request) -> HTMLResponse:
 def _fetch_busy_blocks(
     tasks_session: Session, settings, range_start: date, range_end: date
 ):
-    """Blocs manuels (base) + TimeTree + Google Calendar (best-effort, tous deux
-    optionnels), fusionnés sur ``[range_start, range_end]``.
+    """Blocs manuels (base) + TimeTree (best-effort), fusionnés sur ``[range_start, range_end]``.
 
     Ne filtre PAS journée entière/période ici : chaque appelant décide comment traiter
     ces cas particuliers (voir ``_render_kairos``). Les blocs récurrents (phase 13)
@@ -261,7 +258,6 @@ def _fetch_busy_blocks(
     volée sur la plage demandée par ``expand_recurring_blocks``, jamais persistés.
     """
     timetree_result = fetch_busy_slots(range_start, range_end, settings=settings)
-    google_result = fetch_google_busy_slots(range_start, range_end, settings=settings)
     range_start_dt = datetime.combine(range_start, datetime.min.time())
     range_end_dt = datetime.combine(range_end, datetime.max.time())
     one_off_blocks = list(
@@ -285,7 +281,7 @@ def _fetch_busy_blocks(
     manual_blocks = one_off_blocks + expand_recurring_blocks(
         recurring_templates, range_start, range_end
     )
-    return manual_blocks, timetree_result, google_result
+    return manual_blocks, timetree_result
 
 
 def _build_week_view(
@@ -605,21 +601,20 @@ def _render_kairos(
     if view == "week":
         monday = target_day - timedelta(days=target_day.weekday())
         sunday = monday + timedelta(days=6)
-        manual_blocks, timetree_result, google_result = _fetch_busy_blocks(
+        manual_blocks, timetree_result = _fetch_busy_blocks(
             tasks_session, settings, monday, sunday
-        )
-        external_blocks = timetree_result.blocks + google_result.blocks
-        # Silencieux si non configuré (intégration optionnelle), comme GitLab/TimeTree.
-        google_calendar_error = (
-            google_result.detail if settings.google_calendar_configured and not google_result.ok else ""
         )
         # Les événements « journée entière » ET les événements « sur une période »
         # (plusieurs jours, horaires réels) ne sont pas des créneaux horaires : ils
         # sont affichés en puce sur leur(s) jour(s), jamais posés sur la grille — un
         # horaire réel ne dit rien sur les jours intermédiaires d'un déplacement de
         # plusieurs jours (phase 12).
+        timed_slots = [
+            b for b in timetree_result.blocks
+            if not b.all_day and b.start.date() == b.end.date()
+        ]
         indication_slots = [
-            b for b in external_blocks
+            b for b in timetree_result.blocks
             if b.all_day or b.start.date() != b.end.date()
         ]
         # Agrégat hebdomadaire du temps réel par type (phase 7) : synthèse compacte
@@ -640,12 +635,7 @@ def _render_kairos(
         ]
         week_days = _build_week_view(tasks, manual_blocks + [
             TimeBlock(title=b.title, start=b.start, end=b.end, source="timetree")
-            for b in timetree_result.blocks
-            if not b.all_day and b.start.date() == b.end.date()
-        ] + [
-            TimeBlock(title=b.title, start=b.start, end=b.end, source="google_calendar")
-            for b in google_result.blocks
-            if not b.all_day and b.start.date() == b.end.date()
+            for b in timed_slots
         ], monday, indication_slots, done_tasks=done_week)
         # Recherche/filtres (issue #15.4) : s'appliquent aussi à la vue semaine, en
         # masquant des lignes dans chaque jour — jamais en réordonnant la grille.
@@ -659,38 +649,28 @@ def _render_kairos(
             week_days=week_days,
             timetree_ok=timetree_result.ok,
             timetree_detail=timetree_result.detail,
-            google_calendar_error=google_calendar_error,
             spent_by_type_week=spent_by_type_week,
             week_spent_total_str=_fmt_minutes(total_minutes(week_sessions)),
         )
     else:
-        manual_blocks, timetree_result, google_result = _fetch_busy_blocks(
+        manual_blocks, timetree_result = _fetch_busy_blocks(
             tasks_session, settings, target_day, target_day
         )
-        # Silencieux si non configuré (intégration optionnelle), comme GitLab/TimeTree.
-        google_calendar_error = (
-            google_result.detail if settings.google_calendar_configured and not google_result.ok else ""
-        )
         # Journées entières ET événements « sur une période » (plusieurs jours, horaires
-        # réels) TimeTree/Google Calendar : simple indication sur le jour, jamais un
-        # obstacle qui mangerait la journée entière (l'horaire réel ne dit rien des jours
+        # réels) TimeTree : simple indication sur le jour, jamais un obstacle qui
+        # mangerait la journée entière (l'horaire réel ne dit rien des jours
         # intermédiaires d'un déplacement de plusieurs jours — phase 12).
         timetree_blocks = [
             TimeBlock(title=b.title, start=b.start, end=b.end, source="timetree")
             for b in timetree_result.blocks
             if not b.all_day and b.start.date() == b.end.date()
-        ] + [
-            TimeBlock(title=b.title, start=b.start, end=b.end, source="google_calendar")
-            for b in google_result.blocks
-            if not b.all_day and b.start.date() == b.end.date()
         ]
-        external_events = timetree_result.blocks + google_result.blocks
         indication_events = sorted(
-            b.title for b in external_events
+            b.title for b in timetree_result.blocks
             if b.all_day and b.covers(target_day)
         ) + sorted(
             f"{b.title} ({b.start.strftime('%d/%m')} → {b.end.strftime('%d/%m')})"
-            for b in external_events
+            for b in timetree_result.blocks
             if not b.all_day and b.start.date() != b.end.date() and b.covers(target_day)
         )
         schedule = build_day_schedule(
@@ -766,7 +746,6 @@ def _render_kairos(
             next_up_time=(schedule.scheduled[0].start_at if schedule.scheduled else None),
             timetree_ok=timetree_result.ok,
             timetree_detail=timetree_result.detail,
-            google_calendar_error=google_calendar_error,
         )
 
     return templates.TemplateResponse(request, "kairos.html", context)
@@ -896,45 +875,6 @@ async def kairos_settings_save(request: Request) -> Response:
     # l'erreur silencieusement.
     context = _settings_context(current, errors=errors, values=candidate, saved=False)
     return templates.TemplateResponse(request, "settings.html", context)
-
-
-def _google_oauth_redirect_uri(request: Request) -> str:
-    """Même URL de callback pour l'autorisation et l'échange de code (exigé par
-    Google) : construite depuis la requête courante, donc le host/port loopback
-    réel du serveur local — desktop ou Android (voir `app/calendar/google_oauth.py`)."""
-    return str(request.base_url).rstrip("/") + "/kairos/settings/google/callback"
-
-
-@app.get("/kairos/settings/google/connect")
-def google_calendar_connect(request: Request) -> Response:
-    """Lance le flux OAuth Google Calendar (PKCE, redirection loopback)."""
-    settings = get_settings()
-    url = build_authorize_url(_google_oauth_redirect_uri(request), settings=settings)
-    return RedirectResponse(url, status_code=303)
-
-
-@app.get("/kairos/settings/google/callback")
-def google_calendar_callback(request: Request) -> HTMLResponse:
-    """Réception du retour Google (code + state) : échange contre un jeton de
-    rafraîchissement persisté dans les réglages. Ne redirige jamais vers une
-    erreur 500 — succès/échec affichés sur une page dédiée."""
-    error = request.query_params.get("error")
-    if error:
-        context = {"page": "settings", "ok": False, "detail": error}
-        return templates.TemplateResponse(request, "oauth_result.html", context)
-
-    settings = get_settings()
-    code = request.query_params.get("code", "")
-    state = request.query_params.get("state", "")
-    result = exchange_code_for_tokens(
-        code, state, _google_oauth_redirect_uri(request), settings=settings,
-    )
-    if result.ok:
-        new_settings = Settings(**{**settings.model_dump(), "google_refresh_token": result.refresh_token})
-        settings_store.save(new_settings)
-        invalidate_settings_cache()
-    context = {"page": "settings", "ok": result.ok, "detail": result.detail}
-    return templates.TemplateResponse(request, "oauth_result.html", context)
 
 
 @app.post("/kairos/shutdown")

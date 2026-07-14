@@ -145,31 +145,6 @@ class Settings:
         default=30, ge=0,
         description="Durée (minutes) de mise en cache des créneaux TimeTree (anti rate-limiting).",
     )
-    # --- Calendrier(s) Google ---
-    # Jetons OAuth du compte Google connecté (voir `app/calendar/google_oauth.py`) :
-    # client_id/client_secret saisis à la main (créés une fois dans Google Cloud
-    # Console), refresh_token écrit uniquement par le flux « Connecter Google
-    # Calendar » (jamais saisi à la main). Vides = intégration désactivée
-    # (dégradation propre, même principe que TimeTree).
-    google_client_id: str = Field(
-        default="", description="Identifiant client OAuth Google (\"Application de bureau\").",
-    )
-    google_client_secret: str = Field(
-        default="", description="Secret client OAuth Google, stocké dans le trousseau système si possible.",
-    )
-    google_refresh_token: str = Field(
-        default="",
-        description="Jeton de rafraîchissement Google, obtenu via « Connecter Google Calendar » (jamais saisi à la main).",
-    )
-    google_calendar_ids: str = Field(
-        default="",
-        description="Calendrier(s) Google à agréger, séparés par des virgules (ex. \"primary,xxx@group.calendar.google.com\").",
-    )
-    # Durée (minutes) de mise en cache des créneaux Google Calendar (anti rate-limiting).
-    google_cache_ttl_minutes: int = Field(
-        default=30, ge=0,
-        description="Durée (minutes) de mise en cache des créneaux Google Calendar (anti rate-limiting).",
-    )
     # --- Ordonnancement ---
     # Durée par défaut (minutes) d'une tâche sans estimation (jamais stockée).
     default_task_duration_minutes: int = Field(
@@ -348,17 +323,6 @@ class Settings:
     @property
     def timetree_configured(self) -> bool:
         return bool(self.timetree_email and self.timetree_password)
-
-    @property
-    def google_calendar_id_list(self) -> list[str]:
-        return [c.strip() for c in self.google_calendar_ids.split(",") if c.strip()]
-
-    @property
-    def google_calendar_configured(self) -> bool:
-        return bool(
-            self.google_client_id and self.google_client_secret
-            and self.google_refresh_token and self.google_calendar_id_list
-        )
 
     @property
     def pilotage_configured(self) -> bool:

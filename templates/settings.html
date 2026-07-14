@@ -68,12 +68,6 @@
       </div>
       {% endfor %}
     </div>
-    {% if section_title == "Calendrier(s) Google" %}
-    <p class="hint">Statut de connexion :
-      {% if settings.google_refresh_token %}<strong>connecté</strong>
-      {% else %}non connecté{% endif %}</p>
-    <a class="btn" href="/kairos/settings/google/connect">{{ icon('link') }} Connecter Google Calendar</a>
-    {% endif %}
   </section>
   {% endfor %}
 
