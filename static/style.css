@@ -402,17 +402,19 @@ summary:focus-visible,
 
 /* Progression du jour : élément principal de la vue Jour — exception assumée et
    scopée à cette seule carte au reste de la charte (accent unique bleu, pas de
-   dégradé) : dégradé terracotta repris de l'ancienne charte, même famille de
+   dégradé) : aplat terracotta repris de l'ancienne charte, même famille de
    couleur que le logo Kairos, pour la mettre en avant. Ne pas généraliser cette
    teinte ailleurs (badges, boutons...), qui restent sur l'accent bleu. */
 .mj-progress {
   padding: 0.95rem 1.2rem; display: flex; flex-direction: column; gap: 0.5rem;
-  background: linear-gradient(135deg, var(--surface-tint), #F7DDC8 130%);
+  background: #F7DDC8;
   border-color: #EFCDA9;
 }
 .mj-next {
+  /* #B85A2A (pas le #D9713C du logo, ~2.6:1 sur ce fond) : même famille de
+     teinte, mais assez sombre pour ~3.6:1 de contraste sur #F7DDC8. */
   font-family: inherit; font-style: italic; font-weight: 600;
-  font-size: 19px; color: var(--text);
+  font-size: 19px; color: #B85A2A;
 }
 .mj-next strong { font-weight: 600; }
 .mj-progress-stats { display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap; }

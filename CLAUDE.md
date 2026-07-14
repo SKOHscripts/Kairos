@@ -18,10 +18,12 @@ complet : `docs/DESIGN_SYSTEM.md` (mêmes noms de classes/variables que
   active et à la carte « En ce moment ». Seul endroit sombre de l'UI.
 - Un seul thème clair — pas de mode sombre.
 - **Exception assumée** : la carte « Progression du jour » (`.mj-progress`,
-  élément principal de la vue Jour) garde un dégradé terracotta doux
-  (`#F7DDC8` / bordure `#EFCDA9`, même famille que le logo) pour se
-  distinguer — décision produit explicite, à ne pas « corriger » vers le
-  neutre/bleu. Ne pas étendre cette teinte à d'autres cartes ou badges.
+  élément principal de la vue Jour) garde un aplat terracotta doux (`#F7DDC8` /
+  bordure `#EFCDA9`, même famille que le logo) pour se distinguer — décision
+  produit explicite, à ne pas « corriger » vers le neutre/bleu. Son texte
+  (`.mj-next`) utilise `#B85A2A` (pas le `#D9713C` du logo, trop clair : ~2.6:1
+  de contraste sur ce fond, sous le seuil AA) pour rester lisible. Ne pas
+  étendre cette teinte à d'autres cartes ou badges.
 
 ## Typographie
 - IBM Plex Sans (400/500/600/700) partout, y compris les nombres

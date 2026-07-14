@@ -31,11 +31,12 @@ aux deux seuls badges « clés » : score WSJF (`.badge.mj-score`) et priorité
 (`.badge.prio`). Tout le reste des badges reste neutre ou sémantique bas-chroma.
 
 **Exception assumée, scopée à une seule carte** : `.mj-progress` (« Progression du
-jour », élément principal de la vue Jour) garde un dégradé terracotta —
-`linear-gradient(135deg, var(--surface-tint), #F7DDC8 130%)`, bordure `#EFCDA9` —
-même famille de couleur que le logo, pour se démarquer visuellement. Décision produit
-délibérée, à ne pas généraliser à d'autres cartes/badges ni « corriger » vers
-bleu/neutre.
+jour », élément principal de la vue Jour) garde un aplat terracotta — `#F7DDC8`,
+bordure `#EFCDA9` — même famille de couleur que le logo, pour se démarquer
+visuellement. Son texte (`.mj-next`) utilise `#B85A2A`, pas le `#D9713C` du logo :
+plus sombre pour rester lisible (~3.6:1 de contraste sur ce fond, contre ~2.6:1 pour
+le `#D9713C` brut, sous le seuil AA texte large). Décision produit délibérée, à ne pas
+généraliser à d'autres cartes/badges ni « corriger » vers bleu/neutre.
 
 ### Badges sémantiques (pilules, `border-radius: 999px`)
 
