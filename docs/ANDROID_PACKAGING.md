@@ -74,6 +74,18 @@ Points notables :
   redémarre au retour, SQLite committe à chaque requête. **Limite v1** : pas de
   foreground service, un chrono en cours ne survit pas à une mise en veille
   agressive.
+- **Notifications système (issue #16)** : `KairosNotificationBridge` (Java, même
+  parti pris sans AndroidX que `MainActivity` — uniquement `NotificationManager`/
+  `NotificationChannel`/`Notification.Builder` plateforme et
+  `Activity#requestPermissions` natif) exposé en JS sous `window.KairosAndroid`
+  (`addJavascriptInterface`). `templates/kairos.html` route les alertes chrono par
+  ce pont quand il est présent, à la place de la Web Notifications API (absente de
+  `android.webkit.WebView`). Permission `POST_NOTIFICATIONS` (API 33+) demandée
+  depuis le bouton d'opt-in existant, jamais au démarrage ; le résultat
+  (asynchrone) revient au JS via un évènement DOM
+  (`kairos-android-permission-changed`) redéclenché depuis
+  `onRequestPermissionsResult`, faute de canal message natif→JS synchrone sans
+  AndroidX.
 
 ## Build
 
@@ -90,5 +102,6 @@ Points notables :
 ## Hors scope pour l'instant
 
 - Play Store (distribution volontairement simple : APK des releases).
-- Ressenti natif (widgets, notifications système, foreground service pour le
-  chrono) : objectif à terme, pas un prérequis de cette première version.
+- Ressenti natif restant (widgets, foreground service pour le chrono) : objectif
+  à terme, pas un prérequis de cette première version. Les notifications système
+  sont couvertes depuis l'issue #16 (voir `KairosNotificationBridge` ci-dessus).

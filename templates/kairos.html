@@ -713,20 +713,36 @@
      - Minuteur vivant : temps réel qui s'écoule (data-started + data-base déjà accumulé).
      - Titre d'onglet vivant : le compteur reste visible quand l'onglet est en arrière-plan.
      - Alertes (opt-in) : dépassement de l'estimé, chrono oublié, rappel de pause.
-       Notification bureau si autorisée ET contexte sécurisé (127.0.0.1/localhost ou HTTPS) ;
-       repli visuel dans la page dans tous les cas. */
+       Notification native via le pont Android (window.KairosAndroid, issue #16) dans
+       l'APK ; notification bureau (Web Notifications) si autorisée ET contexte sécurisé
+       (127.0.0.1/localhost ou HTTPS) ailleurs ; repli visuel dans la page dans tous les cas. */
   (function () {
     var cfg = document.getElementById('mj-alert-config');
     var idleMin = cfg ? parseInt(cfg.getAttribute('data-idle') || '0', 10) : 0;
     var pomoMin = cfg ? parseInt(cfg.getAttribute('data-pomodoro') || '0', 10) : 0;
-    var canNotify = ('Notification' in window) && window.isSecureContext;
+    var android = window.KairosAndroid || null;
+    var canNotify = android ? true : (('Notification' in window) && window.isSecureContext);
 
-    /* Bouton d'opt-in aux notifications bureau : révélé selon l'état de permission. */
+    /* Bouton d'opt-in aux notifications : révélé selon l'état de permission — pont
+       Android natif s'il est présent (issue #16), sinon Web Notifications bureau. */
     var btn = document.getElementById('mj-alert-enable');
     var status = document.getElementById('mj-alert-status');
     function showStatus(txt) { if (status) { status.textContent = txt; status.hidden = false; } }
     if (btn) {
-      if (!canNotify) {
+      if (android) {
+        var refreshAndroidStatus = function () {
+          if (android.hasPermission()) {
+            btn.hidden = true;
+            showStatus('Alertes chrono actives.');
+          } else {
+            btn.hidden = false;
+            status.hidden = true;
+          }
+        };
+        refreshAndroidStatus();
+        btn.addEventListener('click', function () { android.requestPermission(); });
+        window.addEventListener('kairos-android-permission-changed', refreshAndroidStatus);
+      } else if (!canNotify) {
         showStatus('Notifications indisponibles ici (ouvrez via 127.0.0.1 pour les activer).');
       } else if (Notification.permission === 'granted') {
         showStatus('Alertes chrono actives.');
@@ -775,7 +791,9 @@
     function alert(tag, body) {
       if (fired[tag]) return;
       fired[tag] = true;
-      if (canNotify && Notification.permission === 'granted') {
+      if (android) {
+        try { android.notify('Kairos · ' + taskTitle, body, tag); } catch (e) {}
+      } else if (canNotify && Notification.permission === 'granted') {
         try { new Notification('Kairos · ' + taskTitle, { body: body, tag: tag }); } catch (e) {}
       }
       flashInPage(taskTitle + ' — ' + body);

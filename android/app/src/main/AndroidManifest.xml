@@ -5,6 +5,11 @@
          réseau, locale comprise, dans cette permission. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Requise à l'exécution sur Android 13+ (API 33, targetSdk 35) pour afficher des
+         notifications système ; la demande runtime se fait depuis le bouton d'opt-in
+         existant (KairosNotificationBridge#requestPermission), jamais au démarrage. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"

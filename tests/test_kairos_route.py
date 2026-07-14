@@ -1887,12 +1887,14 @@ def test_stats_page_shows_indicators_with_data(route_client) -> None:
 
 
 def test_day_view_has_timer_alert_optin(route_client) -> None:
-    """La vue jour expose le bouton d'opt-in aux alertes chrono et sa config de seuils."""
+    """La vue jour expose le bouton d'opt-in aux alertes chrono, sa config de seuils,
+    et le point d'accroche du pont Android (issue #16 : window.KairosAndroid)."""
     client, _ = route_client
     resp = client.get("/kairos?view=day")
     assert 'id="mj-alert-config"' in resp.text
     assert "Activer les alertes chrono" in resp.text
     assert 'data-idle=' in resp.text and 'data-pomodoro=' in resp.text
+    assert "KairosAndroid" in resp.text
 
 
 def test_running_timer_badge_carries_estimate_and_title(route_client) -> None:
