@@ -205,8 +205,10 @@ class Task(TasksBase):
       modifiable en un clic/select, sans passer par SP.
 - [ ] Un bloc d'indisponibilité manuel créé via l'endpoint apparaît dans
       l'ordonnancement du jour concerné.
-- [ ] Si TimeTree est indisponible (identifiants absents, API cassée), le dashboard
-      s'affiche quand même (tâches + blocs manuels), avec un avertissement visible.
+- [ ] Si TimeTree est indisponible, le dashboard s'affiche quand même (tâches +
+      blocs manuels) : silencieusement si l'intégration est simplement non
+      configurée (identifiants absents, cas normal), avec un avertissement
+      visible seulement si elle est configurée mais que l'API échoue.
 - [ ] `pytest` passe sans accès réseau réel.
 
 ## Open Questions (phase 1 — résolues)
@@ -1506,3 +1508,48 @@ rebaptisage de l'ancien format d'`external_id`) inchangée et non dupliquée.
 - [x] `sync_assigned_gitlab_tasks` ne dépend plus d'une session SQLAlchemy sur
       `pilotage.db` — testée avec de simples listes d'issues.
 - [x] `pytest` passe sans réseau réel (287 tests).
+
+---
+
+# Phase 18 : bandeau TimeTree silencieux quand non configuré (issue #14)
+
+## Contexte
+
+Le bandeau d'avertissement TimeTree s'affichait même quand l'intégration était
+simplement non configurée (cas normal, identifiants absents) — il ne devrait
+s'afficher que si TimeTree est configuré et que la récupération échoue
+réellement, comme le fait déjà `gitlab_direct_error`. Les intégrations de
+calendrier externe doivent rester **entièrement optionnelles** (issue #14).
+
+## Décision actée
+
+Correctif d'un mot dans `templates/kairos.html` — la condition passe de
+`{% if not timetree_ok %}` à `{% if timetree_configured and not timetree_ok %}`,
+et la branche « non configuré » (qui affichait un message même en l'absence
+totale d'identifiants) est supprimée. Aucun changement côté `app/main.py` :
+`timetree_ok`/`timetree_configured`/`timetree_detail` étaient déjà dans le
+contexte.
+
+Une intégration Google Calendar (OAuth 2.0/PKCE) sur le même principe a été
+explorée puis **retirée avant fusion** : elle exige de créer un client OAuth
+dans Google Cloud Console (identifiant + secret client), une manipulation
+jugée trop lourde par l'utilisateur comparée au simple email/mot de passe de
+TimeTree — voir « Hors périmètre » ci-dessous.
+
+## Hors périmètre phase 18
+
+- **Google Calendar** : écarté après une première implémentation testée en
+  conditions réelles — la configuration préalable côté Google Cloud Console
+  (créer un projet, un client OAuth « Application de bureau », activer l'API,
+  configurer l'écran de consentement) est jugée trop complexe pour l'usage
+  personnel visé par Kairos. À reconsidérer seulement si Google propose un
+  jour un mécanisme d'authentification aussi simple qu'un identifiant/mot de
+  passe.
+
+## Success Criteria phase 18
+
+- [x] TimeTree non configuré (identifiants absents) : aucun bandeau, comme
+      GitLab non configuré.
+- [x] TimeTree configuré mais en échec : bandeau affiché avec le détail de
+      l'erreur.
+- [x] `pytest` passe sans réseau réel.

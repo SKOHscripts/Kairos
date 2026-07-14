@@ -188,15 +188,10 @@
 
 {% block content %}
 
-{% if not timetree_ok %}
+{% if timetree_configured and not timetree_ok %}
 <div class="banner warning">
   {{ icon('warning') }} <span>Calendrier personnel TimeTree
-  {% if not timetree_configured %}
-  non configuré (identifiants absents : renseignez <code>TIMETREE_EMAIL</code>,
-  <code>TIMETREE_PASSWORD</code> et <code>TIMETREE_CALENDAR_CODE</code>).
-  {% else %}
   indisponible{% if timetree_detail %} ({{ timetree_detail }}){% endif %}.
-  {% endif %}
   Seuls les créneaux saisis à la main sont pris en compte.</span>
 </div>
 {% endif %}

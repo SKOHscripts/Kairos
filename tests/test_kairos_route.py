@@ -110,11 +110,33 @@ def test_get_kairos_returns_200_even_without_data(route_client) -> None:
     assert "Kairos" in resp.text
 
 
-def test_get_kairos_shows_timetree_not_configured_banner(route_client) -> None:
+def test_get_kairos_hides_timetree_banner_when_not_configured(route_client) -> None:
+    """Issue #14 : TimeTree non configuré est le cas normal (intégration
+    optionnelle) — aucun bandeau ne doit s'afficher, comme pour GitLab."""
     client, _ = route_client
     resp = client.get("/kairos")
     assert resp.status_code == 200
-    assert "non configuré" in resp.text
+    assert "Calendrier personnel TimeTree" not in resp.text
+
+
+def test_get_kairos_shows_timetree_banner_when_configured_but_failing(monkeypatch, route_client) -> None:
+    """Issue #14 : le bandeau ne doit s'afficher que si TimeTree est configuré
+    ET que la récupération échoue réellement."""
+    from app.calendar.timetree_source import TimeTreeFetchResult
+
+    client, _ = route_client
+    monkeypatch.setattr(
+        main, "get_settings",
+        lambda: Settings(timetree_email="a@b.com", timetree_password="x"),
+    )
+    monkeypatch.setattr(
+        main, "fetch_busy_slots",
+        lambda start, end, *, settings: TimeTreeFetchResult(ok=False, detail="Échec de connexion"),
+    )
+    resp = client.get("/kairos")
+    assert resp.status_code == 200
+    assert "Calendrier personnel TimeTree" in resp.text
+    assert "Échec de connexion" in resp.text
 
 
 def test_update_priority_changes_only_priority(route_client) -> None:
