@@ -66,6 +66,11 @@ def _pick_port(preferred: int = _DEFAULT_PORT, tries: int = 20) -> int:
 
 
 def _open_browser(url: str) -> None:
+    # KAIROS_NO_BROWSER : échappatoire pour les lancements automatisés (voir
+    # `packaging/smoke_test.py`) où ouvrir un vrai navigateur est indésirable
+    # (processus fantôme sur un runner CI, effets de bord imprévisibles).
+    if os.environ.get("KAIROS_NO_BROWSER"):
+        return
     # `external_process_environ()` : voir `app/subprocess_env.py` — évite
     # qu'un navigateur/`xdg-open` lancé par PyInstaller (mode onefile) hérite
     # du `LD_LIBRARY_PATH` détourné vers ses bibliothèques embarquées.

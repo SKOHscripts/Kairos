@@ -76,24 +76,36 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="kairos-smoke-") as tmp:
         data_dir = Path(tmp)
-        process = subprocess.Popen(
-            [str(exe_path)],
-            env={**os.environ, "KAIROS_DATA_DIR": str(data_dir)},
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
-        try:
-            success, message = _wait_until_serving(process, data_dir, _STARTUP_TIMEOUT)
-        finally:
-            if process.poll() is None:
-                process.terminate()
-                try:
-                    process.wait(timeout=10)
-                except subprocess.TimeoutExpired:
-                    process.kill()
-                    process.wait(timeout=10)
-            output = process.stdout.read() if process.stdout else ""
+        # Sortie redirigée vers un fichier, pas un pipe : `webbrowser.open()`
+        # (déclenché par `app/launcher.py` au démarrage) lance un vrai
+        # navigateur sur Windows (contrairement à un runner Linux headless,
+        # sans DISPLAY, où il échoue instantanément) — ce navigateur hérite du
+        # handle de sortie du process et le garde ouvert bien après qu'on ait
+        # tué l'exécutable, ce qui bloquerait `Popen.stdout.read()` (attente
+        # d'un EOF qui n'arrive jamais) indéfiniment avec un pipe. Un fichier
+        # n'a pas ce problème : le lire ne dépend pas des autres porteurs du
+        # handle d'écriture. KAIROS_NO_BROWSER (voir app/launcher.py) évite en
+        # plus de laisser un vrai navigateur tourner après ce script.
+        log_path = data_dir / "output.log"
+        with open(log_path, "wb") as log_file:
+            process = subprocess.Popen(
+                [str(exe_path)],
+                env={**os.environ, "KAIROS_DATA_DIR": str(data_dir), "KAIROS_NO_BROWSER": "1"},
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+            )
+            try:
+                success, message = _wait_until_serving(process, data_dir, _STARTUP_TIMEOUT)
+            finally:
+                if process.poll() is None:
+                    process.terminate()
+                    try:
+                        process.wait(timeout=10)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                        process.wait(timeout=10)
+
+        output = log_path.read_text(encoding="utf-8", errors="replace")
 
         if not success:
             print(f"ÉCHEC : {exe_path.name} — {message}", file=sys.stderr)
