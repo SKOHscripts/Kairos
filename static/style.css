@@ -708,3 +708,43 @@ summary:focus-visible,
 .mj-settings-field .hint.error { color: var(--bad-fg); }
 .mj-settings-actions { position: sticky; bottom: 0; padding: 0.9rem 0; margin-top: 0.5rem;
   background: linear-gradient(to top, var(--bg) 60%, transparent); }
+
+/* =========================================================================
+   Marge interne des boîtes sur petit écran. Bloc volontairement en toute fin
+   de fichier : la plupart des sélecteurs ci-dessous (.mj-progress, .mj-capture,
+   .mj-to-process, .kairos-item, .mj-week-day, .mj-now-card, .mj-timeline-card,
+   .mj-filter-form) ont leur propre règle de padding non conditionnelle plus
+   haut dans ce fichier, à spécificité égale (simple sélecteur de classe) — en
+   CSS, à spécificité égale, c'est la règle la plus tardive dans le fichier qui
+   l'emporte, qu'elle soit dans un @media ou non. Un bloc placé plus tôt (ex.
+   juste après le premier `@media (max-width: 720px)` de `.topnav`/`.page`,
+   avant ces règles) serait silencieusement écrasé par elles.
+   ========================================================================= */
+@media (max-width: 720px) {
+  .mj-capture,
+  .mj-to-process,
+  .mj-progress,
+  .mj-now-card,
+  .mj-timeline-card,
+  .collapser,
+  .mj-filter-form,
+  .panel,
+  .mj-week-day,
+  .banner {
+    padding-left: 1.3rem;
+    padding-right: 1.3rem;
+  }
+  .kairos-item {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  /* .badge.at_risk (créneau repoussé) et .badge.bad quand il porte une note
+     explicative (conflit d'épinglage, blocage) affichent une phrase complète,
+     pas une étiquette courte ("P0", "13 pts") : le `white-space: nowrap` du
+     badge générique leur fait déborder la carte, une fois son padding
+     effectivement appliqué (voir ci-dessus) sur les écrans les plus étroits. */
+  .badge.at_risk, .badge.bad {
+    white-space: normal;
+    text-align: left;
+  }
+}
