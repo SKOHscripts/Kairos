@@ -1,0 +1,25 @@
+{# Backlog : tâches sans échéance ni date programmée. Sans cette section, elles
+   n'apparaissent jamais en vue semaine (groupée par échéance) et se perdent dans
+   l'agenda du jour — affiché quelle que soit la vue (jour ou semaine), voir
+   `kairos.html` (branche semaine) et `_kairos_day.html` (vue jour). #}
+{% from "_icons.html" import icon %}
+{% from "_kairos_macros.html" import done_toggle, task_actions, edit_panel, task_meta with context %}
+{% if backlog_tasks %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Backlog, sans date ({{ backlog_tasks|length }})</summary>
+  <p class="hint">Tâches sans échéance ni date programmée : ni pour aujourd'hui, ni
+  visibles en vue semaine. Pose une échéance ou une date programmée pour les faire
+  atterrir dans l'agenda.</p>
+  <ul class="kairos-list">
+    {% for task in backlog_tasks %}
+    <li class="kairos-item">
+      {{ done_toggle(task) }}
+      <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
+      {{ task_meta(task) }}
+      {{ task_actions(task) }}
+      {{ edit_panel(task) }}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}

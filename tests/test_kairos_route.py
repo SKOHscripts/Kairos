@@ -68,9 +68,11 @@ def test_get_home_renders_readme_content() -> None:
     client = TestClient(main.app)
     resp = client.get("/")
     assert resp.status_code == 200
-    assert "Bienvenue" in resp.text
     assert "Ordonnancement automatique" in resp.text  # section du README
     assert "&amp;amp;" not in resp.text  # pas de double-échappement du sommaire
+    # Le bandeau du haut ne répète plus le CTA « Ouvrir « Aujourd’hui » » du hero
+    # (doublon retiré) : un seul bouton pointant vers /kairos sur la page.
+    assert resp.text.count('href="/kairos"') == 1
 
 
 def test_get_home_toc_links_to_readme_sections() -> None:
@@ -1174,9 +1176,11 @@ def test_edit_creates_multiple_subtasks_and_sets_blockers_in_one_submit(route_cl
         assert dep.blocker_id == blocker_id
 
 
-def test_blocker_picker_uses_a_select_menu_like_linked_ticket(route_client) -> None:
-    """Le sélecteur de bloqueurs est un menu <select multiple>, même widget que
-    « Fiche liée » (phase 13) — plus une liste de cases à cocher."""
+def test_blocker_picker_uses_checkboxes(route_client) -> None:
+    """Refonte GTD (Phase 4) : le sélecteur de bloqueurs est désormais une liste de
+    cases à cocher (``<input type="checkbox" name="blocker_ids">``), plus un menu
+    ``<select multiple>`` à Ctrl-clic — même nom de champ, `edit_task` traite déjà
+    l'ensemble soumis comme la cible complète (aucun changement backend)."""
     client, TestSession = route_client
     with TestSession() as db:
         task = Task(title="Mère", status="todo")
@@ -1189,9 +1193,9 @@ def test_blocker_picker_uses_a_select_menu_like_linked_ticket(route_client) -> N
         db.commit()
 
     page = client.get("/kairos")
-    assert 'name="blocker_ids" multiple' in page.text
-    assert f'<option value="{blocker_id}" selected>Bloqueur existant</option>' in page.text
-    assert 'type="checkbox" name="blocker_ids"' not in page.text
+    assert 'name="blocker_ids" multiple' not in page.text
+    assert f'<input type="checkbox" name="blocker_ids" value="{blocker_id}" checked>' in page.text
+    assert "Bloqueur existant" in page.text
 
 
 def test_edit_with_blank_subtask_lines_ignored(route_client) -> None:
@@ -1980,14 +1984,20 @@ def test_new_unqualified_task_appears_in_a_traiter_section(route_client) -> None
     assert "priorité et points manquants" in page.text
 
 
-def test_a_traiter_section_absent_when_everything_qualified(route_client) -> None:
+def test_a_traiter_shows_empty_state_when_everything_qualified(route_client) -> None:
+    """Refonte GTD (Phase 1) : la boîte de réception n'est plus masquée quand elle
+    est vide (avant : la section entière — classe ``mj-to-process`` incluse —
+    disparaissait du DOM) — elle reste affichée en tête de page avec un état vide
+    discret, pour toujours rappeler où regarder en premier."""
     client, TestSession = route_client
     with TestSession() as db:
         db.add(Task(title="Déjà clarifiée", status="todo", priority=1, fibonacci_points=3))
         db.commit()
 
     resp = client.get("/kairos")
-    assert "mj-to-process" not in resp.text
+    assert "mj-to-process" in resp.text  # la section reste présente (crème/ambre)
+    assert "mj-inbox-empty" in resp.text  # mais affiche l'état vide
+    assert "priorité et points manquants" not in resp.text
 
 
 def test_qualifying_task_via_edit_removes_it_from_a_traiter(route_client) -> None:
@@ -2001,7 +2011,7 @@ def test_qualifying_task_via_edit_removes_it_from_a_traiter(route_client) -> Non
         task_id = task.id
 
     before = client.get("/kairos")
-    assert "mj-to-process" in before.text
+    assert "mj-inbox-empty" not in before.text
 
     client.post(
         f"/kairos/tasks/{task_id}/edit",
@@ -2010,7 +2020,7 @@ def test_qualifying_task_via_edit_removes_it_from_a_traiter(route_client) -> Non
     )
 
     after = client.get("/kairos")
-    assert "mj-to-process" not in after.text
+    assert "mj-inbox-empty" in after.text
     assert '<span class="badge mj-score"' in after.text
 
 
@@ -2102,3 +2112,157 @@ def test_shutdown_route_sends_sigint_to_self(monkeypatch) -> None:
 
     assert resp.status_code == 200
     assert calls == [(os.getpid(), signal.SIGINT)]
+
+
+def test_update_points_route_sets_fibonacci_points(route_client) -> None:
+    """Nouvelle route (Phase 2), symétrique de /priority : pose les points Fibo
+    depuis le contrôle inline de la boîte de réception."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="À chiffrer", status="todo")
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    resp = client.post(
+        f"/kairos/tasks/{task_id}/points", data={"points": "5"}, follow_redirects=False
+    )
+    assert resp.status_code == 303
+
+    with TestSession() as db:
+        task = db.get(Task, task_id)
+        assert task.fibonacci_points == 5
+        assert task.title == "À chiffrer"  # rien d'autre n'a bougé
+
+
+def test_update_points_route_clears_when_blank(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Déjà chiffrée", status="todo", fibonacci_points=8)
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    client.post(f"/kairos/tasks/{task_id}/points", data={"points": ""}, follow_redirects=False)
+    with TestSession() as db:
+        assert db.get(Task, task_id).fibonacci_points is None
+
+
+def test_inbox_shows_inline_priority_and_points_controls(route_client) -> None:
+    """Phase 2 : la boîte de réception expose des contrôles de qualification en
+    ligne (mini-<select> priorité + points, auto-soumis) — pas besoin d'ouvrir
+    l'édition complète pour clarifier une tâche capturée."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="À qualifier vite", status="todo")
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    page = client.get("/kairos")
+    assert f'action="/kairos/tasks/{task_id}/priority"' in page.text
+    assert f'action="/kairos/tasks/{task_id}/points"' in page.text
+    assert 'name="points" data-autosubmit' in page.text
+    assert 'name="priority" data-autosubmit' in page.text
+
+
+def test_action_returns_day_fragment_on_ajax_header(route_client) -> None:
+    """Étape C : négociation de contenu — un en-tête `X-Requested-With: fetch`
+    renvoie le partiel jour (liste ordonnée incluse) au lieu de la redirection
+    303, sans la nav/topbar de `base.html`."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Tâche AJAX", status="todo", priority=1, fibonacci_points=2)
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    resp = client.post(
+        f"/kairos/tasks/{task_id}/priority",
+        data={"priority": "0"},
+        headers={"X-Requested-With": "fetch"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 200
+    assert "Aujourd'hui, dans l'ordre" in resp.text  # liste ordonnée du partiel
+    assert "Tâche AJAX" in resp.text
+    assert "<!DOCTYPE html>" not in resp.text  # pas la page pleine
+    assert "topnav" not in resp.text  # pas la nav de base.html
+    assert 'id="mj-day-content"' not in resp.text  # un seul id, posé par kairos.html
+
+
+def test_done_toggle_also_honors_ajax_fragment(route_client) -> None:
+    """« Fait » fait partie du périmètre AJAX (Phase 3) au même titre que chrono/
+    snooze/priorité/points : le bouton `.mj-check` (`done_toggle`, y compris sur
+    la tâche « À faire maintenant ») porte `data-ajax` et répond en fragment."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Tâche à cocher", status="todo")
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    page = client.get("/kairos")
+    assert f'action="/kairos/tasks/{task_id}/done"' in page.text
+    # data-ajax doit être présent sur au moins un des boutons « fait » de la page.
+    assert "class=\"inline\" data-ajax" in page.text
+
+    resp = client.post(
+        f"/kairos/tasks/{task_id}/done",
+        headers={"X-Requested-With": "fetch"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 200
+    assert "<!DOCTYPE html>" not in resp.text
+    with TestSession() as db:
+        assert db.get(Task, task_id).status == "done"
+
+
+def test_action_without_ajax_header_still_redirects(route_client) -> None:
+    """Repli sans JS obligatoire (WebView Android, accessibilité) : sans l'en-tête,
+    le comportement historique (redirect 303) est inchangé."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Tâche sans JS", status="todo")
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    resp = client.post(
+        f"/kairos/tasks/{task_id}/priority", data={"priority": "1"}, follow_redirects=False
+    )
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/kairos"
+
+
+def test_capture_bar_exposes_both_task_and_slot_panes(route_client) -> None:
+    """Phase 1 : la barre de capture en tête de page garde ses DEUX volets (tâche
+    titre-seul et créneau/deep-work), à un clic d'onglet — rien n'est retiré ni
+    relégué dans un <details> replié."""
+    client, _ = route_client
+    page = client.get("/kairos")
+    assert 'data-mj-add-pane="task"' in page.text
+    assert 'data-mj-add-pane="slot"' in page.text
+    assert 'action="/kairos/tasks"' in page.text
+    assert 'action="/kairos/blocks"' in page.text
+    assert 'name="mj-add-mode" value="task"' in page.text
+    assert 'name="mj-add-mode" value="slot"' in page.text
+    # La capture précède la boîte de réception (ordre du flux GTD : capturer
+    # avant de traiter), elle-même avant la liste ordonnée du jour.
+    capture_pos = page.text.index('class="card mj-capture"')
+    inbox_pos = page.text.index('id="mj-inbox"')
+    order_pos = page.text.index("Aujourd'hui, dans l'ordre")
+    assert capture_pos < inbox_pos < order_pos
+
+
+def test_snooze_label_mentions_next_business_day(route_client) -> None:
+    """Vocabulaire corrigé (issue produit) : « Décaler à demain » était trompeur
+    (déplace en fait au prochain JOUR OUVRÉ, pas littéralement demain)."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="À décaler", status="todo"))
+        db.commit()
+
+    page = client.get("/kairos")
+    assert "Décaler au prochain jour ouvré" in page.text
+    assert "Décaler à demain" not in page.text

@@ -113,7 +113,7 @@ def _optional_int(value: str | None) -> int | None:
 def _matches_query(task: Task, q: str) -> bool:
     """Recherche par mot-clé (issue #15.4) : sous-chaîne insensible à la casse sur le
     titre, la description ou le projet. Filtre d'affichage seul — ne touche jamais à
-    l'ordonnancement (voir `_render_kairos`)."""
+    l'ordonnancement (voir `_build_kairos_context`)."""
     if not q:
         return True
     haystack = " ".join(
@@ -264,7 +264,7 @@ def _fetch_busy_blocks(
     """Blocs manuels (base) + TimeTree (best-effort), fusionnés sur ``[range_start, range_end]``.
 
     Ne filtre PAS journée entière/période ici : chaque appelant décide comment traiter
-    ces cas particuliers (voir ``_render_kairos``). Les blocs récurrents (phase 13)
+    ces cas particuliers (voir ``_build_kairos_context``). Les blocs récurrents (phase 13)
     sont stockés comme un modèle unique (jamais un par occurrence) : projetés à la
     volée sur la plage demandée par ``expand_recurring_blocks``, jamais persistés.
     """
@@ -301,7 +301,7 @@ def _build_week_view(
 ) -> list[dict]:
     """Grille 7 jours : tâches groupées par ``deadline``, blocs horaires du jour, et
     événements « journée entière » ou « sur une période » en puces (jamais posés comme
-    des créneaux — voir ``_render_kairos``). ``done_tasks`` (issue #15.7) : tâches
+    des créneaux — voir ``_build_kairos_context``). ``done_tasks`` (issue #15.7) : tâches
     terminées de la semaine, groupées par jour de complétion (``updated_at``, même
     convention que ``done_today``) — la vue « semaine » montre ainsi à la fois ce qui
     vient de se faire et ce qui reste à faire."""
@@ -329,15 +329,18 @@ def _build_week_view(
     return week
 
 
-def _render_kairos(
+def _build_kairos_context(
     request: Request,
     tasks_session: Session,
     pilotage_session: Session | None,
     *,
     view: str = "day",
     day: date | None = None,
-) -> HTMLResponse:
-    """« Kairos » : tâches ordonnées par urgence, compte tenu des créneaux occupés.
+) -> dict:
+    """« Kairos » : construit le contexte de rendu (tâches ordonnées par urgence,
+    compte tenu des créneaux occupés) — utilisé aussi bien pour la page pleine
+    (``kairos.html``) que pour le partiel de la vue jour (``_kairos_day.html``,
+    voir ``render_kairos_response``).
 
     Best-effort sur les sources externes (TimeTree, GitLab) : un échec se traduit
     par un bandeau d'avertissement dans le template, jamais par une page en erreur
@@ -759,11 +762,20 @@ def _render_kairos(
             timetree_detail=timetree_result.detail,
         )
 
-    return templates.TemplateResponse(request, "kairos.html", context)
+    return context
 
 
-@app.get("/kairos")
-def kairos(request: Request) -> HTMLResponse:
+def render_kairos_response(request: Request, *, fragment: bool) -> Response:
+    """Point d'entrée unique de rendu de la vue Kairos, ouvrant les DEUX sessions
+    (tâches + pilotage) comme le faisait ``kairos()`` — voir ``_build_kairos_context``.
+
+    ``fragment=False`` rend la page pleine (``kairos.html``, comportement historique) ;
+    ``fragment=True`` rend seulement le partiel de la vue jour (``_kairos_day.html``,
+    id ``#mj-day-content``), utilisé par les handlers d'action pour l'amélioration
+    progressive AJAX (voir Étape C du guide d'exécution). Les handlers d'action
+    doivent committer et FERMER leur propre session tâches avant d'appeler cette
+    fonction, qui rouvre des sessions fraîches : ne jamais imbriquer les sessions.
+    """
     view = request.query_params.get("view", "day")
     start = request.query_params.get("start")
     day = date.fromisoformat(start) if start else None
@@ -771,7 +783,16 @@ def kairos(request: Request) -> HTMLResponse:
         _request_session(get_tasks_session) as tasks_session,
         _request_session(get_pilotage_session) as pilotage_session,
     ):
-        return _render_kairos(request, tasks_session, pilotage_session, view=view, day=day)
+        context = _build_kairos_context(
+            request, tasks_session, pilotage_session, view=view, day=day
+        )
+        template_name = "_kairos_day.html" if fragment else "kairos.html"
+        return templates.TemplateResponse(request, template_name, context)
+
+
+@app.get("/kairos")
+def kairos(request: Request) -> HTMLResponse:
+    return render_kairos_response(request, fragment=False)
 
 
 @app.get("/kairos/stats")
@@ -950,15 +971,43 @@ async def create_native_task(request: Request) -> RedirectResponse:
     return RedirectResponse("/kairos", status_code=303)
 
 
+def _kairos_action_response(request: Request) -> Response:
+    """Réponse commune des handlers d'action (fait, chrono, décaler, priorité,
+    points) : amélioration progressive AJAX (Étape C/E du chantier GTD) — si
+    l'appelant négocie ``X-Requested-With: fetch``, renvoie le partiel jour
+    (``_kairos_day.html``, mêmes deux sessions fraîches que ``kairos()``) ;
+    sinon la redirection 303 historique (repli complet sans JS, requis pour la
+    WebView Android et l'accessibilité). Les handlers appelants doivent avoir
+    déjà committé et FERMÉ leur propre session tâches avant d'appeler cette
+    fonction — elle rouvre des sessions fraîches, jamais imbriquées."""
+    if request.headers.get("X-Requested-With") == "fetch":
+        return render_kairos_response(request, fragment=True)
+    return RedirectResponse("/kairos", status_code=303)
+
+
 @app.post("/kairos/tasks/{task_id:int}/priority")
-async def update_task_priority(request: Request) -> RedirectResponse:
+async def update_task_priority(request: Request) -> Response:
     form = await request.form()
     with _request_session(get_tasks_session) as tasks_session:
         task = tasks_session.get(Task, request.path_params["task_id"])
         if task is not None:
             task.priority = _optional_int(form.get("priority"))
             tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
+
+
+@app.post("/kairos/tasks/{task_id:int}/points")
+async def update_task_points(request: Request) -> Response:
+    """Symétrique de ``update_task_priority`` : pose les points Fibonacci depuis
+    le contrôle inline de la boîte de réception (Phase 2) — jamais depuis la
+    capture rapide titre-seul, ni un nouveau champ dans ``create_native_task``."""
+    form = await request.form()
+    with _request_session(get_tasks_session) as tasks_session:
+        task = tasks_session.get(Task, request.path_params["task_id"])
+        if task is not None:
+            task.fibonacci_points = _optional_int(form.get("points"))
+            tasks_session.commit()
+    return _kairos_action_response(request)
 
 
 def _stop_running_sessions(tasks_session: Session) -> None:
@@ -971,7 +1020,7 @@ def _stop_running_sessions(tasks_session: Session) -> None:
 
 
 @app.post("/kairos/tasks/{task_id:int}/timer/start")
-def start_timer(request: Request) -> RedirectResponse:
+def start_timer(request: Request) -> Response:
     """Démarre le chrono sur une tâche (ferme d'abord toute session en cours ailleurs)."""
     task_id = request.path_params["task_id"]
     with _request_session(get_tasks_session) as tasks_session:
@@ -980,11 +1029,11 @@ def start_timer(request: Request) -> RedirectResponse:
             _stop_running_sessions(tasks_session)
             tasks_session.add(WorkSession(task_id=task_id))
             tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
 
 
 @app.post("/kairos/tasks/{task_id:int}/timer/stop")
-def stop_timer(request: Request) -> RedirectResponse:
+def stop_timer(request: Request) -> Response:
     """Arrête le chrono en cours sur cette tâche."""
     task_id = request.path_params["task_id"]
     now = datetime.now(timezone.utc)
@@ -996,7 +1045,7 @@ def stop_timer(request: Request) -> RedirectResponse:
         ):
             session.ended_at = now
         tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
 
 
 @app.post("/kairos/tasks/{task_id:int}/edit")
@@ -1111,7 +1160,7 @@ async def edit_task(request: Request) -> RedirectResponse:
 
 
 @app.post("/kairos/tasks/{task_id:int}/done")
-def toggle_task_done(request: Request) -> RedirectResponse:
+def toggle_task_done(request: Request) -> Response:
     """Bascule fait ↔ à faire. Terminer une récurrente crée l'occurrence suivante."""
     task_id = request.path_params["task_id"]
     with _request_session(get_tasks_session) as tasks_session:
@@ -1131,12 +1180,12 @@ def toggle_task_done(request: Request) -> RedirectResponse:
             elif task.status == "done":
                 task.status = "todo"
             tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
 
 
 @app.post("/kairos/tasks/{task_id:int}/snooze")
-def snooze_task(request: Request) -> RedirectResponse:
-    """« Demain » : décale la deadline au prochain jour ouvré (week-ends et jours
+def snooze_task(request: Request) -> Response:
+    """« Décaler au prochain jour ouvré » : avance la deadline (week-ends et jours
     fériés sautés — un vendredi décale à lundi, pas à samedi)."""
     with _request_session(get_tasks_session) as tasks_session:
         task = tasks_session.get(Task, request.path_params["task_id"])
@@ -1144,7 +1193,7 @@ def snooze_task(request: Request) -> RedirectResponse:
             settings = get_settings()
             task.deadline = next_snooze_date(task.deadline, date.today(), settings.holiday_set)
             tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
 
 
 @app.post("/kairos/tasks/{task_id:int}/delete")

@@ -1,10 +1,6 @@
 {% extends "base.html" %}
 {% from "_icons.html" import icon %}
 {% block title %}Kairos · accueil{% endblock %}
-{% block topbar_title %}Bienvenue{% endblock %}
-{% block topbar_actions %}
-<a class="btn primary" href="/kairos">{{ icon('check_circle') }} Ouvrir « Aujourd’hui »</a>
-{% endblock %}
 
 {% macro toc_entry(entry) %}
 <li>
