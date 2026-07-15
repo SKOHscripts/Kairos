@@ -100,6 +100,13 @@ de pilotage — avec seulement les tâches et blocs saisis à la main.
 - **Fusion des bases** `tasks.db` et `pilotage.db` : restent deux fichiers
   SQLite séparés, sans contrainte de clé étrangère cross-base ; `linked_ticket_id`
   est une référence non contrainte, validée applicativement.
+- **Vérification de cohérence de la fiche liée** : si un `Ticket` référencé par
+  `linked_ticket_id` est clôturé côté Redmine/GitLab pendant que la tâche Kairos
+  reste `todo`, rien ne le signale — identifié dans l'analyse de juillet 2026
+  (post-phase-6) comme automatisme possible, **jamais implémenté**. Aucun code
+  ni route ne calcule ou n'affiche cet écart aujourd'hui ; à reprendre en
+  interrogeant `pilotage_link` pour le statut courant du ticket au moment du
+  rendu de `task_meta`, si le besoin redevient concret.
 - **Granularité fine des événements TimeTree « sur une période »** (ex. horaires
   réels de départ/retour d'un déplacement) : traités comme simple indication
   datée, sans découpage du premier/dernier jour — décision volontairement simple
