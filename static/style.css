@@ -546,8 +546,14 @@ summary:focus-visible,
 .mj-tl-session { position: absolute; left: -3px; width: 4px; border-radius: var(--r-pill);
   background: var(--c-done); }
 
-/* Dépendances */
-.kairos-item.mj-blocked { opacity: 0.75; border-style: dashed; }
+/* Dépendances. Pas d'`opacity` ici (piège CSS) : une opacité sur ce <li> crée
+   un contexte d'empilement qui atténue tout son sous-arbre au rendu, y compris
+   le panneau d'édition en `position: fixed` (`.mj-edit-body`, voir plus haut)
+   qui y est imbriqué — `position: fixed` échappe à la mise en page mais pas au
+   compositing d'un ancêtre. Le côté « moins contrasté » passe donc par des
+   propriétés ciblées (fond, texte) qui ne composent pas les descendants. */
+.kairos-item.mj-blocked { background: var(--surface-tint); border-style: dashed; }
+.kairos-item.mj-blocked .mj-title { color: var(--text-3); }
 /* .mj-to-process : voir bloc « Refonte Jour v2 » plus haut (fusionné avec le
    padding/flex de la boîte de réception, même exception crème/ambre). */
 
