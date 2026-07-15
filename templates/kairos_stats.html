@@ -49,7 +49,7 @@
   <section class="panel">
     <h2>{{ icon('clock') }} Calibration de l'estimation</h2>
     <p class="hint">Temps réel médian par palier de points : si deux paliers se
-    rejoignent, l'échelle ne discrimine pas — à recalibrer.</p>
+    rejoignent, l'échelle ne discrimine pas, à recalibrer.</p>
     {% if stats.calibration %}
     {% set max_median = stats.calibration | map(attribute='median_minutes') | max %}
     {% for c in stats.calibration %}
@@ -70,7 +70,7 @@
       <strong>Biais estimé vs réel</strong> :
       <span class="badge {% if stats.bias.ratio > 1.25 or stats.bias.ratio < 0.8 %}warn{% else %}ok{% endif %}">
         ×{{ '%.2f' | format(stats.bias.ratio) }}</span>
-      — {{ fmt_minutes(stats.bias.real_minutes) }} réel pour
+      : {{ fmt_minutes(stats.bias.real_minutes) }} réel pour
       {{ fmt_minutes(stats.bias.estimated_minutes) }} estimé
       <span class="muted">(n={{ stats.bias.count }}{% if not stats.bias.reliable %}, peu fiable{% endif %})</span>.
       {% if stats.bias.ratio > 1.1 %}Vous sous-estimez.{% elif stats.bias.ratio < 0.9 %}Vous surestimez.{% else %}Estimations justes.{% endif %}
@@ -120,7 +120,7 @@
   {# ------------------------------------------ Complétude des métadonnées #}
   <section class="panel">
     <h2>{{ icon('check_circle') }} Complétude des métadonnées</h2>
-    <p class="hint">Part des tâches en cours qualifiées — les stats de calibration en
+    <p class="hint">Part des tâches en cours qualifiées. Les stats de calibration en
     dépendent : plus vous renseignez, plus le tri et les analyses sont fins.</p>
     {% set c = stats.completeness %}
     {% for label, pct, n in [

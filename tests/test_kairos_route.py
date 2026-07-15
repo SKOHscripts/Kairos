@@ -68,9 +68,11 @@ def test_get_home_renders_readme_content() -> None:
     client = TestClient(main.app)
     resp = client.get("/")
     assert resp.status_code == 200
-    assert "Bienvenue" in resp.text
     assert "Ordonnancement automatique" in resp.text  # section du README
     assert "&amp;amp;" not in resp.text  # pas de double-échappement du sommaire
+    # Le bandeau du haut ne répète plus le CTA « Ouvrir « Aujourd’hui » » du hero
+    # (doublon retiré) : un seul bouton pointant vers /kairos sur la page.
+    assert resp.text.count('href="/kairos"') == 1
 
 
 def test_get_home_toc_links_to_readme_sections() -> None:

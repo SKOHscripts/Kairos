@@ -10,7 +10,7 @@
 {% set filter_active = search_q or filter_priority is not none or filter_project or filter_type or filter_fibo is not none %}
 <details class="card mj-filter-compact" {% if filter_active %}open{% endif %}>
   <summary class="collapser">{{ icon('search', '') }} Rechercher / filtrer
-    {% if filter_active %}<span class="badge info" title="Un filtre est actif — les listes ci-dessous sont réduites">filtre actif</span>{% endif %}</summary>
+    {% if filter_active %}<span class="badge info" title="Un filtre est actif : les listes ci-dessous sont réduites">filtre actif</span>{% endif %}</summary>
   <form method="get" action="/kairos" class="filters mj-filter-form">
     <input type="hidden" name="view" value="{{ view }}">
     {% if day %}<input type="hidden" name="start" value="{{ day.isoformat() }}">{% endif %}

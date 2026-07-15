@@ -97,7 +97,7 @@ class Settings:
         default="",
         description=(
             "URL de base de l'instance GitLab, pour l'import direct (lecture seule) "
-            "des issues assignées — utilisé seulement si « base pilotage » ci-dessus "
+            "des issues assignées. Utilisé seulement si « base pilotage » ci-dessus "
             "est vide."
         ),
     )

@@ -146,7 +146,7 @@
     var estimate = parseInt(el.getAttribute('data-estimate') || '0', 10);
     var taskTitle = el.getAttribute('data-title') || 'Tâche';
     var out = el.querySelector('.mj-timer-val');
-    var baseTitle = document.title.replace(/^\([0-9:]+\) .+ — /, '');
+    var baseTitle = document.title.replace(/^\([0-9:]+\) .+ · /, '');
     var fired = {};
 
     /* On neutralise les seuils déjà franchis AU CHARGEMENT (évite de re-notifier à
@@ -166,7 +166,7 @@
       } else if (canNotify && Notification.permission === 'granted') {
         try { new Notification('Kairos · ' + taskTitle, { body: body, tag: tag }); } catch (e) {}
       }
-      flashInPage(taskTitle + ' — ' + body);
+      flashInPage(taskTitle + ' · ' + body);
     }
 
     function fmt(min) {
@@ -178,15 +178,15 @@
       var total = baseMin + sessionMin;
       out.textContent = fmt(total);
       document.title = '(' + Math.floor(total / 60) + ':' + ('0' + (total % 60)).slice(-2)
-        + ') ' + taskTitle + ' — ' + baseTitle;
+        + ') ' + taskTitle + ' · ' + baseTitle;
       if (estimate && total >= estimate) {
         alert('over', 'temps réel ' + fmt(total) + ' au-delà de l’estimé (' + fmt(estimate) + ').');
       }
       if (idleMin && sessionMin >= idleMin) {
-        alert('idle', 'le chrono tourne depuis ' + fmt(sessionMin) + ' — pensez à l’arrêter si c’est terminé.');
+        alert('idle', 'le chrono tourne depuis ' + fmt(sessionMin) + '. Pensez à l’arrêter si c’est terminé.');
       }
       if (pomoMin && sessionMin >= pomoMin) {
-        alert('pomo', fmt(pomoMin) + ' de focus continu — une courte pause ?');
+        alert('pomo', fmt(pomoMin) + ' de focus continu, une courte pause ?');
       }
     }
     tick();

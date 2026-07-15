@@ -101,10 +101,10 @@
         <div class="mj-edit-advanced-body">
           <label>Description<textarea name="description" rows="2">{{ task.description }}</textarea></label>
           <div class="mj-edit-row">
-            <label title="Quand tu comptes t'y mettre — distinct de l'échéance">Programmée pour
+            <label title="Quand tu comptes t'y mettre, distinct de l'échéance">Programmée pour
               <input type="date" name="scheduled_date" value="{{ task.scheduled_date.isoformat() if task.scheduled_date else '' }}"></label>
             <label>Projet<input type="text" name="project_tag" value="{{ task.project_tag }}" style="width:110px;"></label>
-            <label title="Ajouté au temps mesuré par le chrono — pratique si vous l'avez oublié pendant tout ou partie du travail">Temps passé manuel (min)
+            <label title="Ajouté au temps mesuré par le chrono. Pratique si vous l'avez oublié pendant tout ou partie du travail">Temps passé manuel (min)
               <input type="number" name="manual_time_spent_minutes" min="0"
                 value="{{ task.manual_time_spent_minutes if task.manual_time_spent_minutes else '' }}" style="width:90px;"></label>
             <label>Récurrence
@@ -117,7 +117,7 @@
                 <option value="monthly_on_day" {% if task.recurrence == 'monthly_on_day' %}selected{% endif %}>le … du mois</option>
               </select>
             </label>
-            <label title="Jour du mois (ex. 23) — décalé au jour ouvré précédent si férié/week-end">Jour du mois
+            <label title="Jour du mois (ex. 23), décalé au jour ouvré précédent si férié/week-end">Jour du mois
               <input type="number" name="recurrence_day_of_month" min="1" max="31" style="width:70px;"
                 value="{{ task.recurrence_day_of_month if task.recurrence_day_of_month else '' }}"></label>
             <label>Type
@@ -132,7 +132,7 @@
             <label title="Pose la tâche à heure fixe le jour programmé (« Programmée pour » ci-dessus) si renseigné, sinon le jour affiché ; vide = désépinglée">Heure fixe
               <input type="time" name="pin_time" value="{{ task.pinned_start.strftime('%H:%M') if task.pinned_start else '' }}"></label>
             <input type="hidden" name="pin_day" value="{{ day.isoformat() }}">
-            <label title="Référence en lecture vers une fiche de dette technique existante — aucune écriture vers Redmine/GitLab">Fiche liée
+            <label title="Référence en lecture vers une fiche de dette technique existante ; aucune écriture vers Redmine/GitLab">Fiche liée
               <select name="linked_ticket_id" style="max-width:220px;">
                 <option value="" {% if not task.linked_ticket_id %}selected{% endif %}>—</option>
                 {% for choice in ticket_choices %}

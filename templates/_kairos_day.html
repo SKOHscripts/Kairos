@@ -36,7 +36,7 @@
       <label>Fin<input type="datetime-local" name="end" required></label>
       <label class="mj-check-label" title="Réserve la fenêtre à une seule tâche, sans fragmentation">
         <input type="checkbox" name="deepwork" value="1"> Bloc deep-work</label>
-      <label title="Le créneau saisi devient le modèle (heure de début/fin) répété selon la règle — ex. déjeuner tous les jours, deep-work chaque mardi">Récurrence
+      <label title="Le créneau saisi devient le modèle (heure de début/fin) répété selon la règle, ex. déjeuner tous les jours, deep-work chaque mardi">Récurrence
         <select name="recurrence">
           <option value="">aucune</option>
           <option value="daily">quotidienne</option>
@@ -54,7 +54,7 @@
         <span class="mj-time">{{ block.start.strftime('%Hh%M') }}–{{ block.end.strftime('%Hh%M') }}</span>
         <span class="mj-title">{{ block.title or '(sans titre)' }}</span>
         {% if block.kind == 'deepwork' %}<span class="badge ok" title="Bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
-        {% if block.recurrence %}<span class="badge info" title="Créneau récurrent — l'édition porte sur toutes les occurrences">{{ icon('refresh') }} {{ block_recurrence_labels.get(block.recurrence, block.recurrence) }}</span>{% endif %}
+        {% if block.recurrence %}<span class="badge info" title="Créneau récurrent : l'édition porte sur toutes les occurrences">{{ icon('refresh') }} {{ block_recurrence_labels.get(block.recurrence, block.recurrence) }}</span>{% endif %}
         <span class="mj-edit">
           <button type="button" class="icbtn mj-edit-toggle" title="Éditer le créneau" aria-expanded="false">{{ icon('pencil') }}</button>
           <div class="mj-edit-body" hidden>
@@ -104,7 +104,7 @@
       <div class="mj-help-body">
         <p>La <strong>capture</strong> (ci-dessus) ne pose qu'un titre, volontairement : c'est le
         principe GTD « capturer sans friction ». Une tâche n'entre dans l'agenda ordonné
-        qu'une fois <strong>clarifiée</strong> — priorité et points Fibonacci posés, ici même,
+        qu'une fois <strong>clarifiée</strong>, priorité et points Fibonacci posés, ici même,
         en un clic chacun (pas besoin d'ouvrir l'édition complète).</p>
       </div>
     </details>
@@ -209,7 +209,7 @@
 <div class="mj-day-main">
 <details class="card" open>
   <summary class="collapser">{{ icon('chevron_right', '') }} Aujourd'hui, dans l'ordre
-    <span class="hint">— triée par score WSJF (valeur ÷ effort), pas seulement par heure</span></summary>
+    <span class="hint">(triée par score WSJF, valeur ÷ effort, pas seulement par heure)</span></summary>
   {% if not visible_scheduled %}
   <p class="muted">Aucune tâche à faire n'est actuellement planifiée.</p>
   {% endif %}

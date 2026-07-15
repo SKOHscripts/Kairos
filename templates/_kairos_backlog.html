@@ -6,7 +6,7 @@
 {% from "_kairos_macros.html" import done_toggle, task_actions, edit_panel, task_meta with context %}
 {% if backlog_tasks %}
 <details class="card">
-  <summary class="collapser">{{ icon('chevron_right', '') }} Backlog — sans date ({{ backlog_tasks|length }})</summary>
+  <summary class="collapser">{{ icon('chevron_right', '') }} Backlog, sans date ({{ backlog_tasks|length }})</summary>
   <p class="hint">Tâches sans échéance ni date programmée : ni pour aujourd'hui, ni
   visibles en vue semaine. Pose une échéance ou une date programmée pour les faire
   atterrir dans l'agenda.</p>
