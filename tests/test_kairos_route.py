@@ -2189,6 +2189,33 @@ def test_action_returns_day_fragment_on_ajax_header(route_client) -> None:
     assert 'id="mj-day-content"' not in resp.text  # un seul id, posé par kairos.html
 
 
+def test_done_toggle_also_honors_ajax_fragment(route_client) -> None:
+    """« Fait » fait partie du périmètre AJAX (Phase 3) au même titre que chrono/
+    snooze/priorité/points : le bouton `.mj-check` (`done_toggle`, y compris sur
+    la tâche « À faire maintenant ») porte `data-ajax` et répond en fragment."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Tâche à cocher", status="todo")
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    page = client.get("/kairos")
+    assert f'action="/kairos/tasks/{task_id}/done"' in page.text
+    # data-ajax doit être présent sur au moins un des boutons « fait » de la page.
+    assert "class=\"inline\" data-ajax" in page.text
+
+    resp = client.post(
+        f"/kairos/tasks/{task_id}/done",
+        headers={"X-Requested-With": "fetch"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 200
+    assert "<!DOCTYPE html>" not in resp.text
+    with TestSession() as db:
+        assert db.get(Task, task_id).status == "done"
+
+
 def test_action_without_ajax_header_still_redirects(route_client) -> None:
     """Repli sans JS obligatoire (WebView Android, accessibilité) : sans l'en-tête,
     le comportement historique (redirect 303) est inchangé."""

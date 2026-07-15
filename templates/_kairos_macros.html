@@ -4,7 +4,7 @@
 {% from "_icons.html" import icon %}
 
 {% macro done_toggle(task) %}
-<form method="post" action="/kairos/tasks/{{ task.id }}/done" class="inline">
+<form method="post" action="/kairos/tasks/{{ task.id }}/done" class="inline" data-ajax>
   <button type="submit" class="mj-check {% if task.status == 'done' %}is-done{% endif %}"
     title="{% if task.status == 'done' %}Rouvrir{% else %}Marquer fait{% endif %}">
     {% if task.status == 'done' %}{{ icon('check') }}{% endif %}</button>
