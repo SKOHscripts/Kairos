@@ -7,7 +7,7 @@ d'issues déjà résolues par l'appelant, quelle que soit leur origine —
 collègue sans l'outil de pilotage). Voir ``app/main.py`` pour le choix de source.
 Idempotent, priorité native jamais écrasée, disparue/fermée → archivée.
 
-Périmètre (SPEC_KAIROS.md § Phase 6) : **tous les projets fournis par l'appelant**
+Périmètre (voir docs/spec/integrations-externes.md) : **tous les projets fournis par l'appelant**
 (élargi depuis le seul ``GITLAB_PROJECT`` de la phase 4), import **indépendant**
 (pas de lien vers ``Ticket``/dette technique — deux bases séparées ; la liaison
 manuelle en lecture seule est un champ séparé, ``Task.linked_ticket_id``).

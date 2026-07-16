@@ -85,7 +85,7 @@ from .tasks_time import (
 logger = logging.getLogger("kairos")
 
 def _resolve_base_dir() -> Path:
-    """Dossier contenant `templates/`, `static/`, `README.md`, `SPEC_KAIROS.md`.
+    """Dossier contenant `templates/`, `static/`, `README.md`.
 
     Dans un exécutable PyInstaller (onefile), ces fichiers sont extraits dans un
     dossier temporaire (`sys._MEIPASS`), pas à côté de ce fichier source. Sur
@@ -213,12 +213,6 @@ def favicon(request: Request) -> Response:
     return FileResponse(BASE_DIR / "static" / "favicon.svg", media_type="image/svg+xml")
 
 
-@app.get("/SPEC_KAIROS.md")
-def spec_kairos(request: Request) -> FileResponse:
-    """Sert le fichier référencé par un lien relatif du README, sans le dupliquer."""
-    return FileResponse(BASE_DIR / "SPEC_KAIROS.md", media_type="text/markdown")
-
-
 def _render_readme() -> tuple[str, str, list[dict]]:
     """Rend ``README.md`` en HTML pour la page d'accueil : source **unique**, jamais
     dupliquée à la main — toute modification du README y apparaît sans autre effort.
@@ -344,7 +338,8 @@ def _build_kairos_context(
 
     Best-effort sur les sources externes (TimeTree, GitLab) : un échec se traduit
     par un bandeau d'avertissement dans le template, jamais par une page en erreur
-    (voir SPEC_KAIROS.md § Success Criteria). ``pilotage_session`` (base de
+    (voir docs/spec/integrations-externes.md § Invariants et garde-fous).
+    ``pilotage_session`` (base de
     l'outil de pilotage, lecture seule) est None si l'intégration n'est pas
     configurée : la liaison de fiches (« Fiche liée ») est alors désactivée
     proprement. L'import des issues GitLab assignées suit, lui, deux chemins

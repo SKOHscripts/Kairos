@@ -98,13 +98,6 @@ def test_get_home_toc_sits_right_after_en_bref() -> None:
     assert text.count("Sommaire du README") == 1
 
 
-def test_get_spec_kairos_file_served() -> None:
-    """Le lien relatif `SPEC_KAIROS.md` du README reste résolvable depuis la page."""
-    client = TestClient(main.app)
-    resp = client.get("/SPEC_KAIROS.md")
-    assert resp.status_code == 200
-
-
 def test_get_kairos_returns_200_even_without_data(route_client) -> None:
     client, _ = route_client
     resp = client.get("/kairos")

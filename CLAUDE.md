@@ -1,3 +1,58 @@
+# Workflow de développement du dépôt Kairos
+
+Ce dépôt suit un cycle **spécification-d'abord**. Toute contribution respecte les
+quatre étapes ci-dessous, dans cet ordre.
+
+## Les quatre étapes
+
+1. **Spécifier d'abord.** Avant d'implémenter, rédiger une spécification — ou un
+   « plan » au sens Claude Code. Pour un petit changement, ce peut être un ajout
+   à une spec existante ; pour un chantier, une nouvelle spec de domaine.
+2. **Implémenter.**
+3. **Tracer dans la spec.** Une fois le code écrit, consigner dans `docs/spec/`.
+   La spec doit rester **exhaustive et bijective** avec le code : tout
+   comportement du code y est décrit, et rien dans la spec ne décrit du code
+   inexistant. Y consigner aussi les **petites prises de décision** qui ne
+   méritent pas un document dédié mais qu'il faut tracer pour ne pas les
+   re-trancher plus tard (exemple : le choix de ne PAS utiliser `opacity` sur
+   `.mj-blocked` — voir `docs/spec/`). Ces micro-décisions vivent souvent en
+   commentaire de code (le commentaire porte le « pourquoi » local) ; la spec en
+   est le registre consolidé au niveau conception.
+4. **Documenter dans le README si — et seulement si — c'est une feature.** Seules
+   les fonctionnalités pertinentes pour l'utilisateur entrent dans `README.md`.
+   Un correctif de bug, un refactor ou une décision technique interne n'y vont
+   **pas** (exemple : le bug d'opacité de la modale d'une tâche bloquée est tracé
+   en spec, absent du README, car ce n'est pas une feature).
+
+## Où vivent les specs
+
+- `docs/spec/` : **une spec par domaine fonctionnel** (ordonnancement,
+  dépendances, temps réel, vue Jour/GTD, packaging, intégrations externes,
+  réglages, etc.).
+- **Chaque spec est découpée en deux parties**, dans cet ordre :
+  1. **Besoin métier** (cahier des charges) : le problème, le comportement
+     attendu du point de vue de l'utilisateur, les critères de succès, le
+     hors-périmètre. Le « quoi » et le « pourquoi », sans détail d'implémentation.
+  2. **Solution technique** : l'implémentation retenue, les fichiers/fonctions
+     concernés, les invariants, les décisions techniques et les alternatives
+     écartées. Le « comment ».
+- `docs/DESIGN_SYSTEM.md` (charte visuelle) et `docs/ANDROID_PACKAGING.md`
+  restent des **références transverses**, citées par les specs de domaine plutôt
+  que dupliquées.
+
+## Règles de traçabilité
+
+- **Bijectivité** : à tout comportement du code correspond une trace de spec, et
+  toute affirmation de spec correspond à du code réel. Un écart constaté se
+  corrige (spec ou code) dans le même changement.
+- **Ne jamais re-trancher** une décision déjà consignée sans la rouvrir
+  explicitement : chercher d'abord dans `docs/spec/` puis dans les commentaires
+  de code avant de reprendre une conception.
+- Les commentaires de code portent le « pourquoi » local non évident (invariant,
+  piège, décision produit) ; la spec de domaine en est le registre consolidé.
+
+---
+
 # Design system Kairos — sobre & professionnel
 
 Cette charte remplace l'ancienne (« appli perso chaleureuse », ivoire/terracotta).

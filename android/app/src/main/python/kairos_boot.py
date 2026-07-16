@@ -1,9 +1,9 @@
 """Amorce Chaquopy de Kairos : fait le pont entre `MainActivity` et l'application.
 
 Le code de l'application vit dans le paquet embarqué ``kairos_dist`` (généré par
-la tâche Gradle ``stageKairosPython`` : app/, templates/, static/, README.md,
-SPEC_KAIROS.md — même arborescence que le dépôt), extrait en vrais fichiers par
-Chaquopy (``extractPackages``). Ce module :
+la tâche Gradle ``stageKairosPython`` : app/, templates/, static/, README.md —
+même arborescence que le dépôt), extrait en vrais fichiers par Chaquopy
+(``extractPackages``). Ce module :
 
 1. ajoute le dossier extrait à ``sys.path`` pour que ``import app`` fonctionne
    comme sur le poste de bureau (les imports du projet restent inchangés) ;

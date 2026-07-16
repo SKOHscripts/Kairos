@@ -35,7 +35,6 @@ datas = [
     (str(ROOT / "templates"), "templates"),
     (str(ROOT / "static"), "static"),
     (str(ROOT / "README.md"), "."),
-    (str(ROOT / "SPEC_KAIROS.md"), "."),
 ]
 datas += copy_metadata("keyring")
 

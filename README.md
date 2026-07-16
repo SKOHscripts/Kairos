@@ -42,8 +42,9 @@ Tous les poids se règlent depuis la page **Réglages**.
 > porte le nom du pire : le clin d'œil est assumé.
 
 Application FastAPI autonome, extraite à l'origine de `pilotage-pleiade-gitlab`
-(l'intégration reste possible, en option, voir plus bas). L'historique de conception
-complet est dans [`SPEC_KAIROS.md`](SPEC_KAIROS.md).
+(l'intégration reste possible, en option, voir plus bas). La spécification
+complète, par domaine fonctionnel, est dans
+[`docs/spec/`](docs/spec/README.md).
 
 ---
 
