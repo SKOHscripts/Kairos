@@ -81,10 +81,9 @@
 
 {# L'article est coupé en deux (voir _render_readme) pour intercaler le sommaire
    juste après la section « En bref » — dans le flux réel du README, pas avant
-   tout l'article. Une seule mise en page, identique petit/grand écran : les deux
-   morceaux + le sommaire sont des enfants directs de `.prose-wrap` (jamais de
-   `.prose` lui-même), pour que les styles `.prose h2/ul/li/a` ne s'appliquent
-   jamais au sommaire. --- #}
+   tout l'article. `.prose` (intro) et `.home-toc.panel` (sommaire) sont des
+   enfants directs de `.prose-wrap` (jamais l'un dans l'autre), pour que les
+   styles `.prose h2/ul/li/a` ne s'appliquent jamais au sommaire. --- #}
 <div class="prose-wrap card">
   <div class="prose">{{ readme_intro_html | safe }}</div>
   {% if readme_toc %}
@@ -95,7 +94,18 @@
     </ul>
   </nav>
   {% endif %}
-  <div class="prose">{{ readme_rest_html | safe }}</div>
+  {# Reste du README (tout ce qui suit « En bref ») replié par défaut : c'est
+     lui qui, non replié, fait dérouler la page d'accueil sur ~30 écrans de
+     hauteur sur mobile (revue produit 2026-07) — l'intro + le sommaire
+     ci-dessus suffisent comme accroche, le reste est de la documentation de
+     référence, pas du contenu de premier écran. Replié aussi bien en desktop
+     qu'en mobile (aucune détection de plateforme côté serveur, cf.
+     docs/spec/accueil-navigation.md) : diff minimal, un seul comportement à
+     maintenir. #}
+  <details class="home-readme-more">
+    <summary class="collapser">{{ icon('chevron_right', '') }} Documentation complète du projet</summary>
+    <div class="prose">{{ readme_rest_html | safe }}</div>
+  </details>
 </div>
 </div>
 {% endblock %}

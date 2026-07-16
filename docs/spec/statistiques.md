@@ -260,7 +260,7 @@ class Completeness:
 - Comptage simple pour chaque champ renseigné (non-vide/non-nul).
 - Pct = round(100 * count / total), ou 0 si total=0.
 
-**Rendu** : trois barres horizontales (Points de Fibonacci / Durée estimée / Type de tâche), chacune avec label, largeur pct, pct affiché, count / total affiché. Barre verte si pct ≥ 70%, sinon neutre.
+**Rendu** : trois barres horizontales (Points de Fibonacci / Durée estimée / Type de tâche), chacune avec label, largeur pct, pct affiché, count / total affiché. Barre verte si pct ≥ 70%, sinon neutre. Le label porte un attribut `title="{{ label }}"` (cohérent avec les deux autres blocs `.barrow` de cette page — débit hebdomadaire, répartition du temps réel) : sur petit écran, `.barlabel` reste tronqué avec ellipsis si nécessaire (`white-space: nowrap; overflow: hidden; text-overflow: ellipsis`), le `title` donne le libellé complet au survol/appui long.
 
 **Interprétation** : incite à remplir les métadonnées — la calibration d'estimation et le tri WSJF en dépendent. Si <70%, l'utilisateur laisse de la clarification en retard.
 
@@ -299,6 +299,18 @@ class Completeness:
 **Décision** : module pur en Python, aucune librairie. Médiane : `_median(list)` maison (12 lignes). Formule simple : pas de statsmodels, pas de numpy.
 
 **Justification** : projet sobre, déjà sans build. Les calculs sont simples (sommes, moyennes, comptages) et ne justifient pas d'ajouter des dépendances.
+
+#### Largeur du label `.barlabel` élargie (revue produit F-Droid/mobile, 2026-07)
+
+**Décision** : `.barrow .barlabel` élargi de `100px` à `135px` (`static/style.css`).
+
+**Justification** : à 375-393px de large (viewport mobile), `100px` tronquait
+« Points de Fibonacci » en « Points de Fibona… » — après padding de carte et
+`.barval` fixe (26px), il reste assez de place pour la piste `.track` même à
+135px de label. `white-space: nowrap`/`text-overflow: ellipsis` restent en
+place comme filet de sécurité pour un libellé encore plus long à l'avenir ;
+combiné à l'attribut `title` (voir § Complétude des métadonnées), le texte
+complet reste toujours accessible même tronqué.
 
 #### Réutilisation exclusive
 

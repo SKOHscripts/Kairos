@@ -36,6 +36,12 @@ est pénible sur une longue liste.
   toutes les pages : logo/nom Kairos (lien vers l'accueil), puis les entrées Accueil,
   Jour, Semaine, Statistiques, Réglages. L'entrée correspondant à la page affichée
   est mise en évidence.
+- **Exception, APK Android uniquement** : les cinq entrées sont déplacées vers une
+  barre de navigation basse fixe (icône + libellé, cible tactile ≥ 44px), le logo
+  Kairos restant seul dans la barre du haut. Cette bottom nav n'apparaît **jamais**
+  sur un navigateur (dev, service, exécutable de bureau), quelle que soit la largeur
+  de la fenêtre — seule la topnav se redimensionne dans ce cas (voir § Décisions et
+  pièges tracés pour la justification de ce déclenchement serveur plutôt que CSS).
 - Sous chaque page, un bandeau secondaire (topbar) affiche le titre de la page et,
   le cas échéant, des actions rapides propres à cette page.
 - Sur l'exécutable de bureau uniquement, un bouton « Quitter » est visible dans la
@@ -50,6 +56,11 @@ est pénible sur une longue liste.
   la formule du score de priorité ; puis le contenu du `README.md` du projet, rendu
   en HTML, avec un sommaire de navigation intercalé juste après sa section « En
   bref ».
+- Le reste du README (tout ce qui suit la section « En bref » et le sommaire) est
+  replié par défaut derrière un intitulé « Documentation complète du projet » — même
+  comportement en desktop et en mobile (pas de détection de plateforme). L'intro et
+  le sommaire suffisent comme accroche de premier écran ; le reste reste accessible
+  d'un clic, jamais retiré du HTML.
 - Le bandeau de page (topbar) de l'accueil garde son titre par défaut (« Kairos ») et
   n'affiche pas de bouton d'action dédié : le seul CTA « Ouvrir Aujourd'hui » vit
   dans le hero, pas répété ailleurs sur la page.
@@ -65,12 +76,19 @@ est pénible sur une longue liste.
 - La position de scroll est restaurée après un rechargement déclenché par un
   formulaire POST, y compris sur une page longue (liste de tâches du jour).
 - Aucun CTA dupliqué sur la page d'accueil.
+- La bottom nav n'apparaît **jamais** en dehors de l'APK Android, y compris sur un
+  navigateur desktop dont la fenêtre est rétrécie sous le seuil mobile — vérifiable
+  par l'absence totale de `.bn-nav`/`.is-android` dans le HTML rendu (pas seulement
+  masqués en CSS) quand `is_android` est faux.
 
 ### Hors périmètre / différé
 
-- Barre de navigation basse (bottom nav) sur mobile/APK : décision assumée de ne
-  jamais en ajouter une, y compris sur petit écran — seule la topnav se redimensionne
-  (voir § Décisions et pièges tracés).
+- Barre de navigation basse (bottom nav) sur un navigateur simplement rétréci
+  (desktop, dev) : décision assumée de ne jamais en afficher une hors de l'APK
+  Android — seule la topnav se redimensionne dans ce cas (voir § Décisions et
+  pièges tracés). La bottom nav elle-même, réservée à l'APK, est dans le
+  périmètre de cette spec (voir § Comportement attendu et § Détail par
+  composant).
 - Sidebar verticale : abandonnée avec la charte visuelle actuelle (`docs/DESIGN_SYSTEM.md`)
   au profit de la topnav horizontale.
 - Contenu détaillé de la vue Jour/GTD (filtres, backlog, progression du jour...) :
@@ -133,6 +151,38 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
     Le serveur va s'arrêter : il faudra relancer l'exécutable pour y revenir. » —
     voir `app/main.py::shutdown` pour le détail de l'arrêt côté serveur (SIGINT,
     tracé dans `docs/spec/packaging-lancement.md`).
+- **Bottom nav (`.bn-nav`), APK Android uniquement** : `<div class="layout {% if
+  is_android %}is-android{% endif %}">` porte la classe `is-android` sur la racine
+  du gabarit ; un second bloc `{% if is_android %}<nav class="bn-nav">...{% endif
+  %}</nav>` (dernier enfant de `.layout`, après `<main class="content">`) reprend
+  les cinq mêmes entrées et conditions `active` que `.tn-nav` (icône + libellé,
+  cette fois visible — contrairement à `.tn-item .ico`), sans dupliquer
+  `.tn-brand`/`.tn-quit`.
+  - `is_android` : variable globale Jinja2 posée une fois au chargement du module
+    (`templates.env.globals["is_android"] = os.environ.get("KAIROS_PLATFORM") ==
+    "android"`, `app/main.py`), au même titre que `is_frozen` juste au-dessus.
+    `KAIROS_PLATFORM=android` est posé par `android/app/src/main/python/
+    kairos_boot.py` **avant** tout import de `app.main` (voir
+    `docs/ANDROID_PACKAGING.md`) — jamais recalculé par requête.
+  - CSS (`static/style.css`) : `.is-android .tn-nav { display: none; }` (les liens
+    quittent la barre du haut, `.tn-brand` y reste seul) + `.is-android .bn-nav`
+    affichée en `position: fixed; bottom: 0`. Le déclenchement est **entièrement
+    porté par la classe `.is-android`**, jamais par une `@media` de largeur — un
+    navigateur desktop rétréci sous 720px continue de recevoir la topnav
+    redimensionnée existante (`.tn-nav`/`.tn-item`, inchangés), jamais la bottom
+    nav. `.is-android .page` ajoute un `padding-bottom` calculé (hauteur de la
+    barre + `env(safe-area-inset-bottom)`) pour que le contenu ne passe jamais
+    dessous, avec une spécificité (deux classes) volontairement plus forte que
+    les règles `.page` existantes (une classe) — insensible à l'ordre des règles
+    dans le fichier, contrairement au piège de cascade documenté plus bas dans
+    `static/style.css`.
+  - `.bn-item { min-width: 0; }` : sans ce reset, le `min-width: auto` implicite
+    d'un enfant flex (`flex: 1`) borne le rétrécissement à la taille de son
+    contenu (icône + libellé) — sur cinq entrées à largeur égale, la barre
+    déborderait du viewport sur un libellé un peu long (constaté avec
+    « Réglages » en développement de ce correctif).
+  - Voir § Décisions et pièges tracés pour la justification du déclenchement
+    serveur plutôt que CSS.
 - **Topbar (`.topbar`)** : sous la topnav, dans `<main class="content">`. Titre par
   bloc (`{% block topbar_title %}Kairos{% endblock %}`, par défaut le nom de
   l'app — l'accueil ne le redéfinit plus, voir § Décisions et pièges tracés) et zone
@@ -192,11 +242,9 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   boutons d'action (`Ouvrir « Aujourd'hui »` → `/kairos`, `Vue semaine` →
   `/kairos?view=week`, `Statistiques` → `/kairos/stats`), et un bloc marque
   (`.home-hero-brand`) reprenant le logo Kairos, le nom, et le sous-titre
-  « nom de code · 14h55 » (voir `SPEC_KAIROS.md` § Phase 15 pour l'origine du nom :
-  *Kairos* — καιρός, le moment opportun, par opposition à *Chronos* — et du nom de
-  code *14h55*, clin d'œil au « post-lunch dip », le creux post-déjeuner
-  statistiquement le moins productif de la journée, en écho au « 14h05 » emblématique
-  de l'outil).
+  « nom de code · 14h55 » — *Kairos* (καιρός, le moment opportun, par opposition à
+  *Chronos*) et le nom de code *14h55*, clin d'œil au « post-lunch dip », le creux
+  post-déjeuner statistiquement le moins productif de la journée.
 - **Section « Ce que fait Kairos » (`.home-brief`)** : deux colonnes (grille CSS,
   empilées sous 760px) —
   - `.home-brief-actions` : liste à puces des cinq fonctionnalités principales
@@ -221,15 +269,31 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
     {% if readme_toc %}
     <nav class="home-toc panel" aria-label="Sommaire du README">...</nav>
     {% endif %}
-    <div class="prose">{{ readme_rest_html | safe }}</div>
+    <details class="home-readme-more">
+      <summary class="collapser">{{ icon('chevron_right', '') }} Documentation complète du projet</summary>
+      <div class="prose">{{ readme_rest_html | safe }}</div>
+    </details>
   </div>
   ```
-  Les trois éléments (`readme_intro_html`, le sommaire, `readme_rest_html`) sont des
-  **enfants directs** de `.prose-wrap`, jamais imbriqués dans un même `.prose` —
-  garde-fou explicite pour que les styles `.prose h2/ul/li/a` (typographie éditoriale
-  du README) ne s'appliquent jamais accidentellement au sommaire (qui a sa propre
-  classe `.home-toc`/`.home-toc-list`). Une seule mise en page, identique petit et
-  grand écran (pas de variante mobile distincte pour ce bloc).
+  Les trois éléments (`readme_intro_html`, le sommaire, le `<details>` contenant
+  `readme_rest_html`) sont des **enfants directs** de `.prose-wrap`, jamais imbriqués
+  les uns dans les autres — garde-fou explicite pour que les styles
+  `.prose h2/ul/li/a` (typographie éditoriale du README) ne s'appliquent jamais
+  accidentellement au sommaire (qui a sa propre classe `.home-toc`/`.home-toc-list`).
+  Une seule mise en page, identique petit et grand écran (pas de variante mobile
+  distincte pour ce bloc).
+  - `readme_rest_html` est ce qui, non replié, faisait dérouler la page d'accueil sur
+    des dizaines d'écrans de hauteur sur mobile (revue produit 2026-07 : ~28 500px à
+    393px de large) — c'est de la documentation de référence, pas du contenu de
+    premier écran. Replié par défaut : `readme_intro_html` + le sommaire suffisent
+    comme accroche ; le `<summary class="collapser">` réutilise tel quel le patron
+    repliable déjà en place ailleurs dans l'app (`_kairos_day.html`,
+    `_kairos_filters.html`, `_kairos_backlog.html`), sans règle CSS nouvelle pour
+    l'ouverture/fermeture elle-même. Deux règles ciblées (`.home-readme-more`) gèrent
+    l'air en bas de carte à l'état fermé (le `.prose` imbriqué, seul porteur de
+    padding-bottom, disparaît du rendu avec le reste du contenu replié) et l'alignement
+    horizontal du résumé avec le padding de `.prose` (1.9rem, contre 1.1rem par défaut
+    pour `.collapser`).
   - `toc_entry(entry)` (macro locale du template) : rendu récursif d'une entrée de
     sommaire (`<li><a href="#{{ entry.id }}">...</a>{% if entry.children %}<ul>...
     </ul>{% endif %}</li>`), pour représenter la hiérarchie H2/H3 du README.
@@ -268,12 +332,6 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   `README.md` du dépôt se répercute automatiquement sur la page d'accueil au
   prochain chargement (pas de cache de rendu entre requêtes — le fichier est relu et
   reconverti à chaque appel de `home()`).
-- Le fichier `SPEC_KAIROS.md` référencé par un lien relatif du README est servi tel
-  quel par la route dédiée `@app.get("/SPEC_KAIROS.md")` (`app/main.py::spec_kairos`,
-  `FileResponse`), sans passer par `_render_readme` — hors périmètre direct de cette
-  spec (pas de gabarit, pas de navigation), mentionné ici pour la complétude du lien
-  README → SPEC_KAIROS depuis l'accueil.
-
 ### Décisions et pièges tracés
 
 - **CTA dupliqué retiré de l'accueil** (commit `52030d6`, 2026-07-15) : l'accueil
@@ -304,16 +362,39 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   scroll s'exécute avant tout gestionnaire de formulaire spécifique à une page qui
   pourrait appeler `stopPropagation()` — sans ça, un tel gestionnaire local
   empêcherait silencieusement la sauvegarde de scroll de se déclencher.
-- **Pas de bottom nav mobile** : décision de charte visuelle (`docs/DESIGN_SYSTEM.md`
-  § Navigation & mobile) — la topnav horizontale sticky reste l'unique navigation à
-  toutes les tailles d'écran, y compris l'APK Android ; seul son rendu se
-  redimensionne (sous-titre masqué, pilules resserrées sous 720px). Choix consigné
-  dans la charte, repris ici car il conditionne directement `base.html`.
+- **Bottom nav Android, gardée par `is_android` plutôt que par une media query**
+  (revue produit F-Droid/mobile, 2026-07 — révise la décision antérieure « pas de
+  bottom nav mobile », consignée dans `CLAUDE.md`/`docs/DESIGN_SYSTEM.md` §
+  Navigation & mobile, mise à jour dans le même changement) : la nav horizontale
+  qui passait sur deux lignes sous ~400px de large consommait jusqu'à ~25% de la
+  hauteur d'écran avant tout contenu, sur exactement les cinq destinations où
+  Material Design recommande une bottom nav. Un déclenchement purement CSS
+  (`@media (max-width: 720px)`) aurait aussi affiché la bottom nav sur un
+  navigateur desktop simplement rétréci sous ce seuil — comportement jugé
+  indésirable (une fenêtre de navigateur rétrécie n'est pas une app mobile).
+  Choix retenu : un flag serveur (`is_android`, lu depuis `KAIROS_PLATFORM`) qui
+  n'est vrai que dans l'APK Android compilé, jamais déductible d'une largeur de
+  fenêtre. C'est la **seule** dérogation de l'app au principe « aucune détection
+  de plateforme côté serveur » (voir § Invariants) — assumée ici uniquement parce
+  que la distinction voulue (app installée vs. navigateur, quelle que soit sa
+  largeur) n'est, par construction, pas observable en CSS pur.
+- **Topnav toujours rendue, y compris dans l'APK Android** : `.tn-brand` (logo)
+  reste affiché en haut même quand `.tn-nav` est masquée par `.is-android` — pas
+  de gabarit alternatif sans en-tête, cohérent avec le motif « barre de titre en
+  haut + navigation en bas » de Material Design plutôt qu'une suppression pure et
+  simple de la topnav sur Android.
 - **Logo aux couleurs terracotta d'origine, hors palette ardoise/bleu du reste de
   l'UI** : exception assumée de la charte (`docs/DESIGN_SYSTEM.md` § Identité), le
   seul point de couleur chaude volontaire au milieu d'une interface sinon neutre —
   ne pas « corriger » vers la palette neutre lors d'un futur passage sur
   `base.html`/`home.html`.
+- **Repli du reste du README derrière un `<details>`** (revue produit F-Droid/mobile,
+  2026-07) : seule la section « En bref » (`readme_intro_html`) et le sommaire
+  restent toujours visibles ; le reste (`readme_rest_html`) passe derrière un
+  intitulé cliquable, replié aussi bien en desktop qu'en mobile — un seul
+  comportement à maintenir plutôt qu'une variante par plateforme (cohérent avec
+  l'absence de détection serveur, voir § Invariants). Diff volontairement minimal :
+  aucun contenu retiré, seul l'état d'affichage par défaut change.
 - **`toc_tokens[0]["children"]` plutôt que `toc_tokens` brut** : évite que le sommaire
   n'affiche une entrée racine unique (le H1) suivie de tous les H2/H3 en profondeur
   +1 artificielle — en ne prenant que les enfants du H1, le sommaire commence
@@ -325,6 +406,18 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
 - `is_frozen` est calculé **une seule fois**, au chargement du module `app/main.py`
   (`getattr(sys, "frozen", False)`), jamais recalculé par requête — cohérent avec le
   fait qu'un process ne change pas de mode de lancement en cours de vie.
+- `is_android`, même invariant que `is_frozen` (calcul unique au chargement du
+  module, jamais par requête) — un process Android ne change pas de plateforme en
+  cours de vie non plus. **Seule exception** au principe « aucune détection de
+  plateforme côté serveur » qui prévaut partout ailleurs dans le dépôt (packaging
+  PyInstaller/dev inclus) : `templates/`/`static/` restent des fichiers strictement
+  identiques entre les trois cibles, `is_android` ne fait que basculer un bloc
+  conditionnel dans un gabarit déjà commun, jamais un template ou un fichier CSS
+  distinct par plateforme.
+- Le rendu de la bottom nav ne dépend **jamais** de la largeur de viewport, ni côté
+  Jinja (`is_android`, condition serveur pure) ni côté CSS (`.is-android`, jamais
+  une `@media`) — garantit qu'aucune fenêtre de navigateur, quelle que soit sa
+  largeur, ne peut afficher `.bn-nav`.
 - `asset_version` (anti-cache) est calculé une seule fois au chargement du module ;
   un changement de `style.css` en cours de vie du process (rare, développement
   local) n'est reflété qu'au redémarrage du serveur.

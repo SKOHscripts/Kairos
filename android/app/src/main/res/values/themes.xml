@@ -10,5 +10,12 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
         <item name="android:windowOptOutEdgeToEdgeEnforcement" tools:targetApi="35">true</item>
+        <!-- Splash natif (API 31+, sans androidx.core:splashscreen — voir "pas
+             d'AndroidX" dans docs/ANDROID_PACKAGING.md) : reprend l'icône de
+             lanceur adaptative existante par défaut, pas d'asset dédié. En
+             dessous de l'API 31, `windowBackground` seul unifie déjà le flash
+             de démarrage avec le fond de l'app plutôt que le blanc générique. -->
+        <item name="android:windowSplashScreenBackground" tools:targetApi="31">@color/kairos_bg</item>
+        <item name="android:windowBackground">@color/kairos_bg</item>
     </style>
 </resources>

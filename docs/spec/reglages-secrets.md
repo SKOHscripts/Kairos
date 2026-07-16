@@ -484,8 +484,14 @@ historique.
   - Bloc « Emplacement des données » : chemin du fichier de réglages
     (`settings_path`), dossier de données (`data_dir`), date de migration
     `.env` si applicable (`migrated_at`, tronqué à la date `[:10]`).
-  - Une section par entrée de `SECTIONS`, un champ par entrée de
-    `field_names`, rendu selon `field_kind[name]` :
+  - Une section repliable (`<details class="panel mj-settings-section">` +
+    `<summary class="collapser">`, patron déjà utilisé ailleurs dans l'app —
+    voir `docs/spec/vue-jour-gtd.md`) par entrée de `SECTIONS`, fermée par
+    défaut sauf si un de ses champs porte une erreur de validation
+    (`{% if field_names | select('in', errors) | list %}open{% endif %}` —
+    ouverte automatiquement pour que l'erreur reste visible sans avoir à
+    chercher la bonne section). Un champ par entrée de `field_names`, rendu
+    selon `field_kind[name]` :
     - `bool` → case à cocher, libellé inline (pas de `<label for>` séparé) ;
     - `secret` → statut « défini »/« non défini », `<input type="password">`
       avec `placeholder="laisser vide pour ne pas modifier"`,
@@ -597,6 +603,18 @@ historique.
   la section réseau à porter une valeur par défaut autre que la chaîne
   vide — évite qu'un proxy d'entreprise fraîchement configuré casse les
   appels locaux (loopback) de l'application elle-même.
+- **Sections repliées par défaut** (revue produit F-Droid/mobile, 2026-07) :
+  la page comptait ~40 champs empilés sans aucun repli (`<section>` simple),
+  soit ~13 600px de haut à 393px de large — remplacé par `<details>`/
+  `<summary>`, patron déjà en place ailleurs dans l'app, sans introduire de
+  nouvelle règle CSS (`.collapser`/`details.panel > summary` existants). Seule
+  la section « Emplacement des données » (bloc informatif hors formulaire, pas
+  dans la boucle `SECTIONS`) reste une `<section>` non repliable — toujours
+  utile en un coup d'œil, jamais assez longue pour justifier un repli. Ouvrir
+  automatiquement une section en erreur de validation évite une régression
+  d'ergonomie (une erreur invisible dans une section fermée serait pire que le
+  problème résolu) ; aucun `id`/`name` de champ n'a changé, la logique de
+  soumission du formulaire est inchangée.
 
 ### Invariants et garde-fous
 

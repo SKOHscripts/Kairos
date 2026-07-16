@@ -128,7 +128,7 @@
         ('Durée estimée', c.estimate_pct, c.with_estimate),
         ('Type de tâche', c.type_pct, c.with_type)] %}
     <div class="barrow">
-      <span class="barlabel">{{ label }}</span>
+      <span class="barlabel" title="{{ label }}">{{ label }}</span>
       <div class="track"><div class="fill {% if pct >= 70 %}done{% endif %}" style="width: {{ pct }}%"></div></div>
       <span class="barval">{{ pct }} % <span class="muted">· {{ n }}/{{ c.total }}</span></span>
     </div>

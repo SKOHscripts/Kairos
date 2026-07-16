@@ -197,7 +197,10 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
   nommé `kairos-uvicorn`, puis sonde `/favicon.ico` (même repère que le launcher de
   bureau) avant de charger `http://127.0.0.1:<port>/kairos` dans la WebView. Détail
   complet (Gradle, Chaquopy, cycle de vie, notifications) :
-  `docs/ANDROID_PACKAGING.md`.
+  `docs/ANDROID_PACKAGING.md`. `KAIROS_PLATFORM` est posé **avant** tout import de
+  `app.main` : c'est ce qui permet à `app/main.py` de le lire une seule fois au
+  chargement du module (`is_android`, voir `docs/spec/accueil-navigation.md` — seule
+  consommation actuelle de cette variable, pour la bottom nav de `base.html`).
 
 #### `app/subprocess_env.py` — environnement assaini pour les processus externes
 
@@ -322,6 +325,16 @@ cette spec (pas de duplication du reste) :
   `versionCode = X*10000 + Y*100 + Z`, plancher `1` (Android rejette `0`, ce que
   donnerait le défaut `0.0.0-dev`) — garantit une valeur strictement croissante
   d'une release à l'autre pour qu'Android accepte la mise à jour par-dessus.
+- **`themes.xml`** : splash screen natif (`android:windowSplashScreenBackground`,
+  API 31+) et `android:windowBackground` (toutes API) posés à la couleur de fond de
+  l'app — évite le flash blanc générique pendant le démarrage de Python+uvicorn,
+  sans dépendance `androidx.core:splashscreen` (voir « pas d'AndroidX » dans
+  `docs/ANDROID_PACKAGING.md`).
+- **`AndroidManifest.xml`** / **`MainActivity.java`** : geste retour prédictif
+  Android 13+ (`android:enableOnBackInvokedCallback="true"` +
+  `OnBackInvokedDispatcher` natif, `android.window`, pas AndroidX) — chemin
+  additionnel à `onBackPressed()` (legacy, inchangé, seul chemin actif en dessous de
+  l'API 33). Détail complet dans `docs/ANDROID_PACKAGING.md`.
 
 ### Décisions et pièges tracés
 

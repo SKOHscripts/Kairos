@@ -12,7 +12,7 @@
 </head>
 <body>
   {% from "_icons.html" import icon %}
-  <div class="layout">
+  <div class="layout {% if is_android %}is-android{% endif %}">
     <header class="topnav">
       <a class="tn-brand" href="/">
         <span class="tn-logo" aria-hidden="true">
@@ -60,6 +60,25 @@
         {% block content %}{% endblock %}
       </div>
     </main>
+    {% if is_android %}
+    {# Bottom nav réservée à l'APK Android (`is_android`, posé côté serveur depuis
+       KAIROS_PLATFORM — jamais par la largeur de viewport seule, pour ne jamais
+       apparaître sur un navigateur desktop simplement rétréci). Mêmes cinq
+       destinations et mêmes conditions `active` que `.tn-nav` ci-dessus, sans
+       dupliquer `.tn-brand`/`.tn-quit`. Voir docs/spec/accueil-navigation.md. #}
+    <nav class="bn-nav">
+      <a class="bn-item {% if page == 'home' %}active{% endif %}" href="/">
+        {{ icon('home') }}<span>Accueil</span></a>
+      <a class="bn-item {% if page == 'kairos' and (view is not defined or view != 'week') %}active{% endif %}" href="/kairos?view=day">
+        {{ icon('clock') }}<span>Jour</span></a>
+      <a class="bn-item {% if page == 'kairos' and view == 'week' %}active{% endif %}" href="/kairos?view=week">
+        {{ icon('calendar') }}<span>Semaine</span></a>
+      <a class="bn-item {% if page == 'kairos_stats' %}active{% endif %}" href="/kairos/stats">
+        {{ icon('trending_up') }}<span>Stats</span></a>
+      <a class="bn-item {% if page == 'settings' %}active{% endif %}" href="/kairos/settings">
+        {{ icon('gear') }}<span>Réglages</span></a>
+    </nav>
+    {% endif %}
   </div>
 
   {% block scripts %}{% endblock %}

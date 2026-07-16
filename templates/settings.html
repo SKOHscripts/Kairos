@@ -31,8 +31,8 @@
 
 <form method="post" action="/kairos/settings">
   {% for section_title, field_names in sections %}
-  <section class="panel mj-settings-section">
-    <h2>{{ icon('gear') }} {{ section_title }}</h2>
+  <details class="panel mj-settings-section" {% if field_names | select('in', errors) | list %}open{% endif %}>
+    <summary class="collapser">{{ icon('chevron_right', '') }} {{ section_title }}</summary>
     <div class="mj-settings-grid">
       {% for name in field_names %}
       <div class="mj-settings-field">
@@ -68,7 +68,7 @@
       </div>
       {% endfor %}
     </div>
-  </section>
+  </details>
   {% endfor %}
 
   <p class="hint">En cas d'erreur de validation sur un autre champ, les identifiants (jeton

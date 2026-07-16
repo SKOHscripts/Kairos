@@ -127,6 +127,38 @@ code {
 .tn-item.active:hover { background: var(--dark-surface); }
 .tn-item .ico { display: none; } /* la pilule seule suffit à distinguer la page active */
 
+/* Bottom nav (`.bn-nav`) : rendue uniquement dans le HTML de l'APK Android
+   (`is_android`, gabarit `base.html`), jamais par une media query seule — un
+   navigateur desktop rétréci sous 720px garde sa topnav redimensionnée
+   inchangée, jamais de bottom nav. `.is-android` (posée sur `.layout` par le
+   même flag serveur) est donc le seul déclencheur, indépendant de la largeur
+   de fenêtre. Voir docs/spec/accueil-navigation.md. */
+.bn-nav { display: none; }
+.is-android .tn-nav { display: none; } /* liens déplacés en bas ; .tn-brand reste seul en haut */
+.is-android .bn-nav {
+  display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 0.3rem 0.3rem calc(0.3rem + env(safe-area-inset-bottom, 0px));
+}
+.bn-item {
+  flex: 1; min-width: 0; /* sans ça, le flex-shrink par défaut est borné par le
+  contenu ("min-width: auto" implicite d'un flex item) et la barre déborde du
+  viewport sur un libellé un peu long (ex. "Réglages") */
+  display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
+  padding: 0.3rem 0.2rem; border-radius: var(--r-sm);
+  color: var(--text-3); font-size: 10px; font-weight: 600; text-decoration: none;
+  min-height: 44px; justify-content: center; /* cible tactile */
+}
+.bn-item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bn-item svg { font-size: 19px; }
+.bn-item:hover { text-decoration: none; background: var(--surface-tint); }
+.bn-item.active { color: var(--accent); }
+/* Compensation de padding pour que le contenu ne passe jamais sous la barre fixe :
+   spécificité (deux classes) volontairement plus forte que `.page` (une classe,
+   ligne ~142) et que la variante 720px (même spécificité qu'elle, ligne ~320) —
+   l'emporte sans dépendre de l'ordre des règles dans le fichier. */
+.is-android .page { padding-bottom: calc(2.6rem + 56px + env(safe-area-inset-bottom, 0px)); }
+
 .content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .topbar {
   position: sticky; top: 52px; z-index: 20;
@@ -290,7 +322,7 @@ details[open] .collapser .chev { transform: rotate(90deg); }
    Data-viz (barres de progression)
    ========================================================================= */
 .barrow { display: flex; align-items: center; gap: 0.6rem; margin: 0.32rem 0; font-size: 11.5px; }
-.barrow .barlabel { width: 100px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.barrow .barlabel { width: 135px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .barrow .track { flex: 1; background: var(--neu-bg); border-radius: var(--r-pill); height: 8px; position: relative; overflow: hidden; }
 .barrow .fill { height: 8px; border-radius: var(--r-pill); background: var(--accent); }
 .barrow .fill.done { background: var(--c-done); }
@@ -665,6 +697,15 @@ summary:focus-visible,
 .home-toc-list a { display: block; padding: 0.2rem 0.45rem; border-radius: var(--r-sm);
   font-size: 12px; color: var(--text-2); }
 .home-toc-list a:hover { background: var(--surface-tint); color: var(--text); text-decoration: none; }
+
+/* Reste du README replié (voir templates/home.html) : `.collapser` fournit déjà
+   le chevron/hover, on ajuste juste le padding horizontal du résumé pour
+   qu'il s'aligne avec `.prose` (1.9rem) et on redonne un peu d'air en bas
+   quand c'est fermé (le `.prose` imbriqué, seul porteur de padding-bottom,
+   disparaît du rendu avec le reste du contenu replié). */
+.home-readme-more { padding-bottom: 0.9rem; }
+.home-readme-more[open] { padding-bottom: 0; }
+.home-readme-more > summary { padding: 0.85rem 1.9rem; }
 
 .prose-wrap { min-width: 0; }
 .prose { padding: 0 1.9rem; min-width: 0; }

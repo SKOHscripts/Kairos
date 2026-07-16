@@ -111,9 +111,19 @@ complet : `docs/DESIGN_SYSTEM.md` (mêmes noms de classes/variables que
   couleur chaude au milieu d'une interface sinon neutre.
 
 ## Navigation & mobile
-- Barre horizontale sticky en haut (`.topnav` + `.topbar`), pas de sidebar, pas
-  de barre de navigation basse même sur mobile/APK Android — seulement
-  redimensionnée (sous-titre masqué, pilules resserrées sous 720px).
+- Barre horizontale sticky en haut (`.topnav` + `.topbar`), pas de sidebar,
+  sur navigateur (dev, service) comme sur l'exécutable de bureau — seulement
+  redimensionnée sous 720px (sous-titre masqué, pilules resserrées), jamais
+  de barre de navigation basse : un navigateur simplement rétréci ne doit
+  jamais en afficher une.
+- **Exception** : l'APK Android affiche une bottom nav (`.bn-nav`, revue
+  produit F-Droid/mobile 2026-07) à la place de `.tn-nav` — seule dérogation
+  au principe « aucune détection de plateforme côté serveur » qui prévaut
+  partout ailleurs dans l'app. Gabarit gardé par `is_android`
+  (`app/main.py`, lu depuis `KAIROS_PLATFORM=android`, posé par
+  `kairos_boot.py` avant tout import de `app.main` — jamais par une media
+  query seule, justement pour ne jamais se déclencher sur un navigateur
+  desktop rétréci). Voir `docs/spec/accueil-navigation.md`.
 - Cibles tactiles ≥ 44px sur mobile ; vérifier qu'aucun composant (grille
   semaine, panneau d'édition) ne déborde horizontalement sur ~375px de large.
 - L'app tourne aussi en exécutable de bureau (PyInstaller, Windows/Linux) :
