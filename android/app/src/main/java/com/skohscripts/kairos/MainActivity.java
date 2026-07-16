@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewTreeObserver;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -36,24 +38,22 @@ public class MainActivity extends Activity {
     private WebView webView;
     private KairosNotificationBridge notificationBridge;
     // Tenu à `false` jusqu'à ce que la première page ait fini de charger dans la
-    // WebView (voir `onPageFinished` ci-dessous) : sans ce verrou, le splash natif
-    // se ferme dès la première frame dessinée par `setContentView` ci-dessous, donc
-    // avant même que Python/uvicorn n'ait démarré — l'utilisateur voit alors une
-    // WebView blanche à la place du splash pendant toute l'attente du serveur.
+    // WebView (voir `onPageFinished` ci-dessous). Sans mécanisme de retenue, le
+    // splash (natif API 31+, ou simple fond `windowBackground` en dessous) se
+    // ferme/laisse place à la première frame dessinée dès `setContentView`
+    // ci-dessous, donc avant même que Python/uvicorn n'ait démarré — l'utilisateur
+    // voit alors une WebView blanche pendant toute l'attente du serveur. Technique
+    // retenue : `ViewTreeObserver.OnPreDrawListener` (voir onCreate) — reporter la
+    // toute première frame reporte de fait la disparition du splash, quelle que
+    // soit l'API, sans dépendre d'une classe spécifique à l'API 31+ ni d'AndroidX
+    // (`androidx.core.splashscreen.SplashScreen.setKeepOnScreenCondition`, la
+    // seule à porter ce nom, est hors périmètre — voir docs/ANDROID_PACKAGING.md).
     private final AtomicBoolean uiReady = new AtomicBoolean(false);
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Doit être appelé avant `setContentView` (voir plus bas) pour pouvoir
-        // retenir le splash natif — sans effet sur API < 31 (pas d'AndroidX, cf.
-        // docs/ANDROID_PACKAGING.md : `getSplashScreen()` n'existe pas avant cette
-        // API, d'où la garde explicite).
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            getSplashScreen().setKeepOnScreenCondition(() -> !uiReady.get());
-        }
 
         if (!Python.isStarted()) {
             Python.start(new AndroidPlatform(this));
@@ -74,7 +74,12 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                uiReady.set(true); // libère le splash natif (voir champ `uiReady`)
+                uiReady.set(true);
+                // Force une nouvelle passe de dessin pour que le pre-draw listener
+                // (voir onCreate) soit ré-évalué maintenant que `uiReady` est vrai —
+                // sans ça, rien ne garantit qu'une invalidation survienne d'elle-même
+                // pendant que la WebView est restée vide en attendant le serveur.
+                view.invalidate();
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
@@ -109,6 +114,25 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(notificationBridge, "KairosAndroid");
 
         setContentView(webView);
+
+        // Reporte le dessin de la toute première frame tant que `uiReady` est faux
+        // (voir champ `uiReady` et `onPageFinished` ci-dessus) : technique native
+        // documentée par Android pour ce cas précis (attente d'un chargement
+        // asynchrone avant la première frame), sans AndroidX ni dépendance de
+        // version — fonctionne identiquement sur toutes les API, contrairement à
+        // une éventuelle API dédiée à l'écran de démarrage natif (API 31+ seulement).
+        final View content = findViewById(android.R.id.content);
+        content.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                if (!uiReady.get()) {
+                    return false;
+                }
+                content.getViewTreeObserver().removeOnPreDrawListener(this);
+                return true;
+            }
+        });
+
         registerPredictiveBackCallback();
 
         loadWhenServerReady();
