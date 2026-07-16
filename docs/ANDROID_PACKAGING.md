@@ -109,6 +109,29 @@ Points notables :
     séquence valide pour que la condition prenne effet. En dessous de l'API
     31, `windowBackground` reste le seul mécanisme (pas de retenue possible,
     l'API `getSplashScreen()` n'existe pas sur ces versions).
+  - **Icône animée** (`android:windowSplashScreenAnimatedIcon`, API 31+) :
+    plutôt que l'icône de lanceur adaptative statique par défaut, un
+    `AnimatedVectorDrawable` dédié
+    (`res/drawable/kairos_splash_icon.xml` + `kairos_splash_icon_base.xml` +
+    `res/animator/kairos_splash_wedge_sweep.xml`, natif
+    `android.graphics.drawable`, API 21+, pas AndroidX) anime le secteur
+    terracotta du cadran d'un balayage nul (« aiguille » collapsée à midi)
+    jusqu'à sa position finale identique au logo statique (secteur de 80°
+    depuis midi, mêmes coordonnées que `ic_launcher_foreground.xml`). Le
+    système détecte l'`Animatable` et joue l'animation automatiquement à
+    l'affichage du splash, sans code Java dédié — `windowSplashScreenAnimationDuration`
+    (700ms, plafond système 1000ms) doit couvrir la durée réelle de
+    l'animator pour que le système ne considère pas l'icône « terminée »
+    trop tôt. Morph de `pathData` par 5 images-clés (0/20/40/60/80°) plutôt
+    qu'un simple `valueFrom`/`valueTo` à deux points : l'interpolation d'un
+    `pathData` déplace les coordonnées de l'arc en ligne droite (corde),
+    jamais l'angle réel — sur un seul segment de 80°, la corde couperait
+    jusqu'à ~3.7 sur un rayon de 16 au plus fort du geste (secteur
+    visiblement aplati à mi-course) ; des images-clés tous les 20° ramènent
+    cet écart à ~0.24, imperceptible. Le drawable de base porte son propre
+    fond ivoire + anneau (contrairement à `ic_launcher_foreground.xml`,
+    pensé pour un masque adaptatif) : affiché tel quel par le splash, sans
+    masque système.
 - **Geste retour prédictif** (Android 13+/15, même revue) : `AndroidManifest.xml`
   pose `android:enableOnBackInvokedCallback="true"` au niveau `<application>`
   (impératif — sans lui, tout enregistrement de callback reste sans effet même

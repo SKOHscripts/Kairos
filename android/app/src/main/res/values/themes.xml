@@ -11,11 +11,19 @@
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
         <item name="android:windowOptOutEdgeToEdgeEnforcement" tools:targetApi="35">true</item>
         <!-- Splash natif (API 31+, sans androidx.core:splashscreen — voir "pas
-             d'AndroidX" dans docs/ANDROID_PACKAGING.md) : reprend l'icône de
-             lanceur adaptative existante par défaut, pas d'asset dédié. En
-             dessous de l'API 31, `windowBackground` seul unifie déjà le flash
-             de démarrage avec le fond de l'app plutôt que le blanc générique. -->
+             d'AndroidX" dans docs/ANDROID_PACKAGING.md). En dessous de l'API 31,
+             `windowBackground` seul unifie déjà le flash de démarrage avec le
+             fond de l'app plutôt que le blanc générique. -->
         <item name="android:windowSplashScreenBackground" tools:targetApi="31">@color/kairos_bg</item>
         <item name="android:windowBackground">@color/kairos_bg</item>
+        <!-- Icône animée dédiée (kairos_splash_icon.xml, AnimatedVectorDrawable
+             natif) plutôt que l'icône de lanceur adaptative par défaut : le
+             secteur du cadran « balaie » depuis midi jusqu'à sa position finale
+             (même tracé que le logo statique) au lieu d'apparaître figé. Durée
+             plafonnée à 1000ms par le système ; alignée sur celle de l'animator
+             (voir animator/kairos_splash_wedge_sweep.xml) pour que le système ne
+             considère pas l'icône « terminée » avant la fin réelle du sweep. -->
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="31">@drawable/kairos_splash_icon</item>
+        <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="31">700</item>
     </style>
 </resources>
