@@ -330,9 +330,11 @@ cette spec (pas de duplication du reste) :
   l'app — évite le flash blanc générique pendant le démarrage de Python+uvicorn,
   sans dépendance `androidx.core:splashscreen` (voir « pas d'AndroidX » dans
   `docs/ANDROID_PACKAGING.md`). Sa durée réelle d'affichage est contrôlée depuis
-  `MainActivity` (`getSplashScreen().setKeepOnScreenCondition(...)`, natif, API
-  31+) : sans ce contrôle, le thème seul ne suffit pas à couvrir l'attente du
-  serveur, le splash se ferme dès la première frame dessinée. Son icône est un
+  `MainActivity` par un `ViewTreeObserver.OnPreDrawListener` qui reporte la
+  toute première frame de l'activité (technique native standard, pas de classe
+  spécifique à l'API 31+) : sans ce report, le thème seul ne suffit pas à
+  couvrir l'attente du serveur, le splash se ferme dès la première frame
+  dessinée. Son icône est un
   `AnimatedVectorDrawable` dédié (`res/drawable/kairos_splash_icon*.xml` +
   `res/animator/kairos_splash_wedge_sweep.xml`, natif, API 21+) : le secteur du
   logo balaie depuis midi jusqu'à sa position finale plutôt que d'apparaître

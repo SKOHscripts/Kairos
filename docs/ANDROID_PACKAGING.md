@@ -98,17 +98,31 @@ Points notables :
     appareil : le thème seul ne suffisait pas — le splash disparaissait dès la
     première frame dessinée par `setContentView(webView)`, bien avant que
     Python/uvicorn n'ait fini de démarrer, laissant place à une WebView
-    blanche pendant toute l'attente). `MainActivity` retient le splash via
-    `Activity.getSplashScreen().setKeepOnScreenCondition(...)` (natif,
-    `android.window`, API 31+ seulement, pas AndroidX), condition liée à un
+    blanche pendant toute l'attente). **Piège documenté ici pour ne pas le
+    retrancher deux fois** : une première tentative a utilisé
+    `Activity.getSplashScreen().setKeepOnScreenCondition(...)` — cette méthode
+    **n'existe pas** sur `android.window.SplashScreen` (la classe **native**,
+    seule autorisée par la contrainte « pas d'AndroidX » ci-dessus) ; elle
+    n'existe que sur `androidx.core.splashscreen.SplashScreen`, la bibliothèque
+    de compatibilité, hors périmètre. Erreur de compilation constatée en CI
+    (`cannot find symbol: method setKeepOnScreenCondition(...)`), corrigée
+    avant tout usage réel. Mécanisme retenu à la place :
+    `ViewTreeObserver.OnPreDrawListener` sur la vue de contenu
+    (`findViewById(android.R.id.content)`, posé juste après `setContentView`) —
+    reporter le dessin de la toute première frame de l'activité reporte de
+    fait la disparition du splash (natif API 31+, ou simplement l'affichage du
+    contenu sous `windowBackground` en dessous), puisque c'est justement ce
+    dessin qui déclenche cette disparition. La condition de report est un
     champ `uiReady` (`AtomicBoolean`) mis à `true` par
-    `WebViewClient.onPageFinished` — donc jusqu'à ce que la première page ait
-    réellement fini de charger dans la WebView, pas seulement jusqu'à la
-    réponse du serveur (`loadWhenServerReady`/sonde `/favicon.ico`, qui ne
-    fait que déclencher le `loadUrl`). Appelé avant `setContentView`, seule
-    séquence valide pour que la condition prenne effet. En dessous de l'API
-    31, `windowBackground` reste le seul mécanisme (pas de retenue possible,
-    l'API `getSplashScreen()` n'existe pas sur ces versions).
+    `WebViewClient.onPageFinished` (+ `view.invalidate()` pour forcer une
+    nouvelle passe de dessin et faire réévaluer le listener) — donc jusqu'à ce
+    que la première page ait réellement fini de charger dans la WebView, pas
+    seulement jusqu'à la réponse du serveur (`loadWhenServerReady`/sonde
+    `/favicon.ico`, qui ne fait que déclencher le `loadUrl`). Technique
+    documentée par Android pour ce cas d'usage précis (attente d'un
+    chargement asynchrone avant la première frame) ; ni classe ni attribut
+    spécifiques à l'API 31+, fonctionne identiquement à toutes les API sans
+    garde de version.
   - **Icône animée** (`android:windowSplashScreenAnimatedIcon`, API 31+) :
     plutôt que l'icône de lanceur adaptative statique par défaut, un
     `AnimatedVectorDrawable` dédié
