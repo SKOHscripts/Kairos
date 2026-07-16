@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icône du splash screen (API 31+, voir themes.xml) : même tracé que le logo
+     Kairos (mire/cadran solaire — static/favicon.svg, templates/base.html,
+     ic_launcher_foreground.xml), viewBox 40×40 identique pour réutiliser les
+     mêmes coordonnées sans recalcul. Contrairement à ic_launcher_foreground.xml
+     (juste le premier plan, pensé pour un masque adaptatif), ce drawable porte
+     aussi son propre fond ivoire + anneau : il est affiché tel quel par le
+     splash, sans masque système. Le secteur terracotta (`android:name="wedge"`)
+     est la seule pièce animée (voir kairos_splash_icon.xml +
+     animator/kairos_splash_wedge_sweep.xml) : les autres restent statiques. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="40"
+    android:viewportHeight="40">
+    <path
+        android:fillColor="#FBEEDF"
+        android:pathData="M1.5,20 A18.5,18.5 0 1 1 38.5,20 A18.5,18.5 0 1 1 1.5,20 Z" />
+    <path
+        android:strokeColor="#E7C4A2"
+        android:strokeWidth="1.6"
+        android:fillColor="#00000000"
+        android:pathData="M1.5,20 A18.5,18.5 0 1 1 38.5,20 A18.5,18.5 0 1 1 1.5,20 Z" />
+    <path
+        android:name="wedge"
+        android:fillColor="#D9713C"
+        android:pathData="M20,20 L20,4 A16,16 0 0 1 20,4 Z" />
+    <path
+        android:fillColor="#2B241E"
+        android:pathData="M17.4,20 A2.6,2.6 0 1 1 22.6,20 A2.6,2.6 0 1 1 17.4,20 Z" />
+</vector>

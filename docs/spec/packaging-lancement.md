@@ -329,7 +329,14 @@ cette spec (pas de duplication du reste) :
   API 31+) et `android:windowBackground` (toutes API) posés à la couleur de fond de
   l'app — évite le flash blanc générique pendant le démarrage de Python+uvicorn,
   sans dépendance `androidx.core:splashscreen` (voir « pas d'AndroidX » dans
-  `docs/ANDROID_PACKAGING.md`).
+  `docs/ANDROID_PACKAGING.md`). Sa durée réelle d'affichage est contrôlée depuis
+  `MainActivity` (`getSplashScreen().setKeepOnScreenCondition(...)`, natif, API
+  31+) : sans ce contrôle, le thème seul ne suffit pas à couvrir l'attente du
+  serveur, le splash se ferme dès la première frame dessinée. Son icône est un
+  `AnimatedVectorDrawable` dédié (`res/drawable/kairos_splash_icon*.xml` +
+  `res/animator/kairos_splash_wedge_sweep.xml`, natif, API 21+) : le secteur du
+  logo balaie depuis midi jusqu'à sa position finale plutôt que d'apparaître
+  figé. Détail complet dans `docs/ANDROID_PACKAGING.md`.
 - **`AndroidManifest.xml`** / **`MainActivity.java`** : geste retour prédictif
   Android 13+ (`android:enableOnBackInvokedCallback="true"` +
   `OnBackInvokedDispatcher` natif, `android.window`, pas AndroidX) — chemin
