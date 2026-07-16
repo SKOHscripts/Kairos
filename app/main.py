@@ -194,6 +194,11 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 # fermer pour arrêter le serveur — voir le bouton « Quitter » de base.html, affiché
 # seulement dans ce cas (sinon, en dev/systemd, Ctrl+C / `systemctl stop` suffisent).
 templates.env.globals["is_frozen"] = getattr(sys, "frozen", False)
+# Bottom nav mobile (base.html) : affichée uniquement dans l'APK Android, jamais sur
+# un navigateur desktop rétréci — `KAIROS_PLATFORM=android` est posé par
+# `kairos_boot.py` avant tout import de ce module (voir docs/ANDROID_PACKAGING.md),
+# donc lu une seule fois ici, au même titre que `is_frozen`.
+templates.env.globals["is_android"] = os.environ.get("KAIROS_PLATFORM") == "android"
 # Anti-cache navigateur : suffixe `?v=` sur les liens vers static/ dans base.html.
 # Sans lui, un navigateur peut continuer à servir un vieux style.css en cache après
 # une mise à jour de l'app (nouvelle version installée, `git pull`...), ce qui donne

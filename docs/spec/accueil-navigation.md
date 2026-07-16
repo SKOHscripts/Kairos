@@ -36,6 +36,12 @@ est pénible sur une longue liste.
   toutes les pages : logo/nom Kairos (lien vers l'accueil), puis les entrées Accueil,
   Jour, Semaine, Statistiques, Réglages. L'entrée correspondant à la page affichée
   est mise en évidence.
+- **Exception, APK Android uniquement** : les cinq entrées sont déplacées vers une
+  barre de navigation basse fixe (icône + libellé, cible tactile ≥ 44px), le logo
+  Kairos restant seul dans la barre du haut. Cette bottom nav n'apparaît **jamais**
+  sur un navigateur (dev, service, exécutable de bureau), quelle que soit la largeur
+  de la fenêtre — seule la topnav se redimensionne dans ce cas (voir § Décisions et
+  pièges tracés pour la justification de ce déclenchement serveur plutôt que CSS).
 - Sous chaque page, un bandeau secondaire (topbar) affiche le titre de la page et,
   le cas échéant, des actions rapides propres à cette page.
 - Sur l'exécutable de bureau uniquement, un bouton « Quitter » est visible dans la
@@ -70,12 +76,19 @@ est pénible sur une longue liste.
 - La position de scroll est restaurée après un rechargement déclenché par un
   formulaire POST, y compris sur une page longue (liste de tâches du jour).
 - Aucun CTA dupliqué sur la page d'accueil.
+- La bottom nav n'apparaît **jamais** en dehors de l'APK Android, y compris sur un
+  navigateur desktop dont la fenêtre est rétrécie sous le seuil mobile — vérifiable
+  par l'absence totale de `.bn-nav`/`.is-android` dans le HTML rendu (pas seulement
+  masqués en CSS) quand `is_android` est faux.
 
 ### Hors périmètre / différé
 
-- Barre de navigation basse (bottom nav) sur mobile/APK : décision assumée de ne
-  jamais en ajouter une, y compris sur petit écran — seule la topnav se redimensionne
-  (voir § Décisions et pièges tracés).
+- Barre de navigation basse (bottom nav) sur un navigateur simplement rétréci
+  (desktop, dev) : décision assumée de ne jamais en afficher une hors de l'APK
+  Android — seule la topnav se redimensionne dans ce cas (voir § Décisions et
+  pièges tracés). La bottom nav elle-même, réservée à l'APK, est dans le
+  périmètre de cette spec (voir § Comportement attendu et § Détail par
+  composant).
 - Sidebar verticale : abandonnée avec la charte visuelle actuelle (`docs/DESIGN_SYSTEM.md`)
   au profit de la topnav horizontale.
 - Contenu détaillé de la vue Jour/GTD (filtres, backlog, progression du jour...) :
@@ -138,6 +151,38 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
     Le serveur va s'arrêter : il faudra relancer l'exécutable pour y revenir. » —
     voir `app/main.py::shutdown` pour le détail de l'arrêt côté serveur (SIGINT,
     tracé dans `docs/spec/packaging-lancement.md`).
+- **Bottom nav (`.bn-nav`), APK Android uniquement** : `<div class="layout {% if
+  is_android %}is-android{% endif %}">` porte la classe `is-android` sur la racine
+  du gabarit ; un second bloc `{% if is_android %}<nav class="bn-nav">...{% endif
+  %}</nav>` (dernier enfant de `.layout`, après `<main class="content">`) reprend
+  les cinq mêmes entrées et conditions `active` que `.tn-nav` (icône + libellé,
+  cette fois visible — contrairement à `.tn-item .ico`), sans dupliquer
+  `.tn-brand`/`.tn-quit`.
+  - `is_android` : variable globale Jinja2 posée une fois au chargement du module
+    (`templates.env.globals["is_android"] = os.environ.get("KAIROS_PLATFORM") ==
+    "android"`, `app/main.py`), au même titre que `is_frozen` juste au-dessus.
+    `KAIROS_PLATFORM=android` est posé par `android/app/src/main/python/
+    kairos_boot.py` **avant** tout import de `app.main` (voir
+    `docs/ANDROID_PACKAGING.md`) — jamais recalculé par requête.
+  - CSS (`static/style.css`) : `.is-android .tn-nav { display: none; }` (les liens
+    quittent la barre du haut, `.tn-brand` y reste seul) + `.is-android .bn-nav`
+    affichée en `position: fixed; bottom: 0`. Le déclenchement est **entièrement
+    porté par la classe `.is-android`**, jamais par une `@media` de largeur — un
+    navigateur desktop rétréci sous 720px continue de recevoir la topnav
+    redimensionnée existante (`.tn-nav`/`.tn-item`, inchangés), jamais la bottom
+    nav. `.is-android .page` ajoute un `padding-bottom` calculé (hauteur de la
+    barre + `env(safe-area-inset-bottom)`) pour que le contenu ne passe jamais
+    dessous, avec une spécificité (deux classes) volontairement plus forte que
+    les règles `.page` existantes (une classe) — insensible à l'ordre des règles
+    dans le fichier, contrairement au piège de cascade documenté plus bas dans
+    `static/style.css`.
+  - `.bn-item { min-width: 0; }` : sans ce reset, le `min-width: auto` implicite
+    d'un enfant flex (`flex: 1`) borne le rétrécissement à la taille de son
+    contenu (icône + libellé) — sur cinq entrées à largeur égale, la barre
+    déborderait du viewport sur un libellé un peu long (constaté avec
+    « Réglages » en développement de ce correctif).
+  - Voir § Décisions et pièges tracés pour la justification du déclenchement
+    serveur plutôt que CSS.
 - **Topbar (`.topbar`)** : sous la topnav, dans `<main class="content">`. Titre par
   bloc (`{% block topbar_title %}Kairos{% endblock %}`, par défaut le nom de
   l'app — l'accueil ne le redéfinit plus, voir § Décisions et pièges tracés) et zone
@@ -317,11 +362,27 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   scroll s'exécute avant tout gestionnaire de formulaire spécifique à une page qui
   pourrait appeler `stopPropagation()` — sans ça, un tel gestionnaire local
   empêcherait silencieusement la sauvegarde de scroll de se déclencher.
-- **Pas de bottom nav mobile** : décision de charte visuelle (`docs/DESIGN_SYSTEM.md`
-  § Navigation & mobile) — la topnav horizontale sticky reste l'unique navigation à
-  toutes les tailles d'écran, y compris l'APK Android ; seul son rendu se
-  redimensionne (sous-titre masqué, pilules resserrées sous 720px). Choix consigné
-  dans la charte, repris ici car il conditionne directement `base.html`.
+- **Bottom nav Android, gardée par `is_android` plutôt que par une media query**
+  (revue produit F-Droid/mobile, 2026-07 — révise la décision antérieure « pas de
+  bottom nav mobile », consignée dans `CLAUDE.md`/`docs/DESIGN_SYSTEM.md` §
+  Navigation & mobile, mise à jour dans le même changement) : la nav horizontale
+  qui passait sur deux lignes sous ~400px de large consommait jusqu'à ~25% de la
+  hauteur d'écran avant tout contenu, sur exactement les cinq destinations où
+  Material Design recommande une bottom nav. Un déclenchement purement CSS
+  (`@media (max-width: 720px)`) aurait aussi affiché la bottom nav sur un
+  navigateur desktop simplement rétréci sous ce seuil — comportement jugé
+  indésirable (une fenêtre de navigateur rétrécie n'est pas une app mobile).
+  Choix retenu : un flag serveur (`is_android`, lu depuis `KAIROS_PLATFORM`) qui
+  n'est vrai que dans l'APK Android compilé, jamais déductible d'une largeur de
+  fenêtre. C'est la **seule** dérogation de l'app au principe « aucune détection
+  de plateforme côté serveur » (voir § Invariants) — assumée ici uniquement parce
+  que la distinction voulue (app installée vs. navigateur, quelle que soit sa
+  largeur) n'est, par construction, pas observable en CSS pur.
+- **Topnav toujours rendue, y compris dans l'APK Android** : `.tn-brand` (logo)
+  reste affiché en haut même quand `.tn-nav` est masquée par `.is-android` — pas
+  de gabarit alternatif sans en-tête, cohérent avec le motif « barre de titre en
+  haut + navigation en bas » de Material Design plutôt qu'une suppression pure et
+  simple de la topnav sur Android.
 - **Logo aux couleurs terracotta d'origine, hors palette ardoise/bleu du reste de
   l'UI** : exception assumée de la charte (`docs/DESIGN_SYSTEM.md` § Identité), le
   seul point de couleur chaude volontaire au milieu d'une interface sinon neutre —
@@ -345,6 +406,18 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
 - `is_frozen` est calculé **une seule fois**, au chargement du module `app/main.py`
   (`getattr(sys, "frozen", False)`), jamais recalculé par requête — cohérent avec le
   fait qu'un process ne change pas de mode de lancement en cours de vie.
+- `is_android`, même invariant que `is_frozen` (calcul unique au chargement du
+  module, jamais par requête) — un process Android ne change pas de plateforme en
+  cours de vie non plus. **Seule exception** au principe « aucune détection de
+  plateforme côté serveur » qui prévaut partout ailleurs dans le dépôt (packaging
+  PyInstaller/dev inclus) : `templates/`/`static/` restent des fichiers strictement
+  identiques entre les trois cibles, `is_android` ne fait que basculer un bloc
+  conditionnel dans un gabarit déjà commun, jamais un template ou un fichier CSS
+  distinct par plateforme.
+- Le rendu de la bottom nav ne dépend **jamais** de la largeur de viewport, ni côté
+  Jinja (`is_android`, condition serveur pure) ni côté CSS (`.is-android`, jamais
+  une `@media`) — garantit qu'aucune fenêtre de navigateur, quelle que soit sa
+  largeur, ne peut afficher `.bn-nav`.
 - `asset_version` (anti-cache) est calculé une seule fois au chargement du module ;
   un changement de `style.css` en cours de vie du process (rare, développement
   local) n'est reflété qu'au redémarrage du serveur.

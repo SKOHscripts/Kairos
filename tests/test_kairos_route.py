@@ -2092,6 +2092,25 @@ def test_quit_button_shown_when_frozen(route_client, monkeypatch) -> None:
     assert 'action="/kairos/shutdown"' in resp.text
 
 
+def test_bottom_nav_hidden_outside_android(route_client) -> None:
+    """La bottom nav (`.bn-nav`) est réservée à l'APK Android (`is_android`, posé
+    depuis `KAIROS_PLATFORM` — jamais par la largeur de viewport seule) : absente
+    de tout autre rendu, y compris dans le HTML (pas seulement masquée en CSS)."""
+    client, _ = route_client
+    resp = client.get("/kairos")
+    assert "bn-nav" not in resp.text
+    assert "is-android" not in resp.text
+
+
+def test_bottom_nav_shown_when_android(route_client, monkeypatch) -> None:
+    monkeypatch.setitem(main.templates.env.globals, "is_android", True)
+    client, _ = route_client
+    resp = client.get("/kairos")
+    assert '<nav class="bn-nav">' in resp.text
+    assert 'class="layout is-android"' in resp.text
+    assert resp.text.count('class="bn-item') == 5
+
+
 def test_shutdown_route_sends_sigint_to_self(monkeypatch) -> None:
     """Vérifie l'appel exact (jamais réellement exécuté ici, sous peine de tuer le
     process pytest) : SIGINT (littéralement Ctrl+C) sur son propre PID — SIGTERM

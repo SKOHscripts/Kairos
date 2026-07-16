@@ -197,7 +197,10 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
   nommé `kairos-uvicorn`, puis sonde `/favicon.ico` (même repère que le launcher de
   bureau) avant de charger `http://127.0.0.1:<port>/kairos` dans la WebView. Détail
   complet (Gradle, Chaquopy, cycle de vie, notifications) :
-  `docs/ANDROID_PACKAGING.md`.
+  `docs/ANDROID_PACKAGING.md`. `KAIROS_PLATFORM` est posé **avant** tout import de
+  `app.main` : c'est ce qui permet à `app/main.py` de le lire une seule fois au
+  chargement du module (`is_android`, voir `docs/spec/accueil-navigation.md` — seule
+  consommation actuelle de cette variable, pour la bottom nav de `base.html`).
 
 #### `app/subprocess_env.py` — environnement assaini pour les processus externes
 

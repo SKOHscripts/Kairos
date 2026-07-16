@@ -158,11 +158,15 @@ couleurs d'origine, au milieu d'une interface sinon neutre.
 ## Navigation
 
 Barre horizontale sticky (`.topnav`) : logo + titre à gauche, items en pilules
-(`.tn-item`, actif = fond `--dark-surface` / texte `--dark-text`) — pas de sidebar, pas
-de barre de navigation basse même sur mobile/APK Android. Sous 720px : sous-titre
-masqué (`.tn-sub`), pilules resserrées pour tenir sur un écran de téléphone. Une
-sous-barre (`.topbar`) porte le titre de page et les actions contextuelles (bascule
-Jour/Semaine, retour, etc.).
+(`.tn-item`, actif = fond `--dark-surface` / texte `--dark-text`) — pas de sidebar,
+pas de barre de navigation basse sur un navigateur (dev, service, exécutable de
+bureau), y compris rétréci sous 720px : sous-titre masqué (`.tn-sub`), pilules
+resserrées, mais toujours la topnav. **Exception : l'APK Android** affiche une
+bottom nav (`.bn-nav`, icône + libellé) à la place des items de la topnav, qui ne
+garde alors que le logo — seule dérogation de l'app au principe « aucune
+détection de plateforme côté serveur », via `is_android`
+(`docs/spec/accueil-navigation.md`). Une sous-barre (`.topbar`) porte le titre de
+page et les actions contextuelles (bascule Jour/Semaine, retour, etc.).
 
 ## Composants de la refonte GTD (vue Jour)
 

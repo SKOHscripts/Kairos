@@ -47,7 +47,12 @@ Chaîne de démarrage :
    de l'APK en vrais fichiers, voir ci-dessous) est ajouté à `sys.path`,
    `KAIROS_BASE_DIR` et `KAIROS_PLATFORM=android` sont posés, puis
    `app/android_launcher.py` ancre les données dans le stockage privé
-   (`KAIROS_DATA_DIR`) et choisit un port libre.
+   (`KAIROS_DATA_DIR`) et choisit un port libre. `KAIROS_PLATFORM` est lu une
+   seule fois par `app/main.py` (`is_android`) pour la bottom nav de
+   `templates/base.html` — seule variable d'environnement de ce module
+   consommée pour distinguer l'APK Android du reste (voir
+   `docs/spec/accueil-navigation.md`), tout le reste du gabarit/CSS restant
+   strictement identique entre les trois cibles de packaging.
 2. `kairos_boot.serve(port)` lance uvicorn dans un thread dédié.
 3. L'activité sonde `/favicon.ico` (même repère que le launcher de bureau)
    puis charge `http://127.0.0.1:<port>/kairos` dans la WebView.
