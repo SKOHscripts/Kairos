@@ -94,6 +94,21 @@ Points notables :
   générique pendant le démarrage de Python+uvicorn ; `windowBackground` seul
   couvre aussi les appareils API 24-30 (minSdk 24, en dessous du seuil
   splash-screen natif).
+  - **Durée du splash retenue jusqu'au premier rendu réel** (constaté sur
+    appareil : le thème seul ne suffisait pas — le splash disparaissait dès la
+    première frame dessinée par `setContentView(webView)`, bien avant que
+    Python/uvicorn n'ait fini de démarrer, laissant place à une WebView
+    blanche pendant toute l'attente). `MainActivity` retient le splash via
+    `Activity.getSplashScreen().setKeepOnScreenCondition(...)` (natif,
+    `android.window`, API 31+ seulement, pas AndroidX), condition liée à un
+    champ `uiReady` (`AtomicBoolean`) mis à `true` par
+    `WebViewClient.onPageFinished` — donc jusqu'à ce que la première page ait
+    réellement fini de charger dans la WebView, pas seulement jusqu'à la
+    réponse du serveur (`loadWhenServerReady`/sonde `/favicon.ico`, qui ne
+    fait que déclencher le `loadUrl`). Appelé avant `setContentView`, seule
+    séquence valide pour que la condition prenne effet. En dessous de l'API
+    31, `windowBackground` reste le seul mécanisme (pas de retenue possible,
+    l'API `getSplashScreen()` n'existe pas sur ces versions).
 - **Geste retour prédictif** (Android 13+/15, même revue) : `AndroidManifest.xml`
   pose `android:enableOnBackInvokedCallback="true"` au niveau `<application>`
   (impératif — sans lui, tout enregistrement de callback reste sans effet même

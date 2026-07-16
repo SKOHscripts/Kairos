@@ -17,6 +17,7 @@ import com.chaquo.python.android.AndroidPlatform;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Unique activité de Kairos : démarre le serveur local (CPython + uvicorn via
@@ -34,11 +35,25 @@ public class MainActivity extends Activity {
 
     private WebView webView;
     private KairosNotificationBridge notificationBridge;
+    // Tenu à `false` jusqu'à ce que la première page ait fini de charger dans la
+    // WebView (voir `onPageFinished` ci-dessous) : sans ce verrou, le splash natif
+    // se ferme dès la première frame dessinée par `setContentView` ci-dessous, donc
+    // avant même que Python/uvicorn n'ait démarré — l'utilisateur voit alors une
+    // WebView blanche à la place du splash pendant toute l'attente du serveur.
+    private final AtomicBoolean uiReady = new AtomicBoolean(false);
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Doit être appelé avant `setContentView` (voir plus bas) pour pouvoir
+        // retenir le splash natif — sans effet sur API < 31 (pas d'AndroidX, cf.
+        // docs/ANDROID_PACKAGING.md : `getSplashScreen()` n'existe pas avant cette
+        // API, d'où la garde explicite).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            getSplashScreen().setKeepOnScreenCondition(() -> !uiReady.get());
+        }
 
         if (!Python.isStarted()) {
             Python.start(new AndroidPlatform(this));
@@ -55,7 +70,13 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         webView.getSettings().setJavaScriptEnabled(true);   // chrono vivant, alertes
         webView.getSettings().setDomStorageEnabled(true);
-        webView.setWebViewClient(new WebViewClient());      // navigation interne, pas de navigateur externe
+        webView.setWebViewClient(new WebViewClient() {       // navigation interne, pas de navigateur externe
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                uiReady.set(true); // libère le splash natif (voir champ `uiReady`)
+            }
+        });
         webView.setWebChromeClient(new WebChromeClient() {
             // Sans WebChromeClient, le WebView système n'affiche jamais les dialogues
             // JS confirm()/alert() : confirm() résout silencieusement à false, donc les
