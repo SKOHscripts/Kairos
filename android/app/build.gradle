@@ -20,7 +20,7 @@ def kairosVersionCode = {
 def kairosRepoRoot = rootProject.projectDir.parentFile
 
 // Copie le code et les assets de l'application dans un paquet Python embarqué
-// unique `kairos_dist` (app/, templates/, static/, README.md, SPEC_KAIROS.md).
+// unique `kairos_dist` (app/, templates/, static/, README.md).
 // Un seul paquet → une seule entrée `extractPackages` pour que Jinja2, StaticFiles
 // et le rendu du README lisent de vrais fichiers extraits de l'APK, avec la même
 // arborescence que le dépôt (BASE_DIR = dossier parent de app/, inchangé).
@@ -32,7 +32,6 @@ def stageKairosPython = tasks.register("stageKairosPython", Sync) {
     into("kairos_dist/static") { from new File(kairosRepoRoot, "static") }
     into("kairos_dist") {
         from new File(kairosRepoRoot, "README.md")
-        from new File(kairosRepoRoot, "SPEC_KAIROS.md")
     }
     exclude "**/__pycache__/**"
     doLast {

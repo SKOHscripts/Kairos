@@ -53,9 +53,9 @@ Chaîne de démarrage :
    puis charge `http://127.0.0.1:<port>/kairos` dans la WebView.
 
 Empaquetage du code : la tâche Gradle `stageKairosPython` copie `app/`,
-`templates/`, `static/`, `README.md` et `SPEC_KAIROS.md` dans un paquet Python
-unique `kairos_dist` (même arborescence que le dépôt : `BASE_DIR` fonctionne
-sans changement), déclaré via `extractPackages` pour que Jinja2, StaticFiles et
+`templates/`, `static/` et `README.md` dans un paquet Python unique
+`kairos_dist` (même arborescence que le dépôt : `BASE_DIR` fonctionne sans
+changement), déclaré via `extractPackages` pour que Jinja2, StaticFiles et
 le rendu du README lisent de vrais chemins. Le code du dépôt n'est jamais
 dupliqué à la main.
 

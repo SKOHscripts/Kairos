@@ -42,7 +42,7 @@ class Task(TasksBase):
     # conventions que `Ticket.priority_override` dans app/models.py).
     priority: Mapped[int | None] = mapped_column(Integer, nullable=True)
     deadline: Mapped[date | None] = mapped_column(Date, nullable=True)
-    # Tag libre (texte), pas de FK vers `Ticket` en MVP (voir SPEC_KAIROS.md).
+    # Tag libre (texte), pas de FK vers `Ticket` (voir docs/spec/modele-donnees.md).
     project_tag: Mapped[str] = mapped_column(String(255), default="")
     # 'todo' | 'done' | 'archived' (archivée = disparue côté source externe, on ne
     # supprime jamais une tâche importée pour préserver l'historique de priorisation).
@@ -84,7 +84,7 @@ class Task(TasksBase):
     # --- Phase 5 : préparation de futures analyses (métadonnées pures) ---
     # '' | une valeur de Settings.task_type_list (configurable, page Réglages).
     # Purement informatif : aucun impact sur l'ordonnancement ni sur aucune autre
-    # logique métier (voir SPEC_KAIROS.md § Phase 5) — sert à catégoriser en vue
+    # logique métier (voir docs/spec/modele-donnees.md) — sert à catégoriser en vue
     # d'analyses futures et à la suggestion de durée (tasks_stats.calibration_by_type).
     # Une tâche dont le type a été retiré de la liste garde sa valeur enregistrée
     # (jamais de perte de donnée silencieuse), elle n'apparaît juste plus dans le menu.
