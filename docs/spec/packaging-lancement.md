@@ -322,6 +322,16 @@ cette spec (pas de duplication du reste) :
   `versionCode = X*10000 + Y*100 + Z`, plancher `1` (Android rejette `0`, ce que
   donnerait le défaut `0.0.0-dev`) — garantit une valeur strictement croissante
   d'une release à l'autre pour qu'Android accepte la mise à jour par-dessus.
+- **`themes.xml`** : splash screen natif (`android:windowSplashScreenBackground`,
+  API 31+) et `android:windowBackground` (toutes API) posés à la couleur de fond de
+  l'app — évite le flash blanc générique pendant le démarrage de Python+uvicorn,
+  sans dépendance `androidx.core:splashscreen` (voir « pas d'AndroidX » dans
+  `docs/ANDROID_PACKAGING.md`).
+- **`AndroidManifest.xml`** / **`MainActivity.java`** : geste retour prédictif
+  Android 13+ (`android:enableOnBackInvokedCallback="true"` +
+  `OnBackInvokedDispatcher` natif, `android.window`, pas AndroidX) — chemin
+  additionnel à `onBackPressed()` (legacy, inchangé, seul chemin actif en dessous de
+  l'API 33). Détail complet dans `docs/ANDROID_PACKAGING.md`.
 
 ### Décisions et pièges tracés
 

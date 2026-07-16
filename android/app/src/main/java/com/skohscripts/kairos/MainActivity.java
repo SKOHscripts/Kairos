@@ -3,11 +3,13 @@ package com.skohscripts.kairos;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.os.Build;
 import android.os.Bundle;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.window.OnBackInvokedDispatcher;
 
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
@@ -86,8 +88,30 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(notificationBridge, "KairosAndroid");
 
         setContentView(webView);
+        registerPredictiveBackCallback();
 
         loadWhenServerReady();
+    }
+
+    /** Geste retour prédictif (API 33+, `android.window` natif — pas AndroidX, même
+     *  parti pris que {@link KairosNotificationBridge}). En dessous de l'API 33,
+     *  {@link #onBackPressed()} (legacy, inchangé) reste le seul chemin actif :
+     *  duplication volontaire plutôt que factorisation, pour ne rien risquer sur
+     *  ce chemin déjà en production. Un seul enregistrement suffit : `configChanges`
+     *  couvre la rotation, `onCreate` n'est pas rappelé. */
+    private void registerPredictiveBackCallback() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return;
+        }
+        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                () -> {
+                    if (webView != null && webView.canGoBack()) {
+                        webView.goBack();
+                    } else {
+                        finish();
+                    }
+                });
     }
 
     /** Sonde /favicon.ico (toujours 200 sur une instance réelle, même repère que

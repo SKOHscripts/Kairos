@@ -50,6 +50,11 @@ est pénible sur une longue liste.
   la formule du score de priorité ; puis le contenu du `README.md` du projet, rendu
   en HTML, avec un sommaire de navigation intercalé juste après sa section « En
   bref ».
+- Le reste du README (tout ce qui suit la section « En bref » et le sommaire) est
+  replié par défaut derrière un intitulé « Documentation complète du projet » — même
+  comportement en desktop et en mobile (pas de détection de plateforme). L'intro et
+  le sommaire suffisent comme accroche de premier écran ; le reste reste accessible
+  d'un clic, jamais retiré du HTML.
 - Le bandeau de page (topbar) de l'accueil garde son titre par défaut (« Kairos ») et
   n'affiche pas de bouton d'action dédié : le seul CTA « Ouvrir Aujourd'hui » vit
   dans le hero, pas répété ailleurs sur la page.
@@ -192,11 +197,9 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   boutons d'action (`Ouvrir « Aujourd'hui »` → `/kairos`, `Vue semaine` →
   `/kairos?view=week`, `Statistiques` → `/kairos/stats`), et un bloc marque
   (`.home-hero-brand`) reprenant le logo Kairos, le nom, et le sous-titre
-  « nom de code · 14h55 » (voir `SPEC_KAIROS.md` § Phase 15 pour l'origine du nom :
-  *Kairos* — καιρός, le moment opportun, par opposition à *Chronos* — et du nom de
-  code *14h55*, clin d'œil au « post-lunch dip », le creux post-déjeuner
-  statistiquement le moins productif de la journée, en écho au « 14h05 » emblématique
-  de l'outil).
+  « nom de code · 14h55 » — *Kairos* (καιρός, le moment opportun, par opposition à
+  *Chronos*) et le nom de code *14h55*, clin d'œil au « post-lunch dip », le creux
+  post-déjeuner statistiquement le moins productif de la journée.
 - **Section « Ce que fait Kairos » (`.home-brief`)** : deux colonnes (grille CSS,
   empilées sous 760px) —
   - `.home-brief-actions` : liste à puces des cinq fonctionnalités principales
@@ -221,15 +224,31 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
     {% if readme_toc %}
     <nav class="home-toc panel" aria-label="Sommaire du README">...</nav>
     {% endif %}
-    <div class="prose">{{ readme_rest_html | safe }}</div>
+    <details class="home-readme-more">
+      <summary class="collapser">{{ icon('chevron_right', '') }} Documentation complète du projet</summary>
+      <div class="prose">{{ readme_rest_html | safe }}</div>
+    </details>
   </div>
   ```
-  Les trois éléments (`readme_intro_html`, le sommaire, `readme_rest_html`) sont des
-  **enfants directs** de `.prose-wrap`, jamais imbriqués dans un même `.prose` —
-  garde-fou explicite pour que les styles `.prose h2/ul/li/a` (typographie éditoriale
-  du README) ne s'appliquent jamais accidentellement au sommaire (qui a sa propre
-  classe `.home-toc`/`.home-toc-list`). Une seule mise en page, identique petit et
-  grand écran (pas de variante mobile distincte pour ce bloc).
+  Les trois éléments (`readme_intro_html`, le sommaire, le `<details>` contenant
+  `readme_rest_html`) sont des **enfants directs** de `.prose-wrap`, jamais imbriqués
+  les uns dans les autres — garde-fou explicite pour que les styles
+  `.prose h2/ul/li/a` (typographie éditoriale du README) ne s'appliquent jamais
+  accidentellement au sommaire (qui a sa propre classe `.home-toc`/`.home-toc-list`).
+  Une seule mise en page, identique petit et grand écran (pas de variante mobile
+  distincte pour ce bloc).
+  - `readme_rest_html` est ce qui, non replié, faisait dérouler la page d'accueil sur
+    des dizaines d'écrans de hauteur sur mobile (revue produit 2026-07 : ~28 500px à
+    393px de large) — c'est de la documentation de référence, pas du contenu de
+    premier écran. Replié par défaut : `readme_intro_html` + le sommaire suffisent
+    comme accroche ; le `<summary class="collapser">` réutilise tel quel le patron
+    repliable déjà en place ailleurs dans l'app (`_kairos_day.html`,
+    `_kairos_filters.html`, `_kairos_backlog.html`), sans règle CSS nouvelle pour
+    l'ouverture/fermeture elle-même. Deux règles ciblées (`.home-readme-more`) gèrent
+    l'air en bas de carte à l'état fermé (le `.prose` imbriqué, seul porteur de
+    padding-bottom, disparaît du rendu avec le reste du contenu replié) et l'alignement
+    horizontal du résumé avec le padding de `.prose` (1.9rem, contre 1.1rem par défaut
+    pour `.collapser`).
   - `toc_entry(entry)` (macro locale du template) : rendu récursif d'une entrée de
     sommaire (`<li><a href="#{{ entry.id }}">...</a>{% if entry.children %}<ul>...
     </ul>{% endif %}</li>`), pour représenter la hiérarchie H2/H3 du README.
@@ -268,12 +287,6 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   `README.md` du dépôt se répercute automatiquement sur la page d'accueil au
   prochain chargement (pas de cache de rendu entre requêtes — le fichier est relu et
   reconverti à chaque appel de `home()`).
-- Le fichier `SPEC_KAIROS.md` référencé par un lien relatif du README est servi tel
-  quel par la route dédiée `@app.get("/SPEC_KAIROS.md")` (`app/main.py::spec_kairos`,
-  `FileResponse`), sans passer par `_render_readme` — hors périmètre direct de cette
-  spec (pas de gabarit, pas de navigation), mentionné ici pour la complétude du lien
-  README → SPEC_KAIROS depuis l'accueil.
-
 ### Décisions et pièges tracés
 
 - **CTA dupliqué retiré de l'accueil** (commit `52030d6`, 2026-07-15) : l'accueil
@@ -314,6 +327,13 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   seul point de couleur chaude volontaire au milieu d'une interface sinon neutre —
   ne pas « corriger » vers la palette neutre lors d'un futur passage sur
   `base.html`/`home.html`.
+- **Repli du reste du README derrière un `<details>`** (revue produit F-Droid/mobile,
+  2026-07) : seule la section « En bref » (`readme_intro_html`) et le sommaire
+  restent toujours visibles ; le reste (`readme_rest_html`) passe derrière un
+  intitulé cliquable, replié aussi bien en desktop qu'en mobile — un seul
+  comportement à maintenir plutôt qu'une variante par plateforme (cohérent avec
+  l'absence de détection serveur, voir § Invariants). Diff volontairement minimal :
+  aucun contenu retiré, seul l'état d'affichage par défaut change.
 - **`toc_tokens[0]["children"]` plutôt que `toc_tokens` brut** : évite que le sommaire
   n'affiche une entrée racine unique (le H1) suivie de tous les H2/H3 en profondeur
   +1 artificielle — en ne prenant que les enfants du H1, le sommaire commence

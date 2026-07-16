@@ -74,6 +74,34 @@ Points notables :
   redémarre au retour, SQLite committe à chaque requête. **Limite v1** : pas de
   foreground service, un chrono en cours ne survit pas à une mise en veille
   agressive.
+- **Splash screen natif** (revue produit F-Droid/mobile, 2026-07) :
+  `android/app/src/main/res/values/themes.xml` pose
+  `android:windowSplashScreenBackground` (API 31+, `tools:targetApi="31"` —
+  annotation lint, pas un mécanisme de qualification de ressource : un
+  framework plus ancien ignore silencieusement l'attribut inconnu à la
+  résolution du thème, même mécanisme déjà en production pour
+  `windowLightNavigationBar`/`windowOptOutEdgeToEdgeEnforcement` dans ce
+  fichier) et `android:windowBackground` (toutes API, non gardé) à la couleur
+  de fond de l'app (`@color/kairos_bg`). Sans `androidx.core:splashscreen`
+  (voir « pas d'AndroidX » ci-dessus) : l'icône de lanceur adaptative
+  existante (`ic_launcher_foreground.xml`, statique) s'affiche par défaut,
+  aucun asset dédié requis. Avant ce correctif, l'API 31+ affichait un fond
+  générique pendant le démarrage de Python+uvicorn ; `windowBackground` seul
+  couvre aussi les appareils API 24-30 (minSdk 24, en dessous du seuil
+  splash-screen natif).
+- **Geste retour prédictif** (Android 13+/15, même revue) : `AndroidManifest.xml`
+  pose `android:enableOnBackInvokedCallback="true"` au niveau `<application>`
+  (impératif — sans lui, tout enregistrement de callback reste sans effet même
+  sur API 33+). `MainActivity.registerPredictiveBackCallback()` (appelée dans
+  `onCreate`, juste après `setContentView(webView)`) enregistre un
+  `OnBackInvokedCallback` (`android.window`, natif, pas AndroidX — même parti
+  pris que `KairosNotificationBridge`) uniquement si
+  `Build.VERSION.SDK_INT >= TIRAMISU` ; même logique que le chemin legacy
+  (retour dans la WebView si possible, sinon `finish()`).
+  `onBackPressed()` (API < 33) reste **strictement inchangé** : duplication
+  volontaire plutôt que factorisation, pour ne rien risquer sur ce chemin déjà
+  en production ; un seul enregistrement suffit par activité, `configChanges`
+  couvrant déjà la rotation (`onCreate` n'est pas rappelé).
 - **Notifications système (issue #16)** : `KairosNotificationBridge` (Java, même
   parti pris sans AndroidX que `MainActivity` — uniquement `NotificationManager`/
   `NotificationChannel`/`Notification.Builder` plateforme et
