@@ -136,8 +136,8 @@ tout : une tâche bloquée ou épinglée mais non qualifiée reste « À traiter
   un palier dur qui passe toujours devant. Le score est affiché sur chaque tâche
   (transparence), et tous les poids sont réglables.
 - **Programmer une tâche « pour aujourd'hui »** la fait passer au même palier prioritaire
-  qu'une échéance dépassée. C'est voulu : une tâche que tu comptes traiter aujourd'hui
-  remonte devant le reste. Si l'effet te surprend, décale sa date programmée à plus tard.
+  qu'une échéance dépassée. C'est voulu : une tâche à traiter aujourd'hui
+  remonte devant le reste. Si l'effet surprend, on peut décaler la date à plus tard.
 - **Placement temporel** : les tâches sont posées dans les trous de la journée avec leurs
   durées réelles, une marge après chaque réunion (13h-14h donne 14h05, avec une note
   explicative), débordement signalé. L'**épinglage** à heure fixe n'est jamais déplacé, un
@@ -265,7 +265,7 @@ Jamais réaffichés en clair dans le formulaire.
 **Mise à niveau depuis une ancienne installation `.env`** : au premier démarrage après
 mise à jour, un `.env` existant est importé automatiquement, une seule fois, dans le
 nouveau système de réglages (la page Réglages affiche la date de cette migration). Le
-fichier `.env` n'est jamais supprimé automatiquement ; tu peux le retirer une fois la
+fichier `.env` n'est jamais supprimé automatiquement ; il peut être retiré une fois la
 migration confirmée.
 
 ### Calendrier TimeTree (optionnel)
@@ -281,13 +281,7 @@ Deux façons **mutuellement exclusives** d'obtenir tes issues GitLab ouvertes co
 (le nom d'utilisateur assigné est commun aux deux). Sans aucune des deux, la fonctionnalité
 disparaît proprement de l'interface (cas normal, aucune erreur) :
 
-1. **Via l'outil de pilotage MSI**, si tu l'utilises aussi sur ce poste (dépôt séparé) :
-   renseigne le chemin absolu de sa base `pilotage.db`. Kairos relit le cache entretenu par
-   son onglet « Pilotage GitLab », sans aucun appel réseau ni configuration GitLab à
-   dupliquer ici. Cette voie donne en plus accès à la liaison manuelle « Fiche liée » vers
-   une fiche de dette technique (badge cliquable, lecture seule, aucune écriture vers
-   Redmine ou GitLab). C'est la seule des deux voies qui l'active.
-2. **Import direct** (cas normal d'un collègue sans pilotage) : renseigne l'URL de
+1. **Import direct** (cas normal d'un collègue sans pilotage) : renseigne l'URL de
    l'instance GitLab, un jeton personnel (le scope `read_api` suffit) et le ou les projets
    (séparés par des virgules). Appel en lecture seule à l'API REST GitLab, mis en cache
    (même patron anti rate-limiting que TimeTree). Un échec (réseau, jeton invalide) se
@@ -309,7 +303,7 @@ proprement de l'interface. Kairos n'écrit **jamais** dans la base pilotage.
 ## Service systemd (démarrage automatique)
 
 `make service` (§ Démarrage rapide) fait tout : venv, dépendances, unité systemd
-utilisateur activée. L'équivalent à la main, si tu préfères ne pas passer par `make` :
+utilisateur activée. L'équivalent à la main, pour ne pas passer par `make` :
 
 ```bash
 mkdir -p ~/.config/systemd/user
@@ -319,8 +313,7 @@ systemctl --user daemon-reload && systemctl --user enable --now kairos.service
 loginctl enable-linger "$USER"   # optionnel : démarre au boot sans session ouverte
 ```
 
-Le service écoute sur le **port 8001** (si tu fais aussi tourner l'outil de pilotage sur le
-même poste, il occupe le port 8000, les deux coexistent). Exploitation :
+Le service écoute sur le **port 8001**. Exploitation :
 `systemctl --user status kairos`, `journalctl --user -u kairos -f`,
 `systemctl --user restart kairos` après un `git pull` (la plupart des réglages s'appliquent
 sans redémarrage depuis la page Réglages). Désinstallation : `make service-uninstall`.
@@ -390,12 +383,6 @@ isolation, sans I/O), routes minces, jamais de perte de données (migrations add
 archivage plutôt que suppression, invariant de non-perte vérifié par test de propriété),
 dégradation propre de toute source externe (jamais de page en erreur à cause de TimeTree,
 de la base pilotage ou de l'API GitLab), rendu serveur sans framework JavaScript.
-
-### Interface
-La charte graphique (« sobre et professionnel » : IBM Plex, palette slate, densité
-compacte) suit celle du Tableau de bord MSI de `pilotage-pleiade-gitlab`. Pour toute
-évolution notable d'interface, garde cette cohérence visuelle (voir ce dépôt pour la charte
-détaillée si tu y as accès).
 
 > **Charte visuelle** : couleurs, typographie, formes et composants sont documentés dans
 > [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). Toute nouvelle page ou tout nouveau
