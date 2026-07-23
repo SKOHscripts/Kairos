@@ -3,14 +3,20 @@ package com.skohscripts.kairos;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.graphics.drawable.Animatable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.Gravity;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.window.OnBackInvokedDispatcher;
 
 import com.chaquo.python.PyObject;
@@ -19,7 +25,6 @@ import com.chaquo.python.android.AndroidPlatform;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Unique activité de Kairos : démarre le serveur local (CPython + uvicorn via
@@ -33,39 +38,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class MainActivity extends Activity {
 
+    private static final long STARTUP_OVERLAY_TIMEOUT_MS = 30_000;
+
     private static int serverPort = -1;
 
     private WebView webView;
+    private View startupOverlay;
     private KairosNotificationBridge notificationBridge;
-    // Tenu à `false` jusqu'à ce que la première page ait fini de charger dans la
-    // WebView (voir `onPageFinished` ci-dessous). Sans mécanisme de retenue, le
-    // splash (natif API 31+, ou simple fond `windowBackground` en dessous) se
-    // ferme/laisse place à la première frame dessinée dès `setContentView`
-    // ci-dessous, donc avant même que Python/uvicorn n'ait démarré — l'utilisateur
-    // voit alors une WebView blanche pendant toute l'attente du serveur. Technique
-    // retenue : `ViewTreeObserver.OnPreDrawListener` (voir onCreate) — reporter la
-    // toute première frame reporte de fait la disparition du splash, quelle que
-    // soit l'API, sans dépendre d'une classe spécifique à l'API 31+ ni d'AndroidX
-    // (`androidx.core.splashscreen.SplashScreen.setKeepOnScreenCondition`, la
-    // seule à porter ce nom, est hors périmètre — voir docs/ANDROID_PACKAGING.md).
-    private final AtomicBoolean uiReady = new AtomicBoolean(false);
+    // Utilisé uniquement pour le filet de sécurité qui masque l'overlay de
+    // démarrage si `onPageFinished` n'arrive jamais (page en échec) — voir
+    // `hideStartupOverlay`.
+    private final Handler overlayHandler = new Handler(Looper.getMainLooper());
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (!Python.isStarted()) {
-            Python.start(new AndroidPlatform(this));
-        }
-        final PyObject boot = Python.getInstance().getModule("kairos_boot");
-        if (serverPort < 0) {
-            serverPort = boot.callAttr("prepare", getFilesDir().getAbsolutePath()).toInt();
-            final int port = serverPort;
-            Thread server = new Thread(() -> boot.callAttr("serve", port), "kairos-uvicorn");
-            server.setDaemon(true);
-            server.start();
-        }
 
         webView = new WebView(this);
         webView.getSettings().setJavaScriptEnabled(true);   // chrono vivant, alertes
@@ -74,12 +62,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                uiReady.set(true);
-                // Force une nouvelle passe de dessin pour que le pre-draw listener
-                // (voir onCreate) soit ré-évalué maintenant que `uiReady` est vrai —
-                // sans ça, rien ne garantit qu'une invalidation survienne d'elle-même
-                // pendant que la WebView est restée vide en attendant le serveur.
-                view.invalidate();
+                hideStartupOverlay();
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
@@ -113,29 +96,95 @@ public class MainActivity extends Activity {
         notificationBridge = new KairosNotificationBridge(this, webView);
         webView.addJavascriptInterface(notificationBridge, "KairosAndroid");
 
-        setContentView(webView);
+        // Overlay de démarrage applicatif (plutôt que de compter sur le splash
+        // système, voir `startupOverlay` et `hideStartupOverlay` ci-dessous) :
+        // WebView en dessous, overlay par-dessus, masqué en fondu une fois la
+        // première page réellement chargée.
+        FrameLayout root = new FrameLayout(this);
+        root.addView(webView, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        startupOverlay = buildStartupOverlay();
+        root.addView(startupOverlay, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
-        // Reporte le dessin de la toute première frame tant que `uiReady` est faux
-        // (voir champ `uiReady` et `onPageFinished` ci-dessus) : technique native
-        // documentée par Android pour ce cas précis (attente d'un chargement
-        // asynchrone avant la première frame), sans AndroidX ni dépendance de
-        // version — fonctionne identiquement sur toutes les API, contrairement à
-        // une éventuelle API dédiée à l'écran de démarrage natif (API 31+ seulement).
-        final View content = findViewById(android.R.id.content);
-        content.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                if (!uiReady.get()) {
-                    return false;
-                }
-                content.getViewTreeObserver().removeOnPreDrawListener(this);
-                return true;
-            }
-        });
-
+        setContentView(root);
         registerPredictiveBackCallback();
 
-        loadWhenServerReady();
+        // Filet de sécurité : si `onPageFinished` n'arrive jamais (page en échec,
+        // réseau local qui ne répond jamais), ne pas rester bloqué indéfiniment sur
+        // le logo — l'utilisateur retrouve au moins la WebView (même vide/en erreur)
+        // plutôt qu'un écran figé.
+        overlayHandler.postDelayed(this::hideStartupOverlay, STARTUP_OVERLAY_TIMEOUT_MS);
+
+        // `Python.start()` et surtout `kairos_boot.prepare()` (extraction du paquet
+        // Python embarqué, première écriture de la base SQLite) peuvent prendre
+        // plusieurs secondes au tout premier lancement — les exécuter sur le thread
+        // principal bloquerait tout rendu, y compris celui de l'overlay ci-dessus
+        // (c'est ce qui, avant ce correctif, produisait un écran blanc : le splash
+        // système est piloté par ce même thread principal, qu'il ne pouvait pas
+        // dessiner tant que ce bloc s'exécutait de façon synchrone dans `onCreate`).
+        new Thread(() -> {
+            startServerIfNeeded();
+            loadWhenServerReady();
+        }, "kairos-init").start();
+    }
+
+    /** Construit l'overlay plein écran affiché pendant le démarrage : fond uni à la
+     *  couleur de l'app (`@color/kairos_bg`, cohérent avec `themes.xml`) et le logo
+     *  animé déjà utilisé pour le splash natif (`@drawable/kairos_splash_icon`,
+     *  `AnimatedVectorDrawable` — même secteur qui balaie depuis midi). Démarré
+     *  explicitement via `Animatable.start()` : contrairement au splash système, rien
+     *  ne le joue automatiquement ici. */
+    private View buildStartupOverlay() {
+        FrameLayout overlay = new FrameLayout(this);
+        overlay.setBackgroundColor(getColor(R.color.kairos_bg));
+
+        ImageView icon = new ImageView(this);
+        icon.setImageResource(R.drawable.kairos_splash_icon);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        lp.gravity = Gravity.CENTER;
+        overlay.addView(icon, lp);
+
+        Drawable drawable = icon.getDrawable();
+        if (drawable instanceof Animatable) {
+            ((Animatable) drawable).start();
+        }
+        return overlay;
+    }
+
+    /** Masque l'overlay de démarrage en fondu. Appelé depuis `onPageFinished`
+     *  (chemin normal) et depuis le filet de sécurité de `onCreate` (chemin de
+     *  secours) — idempotent : un second appel (page suivante rechargée en plein,
+     *  ou timeout après un `onPageFinished` déjà traité) est un no-op silencieux. */
+    private void hideStartupOverlay() {
+        if (startupOverlay == null || startupOverlay.getVisibility() == View.GONE) {
+            return;
+        }
+        overlayHandler.removeCallbacksAndMessages(null);
+        startupOverlay.animate()
+                .alpha(0f)
+                .setDuration(220)
+                .withEndAction(() -> startupOverlay.setVisibility(View.GONE))
+                .start();
+    }
+
+    /** Démarre Python/uvicorn si ce n'est pas déjà fait (voir la docstring de la
+     *  classe : le port et le thread serveur survivent à une recréation d'activité
+     *  tant que le process vit). Appelé depuis le thread `kairos-init` de
+     *  `onCreate`, jamais le thread principal. */
+    private void startServerIfNeeded() {
+        if (!Python.isStarted()) {
+            Python.start(new AndroidPlatform(this));
+        }
+        PyObject boot = Python.getInstance().getModule("kairos_boot");
+        if (serverPort < 0) {
+            serverPort = boot.callAttr("prepare", getFilesDir().getAbsolutePath()).toInt();
+            int port = serverPort;
+            Thread server = new Thread(() -> boot.callAttr("serve", port), "kairos-uvicorn");
+            server.setDaemon(true);
+            server.start();
+        }
     }
 
     /** Geste retour prédictif (API 33+, `android.window` natif — pas AndroidX, même
@@ -160,7 +209,9 @@ public class MainActivity extends Activity {
     }
 
     /** Sonde /favicon.ico (toujours 200 sur une instance réelle, même repère que
-     *  le launcher de bureau) puis charge l'agenda du jour. */
+     *  le launcher de bureau) puis charge l'agenda du jour. Appelé depuis le thread
+     *  `kairos-init` une fois `startServerIfNeeded` revenu (donc `serverPort` posé) —
+     *  spawn son propre thread `kairos-probe`, comme avant ce correctif. */
     private void loadWhenServerReady() {
         final String base = "http://127.0.0.1:" + serverPort;
         new Thread(() -> {

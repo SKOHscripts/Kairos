@@ -10,7 +10,12 @@ import socket
 import sys
 import threading
 
-from app.desktop_browser import find_app_capable_browser, launch_app_window
+from app.desktop_browser import (
+    _desktop_entry_content,
+    find_app_capable_browser,
+    install_linux_desktop_entry,
+    launch_app_window,
+)
 from app.launcher import (
     _clear_lock,
     _ensure_std_streams,
@@ -292,6 +297,9 @@ def test_find_app_capable_browser_env_override_takes_priority(monkeypatch, tmp_p
 
 def test_launch_app_window_builds_argv_with_app_and_profile_flags(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr("app.desktop_browser.data_dir", lambda: tmp_path)
+    # Hors périmètre de ce test (couvert séparément) : neutralisé pour ne pas
+    # dépendre de sys.platform/sys.frozen dans l'environnement de test.
+    monkeypatch.setattr("app.desktop_browser.install_linux_desktop_entry", lambda: None)
     seen_argv = {}
 
     class _FakeProcess:
@@ -309,8 +317,27 @@ def test_launch_app_window_builds_argv_with_app_and_profile_flags(monkeypatch, t
     argv = seen_argv["argv"]
     assert argv[0] == "/usr/bin/chromium"
     assert "--app=http://127.0.0.1:8001" in argv
+    assert "--class=Kairos" in argv
     assert any(arg.startswith("--user-data-dir=") for arg in argv)
     assert any(str(tmp_path) in arg for arg in argv if arg.startswith("--user-data-dir="))
+
+
+def test_launch_app_window_attempts_desktop_entry_installation(monkeypatch, tmp_path) -> None:
+    """`launch_app_window` doit tenter l'installation .desktop/icônes avant de
+    lancer le navigateur (best-effort — voir `install_linux_desktop_entry`)."""
+    monkeypatch.setattr("app.desktop_browser.data_dir", lambda: tmp_path)
+    monkeypatch.setattr("app.desktop_browser.subprocess.Popen", lambda argv, **kwargs: object())
+    called = False
+
+    def fake_install():
+        nonlocal called
+        called = True
+
+    monkeypatch.setattr("app.desktop_browser.install_linux_desktop_entry", fake_install)
+
+    launch_app_window("/usr/bin/chromium", "http://127.0.0.1:8001")
+
+    assert called is True
 
 
 def test_launch_app_window_returns_false_and_does_not_raise_on_popen_error(
@@ -326,3 +353,75 @@ def test_launch_app_window_returns_false_and_does_not_raise_on_popen_error(
     result = launch_app_window("/usr/bin/chromium", "http://127.0.0.1:8001")
 
     assert result is False
+
+
+# --- Identité desktop Linux (.desktop + icônes) --------------------------------
+
+
+def test_desktop_entry_content_has_required_fields() -> None:
+    content = _desktop_entry_content("/opt/kairos/kairos")
+
+    assert 'Exec="/opt/kairos/kairos"' in content
+    assert "Icon=kairos" in content
+    assert "StartupWMClass=Kairos" in content
+    assert "Type=Application" in content
+    assert "Name=Kairos" in content
+
+
+def test_install_linux_desktop_entry_is_noop_outside_linux(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr("app.desktop_browser.sys.platform", "win32")
+    monkeypatch.setattr("app.desktop_browser.sys.frozen", True, raising=False)
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+
+    install_linux_desktop_entry()
+
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_install_linux_desktop_entry_is_noop_when_not_frozen(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr("app.desktop_browser.sys.platform", "linux")
+    monkeypatch.delattr("app.desktop_browser.sys.frozen", raising=False)
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+
+    install_linux_desktop_entry()
+
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_install_linux_desktop_entry_writes_desktop_file_and_icons(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr("app.desktop_browser.sys.platform", "linux")
+    monkeypatch.setattr("app.desktop_browser.sys.frozen", True, raising=False)
+    monkeypatch.setattr("app.desktop_browser.sys.executable", "/opt/kairos/kairos")
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+
+    fake_base_dir = tmp_path / "base"
+    (fake_base_dir / "static").mkdir(parents=True)
+    (fake_base_dir / "static" / "icon-192.png").write_bytes(b"fake-png-192")
+    (fake_base_dir / "static" / "icon-512.png").write_bytes(b"fake-png-512")
+    monkeypatch.setattr("app.main.BASE_DIR", fake_base_dir)
+
+    install_linux_desktop_entry()
+
+    desktop_file = tmp_path / "applications" / "kairos.desktop"
+    assert desktop_file.is_file()
+    assert "StartupWMClass=Kairos" in desktop_file.read_text(encoding="utf-8")
+
+    icon_192 = tmp_path / "icons" / "hicolor" / "192x192" / "apps" / "kairos.png"
+    icon_512 = tmp_path / "icons" / "hicolor" / "512x512" / "apps" / "kairos.png"
+    assert icon_192.read_bytes() == b"fake-png-192"
+    assert icon_512.read_bytes() == b"fake-png-512"
+
+
+def test_install_linux_desktop_entry_never_raises_on_write_failure(monkeypatch, tmp_path) -> None:
+    """Best-effort : une erreur d'écriture (dossier en lecture seule, disque
+    plein...) ne doit jamais remonter à l'appelant."""
+    monkeypatch.setattr("app.desktop_browser.sys.platform", "linux")
+    monkeypatch.setattr("app.desktop_browser.sys.frozen", True, raising=False)
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+
+    def failing_mkdir(*args, **kwargs):
+        raise OSError("dossier en lecture seule")
+
+    monkeypatch.setattr("app.desktop_browser.Path.mkdir", failing_mkdir)
+
+    install_linux_desktop_entry()  # ne doit pas lever

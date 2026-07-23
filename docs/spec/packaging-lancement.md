@@ -222,9 +222,10 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     alors automatiquement sur `webbrowser.open`.
   - Fonction pure (aucun effet de bord, aucune impression) : testée en
     monkeypatchant `shutil.which` et les variables d'environnement lues.
-- **`launch_app_window(browser_path: str, url: str) -> bool`** : construit
-  `[browser_path, f"--user-data-dir={profile_dir}", f"--app={url}"]` où
-  `profile_dir = str(data_dir() / "browser-profile")` (voir
+- **`launch_app_window(browser_path: str, url: str) -> bool`** : appelle d'abord
+  `install_linux_desktop_entry()` (best-effort, voir ci-dessous), puis construit
+  `[browser_path, f"--user-data-dir={profile_dir}", f"--class={_APP_WINDOW_CLASS}",
+  f"--app={url}"]` où `profile_dir = str(data_dir() / "browser-profile")` (voir
   `app/settings_store.py::data_dir` — même dossier de données que le verrou et le
   journal de crash du launcher), puis lance ce process via `subprocess.Popen`
   (`stdin`/`stdout`/`stderr` sur `DEVNULL`, `start_new_session=True`, et
@@ -251,14 +252,37 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     remonter — `_open_browser` retombe alors sur `webbrowser.open`.
   - Retourne `True` sur un lancement réussi — sans garantie que la fenêtre
     s'affiche effectivement (le process a démarré, rien de plus n'est vérifié).
-- **Icône de la fenêtre d'application** : `--app=URL` affiche l'icône déclarée par
-  la page elle-même (favicon / manifeste web), pas une icône générique de
-  navigateur. Le `<head>` des templates de bureau référence
-  `static/manifest.webmanifest` et les icônes `static/icon-192.png`,
-  `static/icon-512.png`, `static/apple-touch-icon.png` (générées par
-  `packaging/make_icon.py`, hors périmètre de ce module) — sans ces fichiers, la
-  fenêtre d'application s'affiche quand même (repli sur une icône générique de
-  Chromium), mais sans le rendu « app installée » complet recherché.
+- **Identité de la fenêtre d'application (`WM_CLASS` + icône, pas juste le
+  favicon)** : `--app=URL` seul affiche l'icône déclarée par la page (favicon /
+  manifeste web — `static/manifest.webmanifest`, `static/icon-192.png`,
+  `static/icon-512.png`, `static/apple-touch-icon.png`, générées par
+  `packaging/make_icon.py`) **dans l'onglet/la barre de titre**, mais la fenêtre
+  reste identifiée par le bureau comme une fenêtre Chromium quelconque (icône du
+  navigateur dans le dock/la barre des tâches, impossible à l'épingler comme
+  « Kairos » à part). Deux mécanismes complémentaires corrigent ça :
+  - **`--class=Kairos`** (constante `_APP_WINDOW_CLASS`) fixe la `WM_CLASS` X11
+    de la fenêtre.
+  - **`install_linux_desktop_entry()`** installe/réinstalle (idempotent, appelé
+    à chaque lancement) un fichier `.desktop` XDG
+    (`~/.local/share/applications/kairos.desktop`, ou sous
+    `$XDG_DATA_HOME` si posé) avec `StartupWMClass=Kairos` (doit rester
+    identique à `--class=` ci-dessus — c'est ce qui permet au bureau
+    d'associer la fenêtre déjà ouverte à cette entrée) et
+    `Exec="<sys.executable>"`, plus une copie des PNG déjà embarqués
+    (`static/icon-192.png`/`icon-512.png`) vers
+    `~/.local/share/icons/hicolor/<taille>x<taille>/apps/kairos.png` (thème
+    d'icônes standard XDG). **Gardé par `sys.platform == "linux"` et
+    `getattr(sys, "frozen", False)`** : en dev/venv, `sys.executable` est
+    l'interpréteur Python, un `.desktop` pointant dessus serait faux, donc rien
+    n'est installé dans ce cas. Le contenu du fichier `.desktop` est généré par
+    une fonction pure (`_desktop_entry_content`), testée indépendamment de
+    l'écriture disque ; l'installation elle-même est encadrée d'un
+    `try/except Exception` (même philosophie que `launch_app_window` : confort
+    en arrière-plan, jamais bloquant).
+  - **Windows** : la fenêtre `--app=` obtient déjà sa propre entrée de barre des
+    tâches avec le favicon de la page — acceptable en l'état, pas d'équivalent
+    du `.desktop`/`WM_CLASS` tenté (raccourci Menu Démarrer avec
+    AppUserModelID : hors périmètre pour l'instant).
 
 #### `app/android_launcher.py` — lancement Android
 
@@ -422,20 +446,20 @@ cette spec (pas de duplication du reste) :
   `versionCode = X*10000 + Y*100 + Z`, plancher `1` (Android rejette `0`, ce que
   donnerait le défaut `0.0.0-dev`) — garantit une valeur strictement croissante
   d'une release à l'autre pour qu'Android accepte la mise à jour par-dessus.
-- **`themes.xml`** : splash screen natif (`android:windowSplashScreenBackground`,
-  API 31+) et `android:windowBackground` (toutes API) posés à la couleur de fond de
-  l'app — évite le flash blanc générique pendant le démarrage de Python+uvicorn,
-  sans dépendance `androidx.core:splashscreen` (voir « pas d'AndroidX » dans
-  `docs/ANDROID_PACKAGING.md`). Sa durée réelle d'affichage est contrôlée depuis
-  `MainActivity` par un `ViewTreeObserver.OnPreDrawListener` qui reporte la
-  toute première frame de l'activité (technique native standard, pas de classe
-  spécifique à l'API 31+) : sans ce report, le thème seul ne suffit pas à
-  couvrir l'attente du serveur, le splash se ferme dès la première frame
-  dessinée. Son icône est un
+- **Écran de démarrage** : un overlay applicatif (`MainActivity`, `FrameLayout`
+  WebView + overlay fond `@color/kairos_bg` + logo animé) porte le branding
+  pendant toute l'attente de Python/uvicorn — pas le splash système
+  d'Android (`android:windowSplashScreenBackground`/`windowBackground` dans
+  `themes.xml`, toujours posés pour le tout petit instant de cold-start avant
+  `onCreate`, mais plus load-bearing au-delà). Python/uvicorn démarrent sur un
+  thread dédié (`kairos-init`), jamais le thread principal — c'est ce qui
+  garantit que l'overlay se dessine et s'anime réellement, y compris sur un
+  premier lancement long (extraction du paquet Python embarqué). Logo animé :
   `AnimatedVectorDrawable` dédié (`res/drawable/kairos_splash_icon*.xml` +
-  `res/animator/kairos_splash_wedge_sweep.xml`, natif, API 21+) : le secteur du
-  logo balaie depuis midi jusqu'à sa position finale plutôt que d'apparaître
-  figé. Détail complet dans `docs/ANDROID_PACKAGING.md`.
+  `res/animator/kairos_splash_wedge_sweep.xml`, natif, API 21+), le même asset
+  que l'ancien splash système, rejoué explicitement (`Animatable.start()`)
+  plutôt qu'automatiquement. Détail complet, y compris les deux approches
+  écartées avant celle-ci, dans `docs/ANDROID_PACKAGING.md`.
 - **`AndroidManifest.xml`** / **`MainActivity.java`** : geste retour prédictif
   Android 13+ (`android:enableOnBackInvokedCallback="true"` +
   `OnBackInvokedDispatcher` natif, `android.window`, pas AndroidX) — chemin
@@ -505,10 +529,23 @@ cette spec (pas de duplication du reste) :
   fidèlement l'état d'avant PyInstaller (variable absente au départ → absente pour
   le sous-processus), plutôt que de la laisser vide ou undefined de façon
   incohérente.
-- **Icône Windows embarquée, icône Linux absente du binaire** : décision assumée
-  (pas un oubli) — sur Linux, l'icône de bureau viendrait d'un fichier `.desktop`,
-  jamais du binaire lui-même ; `icon=` dans `kairos.spec` est ignoré sans erreur sur
-  cette plateforme.
+- **Icône Windows embarquée dans le binaire, icône Linux portée par un `.desktop`
+  installé à l'exécution plutôt que dans le binaire** : `icon=` dans
+  `kairos.spec` est ignoré sans erreur sur Linux (`packaging/kairos.spec`) —
+  ce n'était pas un oubli, mais l'icône de bureau Linux vient désormais
+  effectivement d'un fichier `.desktop`, installé par
+  `install_linux_desktop_entry()` (voir plus haut), pas du binaire lui-même.
+- **`.desktop`/`WM_CLASS` installés à l'exécution plutôt qu'à l'empaquetage**
+  (pas de fichier `.desktop` commité dans le dépôt, pas d'étape d'installation
+  système type paquet `.deb`/`.rpm`) : cohérent avec la distribution actuelle
+  (un exécutable PyInstaller onefile téléchargé et lancé directement, pas
+  installé via un gestionnaire de paquets) — `install_linux_desktop_entry()`
+  s'auto-répare à chaque lancement (idempotent) si l'utilisateur déplace
+  l'exécutable, sans étape d'installation séparée à documenter ni à maintenir.
+  Écrit dans les emplacements XDG **utilisateur**
+  (`~/.local/share/applications`, `~/.local/share/icons/hicolor/...` — jamais
+  `/usr/share/...`) : aucun privilège root requis, cohérent avec un exécutable
+  téléchargé et lancé sans installation.
 
 ### Invariants et garde-fous
 
