@@ -32,7 +32,9 @@ chrono vivant + alertes → `docs/spec/temps-reel-chrono.md` ; dépendances/bloq
 récurrence (tâches et blocs) → `docs/spec/recurrence.md` ; vue Semaine détaillée et
 `/kairos/stats` → `docs/spec/statistiques.md` ; TimeTree/GitLab →
 `docs/spec/integrations-externes.md` ; réglages → `docs/spec/reglages-secrets.md` ;
-`base.html`/topnav/accueil → `docs/spec/accueil-navigation.md`.
+`base.html`/topnav/accueil → `docs/spec/accueil-navigation.md` ; capture GTD en
+amont de la boîte de réception (page Notes, `/kairos/notes`) →
+`docs/spec/notes-capture.md`.
 
 ---
 
@@ -140,6 +142,11 @@ aller-retour (infos, sous-tâches en lot, bloqueurs, épinglage).
   `docs/spec/integrations-externes.md`.
 - Réglages, secrets, page `/kairos/settings` → `docs/spec/reglages-secrets.md`.
 - `base.html`, topnav, page d'accueil → `docs/spec/accueil-navigation.md`.
+- La page Notes (`/kairos/notes`), mécanisme de capture GTD **en amont** de la
+  boîte de réception décrite ci-dessous (§ 2) — une note se convertit en tâche
+  titre-seul, qui atterrit alors dans cette même boîte de réception, mais la
+  capture, l'édition et l'archivage d'une note n'ont pas leur place ici →
+  `docs/spec/notes-capture.md`.
 
 ---
 
@@ -240,6 +247,11 @@ Qualification en ligne :
   faire disparaître la section — rappel volontaire de « où regarder en premier ».
 - Une aide repliable (`.mj-help`, motif réutilisé de `fibo_help()`) explique le
   principe GTD directement dans le `<summary>` (« pourquoi qualifier ? »).
+- **Alimentation en amont, hors de cette spec** : une tâche titre-seul peut venir
+  directement de la capture de cette vue (§ 1) **ou** d'une conversion depuis la
+  page Notes (`POST /kairos/notes/{id}/convert`, `docs/spec/notes-capture.md`) —
+  les deux chemins produisent le même objet (`Task(source="native")`, ni
+  priorité ni points), indiscernable ici une fois créé.
 
 **3. « Maintenant »** (`.mj-progress`) — `next_up_task` (calculé côté serveur) =
 `schedule.scheduled[0].task` si l'agenda a une première entrée planifiée, sinon

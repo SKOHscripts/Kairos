@@ -12,7 +12,8 @@ ici que ce qui est commun à toutes les pages (topnav) ou spécifique à l'accue
 
 ### Objectif / problème
 
-Kairos comporte plusieurs vues (Accueil, Jour, Semaine, Statistiques, Réglages) qui
+Kairos comporte plusieurs vues (Accueil, Notes, Jour, Semaine, Statistiques,
+Réglages) qui
 doivent partager une identité visuelle et une navigation cohérentes, sans dupliquer
 le HTML de la barre de navigation dans chaque template. Il faut aussi une page
 d'accueil qui explique ce que fait l'outil à un nouvel utilisateur (collègue
@@ -34,9 +35,11 @@ est pénible sur une longue liste.
 
 - Une barre de navigation horizontale, fixe en haut de l'écran (sticky), présente sur
   toutes les pages : logo/nom Kairos (lien vers l'accueil), puis les entrées Accueil,
-  Jour, Semaine, Statistiques, Réglages. L'entrée correspondant à la page affichée
-  est mise en évidence.
-- **Exception, APK Android uniquement** : les cinq entrées sont déplacées vers une
+  Notes, Jour, Semaine, Statistiques, Réglages. L'entrée correspondant à la page
+  affichée est mise en évidence. « Notes » est placée entre Accueil et Jour : la
+  capture (page Notes) précède la triage/exécution (vue Jour) dans le flux GTD —
+  voir `docs/spec/notes-capture.md`.
+- **Exception, APK Android uniquement** : les six entrées sont déplacées vers une
   barre de navigation basse fixe (icône + libellé, cible tactile ≥ 44px), le logo
   Kairos restant seul dans la barre du haut. Cette bottom nav n'apparaît **jamais**
   sur un navigateur (dev, service, exécutable de bureau), quelle que soit la largeur
@@ -93,6 +96,9 @@ est pénible sur une longue liste.
   au profit de la topnav horizontale.
 - Contenu détaillé de la vue Jour/GTD (filtres, backlog, progression du jour...) :
   `docs/spec/vue-jour-gtd.md`.
+- Contenu détaillé de la page Notes (capture, conversion en tâche, archivage) :
+  `docs/spec/notes-capture.md` — cette spec ne couvre que l'entrée de navigation
+  elle-même (icône, position, condition `active`).
 - Authentification/comptes multiples : Kairos reste mono-utilisateur, la navigation
   n'a pas de notion de session utilisateur.
 
@@ -115,9 +121,17 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
 #### `templates/base.html` — gabarit commun
 
 - **`<head>`** : titre par bloc (`{% block title %}Kairos{% endblock %}`), favicon
-  SVG (`/static/favicon.svg?v={{ asset_version }}`), polices Google Fonts (IBM Plex
-  Sans 400/500/600/700 + Newsreader italique 500, voir `docs/DESIGN_SYSTEM.md`),
-  feuille de style unique `/static/style.css?v={{ asset_version }}`. Le suffixe
+  SVG (`/static/favicon.svg?v={{ asset_version }}`), manifest PWA
+  (`<link rel="manifest" href="/static/manifest.webmanifest">`) et icônes PNG
+  (192/512, `apple-touch-icon`, `?v={{ asset_version }}` sur les trois comme sur
+  `style.css`) + `<meta name="theme-color" content="#F3F5F8">` — le contenu de ces
+  fichiers `static/` eux-mêmes (manifest, PNG) est hors périmètre de ce document
+  (propriété/contenu d'un autre chantier), seules les balises `<link>`/`<meta>` de
+  `base.html` y sont couvertes ; le favicon SVG existant reste inchangé en plus de
+  ces icônes PNG (navigateurs qui préfèrent le SVG le gardent). Polices Google Fonts
+  (IBM Plex Sans 400/500/600/700 + Newsreader italique 500, voir
+  `docs/DESIGN_SYSTEM.md`), feuille de style unique
+  `/static/style.css?v={{ asset_version }}`. Le suffixe
   `?v=` (posé par `templates.env.globals["asset_version"]` dans `app/main.py`, valeur
   = horodatage de modification de `style.css`, ou `0` si illisible) est un
   anti-cache navigateur : sans lui, un navigateur peut continuer à servir un vieux
@@ -131,17 +145,18 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
     couleurs terracotta d'origine conservées volontairement — voir
     `docs/DESIGN_SYSTEM.md` § Identité) + nom « Kairos » + sous-titre
     « le bon moment, la bonne tâche » (masqué sous 720px, voir § Invariants).
-  - `.tn-nav` : cinq entrées (Accueil `/`, Jour `/kairos?view=day`, Semaine
-    `/kairos?view=week`, Statistiques `/kairos/stats`, Réglages
-    `/kairos/settings`), chacune avec une icône (`icon('home')`, `icon('clock')`,
-    `icon('calendar')`, `icon('trending_up')`, `icon('gear')`) et un libellé texte.
+  - `.tn-nav` : six entrées (Accueil `/`, Notes `/kairos/notes`, Jour
+    `/kairos?view=day`, Semaine `/kairos?view=week`, Statistiques
+    `/kairos/stats`, Réglages `/kairos/settings`), chacune avec une icône
+    (`icon('home')`, `icon('notes')`, `icon('clock')`, `icon('calendar')`,
+    `icon('trending_up')`, `icon('gear')`) et un libellé texte.
   - **Mise en évidence de l'entrée active** : classe `active` conditionnée sur les
     variables de contexte passées par chaque route — `page == 'home'`,
-    `page == 'kairos' and (view is not defined or view != 'week')` (Jour, y compris
-    quand `view` n'est pas défini — défaut jour), `page == 'kairos' and view ==
-    'week'` (Semaine), `page == 'kairos_stats'`, `page == 'settings'`. Ces variables
-    (`page`, `view`) sont posées par chaque route dans le contexte de rendu, pas
-    déduites de l'URL côté template.
+    `page == 'notes'` (Notes), `page == 'kairos' and (view is not defined or view
+    != 'week')` (Jour, y compris quand `view` n'est pas défini — défaut jour),
+    `page == 'kairos' and view == 'week'` (Semaine), `page == 'kairos_stats'`,
+    `page == 'settings'`. Ces variables (`page`, `view`) sont posées par chaque
+    route dans le contexte de rendu, pas déduites de l'URL côté template.
   - **Bouton Quitter (`.tn-quit`)** : bloc conditionné par `{% if is_frozen %}`.
     `is_frozen` est une variable globale Jinja2 posée une fois au chargement du
     module (`templates.env.globals["is_frozen"] = getattr(sys, "frozen", False)`,
@@ -155,7 +170,7 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   is_android %}is-android{% endif %}">` porte la classe `is-android` sur la racine
   du gabarit ; un second bloc `{% if is_android %}<nav class="bn-nav">...{% endif
   %}</nav>` (dernier enfant de `.layout`, après `<main class="content">`) reprend
-  les cinq mêmes entrées et conditions `active` que `.tn-nav` (icône + libellé,
+  les six mêmes entrées et conditions `active` que `.tn-nav` (icône + libellé,
   cette fois visible — contrairement à `.tn-item .ico`), sans dupliquer
   `.tn-brand`/`.tn-quit`.
   - `is_android` : variable globale Jinja2 posée une fois au chargement du module
@@ -178,9 +193,11 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
     `static/style.css`.
   - `.bn-item { min-width: 0; }` : sans ce reset, le `min-width: auto` implicite
     d'un enfant flex (`flex: 1`) borne le rétrécissement à la taille de son
-    contenu (icône + libellé) — sur cinq entrées à largeur égale, la barre
+    contenu (icône + libellé) — sur six entrées à largeur égale, la barre
     déborderait du viewport sur un libellé un peu long (constaté avec
-    « Réglages » en développement de ce correctif).
+    « Réglages » en développement de ce correctif ; le nombre d'entrées est
+    passé de cinq à six avec l'ajout de « Notes », sans remettre en cause ce
+    correctif — voir `docs/spec/notes-capture.md`).
   - Voir § Décisions et pièges tracés pour la justification du déclenchement
     serveur plutôt que CSS.
 - **Topbar (`.topbar`)** : sous la topnav, dans `<main class="content">`. Titre par
@@ -223,7 +240,12 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   pencil, save, trash, file_text, grid, share, blocked, comment, arrow_left,
   arrow_up_right, trending_up, chevron_down, chevron_right, export_up, import_down,
   dot, dot_empty, clock, calendar, layers, dashboard, gitlab, chevron_left, search,
-  home, gear — défaut : un simple cercle si `name` ne correspond à rien).
+  home, gear, notes — défaut : un simple cercle si `name` ne correspond à rien).
+  `notes` (rectangle arrondi + trois traits horizontaux, glyphe de bloc-notes) sert
+  à la sixième entrée de navigation, « Notes » (`docs/spec/notes-capture.md`) —
+  choisie plutôt que `file_text`/`clipboard` (existantes mais inutilisées ailleurs
+  dans l'app à ce jour) pour un glyphe visuellement distinct d'un document/d'un
+  presse-papier, plus proche d'un carnet de capture.
 - Accessibilité : `aria-hidden="true"` par défaut ; si `title` est fourni,
   `role="img" aria-label="{{ title }}"` à la place — jamais les deux, jamais aucun
   des deux.
@@ -367,7 +389,9 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   bottom nav mobile », consignée dans `CLAUDE.md`/`docs/DESIGN_SYSTEM.md` §
   Navigation & mobile, mise à jour dans le même changement) : la nav horizontale
   qui passait sur deux lignes sous ~400px de large consommait jusqu'à ~25% de la
-  hauteur d'écran avant tout contenu, sur exactement les cinq destinations où
+  hauteur d'écran avant tout contenu, sur les cinq destinations d'alors (« Notes »
+  a rejoint la navigation ensuite, docs/spec/notes-capture.md, portant le total à
+  six sans remettre en cause ce choix) — exactement la fourchette où
   Material Design recommande une bottom nav. Un déclenchement purement CSS
   (`@media (max-width: 720px)`) aurait aussi affiché la bottom nav sur un
   navigateur desktop simplement rétréci sous ce seuil — comportement jugé

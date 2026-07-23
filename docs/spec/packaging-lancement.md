@@ -2,10 +2,10 @@
 _Rôle : comment Kairos passe d'un dépôt Python à une application qu'on double-clique
 (exécutable Windows/Linux) ou qu'on installe (APK Android), et comment elle démarre
 proprement dans les deux cas. Fichiers couverts : `app/launcher.py`,
-`app/android_launcher.py`, `app/subprocess_env.py`, `packaging/` (`README.md`,
-`kairos.spec`, `smoke_test.py`, `make_icon.py`, `kairos.ico`,
-`android-requirements.txt`), `android/` (renvoi à `docs/ANDROID_PACKAGING.md` pour le
-détail technique)._
+`app/desktop_browser.py`, `app/android_launcher.py`, `app/subprocess_env.py`,
+`packaging/` (`README.md`, `kairos.spec`, `smoke_test.py`, `make_icon.py`,
+`kairos.ico`, `android-requirements.txt`), `android/` (renvoi à
+`docs/ANDROID_PACKAGING.md` pour le détail technique)._
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -26,12 +26,15 @@ exposée sur le réseau par défaut, y compris pendant la phase de lancement.
 
 ### Comportement attendu (utilisateur)
 
-- **Bureau** : double-clic sur l'exécutable → le navigateur par défaut s'ouvre tout
-  seul sur Kairos, sans étape intermédiaire, sans terminal visible. Relancer
-  l'exécutable pendant qu'une instance tourne déjà rouvre simplement le navigateur
-  dessus (pas de deuxième instance, pas de port qui dérive). Un bouton « Quitter »
-  dans l'interface arrête le serveur proprement. En cas d'échec au démarrage, une
-  trace exploitable est disponible sans terminal.
+- **Bureau** : double-clic sur l'exécutable → une fenêtre s'ouvre toute seule sur
+  Kairos, sans étape intermédiaire, sans terminal visible, avec le ressenti d'une
+  application de bureau à part entière (pas de barre d'adresse ni d'onglets — voir
+  « fenêtre d'application » ci-dessous) si un navigateur de la famille Chromium est
+  installé, sinon un onglet du navigateur par défaut s'ouvre normalement. Relancer
+  l'exécutable pendant qu'une instance tourne déjà rouvre simplement cette fenêtre
+  (pas de deuxième instance, pas de port qui dérive). Un bouton « Quitter » dans
+  l'interface arrête le serveur proprement. En cas d'échec au démarrage, une trace
+  exploitable est disponible sans terminal.
 - **Android** : icône dans le tiroir d'applications comme n'importe quelle app. Au
   lancement, l'interface Kairos s'affiche dans l'application elle-même (pas de
   navigateur externe, pas d'onglet). On quitte par les mécanismes système standards
@@ -78,8 +81,9 @@ deux reposent sur un ré-exec du process, impossible dans un exécutable figé o
 app Android).
 
 - **Bureau** (`app/launcher.py`) : cible de `packaging/kairos.spec` (PyInstaller,
-  mode onefile). Choisit un port, pose un verrou d'instance unique, ouvre le
-  navigateur, journalise les crashs.
+  mode onefile). Choisit un port, pose un verrou d'instance unique, ouvre la
+  fenêtre d'application (repli onglet de navigateur si indisponible — voir
+  `app/desktop_browser.py`), journalise les crashs.
 - **Android** (`app/android_launcher.py`) : appelé par l'amorce Chaquopy
   (`android/app/src/main/python/kairos_boot.py`) elle-même pilotée par
   `MainActivity` (Java). Pas de navigateur (WebView), pas de verrou (bac à sable
@@ -133,12 +137,27 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
   - `KAIROS_NO_BROWSER` (variable d'environnement) : échappatoire pour les
     lancements automatisés (`packaging/smoke_test.py`) où un vrai navigateur est
     indésirable (processus fantôme sur un runner CI, effets de bord imprévisibles).
+    Reste le tout premier contrôle de `_open_browser` : coupe court avant même la
+    recherche d'un navigateur d'application.
+  - **Fenêtre d'application forcée, avec repli automatique** : `_open_browser`
+    appelle d'abord `find_app_capable_browser()` puis, si un navigateur est trouvé,
+    `launch_app_window(browser_path, url)` (les deux dans `app/desktop_browser.py` —
+    voir détail ci-dessous). Si l'une des deux étapes échoue ou ne trouve rien
+    (aucun navigateur Chromium installé, permission refusée, binaire disparu entre
+    la détection et le lancement...), `_open_browser` retombe silencieusement sur
+    le comportement d'origine : `webbrowser.open` dans un onglet du navigateur par
+    défaut. Aucun réglage utilisateur ne pilote ce choix — voir « Décisions et
+    pièges tracés » pour le pourquoi.
   - `external_process_environ()` (voir `app/subprocess_env.py`) encadre l'appel à
-    `webbrowser.open` : évite qu'un navigateur ou `xdg-open` hérite du
-    `LD_LIBRARY_PATH` détourné par PyInstaller onefile.
-  - `_open_browser_later` : ouvre le navigateur après un délai (`threading.Timer`,
-    1.2 s par défaut) pour laisser le temps à uvicorn de démarrer avant la première
-    requête.
+    `webbrowser.open` du chemin de repli : évite qu'un navigateur ou `xdg-open`
+    hérite du `LD_LIBRARY_PATH` détourné par PyInstaller onefile. Le chemin fenêtre
+    d'application, lui, passe son propre `env=` assaini directement à `Popen` (voir
+    `app/desktop_browser.py::launch_app_window`) plutôt que par ce gestionnaire de
+    contexte, puisque `subprocess.Popen` accepte un `env=` explicite.
+  - `_open_browser_later` : ouvre le navigateur (fenêtre d'application ou onglet de
+    repli, indifféremment — la bascule est interne à `_open_browser`) après un
+    délai (`threading.Timer`, 1.2 s par défaut) pour laisser le temps à uvicorn de
+    démarrer avant la première requête.
 - **`_NullStream` et `_ensure_std_streams`** : sous Windows, un exécutable
   PyInstaller en mode fenêtré (`console=False`) n'a pas de console attachée —
   `sys.stdout`/`sys.stderr` valent `None` plutôt qu'un flux réel. uvicorn plante dès
@@ -163,6 +182,83 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
   `pip install -e .` via `[project.scripts]` → commande `kairos`), tant que la
   racine du dépôt est sur `sys.path` (`pathex` du spec, ou le `.pth` du mode
   editable).
+
+#### `app/desktop_browser.py` — fenêtre d'application (bureau uniquement)
+
+Module dédié, séparé de `launcher.py`, pour garder sa logique (détection d'un
+navigateur, construction des arguments de lancement) pure et testable sans toucher
+à uvicorn, aux threads ou au fichier de verrou. Non utilisé côté Android
+(`android_launcher.py` ne lance aucun navigateur externe).
+
+- **`find_app_capable_browser() -> str | None`** : cherche un navigateur de la
+  famille Chromium installé sur le poste (seuls ces navigateurs acceptent
+  l'indicateur `--app=URL` — voir « Décisions et pièges tracés »).
+  - `KAIROS_BROWSER` (variable d'environnement) : si posée, prioritaire sur toute
+    détection automatique. Accepte un chemin de fichier exécutable direct ou un nom
+    résoluble via `shutil.which` (ex. un nom de binaire déjà sur le `PATH`).
+    Échappatoire pour les tests/CI (imposer un binaire précis sans dépendre de
+    l'environnement réel) et pour un utilisateur avancé voulant forcer un
+    navigateur particulier. Documentée ici aux côtés de `KAIROS_NO_BROWSER` pour
+    garder les deux variables d'environnement du lancement bureau au même endroit.
+  - **Linux** (`sys.platform == "linux"`) : `shutil.which(name)` pour chaque nom de
+    la liste `_LINUX_BROWSER_NAMES`, dans l'ordre : `google-chrome-stable`,
+    `google-chrome`, `chromium-browser`, `chromium`, `brave-browser`,
+    `microsoft-edge`, `microsoft-edge-stable`, `vivaldi-stable`, `vivaldi`. Premier
+    trouvé retenu ; l'ordre est arbitraire (pas de hiérarchie qualitative), juste
+    stable pour un comportement déterministe d'un poste à l'autre.
+  - **Windows** (`sys.platform == "win32"`) : teste chaque chemin relatif de
+    `_WINDOWS_BROWSER_RELATIVE_PATHS` (`Google\Chrome\Application\chrome.exe`,
+    `Microsoft\Edge\Application\msedge.exe`,
+    `BraveSoftware\Brave-Browser\Application\brave.exe`,
+    `Vivaldi\Application\vivaldi.exe`) sous chacun des dossiers de base
+    `%ProgramFiles%`, `%ProgramFiles(x86)%`, `%LocalAppData%` (chacun peut être
+    absent de l'environnement — ignoré silencieusement dans ce cas). Les trois bases
+    sont testées pour chaque navigateur (pas de correspondance figée navigateur →
+    base) car une installation « pour tous les utilisateurs » vs « pour
+    l'utilisateur courant » détermine laquelle est utilisée, et ça varie d'un poste
+    à l'autre.
+  - **Autre OS (macOS compris)** : `None` sans détection dédiée — macOS est hors
+    périmètre de Kairos (voir § Hors périmètre plus haut) ; `_open_browser` retombe
+    alors automatiquement sur `webbrowser.open`.
+  - Fonction pure (aucun effet de bord, aucune impression) : testée en
+    monkeypatchant `shutil.which` et les variables d'environnement lues.
+- **`launch_app_window(browser_path: str, url: str) -> bool`** : construit
+  `[browser_path, f"--user-data-dir={profile_dir}", f"--app={url}"]` où
+  `profile_dir = str(data_dir() / "browser-profile")` (voir
+  `app/settings_store.py::data_dir` — même dossier de données que le verrou et le
+  journal de crash du launcher), puis lance ce process via `subprocess.Popen`
+  (`stdin`/`stdout`/`stderr` sur `DEVNULL`, `start_new_session=True`, et
+  `creationflags=subprocess.DETACHED_PROCESS` sous Windows quand cet attribut
+  existe) — détaché complètement, jamais attendu (`Popen` sans `.wait()`), pour ne
+  jamais bloquer ni retenir le process Kairos à la sortie de l'interpréteur.
+  - **Profil de navigateur dédié** (`browser-profile`, sous-dossier de
+    `data_dir()`) : isole la fenêtre d'application du profil personnel de
+    l'utilisateur (onglets, extensions, sessions, historique) — la fenêtre
+    d'application ne doit ni s'y mêler ni en dépendre, et un même profil Chromium
+    ne peut de toute façon pas être ouvert simultanément par deux processus
+    distincts (ce qui rentrerait en conflit avec une session normale déjà ouverte
+    dans ce navigateur).
+  - `env=external_process_env()` (voir `app/subprocess_env.py`, la fonction qui
+    retourne un dict, pas le gestionnaire de contexte `external_process_environ()`
+    utilisé par le chemin `webbrowser.open` — `Popen` accepte un `env=` explicite,
+    pas besoin de basculer temporairement `os.environ` du process courant) : même
+    protection que le chemin de repli contre l'héritage du `LD_LIBRARY_PATH`
+    détourné par PyInstaller onefile.
+  - **Tout l'appel est encadré d'un `try/except Exception`** : sur n'importe quel
+    échec (binaire disparu entre la détection et le lancement, permission refusée,
+    autre surprise), retourne `False` sans rien journaliser (fonctionnalité de
+    confort en arrière-plan, jamais bloquante) plutôt que de laisser l'exception
+    remonter — `_open_browser` retombe alors sur `webbrowser.open`.
+  - Retourne `True` sur un lancement réussi — sans garantie que la fenêtre
+    s'affiche effectivement (le process a démarré, rien de plus n'est vérifié).
+- **Icône de la fenêtre d'application** : `--app=URL` affiche l'icône déclarée par
+  la page elle-même (favicon / manifeste web), pas une icône générique de
+  navigateur. Le `<head>` des templates de bureau référence
+  `static/manifest.webmanifest` et les icônes `static/icon-192.png`,
+  `static/icon-512.png`, `static/apple-touch-icon.png` (générées par
+  `packaging/make_icon.py`, hors périmètre de ce module) — sans ces fichiers, la
+  fenêtre d'application s'affiche quand même (repli sur une icône générique de
+  Chromium), mais sans le rendu « app installée » complet recherché.
 
 #### `app/android_launcher.py` — lancement Android
 
@@ -219,7 +315,8 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
 - **`external_process_env()`** : copie de `os.environ` avec les chemins de
   bibliothèques dynamiques restaurés à leur valeur d'avant PyInstaller (dépile
   `..._ORIG`, ou retire la variable si elle n'existait pas avant) — à passer en
-  `env=` à `subprocess.run`/`Popen` pour un exécutable externe.
+  `env=` à `subprocess.run`/`Popen` pour un exécutable externe. Utilisé par
+  `app/desktop_browser.py::launch_app_window` (fenêtre d'application).
 - **`external_process_environ()`** (context manager) : bascule temporairement
   `os.environ` du process courant sur cet environnement assaini, pour les API qui ne
   permettent pas de passer un `env=` explicite (cas de `webbrowser.open`, utilisé par
@@ -368,6 +465,34 @@ cette spec (pas de duplication du reste) :
 - **`KAIROS_NO_BROWSER`** : échappatoire délibérée pour les lancements automatisés
   (smoke test, CI) — évite un navigateur fantôme sur un runner headless et les
   effets de bord d'un vrai navigateur ouvert pendant un test.
+- **`KAIROS_BROWSER`** : échappatoire similaire, pour imposer un binaire de
+  navigateur précis à `find_app_capable_browser()` plutôt que de dépendre de ce qui
+  est réellement installé sur la machine (tests, CI, ou utilisateur avancé voulant
+  forcer un navigateur particulier). Documentée aux côtés de `KAIROS_NO_BROWSER`
+  pour garder ensemble les deux variables d'environnement qui pilotent le
+  lancement du navigateur bureau.
+- **Fenêtre d'application forcée par défaut, sans réglage utilisateur** : pas de
+  case à cocher dans la page Réglages pour désactiver ce comportement — décision
+  de simplicité assumée. Le risque qu'un tel réglage couvrirait (aucun navigateur
+  Chromium disponible, ou son lancement échoue) est déjà couvert automatiquement
+  par le repli silencieux vers `webbrowser.open` : un réglage n'ajouterait qu'une
+  option de plus à maintenir et à expliquer, sans bénéfice utilisateur réel
+  (l'app se dégrade déjà proprement toute seule).
+- **Seule la famille Chromium est ciblée pour la fenêtre d'application** (pas
+  Firefox, pas Safari) : ces navigateurs n'ont pas d'indicateur de ligne de
+  commande strictement équivalent à `--app=URL` (mode sans barre d'adresse ni
+  onglets, fenêtre dédiée à une seule origine) — Firefox n'expose ce type de mode
+  qu'au travers d'extensions tierces ou d'un profil dédié bien plus lourd à
+  provisionner, hors périmètre pour ce gain de confort. Un poste sans navigateur
+  Chromium installé retombe simplement sur l'onglet de navigateur par défaut
+  (comportement d'origine), jamais une erreur.
+- **Profil de navigateur dédié (`data_dir() / "browser-profile"`)** pour la
+  fenêtre d'application (`app/desktop_browser.py::launch_app_window`) : isolation
+  du profil personnel de l'utilisateur (extensions, sessions, historique,
+  cookies) — la fenêtre d'application ne doit ni les lire ni les modifier, et
+  ouvrir le profil normal de l'utilisateur simultanément par un second process
+  Chromium échouerait de toute façon (un profil ne s'ouvre pas deux fois en
+  parallèle).
 - **Pas de `reload`/`workers>1` dans aucun des deux `uvicorn.run`** : ces options
   reposent toutes deux sur un ré-exec du process (rechargeur, workers multiples),
   incompatible avec un exécutable figé (PyInstaller) ou une application Android.

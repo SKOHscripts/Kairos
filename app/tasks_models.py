@@ -185,6 +185,35 @@ class WorkSession(TasksBase):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class Note(TasksBase):
+    """Note libre (« brain dump » GTD), capturée sans friction avant qualification.
+
+    Étape de **capture** en amont de la boîte de réception de la vue Jour (qui ne
+    reçoit que des `Task` titre-seul, avec priorité/points à poser) : une note n'a
+    ni priorité, ni points, ni échéance — juste un corps de texte libre, posé le
+    plus vite possible, décidé plus tard. `converted_task_id` (nullable, **sans
+    contrainte FK**, même parti pris que `Task.parent_id`/`linked_ticket_id` — voir
+    docs/spec/modele-donnees.md) trace la tâche créée lors d'une conversion
+    note → tâche, en lecture seule (aucune synchro retour). `status='archived'` est
+    la façon dont une note convertie (ou classée sans suite) sort de la liste de
+    capture active **sans jamais être supprimée** : mêmes principes de non-perte
+    que `Task.status='archived'`.
+    """
+
+    __tablename__ = "note"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    body: Mapped[str] = mapped_column(Text, default="")
+    # 'open' | 'archived'.
+    status: Mapped[str] = mapped_column(String(16), default="open", index=True)
+    # Id local de la tâche créée par conversion, sans contrainte FK — référence
+    # « molle », cohérente avec le reste du schéma. None tant que la note n'a pas
+    # été convertie.
+    converted_task_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now)
+
+
 class TaskSyncMeta(TasksBase):
     """Méta du dernier fetch réussi par source (mirror de `GitLabRefreshMeta`).
 

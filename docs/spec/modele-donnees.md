@@ -80,8 +80,8 @@ Android (Chaquopy + WebView). Il lui faut un stockage :
 Deux fichiers forment le socle de persistance :
 
 - `app/tasks_models.py` définit `TasksBase` (une `DeclarativeBase` SQLAlchemy 2
-  dédiée) et les cinq tables : `Task`, `TimeBlock`, `TaskDependency`,
-  `WorkSession`, `TaskSyncMeta`, plus la constante `FIBONACCI_SCALE`.
+  dédiée) et les six tables : `Task`, `TimeBlock`, `TaskDependency`,
+  `WorkSession`, `TaskSyncMeta`, `Note`, plus la constante `FIBONACCI_SCALE`.
 - `app/tasks_db.py` crée le moteur (`tasks_engine`) et la fabrique de sessions
   (`TasksSessionLocal`) pointant sur `Settings.tasks_database_url`
   (`sqlite:///{tasks_database_path}`), gère la migration additive légère
@@ -301,6 +301,31 @@ pas de scheduler en tâche de fond) et à l'affichage d'un avertissement quand l
 dernière synchro a échoué. La source historique `'superproductivity'` est
 purgée par la migration de retrait de l'intégration (voir plus bas).
 
+**`Note`** — table `note`. Note libre (« brain dump » GTD), capture en amont de
+la boîte de réception de la vue Jour — voir `docs/spec/notes-capture.md` pour
+le besoin métier et les routes ; ce document ne couvre que la forme des
+données.
+
+- `id: int` — clé primaire.
+- `body: str` (`Text`, défaut `""`) — corps de texte libre, multi-ligne.
+- `status: str` (`String(16)`, défaut `"open"`, **indexé**) — `'open'` |
+  `'archived'`. `'archived'` signifie que la note a été convertie en tâche
+  (voir `converted_task_id`) ou classée sans suite ; comme pour `Task.status`,
+  une note **n'est jamais supprimée** par ce passage à `'archived'` — seule
+  la route `DELETE`-like `POST /kairos/notes/{id}/delete` supprime réellement
+  la ligne.
+- `converted_task_id: int | None` (`Integer`, nullable) — référence locale
+  vers `Task.id`, posée uniquement par la conversion note → tâche, **sans
+  contrainte `ForeignKey`** déclarée : même parti pris que `Task.parent_id`/
+  `TaskDependency.blocker_id`/`Task.linked_ticket_id` (« référence molle »,
+  cohérente avec le reste du schéma — voir § Décisions et pièges tracés).
+  `None` tant que la note n'a pas été convertie.
+- `created_at: datetime` (`DateTime`, défaut `_now`).
+- `updated_at: datetime` (`DateTime`, défaut `_now`, `onupdate=_now`).
+
+Pas de `UniqueConstraint` sur `Note` : aucune notion de doublon appliquée côté
+base, une capture rapide peut légitimement dupliquer une idée déjà notée.
+
 #### `app/tasks_db.py`
 
 **Engine et session** — `tasks_engine = create_engine(_settings.
@@ -346,7 +371,11 @@ Note : les colonnes présentes **dès la création initiale** de `Task`
 (`title`…`external_id`, `created_at`, `updated_at`) et de `TimeBlock`
 (`title`…`external_id`, `created_at`) n'apparaissent **pas** dans ce dictionnaire
 — seules les colonnes ajoutées *après coup* y figurent, car `create_all()` ne
-modifie jamais une table existante (seulement les tables absentes).
+modifie jamais une table existante (seulement les tables absentes). Une table
+**entièrement nouvelle** (ex. `note`, ajoutée avec `Note`) n'a besoin d'aucune
+entrée non plus, pour la même raison à l'envers : `create_all()` la crée dans
+son intégralité (toutes ses colonnes déjà à jour) sur toute base où elle est
+absente, qu'elle soit vierge ou déjà peuplée par d'autres tables.
 
 **`_ensure_tasks_columns()`** — pour chaque table du dictionnaire présente dans
 la base (`inspector.get_table_names()`), calcule l'ensemble des colonnes
@@ -476,6 +505,12 @@ Trois créneaux (`TimeBlock`), ajoutés par un unique `session.add_all([...])` :
 `source="native"` + `project_tag=EXAMPLE_PROJECT_TAG` + `session.add` +
 `session.flush()` — le `flush()` est nécessaire pour obtenir l'`id` attribué
 avant de le référencer en `parent_id` (sous-tâches) ou dans un `TaskDependency`.
+
+Une **note** d'exemple (`Note`, préfixée `[Exemple]` comme le reste) est
+ajoutée à la suite, hors de `add_task` (elle n'a ni `source` ni `project_tag` —
+ces champs n'existent pas sur `Note`) : illustre l'étape de capture GTD en
+amont de la boîte de réception, pour qu'un nouvel utilisateur découvre aussi la
+page Notes dès le premier lancement.
 
 ### Décisions et pièges tracés
 

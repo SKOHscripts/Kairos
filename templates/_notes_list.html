@@ -1,0 +1,78 @@
+{# Partiel de la page Notes : rendu à l'intérieur de `#mj-notes-content` par
+   `notes.html` (page pleine, `{% include %}`) ET rendu directement, sans
+   enveloppe, par `render_notes_response(fragment=True)` pour les réponses AJAX
+   (voir app/main.py) — même patron que `_kairos_day.html`/`#mj-day-content`
+   (docs/spec/vue-jour-gtd.md), un seul `id="mj-notes-content"` dans toute
+   l'app, posé par `notes.html`, jamais ici. #}
+{% from "_icons.html" import icon %}
+
+{# Notes ouvertes (capture active) : jamais masquées derrière un <details>, état
+   vide explicite si la liste est vide — même principe que la boîte de réception
+   de la vue Jour (`.mj-inbox-empty`, docs/spec/vue-jour-gtd.md). #}
+<section class="card" id="mj-notes-open" style="padding:1rem 1.1rem;">
+  <div class="mj-section-head">
+    <span class="mj-section-title">Notes <span class="count">({{ open_notes|length }})</span></span>
+  </div>
+  {% if not open_notes %}
+  <p class="hint">{{ icon('check_circle') }} Rien en attente : la capture est vide.</p>
+  {% else %}
+  <ul class="kairos-list">
+    {% for note in open_notes %}
+    <li class="kairos-item" style="align-items:flex-start;">
+      <p style="flex:0 0 100%;margin:0;white-space:pre-wrap;color:var(--text);">{{ note.body }}</p>
+      <span class="muted" style="font-size:11px;">{{ note.created_at.strftime('%d/%m %Hh%M') }}</span>
+      <span class="mj-actions">
+        <form method="post" action="/kairos/notes/{{ note.id }}/convert" class="inline" data-ajax>
+          <button type="submit" class="btn sm" title="Convertir en tâche (arrive titre-seul dans la boîte de réception de la vue Jour)">
+            {{ icon('arrow_up_right') }} Tâche</button>
+        </form>
+        {# Panneau d'édition flottant : même patron que edit_panel() de
+           _kairos_macros.html (.mj-edit/.mj-edit-toggle/.mj-edit-body), seule
+           vraie modale de l'app (voir CLAUDE.md § Forme & effets) — réutilisée
+           telle quelle pour la cohérence visuelle, avec un gestionnaire JS
+           propre à notes.html (page indépendante, pas de dépendance à
+           kairos.html). #}
+        <span class="mj-edit">
+          <button type="button" class="icbtn mj-edit-toggle" title="Modifier" aria-expanded="false">{{ icon('pencil') }}</button>
+          <div class="mj-edit-body" hidden>
+            <form method="post" action="/kairos/notes/{{ note.id }}/edit" class="mj-edit-form" data-ajax>
+              <label>Note<textarea name="body" rows="4" required>{{ note.body }}</textarea></label>
+              <div class="mj-edit-row">
+                <button type="submit" class="btn sm primary">{{ icon('save') }} Enregistrer</button>
+              </div>
+            </form>
+          </div>
+        </span>
+        <form method="post" action="/kairos/notes/{{ note.id }}/archive" class="inline" data-ajax>
+          <button type="submit" class="btn sm" title="Archiver sans en faire une tâche">{{ icon('folder') }} Archiver</button>
+        </form>
+        <form method="post" action="/kairos/notes/{{ note.id }}/delete" class="inline" data-ajax
+              onsubmit="return confirm('Supprimer cette note définitivement ?');">
+          <button type="submit" class="btn sm danger" title="Supprimer définitivement">{{ icon('trash') }} Supprimer</button>
+        </form>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+
+{# Traité / archivé : notes converties (avec lien vers la tâche créée) ou classées
+   sans suite, repliées par défaut — même motif que le Backlog/les sections
+   secondaires de la vue Jour (`<details class="card">` + `.collapser`). #}
+{% if archived_notes %}
+<details class="card">
+  <summary class="collapser">{{ icon('chevron_right', '') }} Traité / archivé ({{ archived_notes|length }})</summary>
+  <ul class="kairos-list" style="padding:0 1.1rem 0.9rem;">
+    {% for note in archived_notes %}
+    <li class="kairos-item" style="align-items:flex-start;">
+      <p class="muted" style="flex:0 0 100%;margin:0;white-space:pre-wrap;">{{ note.body }}</p>
+      <span class="muted" style="font-size:11px;">{{ note.created_at.strftime('%d/%m %Hh%M') }}</span>
+      {% if note.converted_task_id %}
+      <a class="badge info" href="/kairos#mj-inbox">{{ icon('arrow_up_right') }} voir la tâche créée</a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}

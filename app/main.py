@@ -49,6 +49,7 @@ from .tasks_dependencies import (
 )
 from .tasks_models import (
     FIBONACCI_SCALE,
+    Note,
     Task,
     TaskDependency,
     TimeBlock,
@@ -1291,4 +1292,144 @@ def delete_manual_block(request: Request) -> RedirectResponse:
             tasks_session.delete(block)
             tasks_session.commit()
     return RedirectResponse("/kairos", status_code=303)
+
+
+# --------------------------------------------------------------------------
+# Notes (capture GTD, en amont de l'inbox de la vue Jour) — voir
+# docs/spec/notes-capture.md. Même patron de rendu que « Kairos » (fragment
+# AJAX négocié sur `X-Requested-With: fetch`), mirroré ici avec son propre
+# contenu (`_notes_list.html`, id `#mj-notes-content`) plutôt que réutilisé.
+# --------------------------------------------------------------------------
+
+
+def _build_notes_context(request: Request, tasks_session: Session) -> dict:
+    """Contexte de rendu de la page Notes : notes ouvertes (capture active) et
+    notes archivées (converties ou classées sans suite), les deux triées de la
+    plus récente à la plus ancienne — symétrique de `_build_kairos_context`."""
+    open_notes = list(
+        tasks_session.scalars(
+            select(Note).where(Note.status == "open").order_by(Note.created_at.desc())
+        )
+    )
+    archived_notes = list(
+        tasks_session.scalars(
+            select(Note).where(Note.status == "archived").order_by(Note.created_at.desc())
+        )
+    )
+    return {
+        "page": "notes",
+        "open_notes": open_notes,
+        "archived_notes": archived_notes,
+    }
+
+
+def render_notes_response(request: Request, *, fragment: bool) -> Response:
+    """Point d'entrée unique de rendu de la page Notes, même contrat que
+    `render_kairos_response` : `fragment=False` rend la page pleine
+    (`notes.html`), `fragment=True` rend seulement `_notes_list.html`
+    (id `#mj-notes-content`), utilisé par les handlers d'action pour
+    l'amélioration progressive AJAX. Les handlers doivent avoir committé et
+    fermé leur propre session avant d'appeler cette fonction, qui rouvre une
+    session fraîche — jamais de session imbriquée (même invariant que Kairos)."""
+    with _request_session(get_tasks_session) as tasks_session:
+        context = _build_notes_context(request, tasks_session)
+        template_name = "_notes_list.html" if fragment else "notes.html"
+        return templates.TemplateResponse(request, template_name, context)
+
+
+@app.get("/kairos/notes")
+def notes_page(request: Request) -> HTMLResponse:
+    return render_notes_response(request, fragment=False)
+
+
+def _notes_action_response(request: Request) -> Response:
+    """Réponse commune des handlers d'action Notes : mêmes règles que
+    `_kairos_action_response` (fragment AJAX si `X-Requested-With: fetch`,
+    sinon redirection 303 complète — repli sans JS pour la WebView Android et
+    l'accessibilité)."""
+    if request.headers.get("X-Requested-With") == "fetch":
+        return render_notes_response(request, fragment=True)
+    return RedirectResponse("/kairos/notes", status_code=303)
+
+
+@app.post("/kairos/notes")
+async def create_note(request: Request) -> Response:
+    """Capture rapide : un corps de texte libre, rien d'autre — pas de priorité,
+    pas de points, pas d'échéance (c'est tout l'intérêt par rapport à la boîte
+    de réception de la vue Jour, qui porte déjà ces champs sur `Task`)."""
+    form = await request.form()
+    body = str(form.get("body", "")).strip()
+    with _request_session(get_tasks_session) as tasks_session:
+        if body:
+            tasks_session.add(Note(body=body))
+            tasks_session.commit()
+    return _notes_action_response(request)
+
+
+@app.post("/kairos/notes/{note_id:int}/edit")
+async def edit_note(request: Request) -> Response:
+    """Édite le corps d'une note existante. Note disparue entre-temps → no-op
+    silencieux (même tolérance que les handlers d'action de la vue Jour)."""
+    form = await request.form()
+    with _request_session(get_tasks_session) as tasks_session:
+        note = tasks_session.get(Note, request.path_params["note_id"])
+        if note is not None:
+            note.body = str(form.get("body", "")).strip()
+            tasks_session.commit()
+    return _notes_action_response(request)
+
+
+def _note_title_from_body(body: str) -> str:
+    """Titre de la tâche créée par conversion : première ligne non vide du corps
+    de la note, tronquée à 200 caractères (cohérent avec `Task.title`,
+    `String(512)`, mais une capture rapide n'a pas besoin d'approcher cette
+    limite)."""
+    first_line = next((line.strip() for line in body.splitlines() if line.strip()), "")
+    return first_line[:200]
+
+
+@app.post("/kairos/notes/{note_id:int}/convert")
+def convert_note_to_task(request: Request) -> Response:
+    """Le moment clé du flux : la note devient une tâche titre-seul (elle atterrit
+    dans l'inbox « À traiter » de la vue Jour, à qualifier comme n'importe quelle
+    autre capture), la note elle-même est **archivée et liée**, jamais supprimée —
+    préserve l'historique de la capture d'origine (voir `Note.converted_task_id`,
+    sans contrainte FK, cohérent avec le reste du schéma)."""
+    with _request_session(get_tasks_session) as tasks_session:
+        note = tasks_session.get(Note, request.path_params["note_id"])
+        if note is not None and note.status == "open":
+            title = _note_title_from_body(note.body)
+            if title:
+                task = Task(title=title, source="native")
+                tasks_session.add(task)
+                tasks_session.flush()  # attribue l'id avant de le référencer
+                note.status = "archived"
+                note.converted_task_id = task.id
+                tasks_session.commit()
+    return _notes_action_response(request)
+
+
+@app.post("/kairos/notes/{note_id:int}/archive")
+def archive_note(request: Request) -> Response:
+    """Classe une note sans suite : retirée de la liste de capture active, jamais
+    supprimée (même sémantique que la conversion, sans `converted_task_id`)."""
+    with _request_session(get_tasks_session) as tasks_session:
+        note = tasks_session.get(Note, request.path_params["note_id"])
+        if note is not None:
+            note.status = "archived"
+            tasks_session.commit()
+    return _notes_action_response(request)
+
+
+@app.post("/kairos/notes/{note_id:int}/delete")
+def delete_note(request: Request) -> Response:
+    """Suppression définitive — à la différence de l'archivage, retire la ligne en
+    base (une note n'a pas d'historique de priorisation à préserver, contrairement
+    à une tâche)."""
+    with _request_session(get_tasks_session) as tasks_session:
+        note = tasks_session.get(Note, request.path_params["note_id"])
+        if note is not None:
+            tasks_session.delete(note)
+            tasks_session.commit()
+    return _notes_action_response(request)
 

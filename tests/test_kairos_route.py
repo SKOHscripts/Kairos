@@ -2108,7 +2108,9 @@ def test_bottom_nav_shown_when_android(route_client, monkeypatch) -> None:
     resp = client.get("/kairos")
     assert '<nav class="bn-nav">' in resp.text
     assert 'class="layout is-android"' in resp.text
-    assert resp.text.count('class="bn-item') == 5
+    # Six entrées depuis l'ajout de la page Notes (capture GTD) entre Accueil et
+    # Jour — voir docs/spec/accueil-navigation.md et docs/spec/notes-capture.md.
+    assert resp.text.count('class="bn-item') == 6
 
 
 def test_shutdown_route_sends_sigint_to_self(monkeypatch) -> None:

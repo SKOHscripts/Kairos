@@ -10,6 +10,7 @@ import socket
 import sys
 import threading
 
+from app.desktop_browser import find_app_capable_browser, launch_app_window
 from app.launcher import (
     _clear_lock,
     _ensure_std_streams,
@@ -132,6 +133,9 @@ def test_open_browser_uses_sanitized_environment(monkeypatch) -> None:
     monkeypatch.delenv("KAIROS_NO_BROWSER", raising=False)
     monkeypatch.setenv("LD_LIBRARY_PATH", "/tmp/_MEIxxxxxx")
     monkeypatch.delenv("LD_LIBRARY_PATH_ORIG", raising=False)
+    # Aucun navigateur Chromium trouvé : force le repli `webbrowser.open`,
+    # déterministe qu'un Chromium soit installé ou non sur la machine de test.
+    monkeypatch.setattr("app.launcher.find_app_capable_browser", lambda: None)
     seen = {}
 
     def fake_open(url):
@@ -159,7 +163,166 @@ def test_open_browser_skips_when_disabled_via_env(monkeypatch) -> None:
         return True
 
     monkeypatch.setattr("app.launcher.webbrowser.open", fake_open)
+    # Ni la recherche de navigateur d'application ni `webbrowser.open` ne
+    # doivent être tentés : KAIROS_NO_BROWSER coupe tout avant.
+    monkeypatch.setattr(
+        "app.launcher.find_app_capable_browser",
+        lambda: (_ for _ in ()).throw(AssertionError("ne doit pas être appelé")),
+    )
 
     _open_browser("http://127.0.0.1:8001")
 
     assert called is False
+
+
+def test_open_browser_skips_disabled_via_env_without_app_window_attempt(monkeypatch) -> None:
+    """Variante explicite : KAIROS_NO_BROWSER doit rester le tout premier
+    contrôle, avant même la tentative de fenêtre d'application (comportement
+    déjà garanti avant ce module, à ne jamais régresser)."""
+    monkeypatch.setenv("KAIROS_NO_BROWSER", "1")
+    launch_called = False
+
+    def fake_launch(browser_path, url):
+        nonlocal launch_called
+        launch_called = True
+        return True
+
+    monkeypatch.setattr("app.launcher.find_app_capable_browser", lambda: "/usr/bin/chromium")
+    monkeypatch.setattr("app.launcher.launch_app_window", fake_launch)
+    monkeypatch.setattr(
+        "app.launcher.webbrowser.open",
+        lambda url: (_ for _ in ()).throw(AssertionError("ne doit pas être appelé")),
+    )
+
+    _open_browser("http://127.0.0.1:8001")
+
+    assert launch_called is False
+
+
+def test_open_browser_prefers_app_window_and_skips_webbrowser(monkeypatch) -> None:
+    """Quand un navigateur Chromium est trouvé et se lance avec succès,
+    `webbrowser.open` (repli) ne doit jamais être appelé."""
+    monkeypatch.delenv("KAIROS_NO_BROWSER", raising=False)
+    monkeypatch.setattr("app.launcher.find_app_capable_browser", lambda: "/usr/bin/chromium")
+    monkeypatch.setattr("app.launcher.launch_app_window", lambda browser_path, url: True)
+    monkeypatch.setattr(
+        "app.launcher.webbrowser.open",
+        lambda url: (_ for _ in ()).throw(AssertionError("ne doit pas être appelé")),
+    )
+
+    _open_browser("http://127.0.0.1:8001")  # ne doit pas lever
+
+
+def test_open_browser_falls_back_when_no_app_capable_browser_found(monkeypatch) -> None:
+    """Aucun navigateur Chromium détecté : repli automatique sur
+    `webbrowser.open`, comportement d'origine."""
+    monkeypatch.delenv("KAIROS_NO_BROWSER", raising=False)
+    monkeypatch.setattr("app.launcher.find_app_capable_browser", lambda: None)
+    called = False
+
+    def fake_open(url):
+        nonlocal called
+        called = True
+        return True
+
+    monkeypatch.setattr("app.launcher.webbrowser.open", fake_open)
+
+    _open_browser("http://127.0.0.1:8001")
+
+    assert called is True
+
+
+def test_open_browser_falls_back_when_app_window_launch_fails(monkeypatch) -> None:
+    """Un navigateur Chromium est trouvé mais son lancement échoue
+    (`launch_app_window` renvoie `False`) : repli automatique sur
+    `webbrowser.open`, jamais d'erreur remontée."""
+    monkeypatch.delenv("KAIROS_NO_BROWSER", raising=False)
+    monkeypatch.setattr("app.launcher.find_app_capable_browser", lambda: "/usr/bin/chromium")
+    monkeypatch.setattr("app.launcher.launch_app_window", lambda browser_path, url: False)
+    called = False
+
+    def fake_open(url):
+        nonlocal called
+        called = True
+        return True
+
+    monkeypatch.setattr("app.launcher.webbrowser.open", fake_open)
+
+    _open_browser("http://127.0.0.1:8001")
+
+    assert called is True
+
+
+# --- app/desktop_browser.py -------------------------------------------------
+
+
+def test_find_app_capable_browser_returns_none_when_nothing_found(monkeypatch) -> None:
+    monkeypatch.delenv("KAIROS_BROWSER", raising=False)
+    monkeypatch.setattr("app.desktop_browser.sys.platform", "linux")
+    monkeypatch.setattr("app.desktop_browser.shutil.which", lambda name: None)
+
+    assert find_app_capable_browser() is None
+
+
+def test_find_app_capable_browser_returns_first_match_on_linux(monkeypatch) -> None:
+    monkeypatch.delenv("KAIROS_BROWSER", raising=False)
+    monkeypatch.setattr("app.desktop_browser.sys.platform", "linux")
+
+    def fake_which(name):
+        return "/usr/bin/chromium" if name == "chromium" else None
+
+    monkeypatch.setattr("app.desktop_browser.shutil.which", fake_which)
+
+    assert find_app_capable_browser() == "/usr/bin/chromium"
+
+
+def test_find_app_capable_browser_env_override_takes_priority(monkeypatch, tmp_path) -> None:
+    fake_browser = tmp_path / "my-browser"
+    fake_browser.write_text("#!/bin/sh\n", encoding="utf-8")
+    fake_browser.chmod(0o755)
+    monkeypatch.setenv("KAIROS_BROWSER", str(fake_browser))
+
+    def fail_which(name):  # pragma: no cover - ne doit jamais être appelé
+        raise AssertionError("shutil.which ne doit pas être consulté avec KAIROS_BROWSER posé")
+
+    monkeypatch.setattr("app.desktop_browser.shutil.which", fail_which)
+
+    assert find_app_capable_browser() == str(fake_browser)
+
+
+def test_launch_app_window_builds_argv_with_app_and_profile_flags(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr("app.desktop_browser.data_dir", lambda: tmp_path)
+    seen_argv = {}
+
+    class _FakeProcess:
+        pass
+
+    def fake_popen(argv, **kwargs):
+        seen_argv["argv"] = argv
+        return _FakeProcess()
+
+    monkeypatch.setattr("app.desktop_browser.subprocess.Popen", fake_popen)
+
+    result = launch_app_window("/usr/bin/chromium", "http://127.0.0.1:8001")
+
+    assert result is True
+    argv = seen_argv["argv"]
+    assert argv[0] == "/usr/bin/chromium"
+    assert "--app=http://127.0.0.1:8001" in argv
+    assert any(arg.startswith("--user-data-dir=") for arg in argv)
+    assert any(str(tmp_path) in arg for arg in argv if arg.startswith("--user-data-dir="))
+
+
+def test_launch_app_window_returns_false_and_does_not_raise_on_popen_error(
+    monkeypatch, tmp_path
+) -> None:
+    monkeypatch.setattr("app.desktop_browser.data_dir", lambda: tmp_path)
+
+    def failing_popen(argv, **kwargs):
+        raise OSError("binaire introuvable")
+
+    monkeypatch.setattr("app.desktop_browser.subprocess.Popen", failing_popen)
+
+    result = launch_app_window("/usr/bin/chromium", "http://127.0.0.1:8001")
+
+    assert result is False
