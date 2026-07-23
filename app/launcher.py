@@ -43,6 +43,7 @@ import uvicorn
 # fonctionnent dans les deux cas (script figé et `pip install -e .`), tant que
 # la racine du dépôt est sur `sys.path` (c'est le cas ici : `pathex` du spec,
 # ou le `.pth` du mode editable).
+from app.desktop_browser import find_app_capable_browser, launch_app_window
 from app.main import app
 from app.settings_store import data_dir
 from app.subprocess_env import external_process_environ
@@ -70,6 +71,16 @@ def _open_browser(url: str) -> None:
     # `packaging/smoke_test.py`) où ouvrir un vrai navigateur est indésirable
     # (processus fantôme sur un runner CI, effets de bord imprévisibles).
     if os.environ.get("KAIROS_NO_BROWSER"):
+        return
+    # Fenêtre d'application (Chromium `--app=URL`, voir `app/desktop_browser.py`)
+    # imposée par défaut, sans réglage utilisateur : c'est le ressenti recherché
+    # pour l'exécutable de bureau (pas un onglet de navigateur généraliste), et
+    # ça se dégrade tout seul vers l'ancien comportement (onglet du navigateur
+    # par défaut) si aucun navigateur Chromium n'est trouvé ou si son lancement
+    # échoue pour n'importe quelle raison — jamais d'erreur remontée à
+    # l'utilisateur pour cette fonctionnalité de confort.
+    browser_path = find_app_capable_browser()
+    if browser_path and launch_app_window(browser_path, url):
         return
     # `external_process_environ()` : voir `app/subprocess_env.py` — évite
     # qu'un navigateur/`xdg-open` lancé par PyInstaller (mode onefile) hérite

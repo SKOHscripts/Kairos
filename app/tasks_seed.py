@@ -20,7 +20,7 @@ from datetime import date, datetime, time, timedelta
 
 from sqlalchemy.orm import Session
 
-from .tasks_models import Task, TaskDependency, TimeBlock
+from .tasks_models import Note, Task, TaskDependency, TimeBlock
 
 EXAMPLE_PROJECT_TAG = "Exemple"
 
@@ -177,5 +177,18 @@ def seed_example_data(session: Session, *, today: date) -> None:
                 recurrence="daily",
             ),
         ]
+    )
+    session.flush()
+
+    # Note d'exemple (capture GTD) : illustre l'étape en amont de l'inbox « À
+    # traiter » (page Notes) — une idée jetée sans friction, pas encore une tâche.
+    session.add(
+        Note(
+            body=(
+                "[Exemple] Idée en vrac : revoir le découpage des sprints ?\n"
+                "À développer avant d'en faire une tâche — ou à archiver si "
+                "ça ne mène nulle part."
+            )
+        )
     )
     session.flush()

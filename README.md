@@ -54,8 +54,11 @@ Pas besoin de Python, de venv ni de terminal. Les
 [releases GitHub](https://github.com/SKOHscripts/Kairos/releases) proposent un exécutable
 autonome par OS (`kairos-linux-x86_64`, `kairos-windows-x86_64.exe`) et un APK Android
 (`kairos-android-arm64.apk`). Télécharge, double-clique (sous Linux, rends d'abord le
-fichier exécutable avec `chmod +x kairos-linux-x86_64`), et le navigateur s'ouvre tout
-seul sur Kairos. Les réglages et la base de tâches vivent dans le dossier de données
+fichier exécutable avec `chmod +x kairos-linux-x86_64`), et une fenêtre s'ouvre toute
+seule sur Kairos — sans barre d'adresse ni onglets, le ressenti d'une vraie application
+de bureau (si un navigateur de la famille Chromium — Chrome, Edge, Brave, Vivaldi... —
+est installé ; sinon repli automatique sur un onglet du navigateur par défaut, sans rien
+à configurer). Les réglages et la base de tâches vivent dans le dossier de données
 standard de ton système, entièrement éditables depuis la page **Réglages**. Aucun
 fichier `.env` à copier ou à éditer à la main.
 
@@ -107,6 +110,17 @@ make test      # venv + suite de tests complète
 ---
 
 ## Fonctionnalités
+
+### Notes (capture GTD)
+Une page dédiée (`/kairos/notes`, entre Accueil et Jour dans la navigation) pour se
+décharger l'esprit sans réfléchir à la structure : une seule zone de texte libre, aucune
+priorité ni échéance à choisir sur le moment (Ctrl/Cmd+Entrée pour capturer sans lâcher
+le clavier). Chaque note capturée apparaît immédiatement dans la liste, sans rechargement
+de page. Une fois qu'une idée est prête à devenir actionnable, un clic sur **« → Tâche »**
+la convertit en tâche titre-seul, qui atterrit directement dans la boîte de réception «
+À traiter » de la vue Jour — la note d'origine est archivée (jamais supprimée) avec un
+lien vers la tâche créée. Une note peut aussi être éditée sur place ou classée sans suite
+(archivée) si elle ne mène nulle part.
 
 ### Gestion des tâches
 - **Création rapide** en une ligne (le titre seul suffit). Édition complète ensuite :

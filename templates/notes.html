@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Kairos · notes{% endblock %}
+{% block topbar_title %}Notes{% endblock %}
+
+{% block content %}
+
+{# Capture GTD : toujours visible, jamais dans un <details> replié — même
+   principe que `.mj-capture` de la vue Jour (docs/spec/vue-jour-gtd.md § 1) :
+   la capture ne doit jamais demander un clic supplémentaire pour être atteinte.
+   Un seul champ (le corps), volontairement sans autre option — pas de priorité,
+   pas de points, pas d'échéance : ceux-là se posent une fois la note convertie
+   en tâche, dans la boîte de réception de la vue Jour. #}
+<div class="panel">
+  <h2>{{ icon('plus') }} Capturer</h2>
+  <form method="post" action="/kairos/notes" class="filters" style="align-items:flex-end;" id="mj-note-capture" data-ajax>
+    <label style="flex:1;min-width:260px;">Note
+      <textarea name="body" required placeholder="Une idée, un rappel, un « il faudrait que »..." rows="3"
+                style="resize:vertical;"></textarea></label>
+    <button type="submit" class="btn primary">{{ icon('plus') }} Capturer</button>
+  </form>
+  <p class="hint mt-s">Ctrl+Entrée (ou ⌘+Entrée) pour capturer sans quitter le clavier.</p>
+</div>
+
+<div id="mj-notes-content">
+{% include "_notes_list.html" %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /* Amélioration progressive AJAX, patron minimal et autonome (pas de dépendance
+     au script de kairos.html — page indépendante, voir docs/spec/notes-capture.md) :
+     un `<form data-ajax>` intercepté ici est soit le formulaire de capture
+     (au-dessus de `#mj-notes-content`, donc PAS remplacé par le swap — la
+     textarea doit être vidée à la main après succès), soit un des mini-formulaires
+     rendus à l'intérieur de `#mj-notes-content` (convertir/archiver/supprimer,
+     eux remplacés avec le reste du fragment). Repli sans JS (ou en cas d'échec
+     réseau) : soumission HTML classique, POST → redirection 303 côté serveur,
+     identique au comportement de la vue Jour. */
+  document.addEventListener('submit', function (ev) {
+    var form = ev.target;
+    if (!(form instanceof HTMLFormElement) || !form.matches('[data-ajax]')) return;
+    var target = document.getElementById('mj-notes-content');
+    var isCapture = form.id === 'mj-note-capture';
+    if (!isCapture && !(target && target.contains(form))) return;
+    ev.preventDefault();
+    var scrollY = window.scrollY;
+    fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'X-Requested-With': 'fetch' },
+    }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    }).then(function (html) {
+      if (!target) { form.submit(); return; }
+      target.innerHTML = html;
+      if (isCapture) form.reset(); // le formulaire de capture est hors du swap
+      window.scrollTo(0, scrollY);
+    }).catch(function () {
+      form.submit(); // repli : réseau indisponible, formulaire non intercepté
+    });
+  });
+
+  /* Ctrl/Cmd+Entrée dans la textarea de capture soumet le formulaire — geste
+     GTD classique, éviter d'avoir à lâcher le clavier pour capturer vite. */
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter' || !(ev.ctrlKey || ev.metaKey)) return;
+    var field = ev.target.closest('#mj-note-capture textarea');
+    if (!field) return;
+    var form = field.closest('form');
+    if (!form) return;
+    ev.preventDefault();
+    if (form.requestSubmit) form.requestSubmit();
+    else form.submit();
+  });
+
+  /* Bascule du panneau d'édition d'une note (.mj-edit/.mj-edit-toggle/
+     .mj-edit-body — même patron que kairos.html, reproduit ici car cette page
+     est volontairement indépendante, sans dépendance à son script). Écoute
+     déléguée sur `document` : fonctionne aussi sur le contenu injecté par un
+     swap AJAX, jamais rebranchée. */
+  document.addEventListener('click', function (ev) {
+    var toggle = ev.target.closest('.mj-edit-toggle');
+    if (!toggle) return;
+    var body = toggle.closest('.mj-edit').querySelector('.mj-edit-body');
+    var opening = body.hidden;
+    body.hidden = !opening;
+    toggle.setAttribute('aria-expanded', String(opening));
+  });
+
+  /* Échap referme le panneau d'édition ouvert. */
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Escape') return;
+    var openToggle = document.querySelector('.mj-edit-toggle[aria-expanded="true"]');
+    if (!openToggle) return;
+    openToggle.closest('.mj-edit').querySelector('.mj-edit-body').hidden = true;
+    openToggle.setAttribute('aria-expanded', 'false');
+  });
+</script>
+{% endblock %}

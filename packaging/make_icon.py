@@ -1,4 +1,5 @@
-"""Génère `packaging/kairos.ico` (icône de l'exécutable Windows) à partir du logo
+"""Génère `packaging/kairos.ico` (icône de l'exécutable Windows) et les icônes
+PNG pour la web app (favicons, apple-touch-icon, manifest) à partir du logo
 de l'application — le même dessin que `static/favicon.svg` et le bandeau
 d'accueil : cadran crème cerclé, secteur orange (l'aiguille qui balaie 12h→2h),
 point sombre au centre.
@@ -9,9 +10,13 @@ assez simple pour être fidèle. Lancer après toute évolution du logo :
 
     python packaging/make_icon.py
 
-L'icône générée est commitée (asset binaire) et référencée par
+L'icône `.ico` générée est commitée (asset binaire) et référencée par
 `packaging/kairos.spec` (paramètre `icon=` de `EXE`, embarqué dans le .exe
 Windows ; ignoré sans erreur pour le binaire Linux, qui ne porte pas d'icône).
+
+Les PNG générés (`static/icon-192.png`, `static/icon-512.png`,
+`static/apple-touch-icon.png`) sont liés depuis `templates/base.html` et
+embarqués dans toutes les distributions (dev, PyInstaller, Android APK).
 """
 
 from __future__ import annotations
@@ -68,6 +73,29 @@ def render_master() -> Image.Image:
     return img
 
 
+def write_png_icons(master: Image.Image) -> None:
+    """Génère les icônes PNG pour la web app à partir de l'image maître.
+
+    Redimensionne l'image maître (2560×2560) en trois tailles standard :
+    - 192×192 pour `icon-192.png` (web manifest)
+    - 512×512 pour `icon-512.png` (web manifest, splash screens)
+    - 180×180 pour `apple-touch-icon.png` (iOS home screen)
+    """
+    static_dir = Path(__file__).resolve().parent.parent / "static"
+
+    png_configs = [
+        (192, "icon-192.png"),
+        (512, "icon-512.png"),
+        (180, "apple-touch-icon.png"),
+    ]
+
+    for size, filename in png_configs:
+        resized = master.resize((size, size), Image.LANCZOS)
+        out_path = static_dir / filename
+        resized.save(out_path, format="PNG")
+        print(f"Icône PNG écrite : {out_path}")
+
+
 def main() -> None:
     master = render_master()
     out_path = Path(__file__).resolve().parent / "kairos.ico"
@@ -83,6 +111,7 @@ def main() -> None:
         append_images=frames[1:],
     )
     print(f"Icône écrite : {out_path}")
+    write_png_icons(master)
 
 
 if __name__ == "__main__":

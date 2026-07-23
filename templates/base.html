@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Kairos{% endblock %}</title>
   <link rel="icon" href="/static/favicon.svg?v={{ asset_version }}" type="image/svg+xml">
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png?v={{ asset_version }}">
+  <link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png?v={{ asset_version }}">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png?v={{ asset_version }}">
+  <meta name="theme-color" content="#F3F5F8">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Newsreader:ital,wght@1,500&display=swap" rel="stylesheet">
@@ -31,6 +36,8 @@
       <nav class="tn-nav">
         <a class="tn-item {% if page == 'home' %}active{% endif %}" href="/">
           {{ icon('home') }}<span>Accueil</span></a>
+        <a class="tn-item {% if page == 'notes' %}active{% endif %}" href="/kairos/notes">
+          {{ icon('notes') }}<span>Notes</span></a>
         <a class="tn-item {% if page == 'kairos' and (view is not defined or view != 'week') %}active{% endif %}" href="/kairos?view=day">
           {{ icon('clock') }}<span>Jour</span></a>
         <a class="tn-item {% if page == 'kairos' and view == 'week' %}active{% endif %}" href="/kairos?view=week">
@@ -63,12 +70,14 @@
     {% if is_android %}
     {# Bottom nav réservée à l'APK Android (`is_android`, posé côté serveur depuis
        KAIROS_PLATFORM — jamais par la largeur de viewport seule, pour ne jamais
-       apparaître sur un navigateur desktop simplement rétréci). Mêmes cinq
+       apparaître sur un navigateur desktop simplement rétréci). Mêmes six
        destinations et mêmes conditions `active` que `.tn-nav` ci-dessus, sans
        dupliquer `.tn-brand`/`.tn-quit`. Voir docs/spec/accueil-navigation.md. #}
     <nav class="bn-nav">
       <a class="bn-item {% if page == 'home' %}active{% endif %}" href="/">
         {{ icon('home') }}<span>Accueil</span></a>
+      <a class="bn-item {% if page == 'notes' %}active{% endif %}" href="/kairos/notes">
+        {{ icon('notes') }}<span>Notes</span></a>
       <a class="bn-item {% if page == 'kairos' and (view is not defined or view != 'week') %}active{% endif %}" href="/kairos?view=day">
         {{ icon('clock') }}<span>Jour</span></a>
       <a class="bn-item {% if page == 'kairos' and view == 'week' %}active{% endif %}" href="/kairos?view=week">
