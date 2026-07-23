@@ -42,20 +42,28 @@ l'émulateur).
 
 Chaîne de démarrage :
 
-1. `MainActivity` (Java, sans AndroidX) démarre Chaquopy et appelle
-   `kairos_boot.prepare(filesDir)` : le paquet embarqué `kairos_dist` (extrait
-   de l'APK en vrais fichiers, voir ci-dessous) est ajouté à `sys.path`,
-   `KAIROS_BASE_DIR` et `KAIROS_PLATFORM=android` sont posés, puis
-   `app/android_launcher.py` ancre les données dans le stockage privé
-   (`KAIROS_DATA_DIR`) et choisit un port libre. `KAIROS_PLATFORM` est lu une
-   seule fois par `app/main.py` (`is_android`) pour la bottom nav de
-   `templates/base.html` — seule variable d'environnement de ce module
-   consommée pour distinguer l'APK Android du reste (voir
-   `docs/spec/accueil-navigation.md`), tout le reste du gabarit/CSS restant
-   strictement identique entre les trois cibles de packaging.
-2. `kairos_boot.serve(port)` lance uvicorn dans un thread dédié.
-3. L'activité sonde `/favicon.ico` (même repère que le launcher de bureau)
-   puis charge `http://127.0.0.1:<port>/kairos` dans la WebView.
+1. `MainActivity.onCreate` construit immédiatement la WebView **et** un overlay
+   de démarrage (fond `@color/kairos_bg` + logo animé) empilés dans un
+   `FrameLayout`, puis affiche cette hiérarchie (`setContentView`) — voir
+   « Écran de démarrage » ci-dessous pour le détail et le pourquoi de ce
+   choix. En parallèle, sur un thread dédié (`kairos-init`, jamais le thread
+   principal) : démarre Chaquopy et appelle `kairos_boot.prepare(filesDir)` :
+   le paquet embarqué `kairos_dist` (extrait de l'APK en vrais fichiers, voir
+   ci-dessous) est ajouté à `sys.path`, `KAIROS_BASE_DIR` et
+   `KAIROS_PLATFORM=android` sont posés, puis `app/android_launcher.py` ancre
+   les données dans le stockage privé (`KAIROS_DATA_DIR`) et choisit un port
+   libre. `KAIROS_PLATFORM` est lu une seule fois par `app/main.py`
+   (`is_android`) pour la bottom nav de `templates/base.html` — seule
+   variable d'environnement de ce module consommée pour distinguer l'APK
+   Android du reste (voir `docs/spec/accueil-navigation.md`), tout le reste
+   du gabarit/CSS restant strictement identique entre les trois cibles de
+   packaging.
+2. `kairos_boot.serve(port)` lance uvicorn dans un thread dédié (`kairos-uvicorn`).
+3. Toujours depuis le thread `kairos-init`, une fois `prepare()` revenu : sonde
+   `/favicon.ico` (même repère que le launcher de bureau, thread
+   `kairos-probe`) puis charge `http://127.0.0.1:<port>/kairos` dans la
+   WebView (`runOnUiThread`). L'overlay de démarrage se masque en fondu dès
+   que cette page a fini de charger (`WebViewClient.onPageFinished`).
 
 Empaquetage du code : la tâche Gradle `stageKairosPython` copie `app/`,
 `templates/`, `static/` et `README.md` dans un paquet Python unique
@@ -79,78 +87,70 @@ Points notables :
   redémarre au retour, SQLite committe à chaque requête. **Limite v1** : pas de
   foreground service, un chrono en cours ne survit pas à une mise en veille
   agressive.
-- **Splash screen natif** (revue produit F-Droid/mobile, 2026-07) :
-  `android/app/src/main/res/values/themes.xml` pose
-  `android:windowSplashScreenBackground` (API 31+, `tools:targetApi="31"` —
-  annotation lint, pas un mécanisme de qualification de ressource : un
-  framework plus ancien ignore silencieusement l'attribut inconnu à la
-  résolution du thème, même mécanisme déjà en production pour
-  `windowLightNavigationBar`/`windowOptOutEdgeToEdgeEnforcement` dans ce
-  fichier) et `android:windowBackground` (toutes API, non gardé) à la couleur
-  de fond de l'app (`@color/kairos_bg`). Sans `androidx.core:splashscreen`
-  (voir « pas d'AndroidX » ci-dessus) : l'icône de lanceur adaptative
-  existante (`ic_launcher_foreground.xml`, statique) s'affiche par défaut,
-  aucun asset dédié requis. Avant ce correctif, l'API 31+ affichait un fond
-  générique pendant le démarrage de Python+uvicorn ; `windowBackground` seul
-  couvre aussi les appareils API 24-30 (minSdk 24, en dessous du seuil
-  splash-screen natif).
-  - **Durée du splash retenue jusqu'au premier rendu réel** (constaté sur
-    appareil : le thème seul ne suffisait pas — le splash disparaissait dès la
-    première frame dessinée par `setContentView(webView)`, bien avant que
-    Python/uvicorn n'ait fini de démarrer, laissant place à une WebView
-    blanche pendant toute l'attente). **Piège documenté ici pour ne pas le
-    retrancher deux fois** : une première tentative a utilisé
-    `Activity.getSplashScreen().setKeepOnScreenCondition(...)` — cette méthode
-    **n'existe pas** sur `android.window.SplashScreen` (la classe **native**,
-    seule autorisée par la contrainte « pas d'AndroidX » ci-dessus) ; elle
-    n'existe que sur `androidx.core.splashscreen.SplashScreen`, la bibliothèque
-    de compatibilité, hors périmètre. Erreur de compilation constatée en CI
-    (`cannot find symbol: method setKeepOnScreenCondition(...)`), corrigée
-    avant tout usage réel. Mécanisme retenu à la place :
-    `ViewTreeObserver.OnPreDrawListener` sur la vue de contenu
-    (`findViewById(android.R.id.content)`, posé juste après `setContentView`) —
-    reporter le dessin de la toute première frame de l'activité reporte de
-    fait la disparition du splash (natif API 31+, ou simplement l'affichage du
-    contenu sous `windowBackground` en dessous), puisque c'est justement ce
-    dessin qui déclenche cette disparition. La condition de report est un
-    champ `uiReady` (`AtomicBoolean`) mis à `true` par
-    `WebViewClient.onPageFinished` (+ `view.invalidate()` pour forcer une
-    nouvelle passe de dessin et faire réévaluer le listener) — donc jusqu'à ce
-    que la première page ait réellement fini de charger dans la WebView, pas
-    seulement jusqu'à la réponse du serveur (`loadWhenServerReady`/sonde
-    `/favicon.ico`, qui ne fait que déclencher le `loadUrl`). Technique
-    documentée par Android pour ce cas d'usage précis (attente d'un
-    chargement asynchrone avant la première frame) ; ni classe ni attribut
-    spécifiques à l'API 31+, fonctionne identiquement à toutes les API sans
-    garde de version.
-  - **Icône animée** (`android:windowSplashScreenAnimatedIcon`, API 31+) :
-    plutôt que l'icône de lanceur adaptative statique par défaut, un
-    `AnimatedVectorDrawable` dédié
-    (`res/drawable/kairos_splash_icon.xml` + `kairos_splash_icon_base.xml` +
+- **Écran de démarrage** (revue produit F-Droid/mobile, 2026-07, corrigé une
+  seconde fois — voir « Piège tracé » ci-dessous) : un **overlay applicatif**,
+  pas le splash système d'Android, porte le branding pendant toute l'attente
+  de Python/uvicorn.
+  - **Pourquoi pas le splash système (API 31+, `windowSplashScreenBackground`/
+    `windowSplashScreenAnimatedIcon` dans `themes.xml`)** : cette API vise des
+    attentes courtes (elle disparaît dès la première frame dessinée par
+    l'activité) et plusieurs OEM/AOSP la forcent à disparaître au-delà d'un
+    court délai — inadaptée à un démarrage de plusieurs secondes (extraction
+    du paquet Python embarqué, première écriture SQLite). `themes.xml`
+    conserve ces attributs (`android:windowSplashScreenBackground`,
+    `android:windowBackground` — les deux à `@color/kairos_bg`,
+    `tools:targetApi="31"` pour le premier : annotation lint, pas un
+    mécanisme de qualification de ressource, ignorée sans erreur en dessous
+    de l'API 31, même mécanisme déjà en production pour
+    `windowLightNavigationBar`/`windowOptOutEdgeToEdgeEnforcement`) : ils
+    couvrent gratuitement le tout petit instant de cold-start *avant*
+    `onCreate`, mais ne sont plus **load-bearing** pour la suite.
+  - **`MainActivity`** construit dans `onCreate`, synchrone, avant tout appel
+    Python : un `FrameLayout` empilant la `WebView` (en dessous) et un
+    overlay plein écran (fond `@color/kairos_bg` + un `ImageView` centré,
+    au-dessus) — `buildStartupOverlay()`. L'`ImageView` réutilise
+    l'`AnimatedVectorDrawable` déjà créé pour l'ancien splash système
+    (`@drawable/kairos_splash_icon` — `kairos_splash_icon_base.xml` +
     `res/animator/kairos_splash_wedge_sweep.xml`, natif
-    `android.graphics.drawable`, API 21+, pas AndroidX) anime le secteur
-    terracotta du cadran d'un balayage nul (« aiguille » collapsée à midi)
-    jusqu'à sa position finale identique au logo statique (secteur de 80°
-    depuis midi, mêmes coordonnées que `ic_launcher_foreground.xml`). Le
-    système détecte l'`Animatable` et joue l'animation automatiquement à
-    l'affichage du splash, sans code Java dédié — `windowSplashScreenAnimationDuration`
-    (700ms, plafond système 1000ms) doit couvrir la durée réelle de
-    l'animator pour que le système ne considère pas l'icône « terminée »
-    trop tôt. Morph de `pathData` par 5 images-clés (0/20/40/60/80°) plutôt
-    qu'un simple `valueFrom`/`valueTo` à deux points : l'interpolation d'un
-    `pathData` déplace les coordonnées de l'arc en ligne droite (corde),
-    jamais l'angle réel — sur un seul segment de 80°, la corde couperait
-    jusqu'à ~3.7 sur un rayon de 16 au plus fort du geste (secteur
-    visiblement aplati à mi-course) ; des images-clés tous les 20° ramènent
-    cet écart à ~0.24, imperceptible. Le drawable de base porte son propre
-    fond ivoire + anneau (contrairement à `ic_launcher_foreground.xml`,
-    pensé pour un masque adaptatif) : affiché tel quel par le splash, sans
-    masque système.
+    `android.graphics.drawable`, API 21+, pas AndroidX ; secteur terracotta
+    balayant depuis midi jusqu'à 80°, 5 images-clés pour éviter l'aplatissement
+    d'un morph `pathData` à deux points — voir le commentaire du fichier
+    animator pour le détail géométrique) : appelée explicitement en Java
+    (`Animatable.start()`), pas automatiquement par le système comme c'était
+    le cas pour le splash — mais c'est le **même** asset, juste rejoué
+    autrement.
+  - **Python/uvicorn démarrent sur un thread dédié** (`kairos-init`), jamais
+    le thread principal : `Python.start()` et surtout
+    `kairos_boot.prepare()` peuvent prendre plusieurs secondes au premier
+    lancement, ce qui bloquait auparavant `onCreate` de bout en bout —
+    c'est ce blocage qui, dans la version précédente, empêchait le splash
+    (système ou applicatif) de s'afficher ou de s'animer : le thread qui
+    aurait dû le dessiner était occupé à extraire le paquet Python.
+  - **`onPageFinished`** (une fois la première page réellement chargée dans
+    la WebView, pas seulement une fois le serveur prêt) masque l'overlay en
+    fondu (`View.animate().alpha(0)`). Filet de sécurité : un `Handler`
+    masque aussi l'overlay après 30 s même sans `onPageFinished` (page en
+    échec), pour ne jamais rester bloqué sur le logo.
+  - **Piège tracé, pour ne pas le retrancher deux fois** : une première
+    tentative avait retenu le splash *système* via
+    `Activity.getSplashScreen().setKeepOnScreenCondition(...)` — cette
+    méthode **n'existe pas** sur `android.window.SplashScreen` (la classe
+    native, seule autorisée par la contrainte « pas d'AndroidX »), seulement
+    sur `androidx.core.splashscreen.SplashScreen`, hors périmètre (erreur de
+    compilation constatée en CI, corrigée avant tout usage réel). Le repli
+    suivant, `ViewTreeObserver.OnPreDrawListener` pour reporter la première
+    frame de l'activité, compilait et fonctionnait, mais souffrait du même
+    problème de fond que le splash système qu'il retenait : tant que
+    `onCreate` restait bloqué par l'initialisation Python synchrone, rien ne
+    se dessinait à l'écran, splash retenu ou non. D'où le passage à un
+    overlay applicatif **et** à une initialisation hors thread principal —
+    les deux ensemble, pas l'un sans l'autre.
 - **Geste retour prédictif** (Android 13+/15, même revue) : `AndroidManifest.xml`
   pose `android:enableOnBackInvokedCallback="true"` au niveau `<application>`
   (impératif — sans lui, tout enregistrement de callback reste sans effet même
   sur API 33+). `MainActivity.registerPredictiveBackCallback()` (appelée dans
-  `onCreate`, juste après `setContentView(webView)`) enregistre un
+  `onCreate`, juste après `setContentView(root)`, `root` étant le `FrameLayout`
+  WebView+overlay décrit ci-dessus) enregistre un
   `OnBackInvokedCallback` (`android.window`, natif, pas AndroidX — même parti
   pris que `KairosNotificationBridge`) uniquement si
   `Build.VERSION.SDK_INT >= TIRAMISU` ; même logique que le chemin legacy
