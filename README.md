@@ -1,9 +1,24 @@
 # Kairos
 
+<img align="right" src="static/icon-512.png" width="140" alt="Logo Kairos">
+
+[![CI](https://github.com/SKOHscripts/Kairos/actions/workflows/ci.yml/badge.svg)](https://github.com/SKOHscripts/Kairos/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/SKOHscripts/Kairos)](https://github.com/SKOHscripts/Kairos/releases/latest)
+[![Téléchargements](https://img.shields.io/github/downloads/SKOHscripts/Kairos/total)](https://github.com/SKOHscripts/Kairos/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows11&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black)
+![Android](https://img.shields.io/badge/Android-3DDC84?style=flat&logo=android&logoColor=white)
+
 Dashboard personnel de tâches. Il répond à une question concrète : « qu'est-ce que je fais
 maintenant, et dans quel ordre, sachant qu'une réunion 13h-14h m'empêche de traiter le
 sujet urgent avant 14h05 ? » Outil web local, mono-utilisateur, sans compte ni cloud. Une
 base SQLite, un navigateur, et c'est tout.
+
+**Application de bureau (Windows, Linux) et mobile (Android)**, à télécharger et lancer
+en un geste, sans rien installer — voir
+[**⬇ Télécharger la dernière version**](https://github.com/SKOHscripts/Kairos/releases/latest).
 
 ## En bref
 
