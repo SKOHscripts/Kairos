@@ -37,6 +37,27 @@ def test_next_deadline_weekly() -> None:
     assert next_deadline("weekly", date(2026, 7, 2)) == date(2026, 7, 9)
 
 
+def test_next_deadline_weekly_without_anchor_advances_full_week_from_base() -> None:
+    """Sans ancre explicite (``day_of_week=None``), comportement historique inchangé :
+    toujours ``base + 7 jours``, quel que soit le jour de semaine de ``base``."""
+    assert next_deadline("weekly", date(2026, 7, 2)) == date(2026, 7, 9)
+
+
+def test_next_deadline_weekly_anchored_recovers_target_weekday_after_drift() -> None:
+    """Bug corrigé : ``base`` un vendredi (complétion en retard d'une tâche du jeudi)
+    avec ``day_of_week`` = jeudi doit revenir jeudi prochain, pas vendredi + 7."""
+    friday = date(2026, 7, 3)
+    thursday_weekday = 3
+    assert next_deadline("weekly", friday, thursday_weekday) == date(2026, 7, 9)
+
+
+def test_next_deadline_weekly_anchored_same_day_advances_full_week() -> None:
+    """``base`` déjà sur le jour ancré (complétion à l'heure) : avance quand même
+    d'une semaine pleine, jamais le jour même de ``base``."""
+    thursday = date(2026, 7, 2)
+    assert next_deadline("weekly", thursday, thursday.weekday()) == date(2026, 7, 9)
+
+
 def test_next_deadline_monthly_clamps_to_month_end() -> None:
     assert next_deadline("monthly", date(2026, 7, 15)) == date(2026, 8, 15)
     # 31 janvier → 28 février (2027 non bissextile).
@@ -195,6 +216,61 @@ def test_spawn_guards_against_duplicates(tasks_session) -> None:
     assert second is None
     todo_count = tasks_session.query(Task).filter_by(status="todo").count()
     assert todo_count == 1
+
+
+def test_spawn_weekly_anchors_on_original_weekday_even_when_completed_late(tasks_session) -> None:
+    """Régression de l'issue récurrence hebdo cassée : une tâche du jeudi (2 juillet
+    2026) cochée en retard le vendredi 3 doit revenir le jeudi suivant (9 juillet),
+    pas le vendredi suivant (10 juillet) — sans quoi le jour voulu dérive à chaque
+    complétion tardive."""
+    thursday = date(2026, 7, 2)
+    friday = date(2026, 7, 3)
+    task = Task(title="Point hebdo", recurrence="weekly",
+                recurrence_day_of_week=thursday.weekday(), deadline=thursday, status="done")
+    tasks_session.add(task)
+    tasks_session.commit()
+
+    occurrence = spawn_next_occurrence(tasks_session, task, today=friday)
+
+    assert occurrence.deadline == date(2026, 7, 9)
+    assert occurrence.deadline.weekday() == thursday.weekday()
+    assert occurrence.recurrence_day_of_week == thursday.weekday()
+
+
+def test_spawn_weekly_without_stored_anchor_falls_back_to_deadline_weekday(tasks_session) -> None:
+    """Tâche hebdomadaire jamais repassée par le panneau d'édition depuis l'ajout de
+    ``recurrence_day_of_week`` (donnée existante, ``None``) : l'ancre se déduit quand
+    même de la ``deadline`` d'origine, même correction que la version avec ancre déjà
+    posée."""
+    thursday = date(2026, 7, 2)
+    friday = date(2026, 7, 3)
+    task = Task(title="Point hebdo", recurrence="weekly", deadline=thursday, status="done")
+    tasks_session.add(task)
+    tasks_session.commit()
+
+    occurrence = spawn_next_occurrence(tasks_session, task, today=friday)
+
+    assert occurrence.deadline == date(2026, 7, 9)
+
+
+def test_spawn_weekly_anchor_survives_several_late_completions_in_a_row(tasks_session) -> None:
+    """L'ancre reportée sur chaque occurrence (``recurrence_day_of_week`` hérité)
+    empêche toute dérive cumulative sur des complétions tardives répétées."""
+    thursday = date(2026, 7, 2)
+    task = Task(title="Point hebdo", recurrence="weekly",
+                recurrence_day_of_week=thursday.weekday(), deadline=thursday, status="done")
+    tasks_session.add(task)
+    tasks_session.commit()
+
+    first = spawn_next_occurrence(tasks_session, task, today=date(2026, 7, 3))  # vendredi (retard)
+    tasks_session.commit()
+    assert first.deadline == date(2026, 7, 9)  # jeudi
+
+    first.status = "done"
+    second = spawn_next_occurrence(tasks_session, first, today=date(2026, 7, 13))  # lundi suivant (retard)
+
+    assert second.deadline == date(2026, 7, 16)  # toujours jeudi, jamais lundi + 7
+    assert second.deadline.weekday() == thursday.weekday()
 
 
 def test_spawn_recurring_task_from_import_creates_native_occurrence(tasks_session) -> None:

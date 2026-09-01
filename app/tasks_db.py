@@ -44,6 +44,9 @@ _TASKS_MIGRATION_COLUMNS: dict[str, dict[str, str]] = {
         "scheduled_date": "DATE",
         "recurrence_day_of_month": "INTEGER",
         "recurrence_period": "VARCHAR(16) DEFAULT ''",
+        # Ancre de jour de semaine pour 'weekly' (issue récurrence hebdo cassée) :
+        # voir Task.recurrence_day_of_week et docs/spec/recurrence.md.
+        "recurrence_day_of_week": "INTEGER",
         # Phase 5 : métadonnées pures de préparation d'analyses futures.
         "task_type": "VARCHAR(32) DEFAULT ''",
         "fibonacci_points": "INTEGER",

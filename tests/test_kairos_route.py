@@ -1819,6 +1819,59 @@ def test_edit_task_sets_monthly_on_day_recurrence(route_client) -> None:
         assert task.recurrence_day_of_month == 23
 
 
+def test_edit_task_sets_weekly_recurrence_day_of_week(route_client) -> None:
+    """Poser une récurrence hebdomadaire ancre `recurrence_day_of_week` sur le jour
+    de semaine de la deadline soumise — pas de champ de formulaire dédié, dérivé
+    automatiquement (voir tasks_recurrence.spawn_next_occurrence)."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Point hebdo", status="todo")
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    thursday = date(2026, 7, 2)  # jeudi
+    resp = client.post(
+        f"/kairos/tasks/{task_id}/edit",
+        data={
+            "title": "Point hebdo", "priority": "", "deadline": thursday.isoformat(),
+            "project_tag": "", "estimated_minutes": "", "recurrence": "weekly",
+        },
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
+    with TestSession() as db:
+        task = db.get(Task, task_id)
+        assert task.recurrence == "weekly"
+        assert task.recurrence_day_of_week == thursday.weekday()
+
+
+def test_edit_task_clears_recurrence_day_of_week_when_recurrence_changes(route_client) -> None:
+    """Repasser à une autre récurrence (ou aucune) vide l'ancre hebdo résiduelle —
+    même patron que `recurrence_day_of_month` pour la récurrence calendaire."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="Point hebdo", status="todo", recurrence="weekly",
+                     recurrence_day_of_week=3, deadline=date(2026, 7, 2))
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    resp = client.post(
+        f"/kairos/tasks/{task_id}/edit",
+        data={
+            "title": "Point hebdo", "priority": "", "deadline": "",
+            "project_tag": "", "estimated_minutes": "", "recurrence": "",
+        },
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
+    with TestSession() as db:
+        task = db.get(Task, task_id)
+        assert task.recurrence == ""
+        assert task.recurrence_day_of_week is None
+
+
 def test_manually_entered_saturday_date_is_never_auto_corrected(route_client) -> None:
     """Une date saisie à la main un samedi n'est jamais recorrigée automatiquement
     (le décalage jour ouvré ne s'applique qu'à la récurrence calendaire et au

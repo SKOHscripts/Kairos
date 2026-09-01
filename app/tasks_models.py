@@ -78,6 +78,15 @@ class Task(TasksBase):
     scheduled_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     # Jour du mois (1-31, borné en fin de mois) pour `recurrence='monthly_on_day'`.
     recurrence_day_of_month: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Jour de la semaine ancré (0=lundi..6=dimanche, convention `date.weekday()`) pour
+    # `recurrence='weekly'` — posé automatiquement depuis `deadline` à chaque édition où
+    # la récurrence hebdomadaire est active (pas de champ de formulaire dédié). Sert à
+    # ne jamais dériver au fil des complétions tardives : `spawn_next_occurrence`
+    # recale toujours sur CE jour de semaine plutôt que sur `+7 jours` depuis la date
+    # de complétion (voir docs/spec/recurrence.md). None = pas encore posé (tâche
+    # créée avant ce champ, ou récurrence hebdomadaire jamais passée par le panneau
+    # d'édition) — repli sur `deadline.weekday()` côté `tasks_recurrence`.
+    recurrence_day_of_week: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # Période de l'occurrence calendaire générée (ex. "2026-07"), pour l'anti-doublon
     # de `ensure_calendar_occurrences` : "" pour toute tâche non calendaire.
     recurrence_period: Mapped[str] = mapped_column(String(16), default="")

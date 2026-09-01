@@ -52,6 +52,11 @@ Trois familles d'obligations répétées, mal couvertes par un modèle unique :
 
 - [x] Terminer une tâche récurrente crée l'occurrence suivante avec échéance
       avancée selon la règle (`daily`/`weekdays`/`weekly`/`monthly`).
+- [x] Une hebdomadaire (« tous les jeudis ») complétée un autre jour que son
+      jour voulu (en retard, ou en avance) revient sur ce même jour de
+      semaine à l'occurrence suivante — jamais sur le jour de la
+      complétion. L'ancre survit à plusieurs complétions tardives
+      consécutives, sans dérive cumulative.
 - [x] Une quotidienne terminée avec plusieurs jours de retard repart de
       demain, pas de l'échéance manquée + 1 jour (pas de rattrapage en
       rafale).
@@ -137,7 +142,7 @@ détaillée ici, seul le sens de chaque décalage (avant/arrière) est repris.
 
 ### Détail par composant
 
-#### `next_deadline(rule, base)` — calcul de la prochaine échéance
+#### `next_deadline(rule, base, day_of_week=None)` — calcul de la prochaine échéance
 
 Fonction pure, cœur du modèle « recréation à la complétion » :
 
@@ -149,26 +154,48 @@ Fonction pure, cœur du modèle « recréation à la complétion » :
   personnelle », commentaire du code). Ne pas confondre avec le décalage jour
   ouvré de `ensure_calendar_occurrences`/`next_snooze_date`, qui lui inclut
   les fériés.
-- `"weekly"` → `base + 7 jours`.
+- `"weekly"` → **ancrée sur `day_of_week`** (0=lundi..6=dimanche, convention
+  `date.weekday()`) : `delta = (day_of_week - base.weekday()) % 7`, `7` si ce
+  delta tombe à `0` (toujours la *prochaine* occurrence, jamais le jour même
+  de `base`), résultat `base + delta jours`. `day_of_week=None` (repli) garde
+  l'ancien calcul implicite — ancre sur le jour de semaine de `base`
+  lui-même, donc toujours `base + 7 jours` : c'est le cas historique, encore
+  couvert par un test dédié, mais plus jamais emprunté par
+  `spawn_next_occurrence` en pratique (qui calcule toujours une ancre
+  explicite, voir plus bas). Correctif de l'issue récurrence hebdo cassée :
+  avant ce paramètre, une tâche du jeudi terminée en retard le vendredi
+  revenait le vendredi suivant (`base` valait alors le vendredi de la
+  complétion, pas le jeudi voulu) au lieu du jeudi suivant.
 - `"monthly"` → `+1 mois`, jour borné à la fin du mois cible
   (`calendar.monthrange`) : 31 janvier → 28 ou 29 février selon l'année.
 - Règle inconnue → lève `ValueError` (pas de valeur par défaut silencieuse).
 
-#### `spawn_next_occurrence(session, task)` — recréation à la complétion
+#### `spawn_next_occurrence(session, task, today=None)` — recréation à la complétion
 
 Appelée uniquement depuis `toggle_task_done` (`app/main.py`, route
 `POST /kairos/tasks/{task_id}/done`), juste après le passage de `task.status`
 à `"done"` et l'arrêt d'un éventuel chrono en cours. Ne fait rien
-(`task.status == "todo"` → pas d'appel) au repassage `done → todo`.
+(`task.status == "todo"` → pas d'appel) au repassage `done → todo`. `today`
+(`None` → `date.today()`) existe pour la testabilité déterministe (même
+patron que `ensure_calendar_occurrences`), le point d'appel réel ne le passe
+jamais explicitement.
 
 - Tâche dont `recurrence` n'est pas dans `RECURRENCE_RULES` (donc `""` ou
   `"monthly_on_day"`) → retourne `None`, aucun effet. La récurrence
   calendaire n'est **jamais** traitée ici, uniquement par
   `ensure_calendar_occurrences`.
-- Base de calcul : `max(task.deadline or date.today(), date.today())` — une
+- Base de calcul : `max(task.deadline or today, today)` — une
   récurrente terminée en retard **ne génère pas** une occurrence déjà en
   retard ; elle repart d'aujourd'hui, pas de l'échéance manquée. C'est ce qui
   distingue ce modèle d'un simple `next_deadline(rule, task.deadline)`.
+- **Ancre hebdomadaire (`"weekly"` uniquement)** : `weekly_anchor =
+  task.recurrence_day_of_week` si posé, sinon repli sur
+  `task.deadline.weekday()` (tâche dont l'ancre n'a jamais été posée — donnée
+  antérieure à ce champ), sinon `None` (pas de `deadline` du tout — cas
+  dégénéré, comportement historique `next_deadline` sans ancre). Transmis à
+  `next_deadline` **et** reporté tel quel sur `occurrence.recurrence_day_of_week` :
+  l'ancre se propage donc d'occurrence en occurrence sans jamais se reperdre,
+  y compris sur plusieurs complétions tardives consécutives.
 - **Garde anti-doublon** : recherche d'une tâche existante avec `title`,
   `recurrence` et `deadline` identiques et `status == "todo"`. Si trouvée,
   retourne `None` sans rien créer — couvre le cas d'un double aller-retour
@@ -184,7 +211,8 @@ Appelée uniquement depuis `toggle_task_done` (`app/main.py`, route
   `project_tag`, `estimated_minutes`, `recurrence`, `parent_id`. Le
   raisonnement (commentaire du code) : une tâche récurrente n'a pas à être
   requalifiée à chaque occurrence, la suivante reprend la dernière analyse
-  posée.
+  posée. `recurrence_day_of_week` (calculé, pas simplement copié — voir
+  ci-dessus) suit la même logique de propagation pour `"weekly"`.
 - `pinned_start` : reporté via `_shift_pinned_time` — même heure de la
   journée, appliquée à la nouvelle `deadline` ; reste `None` si la tâche
   complétée n'était pas épinglée (le placement continue d'être automatique).
@@ -364,6 +392,25 @@ occurrence persistée à modifier isolément, par construction.
   jours fériés — cohérent avec le commentaire du code, qui distingue « todo
   personnelle » (simple) des projections professionnelles (GitLab) qui,
   elles, tiennent compte des fériés via `settings.holiday_set`.
+- **`recurrence_day_of_week` posé côté route, pas dans `tasks_recurrence.py`,
+  et sans champ de formulaire dédié** : décision symétrique à celle déjà
+  actée pour `recurrence_day_of_month` (qui, lui, a un vrai champ « le … du
+  mois » puisque l'utilisateur choisit un jour arbitraire, sans repère
+  naturel). Pour `"weekly"`, le jour de semaine se déduit sans ambiguïté de
+  `deadline` — ajouter un sélecteur redondant aurait dupliqué une saisie déjà
+  faite et ouvert la porte à une incohérence (deadline un jeudi, champ « jour
+  de récurrence » à vendredi). La route d'édition (`app/main.py`) recalcule
+  donc `task.recurrence_day_of_week = task.deadline.weekday()` à chaque
+  sauvegarde où `recurrence == "weekly"`, `None` sinon — même geste que le
+  vidage de `recurrence_day_of_month` hors `"monthly_on_day"`.
+- **Repli sur `deadline.weekday()` dans `spawn_next_occurrence`, pas de
+  migration de données rétroactive** : une tâche hebdomadaire créée avant
+  l'ajout de `recurrence_day_of_week` a cette colonne à `NULL` en base (ajout
+  de colonne sans backfill, cohérent avec le style `_ensure_tasks_columns`
+  qui n'a jamais rétro-peuplé un champ ajouté après coup). Plutôt qu'un
+  script de migration ponctuel, le repli sur `task.deadline.weekday()` donne
+  le même résultat correct dès la toute première complétion suivant la mise à
+  jour, sans action utilisateur ni risque d'échec de migration.
 - **`external_id` jamais copié à la recréation** (`spawn_next_occurrence`) :
   piège explicitement évité — copier l'`external_id` d'une tâche importée
   romprait la contrainte unique `(source, external_id)` dès la deuxième
@@ -415,3 +462,8 @@ occurrence persistée à modifier isolément, par construction.
 - Une occurrence recréée hérite toujours de `source="native"` : jamais de
   fuite d'`external_id` d'une source externe vers une occurrence générée
   localement.
+- Une tâche `recurrence="weekly"` revient toujours sur le même jour de
+  semaine (`recurrence_day_of_week`, ou son repli `deadline.weekday()`),
+  quel que soit le jour réel de sa complétion (à l'heure, en avance ou en
+  retard, une fois ou plusieurs fois de suite) : jamais de dérive du jour
+  voulu vers le jour de la complétion.
