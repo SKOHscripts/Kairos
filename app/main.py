@@ -1098,6 +1098,13 @@ async def edit_task(request: Request) -> RedirectResponse:
             _optional_int(form.get("recurrence_day_of_month"))
             if recurrence == "monthly_on_day" else None
         )
+        # Ancre de jour de semaine pour 'weekly', dérivée de la deadline tout juste
+        # posée ci-dessus (pas de champ de formulaire dédié) : survit ensuite aux
+        # complétions tardives dans spawn_next_occurrence, qui sinon dériverait vers
+        # le jour de la complétion au lieu du jour voulu (voir tasks_recurrence.py).
+        task.recurrence_day_of_week = (
+            task.deadline.weekday() if recurrence == "weekly" and task.deadline is not None else None
+        )
         task_type = str(form.get("task_type", ""))
         task.task_type = task_type if task_type in settings.task_type_list else ""
         task.fibonacci_points = _optional_int(form.get("fibonacci_points"))

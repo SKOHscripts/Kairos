@@ -27,8 +27,18 @@ CALENDAR_RECURRENCE = "monthly_on_day"
 BLOCK_RECURRENCE_RULES = ("daily", "weekdays", "weekly")
 
 
-def next_deadline(rule: str, base: date) -> date:
-    """Prochaine échéance après ``base`` selon la règle de récurrence."""
+def next_deadline(rule: str, base: date, day_of_week: int | None = None) -> date:
+    """Prochaine échéance après ``base`` selon la règle de récurrence.
+
+    ``day_of_week`` (0=lundi..6=dimanche, convention ``date.weekday()``) ancre la
+    règle ``"weekly"`` sur un jour de semaine précis, indépendamment de celui de
+    ``base`` — sans lui, une tâche hebdomadaire complétée en retard (donc avec
+    ``base`` = aujourd'hui, pas l'échéance d'origine) dérive vers le jour de
+    semaine de sa complétion au lieu de revenir sur son jour voulu (issue
+    récurrence hebdo cassée, voir docs/spec/recurrence.md). ``None`` (repli) garde
+    l'ancien comportement : ancre implicitement sur le jour de semaine de ``base``
+    lui-même, soit toujours ``base + 7 jours``.
+    """
     if rule == "daily":
         return base + timedelta(days=1)
     if rule == "weekdays":
@@ -39,7 +49,11 @@ def next_deadline(rule: str, base: date) -> date:
             step += timedelta(days=1)
         return step
     if rule == "weekly":
-        return base + timedelta(days=7)
+        target = day_of_week if day_of_week is not None else base.weekday()
+        delta = (target - base.weekday()) % 7
+        if delta == 0:
+            delta = 7  # toujours la PROCHAINE occurrence, jamais le jour même de base
+        return base + timedelta(days=delta)
     if rule == "monthly":
         # +1 mois, jour borné à la fin du mois cible (31 janv. → 28/29 févr.).
         year = base.year + (base.month // 12)
@@ -57,12 +71,21 @@ def _shift_pinned_time(pinned_start: datetime | None, new_date: date) -> datetim
     return datetime.combine(new_date, pinned_start.time())
 
 
-def spawn_next_occurrence(session: Session, task: Task) -> Task | None:
+def spawn_next_occurrence(session: Session, task: Task, today: date | None = None) -> Task | None:
     """Crée l'occurrence suivante d'une tâche récurrente qui vient d'être terminée.
 
     - Tâche non récurrente : ne fait rien (``None``).
     - L'échéance repart de ``max(deadline, aujourd'hui)`` : une récurrente terminée
       en retard ne génère pas une occurrence déjà en retard.
+    - Récurrence ``"weekly"`` : ancrée sur ``task.recurrence_day_of_week`` (posé côté
+      route d'édition depuis ``deadline`` — voir ``app/main.py``), avec repli sur
+      ``task.deadline.weekday()`` pour une tâche jamais repassée par l'édition depuis
+      l'ajout de ce champ. Sans cette ancre, une tâche complétée en retard (``base``
+      = aujourd'hui, pas l'échéance manquée) dériverait vers le jour de semaine de sa
+      complétion au lieu de revenir sur le jour voulu par l'utilisateur (issue
+      récurrence hebdo cassée, voir docs/spec/recurrence.md) — c'est ce que corrige
+      ce paramètre, transmis à :func:`next_deadline` et reporté sur la nouvelle
+      occurrence pour que l'ancre survive aux complétions suivantes.
     - La nouvelle occurrence est **native** (jamais de ``external_id`` copié : la
       contrainte unique ``(source, external_id)`` interdirait le doublon, et une
       occurrence créée ici n'existe dans aucune source externe).
@@ -81,8 +104,17 @@ def spawn_next_occurrence(session: Session, task: Task) -> Task | None:
     if task.recurrence not in RECURRENCE_RULES:
         return None
 
-    base = max(task.deadline or date.today(), date.today())
-    deadline = next_deadline(task.recurrence, base)
+    today = today if today is not None else date.today()
+    base = max(task.deadline or today, today)
+
+    weekly_anchor: int | None = None
+    if task.recurrence == "weekly":
+        weekly_anchor = (
+            task.recurrence_day_of_week
+            if task.recurrence_day_of_week is not None
+            else (task.deadline.weekday() if task.deadline is not None else None)
+        )
+    deadline = next_deadline(task.recurrence, base, weekly_anchor)
 
     duplicate = session.scalars(
         select(Task).where(
@@ -107,6 +139,7 @@ def spawn_next_occurrence(session: Session, task: Task) -> Task | None:
         project_tag=task.project_tag,
         estimated_minutes=task.estimated_minutes,
         recurrence=task.recurrence,
+        recurrence_day_of_week=weekly_anchor,
         parent_id=task.parent_id,
         source="native",
     )

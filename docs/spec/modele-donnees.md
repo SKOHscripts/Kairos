@@ -180,6 +180,16 @@ importée (GitLab assigné). Champs, dans l'ordre du modèle :
   calendaire générée (ex. `"2026-07"`), utilisée par
   `ensure_calendar_occurrences` comme clé anti-doublon. `""` pour toute tâche non
   calendaire.
+- `recurrence_day_of_week: int | None` (`Integer`, nullable) — jour de la
+  semaine ancré (0=lundi..6=dimanche, convention `date.weekday()`) pour
+  `recurrence='weekly'`. Posé automatiquement (pas de champ de formulaire
+  dédié) depuis `deadline` par la route d'édition dès que `recurrence` vaut
+  `'weekly'`, vidé sinon. Sert à `spawn_next_occurrence` à recaler la
+  prochaine occurrence sur ce jour de semaine précis plutôt que sur
+  `base + 7 jours` (où `base` peut être aujourd'hui, pas l'échéance
+  d'origine, en cas de complétion tardive) — voir `recurrence.md`. `None` =
+  tâche jamais repassée par l'édition depuis l'ajout de ce champ ; repli sur
+  `deadline.weekday()` côté `tasks_recurrence`.
 - `task_type: str` (`String(32)`, défaut `""`) — `""` (non classé) ou une valeur
   de `Settings.task_type_list` (liste **configurable** depuis la page Réglages,
   où la valeur stockée EST directement le libellé affiché — pas une clé interne
@@ -351,6 +361,8 @@ organisé par phase historique en commentaires :
     "scheduled_date": "DATE",
     "recurrence_day_of_month": "INTEGER",
     "recurrence_period": "VARCHAR(16) DEFAULT ''",
+    # Ancre de jour de semaine pour 'weekly' (issue récurrence hebdo cassée).
+    "recurrence_day_of_week": "INTEGER",
     # Phase 5 : métadonnées pures de préparation d'analyses futures.
     "task_type": "VARCHAR(32) DEFAULT ''",
     "fibonacci_points": "INTEGER",
