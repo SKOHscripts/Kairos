@@ -33,7 +33,7 @@ from starlette.responses import FileResponse, HTMLResponse, RedirectResponse, Re
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import secret_store, settings_store
+from . import desktop_notify, secret_store, settings_store
 from .calendar.timetree_source import fetch_busy_slots
 from .config import Settings, apply_proxy_env, get_settings, invalidate_settings_cache
 from .gitlab_direct import fetch_assigned_issues
@@ -613,6 +613,10 @@ def _build_kairos_context(
             if (url := issue_web_url(settings.gitlab_url, t))
         },
         "stale_days_of": stale_days_of,
+        # Issue #34 : le gabarit annonce l'état réel des alertes (et le script
+        # décide d'appeler `POST /kairos/notify`) — jamais une promesse que le
+        # serveur ne pourrait pas tenir pour CE client.
+        "server_notify": server_notifications_available(request),
         "priority_overload_count": priority_overload_count,
         "priority_overload_threshold": settings.priority_overload_threshold,
         "search_q": search_q,
@@ -1057,6 +1061,61 @@ def stop_timer(request: Request) -> Response:
             session.ended_at = now
         tasks_session.commit()
     return _kairos_action_response(request)
+
+
+# --------------------------------------------------------------------------
+# Notification système de secours (issue #34) — voir
+# docs/spec/temps-reel-chrono.md. Dernier maillon de la cascade d'alertes du
+# chrono : appelée par le client uniquement quand ni le pont Android ni les
+# notifications du navigateur ne sont utilisables.
+# --------------------------------------------------------------------------
+
+
+def server_notifications_available(request: Request) -> bool:
+    """Le serveur peut-il émettre une notification système **pour ce client** ?
+
+    Trois conditions, toutes nécessaires :
+
+    1. Pas dans l'APK Android — le pont natif y est prioritaire et `notify-send`
+       n'y existe pas.
+    2. Un outil de notification est installé sur le système hôte.
+    3. Le client est la machine hôte elle-même : une notification système
+       s'affiche sur l'écran du **serveur**, donc la page ouverte depuis un
+       téléphone ou un poste voisin ne doit rien déclencher.
+
+    Évaluée au rendu de la page (pour annoncer honnêtement l'état des alertes)
+    **et** à chaque envoi (le rendu n'engage rien).
+    """
+    if templates.env.globals.get("is_android"):
+        return False
+    client_host = request.client.host if request.client else None
+    return desktop_notify.loopback_client(client_host) and desktop_notify.is_available()
+
+
+@app.post("/kairos/notify")
+async def notify_desktop(request: Request) -> Response:
+    """Émet une notification système pour une alerte de chrono.
+
+    Exige l'en-tête `X-Requested-With: fetch` — déjà la convention AJAX de
+    l'app, et surtout un garde-fou CSRF : un `<form>` d'une autre origine ne
+    peut pas poser d'en-tête personnalisé, et un `fetch` d'une autre origine
+    qui en pose déclenche une requête de contrôle préalable à laquelle cette
+    app ne répond jamais (aucun en-tête CORS n'est servi).
+
+    `204` si la notification est partie, `503` sinon (indisponible, client
+    distant, ou échec de l'outil système) — dans les deux cas le client garde
+    son repli dans la page, la réponse ne fait que lui dire s'il doit le
+    **renforcer**.
+    """
+    if request.headers.get("X-Requested-With") != "fetch":
+        return Response(status_code=403)
+    if not server_notifications_available(request):
+        return Response(status_code=503)
+    form = await request.form()
+    title = str(form.get("title", ""))
+    body = str(form.get("body", ""))
+    sent = desktop_notify.send(title, body)
+    return Response(status_code=204 if sent else 503)
 
 
 @app.post("/kairos/tasks/{task_id:int}/edit")

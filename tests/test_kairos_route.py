@@ -2550,3 +2550,96 @@ def test_project_tag_stays_plain_text_without_a_gitlab_url(route_client) -> None
     html = client.get("/kairos").text
     assert "equipe/portail" in html
     assert "/-/issues/412" not in html
+
+
+# ---------------------------------------------------------------------------
+# Notification système de secours (issue #34) — voir
+# docs/spec/temps-reel-chrono.md.
+# ---------------------------------------------------------------------------
+
+
+def _client_from(host: str) -> TestClient:
+    """Client de test annonçant `host` comme adresse d'origine.
+
+    `TestClient` annonce « testclient » par défaut, ce qui n'est ni une adresse
+    de bouclage ni une adresse distante : la route `/kairos/notify` décidant
+    précisément d'après cette adresse, chaque test doit la poser explicitement.
+    La route ne touche à aucune base, un client neuf suffit (le fixture
+    `route_client` reste requis pour son monkeypatch des réglages)."""
+    return TestClient(main.app, client=(host, 51234))
+
+
+def test_notify_route_sends_when_client_is_the_host(route_client, monkeypatch) -> None:
+    sent = []
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    monkeypatch.setattr(
+        main.desktop_notify, "send", lambda title, body: sent.append((title, body)) or True
+    )
+
+    resp = _client_from("127.0.0.1").post(
+        "/kairos/notify",
+        data={"title": "Ma tâche", "body": "une pause ?"},
+        headers={"X-Requested-With": "fetch"},
+    )
+    assert resp.status_code == 204
+    assert sent == [("Ma tâche", "une pause ?")]
+
+
+def test_notify_route_refuses_a_remote_client(route_client, monkeypatch) -> None:
+    """Depuis un autre appareil, la notification sortirait sur l'écran du
+    serveur : la route refuse, le client garde son repli dans la page."""
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    monkeypatch.setattr(
+        main.desktop_notify, "send", lambda title, body: pytest.fail("ne doit pas notifier")
+    )
+
+    resp = _client_from("192.168.1.42").post(
+        "/kairos/notify",
+        data={"title": "Ma tâche", "body": "corps"},
+        headers={"X-Requested-With": "fetch"},
+    )
+    assert resp.status_code == 503
+
+
+def test_notify_route_refuses_without_the_ajax_header(route_client, monkeypatch) -> None:
+    """Garde-fou CSRF : un `<form>` d'une autre origine ne peut pas poser
+    d'en-tête personnalisé."""
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    monkeypatch.setattr(
+        main.desktop_notify, "send", lambda title, body: pytest.fail("ne doit pas notifier")
+    )
+    resp = _client_from("127.0.0.1").post("/kairos/notify", data={"title": "T", "body": "B"})
+    assert resp.status_code == 403
+
+
+def test_notify_route_reports_503_when_no_system_tool(route_client, monkeypatch) -> None:
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: False)
+    resp = _client_from("127.0.0.1").post(
+        "/kairos/notify",
+        data={"title": "T", "body": "B"},
+        headers={"X-Requested-With": "fetch"},
+    )
+    assert resp.status_code == 503
+
+
+def test_notify_route_reports_503_when_the_system_tool_fails(route_client, monkeypatch) -> None:
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    monkeypatch.setattr(main.desktop_notify, "send", lambda title, body: False)
+    resp = _client_from("127.0.0.1").post(
+        "/kairos/notify",
+        data={"title": "T", "body": "B"},
+        headers={"X-Requested-With": "fetch"},
+    )
+    assert resp.status_code == 503
+
+
+def test_notify_is_never_offered_on_android(route_client, monkeypatch) -> None:
+    """L'APK a son pont natif, prioritaire — et `notify-send` n'y existe pas."""
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    monkeypatch.setitem(main.templates.env.globals, "is_android", True)
+    resp = _client_from("127.0.0.1").post(
+        "/kairos/notify",
+        data={"title": "T", "body": "B"},
+        headers={"X-Requested-With": "fetch"},
+    )
+    assert resp.status_code == 503
