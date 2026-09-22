@@ -6,7 +6,8 @@
    réception → faire) : capture, boîte de réception, « Maintenant », bannières,
    filtres/backlog, agenda ordonné + sections secondaires, colonne latérale. #}
 {% from "_icons.html" import icon %}
-{% from "_kairos_macros.html" import done_toggle, task_actions, time_spent, fibo_help, edit_panel, task_meta, task_description with context %}
+{% from "_kairos_macros.html" import done_toggle, task_actions, time_spent, fibo_help, edit_panel,
+        task_key_badges, task_tags, task_description with context %}
 
 {# --- 1. Capture GTD : toujours visible, jamais dans un <details> replié — la
      capture ne doit jamais demander un clic supplémentaire pour être atteinte.
@@ -119,14 +120,19 @@
     {% for task in visible_to_process %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
       {{ done_toggle(task) }}
-      <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
-      <span class="badge warn" title="Cette tâche ne rentre dans aucun tri tant qu'elle n'est pas qualifiée">
-        {{ icon('warning') }}
-        {% if task.priority is none and task.fibonacci_points is none %}priorité et points manquants
-        {% elif task.priority is none %}priorité manquante
-        {% else %}points manquants{% endif %}</span>
-      {{ task_meta(task) }}
-      {{ time_spent(task) }}
+      <div class="mj-item-main">
+        <div class="mj-item-head">
+          <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
+        </div>
+        <div class="mj-item-tags">
+          <span class="badge warn" title="Cette tâche ne rentre dans aucun tri tant qu'elle n'est pas qualifiée">
+            {{ icon('warning') }}
+            {% if task.priority is none and task.fibonacci_points is none %}priorité et points manquants
+            {% elif task.priority is none %}priorité manquante
+            {% else %}points manquants{% endif %}</span>
+          {{ task_tags(task) }}
+          {{ time_spent(task) }}
+        </div>
       <span class="mj-inline-qualify">
         <form method="post" action="/kairos/tasks/{{ task.id }}/priority" class="inline mj-inline-form" data-ajax>
           <label class="mj-inline-label">Priorité
@@ -149,9 +155,10 @@
           </label>
         </form>
       </span>
-      {{ task_actions(task) }}
-      {{ edit_panel(task) }}
-      {{ task_description(task) }}
+        {{ task_description(task) }}
+      </div>
+      <div class="mj-item-key">{{ task_key_badges(task) }}</div>
+      <div class="mj-item-actions">{{ task_actions(task) }}{{ edit_panel(task) }}</div>
     </li>
     {% endfor %}
   </ul>
@@ -218,28 +225,34 @@
     {% for item in visible_scheduled %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(item.task.id, 4) }}">
       {{ done_toggle(item.task) }}
-      <span class="mj-time">{{ item.start_at.strftime('%Hh%M') }}</span>
-      <span class="mj-title">{% if parent_title_of.get(item.task.id) %}<span class="muted">{{ parent_title_of[item.task.id] }} › </span>{% endif %}{{ item.task.title }}</span>
-      {% if item.pinned %}<span class="badge info" title="Tâche épinglée à heure fixe">{{ icon('dot') }} épinglée</span>{% endif %}
-      {% if item.deepwork %}<span class="badge ok" title="Placée dans un bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
-      {% if item.task.id in raised_ids %}<span class="badge prio" title="Remontée : sur le chemin critique d'une tâche plus urgente qu'elle bloque">{{ icon('link') }} chemin critique</span>{% endif %}
-      {{ task_meta(item.task) }}
-      {{ time_spent(item.task) }}
-      {% if item.pushed %}
-      <span class="badge at_risk" title="Créneau repoussé par une indisponibilité">
-        {{ icon('warning') }} {{ item.pushed_note }}</span>
-      {% endif %}
-      {% if item.dip_note %}
-      <span class="badge neutral" title="Creux de l'après-midi : on y place les tâches légères, pas les plus complexes">
-        {{ icon('clock') }} {{ item.dip_note }}</span>
-      {% endif %}
-      {% if item.conflict %}
-      <span class="badge bad" title="Cette tâche épinglée chevauche un créneau occupé">
-        {{ icon('warning') }} {{ item.conflict_note }}</span>
-      {% endif %}
-      {{ task_actions(item.task) }}
-      {{ edit_panel(item.task) }}
-      {{ task_description(item.task) }}
+      <div class="mj-item-main">
+        <div class="mj-item-head">
+          <span class="mj-time">{{ item.start_at.strftime('%Hh%M') }}</span>
+          <span class="mj-title">{% if parent_title_of.get(item.task.id) %}<span class="muted">{{ parent_title_of[item.task.id] }} › </span>{% endif %}{{ item.task.title }}</span>
+        </div>
+        <div class="mj-item-tags">
+          {% if item.pinned %}<span class="badge info" title="Tâche épinglée à heure fixe">{{ icon('dot') }} épinglée</span>{% endif %}
+          {% if item.deepwork %}<span class="badge ok" title="Placée dans un bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
+          {% if item.task.id in raised_ids %}<span class="badge prio" title="Remontée : sur le chemin critique d'une tâche plus urgente qu'elle bloque">{{ icon('link') }} chemin critique</span>{% endif %}
+          {{ task_tags(item.task) }}
+          {{ time_spent(item.task) }}
+          {% if item.pushed %}
+          <span class="badge at_risk" title="Créneau repoussé par une indisponibilité">
+            {{ icon('warning') }} {{ item.pushed_note }}</span>
+          {% endif %}
+          {% if item.dip_note %}
+          <span class="badge neutral" title="Creux de l'après-midi : on y place les tâches légères, pas les plus complexes">
+            {{ icon('clock') }} {{ item.dip_note }}</span>
+          {% endif %}
+          {% if item.conflict %}
+          <span class="badge bad" title="Cette tâche épinglée chevauche un créneau occupé">
+            {{ icon('warning') }} {{ item.conflict_note }}</span>
+          {% endif %}
+        </div>
+        {{ task_description(item.task) }}
+      </div>
+      <div class="mj-item-key">{{ task_key_badges(item.task) }}</div>
+      <div class="mj-item-actions">{{ task_actions(item.task) }}{{ edit_panel(item.task) }}</div>
     </li>
     {% endfor %}
   </ol>
@@ -253,12 +266,15 @@
     {% for task in visible_unscheduled %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
       {{ done_toggle(task) }}
-      <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
-      {{ task_meta(task) }}
-      {{ time_spent(task) }}
-      {{ task_actions(task) }}
-      {{ edit_panel(task) }}
-      {{ task_description(task) }}
+      <div class="mj-item-main">
+        <div class="mj-item-head">
+          <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
+        </div>
+        <div class="mj-item-tags">{{ task_tags(task) }}{{ time_spent(task) }}</div>
+        {{ task_description(task) }}
+      </div>
+      <div class="mj-item-key">{{ task_key_badges(task) }}</div>
+      <div class="mj-item-actions">{{ task_actions(task) }}{{ edit_panel(task) }}</div>
     </li>
     {% endfor %}
   </ul>
@@ -273,13 +289,19 @@
     {% for entry in blocked_tasks %}
     <li class="kairos-item mj-blocked">
       {{ done_toggle(entry.task) }}
-      <span class="mj-title">{% if parent_title_of.get(entry.task.id) %}<span class="muted">{{ parent_title_of[entry.task.id] }} › </span>{% endif %}{{ entry.task.title }}</span>
-      <span class="badge bad" title="Ne sera planifiable qu'une fois ces tâches faites">
-        {{ icon('blocked') }} en attente de : {{ entry.reasons | join(', ') }}</span>
-      {{ task_meta(entry.task) }}
-      {{ task_actions(entry.task) }}
-      {{ edit_panel(entry.task) }}
-      {{ task_description(entry.task) }}
+      <div class="mj-item-main">
+        <div class="mj-item-head">
+          <span class="mj-title">{% if parent_title_of.get(entry.task.id) %}<span class="muted">{{ parent_title_of[entry.task.id] }} › </span>{% endif %}{{ entry.task.title }}</span>
+        </div>
+        <div class="mj-item-tags">
+          <span class="badge bad" title="Ne sera planifiable qu'une fois ces tâches faites">
+            {{ icon('blocked') }} en attente de : {{ entry.reasons | join(', ') }}</span>
+          {{ task_tags(entry.task) }}
+        </div>
+        {{ task_description(entry.task) }}
+      </div>
+      <div class="mj-item-key">{{ task_key_badges(entry.task) }}</div>
+      <div class="mj-item-actions">{{ task_actions(entry.task) }}{{ edit_panel(entry.task) }}</div>
     </li>
     {% endfor %}
   </ul>
@@ -294,11 +316,15 @@
     {% for task in visible_later %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
       {{ done_toggle(task) }}
-      <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
-      {{ task_meta(task) }}
-      {{ task_actions(task) }}
-      {{ edit_panel(task) }}
-      {{ task_description(task) }}
+      <div class="mj-item-main">
+        <div class="mj-item-head">
+          <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
+        </div>
+        <div class="mj-item-tags">{{ task_tags(task) }}</div>
+        {{ task_description(task) }}
+      </div>
+      <div class="mj-item-key">{{ task_key_badges(task) }}</div>
+      <div class="mj-item-actions">{{ task_actions(task) }}{{ edit_panel(task) }}</div>
     </li>
     {% endfor %}
   </ul>
@@ -313,13 +339,19 @@
     {% for entry in parents_progress %}
     <li class="kairos-item mj-bucket-{{ bucket_of.get(entry.task.id, 4) }}">
       {{ done_toggle(entry.task) }}
-      <span class="mj-title">{{ entry.task.title }}</span>
-      <span class="badge {% if entry.done == entry.total %}ok{% else %}neutral{% endif %}"
-            title="Avancement des sous-tâches">{{ entry.done }}/{{ entry.total }} sous-tâche(s)</span>
-      {{ task_meta(entry.task) }}
-      {{ task_actions(entry.task) }}
-      {{ edit_panel(entry.task) }}
-      {{ task_description(entry.task) }}
+      <div class="mj-item-main">
+        <div class="mj-item-head">
+          <span class="mj-title">{{ entry.task.title }}</span>
+        </div>
+        <div class="mj-item-tags">
+          <span class="badge {% if entry.done == entry.total %}ok{% else %}neutral{% endif %}"
+                title="Avancement des sous-tâches">{{ entry.done }}/{{ entry.total }} sous-tâche(s)</span>
+          {{ task_tags(entry.task) }}
+        </div>
+        {{ task_description(entry.task) }}
+      </div>
+      <div class="mj-item-key">{{ task_key_badges(entry.task) }}</div>
+      <div class="mj-item-actions">{{ task_actions(entry.task) }}{{ edit_panel(entry.task) }}</div>
     </li>
     {% endfor %}
   </ul>
@@ -334,9 +366,14 @@
     {% for task in done_today %}
     <li class="kairos-item mj-done">
       {{ done_toggle(task) }}
-      <span class="mj-title">{{ task.title }}</span>
-      {{ task_meta(task) }}
-      {{ task_actions(task) }}
+      <div class="mj-item-main">
+        <div class="mj-item-head">
+          <span class="mj-title">{{ task.title }}</span>
+        </div>
+        <div class="mj-item-tags">{{ task_tags(task) }}</div>
+      </div>
+      <div class="mj-item-key">{{ task_key_badges(task) }}</div>
+      <div class="mj-item-actions">{{ task_actions(task) }}</div>
     </li>
     {% endfor %}
   </ul>

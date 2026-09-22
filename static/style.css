@@ -360,10 +360,49 @@ summary:focus-visible,
    ========================================================================= */
 .kairos-list { list-style: none; margin: 0.5rem 0; padding: 0; display: flex;
   flex-direction: column; gap: 0.55rem; }
-.kairos-item { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+/* Ligne de tâche : grille invisible de quatre colonnes (issue #33).
+   Avant, un simple `flex-wrap` mettait coche, titre, dix badges possibles,
+   actions et crayon au même niveau : chaque tâche posait donc ses actions à une
+   abscisse différente selon le nombre de badges qu'elle portait, et un titre
+   long chassait tout le reste. Désormais :
+     [coche] [corps] [priorité/points] [actions]
+   seule la colonne « corps » est élastique (`minmax(0, 1fr)`), les trois autres
+   se dimensionnent sur leur contenu — d'une ligne à l'autre, actions et
+   priorité tombent au même endroit, la liste se balaie verticalement.
+   `minmax(0, 1fr)` et non `1fr` : une piste `1fr` a pour taille minimale `auto`,
+   donc elle refuserait de descendre sous la largeur de son contenu et un titre
+   long ferait déborder la carte au lieu de passer à la ligne. */
+.kairos-item { display: grid; align-items: start;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "check main key actions";
+  column-gap: 0.6rem; row-gap: 0.4rem;
   padding: 0.55rem 0.8rem; border: 1px solid var(--border); border-left-width: 3px;
   border-radius: var(--r-md); background: var(--surface); }
 .kairos-item.mj-bucket-0 { border-left-color: var(--bad-fg); }
+/* `align-items: start` aligne les cellules sur le HAUT de la ligne (et non sur
+   son centre, qui ferait flotter la coche au milieu d'une tâche à titre long +
+   étiquettes + description). Les trois colonnes fixes reprennent la hauteur
+   d'un bouton d'action (28px) et centrent leur contenu dedans : elles
+   s'alignent ainsi sur la première ligne du corps, quelle que soit sa hauteur. */
+.mj-item-check { grid-area: check; }
+.mj-item-check, .mj-item-key, .mj-item-actions { display: flex; align-items: center;
+  gap: 0.3rem; min-height: 28px; }
+.mj-item-main { grid-area: main; min-width: 0; display: flex; flex-direction: column;
+  gap: 0.3rem; }
+/* Pas de `flex-wrap` ici, contrairement aux étiquettes : un titre long doit
+   commencer À CÔTÉ de l'heure et se poursuivre en dessous (retour à la ligne
+   INTERNE au titre), pas basculer en bloc sous elle. D'où `.mj-title` en
+   `flex: 1 1 auto; min-width: 0` — sans ce `min-width`, un mot long refuserait
+   de se couper et déborderait la colonne. */
+.mj-item-head { display: flex; align-items: baseline; gap: 0.5rem; min-width: 0; }
+.mj-item-head .mj-title { flex: 1 1 auto; min-width: 0; }
+/* Les étiquettes s'empilent ICI, dans le corps : elles peuvent occuper autant de
+   lignes que nécessaire sans jamais repousser les deux colonnes de droite. */
+.mj-item-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.4rem;
+  min-width: 0; }
+.mj-item-tags:empty { display: none; }
+.mj-item-key { grid-area: key; justify-content: flex-end; }
+.mj-item-actions { grid-area: actions; }
 .badge.mj-tag { background: var(--neu-bg); color: var(--neu-fg); }
 /* Score WSJF : c'est LUI qui ordonne la liste, un des deux seuls badges à accent. */
 .badge.mj-score { background: var(--accent-soft); color: var(--accent-700); font-weight: 800; }
@@ -404,10 +443,32 @@ summary:focus-visible,
   background: var(--surface); }
 .mj-week-day.today { background: #F6F9FE; border-color: var(--accent-line); }
 .mj-week-day h3 { margin: 0 0 0.45rem; font-size: 0.82rem; font-weight: 700; text-transform: capitalize; color: var(--text-2); }
-.mj-week-day .kairos-item { padding: 0.4rem 0.6rem; min-width: 0; }
+/* Vue semaine : la ligne n'y porte qu'un titre et un projet, sans coche, sans
+   actions, sans priorité — il n'y a rien à aligner en colonnes, et la grille de
+   `.kairos-item` créerait des pistes vides. On revient donc explicitement à un
+   flex simple pour ce seul contexte. */
+.mj-week-day .kairos-item { display: flex; align-items: center; flex-wrap: wrap;
+  gap: 0.4rem; padding: 0.4rem 0.6rem; min-width: 0; }
 .mj-week-day .kairos-item .mj-title {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; display: block;
 }
+/* Écran étroit : quatre colonnes ne tiennent plus sans comprimer le titre. La
+   colonne « priorité/points » passe sous le corps (alignée à gauche, en
+   continuité des étiquettes) ; coche, corps et actions gardent leur place, donc
+   les actions restent à la même abscisse d'une ligne à l'autre — c'est
+   l'essentiel de l'issue #33. Même point de rupture que le reste de l'app
+   (720px) plutôt qu'un troisième seuil à retenir. */
+@media (max-width: 720px) {
+  .kairos-item {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "check main actions"
+      ".     key  key";
+  }
+  .mj-item-key { justify-content: flex-start; min-height: 0; }
+  .mj-item-key:empty { display: none; }
+}
+
 .mj-actions { display: inline-flex; gap: 0.3rem; }
 .mj-check {
   flex: none;

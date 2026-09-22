@@ -2426,3 +2426,81 @@ def test_converted_note_description_shows_up_in_the_day_list(route_client) -> No
     day_page = client.get("/kairos")
     assert "Relancer le fournisseur" in day_page.text
     assert "Devis attendu avant vendredi" in day_page.text
+
+
+# ---------------------------------------------------------------------------
+# Grille de la ligne de tâche (issue #33) — voir docs/spec/vue-jour-gtd.md
+# § Anatomie d'une ligne de tâche.
+# ---------------------------------------------------------------------------
+
+
+def _key_cells(html: str) -> list[str]:
+    """Contenu de chaque cellule « priorité/points » du HTML rendu.
+
+    `task_key_badges` ne produit que des `<span>` : découper sur le premier
+    `</div>` qui suit l'ouverture de la cellule est donc sûr (aucun `<div>`
+    imbriqué possible) et évite d'ajouter un parseur HTML aux dépendances."""
+    return [
+        chunk.split("</div>", 1)[0]
+        for chunk in html.split('<div class="mj-item-key">')[1:]
+    ]
+
+
+def _tags_cells(html: str) -> list[str]:
+    return [
+        chunk.split("</div>", 1)[0]
+        for chunk in html.split('<div class="mj-item-tags">')[1:]
+    ]
+
+
+def test_task_row_renders_the_four_grid_cells(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="Tâche de la grille",
+                priority=1,
+                fibonacci_points=3,
+                project_tag="Projet",
+                source="native",
+            )
+        )
+        db.commit()
+
+    html = client.get("/kairos").text
+    for cell in ("mj-item-check", "mj-item-main", "mj-item-key", "mj-item-actions"):
+        assert f'"{cell}"' in html or f' {cell}"' in html
+
+
+def test_priority_and_points_sit_in_the_key_cell(route_client) -> None:
+    """La colonne « clés » porte priorité et points, alignés à droite d'une ligne
+    à l'autre — c'est le cœur de l'issue #33."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Tâche clé", priority=2, fibonacci_points=5, source="native"))
+        db.commit()
+
+    cells = _key_cells(client.get("/kairos").text)
+    assert any(">P2<" in cell and "5 pts" in cell for cell in cells)
+
+
+def test_context_tags_sit_in_the_body_not_in_the_key_cell(route_client) -> None:
+    """Projet, type et échéance s'empilent dans le corps : ils peuvent occuper
+    plusieurs lignes sans jamais déplacer la colonne d'actions."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="Tâche étiquetée",
+                priority=1,
+                fibonacci_points=3,
+                project_tag="MonProjet",
+                task_type="Développement",
+                source="native",
+            )
+        )
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert any("MonProjet" in cell for cell in _tags_cells(html))
+    assert not any("MonProjet" in cell for cell in _key_cells(html))

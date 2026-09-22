@@ -4,7 +4,7 @@
 {% from "_icons.html" import icon %}
 
 {% macro done_toggle(task) %}
-<form method="post" action="/kairos/tasks/{{ task.id }}/done" class="inline" data-ajax>
+<form method="post" action="/kairos/tasks/{{ task.id }}/done" class="inline mj-item-check" data-ajax>
   <button type="submit" class="mj-check {% if task.status == 'done' %}is-done{% endif %}"
     title="{% if task.status == 'done' %}Rouvrir{% else %}Marquer fait{% endif %}">
     {% if task.status == 'done' %}{{ icon('check') }}{% endif %}</button>
@@ -193,13 +193,34 @@
 </span>
 {% endmacro %}
 
-{% macro task_meta(task) %}
+{# Colonne « clés » d'une ligne de tâche (issue #33) : score WSJF, priorité et
+   points, collés à la colonne d'actions et alignés à droite. Score et priorité
+   sont les deux seuls badges à porter l'accent bleu (voir
+   docs/DESIGN_SYSTEM.md) ; les points les accompagnent parce que c'est le
+   dénominateur du score — les trois se lisent ensemble, à la même abscisse
+   d'une ligne à l'autre. #}
+{% macro task_key_badges(task) %}
 {% set score = wsjf_of.get(task.id) if wsjf_of else none %}
 {% if score is not none %}<span class="badge mj-score" title="Score WSJF = (valeur de la priorité + criticité de l'échéance) ÷ effort (points Fibonacci). Plus élevé = à faire en premier. C'est ce score qui ordonne la liste.">{{ icon('trending_up') }} {{ score }}</span>{% endif %}
 {% if task.priority is not none %}<span class="badge prio" title="Priorité">P{{ task.priority }}</span>{% endif %}
-{% if task.project_tag %}<span class="badge">{{ task.project_tag }}</span>{% endif %}
+{% if task.fibonacci_points %}<span class="badge mj-tag" title="Points de Fibonacci (effort relatif, dénominateur du score WSJF)">{{ task.fibonacci_points }} pts</span>{% endif %}
+{% endmacro %}
+
+{# Étiquettes de contexte d'une tâche (issue #33) : rendues dans le CORPS de la
+   ligne, sous le titre, où elles s'empilent librement sans jamais déplacer la
+   colonne « clés » ni les actions. Tout ce qui n'est pas un signal de tri va
+   ici — le tri, lui, se lit dans `task_key_badges`. #}
+{% macro task_tags(task) %}
+{% if task.project_tag %}
+{%- set gitlab_url = gitlab_issue_url_of.get(task.id) if gitlab_issue_url_of else none -%}
+{% if gitlab_url %}
+{# Issue #33 : le projet d'une tâche importée ramène à sa fiche d'origine en un
+   clic. `rel="noopener"` obligatoire avec `target="_blank"`. #}
+<a class="badge" href="{{ gitlab_url }}" target="_blank" rel="noopener"
+   title="Ouvrir l'issue GitLab d'origine ({{ task.external_id }})">{{ icon('gitlab') }} {{ task.project_tag }}</a>
+{% else %}<span class="badge">{{ task.project_tag }}</span>{% endif %}
+{% endif %}
 {% if task.task_type %}<span class="badge mj-tag" title="Type de tâche">{{ task.task_type }}</span>{% endif %}
-{% if task.fibonacci_points %}<span class="badge mj-tag" title="Estimation agile (informatif)">{{ task.fibonacci_points }} pts</span>{% endif %}
 {% set linked = ticket_by_id.get(task.linked_ticket_id) if task.linked_ticket_id else none %}
 {% if linked %}
 {% if linked.gitlab_web_url %}
