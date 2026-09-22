@@ -191,3 +191,20 @@ def _full_form(**overrides: str) -> dict[str, str]:
     }
     base.update(overrides)
     return base
+
+
+def test_timer_alert_sound_is_off_by_default_and_can_be_enabled(settings_client) -> None:
+    """Issue #34 : le signal sonore de secours est un opt-in — un son qu'on n'a
+    pas demandé est une intrusion."""
+    assert get_settings().timer_alert_sound is False
+
+    page = settings_client.get("/kairos/settings")
+    assert 'name="timer_alert_sound"' in page.text
+
+    resp = settings_client.post(
+        "/kairos/settings",
+        data=_full_form(timer_alert_sound="on"),
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
+    assert get_settings().timer_alert_sound is True

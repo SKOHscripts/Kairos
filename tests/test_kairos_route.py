@@ -2643,3 +2643,22 @@ def test_notify_is_never_offered_on_android(route_client, monkeypatch) -> None:
         headers={"X-Requested-With": "fetch"},
     )
     assert resp.status_code == 503
+
+
+def test_day_page_announces_server_notifications_to_the_client(route_client, monkeypatch) -> None:
+    """Le client ne devine jamais cette capacité : le serveur seul sait si la
+    page est ouverte depuis la machine qui l'héberge."""
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    html = _client_from("127.0.0.1").get("/kairos").text
+    assert 'data-server-notify="1"' in html
+
+    html = _client_from("192.168.1.42").get("/kairos").text
+    assert 'data-server-notify="0"' in html
+
+
+def test_day_page_does_not_announce_server_notifications_without_a_tool(
+    route_client, monkeypatch
+) -> None:
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: False)
+    html = _client_from("127.0.0.1").get("/kairos").text
+    assert 'data-server-notify="0"' in html

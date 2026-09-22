@@ -198,10 +198,15 @@
   </div>
   {% endif %}
   {# Alertes de chrono (phase 11) : opt-in aux notifications bureau. Les seuils sont
-     passés au script ; l'estimation/le titre de la tâche en cours vivent sur le badge. #}
+     passés au script ; l'estimation/le titre de la tâche en cours vivent sur le badge.
+     `data-server-notify` (issue #34) : le serveur peut-il émettre lui-même une
+     notification système POUR CE CLIENT (hôte local, outil présent, hors Android) —
+     calculé par `server_notifications_available()`, jamais deviné côté client. #}
   <div class="mj-progress-stats" id="mj-alert-config"
        data-idle="{{ settings.timer_idle_alert_minutes }}"
-       data-pomodoro="{{ settings.pomodoro_focus_minutes }}">
+       data-pomodoro="{{ settings.pomodoro_focus_minutes }}"
+       data-server-notify="{{ 1 if server_notify else 0 }}"
+       data-sound="{{ 1 if settings.timer_alert_sound else 0 }}">
     <button type="button" class="btn sm" id="mj-alert-enable" hidden>{{ icon('clock') }} Activer les alertes chrono</button>
     <span class="muted" id="mj-alert-status" hidden></span>
   </div>

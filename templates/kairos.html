@@ -67,6 +67,126 @@
 
 {% block scripts %}
 <script>
+  /* ---------------------------------------------------------------------
+     Repli d'alerte de chrono (issue #34) — vit HORS de `initDayScripts` :
+     rien de tout ceci n'habite le sous-arbre remplacé par un swap AJAX, donc
+     rien ne doit être rebranché (invariant, docs/spec/vue-jour-gtd.md).
+     --------------------------------------------------------------------- */
+
+  /* Titre « propre » de la page, capturé UNE fois au chargement, avant que le
+     minuteur ou le clignotement d'alerte n'aient pu y écrire : le recalculer
+     plus tard (après un swap, pendant un clignotement) capturerait le titre
+     décoré au lieu du vrai. */
+  var kairosBaseTitle = document.title.replace(/^\([0-9:]+\) .+ · /, '');
+
+  /* Bandeau d'alerte flottant, ancré au <body> et NON à `.page` : un swap AJAX
+     remplace `#mj-day-content`, un bandeau posé dedans disparaîtrait au premier
+     rafraîchissement — exactement quand l'utilisateur ne regarde pas. Persistant
+     (aucune disparition automatique) : une alerte manquée est une alerte perdue,
+     c'est un clic qui la referme. */
+  function kairosToast(msg) {
+    var host = document.getElementById('mj-alert-toasts');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'mj-alert-toasts';
+      host.className = 'mj-alert-toasts';
+      document.body.appendChild(host);
+    }
+    var toast = document.createElement('div');
+    toast.className = 'banner warning mj-alert-toast';
+    toast.setAttribute('role', 'alert');
+    var text = document.createElement('span');
+    text.textContent = msg;
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'mj-alert-toast-close';
+    close.setAttribute('aria-label', 'Fermer l’alerte');
+    close.textContent = '✕';
+    close.addEventListener('click', function () { toast.remove(); });
+    toast.appendChild(text);
+    toast.appendChild(close);
+    host.appendChild(toast);
+  }
+
+  /* Titre d'onglet clignotant : dernier signal visible quand la fenêtre est en
+     arrière-plan et qu'aucune notification système n'a pu sortir. Le minuteur
+     (`tick`) est le SEUL à écrire dans `document.title` — il consulte cet état
+     plutôt que d'entrer en concurrence avec un second intervalle. */
+  var kairosFlash = { msg: '', until: 0, on: false };
+  function kairosStartFlash(msg) {
+    kairosFlash.msg = msg;
+    kairosFlash.until = Date.now() + 60000;
+  }
+  function kairosStopFlash() {
+    if (!kairosFlash.until) return;
+    kairosFlash.until = 0;
+    document.title = kairosBaseTitle;
+  }
+  /* L'utilisateur a vu : on arrête. Revenir sur l'onglet ou toucher la page
+     suffit, aucun bouton dédié. */
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) kairosStopFlash();
+  });
+  document.addEventListener('pointerdown', kairosStopFlash);
+
+  /* Signal sonore (opt-in, réglage `timer_alert_sound`). WebAudio plutôt qu'un
+     fichier : aucun binaire à empaqueter, cohérent avec « HTML/CSS pur, sans
+     dépendance de build ». Un navigateur refuse de jouer un son tant que la
+     page n'a pas reçu d'interaction — d'où le déverrouillage au premier geste,
+     et le silence assumé (jamais d'erreur) si l'utilisateur n'a rien touché. */
+  var kairosAudio = null;
+  function kairosUnlockAudio() {
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!kairosAudio) kairosAudio = new Ctx();
+      if (kairosAudio.state === 'suspended') kairosAudio.resume();
+    } catch (e) { kairosAudio = null; }
+  }
+  document.addEventListener('pointerdown', kairosUnlockAudio);
+  document.addEventListener('keydown', kairosUnlockAudio);
+  function kairosBeep() {
+    kairosUnlockAudio();
+    if (!kairosAudio) return;
+    try {
+      var t0 = kairosAudio.currentTime;
+      [660, 880].forEach(function (freq, i) {
+        var at = t0 + i * 0.18;
+        var osc = kairosAudio.createOscillator();
+        var gain = kairosAudio.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        /* Enveloppe exponentielle : une note coupée net « claque ». */
+        gain.gain.setValueAtTime(0.0001, at);
+        gain.gain.exponentialRampToValueAtTime(0.1, at + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.15);
+        osc.connect(gain);
+        gain.connect(kairosAudio.destination);
+        osc.start(at);
+        osc.stop(at + 0.17);
+      });
+    } catch (e) {}
+  }
+
+  /* Demande au serveur d'émettre lui-même la notification système (issue #34).
+     Résout à `true` seulement sur 204 : la route répond 503 dès qu'elle ne peut
+     pas tenir la promesse (client distant, outil absent, échec système), et le
+     client renforce alors son repli. L'en-tête `X-Requested-With` est exigé
+     côté route (garde-fou CSRF). */
+  function kairosNotifyServer(title, body) {
+    try {
+      var data = new FormData();
+      data.append('title', title);
+      data.append('body', body);
+      return fetch('/kairos/notify', {
+        method: 'POST', body: data, headers: { 'X-Requested-With': 'fetch' }
+      }).then(function (r) { return r.status === 204; })
+        .catch(function () { return false; });
+    } catch (e) {
+      return Promise.resolve(false);
+    }
+  }
+
   /* Point d'entrée : (ré)initialise les écouteurs qui doivent être rebranchés
      après un swap AJAX de `#mj-day-content` (chrono vivant, alertes) — voir
      Étape E du guide d'exécution. Les écouteurs DÉLÉGUÉS sur `document` plus bas
@@ -92,6 +212,10 @@
     var pomoMin = cfg ? parseInt(cfg.getAttribute('data-pomodoro') || '0', 10) : 0;
     var android = window.KairosAndroid || null;
     var canNotify = android ? true : (('Notification' in window) && window.isSecureContext);
+    /* Issue #34 : voies de secours, décidées par le serveur (jamais devinées
+       ici — lui seul sait si le client est la machine hôte). */
+    var serverNotify = cfg ? cfg.getAttribute('data-server-notify') === '1' : false;
+    var soundEnabled = cfg ? cfg.getAttribute('data-sound') === '1' : false;
 
     /* Bouton d'opt-in aux notifications : révélé selon l'état de permission — pont
        Android natif s'il est présent (issue #16), sinon Web Notifications bureau. */
@@ -113,11 +237,17 @@
         btn.addEventListener('click', function () { android.requestPermission(); });
         window.addEventListener('kairos-android-permission-changed', refreshAndroidStatus);
       } else if (!canNotify) {
-        showStatus('Notifications indisponibles ici (ouvrez via 127.0.0.1 pour les activer).');
+        /* Issue #34 : l'état affiché dit ce qui va RÉELLEMENT se passer, jamais
+           « indisponible » quand une voie de secours existe. */
+        showStatus(serverNotify
+          ? 'Alertes chrono actives (notifications système de Kairos).'
+          : 'Notifications indisponibles ici : les alertes s’afficheront dans la page.');
       } else if (Notification.permission === 'granted') {
         showStatus('Alertes chrono actives.');
       } else if (Notification.permission === 'denied') {
-        showStatus('Notifications bloquées par le navigateur.');
+        showStatus(serverNotify
+          ? 'Notifications refusées par le navigateur : Kairos les émet lui-même.'
+          : 'Notifications bloquées : les alertes s’afficheront dans la page.');
       } else {
         btn.hidden = false;
         btn.addEventListener('click', function () {
@@ -129,15 +259,6 @@
       }
     }
 
-    /* Repli visuel : bandeau d'avertissement inséré en tête de page (une fois par type). */
-    function flashInPage(msg) {
-      var page = document.querySelector('.page');
-      if (!page) return;
-      var b = document.createElement('div');
-      b.className = 'banner warning';
-      b.textContent = msg;
-      page.insertBefore(b, page.firstChild);
-    }
 
     var el = root.querySelector('.mj-timer');
     if (!el) return;
@@ -146,7 +267,7 @@
     var estimate = parseInt(el.getAttribute('data-estimate') || '0', 10);
     var taskTitle = el.getAttribute('data-title') || 'Tâche';
     var out = el.querySelector('.mj-timer-val');
-    var baseTitle = document.title.replace(/^\([0-9:]+\) .+ · /, '');
+    var baseTitle = kairosBaseTitle;
     var fired = {};
 
     /* On neutralise les seuils déjà franchis AU CHARGEMENT (évite de re-notifier à
@@ -158,15 +279,35 @@
     if (idleMin && initSession >= idleMin) fired.idle = true;
     if (pomoMin && initSession >= pomoMin) fired.pomo = true;
 
+    /* Cascade d'alerte (issue #34), du mécanisme le plus riche au dernier
+       recours. Le bandeau flottant joue TOUJOURS, en plus (invariant d'origine :
+       rien n'est jamais silencieux) ; le renforcement — titre clignotant, son —
+       ne joue que si aucune notification système n'a pu sortir, pour ne pas
+       doubler une alerte déjà reçue. */
+    function reinforce(msg) {
+      kairosStartFlash(msg);
+      if (soundEnabled) kairosBeep();
+    }
     function alert(tag, body) {
       if (fired[tag]) return;
       fired[tag] = true;
+      var msg = taskTitle + ' · ' + body;
+      kairosToast(msg);
       if (android) {
-        try { android.notify('Kairos · ' + taskTitle, body, tag); } catch (e) {}
+        try { android.notify('Kairos · ' + taskTitle, body, tag); return; } catch (e) {}
       } else if (canNotify && Notification.permission === 'granted') {
-        try { new Notification('Kairos · ' + taskTitle, { body: body, tag: tag }); } catch (e) {}
+        try {
+          new Notification('Kairos · ' + taskTitle, { body: body, tag: tag });
+          return;
+        } catch (e) {}
       }
-      flashInPage(taskTitle + ' · ' + body);
+      if (serverNotify) {
+        kairosNotifyServer(taskTitle, body).then(function (sent) {
+          if (!sent) reinforce(msg);
+        });
+        return;
+      }
+      reinforce(msg);
     }
 
     function fmt(min) {
@@ -177,8 +318,16 @@
       var sessionMin = Math.max(0, Math.floor((Date.now() - startedMs) / 60000));
       var total = baseMin + sessionMin;
       out.textContent = fmt(total);
-      document.title = '(' + Math.floor(total / 60) + ':' + ('0' + (total % 60)).slice(-2)
-        + ') ' + taskTitle + ' · ' + baseTitle;
+      /* Un seul écrivain pour `document.title` : pendant un clignotement
+         d'alerte (issue #34), le minuteur cède la place au message plutôt que
+         de lutter avec un second intervalle. */
+      if (kairosFlash.until > Date.now()) {
+        kairosFlash.on = !kairosFlash.on;
+        document.title = kairosFlash.on ? ('⚠ ' + kairosFlash.msg) : kairosBaseTitle;
+      } else {
+        document.title = '(' + Math.floor(total / 60) + ':' + ('0' + (total % 60)).slice(-2)
+          + ') ' + taskTitle + ' · ' + baseTitle;
+      }
       if (estimate && total >= estimate) {
         alert('over', 'temps réel ' + fmt(total) + ' au-delà de l’estimé (' + fmt(estimate) + ').');
       }
