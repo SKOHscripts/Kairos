@@ -5,4 +5,13 @@
     <!-- Couleur de fond de l'app (variable bg dans static/style.css), pour la barre de
          statut/navigation (voir themes.xml). -->
     <color name="kairos_bg">#F3F5F8</color>
+    <!-- Jetons de docs/DESIGN_SYSTEM.md repris pour l'écran de démarrage natif
+         (MainActivity) : texte secondaire/tertiaire, accent (bouton
+         « Réessayer », seul bouton primaire de l'écran) et rouge critique. -->
+    <color name="kairos_text">#16202B</color>
+    <color name="kairos_text_2">#55606D</color>
+    <color name="kairos_text_3">#8A94A0</color>
+    <color name="kairos_accent">#2F6FED</color>
+    <color name="kairos_accent_hover">#2557C0</color>
+    <color name="kairos_critical">#B3261E</color>
 </resources>

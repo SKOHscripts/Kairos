@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Icône du splash screen (API 31+, voir themes.xml) : même tracé que le logo
-     Kairos (mire/cadran solaire — static/favicon.svg, templates/base.html,
-     ic_launcher_foreground.xml), viewBox 40×40 identique pour réutiliser les
-     mêmes coordonnées sans recalcul. Contrairement à ic_launcher_foreground.xml
-     (juste le premier plan), ce drawable porte aussi son propre fond ivoire +
-     anneau, mais le splash le rogne quand même à un cercle (voir le groupe
-     réduit ci-dessous). Le secteur terracotta (`android:name="wedge"`)
-     est la seule pièce animée (voir kairos_splash_icon.xml +
-     animator/kairos_splash_wedge_sweep.xml) : les autres restent statiques. -->
+<!-- Logo statique de démarrage : même dessin et même réduction que
+     kairos_splash_icon_base.xml, secteur à sa position finale (80° depuis midi,
+     comme le logo). Affiché par le fond de fenêtre de démarrage
+     (kairos_launch_background.xml, toutes versions : c'est le seul splash
+     avant l'API 31) et par l'écran de démarrage applicatif de MainActivity,
+     tous deux dans une boîte de 288dp centrée : le logo reste exactement à la
+     même place et à la même taille que dans le splash système (API 31+), sans
+     saut ni rejeu de l'animation au passage de l'un à l'autre. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="288dp"
     android:height="288dp"
@@ -33,9 +32,8 @@
             android:fillColor="#00000000"
             android:pathData="M1.5,20 A18.5,18.5 0 1 1 38.5,20 A18.5,18.5 0 1 1 1.5,20 Z" />
         <path
-            android:name="wedge"
             android:fillColor="#D9713C"
-            android:pathData="M20,20 L20,4 A16,16 0 0 1 20,4 Z" />
+            android:pathData="M20,20 L20,4 A16,16 0 0 1 35.76,17.22 Z" />
         <path
             android:fillColor="#2B241E"
             android:pathData="M17.4,20 A2.6,2.6 0 1 1 22.6,20 A2.6,2.6 0 1 1 17.4,20 Z" />

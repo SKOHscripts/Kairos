@@ -3,20 +3,19 @@ package com.skohscripts.kairos;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.graphics.drawable.Animatable;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.Gravity;
-import android.view.View;
+import android.os.SystemClock;
+import android.util.Log;
+import android.view.ViewGroup;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.window.OnBackInvokedDispatcher;
 
 import com.chaquo.python.PyObject;
@@ -38,17 +37,32 @@ import java.net.URL;
  */
 public class MainActivity extends Activity {
 
-    private static final long STARTUP_OVERLAY_TIMEOUT_MS = 30_000;
+    private static final String TAG = "Kairos";
+    /** Attente maximale de la première réponse du serveur, une fois `prepare()`
+     *  revenu (import de l'application et démarrage d'uvicorn). */
+    private static final long SERVER_READY_TIMEOUT_MS = 90_000;
+    /** Attente maximale de `onPageFinished` après `loadUrl`. */
+    private static final long PAGE_LOAD_TIMEOUT_MS = 30_000;
+    /** Délai avant d'expliquer qu'un premier lancement peut être long. */
+    private static final long SLOW_HINT_DELAY_MS = 8_000;
 
+    // Survivent à une recréation d'activité tant que le process vit (voir la
+    // docstring de la classe). Accès sous verrou de classe : deux instances
+    // d'activité peuvent coexister brièvement.
     private static int serverPort = -1;
+    private static Thread serverThread;
+    private static volatile String serverError;
 
     private WebView webView;
-    private View startupOverlay;
+    private StartupScreen startup;
     private KairosNotificationBridge notificationBridge;
-    // Utilisé uniquement pour le filet de sécurité qui masque l'overlay de
-    // démarrage si `onPageFinished` n'arrive jamais (page en échec) — voir
-    // `hideStartupOverlay`.
-    private final Handler overlayHandler = new Handler(Looper.getMainLooper());
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable slowHint = () -> startup.showSlowHint();
+    private final Runnable pageTimeout = () -> showStartupError(
+            getString(R.string.startup_page_timeout), null);
+    // Thread principal uniquement.
+    private boolean initRunning;
+    private boolean pageLoadFailed;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -62,7 +76,21 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                hideStartupOverlay();
+                // Une page en erreur appelle aussi onPageFinished : ne jamais
+                // dévoiler la page d'erreur du WebView à la place de l'agenda.
+                if (!pageLoadFailed) {
+                    hideStartupScreen();
+                }
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                if (request.isForMainFrame() && startup.isShowing()) {
+                    pageLoadFailed = true;
+                    showStartupError(getString(R.string.startup_failed),
+                            String.valueOf(error.getDescription()));
+                }
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
@@ -96,94 +124,175 @@ public class MainActivity extends Activity {
         notificationBridge = new KairosNotificationBridge(this, webView);
         webView.addJavascriptInterface(notificationBridge, "KairosAndroid");
 
-        // Overlay de démarrage applicatif (plutôt que de compter sur le splash
-        // système, voir `startupOverlay` et `hideStartupOverlay` ci-dessous) :
-        // WebView en dessous, overlay par-dessus, masqué en fondu une fois la
-        // première page réellement chargée.
-        FrameLayout root = new FrameLayout(this);
-        root.addView(webView, new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-        startupOverlay = buildStartupOverlay();
-        root.addView(startupOverlay, new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-
-        setContentView(root);
+        setContentView(webView);
+        // Écran de démarrage par-dessus toute la fenêtre (voir StartupScreen) :
+        // il reste affiché jusqu'à l'agenda chargé ou jusqu'à un état d'erreur
+        // explicite, jamais masqué « à l'aveugle » sur une page vide.
+        startup = new StartupScreen(this);
+        startup.attachTo((ViewGroup) getWindow().getDecorView());
         registerPredictiveBackCallback();
 
-        // Filet de sécurité : si `onPageFinished` n'arrive jamais (page en échec,
-        // réseau local qui ne répond jamais), ne pas rester bloqué indéfiniment sur
-        // le logo — l'utilisateur retrouve au moins la WebView (même vide/en erreur)
-        // plutôt qu'un écran figé.
-        overlayHandler.postDelayed(this::hideStartupOverlay, STARTUP_OVERLAY_TIMEOUT_MS);
-
-        // `Python.start()` et surtout `kairos_boot.prepare()` (extraction du paquet
-        // Python embarqué, première écriture de la base SQLite) peuvent prendre
-        // plusieurs secondes au tout premier lancement — les exécuter sur le thread
-        // principal bloquerait tout rendu, y compris celui de l'overlay ci-dessus
-        // (c'est ce qui, avant ce correctif, produisait un écran blanc : le splash
-        // système est piloté par ce même thread principal, qu'il ne pouvait pas
-        // dessiner tant que ce bloc s'exécutait de façon synchrone dans `onCreate`).
-        new Thread(() -> {
-            startServerIfNeeded();
-            loadWhenServerReady();
-        }, "kairos-init").start();
+        startInit();
     }
 
-    /** Construit l'overlay plein écran affiché pendant le démarrage : fond uni à la
-     *  couleur de l'app (`@color/kairos_bg`, cohérent avec `themes.xml`) et le logo
-     *  animé déjà utilisé pour le splash natif (`@drawable/kairos_splash_icon`,
-     *  `AnimatedVectorDrawable` — même secteur qui balaie depuis midi). Démarré
-     *  explicitement via `Animatable.start()` : contrairement au splash système, rien
-     *  ne le joue automatiquement ici. */
-    private View buildStartupOverlay() {
-        FrameLayout overlay = new FrameLayout(this);
-        overlay.setBackgroundColor(getColor(R.color.kairos_bg));
-
-        ImageView icon = new ImageView(this);
-        icon.setImageResource(R.drawable.kairos_splash_icon);
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-        lp.gravity = Gravity.CENTER;
-        overlay.addView(icon, lp);
-
-        Drawable drawable = icon.getDrawable();
-        if (drawable instanceof Animatable) {
-            ((Animatable) drawable).start();
-        }
-        return overlay;
+    @Override
+    protected void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+        super.onDestroy();
     }
 
-    /** Masque l'overlay de démarrage en fondu. Appelé depuis `onPageFinished`
-     *  (chemin normal) et depuis le filet de sécurité de `onCreate` (chemin de
-     *  secours) — idempotent : un second appel (page suivante rechargée en plein,
-     *  ou timeout après un `onPageFinished` déjà traité) est un no-op silencieux. */
-    private void hideStartupOverlay() {
-        if (startupOverlay == null || startupOverlay.getVisibility() == View.GONE) {
+    /** Lance (ou relance, bouton « Réessayer ») la chaîne de démarrage sur le
+     *  thread `kairos-init`, jamais le thread principal : `Python.start()` et
+     *  surtout `kairos_boot.prepare()` peuvent prendre plusieurs secondes au
+     *  premier lancement, et les exécuter ici bloquerait tout rendu (c'était la
+     *  cause du premier écran blanc, voir docs/ANDROID_PACKAGING.md). Chaque
+     *  étape est idempotente : un réessai reprend là où l'échec a eu lieu. */
+    private void startInit() {
+        if (initRunning) {
             return;
         }
-        overlayHandler.removeCallbacksAndMessages(null);
-        startupOverlay.animate()
-                .alpha(0f)
-                .setDuration(220)
-                .withEndAction(() -> startupOverlay.setVisibility(View.GONE))
-                .start();
+        initRunning = true;
+        pageLoadFailed = false;
+        startup.showProgress(R.string.startup_python);
+        handler.removeCallbacks(slowHint);
+        handler.postDelayed(slowHint, SLOW_HINT_DELAY_MS);
+        new Thread(this::runInit, "kairos-init").start();
     }
 
-    /** Démarre Python/uvicorn si ce n'est pas déjà fait (voir la docstring de la
-     *  classe : le port et le thread serveur survivent à une recréation d'activité
-     *  tant que le process vit). Appelé depuis le thread `kairos-init` de
-     *  `onCreate`, jamais le thread principal. */
-    private void startServerIfNeeded() {
-        if (!Python.isStarted()) {
-            Python.start(new AndroidPlatform(this));
+    private void runInit() {
+        try {
+            String base = "http://127.0.0.1:" + ensureServerStarted();
+            showStep(R.string.startup_server);
+            waitUntilServing(base);
+            runOnUiThread(() -> loadApp(base));
+        } catch (StartupFailure failure) {
+            Log.e(TAG, "Démarrage interrompu : " + failure.getMessage());
+            runOnUiThread(() -> showStartupError(getString(failure.titleRes), failure.getMessage()));
+        } catch (Throwable t) {
+            Log.e(TAG, "Échec du démarrage", t);
+            runOnUiThread(() -> showStartupError(getString(R.string.startup_failed), describe(t)));
         }
-        PyObject boot = Python.getInstance().getModule("kairos_boot");
-        if (serverPort < 0) {
-            serverPort = boot.callAttr("prepare", getFilesDir().getAbsolutePath()).toInt();
-            int port = serverPort;
-            Thread server = new Thread(() -> boot.callAttr("serve", port), "kairos-uvicorn");
-            server.setDaemon(true);
-            server.start();
+    }
+
+    /** Démarre Python, prépare l'environnement et lance uvicorn, chacun
+     *  seulement si ce n'est pas déjà fait (recréation d'activité, réessai).
+     *  Retourne le port servi. */
+    private int ensureServerStarted() {
+        synchronized (MainActivity.class) {
+            if (!Python.isStarted()) {
+                showStep(R.string.startup_python);
+                Python.start(new AndroidPlatform(this));
+            }
+            PyObject boot = Python.getInstance().getModule("kairos_boot");
+            if (serverPort < 0) {
+                showStep(R.string.startup_prepare);
+                serverPort = boot.callAttr("prepare", getFilesDir().getAbsolutePath()).toInt();
+            }
+            if (serverThread == null || !serverThread.isAlive()) {
+                serverError = null;
+                final int port = serverPort;
+                serverThread = new Thread(() -> {
+                    // Une exception non rattrapée sur ce thread tuerait tout le
+                    // process (« Kairos s'est arrêté ») : on la garde pour
+                    // l'afficher sur l'écran de démarrage à la place.
+                    try {
+                        boot.callAttr("serve", port);
+                    } catch (Throwable t) {
+                        Log.e(TAG, "Serveur arrêté", t);
+                        serverError = describe(t);
+                    }
+                }, "kairos-uvicorn");
+                serverThread.setDaemon(true);
+                serverThread.start();
+            }
+            return serverPort;
+        }
+    }
+
+    /** Sonde /favicon.ico (toujours 200 sur une instance réelle, même repère
+     *  que le launcher de bureau) jusqu'à la première réponse, en abandonnant
+     *  tôt si le thread serveur s'est arrêté. */
+    private void waitUntilServing(String base) throws StartupFailure, InterruptedException {
+        long deadline = SystemClock.elapsedRealtime() + SERVER_READY_TIMEOUT_MS;
+        while (SystemClock.elapsedRealtime() < deadline) {
+            try {
+                HttpURLConnection probe =
+                        (HttpURLConnection) new URL(base + "/favicon.ico").openConnection();
+                probe.setConnectTimeout(500);
+                probe.setReadTimeout(2000);
+                try {
+                    if (probe.getResponseCode() == 200) {
+                        return;
+                    }
+                } finally {
+                    probe.disconnect();
+                }
+            } catch (Exception ignored) {
+                // serveur pas encore prêt : on réessaie
+            }
+            Thread server = serverThread;
+            if (server == null || !server.isAlive()) {
+                throw new StartupFailure(R.string.startup_server_timeout,
+                        serverError != null ? serverError : "Le serveur local s'est arrêté.");
+            }
+            Thread.sleep(300);
+        }
+        throw new StartupFailure(R.string.startup_server_timeout,
+                "Aucune réponse de " + base + " après " + SERVER_READY_TIMEOUT_MS / 1000 + " s.");
+    }
+
+    private void loadApp(String base) {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        initRunning = false;
+        pageLoadFailed = false;
+        startup.showProgress(R.string.startup_page);
+        handler.removeCallbacks(pageTimeout);
+        handler.postDelayed(pageTimeout, PAGE_LOAD_TIMEOUT_MS);
+        webView.loadUrl(base + "/kairos");
+    }
+
+    private void showStep(int messageRes) {
+        runOnUiThread(() -> {
+            if (startup.isShowing()) {
+                startup.showProgress(messageRes);
+            }
+        });
+    }
+
+    /** État d'erreur de l'écran de démarrage (au lieu d'un écran figé ou d'une
+     *  page vide). Sans effet une fois l'agenda affiché. */
+    private void showStartupError(String title, String detail) {
+        if (isFinishing() || isDestroyed() || !startup.isShowing()) {
+            return;
+        }
+        initRunning = false;
+        handler.removeCallbacks(slowHint);
+        handler.removeCallbacks(pageTimeout);
+        startup.showError(title, detail, this::startInit);
+    }
+
+    private void hideStartupScreen() {
+        handler.removeCallbacks(slowHint);
+        handler.removeCallbacks(pageTimeout);
+        startup.dismiss();
+    }
+
+    private static String describe(Throwable t) {
+        String message = t.getMessage();
+        String text = t.getClass().getSimpleName() + (message != null ? " : " + message : "");
+        return text.length() > 400 ? text.substring(0, 400) + "…" : text;
+    }
+
+    /** Échec attendu d'une étape (délai dépassé, serveur arrêté) : titre à
+     *  afficher et détail technique. */
+    private static final class StartupFailure extends Exception {
+        final int titleRes;
+
+        StartupFailure(int titleRes, String detail) {
+            super(detail);
+            this.titleRes = titleRes;
         }
     }
 
@@ -206,35 +315,6 @@ public class MainActivity extends Activity {
                         finish();
                     }
                 });
-    }
-
-    /** Sonde /favicon.ico (toujours 200 sur une instance réelle, même repère que
-     *  le launcher de bureau) puis charge l'agenda du jour. Appelé depuis le thread
-     *  `kairos-init` une fois `startServerIfNeeded` revenu (donc `serverPort` posé) —
-     *  spawn son propre thread `kairos-probe`, comme avant ce correctif. */
-    private void loadWhenServerReady() {
-        final String base = "http://127.0.0.1:" + serverPort;
-        new Thread(() -> {
-            for (int attempt = 0; attempt < 100; attempt++) {
-                try {
-                    HttpURLConnection probe =
-                            (HttpURLConnection) new URL(base + "/favicon.ico").openConnection();
-                    probe.setConnectTimeout(500);
-                    probe.setReadTimeout(500);
-                    if (probe.getResponseCode() == 200) {
-                        break;
-                    }
-                } catch (Exception ignored) {
-                    // serveur pas encore prêt : on réessaie
-                }
-                try {
-                    Thread.sleep(300);
-                } catch (InterruptedException e) {
-                    return;
-                }
-            }
-            runOnUiThread(() -> webView.loadUrl(base + "/kairos"));
-        }, "kairos-probe").start();
     }
 
     @Override

@@ -355,7 +355,8 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
   pose `KAIROS_BASE_DIR`/`KAIROS_PLATFORM=android`, puis délègue à
   `android_launcher.prepare`), lance `kairos_boot.serve(port)` dans un thread Java
   nommé `kairos-uvicorn`, puis sonde `/favicon.ico` (même repère que le launcher de
-  bureau) avant de charger `http://127.0.0.1:<port>/kairos` dans la WebView. Détail
+  bureau, jusqu'à 90 s, écran d'erreur avec « Réessayer » au-delà) avant de
+  charger `http://127.0.0.1:<port>/kairos` dans la WebView. Détail
   complet (Gradle, Chaquopy, cycle de vie, notifications) :
   `docs/ANDROID_PACKAGING.md`. `KAIROS_PLATFORM` est posé **avant** tout import de
   `app.main` : c'est ce qui permet à `app/main.py` de le lire une seule fois au
@@ -514,20 +515,19 @@ cette spec (pas de duplication du reste) :
   `versionCode = X*10000 + Y*100 + Z`, plancher `1` (Android rejette `0`, ce que
   donnerait le défaut `0.0.0-dev`), garantit une valeur strictement croissante
   d'une release à l'autre pour qu'Android accepte la mise à jour par-dessus.
-- **Écran de démarrage** : un overlay applicatif (`MainActivity`, `FrameLayout`
-  WebView + overlay fond `@color/kairos_bg` + logo animé) porte le branding
-  pendant toute l'attente de Python/uvicorn, pas le splash système
-  d'Android (`android:windowSplashScreenBackground`/`windowBackground` dans
-  `themes.xml`, toujours posés pour le tout petit instant de cold-start avant
-  `onCreate`, mais plus load-bearing au-delà). Python/uvicorn démarrent sur un
-  thread dédié (`kairos-init`), jamais le thread principal : c'est ce qui
-  garantit que l'overlay se dessine et s'anime réellement, y compris sur un
-  premier lancement long (extraction du paquet Python embarqué). Logo animé :
-  `AnimatedVectorDrawable` dédié (`res/drawable/kairos_splash_icon*.xml` +
-  `res/animator/kairos_splash_wedge_sweep.xml`, natif, API 21+), le même asset
-  que l'ancien splash système, rejoué explicitement (`Animatable.start()`)
-  plutôt qu'automatiquement. Détail complet, y compris les deux approches
-  écartées avant celle-ci, dans `docs/ANDROID_PACKAGING.md`.
+- **Écran de démarrage** : trois relais qui placent le logo au même endroit et
+  à la même taille (boîte de 288dp centrée sur la fenêtre, logo réduit à 0.64
+  pour tenir dans le cercle de 192dp du splash API 31+) : fond de fenêtre
+  `kairos_launch_background.xml` (couleur + logo, seul splash avant l'API 31),
+  splash système animé (API 31+), puis `StartupScreen` (Java, par-dessus toute
+  la fenêtre : logo statique, étape en cours, explication au bout de 8 s,
+  état d'erreur avec détail et « Réessayer »). Il ne disparaît que sur une
+  page réellement chargée, jamais à l'aveugle (l'ancien masquage automatique
+  à 30 s dévoilait une WebView vide). `forceDarkAllowed=false` empêche
+  l'assombrissement forcé par certains constructeurs (écran noir). Python/
+  uvicorn démarrent sur un thread dédié (`kairos-init`), et une exception du
+  thread serveur est affichée au lieu de tuer le process. Détail complet, y
+  compris les approches écartées, dans `docs/ANDROID_PACKAGING.md`.
 - **`AndroidManifest.xml`** / **`MainActivity.java`** : geste retour prédictif
   Android 13+ (`android:enableOnBackInvokedCallback="true"` +
   `OnBackInvokedDispatcher` natif, `android.window`, pas AndroidX) : chemin
