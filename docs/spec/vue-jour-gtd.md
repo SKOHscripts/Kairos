@@ -344,6 +344,46 @@ largeur fixe 300px, pleine largeur sous 860px) :
   (`.mj-tl-session`, gouttière gauche) superposant les sessions chronométrées du
   jour (`session_timeline`, phase 11) au planifié.
 
+### Description d'une tâche (extrait dépliable)
+
+`task_description(task)` (macro, `templates/_kairos_macros.html`) — rend la
+description **dans la ligne de tâche**, plus seulement au fond du panneau
+d'édition (issue #32) :
+
+- Ne rend **rien** si `task.description` est vide ou entièrement blanche
+  (`task.description.strip()`) : une tâche sans description ne gagne ni
+  marqueur, ni ligne supplémentaire.
+- `<details class="mj-desc">` **natif**, sans JavaScript : le repli sans JS de
+  toute la vue Jour est un invariant, et contrairement à `.mj-edit-toggle`
+  (transformé en bouton précisément pour empêcher Ctrl+F d'ouvrir tous les
+  panneaux d'édition, voir § Modale d'édition) on veut **ici** que la recherche
+  du navigateur déplie automatiquement le texte pour l'y trouver.
+- `<summary>` = icône `file_text` + `.mj-desc-peek` (toute la description sur
+  une ligne, coupée en ellipse par CSS — aucune troncature côté serveur, donc
+  rien n'est perdu au dépliage). `.mj-desc[open] > summary .mj-desc-peek` passe
+  en `display: none` : déplié, l'extrait tronqué ferait doublon avec
+  `.mj-desc-body` juste en dessous, seule l'icône reste comme poignée de repli.
+- `.mj-desc-body` en `white-space: pre-wrap` : les retours à la ligne du texte
+  saisi (ou hérités d'une conversion de note, voir `notes-capture.md`) sont
+  préservés, sans aucun rendu HTML/Markdown (échappement Jinja par défaut,
+  jamais `| safe` — même règle que le corps d'une note).
+
+**Point d'appel : en toute fin de `<li class="kairos-item">`**, après
+`edit_panel()`, dans les six sections de la vue Jour qui portent une ligne de
+tâche éditable (boîte de réception, agenda ordonné, sans créneau, bloquées,
+programmées plus tard, mères en cours) et dans `_kairos_backlog.html`. Raison
+tracée en commentaire CSS : `.kairos-item` est un `flex-wrap`, et `.mj-desc`
+porte `flex: 0 0 100%` pour occuper sa propre ligne — appelée plus tôt, elle
+repousserait **tous** les badges sous elle. `min-width: 0` est posé sur le
+conteneur **et** sur l'extrait : sans lui, une boîte flex refuse de rétrécir
+sous la largeur de son contenu et l'ellipse ne se déclenche jamais (l'extrait
+déborderait la carte au lieu d'être coupé).
+
+Pas de description dans la **vue semaine** ni dans la section « Fait » : la
+grille semaine tronque déjà les titres eux-mêmes (`.mj-week-day .kairos-item
+.mj-title`, ellipse), et une tâche terminée n'a plus de contexte à consulter —
+l'extrait n'y apporterait que du bruit.
+
 ### Mises à jour AJAX (contrat X-Requested-With, swap, repli sans JS)
 
 - **Seules six actions « rapides » portent `data-ajax`** sur leur `<form>` :
@@ -570,3 +610,7 @@ class="mj-edit">` (`display: contents` — n'interfère pas avec le flex layout 
 - `initDayScripts` ne doit reprendre **que** ce qui vit dans le sous-arbre
   remplacé par un swap (chrono, opt-in alertes) — tout ce qui est délégué sur
   `document` au chargement du script ne doit jamais y être dupliqué.
+- `task_description()` reste appelée **en dernier** dans un `<li
+  class="kairos-item">` : tout élément en `flex-basis: 100%` inséré avant les
+  badges les renverrait à la ligne. Même contrainte pour tout futur bloc pleine
+  largeur ajouté à une ligne de tâche.

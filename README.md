@@ -132,9 +132,10 @@ décharger l'esprit sans réfléchir à la structure : une seule zone de texte l
 priorité ni échéance à choisir sur le moment (Ctrl/Cmd+Entrée pour capturer sans lâcher
 le clavier). Chaque note capturée apparaît immédiatement dans la liste, sans rechargement
 de page. Une fois qu'une idée est prête à devenir actionnable, un clic sur **« → Tâche »**
-la convertit en tâche titre-seul, qui atterrit directement dans la boîte de réception «
+la convertit en tâche, qui atterrit directement dans la boîte de réception «
 À traiter » de la vue Jour — la note d'origine est archivée (jamais supprimée) avec un
-lien vers la tâche créée. Une note peut aussi être éditée sur place ou classée sans suite
+lien vers la tâche créée. Une note de plusieurs lignes ne perd rien à la conversion : la
+première ligne devient le titre de la tâche, **tout le reste devient sa description**. Une note peut aussi être éditée sur place ou classée sans suite
 (archivée) si elle ne mène nulle part.
 
 ### Gestion des tâches
@@ -142,6 +143,9 @@ lien vers la tâche créée. Une note peut aussi être éditée sur place ou cla
   titre, description, priorité 0-2 (P0 = la plus forte), échéance, date programmée,
   projet, durée estimée, récurrence, type, points de Fibonacci, heure fixe, fiche liée,
   sous-tâches en lot, bloqueurs. Un seul « Enregistrer » applique tout.
+- **Description visible dans la liste** : une tâche qui porte une description l'annonce
+  sous son titre par un extrait d'une ligne, dépliable d'un clic sur place — plus besoin
+  d'ouvrir l'édition pour savoir qu'il y a du contexte à lire.
 - **Sous-tâches** : avancement n/m sur la mère. Seules les feuilles sont planifiées (une
   mère à filles ouvertes n'est jamais une unité de travail).
 - **Récurrence** : quotidienne, jours ouvrés, hebdomadaire, mensuelle (terminer une
