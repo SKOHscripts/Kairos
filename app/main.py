@@ -1386,28 +1386,71 @@ async def edit_note(request: Request) -> Response:
     return _notes_action_response(request)
 
 
-def _note_title_from_body(body: str) -> str:
-    """Titre de la tâche créée par conversion : première ligne non vide du corps
-    de la note, tronquée à 200 caractères (cohérent avec `Task.title`,
-    `String(512)`, mais une capture rapide n'a pas besoin d'approcher cette
-    limite)."""
-    first_line = next((line.strip() for line in body.splitlines() if line.strip()), "")
-    return first_line[:200]
+# Longueur maximale du titre issu d'une conversion de note. `Task.title` est
+# `String(512)`, mais une capture rapide n'a structurellement pas besoin d'en
+# approcher le quart ; au-delà, le texte appartient à la description (voir
+# `_note_conversion_fields`).
+_NOTE_TITLE_MAX_CHARS = 200
+
+
+def _note_conversion_fields(body: str) -> tuple[str, str]:
+    """Titre et description de la tâche créée par conversion d'une note.
+
+    La note est une capture libre, souvent multi-lignes : ne garder que la
+    première ligne (comportement d'origine) jetait silencieusement tout le
+    reste (issue #32). Règle retenue, strictement conservative — aucun
+    caractère du corps n'est perdu, aucun n'est inventé :
+
+    - titre = première ligne dont `.strip()` est non vide, tronquée à
+      `_NOTE_TITLE_MAX_CHARS` ;
+    - description = tout ce qui suit cette ligne, tel quel.
+
+    On ne retire des lignes suivantes que celles **entièrement blanches** de
+    tête et de queue, jamais un `.strip()` global : celui-ci mangerait
+    l'indentation de la première ligne conservée et aplatirait une liste ou un
+    extrait collé dans la note.
+
+    Cas limite : si la première ligne dépassait la troncature, elle est reprise
+    **en entier** en tête de la description — sinon la conversion perdrait sa
+    fin, exactement le défaut corrigé ici.
+
+    Corps sans aucune ligne non vide → `("", "")` (l'appelant ne convertit
+    alors pas).
+    """
+    lines = body.splitlines()
+    first_index = next((i for i, line in enumerate(lines) if line.strip()), None)
+    if first_index is None:
+        return "", ""
+
+    first_line = lines[first_index].strip()
+    rest = lines[first_index + 1 :]
+    while rest and not rest[0].strip():
+        rest.pop(0)
+    while rest and not rest[-1].strip():
+        rest.pop()
+    description = "\n".join(rest)
+
+    if len(first_line) > _NOTE_TITLE_MAX_CHARS:
+        description = f"{first_line}\n\n{description}" if description else first_line
+
+    return first_line[:_NOTE_TITLE_MAX_CHARS], description
 
 
 @app.post("/kairos/notes/{note_id:int}/convert")
 def convert_note_to_task(request: Request) -> Response:
-    """Le moment clé du flux : la note devient une tâche titre-seul (elle atterrit
+    """Le moment clé du flux : la note devient une tâche (elle atterrit
     dans l'inbox « À traiter » de la vue Jour, à qualifier comme n'importe quelle
-    autre capture), la note elle-même est **archivée et liée**, jamais supprimée —
+    autre capture) dont le titre est la première ligne du corps et la description
+    tout le reste (issue #32, voir `_note_conversion_fields`) ; la note elle-même
+    est **archivée et liée**, jamais supprimée —
     préserve l'historique de la capture d'origine (voir `Note.converted_task_id`,
     sans contrainte FK, cohérent avec le reste du schéma)."""
     with _request_session(get_tasks_session) as tasks_session:
         note = tasks_session.get(Note, request.path_params["note_id"])
         if note is not None and note.status == "open":
-            title = _note_title_from_body(note.body)
+            title, description = _note_conversion_fields(note.body)
             if title:
-                task = Task(title=title, source="native")
+                task = Task(title=title, description=description, source="native")
                 tasks_session.add(task)
                 tasks_session.flush()  # attribue l'id avant de le référencer
                 note.status = "archived"

@@ -90,7 +90,7 @@ def test_post_note_blank_body_is_ignored(route_client) -> None:
 def test_convert_note_creates_task_archives_note_and_appears_in_inbox(route_client) -> None:
     client, TestSession = route_client
     with TestSession() as db:
-        note = Note(body="Premier titre\nDeuxième ligne ignorée")
+        note = Note(body="Premier titre\nDeuxième ligne conservée")
         db.add(note)
         db.commit()
         note_id = note.id
@@ -105,14 +105,119 @@ def test_convert_note_creates_task_archives_note_and_appears_in_inbox(route_clie
         task = db.get(Task, refreshed.converted_task_id)
         assert task is not None
         assert task.title == "Premier titre"
+        # Issue #32 : le reste du corps n'est plus jeté, il devient la description.
+        assert task.description == "Deuxième ligne conservée"
         assert task.source == "native"
-        # Titre seul : ni priorité, ni points renseignés à la conversion.
+        # Ni priorité, ni points renseignés à la conversion (qualification à venir).
         assert task.priority is None
         assert task.fibonacci_points is None
 
-    # La tâche créée est titre-seul, donc dans la boîte de réception de « Jour ».
+    # La tâche créée n'est ni priorisée ni estimée, donc en boîte de réception.
     day_page = client.get("/kairos")
     assert "Premier titre" in day_page.text
+
+
+def test_convert_multiline_note_keeps_every_following_line_in_description(
+    route_client,
+) -> None:
+    """Issue #32 : une note de plusieurs lignes ne perd plus rien. L'indentation
+    interne est préservée (pas de `.strip()` global), seules les lignes
+    entièrement blanches de tête et de queue disparaissent."""
+    client, TestSession = route_client
+    body = (
+        "Préparer la revue trimestrielle\n"
+        "\n"
+        "Points à couvrir :\n"
+        "  - budget\n"
+        "  - effectifs\n"
+        "\n"
+    )
+    with TestSession() as db:
+        note = Note(body=body)
+        db.add(note)
+        db.commit()
+        note_id = note.id
+
+    client.post(f"/kairos/notes/{note_id}/convert", follow_redirects=False)
+
+    with TestSession() as db:
+        task = db.get(Task, db.get(Note, note_id).converted_task_id)
+        assert task.title == "Préparer la revue trimestrielle"
+        assert task.description == "Points à couvrir :\n  - budget\n  - effectifs"
+
+
+def test_convert_single_line_note_gives_an_empty_description(route_client) -> None:
+    """Rien d'artificiel n'est inventé : une note d'une ligne donne une tâche à
+    description vide (`""`, jamais `None` — `Task.description` est non nullable)."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        note = Note(body="  Rappeler le prestataire  ")
+        db.add(note)
+        db.commit()
+        note_id = note.id
+
+    client.post(f"/kairos/notes/{note_id}/convert", follow_redirects=False)
+
+    with TestSession() as db:
+        task = db.get(Task, db.get(Note, note_id).converted_task_id)
+        assert task.title == "Rappeler le prestataire"
+        assert task.description == ""
+
+
+def test_convert_note_with_leading_blank_lines_uses_first_non_empty_line(
+    route_client,
+) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        note = Note(body="\n\n   \nVrai titre\nSuite du texte")
+        db.add(note)
+        db.commit()
+        note_id = note.id
+
+    client.post(f"/kairos/notes/{note_id}/convert", follow_redirects=False)
+
+    with TestSession() as db:
+        task = db.get(Task, db.get(Note, note_id).converted_task_id)
+        assert task.title == "Vrai titre"
+        assert task.description == "Suite du texte"
+
+
+def test_convert_note_with_overlong_first_line_keeps_it_whole_in_description(
+    route_client,
+) -> None:
+    """Cas limite tracé en spec : le titre est tronqué, mais la ligne complète
+    est reprise en tête de description — la règle « aucun caractère du corps
+    n'est perdu » prime sur l'élégance du résultat."""
+    client, TestSession = route_client
+    long_line = "A" * 250
+    with TestSession() as db:
+        note = Note(body=f"{long_line}\nContexte")
+        db.add(note)
+        db.commit()
+        note_id = note.id
+
+    client.post(f"/kairos/notes/{note_id}/convert", follow_redirects=False)
+
+    with TestSession() as db:
+        task = db.get(Task, db.get(Note, note_id).converted_task_id)
+        assert task.title == "A" * 200
+        assert task.description == f"{long_line}\n\nContexte"
+
+
+def test_convert_blank_note_creates_nothing(route_client) -> None:
+    """Corps sans aucune ligne non vide : ni tâche créée, ni note archivée."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        note = Note(body="\n   \n\n")
+        db.add(note)
+        db.commit()
+        note_id = note.id
+
+    client.post(f"/kairos/notes/{note_id}/convert", follow_redirects=False)
+
+    with TestSession() as db:
+        assert db.get(Note, note_id).status == "open"
+        assert list(db.scalars(select(Task))) == []
 
 
 def test_edit_note_updates_body(route_client) -> None:
