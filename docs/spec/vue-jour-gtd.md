@@ -87,15 +87,47 @@ Ordre vertical de la vue Jour (de haut en bas), chaque section correspondant à 
 4. **Bannières d'alerte** (TimeTree, import GitLab, surcharge de priorité) — sous
    « Maintenant », jamais en tout premier : ce sont des avertissements de
    dégradation d'intégrations externes, pas le point d'entrée du flux.
-5. **Filtres compacts** et **Backlog** (sans échéance ni date programmée) —
-   utilitaires secondaires, repliés par défaut.
-6. **Agenda ordonné** (« Aujourd'hui, dans l'ordre ») — la liste centrale, triée
-   par score WSJF, toujours dépliée.
-7. **Sections secondaires condensées** (Sans créneau / Bloquées / Programmées plus
-   tard / Mères en cours / Fait) — chacune repliée par défaut, avec un compte et
-   une courte phrase de rôle dans son `<summary>`.
-8. **Colonne latérale** — carte « En ce moment » (chrono en cours) + carte
+5. **Agenda ordonné** (« Aujourd'hui, dans l'ordre ») : la liste centrale, triée
+   par score WSJF, toujours dépliée, juste sous « Maintenant » et les bannières.
+6. **Sections secondaires condensées** (Sans créneau / Bloquées / Programmées plus
+   tard / Mères en cours / Fait), chacune avec un compte et une courte phrase de
+   rôle dans son `<summary>`. Repliées par défaut, **sauf « Sans créneau
+   aujourd'hui »**, dépliée dès qu'elle contient une tâche.
+7. **Filtres compacts** et **Backlog** (sans échéance ni date programmée) :
+   utilitaires secondaires, repliés par défaut, en bas de la colonne principale.
+   Exception : quand un filtre est actif, le contrôle de filtrage remonte en tête
+   des listes, pour que l'utilisateur voie pourquoi elles sont réduites.
+8. **Colonne latérale** : carte « En ce moment » (chrono en cours) + carte
    « Agenda » (timeline verticale heure par heure de la journée).
+
+**Fluidité (audit UI) : trois décisions rouvertes avec l'utilisateur.** Elles
+étaient actées ailleurs dans cette spec ; l'utilisateur les a explicitement
+rouvertes lors de l'audit d'interface :
+
+- **Ordre des sections.** Auparavant, recherche et backlog (repliés) venaient
+  entre « Maintenant » et la liste du jour : deux utilitaires repliés
+  repoussaient la liste principale plus bas que nécessaire. La liste du jour
+  passe désormais directement sous « Maintenant ».
+- **« Sans créneau aujourd'hui » dépliée.** Ce sont des tâches à faire
+  aujourd'hui qu'aucun créneau n'a pu accueillir : les cacher par défaut les
+  faisait oublier (sept tâches invisibles dans le jeu d'audit). Les autres
+  sections secondaires restent repliées.
+- **Capture de tâche sans rechargement.** Ajouter une tâche rechargeait toute
+  la page et perdait le curseur. Désormais la tâche apparaît dans la boîte de
+  réception sans rechargement, et le curseur reste dans le champ de capture :
+  l'utilisateur enchaîne plusieurs captures au clavier. Même mécanique que la
+  page Notes, qui le faisait déjà. La création d'un créneau garde la
+  redirection classique.
+
+**Actions nommées là où elles comptent.** La carte « Maintenant » porte les
+trois actions de la prochaine tâche avec leur nom (« Fait », « Démarrer le
+chrono », « Décaler »), pas seulement une icône. Dans les listes, les icônes
+restent seules (densité) ; celle de « décaler au prochain jour ouvré » ne
+ressemble plus à une flèche « ouvrir » (›), ambiguë.
+
+**Raccourcis clavier.** `N` place le curseur dans la capture de tâche, `/`
+ouvre la recherche et y place le curseur. Inactifs pendant la saisie dans un
+champ. Chaque raccourci est signalé à côté de son contrôle.
 
 Chaque ligne de tâche, quelle que soit la section, partage le même vocabulaire
 visuel : coche ronde en tête de ligne, bordure gauche colorée par palier
@@ -200,6 +232,10 @@ aller-retour (infos, sous-tâches en lot, bloqueurs, épinglage).
   jamais masquer ses propres champs/boutons avec son propre calque.
 - Un créneau récurrent édité ou supprimé agit sur le modèle, donc sur toutes ses
   occurrences (aucune occurrence n'est jamais persistée isolément).
+- Capturer trois tâches d'affilée se fait au clavier seul, sans rechargement de
+  page et sans recliquer dans le champ.
+- La liste « Aujourd'hui, dans l'ordre » s'affiche avant la recherche et le
+  backlog ; un filtre actif reste visible au-dessus des listes qu'il réduit.
 - Une tâche avec description affiche son extrait dans la liste de la vue Jour
   sans ouvrir l'édition, et son texte complet après un seul clic ; une tâche
   sans description n'ajoute aucun marqueur à sa ligne.
