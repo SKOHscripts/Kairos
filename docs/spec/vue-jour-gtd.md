@@ -101,6 +101,18 @@ visuel : coche ronde en tête de ligne, bordure gauche colorée par palier
 d'urgence, badges (score WSJF, priorité, type, points, fiche liée, temps passé,
 « traîne depuis... »), actions à droite (chrono, décaler), crayon d'édition.
 
+**Description d'une tâche.** Une tâche qui porte une description l'annonce
+**dans la liste**, sans qu'il faille ouvrir l'édition : un extrait d'une ligne,
+atténué, sous le titre, dépliable sur place au clic pour lire le texte complet
+(retours à la ligne préservés). Motivation (issue #32) : la description était
+jusque-là enfouie sous deux niveaux de divulgation (ouvrir l'édition, **puis**
+déplier « Options avancées ») — une information réellement utile y devenait
+invisible faute d'avoir le réflexe d'aller la chercher, et se perdait en
+pratique. Corollaire dans le panneau d'édition : la Description remonte parmi
+les champs **essentiels**, juste sous le Titre, et ne fait plus partie des
+options avancées. Une tâche sans description n'affiche rien de plus qu'avant
+(aucun marqueur vide, aucune ligne en plus).
+
 L'édition d'une tâche est un panneau modal unique (essentiels toujours visibles +
 options avancées repliées), un seul bouton « Enregistrer » qui pose tout en un
 aller-retour (infos, sous-tâches en lot, bloqueurs, épinglage).
@@ -123,6 +135,11 @@ aller-retour (infos, sous-tâches en lot, bloqueurs, épinglage).
   jamais masquer ses propres champs/boutons avec son propre calque.
 - Un créneau récurrent édité ou supprimé agit sur le modèle, donc sur toutes ses
   occurrences (aucune occurrence n'est jamais persistée isolément).
+- Une tâche avec description affiche son extrait dans la liste de la vue Jour
+  sans ouvrir l'édition, et son texte complet après un seul clic ; une tâche
+  sans description n'ajoute aucun marqueur à sa ligne.
+- Le champ Description du panneau d'édition est atteignable sans déplier
+  « Options avancées ».
 
 ### Hors périmètre / différé
 
@@ -408,13 +425,16 @@ class="mj-edit">` (`display: contents` — n'interfère pas avec le flex layout 
   créneau manuel (même classes réutilisées, phase 16).
 - **Divulgation progressive** (deux niveaux, mêmes `name=` de champs qu'avant —
   `edit_task` inchangé) :
-  - **Essentiels** (`.mj-edit-row.mj-edit-essentials`, toujours visibles) :
-    Titre (premier champ, mis en évidence par `.mj-edit-form > label:first-child
-    input`), Priorité (`range(0, 3)` → P0-P2), Points Fibo (`.mj-fibo-select`,
-    échelle `FIBONACCI_SCALE`), Échéance, Durée (min, `.mj-estimated-minutes`).
-    `fibo_help()` (légende de l'échelle, repliable) juste en dessous.
+  - **Essentiels** (toujours visibles) : Titre (premier champ, mis en évidence
+    par `.mj-edit-form > label:first-child input`), **Description**
+    (`<textarea name="description">`, juste sous le titre — remontée des options
+    avancées par l'issue #32, voir § Description d'une tâche), puis
+    `.mj-edit-row.mj-edit-essentials` : Priorité (`range(0, 3)` → P0-P2), Points
+    Fibo (`.mj-fibo-select`, échelle `FIBONACCI_SCALE`), Échéance, Durée (min,
+    `.mj-estimated-minutes`). `fibo_help()` (légende de l'échelle, repliable)
+    juste en dessous.
   - **Options avancées** (`<details class="mj-edit-advanced">`, repliées) :
-    Description, Programmée pour (`scheduled_date`), Projet, Temps passé manuel,
+    Programmée pour (`scheduled_date`), Projet, Temps passé manuel,
     Récurrence + Jour du mois (visible seulement si `recurrence ==
     'monthly_on_day'` a du sens, champ toujours présent mais informativement lié),
     Type (`.mj-task-type-select`), Heure fixe (`pin_time`, + `pin_day` caché

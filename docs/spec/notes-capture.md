@@ -50,11 +50,16 @@ amont.
   (« Rien en attente ») si la liste est vide, même principe que la boîte de
   réception de la vue Jour.
 - Chaque note affiche trois actions :
-  - **→ Tâche** : convertit la note en tâche titre-seul (elle atterrit dans la
+  - **→ Tâche** : convertit la note en tâche (elle atterrit dans la
     boîte de réception de la vue Jour, à qualifier comme n'importe quelle autre
     capture) ; la note elle-même est retirée de la liste active mais **jamais
     supprimée** — retrouvable dans « Traité / archivé », avec un lien vers la
-    tâche créée.
+    tâche créée. La première ligne non vide devient le **titre**, tout le reste
+    du corps devient la **description** de la tâche : capturer plusieurs lignes
+    (une idée et son contexte) puis convertir ne perd aucune information
+    (issue #32). La description ainsi créée est immédiatement visible dans la
+    liste de la vue Jour, sans ouvrir l'édition — voir
+    `docs/spec/vue-jour-gtd.md` § Description d'une tâche.
   - **Archiver** : classe la note sans suite (pas de tâche créée), même sort
     que ci-dessus côté visibilité (retirée de la liste active, conservée en
     historique).
@@ -78,10 +83,14 @@ amont.
   notes actives, sans rechargement de page si le JS est actif ; identique
   après un rechargement complet sinon.
 - Convertir une note crée une tâche dont le titre est la **première ligne non
-  vide** du corps de la note (les lignes suivantes, s'il y en a, ne sont
-  reprises nulle part dans le titre) ; cette tâche apparaît dans la boîte de
-  réception de la vue Jour (`GET /kairos`), sans priorité ni points, comme
-  toute capture titre-seul.
+  vide** du corps de la note et dont la **description reprend tout le reste du
+  corps**, tel quel, retours à la ligne compris (issue #32) : une note
+  multi-lignes ne perd plus rien à la conversion. Cette tâche apparaît dans la
+  boîte de réception de la vue Jour (`GET /kairos`), sans priorité ni points,
+  comme toute capture titre-seul.
+- Une note d'une seule ligne donne une tâche à description vide (rien
+  d'artificiel n'est inventé) — la conversion reste strictement conservative :
+  aucun caractère du corps n'est perdu, aucun n'est ajouté.
 - Une note convertie ou archivée disparaît de la liste active et réapparaît
   dans « Traité / archivé », jamais supprimée.
 - Une note supprimée ne réapparaît nulle part, y compris dans l'historique
@@ -172,7 +181,7 @@ du contrat, pas les données :
 | `GET /kairos/notes` | `notes_page` | Page pleine (`render_notes_response(fragment=False)`). |
 | `POST /kairos/notes` | `create_note` | Corps strippé ; si non vide, crée une `Note`. Corps vide → no-op silencieux (pas d'erreur, juste rien créé), même tolérance que `create_native_task` sur un titre vide. |
 | `POST /kairos/notes/{id}/edit` | `edit_note` | Remplace `body`. Note disparue → no-op. Pas de formulaire client à ce stade (voir Hors périmètre). |
-| `POST /kairos/notes/{id}/convert` | `convert_note_to_task` | Si la note est `open` et que sa première ligne non vide n'est pas vide : crée `Task(title=<première ligne, ≤200 caractères>, source="native")`, `tasks_session.flush()` pour obtenir l'id, puis `note.status = "archived"` et `note.converted_task_id = task.id`. Une note déjà `archived` ou introuvable → no-op. |
+| `POST /kairos/notes/{id}/convert` | `convert_note_to_task` | Si la note est `open` et que sa première ligne non vide n'est pas vide : crée `Task(title=<première ligne, ≤200 caractères>, description=<tout le reste du corps>, source="native")`, `tasks_session.flush()` pour obtenir l'id, puis `note.status = "archived"` et `note.converted_task_id = task.id`. Une note déjà `archived` ou introuvable → no-op. |
 | `POST /kairos/notes/{id}/archive` | `archive_note` | `status = "archived"`, sans toucher à `converted_task_id` (reste `None`). |
 | `POST /kairos/notes/{id}/delete` | `delete_note` | Suppression définitive de la ligne — à la différence de `delete_task` (qui archive une tâche non native), une note n'a **aucun** historique de priorisation à préserver : la suppression est donc toujours dure, jamais un archivage déguisé. |
 
@@ -181,13 +190,33 @@ Chaque handler POST ouvre sa **propre** session (`_request_session
 `_notes_action_response` — même invariant « jamais de session imbriquée » que
 la vue Jour.
 
-`_note_title_from_body(body)` — fonction pure : première ligne dont
-`.strip()` est non vide (une note commençant par des lignes blanches ne donne
-donc pas un titre vide tant qu'une ligne non blanche suit), tronquée à 200
-caractères. Choix de la limite : `Task.title` est `String(512)`, mais une
-capture rapide n'a structurellement pas besoin d'en approcher le quart — 200
-caractères couvre largement une phrase de titre sans jamais tronquer
-silencieusement un texte court.
+`_note_conversion_fields(body)` — fonction **pure**, retourne le couple
+`(titre, description)` de la tâche à créer :
+
+- **Titre** : première ligne dont `.strip()` est non vide (une note commençant
+  par des lignes blanches ne donne donc pas un titre vide tant qu'une ligne non
+  blanche suit), tronquée à `_NOTE_TITLE_MAX_CHARS` (200) caractères. Choix de
+  la limite : `Task.title` est `String(512)`, mais une capture rapide n'a
+  structurellement pas besoin d'en approcher le quart — 200 caractères couvrent
+  largement une phrase de titre sans jamais tronquer silencieusement un texte
+  court.
+- **Description** : toutes les lignes qui **suivent** cette première ligne non
+  vide, jointes telles quelles (`"\n".join`), débarrassées de leurs seules
+  lignes **entièrement blanches de tête et de queue** — jamais un `.strip()`
+  global, qui mangerait l'indentation de la première ligne conservée et
+  aplatirait une liste ou un extrait de code collé dans la note. Corps d'une
+  seule ligne → description vide (`""`, jamais `None` : `Task.description` est
+  `Text` non nullable, défaut `""`).
+- **Cas limite tracé** : si la première ligne dépassait la troncature à 200
+  caractères, elle est reprise **en entier** en tête de la description (suivie
+  d'une ligne vide si le reste du corps est non vide). Sans cela, la
+  conversion perdrait la fin d'une longue première ligne — exactement le
+  défaut (issue #32) que cette fonction corrige ; la règle « aucun caractère
+  du corps n'est perdu » prime sur l'élégance du résultat.
+
+Une note dont le corps ne contient aucune ligne non vide retourne `("", "")` et
+n'est **pas** convertie (garde `if title:` côté handler, inchangée) : ni tâche
+créée, ni note archivée.
 
 ### Templates
 
