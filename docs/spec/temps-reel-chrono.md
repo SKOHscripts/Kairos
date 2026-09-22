@@ -52,8 +52,31 @@ même de cette priorité.
   qu'une fois par franchissement, jamais en boucle, et jamais pour un seuil
   déjà dépassé au moment où la page se charge.
 - Les notifications passent par le mécanisme le plus riche disponible (pont
-  natif Android, puis notifications système du navigateur), avec un repli
-  visuel dans la page qui joue **toujours**, même sans permission accordée.
+  natif Android, puis notifications système du navigateur, puis notification
+  système émise par Kairos lui-même), avec un repli visuel dans la page qui
+  joue **toujours**, même sans permission accordée.
+- **Une alerte n'est jamais perdue parce que le navigateur bloque les
+  notifications** (issue #34). Deux situations, jusque-là sans issue :
+  - l'utilisateur (ou une politique d'entreprise) a refusé les notifications
+    pour cette origine — `Notification.permission` reste `"denied"`,
+    définitivement, et aucune redemande n'est possible ;
+  - Kairos est ouvert par une adresse qui n'est pas un contexte sécurisé
+    (l'unité systemd écoute sur toutes les interfaces : un accès en
+    `http://ip-du-poste:8001` depuis un autre appareil n'expose même pas
+    l'API `Notification`).
+
+  Dans ces cas, quand le navigateur tourne **sur la machine qui héberge
+  Kairos**, l'alerte sort quand même : le serveur émet lui-même une
+  notification système (`notify-send` sur Linux, bulle Windows), qui ne
+  dépend d'aucune permission navigateur.
+- Quand même cette voie est fermée (serveur distant, outil de notification
+  absent du système), le repli dans la page est **renforcé** pour rester
+  perceptible fenêtre en arrière-plan : bandeau flottant persistant (il ne
+  disparaît pas tout seul, il se ferme d'un clic), titre d'onglet clignotant,
+  et — seulement si l'utilisateur l'a activé dans les Réglages — un court
+  signal sonore.
+- Le son est **désactivé par défaut** et ne joue jamais quand une notification
+  système a pu sortir : il est le dernier recours, pas un doublon.
 - Le minuteur (et donc les alertes) s'affiche quelle que soit la section où
   vit la tâche en cours — y compris « Sans créneau aujourd'hui », pas
   seulement la liste planifiée.
@@ -87,6 +110,15 @@ Repris et fusionnés des phases historiques (SPEC_KAIROS.md phases 3, 7, 11) :
 - Les trois alertes (dépassement, oubli, pomodoro) se déclenchent au
   franchissement, sans re-spam à chaque navigation, avec repli in-page si les
   notifications ne sont pas autorisées.
+- Notifications refusées par le navigateur, Kairos ouvert sur la machine qui
+  l'héberge : l'alerte produit quand même une notification système, et
+  l'interface annonce « alertes actives » plutôt que « bloquées ».
+- Kairos ouvert depuis **un autre appareil** que celui qui l'héberge : aucune
+  notification système n'est émise (elle s'afficherait sur le mauvais écran),
+  le repli renforcé prend le relais — et l'interface le dit.
+- Aucun outil de notification sur le système : aucune erreur, aucune page
+  cassée, repli renforcé et message honnête.
+- Le son ne joue jamais tant qu'il n'a pas été activé dans les Réglages.
 - Le minuteur (et les alertes) s'affiche aussi quand la tâche en cours est
   « sans créneau ».
 
@@ -94,6 +126,21 @@ Repris et fusionnés des phases historiques (SPEC_KAIROS.md phases 3, 7, 11) :
 
 - **Mode focus plein écran** : écarté explicitement à plusieurs reprises
   (phase 3, phase 11) — le pomodoro reste un simple rappel, pas un mode dédié.
+- **Notification vers un autre appareil que celui qui héberge Kairos**
+  (issue #34) : explicitement hors périmètre. Y répondre demanderait un canal
+  sortant (service de push, compte tiers, ou un agent installé sur chaque
+  appareil) — tout l'inverse d'un outil local, mono-utilisateur, sans compte
+  et sans dépendance réseau. Le repli renforcé dans la page est la réponse
+  assumée à ce cas.
+- **Service worker / PWA installable pour contourner le blocage** : sans
+  effet. Un service worker ne contourne ni `Notification.permission ===
+  "denied"`, ni l'absence de contexte sécurisé — il exige au contraire un
+  contexte sécurisé pour s'enregistrer. Écarté après analyse (issue #34), pas
+  par méconnaissance.
+- **Servir Kairos en HTTPS avec un certificat auto-signé** pour rendre
+  l'origine « sécurisée » depuis le LAN : écarté (issue #34) — cela déplace le
+  problème sur une bannière d'avertissement de certificat à chaque ouverture,
+  et l'utilisateur devrait quand même accorder la permission.
 - **Digest/rappel proactif au-delà des trois alertes de chrono** : l'outil
   reste 100 % pull (analyse post-phase-6) ; les alertes de chrono sont la
   seule exception, strictement liées à une session en cours, jamais un
