@@ -7,6 +7,11 @@ l'ancien découpage de `.env.example`.
 
 from __future__ import annotations
 
+# Titre de la section qui porte, en plus de ses champs, l'état des mises à
+# jour (version installée, dernière vérification, « Vérifier maintenant ») :
+# voir templates/settings.html.
+UPDATES_SECTION = "Mises à jour"
+
 SECTIONS: list[tuple[str, list[str]]] = [
     ("Base de données", ["tasks_database_path"]),
     (
@@ -69,12 +74,16 @@ SECTIONS: list[tuple[str, list[str]]] = [
     ),
     ("Jours fériés", ["holidays_fr", "extra_holidays"]),
     ("Réseau (proxy sortant)", ["http_proxy", "https_proxy", "no_proxy"]),
+    (
+        UPDATES_SECTION,
+        ["update_check_enabled", "update_server_url", "update_project", "update_token"],
+    ),
     ("Divers", ["log_level"]),
 ]
 
 # Champs dont la valeur ne doit jamais être réaffichée en clair dans l'interface
 # (stockés en priorité dans le trousseau système — voir `app/secret_store.py`).
-SECRET_FIELDS: tuple[str, ...] = ("gitlab_token", "timetree_password")
+SECRET_FIELDS: tuple[str, ...] = ("gitlab_token", "timetree_password", "update_token")
 
 # Champ nécessitant un redémarrage de Kairos pour prendre effet (moteur de base
 # de données lié au chemin dès l'import de `app/tasks_db.py`).
@@ -121,4 +130,8 @@ FIELD_LABELS: dict[str, str] = {
     "http_proxy": "Proxy HTTP sortant",
     "https_proxy": "Proxy HTTPS sortant",
     "no_proxy": "Domaines sans proxy",
+    "update_check_enabled": "Vérifier les nouvelles versions",
+    "update_server_url": "Forge des versions (URL)",
+    "update_project": "Projet des versions",
+    "update_token": "Jeton de lecture des versions",
 }

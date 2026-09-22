@@ -300,6 +300,43 @@ class Settings:
         description="Domaines/IPs à ne jamais faire passer par le proxy, séparés par des virgules.",
     )
 
+    # --- Mises à jour (voir docs/spec/mises-a-jour.md) ---
+    # Source volontairement distincte de l'import GitLab ci-dessus : le dépôt qui
+    # publie Kairos (GitHub public, GitLab d'entreprise privé) n'est en général
+    # pas l'instance d'où l'on importe ses issues, ni le même jeton.
+    update_check_enabled: bool = Field(
+        default=True,
+        description=(
+            "Vérifie toutes les 6 heures si une nouvelle version est publiée, et le "
+            "signale par un bandeau et une notification."
+        ),
+    )
+    # Vides = source par défaut de la version installée (forge qui a construit
+    # l'exécutable/l'APK, ou remote `origin` d'un clone) : `app/build_info.py`.
+    update_server_url: str = Field(
+        default="",
+        description=(
+            "URL de la forge qui publie les versions (https://github.com ou "
+            "https://gitlab.mon-entreprise.fr). Vide = celle d'où vient cette version."
+        ),
+    )
+    update_project: str = Field(
+        default="",
+        description=(
+            "Projet qui publie les versions (\"propriétaire/dépôt\" ou "
+            "\"groupe/projet\"). Vide = celui d'où vient cette version."
+        ),
+    )
+    update_token: str = Field(
+        default="",
+        description=(
+            "Jeton en lecture seule pour un dépôt privé (GitLab : read_api ; GitHub : "
+            "accès en lecture au contenu), stocké dans le trousseau système si "
+            "possible. Laissé vide pour un GitLab, Kairos tente un jeton déjà "
+            "configuré pour `git` sur ce poste."
+        ),
+    )
+
     def __post_init__(self) -> None:
         """Validation à la construction (même moment que Pydantic avant la
         migration) : types et bornes de chaque champ, puis règles inter-champs
@@ -369,6 +406,35 @@ class Settings:
             and self.gitlab_project_list
             and self.gitlab_assignee_username
         )
+
+    @property
+    def update_source(self) -> tuple[str, str]:
+        """``(url_de_la_forge, projet)`` effectifs : réglages s'ils sont
+        renseignés, sinon la source par défaut de la version installée."""
+        from .build_info import default_source
+
+        default_url, default_project = default_source()
+        return (
+            (self.update_server_url.strip() or default_url).rstrip("/"),
+            (self.update_project.strip() or default_project).strip("/"),
+        )
+
+    @property
+    def update_token_effective(self) -> str:
+        """`update_token` si renseigné ; sinon, pour une forge GitLab, un jeton
+        déjà configuré pour `git` sur ce poste (même résolution que
+        `gitlab_token_effective`). Jamais pour github.com : un jeton git GitHub
+        a souvent des droits d'écriture, inutiles ici."""
+        if self.update_token:
+            return self.update_token
+        from .git_credentials import resolve_gitlab_token
+        from .updates import is_github
+
+        server_url, _ = self.update_source
+        if not server_url or is_github(server_url):
+            return ""
+
+        return resolve_gitlab_token(server_url)
 
     @property
     def holiday_set(self) -> frozenset:
