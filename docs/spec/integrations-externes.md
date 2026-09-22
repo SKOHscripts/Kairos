@@ -257,6 +257,25 @@ que si le fichier est absent, déjà traité en amont par
 direct n'est tenté qu'en second recours. `gitlab_direct_error` (chaîne vide si
 tout va bien) nourrit le bandeau `_kairos_banners.html`.
 
+`issue_web_url(gitlab_base_url, task)` — fonction **pure** ajoutée par l'issue
+#33, sans aucune E/S : reconstruit l'adresse web de l'issue d'origine d'une
+tâche importée, `f"{instance}/{projet}/-/issues/{iid}"`, en relisant le couple
+`projet#iid` déjà stocké dans `external_id`. `app/main.py` en dérive
+`gitlab_issue_url_of` (dict `task.id → url`, même patron que les autres `*_of`
+du contexte de rendu) et `task_tags()` transforme alors l'étiquette de projet en
+`<a target="_blank" rel="noopener">`.
+
+Retourne `""` — donc : la tâche n'entre pas dans le dict, l'étiquette reste un
+texte simple, **jamais un lien mort** — dans tous les cas où l'adresse n'est pas
+reconstructible avec certitude : `source != "gitlab"`, URL d'instance vide,
+`external_id` absent, suffixe qui n'est pas un numéro d'issue, ou projet
+introuvable. L'ancien format non qualifié (phase 4, `external_id` = `iid` brut)
+est toléré en prenant le projet dans `project_tag` : une tâche jamais
+resynchronisée depuis la migration reste cliquable.
+
+Aucune écriture, aucun appel réseau : cette fonctionnalité ne change rien au
+caractère strictement **lecture seule** de l'intégration GitLab.
+
 #### Pilotage / Fiche liée (`app/pilotage_link.py`)
 
 Seul point de contact optionnel, en lecture seule, avec la base `pilotage.db`

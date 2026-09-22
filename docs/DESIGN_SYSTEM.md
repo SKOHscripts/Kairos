@@ -195,6 +195,27 @@ data-autosubmit>` — auto-soumis au `change`, distincts de `.mj-fibo-select`/
 durée. Une fois les deux champs posés, la tâche quitte la boîte de réception et entre
 dans l'agenda ordonné (rendu par le fragment AJAX, sans rechargement de page).
 
+### Ligne de tâche (`.kairos-item`)
+
+Grille de quatre colonnes, invisible à l'œil mais stable d'une ligne à l'autre
+(issue #33) : `[coche] [corps] [priorité/points] [actions]`, zones nommées
+`check main key actions`. Seul le corps est élastique (`minmax(0, 1fr)`) : il
+empile titre, étiquettes (`.mj-item-tags`, le seul conteneur qui s'enroule sur
+plusieurs lignes) et extrait de description **vers le bas**. Les trois autres
+colonnes se dimensionnent sur leur contenu, si bien que priorité et actions
+tombent à la même abscisse sur toutes les lignes de toutes les sections.
+
+Règles à respecter pour tout ajout à une ligne de tâche :
+
+- un nouvel élément s'ajoute **dans** une cellule, jamais comme cinquième
+  enfant direct du `<li>` (il tomberait dans une piste implicite et casserait
+  l'alignement général) ;
+- un badge de longueur imprévisible (phrase, note explicative) va dans les
+  étiquettes du corps, jamais dans la colonne priorité/points, réservée aux
+  signaux de tri courts (score WSJF, `P0`-`P2`, `N pts`) ;
+- sous 720px la colonne priorité/points passe sous le corps ; actions et coche
+  ne bougent pas.
+
 ### Contrôle de filtrage compact
 
 `.mj-filter-compact` : la recherche + les 4 filtres à facettes (issue #15.4) tiennent

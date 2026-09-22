@@ -381,6 +381,65 @@ largeur fixe 300px, pleine largeur sous 860px) :
   (`.mj-tl-session`, gouttière gauche) superposant les sessions chronométrées du
   jour (`session_timeline`, phase 11) au planifié.
 
+### Ligne de tâche : grille de quatre colonnes
+
+`.kairos-item` est une **grille CSS nommée** (issue #33), plus un `flex-wrap`
+plat :
+
+```
+grid-template-columns: auto minmax(0, 1fr) auto auto;
+grid-template-areas:   "check main key actions";
+```
+
+| Cellule | Classe | Contenu |
+| --- | --- | --- |
+| `check` | `.mj-item-check` (posée sur le `<form>` de `done_toggle()`) | La coche ronde. |
+| `main` | `.mj-item-main` | `.mj-item-head` (heure + titre), `.mj-item-tags` (étiquettes), la qualification en ligne pour l'inbox, `task_description()`. Colonne en `flex-direction: column`. |
+| `key` | `.mj-item-key` | `task_key_badges()` : score WSJF, priorité, points. `justify-content: flex-end`. |
+| `actions` | `.mj-item-actions` | `task_actions()` + `edit_panel()`. |
+
+**Pourquoi `minmax(0, 1fr)` et non `1fr`** : une piste `1fr` a pour taille
+minimale `auto`, donc elle refuse de descendre sous la largeur intrinsèque de
+son contenu — un titre long ferait déborder la carte au lieu de passer à la
+ligne. Même raison pour les `min-width: 0` posés sur `.mj-item-main`,
+`.mj-item-head .mj-title`, `.mj-item-tags` et `.mj-desc` : une boîte flex a la
+même taille minimale automatique.
+
+**Alignement vertical** : la grille est en `align-items: start` (et non
+`center`, qui ferait flotter la coche au milieu d'une tâche à titre long +
+étiquettes + description). Les trois colonnes fixes portent `min-height: 28px`
+(hauteur d'un `.icbtn`) et centrent leur contenu dedans : elles s'alignent donc
+sur la **première ligne** du corps, quelle que soit la hauteur totale de la
+ligne.
+
+**`.mj-item-head` n'a délibérément pas de `flex-wrap`** (contrairement à
+`.mj-item-tags`) : un titre long doit commencer *à côté* de l'heure et se
+poursuivre en dessous — retour à la ligne **interne** au titre, via `.mj-title
+{ flex: 1 1 auto; min-width: 0 }`. Avec `flex-wrap`, le titre basculerait en
+bloc sous l'heure, ce qui gâche une ligne entière.
+
+**Deux macros, pas une** : `task_key_badges()` (les signaux de **tri** : score
+WSJF, priorité, points — les deux premiers sont les seuls badges à accent, voir
+`docs/DESIGN_SYSTEM.md`) et `task_tags()` (le **contexte** : projet, type,
+fiche liée, durée, échéance, date programmée, récurrence, « traîne depuis… »).
+La scission est ce qui permet à la colonne « clés » d'être stable d'une ligne à
+l'autre : tout ce qui est de longueur imprévisible vit dans le corps. Les
+badges propres à une **section** (épinglée, deep work, chemin critique, créneau
+repoussé, creux de l'après-midi, conflit, motif de blocage, avancement n/m,
+avertissement de l'inbox) sont rendus par la section elle-même, toujours dans
+`.mj-item-tags`.
+
+**Écran étroit (≤ 720px, même point de rupture que le reste de l'app)** : la
+grille passe à trois colonnes et la cellule `key` bascule sur une seconde
+ligne, alignée à gauche sous le corps — coche, corps et actions gardent leur
+place, donc les actions restent à la même abscisse d'une ligne à l'autre,
+l'essentiel de l'issue #33. Vérifié à 375px : aucun débordement horizontal.
+
+**Vue semaine exclue** : `.mj-week-day .kairos-item` revient explicitement à
+`display: flex`. La ligne n'y porte qu'un titre (déjà tronqué en ellipse) et un
+projet, sans coche, sans actions, sans priorité — la grille n'y aurait que des
+pistes vides à aligner.
+
 ### Description d'une tâche (extrait dépliable)
 
 `task_description(task)` (macro, `templates/_kairos_macros.html`) — rend la
@@ -475,9 +534,11 @@ l'extrait n'y apporterait que du bruit.
 ### Modale d'édition (essentiels/avancé, bloqueurs en cases, Échap)
 
 `edit_panel(task)` (macro, `templates/_kairos_macros.html`) : `<span
-class="mj-edit">` (`display: contents` — n'interfère pas avec le flex layout du
-`<li class="kairos-item">` parent) contenant un bouton `.mj-edit-toggle`
-(crayon) et un `.mj-edit-body[hidden]`.
+class="mj-edit">` (`display: contents` — n'interfère pas avec la mise en page de
+son parent, `.mj-item-actions` depuis l'issue #33) contenant un bouton
+`.mj-edit-toggle` (crayon) et un `.mj-edit-body[hidden]`. `display: contents` y
+reste indispensable : c'est le **bouton** qui doit devenir le calque plein écran
+à l'ouverture (voir ci-dessous), pas le `<span>` conteneur.
 
 - **Bascule** : écouteur `click` délégué sur `document`, cible
   `.mj-edit-toggle`, bascule `hidden` sur le `.mj-edit-body` associé (trouvé via
@@ -647,7 +708,13 @@ class="mj-edit">` (`display: contents` — n'interfère pas avec le flex layout 
 - `initDayScripts` ne doit reprendre **que** ce qui vit dans le sous-arbre
   remplacé par un swap (chrono, opt-in alertes) — tout ce qui est délégué sur
   `document` au chargement du script ne doit jamais y être dupliqué.
-- `task_description()` reste appelée **en dernier** dans un `<li
-  class="kairos-item">` : tout élément en `flex-basis: 100%` inséré avant les
-  badges les renverrait à la ligne. Même contrainte pour tout futur bloc pleine
-  largeur ajouté à une ligne de tâche.
+- `task_description()` reste appelée **en dernier** dans `.mj-item-main` :
+  c'est un bloc pleine largeur du corps, il doit venir après les étiquettes.
+- Un `<li class="kairos-item">` ne contient que **quatre enfants directs** (les
+  quatre cellules de la grille). Tout nouvel élément d'une ligne de tâche
+  s'ajoute **à l'intérieur** d'une cellule — un cinquième enfant direct n'aurait
+  aucune zone nommée et se placerait dans une piste implicite, en cassant
+  l'alignement de toutes les lignes.
+- Un badge de **longueur imprévisible** (phrase, note explicative) va dans
+  `.mj-item-tags`, jamais dans `.mj-item-key` : la stabilité de la colonne
+  « clés » d'une ligne à l'autre est ce qui rend la liste balayable.

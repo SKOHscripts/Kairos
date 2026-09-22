@@ -256,6 +256,10 @@ jamais écrite). Les cycles sont détectés et refusés.
 ### Vues & garde-fous
 - **Vue jour** (agenda détaillé et « À faire maintenant ») et **vue semaine** (7 jours,
   tâches par échéance, créneaux, synthèse du temps réel par type).
+- **Lignes de tâche alignées en colonnes** : priorité, points et boutons d'action
+  tombent toujours au même endroit d'une ligne à l'autre, quel que soit le nombre
+  d'étiquettes ou la longueur du titre — la liste se balaie verticalement même chargée.
+  Les étiquettes s'empilent sous le titre au lieu de repousser les actions.
 - Badge **« traîne depuis N j »** (échéance dépassée de longue date, ou tâche sans date
   jamais retouchée), bandeau de **surcharge de priorité** (trop de tâches à priorité
   maximale, signal dilué), bordure colorée par urgence, badge « chemin critique ».
@@ -330,6 +334,10 @@ Si la base de pilotage est renseignée, elle prime sur l'import direct (zéro ap
 Dans les deux cas : une issue fermée ou réassignée archive la tâche ; ta priorité et ton
 temps passé ne sont jamais écrasés. Sans ce réglage, ces deux fonctionnalités disparaissent
 proprement de l'interface. Kairos n'écrit **jamais** dans la base pilotage.
+
+L'étiquette de projet d'une tâche importée est **cliquable** : elle ouvre l'issue GitLab
+d'origine dans un nouvel onglet. Sans URL d'instance renseignée, elle reste un texte
+simple.
 
 ---
 
