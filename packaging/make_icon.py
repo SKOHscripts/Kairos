@@ -17,13 +17,24 @@ Windows ; ignoré sans erreur pour le binaire Linux, qui ne porte pas d'icône).
 Les PNG générés (`static/icon-192.png`, `static/icon-512.png`,
 `static/apple-touch-icon.png`) sont liés depuis `templates/base.html` et
 embarqués dans toutes les distributions (dev, PyInstaller, Android APK).
+
+`packaging/splash.png` (fenêtre de démarrage de l'exécutable de bureau, voir
+`Splash` dans `packaging/kairos.spec`) n'est régénéré que si le chemin d'une
+police IBM Plex Sans SemiBold est fourni (le nom « Kairos » y est dessiné dans
+la police de la charte, absente des postes de build) :
+
+    python packaging/make_icon.py --splash-font /chemin/IBMPlexSans-SemiBold.ttf
+
+(TTF de la release officielle IBM/plex, `ibm-plex-sans.zip`,
+`fonts/complete/ttf/`.) Sans l'option, le PNG commité reste inchangé.
 """
 
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 # Jetons de la charte (voir static/style.css / static/favicon.svg).
 _CREAM = "#FBEEDF"
@@ -96,7 +107,50 @@ def write_png_icons(master: Image.Image) -> None:
         print(f"Icône PNG écrite : {out_path}")
 
 
+# Fenêtre de démarrage de bureau : jetons de docs/DESIGN_SYSTEM.md (surface
+# blanche, bordure forte pour se détacher d'un bureau clair, texte principal et
+# secondaire). Composition alignée à gauche, parce que le texte d'état ajouté
+# par Tk à l'exécution est ancré en bas à gauche (`text_pos` du spec) : logo,
+# nom et état partagent la même marge gauche.
+SPLASH_SIZE = (420, 200)
+SPLASH_MARGIN = 32
+SPLASH_STATUS_BASELINE = 164  # repris par `text_pos` dans packaging/kairos.spec
+_SURFACE = "#FFFFFF"
+_BORDER_STRONG = "#C9D2DC"
+_TEXT = "#16202B"
+_TEXT_2 = "#55606D"
+
+
+def render_splash(master: Image.Image, font_path: Path) -> Image.Image:
+    """Fond, logo, nom et sous-titre de la fenêtre de démarrage (sans le texte
+    d'état, dessiné par Tk). Dessiné ×4 puis réduit, comme le logo."""
+    k = 4
+    width, height = SPLASH_SIZE
+    img = Image.new("RGB", (width * k, height * k), _SURFACE)
+    draw = ImageDraw.Draw(img)
+    draw.rectangle([0, 0, width * k - 1, height * k - 1], outline=_BORDER_STRONG, width=k)
+
+    logo = 64
+    top = 40
+    mark = master.resize((logo * k, logo * k), Image.LANCZOS)
+    img.paste(mark, (SPLASH_MARGIN * k, top * k), mark)  # le canal alpha sert de masque
+
+    text_x = (SPLASH_MARGIN + logo + 18) * k
+    title = ImageFont.truetype(str(font_path), 30 * k)
+    regular = font_path.with_name(font_path.name.replace("SemiBold", "Regular"))
+    subtitle = ImageFont.truetype(str(regular), 13 * k)
+    draw.text((text_x, (top + 30) * k), "Kairos", font=title, fill=_TEXT, anchor="ls")
+    draw.text((text_x, (top + 52) * k), "le bon moment, la bonne tâche", font=subtitle,
+              fill=_TEXT_2, anchor="ls")
+    return img.resize(SPLASH_SIZE, Image.LANCZOS)
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--splash-font", type=Path, default=None,
+                        help="TTF IBM Plex Sans SemiBold (Regular attendu à côté)")
+    args = parser.parse_args()
+
     master = render_master()
     out_path = Path(__file__).resolve().parent / "kairos.ico"
     frames = [
@@ -112,6 +166,10 @@ def main() -> None:
     )
     print(f"Icône écrite : {out_path}")
     write_png_icons(master)
+    if args.splash_font:
+        splash_path = Path(__file__).resolve().parent / "splash.png"
+        render_splash(master, args.splash_font).save(splash_path, format="PNG")
+        print(f"Fenêtre de démarrage écrite : {splash_path}")
 
 
 if __name__ == "__main__":

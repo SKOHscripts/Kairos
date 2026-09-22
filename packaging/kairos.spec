@@ -52,9 +52,29 @@ a = Analysis(
 )
 pyz = PYZ(a.pure)
 
+# Fenêtre de démarrage (voir app/desktop_splash.py) : affichée par le
+# bootloader dès le double-clic, avant l'extraction de l'exécutable onefile,
+# fermée par app/launcher.py une fois la fenêtre Kairos ouverte. Tcl/Tk requis
+# sur la machine de build (tkinter), embarqué a minima dans l'exécutable.
+# Image générée par packaging/make_icon.py (même marge gauche que `text_pos`).
+splash = Splash(
+    str(ROOT / "packaging" / "splash.png"),
+    binaries=a.binaries,
+    datas=a.datas,
+    text_pos=(32, 164),
+    text_size=10,
+    text_color="#55606D",
+    text_default="Extraction des fichiers…",
+    # Pas au premier plan forcé : l'utilisateur peut basculer vers une autre
+    # application pendant un démarrage lent sans que la fenêtre la masque.
+    always_on_top=False,
+)
+
 exe = EXE(
     pyz,
     a.scripts,
+    splash,
+    splash.binaries,
     a.binaries,
     a.datas,
     [],
