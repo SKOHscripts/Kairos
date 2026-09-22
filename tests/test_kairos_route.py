@@ -2504,3 +2504,49 @@ def test_context_tags_sit_in_the_body_not_in_the_key_cell(route_client) -> None:
     html = client.get("/kairos").text
     assert any("MonProjet" in cell for cell in _tags_cells(html))
     assert not any("MonProjet" in cell for cell in _key_cells(html))
+
+
+def test_gitlab_project_tag_links_to_the_source_issue(route_client, monkeypatch) -> None:
+    """Issue #33 : l'étiquette de projet d'une tâche importée ramène à sa fiche
+    GitLab d'origine, dans un nouvel onglet."""
+    client, TestSession = route_client
+    monkeypatch.setattr(
+        main, "get_settings", lambda: Settings(gitlab_url="https://gitlab.example.com")
+    )
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="#412 Corriger la pagination",
+                source="gitlab",
+                external_id="equipe/portail#412",
+                project_tag="equipe/portail",
+                priority=1,
+                fibonacci_points=3,
+            )
+        )
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert 'href="https://gitlab.example.com/equipe/portail/-/issues/412"' in html
+    assert 'rel="noopener"' in html
+
+
+def test_project_tag_stays_plain_text_without_a_gitlab_url(route_client) -> None:
+    """Instance GitLab non renseignée : étiquette simple, jamais un lien mort."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="#412 Corriger la pagination",
+                source="gitlab",
+                external_id="equipe/portail#412",
+                project_tag="equipe/portail",
+                priority=1,
+                fibonacci_points=3,
+            )
+        )
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert "equipe/portail" in html
+    assert "/-/issues/412" not in html

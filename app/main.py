@@ -73,7 +73,7 @@ from .tasks_scheduling import (
 )
 from .tasks_staleness import days_stale
 from .tasks_stats import calibration_by_type, compute_dashboard_stats, fibonacci_calibration
-from .tasks_gitlab_sync import sync_assigned_gitlab_tasks, write_sync_meta
+from .tasks_gitlab_sync import issue_web_url, sync_assigned_gitlab_tasks, write_sync_meta
 from .tasks_time import (
     running_session,
     sessions_in_range,
@@ -602,6 +602,16 @@ def _build_kairos_context(
         "blocker_choices": blocker_choices,
         "ticket_choices": ticket_choices,
         "ticket_by_id": ticket_by_id,
+        # Lien « étiquette de projet → issue GitLab d'origine » (issue #33).
+        # Calculé ici plutôt que dans le gabarit, comme tous les autres
+        # `*_of` : une fonction pure, aucun appel réseau, et les tâches sans
+        # URL reconstructible n'entrent simplement pas dans le dict (la macro
+        # retombe alors sur une étiquette non cliquable).
+        "gitlab_issue_url_of": {
+            t.id: url
+            for t in all_tasks
+            if (url := issue_web_url(settings.gitlab_url, t))
+        },
         "stale_days_of": stale_days_of,
         "priority_overload_count": priority_overload_count,
         "priority_overload_threshold": settings.priority_overload_threshold,

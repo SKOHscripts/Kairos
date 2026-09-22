@@ -11,7 +11,7 @@ from __future__ import annotations
 from sqlalchemy import select
 
 from app.pilotage_link import CachedGitLabIssue
-from app.tasks_gitlab_sync import SyncResult, sync_assigned_gitlab_tasks
+from app.tasks_gitlab_sync import SyncResult, issue_web_url, sync_assigned_gitlab_tasks
 from app.tasks_models import Task, TaskSyncMeta
 
 PROJECT = "mon-groupe/mon-projet"
@@ -206,3 +206,55 @@ def test_legacy_external_id_format_is_rekeyed_not_duplicated(pilotage_session, t
     assert task.external_id == f"{PROJECT}#42"
     assert task.priority == 1  # priorité déjà posée, préservée
     assert task.title == "#42 Ancien format (màj)"  # titre resynchronisé normalement
+
+
+# ---------------------------------------------------------------------------
+# Lien « étiquette de projet → issue d'origine » (issue #33) — voir
+# docs/spec/integrations-externes.md.
+# ---------------------------------------------------------------------------
+
+
+def test_issue_web_url_builds_the_gitlab_issue_address() -> None:
+    task = Task(
+        source="gitlab", external_id="equipe/portail#412", project_tag="equipe/portail"
+    )
+    assert (
+        issue_web_url("https://gitlab.example.com", task)
+        == "https://gitlab.example.com/equipe/portail/-/issues/412"
+    )
+
+
+def test_issue_web_url_tolerates_a_trailing_slash_on_the_instance_url() -> None:
+    task = Task(source="gitlab", external_id="grp/proj#7", project_tag="grp/proj")
+    assert issue_web_url("https://gitlab.example.com/", task).endswith(
+        "/grp/proj/-/issues/7"
+    )
+
+
+def test_issue_web_url_falls_back_to_project_tag_for_the_legacy_id_format() -> None:
+    """Ancien format (phase 4) : `external_id` = iid brut, sans `#`. Le projet
+    vient alors de `project_tag`, que la synchro renseigne dans les deux
+    formats — une tâche jamais resynchronisée reste cliquable."""
+    task = Task(source="gitlab", external_id="42", project_tag="grp/legacy")
+    assert issue_web_url("https://gitlab.example.com", task) == (
+        "https://gitlab.example.com/grp/legacy/-/issues/42"
+    )
+
+
+def test_issue_web_url_is_empty_when_not_reconstructible() -> None:
+    """Jamais de lien mort : chaque cas douteux retourne une chaîne vide, et la
+    macro retombe sur une étiquette non cliquable."""
+    gitlab = Task(source="gitlab", external_id="grp/proj#7", project_tag="grp/proj")
+    assert issue_web_url("", gitlab) == ""  # instance non configurée
+
+    native = Task(source="native", external_id="grp/proj#7", project_tag="grp/proj")
+    assert issue_web_url("https://gitlab.example.com", native) == ""  # tâche native
+
+    no_external = Task(source="gitlab", external_id=None, project_tag="grp/proj")
+    assert issue_web_url("https://gitlab.example.com", no_external) == ""
+
+    not_a_number = Task(source="gitlab", external_id="grp/proj#abc", project_tag="grp/proj")
+    assert issue_web_url("https://gitlab.example.com", not_a_number) == ""
+
+    no_project = Task(source="gitlab", external_id="55", project_tag="")
+    assert issue_web_url("https://gitlab.example.com", no_project) == ""
