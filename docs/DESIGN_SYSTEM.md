@@ -26,18 +26,20 @@ bas :
    qualifiée quitte la boîte de réception et entre dans l'agenda ordonné, sans ouvrir
    l'édition complète.
 3. **« Maintenant »** (`.mj-progress`) — poste de pilotage, prochaine tâche
-   actionnable sur place (fait / chrono / décaler), toujours dépliée. Exception de
+   actionnable sur place, toujours dépliée. Ses trois actions sont des boutons
+   nommés (« Fait », « Démarrer le chrono », « Décaler »), les seuls de l'app à
+   porter texte et icône hors formulaires : ailleurs, les icônes suffisent. Exception de
    teinte assumée, voir « Couleurs » plus bas.
 4. **Bannières d'alerte** (TimeTree, GitLab, surcharge de priorité) — sous
    « Maintenant », pas en tout premier : ce ne sont que des avertissements de
    dégradation, pas le point d'entrée du flux.
-5. **Filtres compacts** (`.mj-filter-compact`) et **Backlog** — utilitaires
-   secondaires, repliés par défaut, avant la liste ordonnée.
-6. **Agenda ordonné** (« Aujourd'hui, dans l'ordre », `<details open>`) — la liste
-   centrale, triée par score WSJF, toujours dépliée.
-7. **Sections secondaires condensées** (Sans créneau / Bloquées / Plus tard / Mères /
-   Fait) — `<details>` repliés, chaque `<summary>` porte un compte et une courte
-   phrase de rôle (`.hint`).
+5. **Agenda ordonné** (« Aujourd'hui, dans l'ordre », `<details open>`) : la liste
+   centrale, triée par score WSJF, toujours dépliée, juste sous « Maintenant ».
+6. **Sections secondaires condensées** (Sans créneau / Bloquées / Plus tard / Mères /
+   Fait) : `<details>` repliés sauf « Sans créneau », chaque `<summary>` porte un
+   compte et une courte phrase de rôle (`.hint`).
+7. **Filtres compacts** (`.mj-filter-compact`) et **Backlog** : utilitaires
+   secondaires, repliés, en bas de colonne. Un filtre actif remonte en tête.
 8. **Colonne latérale** (`.mj-day-grid` → `.mj-side-col`) — inchangée : carte
    « En ce moment » (chrono) + Agenda (timeline verticale).
 

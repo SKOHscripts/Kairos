@@ -328,7 +328,14 @@ soumission, y compris JS actif) :
 - `POST /kairos/tasks` (`create_native_task`) : titre seul requis. Gère aussi la
   création d'une **sous-tâche unique** si un `parent_id` est fourni (pas utilisé
   par ce formulaire de capture, mais par le même endpoint depuis ailleurs) ; la
-  mère est ignorée silencieusement si elle a disparu entre-temps.
+  mère est ignorée silencieusement si elle a disparu entre-temps. Depuis l'audit
+  UI, le formulaire de capture (`#mj-task-capture`) porte `data-ajax` et la
+  route répond par `_kairos_action_response` : fragment en AJAX, redirection
+  303 sinon. Le formulaire vivant dans le fragment remplacé, le script replace
+  le curseur dans le nouveau champ titre après le swap
+  (`focus({preventScroll: true})`) ; le champ revient vide puisqu'il est
+  re-rendu. Le formulaire de créneau (`POST /kairos/blocks`) garde la
+  redirection classique.
 - `POST /kairos/blocks` (`create_manual_block`) : titre + `datetime-local` début/
   fin + case `deepwork` + `<select name="recurrence">` (aucune / quotidienne /
   jours ouvrés / hebdomadaire). Rejet silencieux (retour 303 sans effet) si
@@ -396,7 +403,14 @@ Qualification en ligne (pastilles, audit UI) :
 `schedule.unscheduled[0]` si la liste non planifiée n'est pas vide, sinon `None` —
 commentaire de code : « il y a toujours un "prochain pas" ». Affiche
 `done_toggle`/`task_actions` directement sur cette tâche (fait, chrono, décaler)
-sans que l'utilisateur ait à la retrouver dans la liste plus bas. Ligne de titre
+sans que l'utilisateur ait à la retrouver dans la liste plus bas. Ces
+actions y sont **nommées** (`done_toggle(task, labelled=true)`,
+`task_actions(task, labelled=true)` : boutons `.btn.sm` avec icône et
+libellé « Fait », « Démarrer le chrono » ou « Arrêter le chrono »,
+« Décaler ») ; dans les listes, les mêmes macros sans `labelled` gardent les
+icônes seules (`.icbtn`), pour la densité. L'icône « décaler au prochain jour
+ouvré » est `skip_forward` (deux chevrons et une barre), le chevron simple se
+lisant comme « ouvrir ». Ligne de titre
 en Newsreader italique (`.mj-next`, exception de police assumée — voir « Décisions
 et pièges tracés »). Bloc de statistiques (`.mj-progress-stats`) : compte de
 tâches faites/à faire, `required_str`/`available_str` (temps requis vs
@@ -420,7 +434,12 @@ des avertissements de dégradation, pas le point d'entrée du flux »).
 
 **5. Filtres compacts** (`_kairos_filters.html`) — `<details class="card
 mj-filter-compact">`, `open` seulement si `filter_active` (recherche ou une
-facette posée). Formulaire **GET** (pas `data-ajax` : c'est une navigation avec
+facette posée ; booléen calculé une fois dans `_build_kairos_context`).
+**Position** (audit UI) : en bas de `.mj-day-main`, après les sections
+secondaires et avant le Backlog, sauf si `filter_active` : le partiel est alors
+inclus en tête, juste avant `.mj-day-grid`, pour que l'utilisateur voie
+pourquoi les listes sont réduites. Jamais les deux à la fois. La vue Semaine
+garde filtres et backlog au-dessus de sa grille. Formulaire **GET** (pas `data-ajax` : c'est une navigation avec
 état porté par l'URL, pas une mutation), champs cachés `view`/`start` pour
 préserver la vue/le jour courants. Facettes : priorité (`range(0, 3)`, donc
 P0/P1/P2 uniquement — même échelle réduite que partout ailleurs dans cette vue),
@@ -443,18 +462,27 @@ si sous-tâche ; `.mj-item-tags` = badges conditionnels
 `pushed`/`dip`/`conflict` ; puis `task_description`), puis `task_key_badges`,
 puis `task_actions` + `edit_panel`.
 
-**7. Sections secondaires condensées** — chacune un `<details class="card">`
-**sans** attribut `open` (repliées par défaut), rendue seulement si sa liste est
-non vide : Sans créneau aujourd'hui, Bloquées, Programmées plus tard, Tâches
-mères en cours, Fait. Chaque `<summary class="collapser">` porte un compte et une
+**7. Sections secondaires condensées** — chacune un `<details class="card">`,
+rendue seulement si sa liste est non vide : Sans créneau aujourd'hui, Bloquées,
+Programmées plus tard, Tâches mères en cours, Fait. Repliées par défaut (sans
+attribut `open`), **sauf « Sans créneau aujourd'hui »** (`open`, audit UI, voir
+plus bas). Chaque `<summary class="collapser">` porte un compte et une
 phrase de rôle (`.hint`). Note de traçabilité : `SPEC_KAIROS.md` phase 5 décrivait
 « les autres sections actionnables (sans créneau, bloquées, mères en cours)
 restent dépliées », seule « Fait » étant repliée par défaut à l'époque. La refonte
 GTD ultérieure (code actuel, confirmée par `docs/DESIGN_SYSTEM.md` § « Sections
 secondaires condensées ») a **replié toutes** ces sections par défaut, y compris
-celles que la phase 5 gardait ouvertes — décision qui supersède la phase 5 sur ce
-point précis, à ne pas rouvrir sans en reparler (cohérent avec la charte actuelle
-de densité réduite en tête de page).
+celles que la phase 5 gardait ouvertes. **Rouverte avec l'utilisateur lors de
+l'audit UI**, sur la seule section « Sans créneau aujourd'hui » : ce sont des
+tâches à faire aujourd'hui qu'aucun créneau n'a pu accueillir, et repliées on
+les oubliait. Les quatre autres restent repliées (densité en tête de page).
+
+**Marge du contenu des sections repliables** : `details.card` n'a pas de marge
+intérieure (seul son `<summary class="collapser">` en a une). Ses enfants
+directs `p` et `.kairos-list` reçoivent donc la marge horizontale du résumé
+(1.1rem, 0.7rem sous 720px), sans quoi la phrase d'aide touchait le bord et
+chaque ligne doublait la bordure de la carte. Défaut antérieur, resté discret
+tant que ces sections étaient toutes repliées.
 
 **8. Colonne latérale** (`.mj-day-grid` → `.mj-day-main` flex 1.7 + `.mj-side-col`
 largeur fixe 300px, pleine largeur sous 860px) :
@@ -616,6 +644,17 @@ Pas de description dans la **vue semaine** ni dans la section « Fait » : la
 grille semaine tronque déjà les titres eux-mêmes (`.mj-week-day .kairos-item
 .mj-title`, ellipse), et une tâche terminée n'a plus de contexte à consulter —
 l'extrait n'y apporterait que du bruit.
+
+### Raccourcis clavier (audit UI)
+
+Écouteur `keydown` délégué sur `document` (`kairos.html`, hors
+`initDayScripts`) : `N` bascule la capture sur l'onglet « Tâche » si besoin et
+y place le curseur ; `/` ouvre `.mj-filter-compact` et place le curseur dans la
+recherche. Ignoré si la cible est un champ (`input`, `textarea`, `select`,
+`contenteditable`), avec Ctrl/Cmd/Alt (Ctrl+N reste au navigateur), ou si le
+panneau d'édition est ouvert. Chaque raccourci est signalé par un
+`<kbd class="mj-kbd-hint">` à côté de son contrôle, masqué sous
+`@media (hover: none)` (écran tactile, pas de clavier à qui l'indiquer).
 
 ### Mises à jour AJAX (contrat X-Requested-With, swap, repli sans JS)
 
@@ -850,8 +889,9 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
   l'amélioration AJAX) doit : poser `data-ajax` sur son `<form>`, retourner
   `_kairos_action_response(request)` en fin de handler, committer/fermer sa
   session avant cet appel. Une action qui ouvre une vue radicalement différente
-  (édition complète, création, suppression) reste en redirection 303 pure,
-  cohérent avec l'usage actuel (aucune de ces six routes ne porte `data-ajax`).
+  (édition complète, suppression, création de créneau) reste en redirection 303
+  pure. Exception rouverte avec l'utilisateur (audit UI) : la **capture de
+  tâche** passe en AJAX, pour enchaîner les captures au clavier.
 - Le formulaire de filtres reste en **GET**, jamais `data-ajax` : c'est une
   navigation dont l'état vit dans l'URL (bookmarkable), pas une mutation.
 - Les pastilles de qualification de l'inbox ne portent **jamais**

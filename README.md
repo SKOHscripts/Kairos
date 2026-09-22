@@ -139,10 +139,13 @@ première ligne devient le titre de la tâche, **tout le reste devient sa descri
 (archivée) si elle ne mène nulle part.
 
 ### Gestion des tâches
-- **Création rapide** en une ligne (le titre seul suffit). Édition complète ensuite :
+- **Création rapide** en une ligne (le titre seul suffit). La tâche apparaît aussitôt dans
+  « À traiter », sans rechargement, et le curseur reste dans le champ : tu enchaînes
+  plusieurs captures au clavier. Édition complète ensuite :
   titre, description, priorité 0-2 (P0 = la plus forte), échéance, date programmée,
   projet, durée estimée, récurrence, type, points de Fibonacci, heure fixe, fiche liée,
   sous-tâches en lot, bloqueurs. Un seul « Enregistrer » applique tout.
+- **Raccourcis clavier** sur la vue Jour : `N` pour capturer une tâche, `/` pour chercher.
 - **Description visible dans la liste** : une tâche qui porte une description l'annonce
   sous son titre par un extrait d'une ligne, dépliable d'un clic sur place — plus besoin
   d'ouvrir l'édition pour savoir qu'il y a du contexte à lire.
