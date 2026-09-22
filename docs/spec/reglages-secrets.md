@@ -233,6 +233,8 @@ ci-dessous). Points de comportement :
   | `task_type_list` | `task_types` éclaté sur `,`, éléments vides retirés | Menu déroulant de la fiche tâche. |
   | `gitlab_token_effective` | `gitlab_token` si renseigné, sinon `git_credentials.resolve_gitlab_token(gitlab_url)` (vide si `gitlab_url` vide) | Jeton réellement utilisé par le client GitLab : détail de résolution hors périmètre, voir `integrations-externes.md`. |
   | `gitlab_direct_configured` | `not pilotage_configured and gitlab_url and gitlab_token_effective and gitlab_project_list and gitlab_assignee_username` | Active l'import direct (sans cache pilotage). |
+  | `update_source` | `(update_server_url or url par défaut, update_project or projet par défaut)`, défauts lus dans `app/build_info.py::default_source()`, `/` final retiré | Forge et projet des mises à jour : voir `mises-a-jour.md`. |
+  | `update_token_effective` | `update_token` si renseigné ; sinon, si la forge n'est pas github.com, `git_credentials.resolve_gitlab_token(url de la forge)` ; sinon `""` | Jeton de lecture des releases (jamais emprunté à git pour github.com : un jeton git GitHub a souvent des droits d'écriture). |
   | `holiday_set` | `app.workdays.build_holidays(...)` sur `holidays_fr`/`extra_holidays`, année courante ±1/+2 ; `frozenset()` vide si les deux sont désactivés | Calendrier des jours fériés (calcul hors périmètre, voir `app/workdays.py`). |
 
 - `get_settings()` : instance unique mise en cache (`functools.lru_cache`),
@@ -293,9 +295,13 @@ processus Kairos pour prendre effet.
 | Réseau (proxy sortant) | `http_proxy` | str | `""` | — | | | Proxy HTTP sortant. |
 | Réseau (proxy sortant) | `https_proxy` | str | `""` | — | | | Proxy HTTPS sortant. |
 | Réseau (proxy sortant) | `no_proxy` | str | `"127.0.0.1,localhost"` | — | | | Domaines/IPs jamais envoyés au proxy. |
+| Mises à jour | `update_check_enabled` | bool | `True` | — | | | Vérifie toutes les 6 heures si une nouvelle version est publiée (bandeau + notification). |
+| Mises à jour | `update_server_url` | str | `""` | — | | | URL de la forge qui publie les versions ; vide = celle de la version installée. |
+| Mises à jour | `update_project` | str | `""` | — | | | Projet qui publie les versions ; vide = celui de la version installée. |
+| Mises à jour | `update_token` | str | `""` | — | ✓ | | Jeton en lecture seule pour un dépôt privé ; distinct de `gitlab_token`. |
 | Divers | `log_level` | str | `"INFO"` | — | | | Niveau de log console (`DEBUG`/`INFO`/`WARNING`/`ERROR`, non contraint par bornes, saisie libre). |
 
-37 champs au total, tous optionnels (aucune valeur par défaut ne rend Kairos
+41 champs au total, tous optionnels (aucune valeur par défaut ne rend Kairos
 non fonctionnel : les intégrations GitLab/TimeTree/pilotage se désactivent
 proprement quand leurs champs sont vides).
 
@@ -306,9 +312,11 @@ Module de présentation pure : ne duplique **aucune** valeur ni description
 sections ; calqué sur l'ancien découpage de `.env.example` de l'installation
 historique.
 
-- `SECTIONS: list[tuple[str, list[str]]]` : 13 sections, ordre affiché
-  ci-dessus.
-- `SECRET_FIELDS: tuple[str, ...] = ("gitlab_token", "timetree_password")`
+- `SECTIONS: list[tuple[str, list[str]]]` : 14 sections, ordre affiché
+  ci-dessus. `UPDATES_SECTION = "Mises à jour"` nomme celle que le gabarit
+  complète par l'état des mises à jour (voir ci-dessous).
+- `SECRET_FIELDS: tuple[str, ...] = ("gitlab_token", "timetree_password",
+  "update_token")`
   (seuls champs jamais réaffichés en clair, seuls champs tentés en priorité
   vers le trousseau système.
 - `RESTART_REQUIRED_FIELDS: tuple[str, ...] = ("tasks_database_path",)`)
@@ -504,6 +512,17 @@ historique.
     dans `RESTART_REQUIRED_FIELDS`. Erreur de champ affichée juste en dessous
     du contrôle ; description longue (`field_meta[name].description`) toujours
     affichée en dernier.
+  - Section `UPDATES_SECTION` (« Mises à jour », `id="mises-a-jour"`, ouverte
+    aussi quand l'URL porte `?updates=1`, cible de la redirection de
+    `POST /kairos/updates/check`) : avant ses champs, un bloc en lecture
+    seule (`update_status(request)`, voir `mises-a-jour.md`) : version
+    installée et type d'installation (`install_kind_labels`), source des
+    versions (lien vers ses releases), résultat de la dernière vérification,
+    raison d'une installation impossible, et « Vérifier maintenant »
+    (bouton du même formulaire avec `formaction="/kairos/updates/check"` :
+    un `<form>` ne peut pas en contenir un autre), désactivé sans source.
+    Une ligne rappelle qu'une source modifiée n'est prise en compte qu'après
+    « Enregistrer ».
   - Message permanent sous le formulaire : en cas d'erreur de validation sur
     un autre champ, les identifiants doivent être **ressaisis** ; cohérent
     avec le fait que les secrets ne sont jamais retenus dans les valeurs
@@ -593,6 +612,12 @@ historique.
   à renseigner quelle que soit la source réellement utilisée, le cache
   pilotage primant toujours si renseigné (`gitlab_direct_configured` exclut
   explicitement le cas où `pilotage_configured` est vrai).
+- **Réglages des mises à jour distincts de l'import GitLab** : le dépôt qui
+  publie Kairos (GitHub public, ou GitLab d'entreprise privé) n'est pas
+  l'instance d'où l'on importe ses issues, ni forcément le même jeton.
+  `update_server_url`/`update_project`/`update_token` ne réutilisent donc
+  jamais `gitlab_url`/`gitlab_token` (décision utilisateur, voir
+  `mises-a-jour.md`).
 - **`task_types` en CSV libre plutôt qu'une liste structurée** : même patron
   que `gitlab_projects`, un simple champ texte séparé par des virgules,
   décision de simplicité (pas de plomberie de formulaire dédiée à une liste
@@ -618,7 +643,7 @@ historique.
 
 ### Invariants et garde-fous
 
-- Un secret (`gitlab_token`, `timetree_password`) n'est **jamais** présent en
+- Un secret (`gitlab_token`, `timetree_password`, `update_token`) n'est **jamais** présent en
   clair dans le HTML rendu par `/kairos/settings`, dans aucun cas (affichage
   normal, réaffichage après erreur de validation, quel que soit le champ en
   erreur).

@@ -17,6 +17,11 @@ L'exécutable généré : `dist/kairos` (Linux) ou `dist/kairos.exe` (Windows).
 Au lancement, il choisit un port libre à partir de 8001, ouvre le navigateur
 par défaut automatiquement, et sert Kairos comme en développement.
 
+Version et source des mises à jour : la CI génère `app/_build_info.py` avant le build
+(`python packaging/write_build_info.py --version vX.Y.Z --server-url URL --project
+groupe/projet`, voir `docs/spec/mises-a-jour.md`). Sans ce fichier, un build local
+affiche la version `0.0.0-dev` et ne propose aucune mise à jour.
+
 ## Vérifier qu'il démarre (smoke test)
 
 `packaging/smoke_test.py` lance l'exécutable construit et vérifie qu'il répond

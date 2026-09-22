@@ -315,8 +315,9 @@ tâches en demande un, la page l'indique). Résumé des réglages disponibles :
 | Alertes chrono | Chrono oublié, rappel pomodoro | 180 min, 50 min |
 | Jours fériés | Calendrier français, dates supplémentaires | FR activé |
 | Réseau | Proxy HTTP/HTTPS sortant, domaines exclus | aucun |
+| Mises à jour | Vérification activée, forge et projet des versions, jeton de lecture | activée, source de la version installée |
 
-Identifiants sensibles (jeton GitLab, mot de passe TimeTree) : stockés dans le trousseau
+Identifiants sensibles (jetons GitLab et des mises à jour, mot de passe TimeTree) : stockés dans le trousseau
 système (Windows Credential Manager, GNOME Keyring/SecretService, Keychain macOS) quand il
 est disponible, sinon repli automatique et sans erreur vers le fichier de réglages local.
 Jamais réaffichés en clair dans le formulaire.
@@ -326,6 +327,34 @@ mise à jour, un `.env` existant est importé automatiquement, une seule fois, d
 nouveau système de réglages (la page Réglages affiche la date de cette migration). Le
 fichier `.env` n'est jamais supprimé automatiquement ; il peut être retiré une fois la
 migration confirmée.
+
+### Mises à jour
+
+Kairos vérifie toutes les 6 heures si une nouvelle version est publiée. Si c'est le
+cas, un bandeau l'annonce en haut de chaque page, avec une notification système (une
+seule par version). **Mettre à jour**, dans le bandeau ou en cliquant sur la
+notification :
+
+- **exécutable Windows/Linux** : télécharge la nouvelle version, vérifie sa somme de
+  contrôle (`SHA256SUMS` publié avec la release), remplace l'exécutable et redémarre
+  Kairos ; la page se recharge toute seule sur la nouvelle version ;
+- **Android** : télécharge et vérifie l'APK, puis ouvre l'installeur Android (à
+  confirmer ; la première fois, Android demande d'autoriser Kairos à installer des
+  applications) ;
+- **installation depuis les sources** : le bandeau donne la commande
+  (`git pull && pip install -e .`, puis redémarrer Kairos).
+
+« Plus tard » masque le bandeau jusqu'à la version suivante. Rien n'est jamais installé
+sans ce clic, ni sans somme de contrôle correcte.
+
+Les versions viennent par défaut de la forge qui a construit la version installée :
+les releases GitHub pour un exécutable GitHub, les releases du projet GitLab pour un
+exécutable construit par la CI GitLab (voir `.gitlab-ci.yml`), le remote `origin` pour
+un clone. Section **Mises à jour** de la page Réglages : version installée, dernière
+vérification, **Vérifier maintenant**, et surcharge de la source (URL de la forge,
+projet). Pour un dépôt privé, renseigner un **jeton en lecture seule** (GitLab :
+`read_api` ; GitHub : lecture du contenu). Ces réglages sont indépendants de ceux de
+l'import des issues GitLab.
 
 ### Calendrier TimeTree (optionnel)
 Utilise l'API non officielle du paquet `timetree-exporter` (reverse-engineerée : elle peut
@@ -398,6 +427,18 @@ exécutables Windows et Linux publiés en release GitHub sont construits automat
 [`.github/workflows/release.yml`](.github/workflows/release.yml) au push d'un tag `vX.Y.Z`
 (PyInstaller ne fait pas de cross-compile : la CI build chaque OS sur un runner de cet OS).
 
+Chaque build embarque sa version et la source de ses mises à jour
+(`packaging/write_build_info.py`, appelé par la CI), et la release publie un
+`SHA256SUMS` que la mise à jour intégrée exige.
+
+**Hébergement GitLab** : [`.gitlab-ci.yml`](.gitlab-ci.yml) fait la même chose sur un
+GitLab (instance d'entreprise, dépôt privé) : tests à chaque push, puis sur un tag
+`vX.Y.Z` exécutable Linux, APK et release GitLab (fichiers déposés dans le registre de
+paquets génériques du projet, avec `SHA256SUMS`). L'exécutable Windows exige un runner
+Windows tagué `windows` et la variable CI `KAIROS_WINDOWS_RUNNER=true` ; sans lui, la
+release sort sans `.exe`. Signature de l'APK : mêmes quatre variables que les secrets
+GitHub ci-dessous (variables CI/CD masquées et protégées).
+
 L'**APK Android** est construit par le même workflow (job `build-android`) : projet Gradle
 dans [`android/`](android/) (Chaquopy embarque CPython 3.13 et les dépendances pip, une
 WebView affiche le serveur local), décisions et architecture dans
@@ -425,6 +466,8 @@ base64 -w0 kairos-release.keystore   # → valeur du secret KAIROS_KEYSTORE_BASE
 | `secret_store.py` | Jeton GitLab / mot de passe TimeTree : trousseau système, repli fichier local |
 | `settings_sections.py` | Regroupement des réglages pour l'affichage de la page Réglages |
 | `launcher.py` | Point d'entrée de l'exécutable de bureau (choix de port, ouverture du navigateur) |
+| `build_info.py` | Version installée et source par défaut des mises à jour |
+| `updates.py` | Mises à jour : lecture des releases GitHub/GitLab, téléchargement vérifié, installation |
 | `android_launcher.py` | Point d'entrée Android : environnement, port, uvicorn (WebView côté `android/`) |
 | `tasks_models.py` | Modèles SQLAlchemy : `Task`, `TimeBlock`, `TaskDependency`, `WorkSession`, `TaskSyncMeta` |
 | `tasks_db.py` | Engine/sessions + migrations légères + pose des données d'exemple sur base vierge |

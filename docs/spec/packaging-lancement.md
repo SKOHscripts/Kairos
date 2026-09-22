@@ -123,7 +123,11 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
     (qui pourrait être un tout autre programme ayant recyclé le PID). Toute réponse
     autre que 200 (204, 404, refus de connexion) est traitée comme « pas une
     instance Kairos réutilisable », jamais comme une erreur.
-  - `_clear_lock()` : appelé dans le `finally` de `main()`. Atteint après un arrêt
+  - `_clear_lock()` : appelé dans le `finally` de `main()`. Ne supprime le verrou
+    que s'il porte le PID de ce process (ou aucun PID lisible) : après une mise à
+    jour, la nouvelle version a déjà réécrit le verrou pendant que l'ancienne
+    finissait de s'arrêter, et l'effacer ferait croire qu'aucune instance ne
+    tourne. Atteint après un arrêt
     propre (bouton Quitter → SIGINT → `uvicorn.run` revient normalement). Un
     SIGTERM ou une fermeture brutale (Gestionnaire des tâches) laisse le verrou en
     place : sans conséquence, car `_instance_already_running` le détecte comme
@@ -158,6 +162,21 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
     repli, indifféremment ; la bascule est interne à `_open_browser`) après un
     délai (`threading.Timer`, 1.2 s par défaut) pour laisser le temps à uvicorn de
     démarrer avant la première requête.
+- **Reprise après une mise à jour** (`docs/spec/mises-a-jour.md`) :
+  `app/updates.py::restart_desktop` lance le nouvel exécutable avec
+  `KAIROS_RESTART_PORT=<port de l'ancienne instance>`. En tête de `main()`,
+  `_take_restart_port()` retire cette variable de l'environnement (elle ne se
+  propage à aucun sous-process) ; si elle est présente, `_wait_until_stopped`
+  attend que l'ancienne instance ne réponde plus sur ce port (sonde
+  `_instance_already_running`, `_RESTART_WAIT = 30 s` au plus), puis le port
+  est choisi à partir de celui-ci (`_pick_port(preferred=...)`). Quand c'est
+  bien le même port, aucune fenêtre n'est ouverte : la page restée ouverte se
+  recharge d'elle-même. Sinon (port pris entre-temps), la fenêtre s'ouvre
+  normalement sur le nouveau port.
+- **`_remove_previous_executable()`** (exécutable figé seulement) : supprime
+  `<exécutable>.old`, laissé par une mise à jour sous Windows (un exécutable
+  lancé ne peut qu'être renommé) ; sans effet s'il est encore verrouillé, ce
+  sera pour le lancement suivant.
 - **`_NullStream` et `_ensure_std_streams`** : sous Windows, un exécutable
   PyInstaller en mode fenêtré (`console=False`) n'a pas de console attachée ;
   `sys.stdout`/`sys.stderr` valent `None` plutôt qu'un flux réel. uvicorn plante dès
@@ -400,7 +419,9 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     `ignore_cleanup_errors=True`) pour ne jamais toucher une installation réelle sur
     la machine qui exécute le script, et pour trouver de façon déterministe le port
     choisi (lecture du `kairos.lock` généré dans ce dossier isolé).
-  - Lance l'exécutable avec `KAIROS_NO_BROWSER=1` (voir `app/launcher.py`), sortie
+  - Lance l'exécutable avec `KAIROS_UPDATE_CHECK=0` (aucune vérification de
+    mise à jour pendant le test, voir `docs/spec/mises-a-jour.md`) et
+    `KAIROS_NO_BROWSER=1` (voir `app/launcher.py`), sortie
     redirigée vers un **fichier**, pas un pipe : `webbrowser.open()` lancerait un
     vrai navigateur sur Windows (contrairement à un runner Linux headless sans
     `DISPLAY`, où il échoue instantanément), qui hériterait du handle de sortie du

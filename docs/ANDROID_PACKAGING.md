@@ -170,6 +170,22 @@ Points notables :
   (`kairos-android-permission-changed`) redéclenché depuis
   `onRequestPermissionsResult`, faute de canal message natif→JS synchrone sans
   AndroidX.
+- **Mises à jour** (`docs/spec/mises-a-jour.md`) : le même pont expose
+  `notifyUpdate` (canal `kairos-updates`, distinct des alertes chrono ; le
+  toucher rouvre Kairos avec l'extra `com.skohscripts.kairos.ACTION=
+  install_update`), `takePendingAction` (action d'un lancement à froid, lue par
+  la page au chargement ; `MainActivity#onNewIntent` prévient directement une
+  page déjà ouverte par l'évènement `kairos-update-install`) et `installUpdate`.
+  Ce dernier remet l'APK téléchargé et vérifié par Python
+  (`<filesDir>/kairos-data/updates/kairos-update.apk`) à l'installeur système :
+  `ACTION_VIEW` sur une URI `content://` servie par `UpdateApkProvider`
+  (fournisseur minimal non exporté, lecture seule, ce seul fichier : remplace
+  `FileProvider`, qui est dans AndroidX). Permission
+  `REQUEST_INSTALL_PACKAGES` ; sur API 26+, tant que l'utilisateur n'a pas
+  autorisé Kairos à installer des applications, `installUpdate` ouvre ce
+  réglage (`ACTION_MANAGE_UNKNOWN_APP_SOURCES`) et rend `"permission"`.
+  L'utilisateur confirme toujours l'installation, et Android refuse un APK
+  signé par une autre clé que l'application installée.
 
 ## Build
 

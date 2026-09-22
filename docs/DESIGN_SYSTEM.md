@@ -299,6 +299,17 @@ badge `.mj-timer` déjà présent sur la ligne de la tâche (conservé tel quel,
 son minuteur vivant en JS). C'est, avec la pilule de navigation active, le seul
 endroit sombre de l'interface.
 
+## Bandeau de mise à jour (`.mj-update`)
+
+En tête de chaque page quand une nouvelle version est disponible
+(`templates/_update_banner.html`, voir `docs/spec/mises-a-jour.md`). Aucun jeton
+neuf : `.banner` neutre (fond `--neu-bg`, bordure `--border`), icône `download`,
+`.banner.warning` seulement en cas d'échec. Un seul bouton accent, « Mettre à
+jour » (CTA) ; « Notes de version » et « Plus tard » restent des `.btn` neutres.
+La commande d'une installation depuis les sources s'affiche en `code` sur fond
+surface. Les actions passent à la ligne sur mobile (flex-wrap), sans débordement
+à 390px.
+
 ## Écarts assumés par rapport aux maquettes `.dc.html`
 
 Les maquettes du dossier `design_handoff_kairos_redesign/` (non versionné) montrent
