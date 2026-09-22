@@ -497,7 +497,8 @@ def test_priority_badge_shown_when_priority_set(route_client) -> None:
         db.commit()
 
     resp = client.get("/kairos")
-    assert '<span class="badge prio" title="Priorité">P2</span>' in resp.text
+    # L'infobulle porte le sens de la valeur (audit UI), pas seulement « Priorité ».
+    assert '<span class="badge prio" title="Priorité Utile : à faire quand il y a de la place">P2</span>' in resp.text
 
 
 def test_wsjf_score_badge_shown(route_client) -> None:
@@ -541,7 +542,9 @@ def test_fibo_calibration_wired_into_edit_panel(route_client) -> None:
         db.commit()
 
     resp = client.get("/kairos")
-    assert 'class="mj-fibo-select"' in resp.text
+    # Pastilles radio depuis l'audit UI (plus de <select>) : la médiane calibrée
+    # est portée par la pastille du palier 3.
+    assert 'class="mj-fibo-radio"' in resp.text
     assert 'data-avg-minutes="90"' in resp.text
 
 
@@ -2067,7 +2070,8 @@ def test_qualifying_task_via_edit_removes_it_from_a_traiter(route_client) -> Non
 
     after = client.get("/kairos")
     assert "mj-inbox-empty" in after.text
-    assert '<span class="badge mj-score"' in after.text
+    # Le badge du score est le <summary> de son explication depuis l'audit UI.
+    assert 'class="badge mj-score"' in after.text
 
 
 def test_only_priority_still_lands_in_a_traiter(route_client) -> None:
@@ -2217,8 +2221,9 @@ def test_update_points_route_clears_when_blank(route_client) -> None:
 
 def test_inbox_shows_inline_priority_and_points_controls(route_client) -> None:
     """Phase 2 : la boîte de réception expose des contrôles de qualification en
-    ligne (mini-<select> priorité + points, auto-soumis) — pas besoin d'ouvrir
-    l'édition complète pour clarifier une tâche capturée."""
+    ligne — pas besoin d'ouvrir l'édition complète pour clarifier une tâche
+    capturée. Depuis l'audit UI : des pastilles en un clic (un bouton submit par
+    valeur), qui portent leur sens en clair."""
     client, TestSession = route_client
     with TestSession() as db:
         task = Task(title="À qualifier vite", status="todo")
@@ -2229,8 +2234,13 @@ def test_inbox_shows_inline_priority_and_points_controls(route_client) -> None:
     page = client.get("/kairos")
     assert f'action="/kairos/tasks/{task_id}/priority"' in page.text
     assert f'action="/kairos/tasks/{task_id}/points"' in page.text
-    assert 'name="points" data-autosubmit' in page.text
-    assert 'name="priority" data-autosubmit' in page.text
+    assert 'data-autosubmit' not in page.text
+    for value in (0, 1, 2):
+        assert f'type="submit" name="priority" value="{value}"' in page.text
+    for points in (1, 2, 3, 5, 8, 13, 21):
+        assert f'type="submit" name="points" value="{points}"' in page.text
+    assert "<b>P0</b> Critique" in page.text
+    assert "<b>3</b> modéré" in page.text
 
 
 def test_action_returns_day_fragment_on_ajax_header(route_client) -> None:
@@ -2333,3 +2343,607 @@ def test_snooze_label_mentions_next_business_day(route_client) -> None:
     page = client.get("/kairos")
     assert "Décaler au prochain jour ouvré" in page.text
     assert "Décaler à demain" not in page.text
+
+
+# ---------------------------------------------------------------------------
+# Descriptions de tâches mises en avant (issue #32) — voir
+# docs/spec/vue-jour-gtd.md § Description d'une tâche.
+# ---------------------------------------------------------------------------
+
+
+def test_task_description_is_visible_in_the_day_list(route_client) -> None:
+    """La description s'affiche dans la ligne de tâche elle-même, sans ouvrir
+    l'édition : c'est tout l'objet de l'issue #32."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="Préparer la revue",
+                description="Contexte utile\nSur deux lignes",
+                priority=1,
+                fibonacci_points=3,
+                source="native",
+            )
+        )
+        db.commit()
+
+    page = client.get("/kairos")
+    assert 'class="mj-desc"' in page.text
+    assert "Contexte utile" in page.text
+
+
+def test_task_without_description_gets_no_marker(route_client) -> None:
+    """Une tâche sans description n'ajoute rien à sa ligne (ni marqueur vide, ni
+    ligne supplémentaire) — la densité de la liste reste inchangée."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Sans description", priority=1, fibonacci_points=3, source="native"))
+        db.commit()
+
+    page = client.get("/kairos")
+    assert "Sans description" in page.text
+    assert 'class="mj-desc"' not in page.text
+
+
+def test_blank_description_gets_no_marker(route_client) -> None:
+    """Une description réduite à des espaces/retours à la ligne est traitée comme
+    absente (garde `task.description.strip()` de la macro)."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="Description blanche",
+                description="   \n  ",
+                priority=1,
+                fibonacci_points=3,
+                source="native",
+            )
+        )
+        db.commit()
+
+    page = client.get("/kairos")
+    assert 'class="mj-desc"' not in page.text
+
+
+def test_description_field_sits_outside_advanced_options(route_client) -> None:
+    """Le champ Description du panneau d'édition est atteignable sans déplier
+    « Options avancées » : il apparaît AVANT l'ouverture du `<details>`
+    correspondant dans le HTML rendu."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Tâche éditable", priority=1, fibonacci_points=3, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    description_index = html.index('name="description"')
+    advanced_index = html.index('class="mj-edit-advanced"')
+    assert description_index < advanced_index
+
+
+def test_converted_note_description_shows_up_in_the_day_list(route_client) -> None:
+    """Bout en bout des deux moitiés de l'issue #32 : ce qu'une conversion de
+    note conserve désormais est aussi ce que la vue Jour donne à voir."""
+    client, _ = route_client
+    client.post(
+        "/kairos/notes",
+        data={"body": "Relancer le fournisseur\nDevis attendu avant vendredi"},
+        follow_redirects=False,
+    )
+    notes_page = client.get("/kairos/notes")
+    note_id = notes_page.text.split("/kairos/notes/")[1].split("/")[0]
+    client.post(f"/kairos/notes/{note_id}/convert", follow_redirects=False)
+
+    day_page = client.get("/kairos")
+    assert "Relancer le fournisseur" in day_page.text
+    assert "Devis attendu avant vendredi" in day_page.text
+
+
+# ---------------------------------------------------------------------------
+# Grille de la ligne de tâche (issue #33) — voir docs/spec/vue-jour-gtd.md
+# § Anatomie d'une ligne de tâche.
+# ---------------------------------------------------------------------------
+
+
+def _key_cells(html: str) -> list[str]:
+    """Contenu de chaque cellule « priorité/points » du HTML rendu.
+
+    La cellule contient des `<div>` imbriqués depuis l'explication du score
+    (audit UI) : on découpe jusqu'à la cellule d'actions, toujours sa voisine
+    immédiate — sans ajouter de parseur HTML aux dépendances."""
+    return [
+        chunk.split('<div class="mj-item-actions">', 1)[0]
+        for chunk in html.split('<div class="mj-item-key">')[1:]
+    ]
+
+
+def _tags_cells(html: str) -> list[str]:
+    return [
+        chunk.split("</div>", 1)[0]
+        for chunk in html.split('<div class="mj-item-tags">')[1:]
+    ]
+
+
+def test_task_row_renders_the_four_grid_cells(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="Tâche de la grille",
+                priority=1,
+                fibonacci_points=3,
+                project_tag="Projet",
+                source="native",
+            )
+        )
+        db.commit()
+
+    html = client.get("/kairos").text
+    for cell in ("mj-item-check", "mj-item-main", "mj-item-key", "mj-item-actions"):
+        assert f'"{cell}"' in html or f' {cell}"' in html
+
+
+def test_priority_and_points_sit_in_the_key_cell(route_client) -> None:
+    """La colonne « clés » porte priorité et points, alignés à droite d'une ligne
+    à l'autre — c'est le cœur de l'issue #33."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Tâche clé", priority=2, fibonacci_points=5, source="native"))
+        db.commit()
+
+    cells = _key_cells(client.get("/kairos").text)
+    assert any(">P2<" in cell and "5 pts" in cell for cell in cells)
+
+
+def test_context_tags_sit_in_the_body_not_in_the_key_cell(route_client) -> None:
+    """Projet, type et échéance s'empilent dans le corps : ils peuvent occuper
+    plusieurs lignes sans jamais déplacer la colonne d'actions."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="Tâche étiquetée",
+                priority=1,
+                fibonacci_points=3,
+                project_tag="MonProjet",
+                task_type="Développement",
+                source="native",
+            )
+        )
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert any("MonProjet" in cell for cell in _tags_cells(html))
+    assert not any("MonProjet" in cell for cell in _key_cells(html))
+
+
+def test_gitlab_project_tag_links_to_the_source_issue(route_client, monkeypatch) -> None:
+    """Issue #33 : l'étiquette de projet d'une tâche importée ramène à sa fiche
+    GitLab d'origine, dans un nouvel onglet."""
+    client, TestSession = route_client
+    monkeypatch.setattr(
+        main, "get_settings", lambda: Settings(gitlab_url="https://gitlab.example.com")
+    )
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="#412 Corriger la pagination",
+                source="gitlab",
+                external_id="equipe/portail#412",
+                project_tag="equipe/portail",
+                priority=1,
+                fibonacci_points=3,
+            )
+        )
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert 'href="https://gitlab.example.com/equipe/portail/-/issues/412"' in html
+    assert 'rel="noopener"' in html
+
+
+def test_project_tag_stays_plain_text_without_a_gitlab_url(route_client) -> None:
+    """Instance GitLab non renseignée : étiquette simple, jamais un lien mort."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="#412 Corriger la pagination",
+                source="gitlab",
+                external_id="equipe/portail#412",
+                project_tag="equipe/portail",
+                priority=1,
+                fibonacci_points=3,
+            )
+        )
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert "equipe/portail" in html
+    assert "/-/issues/412" not in html
+
+
+# ---------------------------------------------------------------------------
+# Notification système de secours (issue #34) — voir
+# docs/spec/temps-reel-chrono.md.
+# ---------------------------------------------------------------------------
+
+
+def _client_from(host: str) -> TestClient:
+    """Client de test annonçant `host` comme adresse d'origine.
+
+    `TestClient` annonce « testclient » par défaut, ce qui n'est ni une adresse
+    de bouclage ni une adresse distante : la route `/kairos/notify` décidant
+    précisément d'après cette adresse, chaque test doit la poser explicitement.
+    La route ne touche à aucune base, un client neuf suffit (le fixture
+    `route_client` reste requis pour son monkeypatch des réglages)."""
+    return TestClient(main.app, client=(host, 51234))
+
+
+def test_notify_route_sends_when_client_is_the_host(route_client, monkeypatch) -> None:
+    sent = []
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    monkeypatch.setattr(
+        main.desktop_notify, "send", lambda title, body: sent.append((title, body)) or True
+    )
+
+    resp = _client_from("127.0.0.1").post(
+        "/kairos/notify",
+        data={"title": "Ma tâche", "body": "une pause ?"},
+        headers={"X-Requested-With": "fetch"},
+    )
+    assert resp.status_code == 204
+    assert sent == [("Ma tâche", "une pause ?")]
+
+
+def test_notify_route_refuses_a_remote_client(route_client, monkeypatch) -> None:
+    """Depuis un autre appareil, la notification sortirait sur l'écran du
+    serveur : la route refuse, le client garde son repli dans la page."""
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    monkeypatch.setattr(
+        main.desktop_notify, "send", lambda title, body: pytest.fail("ne doit pas notifier")
+    )
+
+    resp = _client_from("192.168.1.42").post(
+        "/kairos/notify",
+        data={"title": "Ma tâche", "body": "corps"},
+        headers={"X-Requested-With": "fetch"},
+    )
+    assert resp.status_code == 503
+
+
+def test_notify_route_refuses_without_the_ajax_header(route_client, monkeypatch) -> None:
+    """Garde-fou CSRF : un `<form>` d'une autre origine ne peut pas poser
+    d'en-tête personnalisé."""
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    monkeypatch.setattr(
+        main.desktop_notify, "send", lambda title, body: pytest.fail("ne doit pas notifier")
+    )
+    resp = _client_from("127.0.0.1").post("/kairos/notify", data={"title": "T", "body": "B"})
+    assert resp.status_code == 403
+
+
+def test_notify_route_reports_503_when_no_system_tool(route_client, monkeypatch) -> None:
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: False)
+    resp = _client_from("127.0.0.1").post(
+        "/kairos/notify",
+        data={"title": "T", "body": "B"},
+        headers={"X-Requested-With": "fetch"},
+    )
+    assert resp.status_code == 503
+
+
+def test_notify_route_reports_503_when_the_system_tool_fails(route_client, monkeypatch) -> None:
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    monkeypatch.setattr(main.desktop_notify, "send", lambda title, body: False)
+    resp = _client_from("127.0.0.1").post(
+        "/kairos/notify",
+        data={"title": "T", "body": "B"},
+        headers={"X-Requested-With": "fetch"},
+    )
+    assert resp.status_code == 503
+
+
+def test_notify_is_never_offered_on_android(route_client, monkeypatch) -> None:
+    """L'APK a son pont natif, prioritaire — et `notify-send` n'y existe pas."""
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    monkeypatch.setitem(main.templates.env.globals, "is_android", True)
+    resp = _client_from("127.0.0.1").post(
+        "/kairos/notify",
+        data={"title": "T", "body": "B"},
+        headers={"X-Requested-With": "fetch"},
+    )
+    assert resp.status_code == 503
+
+
+def test_day_page_announces_server_notifications_to_the_client(route_client, monkeypatch) -> None:
+    """Le client ne devine jamais cette capacité : le serveur seul sait si la
+    page est ouverte depuis la machine qui l'héberge."""
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: True)
+    html = _client_from("127.0.0.1").get("/kairos").text
+    assert 'data-server-notify="1"' in html
+
+    html = _client_from("192.168.1.42").get("/kairos").text
+    assert 'data-server-notify="0"' in html
+
+
+def test_day_page_does_not_announce_server_notifications_without_a_tool(
+    route_client, monkeypatch
+) -> None:
+    monkeypatch.setattr(main.desktop_notify, "is_available", lambda: False)
+    html = _client_from("127.0.0.1").get("/kairos").text
+    assert 'data-server-notify="0"' in html
+
+
+# ---------------------------------------------------------------------------
+# Correctifs de l'audit UI.
+# ---------------------------------------------------------------------------
+
+
+def test_topbar_dates_are_written_in_french(route_client) -> None:
+    from app.fr_dates import date_longue
+
+    client, _ = route_client
+    html = client.get("/kairos").text
+    topbar = html.split("<h1>", 1)[1].split("</h1>", 1)[0]
+    assert date_longue(TODAY) in topbar
+    english = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    assert not any(name in topbar for name in english)
+
+
+def test_week_view_title_says_semaine_not_aujourdhui(route_client) -> None:
+    client, _ = route_client
+    html = client.get("/kairos?view=week").text
+    topbar = html.split("<h1>", 1)[1].split("</h1>", 1)[0]
+    assert topbar.startswith("Semaine")
+    assert "Aujourd" not in topbar
+
+
+def test_day_view_of_another_day_is_not_titled_aujourdhui(route_client) -> None:
+    client, _ = route_client
+    other = TODAY + timedelta(days=3)
+    html = client.get(f"/kairos?view=day&start={other.isoformat()}").text
+    topbar = html.split("<h1>", 1)[1].split("</h1>", 1)[0]
+    assert topbar.startswith("Jour")
+
+
+def test_unqualified_inbox_task_shows_no_wsjf_score(route_client) -> None:
+    """Une tâche de la boîte de réception « ne rentre dans aucun tri » : lui
+    afficher un score calculé sur des valeurs par défaut contredisait ce texte."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Pas encore qualifiée", source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    inbox = html.split('id="mj-inbox"', 1)[1].split("</section>", 1)[0]
+    assert "Pas encore qualifiée" in inbox
+    assert "mj-score" not in inbox
+
+
+def test_qualified_task_still_shows_its_wsjf_score(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Qualifiée", priority=1, fibonacci_points=3, source="native"))
+        db.commit()
+
+    assert "mj-score" in client.get("/kairos").text
+
+
+def test_home_drops_remote_badges_and_duplicate_logo_from_the_readme() -> None:
+    """Badges img.shields.io : cassés hors ligne, et une requête vers un tiers à
+    chaque ouverture sinon. Le logo du README double celui du bandeau."""
+    html = TestClient(main.app).get("/").text
+    assert "img.shields.io" not in html
+    assert "actions/workflows/ci.yml/badge.svg" not in html
+    assert 'src="static/icon-512.png"' not in html
+    assert "En bref" in html  # le reste du README est toujours là
+
+
+# ---------------------------------------------------------------------------
+# Qualification en un clic (audit UI) — voir docs/spec/vue-jour-gtd.md
+# § Comprendre sans quitter la liste.
+# ---------------------------------------------------------------------------
+
+
+def test_inbox_pills_never_touch_the_estimated_duration(route_client) -> None:
+    """Seuls les radios du panneau d'édition portent `.mj-fibo-radio` (qui
+    remplit la durée) : qualifier en ligne ne modifie jamais la durée."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="À qualifier", source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    inbox = html.split('id="mj-inbox"', 1)[1].split("</section>", 1)[0]
+    qualify = inbox.split('class="mj-inline-qualify"', 1)[1]
+    assert "mj-fibo-radio" not in qualify
+    assert "data-avg-minutes" not in qualify
+
+
+def test_inbox_pill_marks_the_value_already_set(route_client) -> None:
+    """Une tâche qui n'a que sa priorité reste en boîte de réception : sa
+    pastille de priorité apparaît enfoncée, celles des points non."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Priorité seule", priority=1, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert 'value="1"\n      class="mj-pill is-prio is-on"' in html
+    assert 'aria-pressed="true"' in html
+    assert "mj-pill is-on" not in html.split('name="points"', 1)[1].split("</form>", 1)[0]
+
+
+def test_edit_panel_offers_priority_and_points_as_radio_pills(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Éditable", priority=2, fibonacci_points=5, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert 'type="radio" name="priority" value="2" checked' in html
+    assert 'type="radio" name="fibonacci_points" value="5" class="mj-fibo-radio"' in html
+    # Une pastille « — » permet de vider chaque champ.
+    assert 'type="radio" name="priority" value=""' in html
+    assert 'type="radio" name="fibonacci_points" value="" class="mj-fibo-radio"' in html
+
+
+def test_edit_with_empty_pill_clears_priority_and_points(route_client) -> None:
+    """La pastille « — » renvoie une valeur vide : la tâche retourne en boîte de
+    réception, comme avec l'ancienne option vide du menu."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="À vider", priority=0, fibonacci_points=3, source="native")
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    client.post(
+        f"/kairos/tasks/{task_id}/edit",
+        data={"title": "À vider", "priority": "", "fibonacci_points": ""},
+        follow_redirects=False,
+    )
+    with TestSession() as db:
+        task = db.get(Task, task_id)
+        assert task.priority is None
+        assert task.fibonacci_points is None
+
+
+def test_inbox_help_explains_priority_meanings_and_the_points_scale(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="À qualifier", source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    inbox = html.split('id="mj-inbox"', 1)[1].split("</section>", 1)[0]
+    help_block = inbox.split('class="mj-help"', 1)[1]
+    assert "bloquant ou engagement ferme" in help_block
+    assert "à faire quand il y a de la place" in help_block
+    assert "bien cadré, zéro inconnue" in help_block
+
+
+def test_estimation_guide_shows_the_users_own_references(route_client) -> None:
+    """Guide ancré sur l'historique : médiane réelle du palier et exemple tiré
+    des tâches terminées de l'utilisateur."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Migrer le module de facturation", status="done",
+                    fibonacci_points=5, manual_time_spent_minutes=150, source="native"))
+        db.add(Task(title="À estimer", source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert "« Migrer le module de facturation »" in html
+    assert "chez toi ≈ <strong>2 h 30</strong>" in html
+    assert "peu fiable" in html  # une seule tâche : effectif faible, signalé
+
+
+def test_estimation_guide_says_so_when_a_level_has_no_history(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="À estimer", source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert "aucune de tes tâches terminées à ce palier pour l'instant" in html
+
+
+def test_score_badge_opens_on_its_explanation(route_client) -> None:
+    """« Pourquoi à cette place ? » : P1 (valeur 4 par défaut), sans échéance
+    (criticité 0), 2 pts → (4 + 0) ÷ 2 = 2.0."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Expliquée", priority=1, fibonacci_points=2, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    why = html.split('<details class="mj-why">', 1)[1].split("</details>", 1)[0]
+    assert "Pourquoi à cette place ?" in why
+    assert "Priorité P1 Important" in why
+    assert "<dd>4</dd>" in why
+    assert "Aucune échéance" in why and "<dd>+ 0</dd>" in why
+    assert "Effort 2 pts" in why and "<dd>÷ 2</dd>" in why
+    assert "= 2.0" in why
+
+
+def test_overdue_task_explains_that_it_jumps_the_queue(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="En retard", priority=2, fibonacci_points=8,
+                    deadline=TODAY - timedelta(days=4), source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    why = html.split('<details class="mj-why">', 1)[1].split("</details>", 1)[0]
+    assert "En retard : passe devant" in why
+    assert "Échéance dépassée de 4 j" in why
+
+
+# ---------------------------------------------------------------------------
+# Fluidité (audit UI) — voir docs/spec/vue-jour-gtd.md § Fluidité.
+# ---------------------------------------------------------------------------
+
+
+def test_capture_returns_the_day_fragment_when_intercepted(route_client) -> None:
+    """Décision rouverte avec l'utilisateur : la capture ne recharge plus la
+    page. En AJAX, la route renvoie le fragment où la tâche apparaît déjà."""
+    client, _ = route_client
+    resp = client.post(
+        "/kairos/tasks",
+        data={"title": "Capturée sans rechargement"},
+        headers={"X-Requested-With": "fetch"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 200
+    assert "Capturée sans rechargement" in resp.text
+    assert "<!DOCTYPE html>" not in resp.text
+    assert 'id="mj-task-capture" data-ajax' in resp.text
+
+
+def test_day_list_comes_before_search_and_backlog(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Au backlog", priority=1, fibonacci_points=2, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    day_list = html.index("Aujourd'hui, dans l'ordre")
+    assert day_list < html.index('class="card mj-filter-compact"')
+    assert day_list < html.index("Backlog, sans date")
+
+
+def test_active_filter_stays_above_the_lists_it_reduces(route_client) -> None:
+    client, _ = route_client
+    html = client.get("/kairos?q=rapport").text
+    marker = 'class="card mj-filter-compact"'
+    assert html.count(marker) == 1
+    assert html.index(marker) < html.index("Aujourd'hui, dans l'ordre")
+
+
+def test_unscheduled_section_is_open_by_default(route_client) -> None:
+    """Des tâches à faire aujourd'hui sans créneau : dépliées, sinon oubliées."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        for i in range(12):  # plus que la journée ne peut en placer
+            db.add(Task(title=f"Longue {i}", priority=1, fibonacci_points=3,
+                        estimated_minutes=240, deadline=TODAY, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    before = html.split("Sans créneau aujourd'hui", 1)[0]
+    opening = before[before.rindex("<details"):]
+    assert opening.startswith('<details class="card" open>')
+
+
+def test_now_card_names_its_actions(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Prochaine", priority=0, fibonacci_points=1, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    card = html.split('class="mj-next-actions"', 1)[1].split("</div>", 1)[0]
+    assert "Fait" in card
+    assert "Démarrer le chrono" in card
+    assert "Décaler" in card

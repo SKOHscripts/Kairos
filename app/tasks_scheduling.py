@@ -190,8 +190,9 @@ def _time_criticality(task: Task, day: date, settings: Settings) -> float:
     return peak * (horizon - days_until) / horizon
 
 
-def _effort_points(task: Task, settings: Settings) -> float:
-    """Effort (dénominateur) d'une tâche, en « points » homogènes à Fibonacci.
+def _effort(task: Task, settings: Settings) -> tuple[float, str]:
+    """Effort (dénominateur) d'une tâche, en « points » homogènes à Fibonacci, et sa
+    provenance (``"points"``, ``"minutes"`` ou ``"défaut"``).
 
     Priorité aux ``fibonacci_points`` saisis ; à défaut, l'estimation en minutes ramenée à
     l'échelle (≈ 1 point / 30 min, bornée à 1-21) ; à défaut encore, ``default_fibonacci_
@@ -199,19 +200,61 @@ def _effort_points(task: Task, settings: Settings) -> float:
     de priorité — plus on renseigne le Fibo, plus le tri s'affine.
     """
     if task.fibonacci_points is not None and task.fibonacci_points > 0:
-        return float(task.fibonacci_points)
+        return float(task.fibonacci_points), "points"
     if task.estimated_minutes is not None and task.estimated_minutes > 0:
-        return min(21.0, max(1.0, task.estimated_minutes / 30))
-    return float(settings.default_fibonacci_points)
+        return min(21.0, max(1.0, task.estimated_minutes / 30)), "minutes"
+    return float(settings.default_fibonacci_points), "défaut"
+
+
+def _effort_points(task: Task, settings: Settings) -> float:
+    return _effort(task, settings)[0]
+
+
+@dataclass(frozen=True)
+class WsjfBreakdown:
+    """Décomposition du score WSJF d'une tâche (audit UI : « pourquoi à cette
+    place ? »). Porte les trois termes de la formule et de quoi les expliquer ;
+    ``score`` est LE calcul — `wsjf_score` le lit ici, la formule n'existe
+    qu'une fois."""
+
+    value: float            # valeur(priorité), numérateur
+    criticality: float      # criticité(échéance), numérateur
+    effort: float           # dénominateur
+    effort_source: str      # "points" | "minutes" | "défaut"
+    date_kind: str | None   # "échéance" | "date programmée" | None (aucune date)
+    days_until: int | None  # jours jusqu'à la date la plus proche (négatif = dépassée)
+    overdue: bool           # palier dur du tri : passe devant quel que soit le score
+
+    @property
+    def score(self) -> float:
+        return (self.value + self.criticality) / self.effort
+
+
+def wsjf_breakdown(task: Task, day: date, *, settings: Settings) -> WsjfBreakdown:
+    """Les termes du score WSJF d'une tâche, pour l'expliquer à l'utilisateur.
+    Fonction pure."""
+    effort, effort_source = _effort(task, settings)
+    dated = [
+        (d, kind)
+        for d, kind in ((task.deadline, "échéance"), (task.scheduled_date, "date programmée"))
+        if d is not None
+    ]
+    nearest = min(dated, key=lambda pair: pair[0]) if dated else None
+    return WsjfBreakdown(
+        value=_priority_value(task.priority, settings),
+        criticality=_time_criticality(task, day, settings),
+        effort=effort,
+        effort_source=effort_source,
+        date_kind=nearest[1] if nearest else None,
+        days_until=(nearest[0] - day).days if nearest else None,
+        overdue=_is_overdue(task, day),
+    )
 
 
 def wsjf_score(task: Task, day: date, *, settings: Settings) -> float:
     """Score WSJF : ``(valeur(priorité) + criticité(échéance)) / effort``. Plus grand =
     plus prioritaire. Fonction pure, testable en isolation (aucun accès DB/réseau)."""
-    cost_of_delay = _priority_value(task.priority, settings) + _time_criticality(
-        task, day, settings
-    )
-    return cost_of_delay / _effort_points(task, settings)
+    return wsjf_breakdown(task, day, settings=settings).score
 
 
 # --------------------------------------------------------------------------- #
@@ -670,7 +713,7 @@ def build_day_schedule(
 
         dip_note = ""
         if dip_active and task is not urgency_pick:
-            dip_note = f"créneau creux (~{settings.cognitive_dip_trough_hour}h) — tâche légère privilégiée"
+            dip_note = f"créneau creux (~{settings.cognitive_dip_trough_hour}h) : tâche légère privilégiée"
         result.scheduled.append(
             ScheduledTask(
                 task=task, start_at=start,

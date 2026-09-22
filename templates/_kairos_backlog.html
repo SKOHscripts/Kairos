@@ -3,7 +3,7 @@
    l'agenda du jour — affiché quelle que soit la vue (jour ou semaine), voir
    `kairos.html` (branche semaine) et `_kairos_day.html` (vue jour). #}
 {% from "_icons.html" import icon %}
-{% from "_kairos_macros.html" import done_toggle, task_actions, edit_panel, task_meta with context %}
+{% from "_kairos_macros.html" import done_toggle, task_actions, edit_panel, task_key_badges, task_tags, task_description with context %}
 {% if backlog_tasks %}
 <details class="card">
   <summary class="collapser">{{ icon('chevron_right', '') }} Backlog, sans date ({{ backlog_tasks|length }})</summary>
@@ -14,10 +14,15 @@
     {% for task in backlog_tasks %}
     <li class="kairos-item">
       {{ done_toggle(task) }}
-      <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
-      {{ task_meta(task) }}
-      {{ task_actions(task) }}
-      {{ edit_panel(task) }}
+      <div class="mj-item-main">
+        <div class="mj-item-head">
+          <span class="mj-title">{% if parent_title_of.get(task.id) %}<span class="muted">{{ parent_title_of[task.id] }} › </span>{% endif %}{{ task.title }}</span>
+        </div>
+        <div class="mj-item-tags">{{ task_tags(task) }}</div>
+        {{ task_description(task) }}
+      </div>
+      <div class="mj-item-key">{{ task_key_badges(task) }}</div>
+      <div class="mj-item-actions">{{ task_actions(task) }}{{ edit_panel(task) }}</div>
     </li>
     {% endfor %}
   </ul>

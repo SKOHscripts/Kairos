@@ -17,7 +17,7 @@ sujet urgent avant 14h05 ? » Outil web local, mono-utilisateur, sans compte ni 
 base SQLite, un navigateur, et c'est tout.
 
 **Application de bureau (Windows, Linux) et mobile (Android)**, à télécharger et lancer
-en un geste, sans rien installer — voir
+en un geste, sans rien installer. Voir
 [**⬇ Télécharger la dernière version**](https://github.com/SKOHscripts/Kairos/releases/latest).
 
 ## En bref
@@ -70,9 +70,9 @@ Pas besoin de Python, de venv ni de terminal. Les
 autonome par OS (`kairos-linux-x86_64`, `kairos-windows-x86_64.exe`) et un APK Android
 (`kairos-android-arm64.apk`). Télécharge, double-clique (sous Linux, rends d'abord le
 fichier exécutable avec `chmod +x kairos-linux-x86_64`), et une fenêtre s'ouvre toute
-seule sur Kairos — sans barre d'adresse ni onglets, le ressenti d'une vraie application
-de bureau (si un navigateur de la famille Chromium — Chrome, Edge, Brave, Vivaldi... —
-est installé ; sinon repli automatique sur un onglet du navigateur par défaut, sans rien
+seule sur Kairos, sans barre d'adresse ni onglets, comme une vraie application
+de bureau (si un navigateur de la famille Chromium est installé : Chrome, Edge, Brave,
+Vivaldi... ; sinon repli automatique sur un onglet du navigateur par défaut, sans rien
 à configurer). Les réglages et la base de tâches vivent dans le dossier de données
 standard de ton système, entièrement éditables depuis la page **Réglages**. Aucun
 fichier `.env` à copier ou à éditer à la main.
@@ -132,16 +132,23 @@ décharger l'esprit sans réfléchir à la structure : une seule zone de texte l
 priorité ni échéance à choisir sur le moment (Ctrl/Cmd+Entrée pour capturer sans lâcher
 le clavier). Chaque note capturée apparaît immédiatement dans la liste, sans rechargement
 de page. Une fois qu'une idée est prête à devenir actionnable, un clic sur **« → Tâche »**
-la convertit en tâche titre-seul, qui atterrit directement dans la boîte de réception «
-À traiter » de la vue Jour — la note d'origine est archivée (jamais supprimée) avec un
-lien vers la tâche créée. Une note peut aussi être éditée sur place ou classée sans suite
+la convertit en tâche, qui atterrit directement dans la boîte de réception «
+À traiter » de la vue Jour. La note d'origine est archivée (jamais supprimée) avec un
+lien vers la tâche créée. Une note de plusieurs lignes ne perd rien à la conversion : la
+première ligne devient le titre de la tâche, **tout le reste devient sa description**. Une note peut aussi être éditée sur place ou classée sans suite
 (archivée) si elle ne mène nulle part.
 
 ### Gestion des tâches
-- **Création rapide** en une ligne (le titre seul suffit). Édition complète ensuite :
+- **Création rapide** en une ligne (le titre seul suffit). La tâche apparaît aussitôt dans
+  « À traiter », sans rechargement, et le curseur reste dans le champ : tu enchaînes
+  plusieurs captures au clavier. Édition complète ensuite :
   titre, description, priorité 0-2 (P0 = la plus forte), échéance, date programmée,
   projet, durée estimée, récurrence, type, points de Fibonacci, heure fixe, fiche liée,
   sous-tâches en lot, bloqueurs. Un seul « Enregistrer » applique tout.
+- **Raccourcis clavier** sur la vue Jour : `N` pour capturer une tâche, `/` pour chercher.
+- **Description visible dans la liste** : une tâche qui porte une description l'annonce
+  sous son titre par un extrait d'une ligne, dépliable d'un clic sur place. Tu vois qu'il y a
+  du contexte à lire sans ouvrir l'édition.
 - **Sous-tâches** : avancement n/m sur la mère. Seules les feuilles sont planifiées (une
   mère à filles ouvertes n'est jamais une unité de travail).
 - **Récurrence** : quotidienne, jours ouvrés, hebdomadaire, mensuelle (terminer une
@@ -154,7 +161,11 @@ lien vers la tâche créée. Une note peut aussi être éditée sur place ou cla
 
 ### « À traiter » (inbox GTD)
 Une tâche entre dans le tri automatique seulement quand sa **priorité** et ses **points de
-Fibonacci** sont renseignés tous les deux. Tant que l'un des deux manque, elle reste « À
+Fibonacci** sont renseignés tous les deux. Tu les poses en un clic, sur des pastilles qui
+disent ce que vaut chaque choix : **P0 Critique** (bloquant ou engagement ferme, rare),
+**P1 Important** (à caser cette semaine), **P2 Utile** (quand il y a de la place), et pour
+les points de « 1 trivial » à « 21 énorme ». La priorité mesure l'importance. Le délai
+passe par l'échéance, déjà comptée dans le score. Tant que l'un des deux manque, elle reste « À
 traiter » dans une section dédiée, non repliée, en tête de page. La clarification prime sur
 tout : une tâche bloquée ou épinglée mais non qualifiée reste « À traiter ».
 
@@ -174,14 +185,22 @@ tout : une tâche bloquée ou épinglée mais non qualifiée reste « À traiter
   l'échéance : une tâche programmée plus tard est masquée (section « Programmées plus
   tard ») sauf si son échéance approche, car l'échéance prime toujours.
 - **Aide à l'estimation** : barème Fibonacci (1 à 21, taille relative, volume ×
-  complexité × incertitude), repliable dans le panneau d'édition.
+  complexité × incertitude), avec tes propres repères (voir ci-dessous).
+- **« Pourquoi à cette place ? »** : un clic (ou un toucher) sur le score d'une tâche
+  affiche son calcul : ce que vaut sa priorité, ce que son échéance ajoute, l'effort qui
+  divise le tout. Une tâche en retard le dit aussi : elle passe devant quel que soit son
+  score.
 
 #### Points de Fibonacci
 
 Dans le panneau d'édition, chaque tâche peut recevoir un nombre de points sur l'échelle
 `1, 2, 3, 5, 8, 13, 21`. C'est une taille **relative** (jamais des heures), estimée en
 quelques secondes par rapport à tes tâches habituelles : volume × complexité ×
-incertitude (« est-ce que je sais comment faire ? »). Repère indicatif : `1` trivial et
+incertitude (« est-ce que je sais comment faire ? »). Le guide « Comment estimer les
+points ? » te donne ces tâches habituelles : pour chaque palier, le temps réel médian de
+tes tâches terminées (« chez toi, 3 pts ≈ 50 min ») et deux d'entre elles en exemple. Tu
+compares (« plus gros que celle-ci, plus petit que celle-là ») au lieu d'estimer dans le
+vide. Repère indicatif : `1` trivial et
 expédié (valider une MR triviale), `2` à `3` petit à modéré sans inconnue (dev bien
 cadré), `5` conséquent ou avec un peu d'inconnu, `8` gros ou vraiment incertain, `13` et
 `21` trop gros pour une seule tâche, donc à découper en sous-tâches.
@@ -193,10 +212,10 @@ la **durée estimée (min)**, qui sert uniquement au *placement* dans l'agenda (
 temps le créneau occupe). Une tâche peut être courte mais tordue (peu de minutes, beaucoup
 de points) ou longue mais mécanique (l'inverse).
 
-Sans points renseignés, le **score affiché** se rabat sur la durée estimée (≈ 1 point /
-30 min, borné 1-21), puis sur `DEFAULT_FIBONACCI_POINTS` (3 par défaut). Ce repli concerne
-le score montré à titre indicatif : pour entrer dans le tri du jour, une tâche a de toute
-façon besoin de ses points (voir « À traiter » ci-dessus).
+Sans points renseignés, une tâche n'affiche pas de score : elle reste « À traiter » (voir
+ci-dessus) et n'entre dans aucun tri. En interne, le calcul se rabat alors sur la durée
+estimée (≈ 1 point / 30 min, borné 1-21), puis sur `DEFAULT_FIBONACCI_POINTS` (3 par
+défaut).
 
 #### Creux de l'après-midi (14h55)
 
@@ -209,8 +228,7 @@ profond à 15h), l'outil évite d'y poser les tâches trop complexes (points de 
 d'une tâche est gonflé en proportion de sa complexité. Une tâche de 21 points voit son
 score de *placement* divisé par deux au tronc, une tâche de 1 point n'est jamais pénalisée.
 Une tâche simple prend donc le créneau creux, la complexe se pose juste avant ou après.
-C'est un effet gradué, pas un interdit : une tâche complexe suffisamment urgente peut
-encore l'emporter.
+L'effet reste gradué : une tâche complexe assez urgente peut encore l'emporter.
 
 Trois garde-fous. Les échéances et le chemin critique priment toujours (une tâche en
 retard ou un bloqueur d'une tâche urgente n'est jamais décalé par le creux). Le score
@@ -245,13 +263,25 @@ jamais écrite). Les cycles sont détectés et refusés.
   (dépassement signalé), total et ventilation par type du jour et de la semaine.
 - **Titre d'onglet vivant** : le compteur reste visible en arrière-plan.
 - **Alertes navigateur** (opt-in, bouton « Activer les alertes chrono ») : dépassement de
-  l'estimé, chrono oublié, rappel de pause. Nécessite un contexte sécurisé
-  (`127.0.0.1`/`localhost` ou HTTPS). Sinon, repli automatique sur le titre d'onglet et un
-  bandeau dans la page.
+  l'estimé, chrono oublié, rappel de pause.
+- **Une alerte aboutit même si le navigateur bloque les notifications.** Si tu as refusé
+  les notifications, ou si tu ouvres Kairos par une adresse réseau (pas `127.0.0.1`), le
+  navigateur ne peut plus rien afficher. Quand Kairos tourne sur la machine où tu le
+  consultes, il émet alors **lui-même** une notification système (`notify-send` sous
+  Linux, bulle Windows), sans permission à accorder. Rien à installer ni à configurer.
+- Quand même cette voie est fermée (Kairos consulté depuis un autre appareil), le repli
+  dans la page prend le relais : **bandeau flottant qui ne disparaît pas tout seul**,
+  titre d'onglet clignotant, et un court signal sonore si tu l'actives dans les Réglages
+  (« Signal sonore de secours », désactivé par défaut). Le son ne joue jamais quand une
+  notification système a pu sortir.
 
 ### Vues & garde-fous
 - **Vue jour** (agenda détaillé et « À faire maintenant ») et **vue semaine** (7 jours,
   tâches par échéance, créneaux, synthèse du temps réel par type).
+- **Lignes de tâche alignées en colonnes** : priorité, points et boutons d'action
+  tombent toujours au même endroit d'une ligne à l'autre, quel que soit le nombre
+  d'étiquettes ou la longueur du titre. Même chargée, la liste se lit d'un coup d'œil vertical.
+  Les étiquettes s'empilent sous le titre au lieu de repousser les actions.
 - Badge **« traîne depuis N j »** (échéance dépassée de longue date, ou tâche sans date
   jamais retouchée), bandeau de **surcharge de priorité** (trop de tâches à priorité
   maximale, signal dilué), bordure colorée par urgence, badge « chemin critique ».
@@ -326,6 +356,10 @@ Si la base de pilotage est renseignée, elle prime sur l'import direct (zéro ap
 Dans les deux cas : une issue fermée ou réassignée archive la tâche ; ta priorité et ton
 temps passé ne sont jamais écrasés. Sans ce réglage, ces deux fonctionnalités disparaissent
 proprement de l'interface. Kairos n'écrit **jamais** dans la base pilotage.
+
+L'étiquette de projet d'une tâche importée est **cliquable** : elle ouvre l'issue GitLab
+d'origine dans un nouvel onglet. Sans URL d'instance renseignée, elle reste un texte
+simple.
 
 ---
 

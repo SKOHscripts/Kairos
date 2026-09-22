@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import signal
 import sys
 from contextlib import asynccontextmanager, contextmanager
@@ -33,7 +34,9 @@ from starlette.responses import FileResponse, HTMLResponse, RedirectResponse, Re
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import secret_store, settings_store
+from . import desktop_notify, secret_store, settings_store
+from .fr_dates import date_longue, jour_court
+from .task_guide import FIBONACCI_GUIDE, PRIORITY_LEVELS, fibo_level, priority_level
 from .calendar.timetree_source import fetch_busy_slots
 from .config import Settings, apply_proxy_env, get_settings, invalidate_settings_cache
 from .gitlab_direct import fetch_assigned_issues
@@ -69,11 +72,16 @@ from .tasks_scheduling import (
     session_timeline_entries,
     urgency_bucket,
     urgency_key,
-    wsjf_score,
+    wsjf_breakdown,
 )
 from .tasks_staleness import days_stale
-from .tasks_stats import calibration_by_type, compute_dashboard_stats, fibonacci_calibration
-from .tasks_gitlab_sync import sync_assigned_gitlab_tasks, write_sync_meta
+from .tasks_stats import (
+    calibration_by_type,
+    compute_dashboard_stats,
+    fibonacci_calibration,
+    fibonacci_references,
+)
+from .tasks_gitlab_sync import issue_web_url, sync_assigned_gitlab_tasks, write_sync_meta
 from .tasks_time import (
     running_session,
     sessions_in_range,
@@ -200,6 +208,16 @@ templates.env.globals["is_frozen"] = getattr(sys, "frozen", False)
 # `kairos_boot.py` avant tout import de ce module (voir docs/ANDROID_PACKAGING.md),
 # donc lu une seule fois ici, au même titre que `is_frozen`.
 templates.env.globals["is_android"] = os.environ.get("KAIROS_PLATFORM") == "android"
+# Dates en toutes lettres en français, indépendamment de la locale du système
+# (voir `app/fr_dates.py` : `strftime('%A')` affichait les jours en anglais).
+templates.env.filters["date_longue"] = date_longue
+templates.env.filters["jour_court"] = jour_court
+# Sens des priorités et des paliers de points (audit UI) : une seule source
+# (`app/task_guide.py`), lue par les pastilles, le guide et les infobulles.
+templates.env.globals["priority_levels"] = PRIORITY_LEVELS
+templates.env.globals["fibonacci_guide"] = FIBONACCI_GUIDE
+templates.env.globals["priority_level"] = priority_level
+templates.env.globals["fibo_level"] = fibo_level
 # Anti-cache navigateur : suffixe `?v=` sur les liens vers static/ dans base.html.
 # Sans lui, un navigateur peut continuer à servir un vieux style.css en cache après
 # une mise à jour de l'app (nouvelle version installée, `git pull`...), ce qui donne
@@ -219,6 +237,29 @@ def favicon(request: Request) -> Response:
     return FileResponse(BASE_DIR / "static" / "favicon.svg", media_type="image/svg+xml")
 
 
+# Images du README qui n'ont pas leur place dans l'application (audit UI) :
+# - les badges distants (CI, version, téléchargements, plateformes) pointent vers
+#   img.shields.io / github.com — cassés hors ligne (exécutable de bureau, APK),
+#   et sinon une requête vers un service tiers à chaque ouverture de l'accueil,
+#   incohérent pour un outil local « sans compte ni cloud » ; leur information
+#   (état de la CI, dernière version) ne concerne de toute façon pas l'utilisateur
+#   de l'app ouverte ;
+# - le logo du README (`static/icon-512.png`), doublon du logo du bandeau
+#   d'accueil juste au-dessus.
+# Le lien qui enveloppe un badge disparaît avec lui (sinon lien vide). Le README
+# lui-même n'est pas modifié : ces images restent utiles sur GitHub.
+_README_REMOTE_IMG_RE = re.compile(
+    r'(?:<a\b[^>]*>\s*)?<img\b[^>]*\bsrc="(?:https?://[^"]*|static/icon-512\.png)"[^>]*/?>(?:\s*</a>)?'
+)
+_EMPTY_PARAGRAPH_RE = re.compile(r"<p>\s*</p>")
+
+
+def _strip_readme_images(html: str) -> str:
+    """Retire du HTML du README les images listées ci-dessus, puis les
+    paragraphes devenus vides. Fonction pure."""
+    return _EMPTY_PARAGRAPH_RE.sub("", _README_REMOTE_IMG_RE.sub("", html))
+
+
 def _render_readme() -> tuple[str, str, list[dict]]:
     """Rend ``README.md`` en HTML pour la page d'accueil : source **unique**, jamais
     dupliquée à la main — toute modification du README y apparaît sans autre effort.
@@ -232,7 +273,9 @@ def _render_readme() -> tuple[str, str, list[dict]]:
         extensions=["extra", "sane_lists", "toc"],
         extension_configs={"toc": {"permalink": False}},
     )
-    html = converter.convert((BASE_DIR / "README.md").read_text(encoding="utf-8"))
+    html = _strip_readme_images(
+        converter.convert((BASE_DIR / "README.md").read_text(encoding="utf-8"))
+    )
     # Racine unique (le H1 « Kairos ») : ses enfants (H2/H3) forment le sommaire —
     # le H1 lui-même est déjà repris dans le bandeau de bienvenue, inutile en double.
     toc = converter.toc_tokens[0]["children"] if converter.toc_tokens else []
@@ -432,7 +475,7 @@ def _build_kairos_context(
     ticket_by_id = {t.id: t for t in all_tickets}
     ticket_choices = sorted(
         (
-            {"id": t.id, "label": f"#{t.pleiade_id} — {t.pleiade_subject[:60]}"}
+            {"id": t.id, "label": f"#{t.pleiade_id} · {t.pleiade_subject[:60]}"}
             for t in all_tickets
         ),
         key=lambda c: c["label"],
@@ -488,7 +531,18 @@ def _build_kairos_context(
     bucket_of = {t.id: urgency_bucket(t, target_day) for t in tasks}
     # Score WSJF affiché à côté de chaque tâche (transparence : on voit *pourquoi* cet
     # ordre) + détail valeur/urgence/effort au survol. Phase 9.
-    wsjf_of = {t.id: round(wsjf_score(t, target_day, settings=settings), 1) for t in tasks}
+    # Seulement pour les tâches QUALIFIÉES (priorité ET points) : une tâche de la
+    # boîte de réception « ne rentre dans aucun tri » (`to_process`), lui afficher
+    # un score calculé sur des valeurs par défaut (« 0.1 ») contredisait le texte
+    # juste au-dessus d'elle — constaté à l'audit UI.
+    # « Pourquoi à cette place ? » (audit UI) : la décomposition du score, dont
+    # le score affiché n'est que l'arrondi — une seule formule, deux lectures.
+    why_of = {
+        t.id: wsjf_breakdown(t, target_day, settings=settings)
+        for t in tasks
+        if t.priority is not None and t.fibonacci_points is not None
+    }
+    wsjf_of = {tid: round(breakdown.score, 1) for tid, breakdown in why_of.items()}
     blocked_tasks = [
         {"task": by_id[tid], "reasons": block_reasons.get(tid, [])}
         for tid in blocked_ids
@@ -558,6 +612,9 @@ def _build_kairos_context(
         for c in calibration_by_type(all_tasks, spent_by_task)
         if c.reliable and c.median_minutes
     }
+    # Guide d'estimation ancré sur l'historique (audit UI) : médiane réelle et
+    # exemples de tâches terminées, par palier.
+    fibo_refs = fibonacci_references(all_tasks, spent_by_task)
     # Même principe pour les points de Fibonacci calibrés (issue #15.6) : pré-remplit
     # « Durée (min) » quand l'utilisateur choisit un palier dont le calibrage est fiable.
     avg_minutes_by_fibo = {
@@ -565,12 +622,19 @@ def _build_kairos_context(
         for c in fibonacci_calibration(all_tasks, spent_by_task)
         if c.reliable and c.median_minutes
     }
+    # Guide d'estimation ancré sur l'historique (audit UI) : médiane réelle et
+    # exemples de tâches terminées, par palier.
+    fibo_refs = fibonacci_references(all_tasks, spent_by_task)
 
     context = {
         "page": "kairos",
         "settings": settings,
         "view": view,
         "day": target_day,
+        # La vue Jour peut afficher un autre jour que le jour courant (lien
+        # « Voir le détail » de la vue Semaine) : la barre de titre ne dit
+        # « Aujourd'hui » que si c'est vrai.
+        "is_today": target_day == date.today(),
         "timetree_configured": settings.timetree_configured,
         "gitlab_direct_error": gitlab_direct_error,
         "blocked_tasks": blocked_tasks,
@@ -582,10 +646,12 @@ def _build_kairos_context(
         "raised_ids": raised_ids,
         "bucket_of": bucket_of,
         "wsjf_of": wsjf_of,
+        "why_of": why_of,
         "fibonacci_scale": FIBONACCI_SCALE,
         "spent_by_task": spent_by_task,
         "avg_minutes_by_type": avg_minutes_by_type,
         "avg_minutes_by_fibo": avg_minutes_by_fibo,
+        "fibo_refs": fibo_refs,
         "running_task_id": running_task_id,
         "running_started_iso": running_started_iso,
         "running_task_title": running_task_title,
@@ -602,7 +668,21 @@ def _build_kairos_context(
         "blocker_choices": blocker_choices,
         "ticket_choices": ticket_choices,
         "ticket_by_id": ticket_by_id,
+        # Lien « étiquette de projet → issue GitLab d'origine » (issue #33).
+        # Calculé ici plutôt que dans le gabarit, comme tous les autres
+        # `*_of` : une fonction pure, aucun appel réseau, et les tâches sans
+        # URL reconstructible n'entrent simplement pas dans le dict (la macro
+        # retombe alors sur une étiquette non cliquable).
+        "gitlab_issue_url_of": {
+            t.id: url
+            for t in all_tasks
+            if (url := issue_web_url(settings.gitlab_url, t))
+        },
         "stale_days_of": stale_days_of,
+        # Issue #34 : le gabarit annonce l'état réel des alertes (et le script
+        # décide d'appeler `POST /kairos/notify`) — jamais une promesse que le
+        # serveur ne pourrait pas tenir pour CE client.
+        "server_notify": server_notifications_available(request),
         "priority_overload_count": priority_overload_count,
         "priority_overload_threshold": settings.priority_overload_threshold,
         "search_q": search_q,
@@ -610,6 +690,12 @@ def _build_kairos_context(
         "filter_project": filter_project,
         "filter_type": filter_type,
         "filter_fibo": filter_fibo,
+        # Un filtre actif remonte en tête des listes qu'il réduit (vue Jour) ;
+        # inactif, le contrôle de filtrage reste en bas de colonne (audit UI).
+        "filter_active": bool(
+            search_q or filter_priority is not None or filter_project
+            or filter_type or filter_fibo is not None
+        ),
         "project_choices": project_choices,
     }
 
@@ -946,9 +1032,27 @@ def _fmt_minutes(minutes: int) -> str:
     return f"{mins} min"
 
 
+# Même format de durée dans les gabarits (guide d'estimation, audit UI).
+templates.env.filters["duree"] = _fmt_minutes
+
+
+def _fmt_number(value: float) -> str:
+    """Nombre court pour l'explication du score : une décimale au plus, sans
+    « .0 » inutile (« 16 », « 6.2 »). Point décimal, comme le badge du score."""
+    return f"{value:.1f}".removesuffix(".0")
+
+
+templates.env.filters["nombre"] = _fmt_number
+
+
 @app.post("/kairos/tasks")
-async def create_native_task(request: Request) -> RedirectResponse:
-    """Création rapide d'une tâche native (ou d'une sous-tâche si ``parent_id``)."""
+async def create_native_task(request: Request) -> Response:
+    """Création rapide d'une tâche native (ou d'une sous-tâche si ``parent_id``).
+
+    Réponse commune des actions rapides (audit UI, décision rouverte avec
+    l'utilisateur) : fragment AJAX si le formulaire de capture est intercepté
+    (`data-ajax`, curseur conservé pour enchaîner les captures), redirection
+    303 sinon, comme avant."""
     form = await request.form()
     title = str(form.get("title", "")).strip()
     with _request_session(get_tasks_session) as tasks_session:
@@ -969,7 +1073,7 @@ async def create_native_task(request: Request) -> RedirectResponse:
                 )
             )
             tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
 
 
 def _kairos_action_response(request: Request) -> Response:
@@ -1047,6 +1151,61 @@ def stop_timer(request: Request) -> Response:
             session.ended_at = now
         tasks_session.commit()
     return _kairos_action_response(request)
+
+
+# --------------------------------------------------------------------------
+# Notification système de secours (issue #34) — voir
+# docs/spec/temps-reel-chrono.md. Dernier maillon de la cascade d'alertes du
+# chrono : appelée par le client uniquement quand ni le pont Android ni les
+# notifications du navigateur ne sont utilisables.
+# --------------------------------------------------------------------------
+
+
+def server_notifications_available(request: Request) -> bool:
+    """Le serveur peut-il émettre une notification système **pour ce client** ?
+
+    Trois conditions, toutes nécessaires :
+
+    1. Pas dans l'APK Android — le pont natif y est prioritaire et `notify-send`
+       n'y existe pas.
+    2. Un outil de notification est installé sur le système hôte.
+    3. Le client est la machine hôte elle-même : une notification système
+       s'affiche sur l'écran du **serveur**, donc la page ouverte depuis un
+       téléphone ou un poste voisin ne doit rien déclencher.
+
+    Évaluée au rendu de la page (pour annoncer honnêtement l'état des alertes)
+    **et** à chaque envoi (le rendu n'engage rien).
+    """
+    if templates.env.globals.get("is_android"):
+        return False
+    client_host = request.client.host if request.client else None
+    return desktop_notify.loopback_client(client_host) and desktop_notify.is_available()
+
+
+@app.post("/kairos/notify")
+async def notify_desktop(request: Request) -> Response:
+    """Émet une notification système pour une alerte de chrono.
+
+    Exige l'en-tête `X-Requested-With: fetch` — déjà la convention AJAX de
+    l'app, et surtout un garde-fou CSRF : un `<form>` d'une autre origine ne
+    peut pas poser d'en-tête personnalisé, et un `fetch` d'une autre origine
+    qui en pose déclenche une requête de contrôle préalable à laquelle cette
+    app ne répond jamais (aucun en-tête CORS n'est servi).
+
+    `204` si la notification est partie, `503` sinon (indisponible, client
+    distant, ou échec de l'outil système) — dans les deux cas le client garde
+    son repli dans la page, la réponse ne fait que lui dire s'il doit le
+    **renforcer**.
+    """
+    if request.headers.get("X-Requested-With") != "fetch":
+        return Response(status_code=403)
+    if not server_notifications_available(request):
+        return Response(status_code=503)
+    form = await request.form()
+    title = str(form.get("title", ""))
+    body = str(form.get("body", ""))
+    sent = desktop_notify.send(title, body)
+    return Response(status_code=204 if sent else 503)
 
 
 @app.post("/kairos/tasks/{task_id:int}/edit")
@@ -1386,28 +1545,71 @@ async def edit_note(request: Request) -> Response:
     return _notes_action_response(request)
 
 
-def _note_title_from_body(body: str) -> str:
-    """Titre de la tâche créée par conversion : première ligne non vide du corps
-    de la note, tronquée à 200 caractères (cohérent avec `Task.title`,
-    `String(512)`, mais une capture rapide n'a pas besoin d'approcher cette
-    limite)."""
-    first_line = next((line.strip() for line in body.splitlines() if line.strip()), "")
-    return first_line[:200]
+# Longueur maximale du titre issu d'une conversion de note. `Task.title` est
+# `String(512)`, mais une capture rapide n'a structurellement pas besoin d'en
+# approcher le quart ; au-delà, le texte appartient à la description (voir
+# `_note_conversion_fields`).
+_NOTE_TITLE_MAX_CHARS = 200
+
+
+def _note_conversion_fields(body: str) -> tuple[str, str]:
+    """Titre et description de la tâche créée par conversion d'une note.
+
+    La note est une capture libre, souvent multi-lignes : ne garder que la
+    première ligne (comportement d'origine) jetait silencieusement tout le
+    reste (issue #32). Règle retenue, strictement conservative — aucun
+    caractère du corps n'est perdu, aucun n'est inventé :
+
+    - titre = première ligne dont `.strip()` est non vide, tronquée à
+      `_NOTE_TITLE_MAX_CHARS` ;
+    - description = tout ce qui suit cette ligne, tel quel.
+
+    On ne retire des lignes suivantes que celles **entièrement blanches** de
+    tête et de queue, jamais un `.strip()` global : celui-ci mangerait
+    l'indentation de la première ligne conservée et aplatirait une liste ou un
+    extrait collé dans la note.
+
+    Cas limite : si la première ligne dépassait la troncature, elle est reprise
+    **en entier** en tête de la description — sinon la conversion perdrait sa
+    fin, exactement le défaut corrigé ici.
+
+    Corps sans aucune ligne non vide → `("", "")` (l'appelant ne convertit
+    alors pas).
+    """
+    lines = body.splitlines()
+    first_index = next((i for i, line in enumerate(lines) if line.strip()), None)
+    if first_index is None:
+        return "", ""
+
+    first_line = lines[first_index].strip()
+    rest = lines[first_index + 1 :]
+    while rest and not rest[0].strip():
+        rest.pop(0)
+    while rest and not rest[-1].strip():
+        rest.pop()
+    description = "\n".join(rest)
+
+    if len(first_line) > _NOTE_TITLE_MAX_CHARS:
+        description = f"{first_line}\n\n{description}" if description else first_line
+
+    return first_line[:_NOTE_TITLE_MAX_CHARS], description
 
 
 @app.post("/kairos/notes/{note_id:int}/convert")
 def convert_note_to_task(request: Request) -> Response:
-    """Le moment clé du flux : la note devient une tâche titre-seul (elle atterrit
+    """Le moment clé du flux : la note devient une tâche (elle atterrit
     dans l'inbox « À traiter » de la vue Jour, à qualifier comme n'importe quelle
-    autre capture), la note elle-même est **archivée et liée**, jamais supprimée —
+    autre capture) dont le titre est la première ligne du corps et la description
+    tout le reste (issue #32, voir `_note_conversion_fields`) ; la note elle-même
+    est **archivée et liée**, jamais supprimée —
     préserve l'historique de la capture d'origine (voir `Note.converted_task_id`,
     sans contrainte FK, cohérent avec le reste du schéma)."""
     with _request_session(get_tasks_session) as tasks_session:
         note = tasks_session.get(Note, request.path_params["note_id"])
         if note is not None and note.status == "open":
-            title = _note_title_from_body(note.body)
+            title, description = _note_conversion_fields(note.body)
             if title:
-                task = Task(title=title, source="native")
+                task = Task(title=title, description=description, source="native")
                 tasks_session.add(task)
                 tasks_session.flush()  # attribue l'id avant de le référencer
                 note.status = "archived"

@@ -63,6 +63,35 @@ def _qualified_id(project: str, iid: int) -> str:
     return f"{project}#{iid}"
 
 
+def issue_web_url(gitlab_base_url: str, task: Task) -> str:
+    """URL web de l'issue GitLab d'origine d'une tâche importée (issue #33).
+
+    Fonction **pure** : reconstruit l'adresse à partir de ce qui est déjà en
+    base, sans aucun appel réseau — `Task.external_id` porte le couple
+    ``projet#iid`` (voir ``_qualified_id``) et l'URL de l'instance vient des
+    réglages. Une issue GitLab vit toujours à
+    ``{instance}/{chemin/du/projet}/-/issues/{iid}``.
+
+    Retourne ``""`` (donc : étiquette de projet non cliquable, jamais un lien
+    mort) dans tous les cas où l'adresse n'est pas reconstructible avec
+    certitude — tâche non importée de GitLab, URL d'instance non renseignée,
+    `external_id` absent ou dont le suffixe n'est pas un numéro d'issue.
+
+    Tolère l'ancien format non qualifié (phase 4 : `external_id` = `iid` brut,
+    sans ``#``) en prenant le projet dans `project_tag`, que la synchro
+    renseigne dans les deux formats — une tâche jamais resynchronisée depuis la
+    migration reste donc cliquable.
+    """
+    if task.source != SOURCE or not gitlab_base_url or not task.external_id:
+        return ""
+    project, separator, iid = task.external_id.rpartition("#")
+    if not separator:
+        project, iid = task.project_tag, task.external_id
+    if not project or not iid.isdigit():
+        return ""
+    return f"{gitlab_base_url.rstrip('/')}/{project}/-/issues/{iid}"
+
+
 def sync_assigned_gitlab_tasks(
     issues: Sequence[GitLabIssueLike],
     tasks_session: Session,

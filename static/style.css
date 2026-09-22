@@ -189,6 +189,34 @@ code {
   border-color: color-mix(in srgb, var(--ok-fg) 22%, transparent); }
 .banner a { color: inherit; text-decoration: underline; font-weight: 600; }
 
+/* Bandeaux d'alerte de chrono flottants (issue #34) : dernier recours visuel
+   quand ni le navigateur ni le serveur ne peuvent émettre de notification
+   système. Ancrés en bas à droite, `position: fixed` — un bandeau posé dans le
+   flux de la page peut se retrouver hors écran au moment même où il sert.
+   Réutilise `.banner.warning` (aucun jeton neuf) et reste SANS ombre portée :
+   la charte n'en autorise qu'une, celle du panneau d'édition ouvert
+   (docs/DESIGN_SYSTEM.md § Forme) — la bordure et le fond suffisent à détacher
+   le bandeau. `z-index` sous le calque du panneau d'édition (79/80) : une
+   modale ouverte reste prioritaire. */
+.mj-alert-toasts {
+  position: fixed; z-index: 70; right: 1rem; bottom: 1rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  max-width: min(26rem, calc(100vw - 2rem));
+}
+.mj-alert-toast { margin-bottom: 0; align-items: center; }
+.mj-alert-toast-close {
+  margin-left: auto; flex: none; border: none; background: none; cursor: pointer;
+  color: inherit; font-size: 13px; font-weight: 700; line-height: 1; padding: 0.2rem;
+}
+/* L'APK Android pose une barre de navigation basse fixe (`.is-android .bn-nav`,
+   z-index 40) : sans ce décalage, le dernier bandeau se glisserait dessous.
+   Sélecteur de FRÈRE et non de descendant : le conteneur est ajouté au <body>
+   (hors de `.layout`, qui porte `.is-android`) précisément pour survivre au
+   swap AJAX de `#mj-day-content`. */
+.layout.is-android ~ .mj-alert-toasts {
+  bottom: calc(4.2rem + env(safe-area-inset-bottom, 0px));
+}
+
 /* =========================================================================
    Boutons & contrôles
    ========================================================================= */
@@ -268,6 +296,13 @@ details > summary::-webkit-details-marker { display: none; }
   font-size: 13px; font-weight: 700; color: var(--text-2);
 }
 .collapser .chev { color: var(--text-3); transition: transform .15s ease; font-size: 15px; }
+/* Contenu d'une section repliable `details.card` (audit UI) : la carte n'a pas
+   de marge intérieure (seul son <summary> `.collapser` en a une), si bien que la
+   phrase d'aide touchait le bord et que chaque ligne de tâche doublait la
+   bordure de la carte. Défaut resté discret tant que ces sections étaient
+   repliées ; visible dès « Sans créneau aujourd'hui » dépliée par défaut. */
+details.card > p { margin: 0 1.1rem 0.6rem; }
+details.card > .kairos-list { margin: 0.5rem 1.1rem 1rem; }
 details[open] .collapser .chev { transform: rotate(90deg); }
 
 /* =========================================================================
@@ -326,7 +361,12 @@ details[open] .collapser .chev { transform: rotate(90deg); }
 .barrow .track { flex: 1; background: var(--neu-bg); border-radius: var(--r-pill); height: 8px; position: relative; overflow: hidden; }
 .barrow .fill { height: 8px; border-radius: var(--r-pill); background: var(--accent); }
 .barrow .fill.done { background: var(--c-done); }
-.barrow .barval { width: 26px; text-align: right; color: var(--text-2); }
+/* `min-width` et non `width` : la valeur porte souvent plus qu'un nombre
+   (« 86 % · 12/14 », « 3 h 10 · 42 % ») — une largeur fixe de 26px la cassait
+   sur trois lignes. `nowrap` + `flex: none` la gardent sur une ligne, la piste
+   `.track` (flex: 1) absorbant la différence. */
+.barrow .barval { min-width: 26px; flex: none; white-space: nowrap; text-align: right;
+  color: var(--text-2); }
 
 .progress { background: var(--neu-bg); border-radius: var(--r-pill); height: 7px; overflow: hidden; width: 100%; }
 .progress .done { height: 7px; border-radius: var(--r-pill); background: var(--c-done); }
@@ -360,10 +400,84 @@ summary:focus-visible,
    ========================================================================= */
 .kairos-list { list-style: none; margin: 0.5rem 0; padding: 0; display: flex;
   flex-direction: column; gap: 0.55rem; }
-.kairos-item { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+/* Ligne de tâche : grille invisible de quatre colonnes (issue #33).
+   Avant, un simple `flex-wrap` mettait coche, titre, dix badges possibles,
+   actions et crayon au même niveau : chaque tâche posait donc ses actions à une
+   abscisse différente selon le nombre de badges qu'elle portait, et un titre
+   long chassait tout le reste. Désormais :
+     [coche] [corps] [priorité/points] [actions]
+   seule la colonne « corps » est élastique (`minmax(0, 1fr)`), les trois autres
+   se dimensionnent sur leur contenu — d'une ligne à l'autre, actions et
+   priorité tombent au même endroit, la liste se balaie verticalement.
+   `minmax(0, 1fr)` et non `1fr` : une piste `1fr` a pour taille minimale `auto`,
+   donc elle refuserait de descendre sous la largeur de son contenu et un titre
+   long ferait déborder la carte au lieu de passer à la ligne. */
+.kairos-item { display: grid; align-items: start;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "check main key actions";
+  column-gap: 0.6rem; row-gap: 0.4rem;
   padding: 0.55rem 0.8rem; border: 1px solid var(--border); border-left-width: 3px;
   border-radius: var(--r-md); background: var(--surface); }
 .kairos-item.mj-bucket-0 { border-left-color: var(--bad-fg); }
+/* `align-items: start` aligne les cellules sur le HAUT de la ligne (et non sur
+   son centre, qui ferait flotter la coche au milieu d'une tâche à titre long +
+   étiquettes + description). Les trois colonnes fixes reprennent la hauteur
+   d'un bouton d'action (28px) et centrent leur contenu dedans : elles
+   s'alignent ainsi sur la première ligne du corps, quelle que soit sa hauteur. */
+.mj-item-check { grid-area: check; }
+.mj-item-check, .mj-item-key, .mj-item-actions { display: flex; align-items: center;
+  gap: 0.3rem; min-height: 28px; }
+.mj-item-main { grid-area: main; min-width: 0; display: flex; flex-direction: column;
+  gap: 0.3rem; }
+/* Pas de `flex-wrap` ici, contrairement aux étiquettes : un titre long doit
+   commencer À CÔTÉ de l'heure et se poursuivre en dessous (retour à la ligne
+   INTERNE au titre), pas basculer en bloc sous elle. D'où `.mj-title` en
+   `flex: 1 1 auto; min-width: 0` — sans ce `min-width`, un mot long refuserait
+   de se couper et déborderait la colonne. */
+.mj-item-head { display: flex; align-items: baseline; gap: 0.5rem; min-width: 0; }
+.mj-item-head .mj-title { flex: 1 1 auto; min-width: 0; }
+/* Les étiquettes s'empilent ICI, dans le corps : elles peuvent occuper autant de
+   lignes que nécessaire sans jamais repousser les deux colonnes de droite. */
+.mj-item-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.4rem;
+  min-width: 0; }
+/* `:not(:has(*))` et non `:empty` : les macros Jinja laissent des retours à la
+   ligne dans la cellule, et un nœud texte blanc suffit à faire échouer `:empty`
+   — la cellule vide restait affichée et ajoutait un espacement fantôme. */
+.mj-item-tags:not(:has(*)) { display: none; }
+.mj-item-key { grid-area: key; justify-content: flex-end; position: relative; }
+
+/* « Pourquoi à cette place ? » (audit UI) : le badge du score est le <summary>
+   d'un <details>, son explication un panneau posé sous la colonne « clés ».
+   Sans ombre portée (la charte n'en autorise qu'une, le panneau d'édition) :
+   bordure forte + surface. `z-index` sous les bandeaux d'alerte (70) et sous le
+   calque du panneau d'édition (79/80). */
+.mj-why > summary { list-style: none; cursor: pointer; }
+.mj-why > summary::-webkit-details-marker { display: none; }
+.mj-why > summary:hover { background: var(--accent-line); }
+.mj-why-body {
+  position: absolute; z-index: 60; top: calc(100% + 4px); right: 0;
+  width: min(19rem, calc(100vw - 2.5rem));
+  padding: 0.75rem 0.9rem; border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  background: var(--surface); font-size: 12.5px; color: var(--text-2); text-align: left;
+}
+.mj-why-title { margin: 0 0 0.45rem; font-weight: 700; color: var(--text); }
+.mj-why-alert { display: flex; gap: 0.35rem; align-items: baseline; margin: 0 0 0.45rem;
+  color: var(--bad-fg); font-weight: 600; }
+.mj-why-calc { display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 0.8rem; margin: 0; }
+.mj-why-calc dt { margin: 0; }
+.mj-why-calc dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums;
+  color: var(--text); font-weight: 600; }
+.mj-why-calc .mj-why-total { padding-top: 0.3rem; border-top: 1px solid var(--border);
+  color: var(--accent-700); font-weight: 800; }
+.mj-why-note { margin: 0.5rem 0 0; font-size: 11.5px; color: var(--text-3); }
+.mj-item-actions { grid-area: actions; }
+/* Ligne de la boîte de réception : une rangée de plus, zone nommée `qualify`,
+   pour les pastilles de qualification — alignée sous le corps sur grand écran. */
+.kairos-item.has-qualify {
+  grid-template-areas: "check main key actions" ".  qualify qualify qualify";
+}
+.mj-inline-qualify { grid-area: qualify; display: flex; flex-direction: column; gap: 0.45rem;
+  min-width: 0; }
 .badge.mj-tag { background: var(--neu-bg); color: var(--neu-fg); }
 /* Score WSJF : c'est LUI qui ordonne la liste, un des deux seuls badges à accent. */
 .badge.mj-score { background: var(--accent-soft); color: var(--accent-700); font-weight: 800; }
@@ -376,8 +490,32 @@ summary:focus-visible,
 .mj-help-scale { list-style: none; margin: 0 0 0.55rem; padding: 0; display: grid; gap: 0.3rem; }
 .mj-help-scale li { display: flex; align-items: baseline; gap: 0.5rem; }
 .mj-help-scale .badge { min-width: 2.6rem; justify-content: center; }
+/* Guide d'estimation ancré (audit UI) : sens du palier, puis repères tirés de
+   l'historique sur une seconde ligne. Un titre de tâche long passe à la ligne
+   au lieu d'élargir la carte d'aide. */
+.mj-help-level { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.mj-help-ref { font-size: 12px; color: var(--text-2); overflow-wrap: anywhere; }
 .mj-time { font-weight: 700; min-width: 3.6rem; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .mj-title { font-weight: 600; color: var(--text); }
+
+/* Description d'une tâche (issue #32) : extrait d'une ligne sous le titre,
+   dépliable sur place. `flex: 0 0 100%` la pose sur sa PROPRE ligne du
+   `.kairos-item` (flex wrap) sans toucher à l'alignement des badges — c'est
+   aussi pourquoi la macro `task_description()` est appelée en toute fin de
+   `<li>` : posée plus tôt, elle repousserait tous les badges sous elle.
+   `min-width: 0` sur le conteneur ET sur l'extrait : sans lui, une boîte flex
+   refuse de rétrécir sous la largeur de son contenu, et l'ellipse ne se
+   déclenche jamais (l'extrait déborderait la carte au lieu d'être coupé). */
+.mj-desc { flex: 0 0 100%; min-width: 0; font-size: 12.5px; }
+.mj-desc > summary { display: flex; align-items: center; gap: 0.35rem; cursor: pointer;
+  color: var(--text-3); min-width: 0; }
+.mj-desc > summary:hover { color: var(--text-2); }
+.mj-desc-peek { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+/* Déplié : l'extrait tronqué ferait doublon avec le texte complet juste en
+   dessous — seule l'icône reste, comme poignée de repli. */
+.mj-desc[open] > summary .mj-desc-peek { display: none; }
+.mj-desc-body { margin: 0.3rem 0 0; padding: 0.5rem 0.7rem; white-space: pre-wrap;
+  color: var(--text-2); background: var(--surface-tint); border-radius: var(--r-sm); }
 .mj-add-toggle { display: flex; gap: 1rem; margin-bottom: 0.7rem; }
 .mj-week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 0.75rem; margin-top: 0.6rem; }
@@ -385,10 +523,46 @@ summary:focus-visible,
   background: var(--surface); }
 .mj-week-day.today { background: #F6F9FE; border-color: var(--accent-line); }
 .mj-week-day h3 { margin: 0 0 0.45rem; font-size: 0.82rem; font-weight: 700; text-transform: capitalize; color: var(--text-2); }
-.mj-week-day .kairos-item { padding: 0.4rem 0.6rem; min-width: 0; }
+/* Vue semaine : la ligne n'y porte qu'un titre et un projet, sans coche, sans
+   actions, sans priorité — il n'y a rien à aligner en colonnes, et la grille de
+   `.kairos-item` créerait des pistes vides. On revient donc explicitement à un
+   flex simple pour ce seul contexte. */
+.mj-week-day .kairos-item { display: flex; align-items: center; flex-wrap: wrap;
+  gap: 0.4rem; padding: 0.4rem 0.6rem; min-width: 0; }
 .mj-week-day .kairos-item .mj-title {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; display: block;
 }
+/* Écran étroit : quatre colonnes ne tiennent plus sans comprimer le titre. La
+   colonne « priorité/points » passe sous le corps (alignée à gauche, en
+   continuité des étiquettes) ; coche, corps et actions gardent leur place, donc
+   les actions restent à la même abscisse d'une ligne à l'autre — c'est
+   l'essentiel de l'issue #33. Même point de rupture que le reste de l'app
+   (720px) plutôt qu'un troisième seuil à retenir. */
+@media (max-width: 720px) {
+  .kairos-item {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "check main actions"
+      ".     key  key";
+  }
+  /* Place horizontale comptée à 390px : marge de section réduite. */
+  details.card > p { margin-left: 0.7rem; margin-right: 0.7rem; }
+  details.card > .kairos-list { margin-left: 0.7rem; margin-right: 0.7rem; }
+  .mj-item-key { justify-content: flex-start; min-height: 0; }
+  /* Colonne « clés » alignée à gauche sous le corps : le panneau d'explication
+     s'ouvre donc vers la droite, jamais hors de l'écran. */
+  .mj-why-body { right: auto; left: 0; }
+  .mj-item-key:not(:has(*)) { display: none; }
+  /* Pastilles sur toute la largeur de la carte, coche comprise : entre la coche
+     et les actions, le corps ne fait qu'environ 150px à 390px de large. */
+  .kairos-item.has-qualify {
+    grid-template-areas:
+      "check main actions"
+      ".     key  key"
+      "qualify qualify qualify";
+  }
+}
+
 .mj-actions { display: inline-flex; gap: 0.3rem; }
 .mj-check {
   flex: none;
@@ -456,6 +630,11 @@ summary:focus-visible,
    checkbox-labels du panneau d'édition (bloqueurs, « Bloc deep-work ») doivent rester
    en ligne : sélecteur à deux classes pour regagner la priorité. */
 .mj-edit-form .mj-check-label { flex-direction: row; align-items: center; gap: 0.4rem; }
+/* Même piège pour les pastilles radio du panneau (audit UI) : sans ceci, elles
+   héritent de la colonne, de la graisse 600 et de la couleur tertiaire des
+   libellés de champ. */
+.mj-edit-form .mj-radio { flex-direction: row; gap: 0; font-size: inherit; font-weight: 400;
+  color: inherit; }
 .mj-blocker-checks input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); flex: none; }
 /* Zone Supprimer/Archiver : nettement séparée en pied de panneau. */
 .mj-edit-danger { border-top: 1px solid var(--border); padding-top: 0.65rem; margin-top: 0.15rem; }
@@ -491,6 +670,13 @@ summary:focus-visible,
    stylé plus haut). Le CTA « Ajouter » (`.btn.primary`) reste le seul bouton
    bleu de la zone. */
 .mj-capture { padding: 0.95rem 1.1rem 1.05rem; }
+/* Indice de raccourci clavier (audit UI). Masqué sur un écran tactile sans
+   survol (mobile, APK) : il n'y a pas de clavier physique à qui l'indiquer. */
+.mj-kbd-hint { display: inline-block; margin-left: 0.4rem; padding: 0 0.35rem;
+  border: 1px solid var(--border-strong); border-radius: 4px; background: var(--surface);
+  font-family: inherit; font-size: 10.5px; font-weight: 600; line-height: 1.5;
+  color: var(--text-3); vertical-align: 1px; }
+@media (hover: none) { .mj-kbd-hint { display: none; } }
 
 /* En-tête de section « carte » non repliable (boîte de réception) : titre +
    compte à gauche, aide repliable (`.mj-help`) à droite. */
@@ -516,12 +702,44 @@ summary:focus-visible,
    soumission automatique au `change` (`data-autosubmit`, voir kairos.html) —
    distincte de `.mj-fibo-select`/`.mj-task-type-select` (édition complète) qui
    déclenchent en plus le remplissage de durée. */
-.mj-inline-qualify { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
-.mj-inline-form { display: inline-flex; align-items: center; margin: 0; }
-.mj-inline-label { display: inline-flex; flex-direction: column; gap: 0.15rem;
-  font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em;
-  color: var(--text-3); font-weight: 700; }
-.mj-inline-label select { padding: 0.25rem 1.5rem 0.25rem 0.45rem; font-size: 12px; min-width: 4rem; }
+/* Pastilles de qualification (audit UI) — priorité et points en un clic, chaque
+   valeur portant son sens (voir `app/task_guide.py`). Même apparence pour les
+   boutons de la boîte de réception (`.mj-pill.is-on`) et les radios du panneau
+   d'édition (`.mj-radio input:checked + .mj-pill`). Priorité sélectionnée = la
+   teinte du badge de priorité (l'un des deux seuls signaux à accent de la
+   charte) ; points sélectionnés = neutre renforcé, les points n'étant pas un
+   signal « clé ». */
+.mj-pills-form { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; margin: 0; }
+.mj-pills-label { min-width: 3.6rem; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--text-3); }
+.mj-pills { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; min-width: 0; }
+.mj-pill {
+  display: inline-flex; align-items: center; gap: 0.3rem; min-height: 28px;
+  padding: 0.2rem 0.65rem; border: 1px solid var(--border); border-radius: var(--r-pill);
+  background: var(--surface); color: var(--text-2); font: inherit; font-size: 12px;
+  line-height: 1.2; white-space: nowrap; cursor: pointer;
+}
+.mj-pill b { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+.mj-pill:hover { border-color: var(--border-strong); background: var(--surface-tint); color: var(--text); }
+.mj-pill.is-on, .mj-radio input:checked + .mj-pill {
+  background: var(--neu-bg); border-color: var(--text-2); color: var(--text); font-weight: 600;
+}
+.mj-pill.is-prio.is-on, .mj-radio input:checked + .mj-pill.is-prio {
+  background: var(--prio-bg); border-color: var(--accent-line); color: var(--prio-fg);
+}
+.mj-pill.is-prio.is-on b, .mj-radio input:checked + .mj-pill.is-prio b { color: var(--prio-fg); }
+/* Radio réelle gardée dans le DOM (clavier, lecteur d'écran, envoi du
+   formulaire) mais visuellement remplacée par sa pastille. Aucune descendance :
+   son `opacity: 0` ne peut rien composer d'autre (cf. le piège d'opacité tracé
+   dans vue-jour-gtd.md). */
+.mj-radio { position: relative; display: inline-flex; }
+.mj-radio input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0;
+  pointer-events: none; }
+.mj-radio input:focus-visible + .mj-pill { outline: 2px solid var(--accent-700); outline-offset: 2px; }
+.mj-choice { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0;
+  margin: 0; padding: 0; border: 0; }
+.mj-choice legend { margin-bottom: 0.3rem; padding: 0; font-size: 11px; font-weight: 600;
+  color: var(--text-3); }
 
 /* Contrôle de filtrage compact (Phase 1 point 6) : replié par défaut, un seul
    marqueur visible (`.badge.info`) quand un filtre est posé. */
@@ -532,7 +750,9 @@ summary:focus-visible,
      refonte (qualification en ligne, onglets de capture) — le reste de l'UI
      (icônes 28px, cases 15px) suit une convention établie plus ancienne,
      hors périmètre de ce chantier. */
-  .mj-inline-label select { min-height: 30px; }
+  /* Cibles tactiles ≥ 44px (CLAUDE.md § Navigation & mobile) sur les pastilles,
+     contrôle à un tap introduit par l'audit UI. */
+  .mj-pill { min-height: 44px; padding: 0.3rem 0.8rem; font-size: 12.5px; }
   .mj-add-toggle .mj-check-label { min-height: 30px; display: inline-flex; align-items: center; }
 }
 
@@ -756,6 +976,22 @@ summary:focus-visible,
 .mj-settings-actions { position: sticky; bottom: 0; padding: 0.9rem 0; margin-top: 0.5rem;
   background: linear-gradient(to top, var(--bg) 60%, transparent); }
 
+/* Ligne de note (page Notes) : corps pleine largeur, puis une ligne de pied
+   (date à gauche, actions à droite, qui passent à la ligne sur mobile). Classe
+   propre à la page Notes — `.kairos-item` est réservée à la grille d'une ligne
+   de tâche (issue #33) et ne doit pas être réutilisée pour autre chose.
+   `overflow-wrap: anywhere` : une URL collée dans une note ne fait jamais
+   déborder la carte. */
+.mj-note-item { display: flex; flex-direction: column; gap: 0.5rem;
+  padding: 0.65rem 0.8rem; border: 1px solid var(--border); border-left-width: 3px;
+  border-radius: var(--r-md); background: var(--surface); }
+.mj-note-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); }
+.mj-note-item.is-archived .mj-note-body { color: var(--text-3); }
+.mj-note-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; }
+.mj-note-date { margin-right: auto; font-size: 11px; color: var(--text-3);
+  font-variant-numeric: tabular-nums; }
+.mj-note-foot .mj-actions { flex-wrap: wrap; }
+
 /* =========================================================================
    Marge interne des boîtes sur petit écran. Bloc volontairement en toute fin
    de fichier : la plupart des sélecteurs ci-dessous (.mj-progress, .mj-capture,
@@ -781,7 +1017,8 @@ summary:focus-visible,
     padding-left: 1.3rem;
     padding-right: 1.3rem;
   }
-  .kairos-item {
+  .kairos-item,
+  .mj-note-item {
     padding-left: 1rem;
     padding-right: 1rem;
   }

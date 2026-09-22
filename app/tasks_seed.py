@@ -91,7 +91,7 @@ def seed_example_data(session: Session, *, today: date) -> None:
         task_type="Documentation",
     )
     add_task(
-        title="[Exemple] Documentation — plan",
+        title="[Exemple] Documentation : plan",
         parent_id=parent.id,
         priority=1,
         fibonacci_points=2,
@@ -99,7 +99,7 @@ def seed_example_data(session: Session, *, today: date) -> None:
         task_type="Documentation",
     )
     add_task(
-        title="[Exemple] Documentation — rédaction",
+        title="[Exemple] Documentation : rédaction",
         parent_id=parent.id,
         priority=1,
         fibonacci_points=3,
@@ -186,7 +186,7 @@ def seed_example_data(session: Session, *, today: date) -> None:
         Note(
             body=(
                 "[Exemple] Idée en vrac : revoir le découpage des sprints ?\n"
-                "À développer avant d'en faire une tâche — ou à archiver si "
+                "À développer avant d'en faire une tâche, ou à archiver si "
                 "ça ne mène nulle part."
             )
         )

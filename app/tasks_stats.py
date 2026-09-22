@@ -255,6 +255,48 @@ def fibonacci_calibration(
     return result
 
 
+@dataclass
+class FiboReference:
+    """Repères d'un palier de points pour le guide d'estimation (audit UI)."""
+
+    points: int
+    calibration: FiboCalibration | None  # None : aucune tâche chronométrée à ce palier
+    examples: tuple[str, ...]            # titres de tâches terminées, plus récentes d'abord
+
+
+def fibonacci_references(
+    tasks: list[Task], spent_by_task: dict[int, int], *, examples_per_level: int = 2
+) -> dict[int, FiboReference]:
+    """Repères concrets par palier de points, tirés de l'historique de l'utilisateur.
+
+    L'estimation relative ne fonctionne qu'avec des points de comparaison : pour
+    chaque palier où des tâches ont été terminées, le guide montre le temps réel
+    médian (``fibonacci_calibration``, mêmes règles et même drapeau ``reliable``
+    que le dashboard — un effectif faible reste signalé, jamais masqué) et les
+    titres des tâches terminées les plus récentes, **chronométrées ou non** : un
+    exemple sert à comparer une taille, pas une durée.
+
+    Paliers sans aucune tâche terminée : absents du résultat (le guide le dit,
+    sans rien inventer). Fonction pure.
+    """
+    calibration = {c.points: c for c in fibonacci_calibration(tasks, spent_by_task)}
+    done_by_points: dict[int, list[Task]] = defaultdict(list)
+    for task in tasks:
+        if task.status == "done" and task.fibonacci_points:
+            done_by_points[task.fibonacci_points].append(task)
+    result = {}
+    for points, done in done_by_points.items():
+        # `updated_at` à défaut d'une date de fin dédiée : passer une tâche à
+        # « fait » la met à jour, c'est la meilleure approximation disponible.
+        recent = sorted(done, key=lambda t: (t.updated_at is not None, t.updated_at), reverse=True)
+        result[points] = FiboReference(
+            points=points,
+            calibration=calibration.get(points),
+            examples=tuple(t.title for t in recent[:examples_per_level]),
+        )
+    return result
+
+
 def estimation_bias(
     tasks: list[Task], spent_by_task: dict[int, int]
 ) -> EstimationBias | None:

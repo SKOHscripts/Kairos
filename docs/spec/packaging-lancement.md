@@ -28,7 +28,7 @@ exposée sur le réseau par défaut, y compris pendant la phase de lancement.
 
 - **Bureau** : double-clic sur l'exécutable → une fenêtre s'ouvre toute seule sur
   Kairos, sans étape intermédiaire, sans terminal visible, avec le ressenti d'une
-  application de bureau à part entière (pas de barre d'adresse ni d'onglets — voir
+  application de bureau à part entière (pas de barre d'adresse ni d'onglets, voir
   « fenêtre d'application » ci-dessous) si un navigateur de la famille Chromium est
   installé, sinon un onglet du navigateur par défaut s'ouvre normalement. Relancer
   l'exécutable pendant qu'une instance tourne déjà rouvre simplement cette fenêtre
@@ -38,7 +38,7 @@ exposée sur le réseau par défaut, y compris pendant la phase de lancement.
 - **Android** : icône dans le tiroir d'applications comme n'importe quelle app. Au
   lancement, l'interface Kairos s'affiche dans l'application elle-même (pas de
   navigateur externe, pas d'onglet). On quitte par les mécanismes système standards
-  (bouton retour/accueil, gestionnaire d'apps) — pas de bouton « Quitter » dans
+  (bouton retour/accueil, gestionnaire d'apps) : pas de bouton « Quitter » dans
   l'interface, qui n'aurait pas de sens ici.
 - Dans les deux cas, aucune donnée n'est accessible depuis un autre appareil du
   réseau local (le serveur n'écoute que sur la boucle locale).
@@ -82,7 +82,7 @@ app Android).
 
 - **Bureau** (`app/launcher.py`) : cible de `packaging/kairos.spec` (PyInstaller,
   mode onefile). Choisit un port, pose un verrou d'instance unique, ouvre la
-  fenêtre d'application (repli onglet de navigateur si indisponible — voir
+  fenêtre d'application (repli onglet de navigateur si indisponible : voir
   `app/desktop_browser.py`), journalise les crashs.
 - **Android** (`app/android_launcher.py`) : appelé par l'amorce Chaquopy
   (`android/app/src/main/python/kairos_boot.py`) elle-même pilotée par
@@ -93,12 +93,12 @@ app Android).
   l'environnement des processus externes lancés depuis un exécutable PyInstaller.
 
 Le détail technique complet de l'implémentation Android (Gradle, Chaquopy, cycle de
-vie de l'activité, notifications) est tracé dans `docs/ANDROID_PACKAGING.md` — cette
+vie de l'activité, notifications) est tracé dans `docs/ANDROID_PACKAGING.md` : cette
 spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le reste.
 
 ### Détail par composant
 
-#### `app/launcher.py` — lancement de bureau
+#### `app/launcher.py` : lancement de bureau
 
 - **Choix du port** (`_pick_port`, `_port_available`) : balaie `8001` à `8020`
   (`_DEFAULT_PORT = 8001`, `tries = 20`) et prend le premier port dont une connexion
@@ -108,7 +108,7 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
 - **Hôte fixe `127.0.0.1`** (jamais `0.0.0.0`) : contrairement à un service systemd
   (exposé volontairement sur le LAN dans d'autres contextes de déploiement du même
   code), l'exécutable de bureau ne doit pas s'exposer par défaut sur le réseau.
-- **Verrou d'instance unique** (`kairos.lock`, dans `data_dir()` — voir
+- **Verrou d'instance unique** (`kairos.lock`, dans `data_dir()` : voir
   `app/settings_store.py::data_dir`) :
   - `_write_lock(port)` : écrit `{"port": ..., "pid": ...}` au démarrage.
   - `_read_lock_port()` : relit le port au lancement suivant ; verrou absent,
@@ -126,7 +126,7 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
   - `_clear_lock()` : appelé dans le `finally` de `main()`. Atteint après un arrêt
     propre (bouton Quitter → SIGINT → `uvicorn.run` revient normalement). Un
     SIGTERM ou une fermeture brutale (Gestionnaire des tâches) laisse le verrou en
-    place — sans conséquence, car `_instance_already_running` le détecte comme
+    place : sans conséquence, car `_instance_already_running` le détecte comme
     obsolète dès que le port ne répond plus, au lieu de bloquer les lancements
     suivants.
   - **Pourquoi ce verrou existe** : fermer l'onglet du navigateur n'arrête pas le
@@ -141,12 +141,12 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
     recherche d'un navigateur d'application.
   - **Fenêtre d'application forcée, avec repli automatique** : `_open_browser`
     appelle d'abord `find_app_capable_browser()` puis, si un navigateur est trouvé,
-    `launch_app_window(browser_path, url)` (les deux dans `app/desktop_browser.py` —
+    `launch_app_window(browser_path, url)` (les deux dans `app/desktop_browser.py`,
     voir détail ci-dessous). Si l'une des deux étapes échoue ou ne trouve rien
     (aucun navigateur Chromium installé, permission refusée, binaire disparu entre
     la détection et le lancement...), `_open_browser` retombe silencieusement sur
     le comportement d'origine : `webbrowser.open` dans un onglet du navigateur par
-    défaut. Aucun réglage utilisateur ne pilote ce choix — voir « Décisions et
+    défaut. Aucun réglage utilisateur ne pilote ce choix : voir « Décisions et
     pièges tracés » pour le pourquoi.
   - `external_process_environ()` (voir `app/subprocess_env.py`) encadre l'appel à
     `webbrowser.open` du chemin de repli : évite qu'un navigateur ou `xdg-open`
@@ -155,11 +155,11 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
     `app/desktop_browser.py::launch_app_window`) plutôt que par ce gestionnaire de
     contexte, puisque `subprocess.Popen` accepte un `env=` explicite.
   - `_open_browser_later` : ouvre le navigateur (fenêtre d'application ou onglet de
-    repli, indifféremment — la bascule est interne à `_open_browser`) après un
+    repli, indifféremment ; la bascule est interne à `_open_browser`) après un
     délai (`threading.Timer`, 1.2 s par défaut) pour laisser le temps à uvicorn de
     démarrer avant la première requête.
 - **`_NullStream` et `_ensure_std_streams`** : sous Windows, un exécutable
-  PyInstaller en mode fenêtré (`console=False`) n'a pas de console attachée —
+  PyInstaller en mode fenêtré (`console=False`) n'a pas de console attachée ;
   `sys.stdout`/`sys.stderr` valent `None` plutôt qu'un flux réel. uvicorn plante dès
   la configuration de son logging par défaut (`ColourizedFormatter.__init__` appelle
   `stream.isatty()`) sur un flux `None`. `_NullStream` (méthodes `write`/`flush`/
@@ -171,19 +171,19 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
 - **Journal de crash** : toute exception dans le bloc `try` principal est capturée,
   la trace complète (`traceback.format_exc()`) écrite dans
   `<dossier de données>/kairos-crash.log`, un message loggé pointant vers ce fichier,
-  puis l'exception est re-levée (`raise`) — comportement visible pour un
+  puis l'exception est re-levée (`raise`), comportement visible pour un
   développeur qui lance depuis un terminal, traçable pour un utilisateur qui ne voit
   qu'une fenêtre qui se ferme.
 - **Imports absolus** (`from app.main import app`, pas `from .main import app`) :
   PyInstaller exécute `launcher.py` comme script top-level
-  (`Analysis(['app/launcher.py'])`), sans contexte de paquet parent — un import
+  (`Analysis(['app/launcher.py'])`), sans contexte de paquet parent, un import
   relatif y échouerait avec « attempted relative import with no known parent
   package ». Les imports absolus fonctionnent dans les deux cas (exécutable figé et
   `pip install -e .` via `[project.scripts]` → commande `kairos`), tant que la
   racine du dépôt est sur `sys.path` (`pathex` du spec, ou le `.pth` du mode
   editable).
 
-#### `app/desktop_browser.py` — fenêtre d'application (bureau uniquement)
+#### `app/desktop_browser.py` : fenêtre d'application (bureau uniquement)
 
 Module dédié, séparé de `launcher.py`, pour garder sa logique (détection d'un
 navigateur, construction des arguments de lancement) pure et testable sans toucher
@@ -192,7 +192,7 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
 
 - **`find_app_capable_browser() -> str | None`** : cherche un navigateur de la
   famille Chromium installé sur le poste (seuls ces navigateurs acceptent
-  l'indicateur `--app=URL` — voir « Décisions et pièges tracés »).
+  l'indicateur `--app=URL`, voir « Décisions et pièges tracés »).
   - `KAIROS_BROWSER` (variable d'environnement) : si posée, prioritaire sur toute
     détection automatique. Accepte un chemin de fichier exécutable direct ou un nom
     résoluble via `shutil.which` (ex. un nom de binaire déjà sur le `PATH`).
@@ -212,12 +212,12 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     `BraveSoftware\Brave-Browser\Application\brave.exe`,
     `Vivaldi\Application\vivaldi.exe`) sous chacun des dossiers de base
     `%ProgramFiles%`, `%ProgramFiles(x86)%`, `%LocalAppData%` (chacun peut être
-    absent de l'environnement — ignoré silencieusement dans ce cas). Les trois bases
+    absent de l'environnement ; ignoré silencieusement dans ce cas). Les trois bases
     sont testées pour chaque navigateur (pas de correspondance figée navigateur →
     base) car une installation « pour tous les utilisateurs » vs « pour
     l'utilisateur courant » détermine laquelle est utilisée, et ça varie d'un poste
     à l'autre.
-  - **Autre OS (macOS compris)** : `None` sans détection dédiée — macOS est hors
+  - **Autre OS (macOS compris)** : `None` sans détection dédiée : macOS est hors
     périmètre de Kairos (voir § Hors périmètre plus haut) ; `_open_browser` retombe
     alors automatiquement sur `webbrowser.open`.
   - Fonction pure (aucun effet de bord, aucune impression) : testée en
@@ -226,22 +226,22 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
   `install_linux_desktop_entry()` (best-effort, voir ci-dessous), puis construit
   `[browser_path, f"--user-data-dir={profile_dir}", f"--class={_APP_WINDOW_CLASS}",
   f"--app={url}"]` où `profile_dir = str(data_dir() / "browser-profile")` (voir
-  `app/settings_store.py::data_dir` — même dossier de données que le verrou et le
+  `app/settings_store.py::data_dir` : même dossier de données que le verrou et le
   journal de crash du launcher), puis lance ce process via `subprocess.Popen`
   (`stdin`/`stdout`/`stderr` sur `DEVNULL`, `start_new_session=True`, et
   `creationflags=subprocess.DETACHED_PROCESS` sous Windows quand cet attribut
-  existe) — détaché complètement, jamais attendu (`Popen` sans `.wait()`), pour ne
+  existe) ; détaché complètement, jamais attendu (`Popen` sans `.wait()`), pour ne
   jamais bloquer ni retenir le process Kairos à la sortie de l'interpréteur.
   - **Profil de navigateur dédié** (`browser-profile`, sous-dossier de
     `data_dir()`) : isole la fenêtre d'application du profil personnel de
-    l'utilisateur (onglets, extensions, sessions, historique) — la fenêtre
+    l'utilisateur (onglets, extensions, sessions, historique) ; la fenêtre
     d'application ne doit ni s'y mêler ni en dépendre, et un même profil Chromium
     ne peut de toute façon pas être ouvert simultanément par deux processus
     distincts (ce qui rentrerait en conflit avec une session normale déjà ouverte
     dans ce navigateur).
   - `env=external_process_env()` (voir `app/subprocess_env.py`, la fonction qui
     retourne un dict, pas le gestionnaire de contexte `external_process_environ()`
-    utilisé par le chemin `webbrowser.open` — `Popen` accepte un `env=` explicite,
+    utilisé par le chemin `webbrowser.open` : `Popen` accepte un `env=` explicite,
     pas besoin de basculer temporairement `os.environ` du process courant) : même
     protection que le chemin de repli contre l'héritage du `LD_LIBRARY_PATH`
     détourné par PyInstaller onefile.
@@ -249,12 +249,12 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     échec (binaire disparu entre la détection et le lancement, permission refusée,
     autre surprise), retourne `False` sans rien journaliser (fonctionnalité de
     confort en arrière-plan, jamais bloquante) plutôt que de laisser l'exception
-    remonter — `_open_browser` retombe alors sur `webbrowser.open`.
-  - Retourne `True` sur un lancement réussi — sans garantie que la fenêtre
+    remonter ; `_open_browser` retombe alors sur `webbrowser.open`.
+  - Retourne `True` sur un lancement réussi : sans garantie que la fenêtre
     s'affiche effectivement (le process a démarré, rien de plus n'est vérifié).
 - **Identité de la fenêtre d'application (`WM_CLASS` + icône, pas juste le
   favicon)** : `--app=URL` seul affiche l'icône déclarée par la page (favicon /
-  manifeste web — `static/manifest.webmanifest`, `static/icon-192.png`,
+  manifeste web ; `static/manifest.webmanifest`, `static/icon-192.png`,
   `static/icon-512.png`, `static/apple-touch-icon.png`, générées par
   `packaging/make_icon.py`) **dans l'onglet/la barre de titre**, mais la fenêtre
   reste identifiée par le bureau comme une fenêtre Chromium quelconque (icône du
@@ -266,7 +266,7 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     à chaque lancement) un fichier `.desktop` XDG
     (`~/.local/share/applications/kairos.desktop`, ou sous
     `$XDG_DATA_HOME` si posé) avec `StartupWMClass=Kairos` (doit rester
-    identique à `--class=` ci-dessus — c'est ce qui permet au bureau
+    identique à `--class=` ci-dessus : c'est ce qui permet au bureau
     d'associer la fenêtre déjà ouverte à cette entrée) et
     `Exec="<sys.executable>"`, plus une copie des PNG déjà embarqués
     (`static/icon-192.png`/`icon-512.png`) vers
@@ -280,20 +280,20 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     `try/except Exception` (même philosophie que `launch_app_window` : confort
     en arrière-plan, jamais bloquant).
   - **Windows** : la fenêtre `--app=` obtient déjà sa propre entrée de barre des
-    tâches avec le favicon de la page — acceptable en l'état, pas d'équivalent
+    tâches avec le favicon de la page ; acceptable en l'état, pas d'équivalent
     du `.desktop`/`WM_CLASS` tenté (raccourci Menu Démarrer avec
     AppUserModelID : hors périmètre pour l'instant).
 
-#### `app/android_launcher.py` — lancement Android
+#### `app/android_launcher.py` : lancement Android
 
 - Pendant Android de `launcher.py`, en plus simple : pas de navigateur (la WebView de
   `MainActivity` affiche directement l'interface), pas de verrou d'instance unique
   (le bac à sable applicatif Android garantit une seule instance de fait), pas de
-  bouton Quitter (conditionné à `is_frozen`, faux ici — voir
+  bouton Quitter (conditionné à `is_frozen`, faux ici, voir
   `templates/base.html`).
 - **`prepare(files_dir)`** (rapide, appelé sur le thread UI par `MainActivity`) :
   - pose `KAIROS_DATA_DIR = <files_dir>/kairos-data` (`Context.getFilesDir()`,
-    stockage privé de l'application) — ancrage déterministe, sans dépendre de la
+    stockage privé de l'application) : ancrage déterministe, sans dépendre de la
     détection Android de `platformdirs` ;
   - `os.environ.setdefault("HOME", files_dir)` ;
   - retourne le port choisi (`_pick_port`, même logique que le launcher de bureau :
@@ -303,7 +303,7 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     module. C'est pour cela que `prepare` ne fait qu'importer `os`/`socket` en tête
     de fichier, jamais `app.main`.
 - **`serve(port)`** (bloquant, appelé dans un thread Java dédié) : importe
-  `app.main` et `uvicorn` **localement**, jamais en tête de module — garantit que
+  `app.main` et `uvicorn` **localement**, jamais en tête de module : garantit que
   `prepare` a bien posé l'environnement avant que `app.main` (et donc `BASE_DIR`,
   les réglages) ne soit résolu. Lance `uvicorn.run(app, host="127.0.0.1",
   port=int(port), reload=False)`.
@@ -319,17 +319,17 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
   complet (Gradle, Chaquopy, cycle de vie, notifications) :
   `docs/ANDROID_PACKAGING.md`. `KAIROS_PLATFORM` est posé **avant** tout import de
   `app.main` : c'est ce qui permet à `app/main.py` de le lire une seule fois au
-  chargement du module (`is_android`, voir `docs/spec/accueil-navigation.md` — seule
+  chargement du module (`is_android`, voir `docs/spec/accueil-navigation.md` ; seule
   consommation actuelle de cette variable, pour la bottom nav de `base.html`).
 
-#### `app/subprocess_env.py` — environnement assaini pour les processus externes
+#### `app/subprocess_env.py` : environnement assaini pour les processus externes
 
 - **Problème corrigé** : PyInstaller en mode onefile réachemine `LD_LIBRARY_PATH`
   (Linux) / `DYLD_LIBRARY_PATH` (macOS) vers son dossier d'extraction temporaire,
   pour que l'exécutable gelé y retrouve ses propres bibliothèques embarquées, et
   sauvegarde la valeur d'origine dans une variable `..._ORIG` (absente si la
   variable n'existait pas avant PyInstaller). Un processus externe qui hériterait de
-  la variable détournée (navigateur, `xdg-open` — lui-même un script shell, `git`...)
+  la variable détournée (navigateur, `xdg-open` : lui-même un script shell, `git`...)
   peut charger par erreur une bibliothèque embarquée par PyInstaller (ex.
   `libreadline.so`, tirée par le module `readline` d'un interpréteur figé)
   incompatible avec la sienne, au lieu de celle du système. **Observé en conditions
@@ -338,7 +338,7 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
   attendant une version de `libreadline` plus récente que celle embarquée.
 - **`external_process_env()`** : copie de `os.environ` avec les chemins de
   bibliothèques dynamiques restaurés à leur valeur d'avant PyInstaller (dépile
-  `..._ORIG`, ou retire la variable si elle n'existait pas avant) — à passer en
+  `..._ORIG`, ou retire la variable si elle n'existait pas avant) : à passer en
   `env=` à `subprocess.run`/`Popen` pour un exécutable externe. Utilisé par
   `app/desktop_browser.py::launch_app_window` (fenêtre d'application).
 - **`external_process_environ()`** (context manager) : bascule temporairement
@@ -347,12 +347,12 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
   `app/launcher.py::_open_browser`). Restaure l'état d'origine en sortie de contexte
   (`finally`), y compris l'absence de la variable si elle n'était pas définie.
 - **Sans effet hors d'un exécutable PyInstaller** (mode `pip install -e .`, service
-  systemd) : les variables `_ORIG` n'existent alors pas, donc rien n'est modifié —
+  systemd) : les variables `_ORIG` n'existent alors pas, donc rien n'est modifié ;
   ce module est un no-op transparent dans tous les autres modes de lancement.
 - Non utilisé côté Android : `android_launcher.py` ne lance aucun processus externe
   (pas de navigateur à ouvrir, la WebView est intégrée).
 
-#### `packaging/` — build et vérification des exécutables de bureau
+#### `packaging/` : build et vérification des exécutables de bureau
 
 - **`kairos.spec`** (PyInstaller, mode **onefile**) :
   - Un seul fichier de spec partagé Linux/Windows : PyInstaller ne fait pas de
@@ -361,9 +361,9 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     deux OS.
   - `hiddenimports` : `collect_submodules("uvicorn")` (uvicorn choisit dynamiquement
     sa boucle d'événements et son implémentation de protocole HTTP selon les
-    paquets optionnels installés — invisible à l'analyse statique de PyInstaller) et
-    `collect_submodules("keyring")` (keyring sélectionne son back-end — Windows
-    Credential Manager, SecretService, Keychain — via les entry-points de son propre
+    paquets optionnels installés, invisible à l'analyse statique de PyInstaller) et
+    `collect_submodules("keyring")` (keyring sélectionne son back-end : Windows
+    Credential Manager, SecretService, Keychain, via les entry-points de son propre
     paquet, également invisible statiquement ; point du packaging jugé le plus
     incertain, à vérifier empiriquement en lançant l'exécutable construit, le repli
     fichier local de `app/secret_store.py` restant sûr en dernier recours).
@@ -376,19 +376,19 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     bureau ») ; tout échec de démarrage est journalisé dans un fichier par
     `app/launcher.py` plutôt que perdu derrière une fenêtre qui se ferme aussitôt.
   - `icon=packaging/kairos.ico` : embarqué dans le `.exe` Windows (barre des tâches,
-    explorateur) ; ignoré sans erreur pour le binaire Linux (qui n'en porte pas —
+    explorateur) ; ignoré sans erreur pour le binaire Linux (qui n'en porte pas ;
     une icône de bureau viendrait d'un fichier `.desktop`, pas du binaire lui-même).
 - **`packaging/README.md`** : mode d'emploi de construction locale
   (`pip install -e ".[dev]" pyinstaller pyinstaller-hooks-contrib` puis
   `pyinstaller packaging/kairos.spec --distpath dist --noconfirm`), et points
   d'attention :
   - les données (réglages, base de tâches) vivent dans le dossier utilisateur de
-    l'OS (`platformdirs`), jamais à côté de l'exécutable — voir
+    l'OS (`platformdirs`), jamais à côté de l'exécutable : voir
     `app/settings_store.py::data_dir` ;
   - le trousseau système (`keyring`, jeton GitLab / mot de passe TimeTree) dépend de
     ce qui est disponible sur le poste ; sans back-end utilisable (Linux headless),
     Kairos dégrade proprement vers un stockage fichier local, sans erreur, avec
-    juste un bandeau dans la page Réglages — à vérifier après chaque build par OS
+    juste un bandeau dans la page Réglages : à vérifier après chaque build par OS
     cible.
 - **`packaging/make_icon.py`** : régénère `kairos.ico` depuis le même dessin que
   `static/favicon.svg`, après une évolution du logo (nécessite Pillow).
@@ -404,7 +404,7 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     redirigée vers un **fichier**, pas un pipe : `webbrowser.open()` lancerait un
     vrai navigateur sur Windows (contrairement à un runner Linux headless sans
     `DISPLAY`, où il échoue instantanément), qui hériterait du handle de sortie du
-    process et le garderait ouvert après que l'exécutable ait été tué — ce qui
+    process et le garderait ouvert après que l'exécutable ait été tué ; ce qui
     bloquerait indéfiniment `Popen.stdout.read()` (attente d'un EOF qui n'arrive
     jamais) avec un pipe. Lire un fichier ne dépend pas des autres porteurs du
     handle d'écriture.
@@ -412,14 +412,14 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     (`_STARTUP_TIMEOUT = 30 s`, `_POLL_INTERVAL = 0.25 s`), abandonne tôt si le
     process s'arrête tout seul plutôt que d'attendre le timeout entier.
   - `_terminate_tree` : sur Windows, PyInstaller onefile exécute l'application réelle
-    dans un processus **enfant** du bootloader lancé par le script —
+    dans un processus **enfant** du bootloader lancé par le script ;
     `process.terminate()` seul ne tue que ce bootloader parent et laisse l'enfant
     orphelin, qui garde alors le fichier de sortie ouvert (`PermissionError:
     [WinError 32]` constaté en conditions réelles à la suppression du dossier
     temporaire). `taskkill /F /T /PID <pid>` cible tout l'arbre de processus, pas
     seulement le PID direct. Sur les autres OS, `process.terminate()` suffit.
 
-#### `android/` — packaging Android (renvoi, non dupliqué)
+#### `android/` : packaging Android (renvoi, non dupliqué)
 
 Le détail technique (structure Gradle, tâche `stageKairosPython`, Chaquopy,
 `MainActivity`, `network_security_config.xml`, permissions, dérivation de
@@ -440,19 +440,19 @@ cette spec (pas de duplication du reste) :
   Android compte toute socket réseau, locale comprise) et `POST_NOTIFICATIONS` (API
   33+, demandée à l'exécution, jamais au démarrage) ;
   `android:networkSecurityConfig` autorise le HTTP en clair uniquement vers
-  `127.0.0.1` (le reste — TimeTree, GitLab — reste en HTTPS).
+  `127.0.0.1` (le reste : TimeTree, GitLab ; reste en HTTPS).
 - **`versionCode`/`versionName`** (`android/app/build.gradle`) : dérivés du tag de
   release CI (`KAIROS_VERSION=vX.Y.Z`) ; défaut `0.0.0-dev` pour les builds hors tag.
   `versionCode = X*10000 + Y*100 + Z`, plancher `1` (Android rejette `0`, ce que
-  donnerait le défaut `0.0.0-dev`) — garantit une valeur strictement croissante
+  donnerait le défaut `0.0.0-dev`), garantit une valeur strictement croissante
   d'une release à l'autre pour qu'Android accepte la mise à jour par-dessus.
 - **Écran de démarrage** : un overlay applicatif (`MainActivity`, `FrameLayout`
   WebView + overlay fond `@color/kairos_bg` + logo animé) porte le branding
-  pendant toute l'attente de Python/uvicorn — pas le splash système
+  pendant toute l'attente de Python/uvicorn, pas le splash système
   d'Android (`android:windowSplashScreenBackground`/`windowBackground` dans
   `themes.xml`, toujours posés pour le tout petit instant de cold-start avant
   `onCreate`, mais plus load-bearing au-delà). Python/uvicorn démarrent sur un
-  thread dédié (`kairos-init`), jamais le thread principal — c'est ce qui
+  thread dédié (`kairos-init`), jamais le thread principal : c'est ce qui
   garantit que l'overlay se dessine et s'anime réellement, y compris sur un
   premier lancement long (extraction du paquet Python embarqué). Logo animé :
   `AnimatedVectorDrawable` dédié (`res/drawable/kairos_splash_icon*.xml` +
@@ -462,7 +462,7 @@ cette spec (pas de duplication du reste) :
   écartées avant celle-ci, dans `docs/ANDROID_PACKAGING.md`.
 - **`AndroidManifest.xml`** / **`MainActivity.java`** : geste retour prédictif
   Android 13+ (`android:enableOnBackInvokedCallback="true"` +
-  `OnBackInvokedDispatcher` natif, `android.window`, pas AndroidX) — chemin
+  `OnBackInvokedDispatcher` natif, `android.window`, pas AndroidX) : chemin
   additionnel à `onBackPressed()` (legacy, inchangé, seul chemin actif en dessous de
   l'API 33). Détail complet dans `docs/ANDROID_PACKAGING.md`.
 
@@ -477,7 +477,7 @@ cette spec (pas de duplication du reste) :
 - **SIGINT, jamais SIGTERM, pour le bouton Quitter** (`app/main.py::shutdown`) :
   les deux déclenchent l'arrêt normal d'uvicorn (drainage des requêtes en cours),
   mais un SIGTERM laisse ensuite l'OS tuer le process avant que le `finally` de
-  `app/launcher.py::main` (nettoyage du verrou) ne s'exécute — vérifié
+  `app/launcher.py::main` (nettoyage du verrou) ne s'exécute : vérifié
   empiriquement, SIGINT laisse ce `finally` s'exécuter normalement. `os.kill
   (os.getpid(), signal.SIGINT)` littéralement équivalent à un Ctrl+C.
 - **`KAIROS_DATA_DIR` posé avant tout import de `app.main`** (Android,
@@ -487,7 +487,7 @@ cette spec (pas de duplication du reste) :
   SQLite et les templates vers le mauvais dossier pour toute la durée de vie du
   process.
 - **`KAIROS_NO_BROWSER`** : échappatoire délibérée pour les lancements automatisés
-  (smoke test, CI) — évite un navigateur fantôme sur un runner headless et les
+  (smoke test, CI) ; évite un navigateur fantôme sur un runner headless et les
   effets de bord d'un vrai navigateur ouvert pendant un test.
 - **`KAIROS_BROWSER`** : échappatoire similaire, pour imposer un binaire de
   navigateur précis à `find_app_capable_browser()` plutôt que de dépendre de ce qui
@@ -496,7 +496,7 @@ cette spec (pas de duplication du reste) :
   pour garder ensemble les deux variables d'environnement qui pilotent le
   lancement du navigateur bureau.
 - **Fenêtre d'application forcée par défaut, sans réglage utilisateur** : pas de
-  case à cocher dans la page Réglages pour désactiver ce comportement — décision
+  case à cocher dans la page Réglages pour désactiver ce comportement ; décision
   de simplicité assumée. Le risque qu'un tel réglage couvrirait (aucun navigateur
   Chromium disponible, ou son lancement échoue) est déjà couvert automatiquement
   par le repli silencieux vers `webbrowser.open` : un réglage n'ajouterait qu'une
@@ -505,7 +505,7 @@ cette spec (pas de duplication du reste) :
 - **Seule la famille Chromium est ciblée pour la fenêtre d'application** (pas
   Firefox, pas Safari) : ces navigateurs n'ont pas d'indicateur de ligne de
   commande strictement équivalent à `--app=URL` (mode sans barre d'adresse ni
-  onglets, fenêtre dédiée à une seule origine) — Firefox n'expose ce type de mode
+  onglets, fenêtre dédiée à une seule origine) ; Firefox n'expose ce type de mode
   qu'au travers d'extensions tierces ou d'un profil dédié bien plus lourd à
   provisionner, hors périmètre pour ce gain de confort. Un poste sans navigateur
   Chromium installé retombe simplement sur l'onglet de navigateur par défaut
@@ -513,7 +513,7 @@ cette spec (pas de duplication du reste) :
 - **Profil de navigateur dédié (`data_dir() / "browser-profile"`)** pour la
   fenêtre d'application (`app/desktop_browser.py::launch_app_window`) : isolation
   du profil personnel de l'utilisateur (extensions, sessions, historique,
-  cookies) — la fenêtre d'application ne doit ni les lire ni les modifier, et
+  cookies) ; la fenêtre d'application ne doit ni les lire ni les modifier, et
   ouvrir le profil normal de l'utilisateur simultanément par un second process
   Chromium échouerait de toute façon (un profil ne s'ouvre pas deux fois en
   parallèle).
@@ -521,17 +521,17 @@ cette spec (pas de duplication du reste) :
   reposent toutes deux sur un ré-exec du process (rechargeur, workers multiples),
   incompatible avec un exécutable figé (PyInstaller) ou une application Android.
 - **`console=False`** accepté malgré la perte de visibilité d'un crash immédiat, en
-  échange d'un ressenti « application de bureau » — compensé par le fichier de
+  échange d'un ressenti « application de bureau » : compensé par le fichier de
   journal (`kairos-crash.log`) et par `_ensure_std_streams`/`_NullStream` pour éviter
   qu'uvicorn ne plante avant même d'écrire ce journal.
 - **`_LIBRARY_PATH_VARS` restaurées uniquement si `..._ORIG` existe** : sinon la
-  variable est purement retirée de l'environnement du sous-processus — reproduit
+  variable est purement retirée de l'environnement du sous-processus ; reproduit
   fidèlement l'état d'avant PyInstaller (variable absente au départ → absente pour
   le sous-processus), plutôt que de la laisser vide ou undefined de façon
   incohérente.
 - **Icône Windows embarquée dans le binaire, icône Linux portée par un `.desktop`
   installé à l'exécution plutôt que dans le binaire** : `icon=` dans
-  `kairos.spec` est ignoré sans erreur sur Linux (`packaging/kairos.spec`) —
+  `kairos.spec` est ignoré sans erreur sur Linux (`packaging/kairos.spec`) ;
   ce n'était pas un oubli, mais l'icône de bureau Linux vient désormais
   effectivement d'un fichier `.desktop`, installé par
   `install_linux_desktop_entry()` (voir plus haut), pas du binaire lui-même.
@@ -539,18 +539,18 @@ cette spec (pas de duplication du reste) :
   (pas de fichier `.desktop` commité dans le dépôt, pas d'étape d'installation
   système type paquet `.deb`/`.rpm`) : cohérent avec la distribution actuelle
   (un exécutable PyInstaller onefile téléchargé et lancé directement, pas
-  installé via un gestionnaire de paquets) — `install_linux_desktop_entry()`
+  installé via un gestionnaire de paquets) ; `install_linux_desktop_entry()`
   s'auto-répare à chaque lancement (idempotent) si l'utilisateur déplace
   l'exécutable, sans étape d'installation séparée à documenter ni à maintenir.
   Écrit dans les emplacements XDG **utilisateur**
-  (`~/.local/share/applications`, `~/.local/share/icons/hicolor/...` — jamais
+  (`~/.local/share/applications`, `~/.local/share/icons/hicolor/...` : jamais
   `/usr/share/...`) : aucun privilège root requis, cohérent avec un exécutable
   téléchargé et lancé sans installation.
 
 ### Invariants et garde-fous
 
-- Le serveur (bureau et Android) n'écoute **jamais** que sur `127.0.0.1` — jamais
-  `0.0.0.0` — dans ces deux points d'entrée (un déploiement systemd exposé sur le
+- Le serveur (bureau et Android) n'écoute **jamais** que sur `127.0.0.1`, jamais
+  `0.0.0.0` : dans ces deux points d'entrée (un déploiement systemd exposé sur le
   LAN est un cas d'usage distinct, hors de ces deux launchers).
 - Un verrou d'instance obsolète ne bloque jamais un nouveau lancement : toute lecture
   de `kairos.lock` invalide, absente ou pointant vers un port mort retombe sur un
@@ -558,7 +558,7 @@ cette spec (pas de duplication du reste) :
 - Le port choisi reste dans la plage `8001`-`8020` (bureau et Android) ; au-delà,
   uvicorn échoue avec son erreur native plutôt qu'une boucle infinie côté Kairos.
 - Le smoke test doit passer sur chaque OS avant publication d'une release
-  (`.github/workflows/release.yml`) — aucun exécutable cassé n'est publiable.
+  (`.github/workflows/release.yml`), aucun exécutable cassé n'est publiable.
 - Le contenu de `kairos.spec` reste strictement identique entre les deux OS cibles
   (aucune branche conditionnelle par plateforme dans le spec) : seule la machine de
   build diffère.

@@ -255,6 +255,16 @@ class Settings:
         default=50, ge=0,
         description="Rappel de pause après N minutes de focus continu (0 = désactivé).",
     )
+    # Signal sonore du repli in-page (issue #34). Désactivé par défaut : un son
+    # qu'on n'a pas demandé est une intrusion, et il ne sert que de DERNIER
+    # recours — il ne joue jamais quand une notification système a pu sortir.
+    timer_alert_sound: bool = Field(
+        default=False,
+        description=(
+            "Joue un court signal sonore quand une alerte de chrono ne peut sortir "
+            "en notification système (navigateur bloqué et serveur distant)."
+        ),
+    )
     # --- Jours fériés (décalages jour ouvré : récurrence calendaire, snooze) ---
     holidays_fr: bool = Field(default=True, description="Active le calendrier des jours fériés français.")
     extra_holidays: str = Field(
