@@ -433,10 +433,12 @@ def test_banner_rendered_when_update_available(client, monkeypatch) -> None:
     updates._state.source_key = f"{GITLAB}|outils/kairos"
     updates._state.latest = updates.Release("v9.1.0", f"{GITLAB}/outils/kairos/-/releases/v9.1.0", {})
     monkeypatch.setattr("app.git_credentials.resolve_gitlab_token", lambda url: "")
-    html = client.get("/kairos/notes").text
-    assert 'id="mj-update"' in html and "<strong>9.1.0</strong> est disponible" in html
-    assert 'id="mj-update" class="banner mj-update" role="status"' in html
-    assert "hidden>" not in html.split('id="mj-update"')[1].split(">")[0] + ">"
+    # Page Réglages : même gabarit de base, sans dépendre de la base de tâches.
+    html = client.get("/kairos/settings").text
+    assert "<strong>9.1.0</strong> est disponible" in html
+    opening_tag = html.split('<div id="mj-update"')[1].split(">")[0]
+    assert "hidden" not in opening_tag
+    assert 'name="next" value="/kairos/settings"' in html
 
 
 def test_settings_page_shows_update_section(client) -> None:
