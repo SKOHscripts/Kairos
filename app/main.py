@@ -75,7 +75,12 @@ from .tasks_scheduling import (
     wsjf_score,
 )
 from .tasks_staleness import days_stale
-from .tasks_stats import calibration_by_type, compute_dashboard_stats, fibonacci_calibration
+from .tasks_stats import (
+    calibration_by_type,
+    compute_dashboard_stats,
+    fibonacci_calibration,
+    fibonacci_references,
+)
 from .tasks_gitlab_sync import issue_web_url, sync_assigned_gitlab_tasks, write_sync_meta
 from .tasks_time import (
     running_session,
@@ -604,6 +609,9 @@ def _build_kairos_context(
         for c in calibration_by_type(all_tasks, spent_by_task)
         if c.reliable and c.median_minutes
     }
+    # Guide d'estimation ancré sur l'historique (audit UI) : médiane réelle et
+    # exemples de tâches terminées, par palier.
+    fibo_refs = fibonacci_references(all_tasks, spent_by_task)
     # Même principe pour les points de Fibonacci calibrés (issue #15.6) : pré-remplit
     # « Durée (min) » quand l'utilisateur choisit un palier dont le calibrage est fiable.
     avg_minutes_by_fibo = {
@@ -611,6 +619,9 @@ def _build_kairos_context(
         for c in fibonacci_calibration(all_tasks, spent_by_task)
         if c.reliable and c.median_minutes
     }
+    # Guide d'estimation ancré sur l'historique (audit UI) : médiane réelle et
+    # exemples de tâches terminées, par palier.
+    fibo_refs = fibonacci_references(all_tasks, spent_by_task)
 
     context = {
         "page": "kairos",
@@ -636,6 +647,7 @@ def _build_kairos_context(
         "spent_by_task": spent_by_task,
         "avg_minutes_by_type": avg_minutes_by_type,
         "avg_minutes_by_fibo": avg_minutes_by_fibo,
+        "fibo_refs": fibo_refs,
         "running_task_id": running_task_id,
         "running_started_iso": running_started_iso,
         "running_task_title": running_task_title,
@@ -1008,6 +1020,10 @@ def _fmt_minutes(minutes: int) -> str:
     if hours:
         return f"{hours} h"
     return f"{mins} min"
+
+
+# Même format de durée dans les gabarits (guide d'estimation, audit UI).
+templates.env.filters["duree"] = _fmt_minutes
 
 
 @app.post("/kairos/tasks")

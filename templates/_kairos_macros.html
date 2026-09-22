@@ -143,7 +143,7 @@
 {% macro priority_help() %}
 <ul class="mj-help-scale">
   {% for level in priority_levels %}
-  <li><span class="badge prio">{{ level.code }}</span> <strong>{{ level.label }}</strong> — {{ level.meaning }}</li>
+  <li><span class="badge prio">{{ level.code }}</span> <span><strong>{{ level.label }}</strong> — {{ level.meaning }}</span></li>
   {% endfor %}
 </ul>
 {% endmacro %}
@@ -153,12 +153,32 @@
   <summary>{{ icon('trending_up') }} Comment estimer les points ?</summary>
   <div class="mj-help-body">
     <p>Taille <strong>relative</strong> (jamais des heures) : volume × complexité ×
-    <strong>incertitude</strong> (« est-ce que je sais comment faire ? »). Estime par
-    rapport à tes tâches habituelles, en quelques secondes ; dans le doute, arrondis
-    au-dessus.</p>
+    <strong>incertitude</strong> (« est-ce que je sais comment faire ? »). Compare à tes
+    propres tâches déjà faites, ci-dessous : « plus grosse que celle-ci, plus petite que
+    celle-là ». En quelques secondes ; dans le doute, arrondis au-dessus.</p>
+    {# Repères ancrés sur l'historique (audit UI, `tasks_stats.fibonacci_references`) :
+       temps réel médian du palier chez l'utilisateur — effectif affiché, faible
+       effectif signalé « peu fiable », même honnêteté que le dashboard — et titres
+       de ses tâches terminées à ce palier. Sans historique : l'exemple générique
+       du guide, et on le dit. #}
     <ul class="mj-help-scale">
       {% for level in fibonacci_guide %}
-      <li><span class="badge mj-tag">{{ level.points }}</span> <strong>{{ level.label }}</strong> — {{ level.meaning }} <span class="muted">(ex. {{ level.example }})</span></li>
+      {% set ref = fibo_refs.get(level.points) if fibo_refs else none %}
+      <li><span class="badge mj-tag">{{ level.points }}</span>
+        <span class="mj-help-level">
+          <span><strong>{{ level.label }}</strong> — {{ level.meaning }}</span>
+          {% if ref %}
+          <span class="mj-help-ref">
+            {%- if ref.calibration and ref.calibration.median_minutes -%}
+            chez toi ≈ <strong>{{ ref.calibration.median_minutes|duree }}</strong>
+            <span class="muted">(médiane sur {{ ref.calibration.count }} tâche{{ 's' if ref.calibration.count > 1 }}{% if not ref.calibration.reliable %}, peu fiable{% endif %})</span> ·
+            {% endif -%}
+            <span class="muted">ex. {% for title in ref.examples %}« {{ title }} »{% if not loop.last %}, {% endif %}{% endfor %}</span>
+          </span>
+          {% else %}
+          <span class="mj-help-ref muted">ex. {{ level.example }} — aucune de tes tâches terminées à ce palier pour l'instant</span>
+          {% endif %}
+        </span></li>
       {% endfor %}
     </ul>
     <p class="muted">Distinct de la <strong>durée (min)</strong> : les points nourrissent

@@ -458,6 +458,11 @@ summary:focus-visible,
 .mj-help-scale { list-style: none; margin: 0 0 0.55rem; padding: 0; display: grid; gap: 0.3rem; }
 .mj-help-scale li { display: flex; align-items: baseline; gap: 0.5rem; }
 .mj-help-scale .badge { min-width: 2.6rem; justify-content: center; }
+/* Guide d'estimation ancré (audit UI) : sens du palier, puis repères tirés de
+   l'historique sur une seconde ligne. Un titre de tâche long passe à la ligne
+   au lieu d'élargir la carte d'aide. */
+.mj-help-level { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.mj-help-ref { font-size: 12px; color: var(--text-2); overflow-wrap: anywhere; }
 .mj-time { font-weight: 700; min-width: 3.6rem; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .mj-title { font-weight: 600; color: var(--text); }
 

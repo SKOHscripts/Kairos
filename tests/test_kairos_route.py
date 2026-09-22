@@ -2820,3 +2820,29 @@ def test_inbox_help_explains_priority_meanings_and_the_points_scale(route_client
     assert "bloquant ou engagement ferme" in help_block
     assert "à faire quand il y a de la place" in help_block
     assert "bien cadré, zéro inconnue" in help_block
+
+
+def test_estimation_guide_shows_the_users_own_references(route_client) -> None:
+    """Guide ancré sur l'historique : médiane réelle du palier et exemple tiré
+    des tâches terminées de l'utilisateur."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Migrer le module de facturation", status="done",
+                    fibonacci_points=5, manual_time_spent_minutes=150, source="native"))
+        db.add(Task(title="À estimer", source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert "« Migrer le module de facturation »" in html
+    assert "chez toi ≈ <strong>2 h 30</strong>" in html
+    assert "peu fiable" in html  # une seule tâche : effectif faible, signalé
+
+
+def test_estimation_guide_says_so_when_a_level_has_no_history(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="À estimer", source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert "aucune de tes tâches terminées à ce palier pour l'instant" in html

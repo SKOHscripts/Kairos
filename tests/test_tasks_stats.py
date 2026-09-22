@@ -14,6 +14,7 @@ from app.tasks_stats import (
     compute_dashboard_stats,
     estimation_bias,
     fibonacci_calibration,
+    fibonacci_references,
     focus_stats,
     metadata_completeness,
     throughput_by_week,
@@ -285,3 +286,44 @@ def test_compute_dashboard_stats_end_to_end() -> None:
     assert stats.calibration[0].points == 3 and stats.calibration[0].median_minutes == 90
     assert stats.flow.open_count == 1
     assert stats.completeness.total == 1
+
+
+# ---------------------------------------------------------------------------
+# Repères du guide d'estimation (audit UI) — fibonacci_references.
+# ---------------------------------------------------------------------------
+
+
+def test_fibonacci_references_give_median_and_most_recent_examples() -> None:
+    tasks = [
+        _done(1, TODAY - timedelta(days=9), fibonacci_points=3),
+        _done(2, TODAY - timedelta(days=1), fibonacci_points=3),
+        _done(3, TODAY - timedelta(days=4), fibonacci_points=3),
+    ]
+    refs = fibonacci_references(tasks, {1: 40, 2: 50, 3: 60})
+    ref = refs[3]
+    assert ref.calibration.median_minutes == 50
+    assert ref.calibration.count == 3 and ref.calibration.reliable
+    # Les plus récentes d'abord, deux au plus.
+    assert ref.examples == ("T2", "T3")
+
+
+def test_fibonacci_references_keep_untimed_tasks_as_examples() -> None:
+    """Un exemple sert à comparer une TAILLE, pas une durée : une tâche jamais
+    chronométrée reste un repère valable, simplement sans médiane."""
+    refs = fibonacci_references([_done(1, TODAY, fibonacci_points=8)], {})
+    assert refs[8].calibration is None
+    assert refs[8].examples == ("T1",)
+
+
+def test_fibonacci_references_flag_small_samples_instead_of_hiding_them() -> None:
+    refs = fibonacci_references([_done(1, TODAY, fibonacci_points=5)], {1: 90})
+    assert refs[5].calibration.median_minutes == 90
+    assert refs[5].calibration.reliable is False
+
+
+def test_fibonacci_references_ignore_open_tasks_and_empty_levels() -> None:
+    tasks = [
+        _todo(1, datetime(2026, 7, 1, tzinfo=timezone.utc), fibonacci_points=3),
+        _done(2, TODAY),  # sans points
+    ]
+    assert fibonacci_references(tasks, {1: 30, 2: 30}) == {}
