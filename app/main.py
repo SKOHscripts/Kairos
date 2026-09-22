@@ -30,11 +30,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from starlette.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import desktop_notify, secret_store, settings_store
+from . import desktop_notify, secret_store, settings_store, updates
 from .fr_dates import date_longue, jour_court
 from .task_guide import FIBONACCI_GUIDE, PRIORITY_LEVELS, fibo_level, priority_level
 from .calendar.timetree_source import fetch_busy_slots
@@ -42,7 +42,13 @@ from .config import Settings, apply_proxy_env, get_settings, invalidate_settings
 from .gitlab_direct import fetch_assigned_issues
 from .pilotage_link import CachedGitLabIssue, LinkedTicket, get_pilotage_session
 from .settings_fields import SettingsValidationError
-from .settings_sections import FIELD_LABELS, RESTART_REQUIRED_FIELDS, SECRET_FIELDS, SECTIONS
+from .settings_sections import (
+    FIELD_LABELS,
+    RESTART_REQUIRED_FIELDS,
+    SECRET_FIELDS,
+    SECTIONS,
+    UPDATES_SECTION,
+)
 from .tasks_db import get_tasks_session, init_tasks_db
 from .tasks_dependencies import (
     blocked_task_ids,
@@ -911,6 +917,13 @@ def _field_kind(name: str) -> str:
     return _FIELD_KIND_BY_ANNOTATION.get(Settings.model_fields[name].annotation, "text")
 
 
+_INSTALL_KIND_LABELS = {
+    "desktop": "exécutable de bureau",
+    "android": "application Android",
+    "source": "installation depuis les sources",
+}
+
+
 def _settings_context(
     settings: Settings, *, errors: dict[str, str], values: dict[str, object] | None, saved: bool
 ) -> dict:
@@ -937,6 +950,8 @@ def _settings_context(
         "migrated_at": settings_store.meta().get("migrated_from_env_at"),
         "keyring_available": secret_store.keyring_available(),
         "saved": saved,
+        "updates_section": UPDATES_SECTION,
+        "install_kind_labels": _INSTALL_KIND_LABELS,
     }
 
 
@@ -1206,6 +1221,92 @@ async def notify_desktop(request: Request) -> Response:
     body = str(form.get("body", ""))
     sent = desktop_notify.send(title, body)
     return Response(status_code=204 if sent else 503)
+
+
+# --------------------------------------------------------------------------
+# Mises à jour (docs/spec/mises-a-jour.md). La logique vit dans `app/updates.py` ;
+# ces routes ne font que l'exposer au bandeau de base.html et à la page Réglages.
+# --------------------------------------------------------------------------
+
+
+def update_status(request: Request) -> dict:
+    """État des mises à jour pour le bandeau (global de gabarit) et la route
+    JSON. Déclenche au besoin une vérification de fond, sans l'attendre."""
+    state = updates.snapshot(get_settings())
+    state["server_notify"] = server_notifications_available(request)
+    return state
+
+
+templates.env.globals["update_status"] = update_status
+
+
+def _safe_next(value: object) -> str:
+    """Chemin local de retour après un formulaire sans JS (jamais une URL
+    externe : `//hôte` ou `https://` sont refusés)."""
+    target = str(value or "")
+    return target if target.startswith("/") and not target.startswith("//") else "/"
+
+
+def _is_fetch(request: Request) -> bool:
+    return request.headers.get("X-Requested-With") == "fetch"
+
+
+@app.get("/kairos/updates/status")
+def updates_status(request: Request) -> JSONResponse:
+    return JSONResponse(update_status(request))
+
+
+@app.post("/kairos/updates/check")
+async def updates_check(request: Request) -> Response:
+    """« Vérifier maintenant » (page Réglages) : synchrone, ignore l'intervalle
+    de 6 h et le réglage d'activation (c'est une demande explicite)."""
+    updates.check_now(get_settings())
+    if _is_fetch(request):
+        return JSONResponse(update_status(request))
+    return RedirectResponse("/kairos/settings?updates=1#mises-a-jour", status_code=303)
+
+
+@app.post("/kairos/updates/dismiss")
+async def updates_dismiss(request: Request) -> Response:
+    """« Plus tard » : masque le bandeau pour cette version seulement."""
+    form = await request.form()
+    updates.dismiss(str(form.get("tag", "")))
+    if _is_fetch(request):
+        return Response(status_code=204)
+    return RedirectResponse(_safe_next(form.get("next")), status_code=303)
+
+
+@app.post("/kairos/updates/notified")
+async def updates_notified(request: Request) -> Response:
+    """Réserve la notification système de cette version : une seule par
+    version, même avec plusieurs pages ouvertes (seul le premier appel reçoit
+    ``claimed: true``). En-tête `X-Requested-With` exigé (voir `notify_desktop`)."""
+    if not _is_fetch(request):
+        return Response(status_code=403)
+    form = await request.form()
+    return JSONResponse({"claimed": updates.claim_notification(str(form.get("tag", "")))})
+
+
+@app.post("/kairos/updates/install")
+async def updates_install(request: Request) -> Response:
+    """Lance le téléchargement et l'installation (thread de fond) ; la page
+    suit la progression via `/kairos/updates/status`.
+
+    Réservé à une requête `fetch` (garde-fou CSRF, comme `notify_desktop`)
+    venant de la machine elle-même : remplacer l'exécutable ne se déclenche
+    jamais depuis un autre appareil du réseau.
+    """
+    if not _is_fetch(request):
+        return Response(status_code=403)
+    client_host = request.client.host if request.client else None
+    if not desktop_notify.loopback_client(client_host):
+        return JSONResponse({"error": "Mise à jour possible seulement depuis l'appareil qui fait tourner Kairos."},
+                            status_code=403)
+    try:
+        updates.start_install(get_settings(), port=request.scope["server"][1])
+    except updates.UpdateError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=409)
+    return JSONResponse(update_status(request), status_code=202)
 
 
 @app.post("/kairos/tasks/{task_id:int}/edit")

@@ -15,7 +15,7 @@
 
 {% if not keyring_available %}
 <div class="banner warning">{{ icon('warning') }} Trousseau système indisponible sur ce poste :
-  le jeton GitLab et le mot de passe TimeTree sont stockés dans le fichier de configuration
+  les jetons (GitLab, mises à jour) et le mot de passe TimeTree sont stockés dans le fichier de configuration
   local (non chiffré), pas dans le trousseau système.</div>
 {% endif %}
 
@@ -31,8 +31,34 @@
 
 <form method="post" action="/kairos/settings">
   {% for section_title, field_names in sections %}
-  <details class="panel mj-settings-section" {% if field_names | select('in', errors) | list %}open{% endif %}>
+  {% set is_updates = section_title == updates_section %}
+  <details class="panel mj-settings-section" {% if is_updates %}id="mises-a-jour"{% endif %}
+           {% if field_names | select('in', errors) | list or (is_updates and request.query_params.get('updates')) %}open{% endif %}>
     <summary class="collapser">{{ icon('chevron_right', '') }} {{ section_title }}</summary>
+    {% if is_updates %}
+    {# État en lecture seule + « Vérifier maintenant » : un formulaire ne peut
+       pas en contenir un autre, le bouton vise donc la route de vérification
+       via `formaction` (même formulaire, autre action). #}
+    {% set upd = update_status(request) %}
+    <div class="mj-update-info">
+      <p class="hint">Version installée : <strong>{{ upd.current }}</strong>
+        ({{ install_kind_labels.get(upd.kind, upd.kind) }}).</p>
+      <p class="hint">Source des versions :
+        {% if upd.source %}<a href="{{ upd.releases_url }}" target="_blank" rel="noopener">{{ upd.source }}</a>
+        {% else %}inconnue (renseigner la forge et le projet ci-dessous){% endif %}</p>
+      <p class="hint">
+        {% if upd.checking %}Vérification en cours…
+        {% elif upd.error %}<span class="error">Dernière vérification en échec : {{ upd.error }}</span>
+        {% elif upd.available %}Kairos <strong>{{ upd.latest }}</strong> est disponible.
+        {% elif upd.checked_at %}À jour (dernière version publiée : {{ upd.latest or '—' }}).
+        {% else %}Pas encore vérifié.{% endif %}
+      </p>
+      {% if upd.available and upd.install_blocker %}<p class="hint">{{ upd.install_blocker }}</p>{% endif %}
+      <button type="submit" class="btn sm" formaction="/kairos/updates/check" formnovalidate
+              {% if not upd.source %}disabled{% endif %}>{{ icon('refresh') }} Vérifier maintenant</button>
+      <p class="hint">Une source modifiée ci-dessous n'est prise en compte qu'après « Enregistrer ».</p>
+    </div>
+    {% endif %}
     <div class="mj-settings-grid">
       {% for name in field_names %}
       <div class="mj-settings-field">
@@ -71,8 +97,8 @@
   </details>
   {% endfor %}
 
-  <p class="hint">En cas d'erreur de validation sur un autre champ, les identifiants (jeton
-    GitLab, mot de passe TimeTree) doivent être ressaisis : ils ne sont jamais conservés
+  <p class="hint">En cas d'erreur de validation sur un autre champ, les identifiants (jetons
+    GitLab et des mises à jour, mot de passe TimeTree) doivent être ressaisis : ils ne sont jamais conservés
     d'une tentative à l'autre tant que l'enregistrement échoue.</p>
 
   <div class="mj-settings-actions">

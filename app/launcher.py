@@ -29,10 +29,12 @@ import os
 import socket
 import sys
 import threading
+import time
 import traceback
 import urllib.error
 import urllib.request
 import webbrowser
+from pathlib import Path
 
 import uvicorn
 
@@ -124,7 +126,47 @@ def _write_lock(port: int) -> None:
 
 
 def _clear_lock() -> None:
-    _lock_path().unlink(missing_ok=True)
+    """Supprime le verrou s'il est le nôtre. Après une mise à jour, la nouvelle
+    version a déjà réécrit le verrou avec son propre PID pendant que celle-ci
+    finissait de s'arrêter : l'effacer ferait croire qu'aucune instance ne tourne."""
+    try:
+        owner = json.loads(_lock_path().read_text(encoding="utf-8")).get("pid")
+    except (OSError, ValueError, AttributeError):
+        owner = None
+    if owner in (None, os.getpid()):
+        _lock_path().unlink(missing_ok=True)
+
+
+# Attente maximale de l'arrêt de l'ancienne version après une mise à jour.
+_RESTART_WAIT = 30.0
+
+
+def _take_restart_port() -> int | None:
+    """Port de la version précédente quand ce lancement suit une mise à jour
+    (``KAIROS_RESTART_PORT``, posé par `app/updates.py::restart_desktop`), ou
+    None. Retiré de l'environnement pour ne pas se propager à un sous-process."""
+    raw = os.environ.pop("KAIROS_RESTART_PORT", "")
+    return int(raw) if raw.isdigit() else None
+
+
+def _wait_until_stopped(port: int, timeout: float = _RESTART_WAIT) -> None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline and _instance_already_running(port):
+        time.sleep(0.2)
+
+
+def _remove_previous_executable() -> None:
+    """Supprime ``<exécutable>.old`` laissé par une mise à jour sous Windows
+    (un exécutable lancé ne peut qu'être renommé, voir
+    `app/updates.py::replace_executable`). Sans effet s'il est encore verrouillé :
+    ce sera pour le lancement suivant."""
+    if not getattr(sys, "frozen", False):
+        return
+    old = Path(sys.executable).with_name(Path(sys.executable).name + ".old")
+    try:
+        old.unlink(missing_ok=True)
+    except OSError:
+        pass
 
 
 class _NullStream:
@@ -159,6 +201,14 @@ def main() -> None:
     _ensure_std_streams()
     multiprocessing.freeze_support()  # requis sous Windows/PyInstaller (ré-exécution figée)
 
+    restart_port = _take_restart_port()
+    if restart_port is not None:
+        # Suite d'une mise à jour : l'ancienne version s'arrête d'elle-même
+        # (voir `app/updates.py::restart_desktop`), on attend qu'elle libère
+        # son port avant de le reprendre.
+        _wait_until_stopped(restart_port)
+    _remove_previous_executable()
+
     existing_port = _read_lock_port()
     if existing_port is not None and _instance_already_running(existing_port):
         # Une instance tourne déjà (le cas courant si l'utilisateur a relancé
@@ -168,9 +218,12 @@ def main() -> None:
         return
 
     try:
-        port = _pick_port()
+        port = _pick_port(preferred=restart_port or _DEFAULT_PORT)
         _write_lock(port)
-        _open_browser_later(f"http://{_HOST}:{port}")
+        # Même port qu'avant la mise à jour : la page restée ouverte se
+        # recharge d'elle-même, une seconde fenêtre serait de trop.
+        if port != restart_port:
+            _open_browser_later(f"http://{_HOST}:{port}")
         # `reload`/`workers>1` reposent tous deux sur un ré-exec du process
         # (rechargeur, workers multiples) : incompatible avec un exécutable figé.
         uvicorn.run(app, host=_HOST, port=port, reload=False)
