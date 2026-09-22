@@ -101,6 +101,37 @@ visuel : coche ronde en tête de ligne, bordure gauche colorée par palier
 d'urgence, badges (score WSJF, priorité, type, points, fiche liée, temps passé,
 « traîne depuis... »), actions à droite (chrono, décaler), crayon d'édition.
 
+**Anatomie d'une ligne de tâche — quatre colonnes fixes (issue #33).** Avec
+beaucoup de tâches de longueurs différentes, une ligne « tout à la suite »
+devient illisible : chaque tâche place ses actions à un endroit différent selon
+le nombre de badges qu'elle porte, et un titre long chasse tout le reste. La
+ligne suit donc une **grille invisible** (l'utilisateur ne voit aucun trait, il
+voit des colonnes qui s'alignent d'une ligne à l'autre) :
+
+1. **Coche** — largeur fixe, toujours en tête.
+2. **Corps** — occupe l'espace restant, jamais plus : l'heure et le titre en
+   première ligne, puis les **étiquettes** de contexte (projet, type, fiche
+   liée, échéance, durée, « traîne depuis… », notes de placement…) qui
+   s'empilent en dessous en s'enroulant sur plusieurs lignes si nécessaire, puis
+   l'extrait de description. Un titre long ou dix étiquettes font grandir cette
+   colonne **vers le bas**, jamais vers la droite.
+3. **Priorité et points** — collés à la colonne d'actions, alignés à droite :
+   d'une ligne à l'autre, ils tombent toujours au même endroit, ce qui rend la
+   liste balayable d'un seul coup d'œil vertical. Le score WSJF les accompagne
+   (c'est lui qui ordonne la liste ; avec la priorité, ce sont les deux seuls
+   badges à porter l'accent, voir `docs/DESIGN_SYSTEM.md`).
+4. **Actions** — chrono, décaler, crayon d'édition : toujours tout à droite, à
+   la même abscisse quelle que soit la tâche.
+
+Sur écran étroit, la colonne « priorité et points » passe sous le corps plutôt
+que de comprimer le titre ; les actions restent en haut à droite.
+
+**Lien vers la fiche d'origine d'une tâche importée.** Une tâche importée de
+GitLab porte déjà son projet en étiquette : cette étiquette devient un **lien
+cliquable vers l'issue d'origine** (issue #33), ouvert dans un nouvel onglet.
+Règle de construction de l'URL et dégradation quand elle n'est pas calculable →
+`docs/spec/integrations-externes.md`.
+
 **Description d'une tâche.** Une tâche qui porte une description l'annonce
 **dans la liste**, sans qu'il faille ouvrir l'édition : un extrait d'une ligne,
 atténué, sous le titre, dépliable sur place au clic pour lire le texte complet
@@ -138,6 +169,12 @@ aller-retour (infos, sous-tâches en lot, bloqueurs, épinglage).
 - Une tâche avec description affiche son extrait dans la liste de la vue Jour
   sans ouvrir l'édition, et son texte complet après un seul clic ; une tâche
   sans description n'ajoute aucun marqueur à sa ligne.
+- Deux tâches voisines dont l'une porte dix étiquettes et l'autre aucune
+  affichent leurs actions, leur priorité et leurs points **à la même abscisse** :
+  ajouter une étiquette à une tâche ne déplace jamais ses boutons.
+- Un titre long fait grandir sa ligne vers le bas ; il ne pousse jamais la
+  priorité, les points ou les actions hors de leur colonne, et ne provoque
+  jamais de défilement horizontal (y compris à ~375px de large).
 - Le champ Description du panneau d'édition est atteignable sans déplier
   « Options avancées ».
 

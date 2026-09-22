@@ -49,6 +49,11 @@ de pilotage — avec seulement les tâches et blocs saisis à la main.
 - Une issue fermée ou réassignée à quelqu'un d'autre fait disparaître la tâche
   correspondante de l'agenda actif (archivage), sans jamais supprimer son
   historique.
+- L'étiquette de projet d'une tâche importée de GitLab est **cliquable** et mène
+  à l'issue d'origine, dans un nouvel onglet (issue #33) : la tâche garde un
+  chemin de retour d'un clic vers sa fiche, sans qu'il faille la chercher à la
+  main. Si l'URL de l'instance GitLab n'est pas renseignée dans les Réglages,
+  l'étiquette reste un texte simple — jamais un lien mort.
 - Un jeton d'accès GitLab n'a pas besoin d'être ressaisi dans Kairos s'il est déjà
   configuré pour `git` sur le poste (trousseau système, `~/.netrc`).
 - Deux façons d'obtenir ses issues GitLab, selon l'équipement du poste : avec
@@ -72,6 +77,9 @@ de pilotage — avec seulement les tâches et blocs saisis à la main.
   tâche correspondante en `status="archived"`, jamais en suppression physique.
 - Deux issues de projets différents partageant le même `iid` GitLab ne
   provoquent jamais de collision (deux tâches distinctes).
+- L'étiquette de projet d'une tâche GitLab mène à l'issue d'origine dès que
+  l'URL de l'instance est renseignée, et reste un texte simple sinon ; une tâche
+  native (non importée) n'est jamais transformée en lien.
 - Aucune écriture n'est jamais effectuée vers GitLab, TimeTree ou la base
   `pilotage.db` : les trois intégrations sont strictement lecture seule.
 - Aucun appel réseau ou accès disque externe ne peut faire remonter une page en
