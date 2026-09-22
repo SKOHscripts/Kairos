@@ -6,7 +6,7 @@
    réception → faire) : capture, boîte de réception, « Maintenant », bannières,
    filtres/backlog, agenda ordonné + sections secondaires, colonne latérale. #}
 {% from "_icons.html" import icon %}
-{% from "_kairos_macros.html" import done_toggle, task_actions, time_spent, fibo_help, edit_panel, task_meta with context %}
+{% from "_kairos_macros.html" import done_toggle, task_actions, time_spent, fibo_help, edit_panel, task_meta, task_description with context %}
 
 {# --- 1. Capture GTD : toujours visible, jamais dans un <details> replié — la
      capture ne doit jamais demander un clic supplémentaire pour être atteinte.
@@ -151,6 +151,7 @@
       </span>
       {{ task_actions(task) }}
       {{ edit_panel(task) }}
+      {{ task_description(task) }}
     </li>
     {% endfor %}
   </ul>
@@ -238,6 +239,7 @@
       {% endif %}
       {{ task_actions(item.task) }}
       {{ edit_panel(item.task) }}
+      {{ task_description(item.task) }}
     </li>
     {% endfor %}
   </ol>
@@ -256,6 +258,7 @@
       {{ time_spent(task) }}
       {{ task_actions(task) }}
       {{ edit_panel(task) }}
+      {{ task_description(task) }}
     </li>
     {% endfor %}
   </ul>
@@ -276,6 +279,7 @@
       {{ task_meta(entry.task) }}
       {{ task_actions(entry.task) }}
       {{ edit_panel(entry.task) }}
+      {{ task_description(entry.task) }}
     </li>
     {% endfor %}
   </ul>
@@ -294,6 +298,7 @@
       {{ task_meta(task) }}
       {{ task_actions(task) }}
       {{ edit_panel(task) }}
+      {{ task_description(task) }}
     </li>
     {% endfor %}
   </ul>
@@ -314,6 +319,7 @@
       {{ task_meta(entry.task) }}
       {{ task_actions(entry.task) }}
       {{ edit_panel(entry.task) }}
+      {{ task_description(entry.task) }}
     </li>
     {% endfor %}
   </ul>

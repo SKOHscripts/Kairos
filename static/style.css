@@ -378,6 +378,25 @@ summary:focus-visible,
 .mj-help-scale .badge { min-width: 2.6rem; justify-content: center; }
 .mj-time { font-weight: 700; min-width: 3.6rem; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .mj-title { font-weight: 600; color: var(--text); }
+
+/* Description d'une tâche (issue #32) : extrait d'une ligne sous le titre,
+   dépliable sur place. `flex: 0 0 100%` la pose sur sa PROPRE ligne du
+   `.kairos-item` (flex wrap) sans toucher à l'alignement des badges — c'est
+   aussi pourquoi la macro `task_description()` est appelée en toute fin de
+   `<li>` : posée plus tôt, elle repousserait tous les badges sous elle.
+   `min-width: 0` sur le conteneur ET sur l'extrait : sans lui, une boîte flex
+   refuse de rétrécir sous la largeur de son contenu, et l'ellipse ne se
+   déclenche jamais (l'extrait déborderait la carte au lieu d'être coupé). */
+.mj-desc { flex: 0 0 100%; min-width: 0; font-size: 12.5px; }
+.mj-desc > summary { display: flex; align-items: center; gap: 0.35rem; cursor: pointer;
+  color: var(--text-3); min-width: 0; }
+.mj-desc > summary:hover { color: var(--text-2); }
+.mj-desc-peek { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+/* Déplié : l'extrait tronqué ferait doublon avec le texte complet juste en
+   dessous — seule l'icône reste, comme poignée de repli. */
+.mj-desc[open] > summary .mj-desc-peek { display: none; }
+.mj-desc-body { margin: 0.3rem 0 0; padding: 0.5rem 0.7rem; white-space: pre-wrap;
+  color: var(--text-2); background: var(--surface-tint); border-radius: var(--r-sm); }
 .mj-add-toggle { display: flex; gap: 1rem; margin-bottom: 0.7rem; }
 .mj-week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 0.75rem; margin-top: 0.6rem; }

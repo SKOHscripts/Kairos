@@ -3,7 +3,7 @@
    l'agenda du jour — affiché quelle que soit la vue (jour ou semaine), voir
    `kairos.html` (branche semaine) et `_kairos_day.html` (vue jour). #}
 {% from "_icons.html" import icon %}
-{% from "_kairos_macros.html" import done_toggle, task_actions, edit_panel, task_meta with context %}
+{% from "_kairos_macros.html" import done_toggle, task_actions, edit_panel, task_meta, task_description with context %}
 {% if backlog_tasks %}
 <details class="card">
   <summary class="collapser">{{ icon('chevron_right', '') }} Backlog, sans date ({{ backlog_tasks|length }})</summary>
@@ -18,6 +18,7 @@
       {{ task_meta(task) }}
       {{ task_actions(task) }}
       {{ edit_panel(task) }}
+      {{ task_description(task) }}
     </li>
     {% endfor %}
   </ul>

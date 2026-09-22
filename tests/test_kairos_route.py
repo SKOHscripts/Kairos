@@ -2333,3 +2333,96 @@ def test_snooze_label_mentions_next_business_day(route_client) -> None:
     page = client.get("/kairos")
     assert "Décaler au prochain jour ouvré" in page.text
     assert "Décaler à demain" not in page.text
+
+
+# ---------------------------------------------------------------------------
+# Descriptions de tâches mises en avant (issue #32) — voir
+# docs/spec/vue-jour-gtd.md § Description d'une tâche.
+# ---------------------------------------------------------------------------
+
+
+def test_task_description_is_visible_in_the_day_list(route_client) -> None:
+    """La description s'affiche dans la ligne de tâche elle-même, sans ouvrir
+    l'édition : c'est tout l'objet de l'issue #32."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="Préparer la revue",
+                description="Contexte utile\nSur deux lignes",
+                priority=1,
+                fibonacci_points=3,
+                source="native",
+            )
+        )
+        db.commit()
+
+    page = client.get("/kairos")
+    assert 'class="mj-desc"' in page.text
+    assert "Contexte utile" in page.text
+
+
+def test_task_without_description_gets_no_marker(route_client) -> None:
+    """Une tâche sans description n'ajoute rien à sa ligne (ni marqueur vide, ni
+    ligne supplémentaire) — la densité de la liste reste inchangée."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Sans description", priority=1, fibonacci_points=3, source="native"))
+        db.commit()
+
+    page = client.get("/kairos")
+    assert "Sans description" in page.text
+    assert 'class="mj-desc"' not in page.text
+
+
+def test_blank_description_gets_no_marker(route_client) -> None:
+    """Une description réduite à des espaces/retours à la ligne est traitée comme
+    absente (garde `task.description.strip()` de la macro)."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(
+            Task(
+                title="Description blanche",
+                description="   \n  ",
+                priority=1,
+                fibonacci_points=3,
+                source="native",
+            )
+        )
+        db.commit()
+
+    page = client.get("/kairos")
+    assert 'class="mj-desc"' not in page.text
+
+
+def test_description_field_sits_outside_advanced_options(route_client) -> None:
+    """Le champ Description du panneau d'édition est atteignable sans déplier
+    « Options avancées » : il apparaît AVANT l'ouverture du `<details>`
+    correspondant dans le HTML rendu."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Tâche éditable", priority=1, fibonacci_points=3, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    description_index = html.index('name="description"')
+    advanced_index = html.index('class="mj-edit-advanced"')
+    assert description_index < advanced_index
+
+
+def test_converted_note_description_shows_up_in_the_day_list(route_client) -> None:
+    """Bout en bout des deux moitiés de l'issue #32 : ce qu'une conversion de
+    note conserve désormais est aussi ce que la vue Jour donne à voir."""
+    client, _ = route_client
+    client.post(
+        "/kairos/notes",
+        data={"body": "Relancer le fournisseur\nDevis attendu avant vendredi"},
+        follow_redirects=False,
+    )
+    notes_page = client.get("/kairos/notes")
+    note_id = notes_page.text.split("/kairos/notes/")[1].split("/")[0]
+    client.post(f"/kairos/notes/{note_id}/convert", follow_redirects=False)
+
+    day_page = client.get("/kairos")
+    assert "Relancer le fournisseur" in day_page.text
+    assert "Devis attendu avant vendredi" in day_page.text

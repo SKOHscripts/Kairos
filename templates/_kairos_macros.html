@@ -43,6 +43,23 @@
 {%- endif -%}
 {% endmacro %}
 
+{# Description d'une tâche (issue #32) : rendue DANS la ligne de tâche, plus
+   seulement au fond du panneau d'édition. `<details>` natif, sans JavaScript —
+   le repli sans JS de toute la vue Jour est un invariant (voir
+   docs/spec/vue-jour-gtd.md), et contrairement à `.mj-edit-toggle` on veut ici
+   que Ctrl+F du navigateur déplie automatiquement le texte pour l'y trouver.
+   Rien n'est rendu si la description est vide : une tâche sans description ne
+   gagne aucun marqueur. #}
+{% macro task_description(task) %}
+{%- if task.description and task.description.strip() -%}
+<details class="mj-desc">
+  <summary title="Description — cliquer pour déplier">{{ icon('file_text') }}
+    <span class="mj-desc-peek">{{ task.description }}</span></summary>
+  <p class="mj-desc-body">{{ task.description }}</p>
+</details>
+{%- endif -%}
+{% endmacro %}
+
 {% macro fibo_help() %}
 <details class="mj-help">
   <summary>{{ icon('trending_up') }} Comment estimer les points ?</summary>
@@ -73,6 +90,10 @@
   <div class="mj-edit-body" hidden>
     <form method="post" action="/kairos/tasks/{{ task.id }}/edit" class="mj-edit-form">
       <label>Titre<input type="text" name="title" value="{{ task.title }}" required></label>
+      {# Essentiel depuis l'issue #32 (auparavant en « Options avancées ») : une
+         description enfouie sous deux niveaux de divulgation n'est jamais lue. #}
+      <label>Description<textarea name="description" rows="2"
+        placeholder="Contexte, liens, étapes… visible directement dans la liste">{{ task.description }}</textarea></label>
       <div class="mj-edit-row mj-edit-essentials">
         <label>Priorité
           <select name="priority">
@@ -99,7 +120,6 @@
       <details class="mj-edit-advanced">
         <summary>{{ icon('chevron_right', '') }} Options avancées</summary>
         <div class="mj-edit-advanced-body">
-          <label>Description<textarea name="description" rows="2">{{ task.description }}</textarea></label>
           <div class="mj-edit-row">
             <label title="Quand tu comptes t'y mettre, distinct de l'échéance">Programmée pour
               <input type="date" name="scheduled_date" value="{{ task.scheduled_date.isoformat() if task.scheduled_date else '' }}"></label>
