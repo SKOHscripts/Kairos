@@ -37,9 +37,9 @@ class FiboLevel:
 PRIORITY_LEVELS: tuple[PriorityLevel, ...] = (
     PriorityLevel(
         0, "Critique",
-        "bloquant ou engagement ferme — rare par nature",
+        "bloquant ou engagement ferme, rare par nature",
     ),
-    PriorityLevel(1, "Important", "compte vraiment, à caser cette semaine"),
+    PriorityLevel(1, "Important", "à caser cette semaine"),
     PriorityLevel(2, "Utile", "à faire quand il y a de la place"),
 )
 

@@ -113,8 +113,8 @@
         principe GTD « capturer sans friction ». Une tâche n'entre dans l'agenda ordonné
         qu'une fois <strong>clarifiée</strong>, priorité et points Fibonacci posés, ici même,
         en un clic chacun (pas besoin d'ouvrir l'édition complète).</p>
-        <p><strong>Priorité</strong> : l'importance, pas le délai — l'échéance compte déjà à part
-        dans le calcul.</p>
+        <p><strong>Priorité</strong> : l'importance de la tâche. Le délai compte déjà à part,
+        via l'échéance.</p>
         {{ priority_help() }}
         <p><strong>Points</strong> : la taille <em>relative</em> de la tâche, comparée à celles que
         tu as déjà faites.</p>
@@ -184,7 +184,7 @@
     <span class="muted">({% for label, minutes in spent_by_type_today.items() %}{{ label }} {{ minutes }} min{% if not loop.last %} · {% endif %}{% endfor %})</span>
     {% endif %}
     {% if schedule.stats.overflow_minutes > 0 %}
-    <span class="badge bad" title="Le temps requis dépasse le temps réellement disponible aujourd'hui : dépriorisez ou décalez à demain.">
+    <span class="badge bad" title="Le temps requis dépasse le temps disponible aujourd'hui : dépriorisez ou décalez à demain.">
       {{ icon('warning') }} la journée déborde de {{ overflow_str }}</span>
     {% endif %}
   </div>
@@ -221,7 +221,7 @@
 <div class="mj-day-main">
 <details class="card" open>
   <summary class="collapser">{{ icon('chevron_right', '') }} Aujourd'hui, dans l'ordre
-    <span class="hint">(triée par score WSJF, valeur ÷ effort, pas seulement par heure)</span></summary>
+    <span class="hint">(ordre du score WSJF : valeur ÷ effort)</span></summary>
   {% if not visible_scheduled %}
   <p class="muted">Aucune tâche à faire n'est actuellement planifiée.</p>
   {% endif %}
@@ -245,7 +245,7 @@
             {{ icon('warning') }} {{ item.pushed_note }}</span>
           {% endif %}
           {% if item.dip_note %}
-          <span class="badge neutral" title="Creux de l'après-midi : on y place les tâches légères, pas les plus complexes">
+          <span class="badge neutral" title="Creux de l'après-midi : les tâches légères y passent en priorité">
             {{ icon('clock') }} {{ item.dip_note }}</span>
           {% endif %}
           {% if item.conflict %}
@@ -428,7 +428,7 @@
     </div>
     {% if session_timeline %}
     <p class="hint" style="margin-top:0.5rem;">{{ icon('clock') }} Le rail à gauche marque le
-    temps réellement chronométré.</p>
+    temps chronométré.</p>
     {% endif %}
   </section>
 </div>

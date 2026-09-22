@@ -13,7 +13,7 @@ Les phases 1-9 ont collecté deux sources de données :
 - **Tâches** : titre, priorité, points de Fibonacci, durée estimée, type, statut (todo/done/archived).
 - **Suivi du temps réel** : sessions de travail (`WorkSession`) horodatées, avec tâche et durée réelles.
 
-Manquait un **outil de feedback empirique** : savoir comment j'estime réellement, où passe mon temps, où accumulent les retards — pour calibrer le système WSJF (poids de priorité, horizon d'urgence) et guider les décisions futures.
+Manquait un **outil de feedback empirique** : savoir comment j'estime réellement, où passe mon temps, où accumulent les retards ; pour calibrer le système WSJF (poids de priorité, horizon d'urgence) et guider les décisions futures.
 
 ### Comportement attendu (utilisateur)
 
@@ -23,7 +23,7 @@ Au chargement de `/kairos/stats`, voir une **page de lecture seule** avec six bl
 - **Calibration de l'estimation** (le cœur du feedback) : temps réel médian **par palier de points** (si deux paliers se rejoignent, l'échelle ne discrimine pas) ; ratio estimé vs réel.
 - **Répartition du temps réel par type** : où passe effectivement le temps (répartition %) ; durée moyenne des sessions = proxy de fragmentation (attention morcelée = sessions courtes/nombreuses).
 - **Flux & backlog** : WIP (tâches en cours), âge médian du backlog, tâches en retard, tâches qui traînent, respect des échéances.
-- **Complétude des métadonnées** : part des tâches todo qualifiées (points de Fibonacci, durée estimée, type) — incite à les remplir (indirecte : si peu de points posés, la calibration sera peu fiable).
+- **Complétude des métadonnées** : part des tâches todo qualifiées (points de Fibonacci, durée estimée, type) ; incite à les remplir (indirecte : si peu de points posés, la calibration sera peu fiable).
 
 ### Critères de succès
 
@@ -54,7 +54,7 @@ Au chargement de `/kairos/stats`, voir une **page de lecture seule** avec six bl
 2. Appelle `compute_dashboard_stats(tasks, sessions, today, settings=settings, now=None)` (fonction orchestratrice).
 3. Passe le résultat (`DashboardStats`) au template `kairos_stats.html` (rendu serveur).
 
-**Template** `templates/kairos_stats.html` : rendu six sections `.panel` dans une grille `.grid2`, en pur HTML/Jinja2 — aucun JavaScript actif sur la page.
+**Template** `templates/kairos_stats.html` : rendu six sections `.panel` dans une grille `.grid2`, en pur HTML/Jinja2 ; aucun JavaScript actif sur la page.
 
 ### Détail des indicateurs
 
@@ -260,9 +260,9 @@ class Completeness:
 - Comptage simple pour chaque champ renseigné (non-vide/non-nul).
 - Pct = round(100 * count / total), ou 0 si total=0.
 
-**Rendu** : trois barres horizontales (Points de Fibonacci / Durée estimée / Type de tâche), chacune avec label, largeur pct, pct affiché, count / total affiché. Barre verte si pct ≥ 70%, sinon neutre. Le label porte un attribut `title="{{ label }}"` (cohérent avec les deux autres blocs `.barrow` de cette page — débit hebdomadaire, répartition du temps réel) : sur petit écran, `.barlabel` reste tronqué avec ellipsis si nécessaire (`white-space: nowrap; overflow: hidden; text-overflow: ellipsis`), le `title` donne le libellé complet au survol/appui long.
+**Rendu** : trois barres horizontales (Points de Fibonacci / Durée estimée / Type de tâche), chacune avec label, largeur pct, pct affiché, count / total affiché. Barre verte si pct ≥ 70%, sinon neutre. Le label porte un attribut `title="{{ label }}"` (cohérent avec les deux autres blocs `.barrow` de cette page : débit hebdomadaire, répartition du temps réel) : sur petit écran, `.barlabel` reste tronqué avec ellipsis si nécessaire (`white-space: nowrap; overflow: hidden; text-overflow: ellipsis`), le `title` donne le libellé complet au survol/appui long.
 
-**Interprétation** : incite à remplir les métadonnées — la calibration d'estimation et le tri WSJF en dépendent. Si <70%, l'utilisateur laisse de la clarification en retard.
+**Interprétation** : incite à remplir les métadonnées : la calibration d'estimation et le tri WSJF en dépendent. Si <70%, l'utilisateur laisse de la clarification en retard.
 
 ### Repères du guide d'estimation (audit UI)
 
@@ -317,7 +317,7 @@ Un palier sans tâche terminée est absent du résultat.
 **Décision** : `.barrow .barlabel` élargi de `100px` à `135px` (`static/style.css`).
 
 **Justification** : à 375-393px de large (viewport mobile), `100px` tronquait
-« Points de Fibonacci » en « Points de Fibona… » — après padding de carte et
+« Points de Fibonacci » en « Points de Fibona… » ; après padding de carte et
 `.barval` (26px au minimum), il reste assez de place pour la piste `.track` même à
 135px de label. `white-space: nowrap`/`text-overflow: ellipsis` restent en
 place comme filet de sécurité pour un libellé encore plus long à l'avenir ;
@@ -345,7 +345,7 @@ sur 26px comme avant.
 | `spent_minutes_by_type` | `tasks_time.py` | durée réelle par type (key = `task_type`) |
 | `session_minutes` | `tasks_time.py` | durée d'une session unique (avec support `now` pour tests) |
 | `sessions_in_range` | `tasks_time.py` | filtre sessions dans une fenêtre de dates |
-| `urgency_bucket` | `tasks_scheduling.py` | palier d'urgence (0=retard, 4=neutre) — détermine overdue |
+| `urgency_bucket` | `tasks_scheduling.py` | palier d'urgence (0=retard, 4=neutre) : détermine overdue |
 | `days_stale` | `tasks_staleness.py` | jours écoulés depuis dernière édition (indique traîne) |
 
 Aucune duplication : ces modules sont testés indépendamment ; on les appelle.
@@ -360,7 +360,7 @@ Aucune duplication : ces modules sont testés indépendamment ; on les appelle.
 
 #### Invariant 1 : Unicité des résultats
 
-La structure `DashboardStats` est immutable une fois construite. Aucun calcul n'affecte la base — la page est lecture seule.
+La structure `DashboardStats` est immutable une fois construite. Aucun calcul n'affecte la base : la page est lecture seule.
 
 #### Invariant 2 : Normalisation UTC-aware
 
@@ -388,7 +388,7 @@ Toutes les tâches chargées en mémoire sont traitées par `compute_dashboard_s
 
 #### Invariant 6 : Sessions de travail sans doublon
 
-`spent_minutes_by_task` agrège les sessions déjà chargées — aucun double-comptage. Un test le vérifie.
+`spent_minutes_by_task` agrège les sessions déjà chargées : aucun double-comptage. Un test le vérifie.
 
 #### Décisions d'arrondi
 

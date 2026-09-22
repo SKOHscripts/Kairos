@@ -1,4 +1,4 @@
-# Empaquetage Android — décisions et implémentation
+# Empaquetage Android : décisions et implémentation
 
 Kairos est distribué en APK Android par les [releases GitHub](https://github.com/SKOHscripts/Kairos/releases),
 sur le même principe que les exécutables Windows/Linux : une distribution
@@ -44,7 +44,7 @@ Chaîne de démarrage :
 
 1. `MainActivity.onCreate` construit immédiatement la WebView **et** un overlay
    de démarrage (fond `@color/kairos_bg` + logo animé) empilés dans un
-   `FrameLayout`, puis affiche cette hiérarchie (`setContentView`) — voir
+   `FrameLayout`, puis affiche cette hiérarchie (`setContentView`) : voir
    « Écran de démarrage » ci-dessous pour le détail et le pourquoi de ce
    choix. En parallèle, sur un thread dédié (`kairos-init`, jamais le thread
    principal) : démarre Chaquopy et appelle `kairos_boot.prepare(filesDir)` :
@@ -53,7 +53,7 @@ Chaîne de démarrage :
    `KAIROS_PLATFORM=android` sont posés, puis `app/android_launcher.py` ancre
    les données dans le stockage privé (`KAIROS_DATA_DIR`) et choisit un port
    libre. `KAIROS_PLATFORM` est lu une seule fois par `app/main.py`
-   (`is_android`) pour la bottom nav de `templates/base.html` — seule
+   (`is_android`) pour la bottom nav de `templates/base.html` : seule
    variable d'environnement de ce module consommée pour distinguer l'APK
    Android du reste (voir `docs/spec/accueil-navigation.md`), tout le reste
    du gabarit/CSS restant strictement identique entre les trois cibles de
@@ -77,7 +77,7 @@ Points notables :
 - **Permission `INTERNET`** requise même pour le loopback ; HTTP en clair
   autorisé uniquement vers `127.0.0.1` (`network_security_config.xml`), le
   reste (TimeTree, GitLab) reste en HTTPS.
-- **Bouton « Quitter »** : absent sur Android sans changement de gabarit — il
+- **Bouton « Quitter »** : absent sur Android sans changement de gabarit : il
   n'apparaît que sous `is_frozen` (PyInstaller), faux dans l'APK. On quitte par
   le système.
 - **`keyring`** : aucun trousseau sur Android, repli automatique sur le fichier
@@ -88,17 +88,17 @@ Points notables :
   foreground service, un chrono en cours ne survit pas à une mise en veille
   agressive.
 - **Écran de démarrage** (revue produit F-Droid/mobile, 2026-07, corrigé une
-  seconde fois — voir « Piège tracé » ci-dessous) : un **overlay applicatif**,
+  seconde fois : voir « Piège tracé » ci-dessous) : un **overlay applicatif**,
   pas le splash système d'Android, porte le branding pendant toute l'attente
   de Python/uvicorn.
   - **Pourquoi pas le splash système (API 31+, `windowSplashScreenBackground`/
     `windowSplashScreenAnimatedIcon` dans `themes.xml`)** : cette API vise des
     attentes courtes (elle disparaît dès la première frame dessinée par
     l'activité) et plusieurs OEM/AOSP la forcent à disparaître au-delà d'un
-    court délai — inadaptée à un démarrage de plusieurs secondes (extraction
+    court délai, ce qui la rend inadaptée à un démarrage de plusieurs secondes (extraction
     du paquet Python embarqué, première écriture SQLite). `themes.xml`
     conserve ces attributs (`android:windowSplashScreenBackground`,
-    `android:windowBackground` — les deux à `@color/kairos_bg`,
+    `android:windowBackground` : les deux à `@color/kairos_bg`,
     `tools:targetApi="31"` pour le premier : annotation lint, pas un
     mécanisme de qualification de ressource, ignorée sans erreur en dessous
     de l'API 31, même mécanisme déjà en production pour
@@ -108,21 +108,20 @@ Points notables :
   - **`MainActivity`** construit dans `onCreate`, synchrone, avant tout appel
     Python : un `FrameLayout` empilant la `WebView` (en dessous) et un
     overlay plein écran (fond `@color/kairos_bg` + un `ImageView` centré,
-    au-dessus) — `buildStartupOverlay()`. L'`ImageView` réutilise
+    au-dessus), via `buildStartupOverlay()`. L'`ImageView` réutilise
     l'`AnimatedVectorDrawable` déjà créé pour l'ancien splash système
-    (`@drawable/kairos_splash_icon` — `kairos_splash_icon_base.xml` +
+    (`@drawable/kairos_splash_icon`, soit `kairos_splash_icon_base.xml` +
     `res/animator/kairos_splash_wedge_sweep.xml`, natif
     `android.graphics.drawable`, API 21+, pas AndroidX ; secteur terracotta
     balayant depuis midi jusqu'à 80°, 5 images-clés pour éviter l'aplatissement
-    d'un morph `pathData` à deux points — voir le commentaire du fichier
-    animator pour le détail géométrique) : appelée explicitement en Java
-    (`Animatable.start()`), pas automatiquement par le système comme c'était
-    le cas pour le splash — mais c'est le **même** asset, juste rejoué
-    autrement.
+    d'un morph `pathData` à deux points ; détail géométrique en commentaire du
+    fichier animator). L'animation est lancée explicitement en Java
+    (`Animatable.start()`) et non plus par le système comme pour le splash :
+    c'est le **même** asset, rejoué autrement.
   - **Python/uvicorn démarrent sur un thread dédié** (`kairos-init`), jamais
     le thread principal : `Python.start()` et surtout
     `kairos_boot.prepare()` peuvent prendre plusieurs secondes au premier
-    lancement, ce qui bloquait auparavant `onCreate` de bout en bout —
+    lancement, ce qui bloquait auparavant `onCreate` de bout en bout ;
     c'est ce blocage qui, dans la version précédente, empêchait le splash
     (système ou applicatif) de s'afficher ou de s'animer : le thread qui
     aurait dû le dessiner était occupé à extraire le paquet Python.
@@ -133,7 +132,7 @@ Points notables :
     échec), pour ne jamais rester bloqué sur le logo.
   - **Piège tracé, pour ne pas le retrancher deux fois** : une première
     tentative avait retenu le splash *système* via
-    `Activity.getSplashScreen().setKeepOnScreenCondition(...)` — cette
+    `Activity.getSplashScreen().setKeepOnScreenCondition(...)` : cette
     méthode **n'existe pas** sur `android.window.SplashScreen` (la classe
     native, seule autorisée par la contrainte « pas d'AndroidX »), seulement
     sur `androidx.core.splashscreen.SplashScreen`, hors périmètre (erreur de
@@ -143,15 +142,15 @@ Points notables :
     problème de fond que le splash système qu'il retenait : tant que
     `onCreate` restait bloqué par l'initialisation Python synchrone, rien ne
     se dessinait à l'écran, splash retenu ou non. D'où le passage à un
-    overlay applicatif **et** à une initialisation hors thread principal —
+    overlay applicatif **et** à une initialisation hors thread principal :
     les deux ensemble, pas l'un sans l'autre.
 - **Geste retour prédictif** (Android 13+/15, même revue) : `AndroidManifest.xml`
   pose `android:enableOnBackInvokedCallback="true"` au niveau `<application>`
-  (impératif — sans lui, tout enregistrement de callback reste sans effet même
+  (impératif : sans lui, tout enregistrement de callback reste sans effet même
   sur API 33+). `MainActivity.registerPredictiveBackCallback()` (appelée dans
   `onCreate`, juste après `setContentView(root)`, `root` étant le `FrameLayout`
   WebView+overlay décrit ci-dessus) enregistre un
-  `OnBackInvokedCallback` (`android.window`, natif, pas AndroidX — même parti
+  `OnBackInvokedCallback` (`android.window`, natif, pas AndroidX : même parti
   pris que `KairosNotificationBridge`) uniquement si
   `Build.VERSION.SDK_INT >= TIRAMISU` ; même logique que le chemin legacy
   (retour dans la WebView si possible, sinon `finish()`).
@@ -160,7 +159,7 @@ Points notables :
   en production ; un seul enregistrement suffit par activité, `configChanges`
   couvrant déjà la rotation (`onCreate` n'est pas rappelé).
 - **Notifications système (issue #16)** : `KairosNotificationBridge` (Java, même
-  parti pris sans AndroidX que `MainActivity` — uniquement `NotificationManager`/
+  parti pris sans AndroidX que `MainActivity`, avec uniquement `NotificationManager`/
   `NotificationChannel`/`Notification.Builder` plateforme et
   `Activity#requestPermissions` natif) exposé en JS sous `window.KairosAndroid`
   (`addJavascriptInterface`). `templates/kairos.html` route les alertes chrono par
@@ -175,7 +174,7 @@ Points notables :
 ## Build
 
 - CI : job `build-android` de
-  [`.github/workflows/release.yml`](../.github/workflows/release.yml) — pytest
+  [`.github/workflows/release.yml`](../.github/workflows/release.yml) ; pytest
   en garde-fou (Python 3.13), JDK 17, keystore restauré depuis les secrets,
   `./gradlew assembleRelease`, artefact `kairos-android-arm64.apk` joint à la
   release comme les exécutables desktop. `versionName`/`versionCode` dérivés du

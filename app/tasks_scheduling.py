@@ -713,7 +713,7 @@ def build_day_schedule(
 
         dip_note = ""
         if dip_active and task is not urgency_pick:
-            dip_note = f"créneau creux (~{settings.cognitive_dip_trough_hour}h) — tâche légère privilégiée"
+            dip_note = f"créneau creux (~{settings.cognitive_dip_trough_hour}h) : tâche légère privilégiée"
         result.scheduled.append(
             ScheduledTask(
                 task=task, start_at=start,

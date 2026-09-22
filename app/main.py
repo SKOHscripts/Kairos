@@ -475,7 +475,7 @@ def _build_kairos_context(
     ticket_by_id = {t.id: t for t in all_tickets}
     ticket_choices = sorted(
         (
-            {"id": t.id, "label": f"#{t.pleiade_id} — {t.pleiade_subject[:60]}"}
+            {"id": t.id, "label": f"#{t.pleiade_id} · {t.pleiade_subject[:60]}"}
             for t in all_tickets
         ),
         key=lambda c: c["label"],

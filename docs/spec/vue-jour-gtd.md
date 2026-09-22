@@ -1,25 +1,25 @@
 # Vue Jour & flux GTD
 
 _Rôle : la vue Jour (`GET /kairos`, page par défaut de l'application) est le poste de
-pilotage quotidien de Kairos — capture sans friction, clarification GTD (boîte de
+pilotage quotidien de Kairos ; capture sans friction, clarification GTD (boîte de
 réception), puis exécution ordonnée (WSJF) de la journée. Cette spec couvre
 l'**ergonomie/UI** de cette vue et son **contrat de rendu** (page pleine vs fragment
 AJAX), pas les moteurs de calcul sous-jacents._
 
 **Fichiers couverts** :
-- `templates/kairos.html` — page pleine (`{% extends "base.html" %}`) : branche
+- `templates/kairos.html` : page pleine (`{% extends "base.html" %}`) : branche
   vue Semaine inline, branche vue Jour via `{% include "_kairos_day.html" %}`, et
   tout le JS inline (`{% block scripts %}`).
-- `templates/_kairos_day.html` — partiel de la vue Jour (capture → inbox →
+- `templates/_kairos_day.html` : partiel de la vue Jour (capture → inbox →
   « Maintenant » → bannières → filtres/backlog → agenda + sections secondaires →
   colonne latérale).
-- `templates/_kairos_macros.html` — macros partagées : `done_toggle`,
+- `templates/_kairos_macros.html` : macros partagées : `done_toggle`,
   `task_actions`, `time_spent`, `fibo_help`, `edit_panel`, `task_key_badges`,
   `task_tags`, `task_description`.
 - `templates/_kairos_banners.html`, `templates/_kairos_filters.html`,
-  `templates/_kairos_backlog.html` — partiels `{% include %}` (contexte propagé
+  `templates/_kairos_backlog.html` : partiels `{% include %}` (contexte propagé
   tel quel, jamais de macro).
-- `app/main.py` — `_build_kairos_context`, `render_kairos_response`,
+- `app/main.py` : `_build_kairos_context`, `render_kairos_response`,
   `_kairos_action_response`, `kairos`, `create_native_task`,
   `update_task_priority`, `update_task_points`, `start_timer`/`stop_timer`,
   `edit_task`, `toggle_task_done`, `snooze_task`, `delete_task`,
@@ -44,20 +44,20 @@ amont de la boîte de réception (page Notes, `/kairos/notes`) →
 ### Objectif / problème
 
 Kairos est un outil mono-utilisateur : la vue Jour doit répondre, à l'ouverture,
-sans recouper mentalement plusieurs écrans, à trois questions — qu'est-ce qui
+sans recouper mentalement plusieurs écrans, à trois questions ; qu'est-ce qui
 n'est pas encore clarifié, qu'est-ce que je fais maintenant, qu'est-ce qui vient
 ensuite. Le produit a grossi par 18 phases successives (`SPEC_KAIROS.md`) ; la
 phase 5 constatait déjà « six sections de liste empilées [...] sans hiérarchie
-visuelle entre une tâche en retard et une tâche normale — l'ordre du tri porte
+visuelle entre une tâche en retard et une tâche normale : l'ordre du tri porte
 toute la charge de signal, rien à l'œil ». Une refonte (désignée dans le code par
 « Refonte Jour v2 », commentaire `static/style.css`) a réorganisé la page
 explicitement autour du cycle **GTD** (*Getting Things Done*) **capturer → traiter
 la boîte de réception → faire**, décrit dans `docs/DESIGN_SYSTEM.md` § « Architecture
-de l'information — vue Jour (flux GTD) ».
+de l'information : vue Jour (flux GTD) ».
 
 Deux contraintes transverses structurent toute décision d'UI de cette vue :
 - l'app tourne en navigateur desktop, en exécutable PyInstaller offline et en
-  WebView Android packagée (APK) — le JavaScript ne peut donc jamais être un
+  WebView Android packagée (APK) : le JavaScript ne peut donc jamais être un
   prérequis fonctionnel, seulement une amélioration progressive ;
 - l'app est mono-utilisateur et locale : pas de sync temps réel entre onglets, la
   cohérence entre un swap AJAX et un rechargement complet doit être totale (même
@@ -68,23 +68,23 @@ Deux contraintes transverses structurent toute décision d'UI de cette vue :
 Ordre vertical de la vue Jour (de haut en bas), chaque section correspondant à une
 étape du flux GTD ou à un utilitaire secondaire :
 
-1. **Capture** (`.mj-capture`) — toujours visible, jamais dans un `<details>`
+1. **Capture** (`.mj-capture`) : toujours visible, jamais dans un `<details>`
    replié. Deux volets par onglet radio : « Tâche » (titre seul, capture
    volontairement sans friction) et « Créneau / deep work » (titre + horaires +
    case deep-work + récurrence, avec en dessous la liste éditable des créneaux du
    jour). Un seul bouton bleu (`.btn.primary`) par volet.
-2. **Boîte de réception** (« À traiter », `#mj-inbox`) — juste sous la capture.
+2. **Boîte de réception** (« À traiter », `#mj-inbox`) : juste sous la capture.
    Toute tâche sans priorité **ou** sans points Fibonacci, quelle que soit son
    origine (native, GitLab assigné...), y échoue et n'entre dans **aucun** tri tant
    qu'elle n'est pas qualifiée. Qualification en un ou deux clics, en ligne
    (sélection priorité + sélection points), sans ouvrir l'édition complète. État
    vide affiché explicitement (jamais la section qui disparaît).
-3. **« Maintenant »** (`.mj-progress`) — la tâche actionnable suivante, avec ses
+3. **« Maintenant »** (`.mj-progress`) : la tâche actionnable suivante, avec ses
    actions directes (fait / chrono / décaler) et les statistiques de la journée
    (faites, à faire, requis vs disponible, débordement, temps déjà travaillé
    aujourd'hui ventilé par type, indications calendrier). Élément principal de la
    page, jamais repliable.
-4. **Bannières d'alerte** (TimeTree, import GitLab, surcharge de priorité) — sous
+4. **Bannières d'alerte** (TimeTree, import GitLab, surcharge de priorité) : sous
    « Maintenant », jamais en tout premier : ce sont des avertissements de
    dégradation d'intégrations externes, pas le point d'entrée du flux.
 5. **Agenda ordonné** (« Aujourd'hui, dans l'ordre ») : la liste centrale, triée
@@ -134,49 +134,49 @@ visuel : coche ronde en tête de ligne, bordure gauche colorée par palier
 d'urgence, badges (score WSJF, priorité, type, points, fiche liée, temps passé,
 « traîne depuis... »), actions à droite (chrono, décaler), crayon d'édition.
 
-**Anatomie d'une ligne de tâche — quatre colonnes fixes (issue #33).** Avec
+**Anatomie d'une ligne de tâche : quatre colonnes fixes (issue #33).** Avec
 beaucoup de tâches de longueurs différentes, une ligne « tout à la suite »
 devient illisible : chaque tâche place ses actions à un endroit différent selon
 le nombre de badges qu'elle porte, et un titre long chasse tout le reste. La
 ligne suit donc une **grille invisible** (l'utilisateur ne voit aucun trait, il
 voit des colonnes qui s'alignent d'une ligne à l'autre) :
 
-1. **Coche** — largeur fixe, toujours en tête.
-2. **Corps** — occupe l'espace restant, jamais plus : l'heure et le titre en
+1. **Coche** : largeur fixe, toujours en tête.
+2. **Corps** : occupe l'espace restant, jamais plus : l'heure et le titre en
    première ligne, puis les **étiquettes** de contexte (projet, type, fiche
    liée, échéance, durée, « traîne depuis… », notes de placement…) qui
    s'empilent en dessous en s'enroulant sur plusieurs lignes si nécessaire, puis
    l'extrait de description. Un titre long ou dix étiquettes font grandir cette
    colonne **vers le bas**, jamais vers la droite.
-3. **Priorité et points** — collés à la colonne d'actions, alignés à droite :
+3. **Priorité et points** : collés à la colonne d'actions, alignés à droite :
    d'une ligne à l'autre, ils tombent toujours au même endroit, ce qui rend la
    liste balayable d'un seul coup d'œil vertical. Le score WSJF les accompagne
    (c'est lui qui ordonne la liste ; avec la priorité, ce sont les deux seuls
    badges à porter l'accent, voir `docs/DESIGN_SYSTEM.md`).
-4. **Actions** — chrono, décaler, crayon d'édition : toujours tout à droite, à
+4. **Actions** : chrono, décaler, crayon d'édition : toujours tout à droite, à
    la même abscisse quelle que soit la tâche.
 
 Sur écran étroit, la colonne « priorité et points » passe sous le corps plutôt
 que de comprimer le titre ; les actions restent en haut à droite.
 
 **Comprendre sans quitter la liste (audit UI).** Kairos repose sur deux
-jugements que l'utilisateur doit poser lui-même — une **priorité** et une
-**taille en points** — puis trie à sa place. Les deux restaient opaques : la
+jugements que l'utilisateur doit poser lui-même : une **priorité** et une
+**taille en points** : puis trie à sa place. Les deux restaient opaques : la
 priorité n'avait de définition nulle part (seulement des poids internes), les
 points se choisissaient dans un menu « — / 1 / 2 / 3… » sans repère, et
 l'ordre de la liste ne s'expliquait qu'au survol d'un badge, donc jamais sur
 mobile ni dans l'APK Android. Quatre réponses :
 
 - **Le sens des priorités est défini, une fois, et affiché partout où l'on
-  choisit** : **P0 Critique** — bloquant ou engagement ferme, rare par nature
-  (le bandeau de surcharge le rappelle) ; **P1 Important** — compte vraiment,
-  à caser cette semaine ; **P2 Utile** — à faire quand il y a de la place. Ce
+  choisit** : **P0 Critique**, bloquant ou engagement ferme, rare par nature
+  (le bandeau de surcharge le rappelle) ; **P1 Important**, à caser cette
+  semaine ; **P2 Utile**, à faire quand il y a de la place. Ce
   sont des degrés d'**importance**, pas de délai : l'urgence est déjà portée par
   l'échéance dans le score, des libellés de délai auraient fait doublon.
 - **Qualifier se fait en un clic, sens compris.** Dans la boîte de réception
   comme dans le panneau d'édition, priorité et points se choisissent sur une
   rangée de pastilles (P0 · P1 · P2 ; 1 · 2 · 3 · 5 · 8 · 13 · 21) dont chacune
-  porte son sens en clair — lisible aussi au toucher, jamais seulement dans une
+  porte son sens en clair ; lisible aussi au toucher, jamais seulement dans une
   infobulle. Un clic pose la valeur, au lieu d'ouvrir un menu puis de choisir.
   Cela fonctionne sans JavaScript.
 - **L'estimation en points s'appuie sur l'historique de l'utilisateur.**
@@ -203,7 +203,7 @@ Règle de construction de l'URL et dégradation quand elle n'est pas calculable 
 atténué, sous le titre, dépliable sur place au clic pour lire le texte complet
 (retours à la ligne préservés). Motivation (issue #32) : la description était
 jusque-là enfouie sous deux niveaux de divulgation (ouvrir l'édition, **puis**
-déplier « Options avancées ») — une information réellement utile y devenait
+déplier « Options avancées ») ; une information réellement utile y devenait
 invisible faute d'avoir le réflexe d'aller la chercher, et se perdait en
 pratique. Corollaire dans le panneau d'édition : la Description remonte parmi
 les champs **essentiels**, juste sous le Titre, et ne fait plus partie des
@@ -273,7 +273,7 @@ aller-retour (infos, sous-tâches en lot, bloqueurs, épinglage).
 - Réglages, secrets, page `/kairos/settings` → `docs/spec/reglages-secrets.md`.
 - `base.html`, topnav, page d'accueil → `docs/spec/accueil-navigation.md`.
 - La page Notes (`/kairos/notes`), mécanisme de capture GTD **en amont** de la
-  boîte de réception décrite ci-dessous (§ 2) — une note se convertit en tâche
+  boîte de réception décrite ci-dessous (§ 2) : une note se convertit en tâche
   titre-seul, qui atterrit alors dans cette même boîte de réception, mais la
   capture, l'édition et l'archivage d'une note n'ont pas leur place ici →
   `docs/spec/notes-capture.md`.
@@ -288,12 +288,12 @@ aller-retour (infos, sous-tâches en lot, bloqueurs, épinglage).
   (`{% from "_kairos_macros.html" import ... with context %}`), et branche sur
   `view` (query param) : `view == 'week'` rend la grille semaine **inline** dans
   `kairos.html` lui-même ; sinon un unique `<div id="mj-day-content">` enveloppe
-  `{% include "_kairos_day.html" %}` — **`#mj-day-content` n'existe qu'à cet unique
+  `{% include "_kairos_day.html" %}` : **`#mj-day-content` n'existe qu'à cet unique
   endroit dans toute l'app** (invariant explicite, commenté dans le fichier).
 - `_kairos_day.html` est rendu **deux fois** selon le chemin d'appel : (a) inclus
   dans `kairos.html` pour la page pleine, à l'intérieur de l'enveloppe
   `#mj-day-content` ; (b) rendu **directement, sans enveloppe**, par
-  `render_kairos_response(fragment=True)` pour les réponses AJAX — le fragment
+  `render_kairos_response(fragment=True)` pour les réponses AJAX : le fragment
   renvoyé remplace le `.innerHTML` de `#mj-day-content` côté client, donc ne doit
   jamais poser l'id lui-même sous peine de duplication.
 - `_build_kairos_context(request, tasks_session, pilotage_session, *, view, day)`
@@ -304,10 +304,10 @@ aller-retour (infos, sous-tâches en lot, bloqueurs, épinglage).
   `_build_kairos_context`, puis choisit `kairos.html` (`fragment=False`) ou
   `_kairos_day.html` (`fragment=True`). Les handlers d'action doivent avoir
   **committé et fermé leur propre session tâches** avant d'appeler cette
-  fonction, qui rouvre des sessions fraîches — invariant documenté explicitement
+  fonction, qui rouvre des sessions fraîches, invariant documenté explicitement
   dans le code, jamais de session imbriquée.
 - `templates/_kairos_macros.html` est importée `with context` par **les deux**
-  gabarits (`kairos.html` et `_kairos_day.html`) plutôt que l'un depuis l'autre —
+  gabarits (`kairos.html` et `_kairos_day.html`) plutôt que l'un depuis l'autre,
   évite un cycle d'import entre les deux.
 - `_kairos_banners.html`, `_kairos_filters.html`, `_kairos_backlog.html` sont
   inclus (`{% include %}`, pas de macro) à la fois par la branche semaine de
@@ -318,11 +318,11 @@ aller-retour (infos, sous-tâches en lot, bloqueurs, épinglage).
 - `_kairos_backlog.html` est rendu **quelle que soit la vue** (jour ou semaine) :
   sans lui, une tâche sans échéance ni date programmée n'apparaîtrait ni dans la
   grille semaine (groupée strictement par échéance) ni facilement dans l'agenda
-  du jour — elle s'y perdrait.
+  du jour : elle s'y perdrait.
 
 ### Le flux GTD, section par section
 
-**1. Capture** (`_kairos_day.html` lignes ~17-90, classe `.mj-capture`) — deux
+**1. Capture** (`_kairos_day.html` lignes ~17-90, classe `.mj-capture`) : deux
 formulaires HTML classiques, jamais `data-ajax` (navigation complète à la
 soumission, y compris JS actif) :
 - `POST /kairos/tasks` (`create_native_task`) : titre seul requis. Gère aussi la
@@ -346,11 +346,11 @@ soumission, y compris JS actif) :
   `[data-mj-add-pane]` dont l'attribut correspond à la valeur du radio choisi.
 - Sous le volet créneau : `editable_blocks` (calculé dans `_build_kairos_context`)
   liste les **lignes réelles en base** (`TimeBlock.source == 'manual'`)
-  pertinentes pour le jour affiché — les ponctuels du jour **et** les modèles
+  pertinentes pour le jour affiché ; les ponctuels du jour **et** les modèles
   récurrents dont `expand_recurring_blocks([b], target_day, target_day)` produit
   une occurrence ce jour-là (aligné sur ce que montre la timeline). Éditer un
   créneau récurrent porte donc sur le **modèle**, donc sur **toutes** ses
-  occurrences (phase 16) — signalé par un badge `.badge.info` « récurrent » (avec
+  occurrences (phase 16) : signalé par un badge `.badge.info` « récurrent » (avec
   libellé `block_recurrence_labels`) et par le texte de confirmation JS de
   suppression (`onsubmit="return confirm('Supprimer ce créneau{% if
   block.recurrence %} récurrent (toutes ses occurrences){% endif %} ?')"`).
@@ -364,7 +364,7 @@ soumission, y compris JS actif) :
   base).
 
 **2. Boîte de réception** (`#mj-inbox`, classe `.mj-to-process` +
-`.mj-inbox-empty` conditionnelle) — variable de contexte `visible_to_process`
+`.mj-inbox-empty` conditionnelle) : variable de contexte `visible_to_process`
 (= `schedule.to_process` filtré par `_visible()`, recherche/facettes). Chaque
 ligne affiche un badge `.badge.warn` dont le libellé distingue les trois cas :
 « priorité et points manquants », « priorité manquante », « points manquants ».
@@ -389,18 +389,18 @@ Qualification en ligne (pastilles, audit UI) :
   d'édition, voir § Modale d'édition).
 - L'état vide (`.mj-inbox-empty`) réduit le padding vertical et affiche
   `.mj-inbox-empty-msg` (« Rien à traiter : tout est déjà clarifié ») au lieu de
-  faire disparaître la section — rappel volontaire de « où regarder en premier ».
+  faire disparaître la section, rappel volontaire de « où regarder en premier ».
 - Une aide repliable (`.mj-help`, motif réutilisé de `fibo_help()`) explique le
   principe GTD directement dans le `<summary>` (« pourquoi qualifier ? »).
 - **Alimentation en amont, hors de cette spec** : une tâche titre-seul peut venir
   directement de la capture de cette vue (§ 1) **ou** d'une conversion depuis la
-  page Notes (`POST /kairos/notes/{id}/convert`, `docs/spec/notes-capture.md`) —
+  page Notes (`POST /kairos/notes/{id}/convert`, `docs/spec/notes-capture.md`),
   les deux chemins produisent le même objet (`Task(source="native")`, ni
   priorité ni points), indiscernable ici une fois créé.
 
-**3. « Maintenant »** (`.mj-progress`) — `next_up_task` (calculé côté serveur) =
+**3. « Maintenant »** (`.mj-progress`), `next_up_task` (calculé côté serveur) =
 `schedule.scheduled[0].task` si l'agenda a une première entrée planifiée, sinon
-`schedule.unscheduled[0]` si la liste non planifiée n'est pas vide, sinon `None` —
+`schedule.unscheduled[0]` si la liste non planifiée n'est pas vide, sinon `None`,
 commentaire de code : « il y a toujours un "prochain pas" ». Affiche
 `done_toggle`/`task_actions` directement sur cette tâche (fait, chrono, décaler)
 sans que l'utilisateur ait à la retrouver dans la liste plus bas. Ces
@@ -411,28 +411,28 @@ libellé « Fait », « Démarrer le chrono » ou « Arrêter le chrono »,
 icônes seules (`.icbtn`), pour la densité. L'icône « décaler au prochain jour
 ouvré » est `skip_forward` (deux chevrons et une barre), le chevron simple se
 lisant comme « ouvrir ». Ligne de titre
-en Newsreader italique (`.mj-next`, exception de police assumée — voir « Décisions
+en Newsreader italique (`.mj-next`, exception de police assumée : voir « Décisions
 et pièges tracés »). Bloc de statistiques (`.mj-progress-stats`) : compte de
 tâches faites/à faire, `required_str`/`available_str` (temps requis vs
-disponible), `spent_total_str` (temps travaillé **aujourd'hui uniquement** —
+disponible), `spent_total_str` (temps travaillé **aujourd'hui uniquement** ;
 correction d'un bug de scope temporel tracée en phase 7 de `SPEC_KAIROS.md`),
 ventilation `spent_by_type_today`, badge de débordement si
 `schedule.stats.overflow_minutes > 0`. Ligne `indication_events` (événements
-TimeTree journée-entière/multi-jours, phase 12 — simple puce datée, jamais un
+TimeTree journée-entière/multi-jours, phase 12 : simple puce datée, jamais un
 obstacle horaire). Bloc `#mj-alert-config` (attributs `data-idle`/`data-pomodoro`)
 + bouton d'opt-in : sert uniquement de point d'ancrage DOM pour le script du
 chrono (détail dans `docs/spec/temps-reel-chrono.md`), pas de logique propre à
 cette spec.
 
-**4. Bannières** (`_kairos_banners.html`) — trois conditions indépendantes,
-chacune `.banner.warning` : TimeTree (`timetree_configured and not
-timetree_ok`, silencieux si non configuré — phase 18), import GitLab direct
+**4. Bannières** (`_kairos_banners.html`) : trois conditions indépendantes,
+chacune `.banner.warning`. TimeTree (`timetree_configured and not
+timetree_ok`, silencieux si non configuré, phase 18), import GitLab direct
 (`gitlab_direct_error` non vide), surcharge de priorité maximale
 (`priority_overload_count > priority_overload_threshold`). Position fixe : sous
-« Maintenant », avant les filtres — documentée comme volontaire (« ce ne sont que
+« Maintenant », avant la liste du jour ; documentée comme volontaire (« ce ne sont que
 des avertissements de dégradation, pas le point d'entrée du flux »).
 
-**5. Filtres compacts** (`_kairos_filters.html`) — `<details class="card
+**5. Filtres compacts** (`_kairos_filters.html`) : `<details class="card
 mj-filter-compact">`, `open` seulement si `filter_active` (recherche ou une
 facette posée ; booléen calculé une fois dans `_build_kairos_context`).
 **Position** (audit UI) : en bas de `.mj-day-main`, après les sections
@@ -442,7 +442,7 @@ pourquoi les listes sont réduites. Jamais les deux à la fois. La vue Semaine
 garde filtres et backlog au-dessus de sa grille. Formulaire **GET** (pas `data-ajax` : c'est une navigation avec
 état porté par l'URL, pas une mutation), champs cachés `view`/`start` pour
 préserver la vue/le jour courants. Facettes : priorité (`range(0, 3)`, donc
-P0/P1/P2 uniquement — même échelle réduite que partout ailleurs dans cette vue),
+P0/P1/P2 uniquement ; même échelle réduite que partout ailleurs dans cette vue),
 projet (dynamique, `project_choices`), type (`settings.task_type_list`), points
 Fibonacci (`fibonacci_scale`). Un seul marqueur visible quand un filtre est actif
 (`.badge.info` « filtre actif » dans le `<summary>`) plutôt que les 5 champs
@@ -451,9 +451,9 @@ déployés en permanence ; lien « Réinitialiser » vers l'URL sans query param
 `_build_kairos_context`) ne touche jamais l'ordonnancement lui-même, seulement les
 listes affichées.
 
-**6. Agenda ordonné** — `<details class="card" open>`, seule section de la vue
+**6. Agenda ordonné** : `<details class="card" open>`, seule section de la vue
 Jour (hors « Maintenant ») **dépliée par défaut**. Liste `<ol>` (seule liste
-ordonnée sémantiquement de la page — l'ordre porte l'information). Chaque `<li
+ordonnée sémantiquement de la page : l'ordre porte l'information). Chaque `<li
 class="kairos-item mj-bucket-{{ bucket_of[...] }}">` suit la grille de quatre
 cellules décrite plus bas (§ Ligne de tâche) : coche, puis le corps
 (`.mj-item-head` = heure + titre avec fil d'Ariane `{{ parent_title_of }} › `
@@ -462,7 +462,7 @@ si sous-tâche ; `.mj-item-tags` = badges conditionnels
 `pushed`/`dip`/`conflict` ; puis `task_description`), puis `task_key_badges`,
 puis `task_actions` + `edit_panel`.
 
-**7. Sections secondaires condensées** — chacune un `<details class="card">`,
+**7. Sections secondaires condensées** : chacune un `<details class="card">`,
 rendue seulement si sa liste est non vide : Sans créneau aujourd'hui, Bloquées,
 Programmées plus tard, Tâches mères en cours, Fait. Repliées par défaut (sans
 attribut `open`), **sauf « Sans créneau aujourd'hui »** (`open`, audit UI, voir
@@ -515,7 +515,7 @@ grid-template-areas:   "check main key actions";
 
 **Pourquoi `minmax(0, 1fr)` et non `1fr`** : une piste `1fr` a pour taille
 minimale `auto`, donc elle refuse de descendre sous la largeur intrinsèque de
-son contenu — un titre long ferait déborder la carte au lieu de passer à la
+son contenu ; un titre long ferait déborder la carte au lieu de passer à la
 ligne. Même raison pour les `min-width: 0` posés sur `.mj-item-main`,
 `.mj-item-head .mj-title`, `.mj-item-tags` et `.mj-desc` : une boîte flex a la
 même taille minimale automatique.
@@ -529,7 +529,7 @@ ligne.
 
 **`.mj-item-head` n'a délibérément pas de `flex-wrap`** (contrairement à
 `.mj-item-tags`) : un titre long doit commencer *à côté* de l'heure et se
-poursuivre en dessous — retour à la ligne **interne** au titre, via `.mj-title
+poursuivre en dessous ; retour à la ligne **interne** au titre, via `.mj-title
 { flex: 1 1 auto; min-width: 0 }`. Avec `flex-wrap`, le titre basculerait en
 bloc sous l'heure, ce qui gâche une ligne entière.
 
@@ -539,7 +539,7 @@ texte blanc suffit à faire échouer `:empty`. La cellule restait affichée et
 ajoutait un espacement fantôme.
 
 **Deux macros, pas une** : `task_key_badges()` (les signaux de **tri** : score
-WSJF, priorité, points — les deux premiers sont les seuls badges à accent, voir
+WSJF, priorité, points ; les deux premiers sont les seuls badges à accent, voir
 `docs/DESIGN_SYSTEM.md`) et `task_tags()` (le **contexte** : projet, type,
 fiche liée, durée, échéance, date programmée, récurrence, « traîne depuis… »).
 La scission est ce qui permet à la colonne « clés » d'être stable d'une ligne à
@@ -551,13 +551,13 @@ avertissement de l'inbox) sont rendus par la section elle-même, toujours dans
 
 **Écran étroit (≤ 720px, même point de rupture que le reste de l'app)** : la
 grille passe à trois colonnes et la cellule `key` bascule sur une seconde
-ligne, alignée à gauche sous le corps — coche, corps et actions gardent leur
+ligne, alignée à gauche sous le corps ; coche, corps et actions gardent leur
 place, donc les actions restent à la même abscisse d'une ligne à l'autre,
 l'essentiel de l'issue #33. Vérifié à 375px : aucun débordement horizontal.
 
 **Vue semaine exclue** : `.mj-week-day .kairos-item` revient explicitement à
 `display: flex`. La ligne n'y porte qu'un titre (déjà tronqué en ellipse) et un
-projet, sans coche, sans actions, sans priorité — la grille n'y aurait que des
+projet, sans coche, sans actions, sans priorité : la grille n'y aurait que des
 pistes vides à aligner.
 
 ### Comprendre les valeurs et l'ordre (audit UI)
@@ -607,7 +607,7 @@ et pièges tracés, point 0).
 
 ### Description d'une tâche (extrait dépliable)
 
-`task_description(task)` (macro, `templates/_kairos_macros.html`) — rend la
+`task_description(task)` (macro, `templates/_kairos_macros.html`) : rend la
 description **dans la ligne de tâche**, plus seulement au fond du panneau
 d'édition (issue #32) :
 
@@ -620,21 +620,21 @@ d'édition (issue #32) :
   panneaux d'édition, voir § Modale d'édition) on veut **ici** que la recherche
   du navigateur déplie automatiquement le texte pour l'y trouver.
 - `<summary>` = icône `file_text` + `.mj-desc-peek` (toute la description sur
-  une ligne, coupée en ellipse par CSS — aucune troncature côté serveur, donc
+  une ligne, coupée en ellipse par CSS ; aucune troncature côté serveur, donc
   rien n'est perdu au dépliage). `.mj-desc[open] > summary .mj-desc-peek` passe
   en `display: none` : déplié, l'extrait tronqué ferait doublon avec
   `.mj-desc-body` juste en dessous, seule l'icône reste comme poignée de repli.
 - `.mj-desc-body` en `white-space: pre-wrap` : les retours à la ligne du texte
   saisi (ou hérités d'une conversion de note, voir `notes-capture.md`) sont
   préservés, sans aucun rendu HTML/Markdown (échappement Jinja par défaut,
-  jamais `| safe` — même règle que le corps d'une note).
+  jamais `| safe` ; même règle que le corps d'une note).
 
 **Point d'appel : en toute fin de `<li class="kairos-item">`**, après
 `edit_panel()`, dans les six sections de la vue Jour qui portent une ligne de
 tâche éditable (boîte de réception, agenda ordonné, sans créneau, bloquées,
 programmées plus tard, mères en cours) et dans `_kairos_backlog.html`. Raison
 tracée en commentaire CSS : `.kairos-item` est un `flex-wrap`, et `.mj-desc`
-porte `flex: 0 0 100%` pour occuper sa propre ligne — appelée plus tôt, elle
+porte `flex: 0 0 100%` pour occuper sa propre ligne ; appelée plus tôt, elle
 repousserait **tous** les badges sous elle. `min-width: 0` est posé sur le
 conteneur **et** sur l'extrait : sans lui, une boîte flex refuse de rétrécir
 sous la largeur de son contenu et l'ellipse ne se déclenche jamais (l'extrait
@@ -642,7 +642,7 @@ déborderait la carte au lieu d'être coupé).
 
 Pas de description dans la **vue semaine** ni dans la section « Fait » : la
 grille semaine tronque déjà les titres eux-mêmes (`.mj-week-day .kairos-item
-.mj-title`, ellipse), et une tâche terminée n'a plus de contexte à consulter —
+.mj-title`, ellipse), et une tâche terminée n'a plus de contexte à consulter ;
 l'extrait n'y apporterait que du bruit.
 
 ### Raccourcis clavier (audit UI)
@@ -664,7 +664,7 @@ panneau d'édition est ouvert. Chaque raccourci est signalé par un
   l'inbox (priorité, points), et le bouton Arrêter de `.mj-now-card`. **Aucun**
   autre formulaire de la vue Jour ne porte `data-ajax` : ni la capture (tâche ou
   créneau), ni le panneau d'édition complet (`mj-edit-form`, tâche ou bloc), ni
-  la suppression de tâche/bloc — ces actions rechargent toujours la page
+  la suppression de tâche/bloc ; ces actions rechargent toujours la page
   entière, y compris JavaScript actif (pas de bénéfice ergonomique identifié à
   les intercepter, elles ouvrent de toute façon une nouvelle vue de la page).
 - Écouteur `submit` délégué sur `document` (`kairos.html`) : intercepte tout
@@ -675,12 +675,12 @@ panneau d'édition est ouvert. Chaque raccourci est signalé par un
   annule l'intervalle du chrono précédent (`target.__kairosTimerHandle`, évite un
   intervalle orphelin qui continuerait d'écrire sur un DOM détaché), appelle
   `initDayScripts(target)`, restaure `window.scrollY`. Sur échec (`fetch` rejeté
-  — réseau indisponible — ou `#mj-day-content` introuvable) : **repli**
+  (réseau indisponible) ou `#mj-day-content` introuvable) : **repli**
   `form.submit()`, soumission HTML classique.
 - Côté serveur, `_kairos_action_response(request)` est la réponse commune des six
   handlers ci-dessus : si `request.headers.get("X-Requested-With") == "fetch"`,
   renvoie `render_kairos_response(request, fragment=True)` (le partiel jour, deux
-  sessions fraîches) ; sinon `RedirectResponse("/kairos", status_code=303)` — le
+  sessions fraîches) ; sinon `RedirectResponse("/kairos", status_code=303)` ; le
   comportement historique, identique sans JS. Chaque handler doit committer et
   **fermer** sa propre session avant cet appel (voir invariant plus haut).
 - **Bouton émetteur ajouté à la requête** (`kairosFormData`,
@@ -699,20 +699,20 @@ panneau d'édition est ouvert. Chaque raccourci est signalé par un
   seule fois au chargement du script, et continue de fonctionner sur le contenu
   injecté sans reliaison : bascule du panneau d'édition, fermeture Échap,
   bascule des radios de capture, remplissage de durée par type/Fibo, autosubmit,
-  l'intercepteur AJAX lui-même — un commentaire de code interdit explicitement
+  l'intercepteur AJAX lui-même ; un commentaire de code interdit explicitement
   de les dupliquer dans `initDayScripts`.
 - **Repli sans JS** : chaque `<form data-ajax>` reste un `<form method="post"
   action="...">` HTML standard. JS désactivé (ou `fetch` en échec) → soumission
   navigateur normale → branche serveur sans `X-Requested-With` → redirection 303
   vers `/kairos`, identique au comportement pré-AJAX. Nécessaire pour la WebView
   Android (fiabilité JS non garantie) et l'accessibilité (navigation complète
-  attendue par certains lecteurs d'écran) — justification explicite dans le
+  attendue par certains lecteurs d'écran) : justification explicite dans le
   commentaire d'en-tête du script.
 
 ### Modale d'édition (essentiels/avancé, bloqueurs en cases, Échap)
 
 `edit_panel(task)` (macro, `templates/_kairos_macros.html`) : `<span
-class="mj-edit">` (`display: contents` — n'interfère pas avec la mise en page de
+class="mj-edit">` (`display: contents` ; n'interfère pas avec la mise en page de
 son parent, `.mj-item-actions` depuis l'issue #33) contenant un bouton
 `.mj-edit-toggle` (crayon) et un `.mj-edit-body[hidden]`. `display: contents` y
 reste indispensable : c'est le **bouton** qui doit devenir le calque plein écran
@@ -723,27 +723,27 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
   `.closest('.mj-edit')`), reflète l'état dans `aria-expanded`.
 - **Calque plein écran quand ouvert** : le **même bouton**
   (`.mj-edit-toggle[aria-expanded="true"]`) devient `position: fixed; inset: 0;
-  z-index: 79; background: rgba(22,32,43,.42)` — cliquer n'importe où en dehors
+  z-index: 79; background: rgba(22,32,43,.42)`, cliquer n'importe où en dehors
   de la carte referme le panneau, car la cible du clic ne matche alors plus
   `.mj-edit-toggle` à l'intérieur de la carte (qui reste au-dessus, `.mj-edit-body`
   à `z-index: 80`).
 - **Glyphe ✕** : pseudo-élément `::after` du même bouton (seulement à l'état
   ouvert), positionné **à côté** du coin haut-droit de la carte
-  (`left: calc(50% + min(320px, 46vw) + 10px)`, bascule à droite sous 700px) —
+  (`left: calc(50% + min(320px, 46vw) + 10px)`, bascule à droite sous 700px),
   jamais par-dessus la carte : un pseudo-élément ne peut pas peindre au-dessus
   d'une boîte empilée plus haut (`.mj-edit-body`, qui doit rester cliquable).
 - **Piège évité, tracé explicitement** : aucune règle `:hover` sur ce bouton/son
-  `::after` — une fois ouvert, il couvre tout l'écran, donc il serait « survolé »
+  `::after` : une fois ouvert, il couvre tout l'écran, donc il serait « survolé »
   en permanence et resterait visuellement bloqué dans son état hover.
 - **Échap** : écouteur `keydown` délégué sur `document`, cherche n'importe où sur
   la page un `.mj-edit-toggle[aria-expanded="true"]`, le ferme (même logique que
   le clic extérieur). Fonctionne indifféremment pour un panneau de tâche ou de
   créneau manuel (même classes réutilisées, phase 16).
-- **Divulgation progressive** (deux niveaux, mêmes `name=` de champs qu'avant —
+- **Divulgation progressive** (deux niveaux, mêmes `name=` de champs qu'avant,
   `edit_task` inchangé) :
   - **Essentiels** (toujours visibles) : Titre (premier champ, mis en évidence
     par `.mj-edit-form > label:first-child input`), **Description**
-    (`<textarea name="description">`, juste sous le titre — remontée des options
+    (`<textarea name="description">`, juste sous le titre, remontée des options
     avancées par l'issue #32, voir § Description d'une tâche), puis
     Priorité et Points de Fibonacci en pastilles radio (`priority_choice()`,
     `points_choice()`, audit UI) : `<label class="mj-radio"><input
@@ -764,13 +764,13 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
     Récurrence + Jour du mois (visible seulement si `recurrence ==
     'monthly_on_day'` a du sens, champ toujours présent mais informativement lié),
     Type (`.mj-task-type-select`), Heure fixe (`pin_time`, + `pin_day` caché
-    porteur du jour affiché — la date programmée prime si renseignée, sinon
+    porteur du jour affiché : la date programmée prime si renseignée, sinon
     `pin_day`, sinon aujourd'hui, logique dans `edit_task`), Fiche liée
     (`linked_ticket_id`, `<select>` simple), Nouvelles sous-tâches (`<textarea
     name="new_subtasks">`, une ligne = une sous-tâche créée dans le même
     enregistrement), Bloqueurs.
 - **Un seul formulaire, une seule route** (`POST /kairos/tasks/{id}/edit`, pas de
-  `data-ajax`), un seul bouton « Enregistrer » — fusion actée en phases 5
+  `data-ajax`), un seul bouton « Enregistrer » : fusion actée en phases 5
   (épinglage) et 6 (sous-tâches en lot + bloqueurs) de `SPEC_KAIROS.md` : ce qui
   était plusieurs soumissions séparées est traité en une seule transaction côté
   route.
@@ -778,14 +778,14 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
   type="checkbox" name="blocker_ids" value="{id}">` par tâche candidate hors
   elle-même) : même `name=` répété pour chaque case → `edit_task` reçoit la
   **liste complète** via `form.getlist("blocker_ids")` et la traite comme
-  l'**ensemble cible** — diff calculé côté route (retrait = présent en base mais
+  l'**ensemble cible** ; diff calculé côté route (retrait = présent en base mais
   décoché ; ajout = coché mais absent, filtré par `would_create_cycle`, ignoré
   silencieusement en cas de cycle, sans faire échouer le reste de
   l'enregistrement). **Note de traçabilité (réconciliation de sources)** :
   `SPEC_KAIROS.md` phase 13 documente un remplacement temporaire de ces cases par
   un `<select name="blocker_ids" multiple>` (pour s'aligner sur le widget de
   « Fiche liée »). Le code actuel et `docs/DESIGN_SYSTEM.md` (« Écarts assumés »)
-  confirment que la refonte GTD est **revenue** aux cases à cocher — motif
+  confirment que la refonte GTD est **revenue** aux cases à cocher : motif
   documenté : « ni pilule ni chip à bascule, mais un HTML natif plus simple
   d'accès que le Ctrl-clic » d'un `<select multiple>`. L'état actuel (cases à
   cocher) est la décision qui prévaut ; ne pas revenir au `<select multiple>` sans
@@ -795,12 +795,12 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
   (`display: flex; flex-direction: column`, pour les champs texte/select) est
   plus spécifique qu'`.mj-check-label` seul et empilait la case au-dessus du
   texte au lieu de l'aligner à côté, pour les labels-cases du panneau d'édition
-  (bloqueurs, « Bloc deep-work » du formulaire d'édition de créneau) — corrigé par
+  (bloqueurs, « Bloc deep-work » du formulaire d'édition de créneau), corrigé par
   `.mj-edit-form .mj-check-label { flex-direction: row; align-items: center;
   gap: 0.4rem; }` (sélecteur à deux classes, regagne la priorité).
 - **Zone Supprimer/Archiver** (`.mj-edit-danger`) : séparée visuellement en pied
   de panneau (`border-top`), formulaire propre (pas `data-ajax`) avec
-  confirmation JS native (`onsubmit="return confirm(...)"`) — `POST
+  confirmation JS native (`onsubmit="return confirm(...)"`), `POST
   /kairos/tasks/{id}/delete` supprime si `task.source == 'native'`, archive
   (`status = 'archived'`) sinon (une tâche SP/GitLab resynchronisée serait
   recréée par la synchro si elle était supprimée en dur) ; nettoie aussi les
@@ -821,7 +821,7 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
    - **Titre de barre fidèle à la vue.** « Semaine · du lundi 21 septembre
      2026 » sur la vue semaine (qui affichait « Aujourd'hui »), et
      « Aujourd'hui » seulement si le jour affiché est le jour courant
-     (`is_today` dans le contexte) — sinon « Jour », le lien « Voir le détail »
+     (`is_today` dans le contexte) : sinon « Jour », le lien « Voir le détail »
      de la vue semaine menant à n'importe quel jour. Même règle pour `<title>`.
    - **Pas de score WSJF sur une tâche non qualifiée.** `wsjf_of` ne couvre
      plus que les tâches ayant priorité **et** points : une tâche de la boîte
@@ -829,21 +829,21 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
      sur des valeurs par défaut (« 0.1 ») contredisait le texte juste
      au-dessus d'elle.
 
-1. **Bug d'opacité corrigé sur `.kairos-item.mj-blocked` — ne jamais réutiliser
+1. **Bug d'opacité corrigé sur `.kairos-item.mj-blocked`, ne jamais réutiliser
    `opacity` ici.** `.kairos-item.mj-blocked` utilisait `opacity: 0.75` : une
    opacité sur ce `<li>` crée un **contexte d'empilement** qui atténue au rendu
    tout son sous-arbre, y compris le panneau d'édition (`.mj-edit-body`), qui y
-   est imbriqué et passe en `position: fixed` **une fois ouvert** — `position:
+   est imbriqué et passe en `position: fixed` **une fois ouvert**, `position:
    fixed` échappe à la mise en page de son ancêtre mais **pas** au *compositing*
    d'un ancêtre opaque à moins de 1 (piège CSS classique, commenté verbatim dans
    `static/style.css` juste avant la règle). Remplacé par des propriétés
    ciblées qui ne composent jamais les descendants : fond `background:
    var(--surface-tint)` + `border-style: dashed` sur le `<li>`, et
    `color: var(--text-3)` sur `.mj-title` seul (pas sur toute la ligne). Exemple
-   canonique du workflow spec-d'abord de ce dépôt — **ne pas revenir à
+   canonique du workflow spec-d'abord de ce dépôt : **ne pas revenir à
    `opacity`** pour cette classe ni pour tout futur ancêtre d'un panneau
    `position: fixed`.
-2. **Marge interne mobile — bloc placé délibérément en toute fin de
+2. **Marge interne mobile : bloc placé délibérément en toute fin de
    `static/style.css`.** Le bloc `@media (max-width: 720px)` qui pose le padding
    latéral mobile (`.mj-capture`, `.mj-to-process`, `.mj-progress`,
    `.mj-now-card`, `.mj-timeline-card`, `.collapser`, `.mj-filter-form`,
@@ -851,7 +851,7 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
    bloc du fichier**. Raison tracée explicitement dans un commentaire juste
    au-dessus : la plupart de ces sélecteurs ont leur propre règle de padding
    **non conditionnelle** plus haut dans le fichier, à **spécificité égale**
-   (simple sélecteur de classe) — en CSS, à spécificité égale, c'est la règle la
+   (simple sélecteur de classe) ; en CSS, à spécificité égale, c'est la règle la
    plus tardive **dans le fichier** qui l'emporte, qu'elle soit dans un `@media`
    ou non. Un bloc placé plus tôt (par exemple juste après le premier `@media
    (max-width: 720px)` de `.topnav`/`.page`) serait donc **silencieusement
@@ -865,13 +865,13 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
    même bloc.
 3. **Exceptions crème/ambre assumées, à ne pas « corriger ».** `.mj-progress`
    (« Maintenant ») et `.mj-to-process` (boîte de réception) partagent le même
-   traitement — fond `#FFFAF1` + puce ambre `border-left: 3px solid
+   traitement : fond `#FFFAF1` + puce ambre `border-left: 3px solid
    var(--warn-fg)` — et fusionnent la classe utilitaire avec `.card` sur le même
    élément (pas de `<div>` imbriqué), pour que le fond suive les coins arrondis.
    `.mj-next` (la ligne « À faire maintenant : ... » dans `.mj-progress`) est la
    seule ligne de l'app en Newsreader italique 19px/500 (police chargée en plus
    d'IBM Plex Sans). Ces trois exceptions sont des décisions produit explicites,
-   documentées et non dupliquées ici — voir `CLAUDE.md` (racine) et
+   documentées et non dupliquées ici : voir `CLAUDE.md` (racine) et
    `docs/DESIGN_SYSTEM.md` § Couleurs/Typographie pour la charte complète et le
    raisonnement. Ne pas les généraliser à d'autres cartes/badges/titres, ne pas
    les « corriger » vers le bleu/neutre standard.
@@ -879,11 +879,11 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
 ### Invariants et garde-fous
 
 - Un seul `id="mj-day-content"` dans toute l'application, posé uniquement par
-  `kairos.html` — jamais par `_kairos_day.html` (qui doit rester rendable, tel
+  `kairos.html` : jamais par `_kairos_day.html` (qui doit rester rendable, tel
   quel, comme fragment autonome).
 - Toute action mutante ouvre sa **propre** session `tasks_session`, committe,
   **ferme** cette session avant d'appeler `_kairos_action_response`/
-  `render_kairos_response` (qui rouvrent des sessions fraîches) — jamais de
+  `render_kairos_response` (qui rouvrent des sessions fraîches) : jamais de
   session imbriquée. À respecter pour toute nouvelle route d'action.
 - Toute nouvelle action « rapide » (bascule d'état simple, candidate à
   l'amélioration AJAX) doit : poser `data-ajax` sur son `<form>`, retourner
@@ -900,23 +900,23 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
 - Tout libellé ou définition de priorité ou de palier de points se lit dans
   `app/task_guide.py`, jamais écrit en dur dans un gabarit.
 - Les routes d'édition/suppression de créneau ne doivent agir **que** sur
-  `TimeBlock.source == 'manual'` (garde-fou déjà en place côté route) — les
+  `TimeBlock.source == 'manual'` (garde-fou déjà en place côté route) : les
   créneaux TimeTree sont transitoires, jamais persistés.
 - `edit_task` traite `blocker_ids` comme l'**ensemble cible complet** à chaque
-  soumission (pas un delta implicite envoyé par le client) — toute évolution du
+  soumission (pas un delta implicite envoyé par le client) : toute évolution du
   panneau doit respecter ce contrat déjà en place côté route.
 - Ne jamais ajouter de règle `:hover` sur `.mj-edit-toggle[aria-expanded="true"]`
   ni sur son `::after` (piège déjà rencontré : le bouton couvre l'écran une fois
   ouvert).
 - Ne jamais réintroduire `opacity` sur `.kairos-item.mj-blocked`, ni sur tout
   futur ancêtre CSS d'un élément `position: fixed` de cette page (le panneau
-  d'édition en particulier) — utiliser des propriétés ciblées (fond, couleur de
+  d'édition en particulier) : utiliser des propriétés ciblées (fond, couleur de
   texte) qui ne composent pas les descendants.
 - Le bloc CSS de marge mobile en fin de `static/style.css` doit **rester en fin
-  de fichier** — toute nouvelle règle de padding non conditionnelle pour l'un de
+  de fichier** : toute nouvelle règle de padding non conditionnelle pour l'un de
   ses sélecteurs doit être insérée avant lui.
 - `initDayScripts` ne doit reprendre **que** ce qui vit dans le sous-arbre
-  remplacé par un swap (chrono, opt-in alertes) — tout ce qui est délégué sur
+  remplacé par un swap (chrono, opt-in alertes) : tout ce qui est délégué sur
   `document` au chargement du script ne doit jamais y être dupliqué.
 - `task_description()` reste appelée **en dernier** dans `.mj-item-main` :
   c'est un bloc pleine largeur du corps, il doit venir après les étiquettes.

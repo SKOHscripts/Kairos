@@ -61,7 +61,7 @@
 {% macro task_description(task) %}
 {%- if task.description and task.description.strip() -%}
 <details class="mj-desc">
-  <summary title="Description — cliquer pour déplier">{{ icon('file_text') }}
+  <summary title="Description : cliquer pour déplier">{{ icon('file_text') }}
     <span class="mj-desc-peek">{{ task.description }}</span></summary>
   <p class="mj-desc-body">{{ task.description }}</p>
 </details>
@@ -151,7 +151,7 @@
 {% macro priority_help() %}
 <ul class="mj-help-scale">
   {% for level in priority_levels %}
-  <li><span class="badge prio">{{ level.code }}</span> <span><strong>{{ level.label }}</strong> — {{ level.meaning }}</span></li>
+  <li><span class="badge prio">{{ level.code }}</span> <span><strong>{{ level.label }}</strong> : {{ level.meaning }}</span></li>
   {% endfor %}
 </ul>
 {% endmacro %}
@@ -174,7 +174,7 @@
       {% set ref = fibo_refs.get(level.points) if fibo_refs else none %}
       <li><span class="badge mj-tag">{{ level.points }}</span>
         <span class="mj-help-level">
-          <span><strong>{{ level.label }}</strong> — {{ level.meaning }}</span>
+          <span><strong>{{ level.label }}</strong> : {{ level.meaning }}</span>
           {% if ref %}
           <span class="mj-help-ref">
             {%- if ref.calibration and ref.calibration.median_minutes -%}
@@ -184,7 +184,7 @@
             <span class="muted">ex. {% for title in ref.examples %}« {{ title }} »{% if not loop.last %}, {% endif %}{% endfor %}</span>
           </span>
           {% else %}
-          <span class="mj-help-ref muted">ex. {{ level.example }} — aucune de tes tâches terminées à ce palier pour l'instant</span>
+          <span class="mj-help-ref muted">ex. {{ level.example }} (aucune de tes tâches terminées à ce palier pour l'instant)</span>
           {% endif %}
         </span></li>
       {% endfor %}

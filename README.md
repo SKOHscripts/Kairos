@@ -17,7 +17,7 @@ sujet urgent avant 14h05 ? » Outil web local, mono-utilisateur, sans compte ni 
 base SQLite, un navigateur, et c'est tout.
 
 **Application de bureau (Windows, Linux) et mobile (Android)**, à télécharger et lancer
-en un geste, sans rien installer — voir
+en un geste, sans rien installer. Voir
 [**⬇ Télécharger la dernière version**](https://github.com/SKOHscripts/Kairos/releases/latest).
 
 ## En bref
@@ -70,9 +70,9 @@ Pas besoin de Python, de venv ni de terminal. Les
 autonome par OS (`kairos-linux-x86_64`, `kairos-windows-x86_64.exe`) et un APK Android
 (`kairos-android-arm64.apk`). Télécharge, double-clique (sous Linux, rends d'abord le
 fichier exécutable avec `chmod +x kairos-linux-x86_64`), et une fenêtre s'ouvre toute
-seule sur Kairos — sans barre d'adresse ni onglets, le ressenti d'une vraie application
-de bureau (si un navigateur de la famille Chromium — Chrome, Edge, Brave, Vivaldi... —
-est installé ; sinon repli automatique sur un onglet du navigateur par défaut, sans rien
+seule sur Kairos, sans barre d'adresse ni onglets, comme une vraie application
+de bureau (si un navigateur de la famille Chromium est installé : Chrome, Edge, Brave,
+Vivaldi... ; sinon repli automatique sur un onglet du navigateur par défaut, sans rien
 à configurer). Les réglages et la base de tâches vivent dans le dossier de données
 standard de ton système, entièrement éditables depuis la page **Réglages**. Aucun
 fichier `.env` à copier ou à éditer à la main.
@@ -133,7 +133,7 @@ priorité ni échéance à choisir sur le moment (Ctrl/Cmd+Entrée pour capturer
 le clavier). Chaque note capturée apparaît immédiatement dans la liste, sans rechargement
 de page. Une fois qu'une idée est prête à devenir actionnable, un clic sur **« → Tâche »**
 la convertit en tâche, qui atterrit directement dans la boîte de réception «
-À traiter » de la vue Jour — la note d'origine est archivée (jamais supprimée) avec un
+À traiter » de la vue Jour. La note d'origine est archivée (jamais supprimée) avec un
 lien vers la tâche créée. Une note de plusieurs lignes ne perd rien à la conversion : la
 première ligne devient le titre de la tâche, **tout le reste devient sa description**. Une note peut aussi être éditée sur place ou classée sans suite
 (archivée) si elle ne mène nulle part.
@@ -147,8 +147,8 @@ première ligne devient le titre de la tâche, **tout le reste devient sa descri
   sous-tâches en lot, bloqueurs. Un seul « Enregistrer » applique tout.
 - **Raccourcis clavier** sur la vue Jour : `N` pour capturer une tâche, `/` pour chercher.
 - **Description visible dans la liste** : une tâche qui porte une description l'annonce
-  sous son titre par un extrait d'une ligne, dépliable d'un clic sur place — plus besoin
-  d'ouvrir l'édition pour savoir qu'il y a du contexte à lire.
+  sous son titre par un extrait d'une ligne, dépliable d'un clic sur place. Tu vois qu'il y a
+  du contexte à lire sans ouvrir l'édition.
 - **Sous-tâches** : avancement n/m sur la mère. Seules les feuilles sont planifiées (une
   mère à filles ouvertes n'est jamais une unité de travail).
 - **Récurrence** : quotidienne, jours ouvrés, hebdomadaire, mensuelle (terminer une
@@ -164,8 +164,8 @@ Une tâche entre dans le tri automatique seulement quand sa **priorité** et ses
 Fibonacci** sont renseignés tous les deux. Tu les poses en un clic, sur des pastilles qui
 disent ce que vaut chaque choix : **P0 Critique** (bloquant ou engagement ferme, rare),
 **P1 Important** (à caser cette semaine), **P2 Utile** (quand il y a de la place), et pour
-les points de « 1 trivial » à « 21 énorme ». La priorité mesure l'importance, pas le délai :
-l'échéance compte déjà à part dans le score. Tant que l'un des deux manque, elle reste « À
+les points de « 1 trivial » à « 21 énorme ». La priorité mesure l'importance. Le délai
+passe par l'échéance, déjà comptée dans le score. Tant que l'un des deux manque, elle reste « À
 traiter » dans une section dédiée, non repliée, en tête de page. La clarification prime sur
 tout : une tâche bloquée ou épinglée mais non qualifiée reste « À traiter ».
 
@@ -228,8 +228,7 @@ profond à 15h), l'outil évite d'y poser les tâches trop complexes (points de 
 d'une tâche est gonflé en proportion de sa complexité. Une tâche de 21 points voit son
 score de *placement* divisé par deux au tronc, une tâche de 1 point n'est jamais pénalisée.
 Une tâche simple prend donc le créneau creux, la complexe se pose juste avant ou après.
-C'est un effet gradué, pas un interdit : une tâche complexe suffisamment urgente peut
-encore l'emporter.
+L'effet reste gradué : une tâche complexe assez urgente peut encore l'emporter.
 
 Trois garde-fous. Les échéances et le chemin critique priment toujours (une tâche en
 retard ou un bloqueur d'une tâche urgente n'est jamais décalé par le creux). Le score
@@ -269,8 +268,7 @@ jamais écrite). Les cycles sont détectés et refusés.
   les notifications, ou si tu ouvres Kairos par une adresse réseau (pas `127.0.0.1`), le
   navigateur ne peut plus rien afficher. Quand Kairos tourne sur la machine où tu le
   consultes, il émet alors **lui-même** une notification système (`notify-send` sous
-  Linux, bulle Windows) — sans aucune permission à accorder. Rien à installer ni à
-  configurer.
+  Linux, bulle Windows), sans permission à accorder. Rien à installer ni à configurer.
 - Quand même cette voie est fermée (Kairos consulté depuis un autre appareil), le repli
   dans la page prend le relais : **bandeau flottant qui ne disparaît pas tout seul**,
   titre d'onglet clignotant, et un court signal sonore si tu l'actives dans les Réglages
@@ -282,7 +280,7 @@ jamais écrite). Les cycles sont détectés et refusés.
   tâches par échéance, créneaux, synthèse du temps réel par type).
 - **Lignes de tâche alignées en colonnes** : priorité, points et boutons d'action
   tombent toujours au même endroit d'une ligne à l'autre, quel que soit le nombre
-  d'étiquettes ou la longueur du titre — la liste se balaie verticalement même chargée.
+  d'étiquettes ou la longueur du titre. Même chargée, la liste se lit d'un coup d'œil vertical.
   Les étiquettes s'empilent sous le titre au lieu de repousser les actions.
 - Badge **« traîne depuis N j »** (échéance dépassée de longue date, ou tâche sans date
   jamais retouchée), bandeau de **surcharge de priorité** (trop de tâches à priorité
