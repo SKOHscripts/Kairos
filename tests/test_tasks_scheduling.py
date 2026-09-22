@@ -12,6 +12,7 @@ from app.tasks_scheduling import (
     build_timeline,
     count_max_priority_tasks,
     urgency_key,
+    wsjf_breakdown,
     wsjf_score,
 )
 
@@ -902,3 +903,48 @@ def test_dip_leaves_morning_untouched() -> None:
     assert schedule.scheduled[0].start_at == _at(9, 0)
     assert schedule.scheduled[0].task.id == 1        # WSJF pur : complexe urgente d'abord
     assert not schedule.scheduled[0].dip_note
+
+
+# ---------------------------------------------------------------------------
+# Décomposition du score (audit UI : « pourquoi à cette place ? »).
+# ---------------------------------------------------------------------------
+
+
+def test_wsjf_breakdown_recomposes_exactly_the_score() -> None:
+    """Une seule formule : le score affiché et son explication ne peuvent pas
+    diverger."""
+    settings = _settings()
+    for task in (
+        Task(id=1, title="a", priority=0, fibonacci_points=3, deadline=DAY + timedelta(days=2)),
+        Task(id=2, title="b", priority=2, estimated_minutes=90),
+        Task(id=3, title="c"),
+        Task(id=4, title="d", priority=1, fibonacci_points=8, scheduled_date=DAY),
+    ):
+        breakdown = wsjf_breakdown(task, DAY, settings=settings)
+        assert breakdown.score == wsjf_score(task, DAY, settings=settings)
+        assert breakdown.score == (breakdown.value + breakdown.criticality) / breakdown.effort
+
+
+def test_wsjf_breakdown_names_the_source_of_the_effort() -> None:
+    settings = _settings()
+    by_points = wsjf_breakdown(Task(title="p", fibonacci_points=5), DAY, settings=settings)
+    by_minutes = wsjf_breakdown(Task(title="m", estimated_minutes=60), DAY, settings=settings)
+    by_default = wsjf_breakdown(Task(title="d"), DAY, settings=settings)
+    assert (by_points.effort, by_points.effort_source) == (5.0, "points")
+    assert (by_minutes.effort, by_minutes.effort_source) == (2.0, "minutes")
+    assert by_default.effort_source == "défaut"
+
+
+def test_wsjf_breakdown_reports_the_nearest_date_and_overdue_state() -> None:
+    settings = _settings()
+    soon = wsjf_breakdown(
+        Task(title="s", deadline=DAY + timedelta(days=5), scheduled_date=DAY + timedelta(days=2)),
+        DAY, settings=settings,
+    )
+    assert (soon.date_kind, soon.days_until, soon.overdue) == ("date programmée", 2, False)
+
+    late = wsjf_breakdown(Task(title="l", deadline=DAY - timedelta(days=3)), DAY, settings=settings)
+    assert (late.date_kind, late.days_until, late.overdue) == ("échéance", -3, True)
+
+    undated = wsjf_breakdown(Task(title="u"), DAY, settings=settings)
+    assert (undated.date_kind, undated.days_until, undated.criticality) == (None, None, 0.0)

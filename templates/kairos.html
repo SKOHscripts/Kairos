@@ -380,6 +380,21 @@ Jour <span class="muted">· {{ day|date_longue }}</span>
     openToggle.setAttribute('aria-expanded', 'false');
   });
 
+  /* « Pourquoi à cette place ? » (audit UI) : un seul panneau d'explication
+     ouvert à la fois, refermé au clic à l'extérieur ou à Échap. Confort seulement
+     — le <details> s'ouvre et se referme sans JavaScript. Délégué sur `document`,
+     jamais rebranché après un swap. */
+  document.addEventListener('click', function (ev) {
+    var inside = ev.target.closest('.mj-why');
+    document.querySelectorAll('.mj-why[open]').forEach(function (why) {
+      if (why !== inside) why.open = false;
+    });
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Escape') return;
+    document.querySelectorAll('.mj-why[open]').forEach(function (why) { why.open = false; });
+  });
+
   /* Bascule tâche / créneau dans la barre de capture (`.mj-capture`, toujours
      visible — Phase 1). Portée sur `.mj-capture` (pas `<details>` : la capture
      n'est plus repliable). */

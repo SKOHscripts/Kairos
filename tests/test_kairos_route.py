@@ -2070,7 +2070,8 @@ def test_qualifying_task_via_edit_removes_it_from_a_traiter(route_client) -> Non
 
     after = client.get("/kairos")
     assert "mj-inbox-empty" in after.text
-    assert '<span class="badge mj-score"' in after.text
+    # Le badge du score est le <summary> de son explication depuis l'audit UI.
+    assert 'class="badge mj-score"' in after.text
 
 
 def test_only_priority_still_lands_in_a_traiter(route_client) -> None:
@@ -2446,11 +2447,11 @@ def test_converted_note_description_shows_up_in_the_day_list(route_client) -> No
 def _key_cells(html: str) -> list[str]:
     """Contenu de chaque cellule « priorité/points » du HTML rendu.
 
-    `task_key_badges` ne produit que des `<span>` : découper sur le premier
-    `</div>` qui suit l'ouverture de la cellule est donc sûr (aucun `<div>`
-    imbriqué possible) et évite d'ajouter un parseur HTML aux dépendances."""
+    La cellule contient des `<div>` imbriqués depuis l'explication du score
+    (audit UI) : on découpe jusqu'à la cellule d'actions, toujours sa voisine
+    immédiate — sans ajouter de parseur HTML aux dépendances."""
     return [
-        chunk.split("</div>", 1)[0]
+        chunk.split('<div class="mj-item-actions">', 1)[0]
         for chunk in html.split('<div class="mj-item-key">')[1:]
     ]
 
@@ -2846,3 +2847,34 @@ def test_estimation_guide_says_so_when_a_level_has_no_history(route_client) -> N
 
     html = client.get("/kairos").text
     assert "aucune de tes tâches terminées à ce palier pour l'instant" in html
+
+
+def test_score_badge_opens_on_its_explanation(route_client) -> None:
+    """« Pourquoi à cette place ? » : P1 (valeur 4 par défaut), sans échéance
+    (criticité 0), 2 pts → (4 + 0) ÷ 2 = 2.0."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Expliquée", priority=1, fibonacci_points=2, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    why = html.split('<details class="mj-why">', 1)[1].split("</details>", 1)[0]
+    assert "Pourquoi à cette place ?" in why
+    assert "Priorité P1 Important" in why
+    assert "<dd>4</dd>" in why
+    assert "Aucune échéance" in why and "<dd>+ 0</dd>" in why
+    assert "Effort 2 pts" in why and "<dd>÷ 2</dd>" in why
+    assert "= 2.0" in why
+
+
+def test_overdue_task_explains_that_it_jumps_the_queue(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="En retard", priority=2, fibonacci_points=8,
+                    deadline=TODAY - timedelta(days=4), source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    why = html.split('<details class="mj-why">', 1)[1].split("</details>", 1)[0]
+    assert "En retard : passe devant" in why
+    assert "Échéance dépassée de 4 j" in why

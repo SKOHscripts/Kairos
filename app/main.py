@@ -72,7 +72,7 @@ from .tasks_scheduling import (
     session_timeline_entries,
     urgency_bucket,
     urgency_key,
-    wsjf_score,
+    wsjf_breakdown,
 )
 from .tasks_staleness import days_stale
 from .tasks_stats import (
@@ -535,11 +535,14 @@ def _build_kairos_context(
     # boîte de réception « ne rentre dans aucun tri » (`to_process`), lui afficher
     # un score calculé sur des valeurs par défaut (« 0.1 ») contredisait le texte
     # juste au-dessus d'elle — constaté à l'audit UI.
-    wsjf_of = {
-        t.id: round(wsjf_score(t, target_day, settings=settings), 1)
+    # « Pourquoi à cette place ? » (audit UI) : la décomposition du score, dont
+    # le score affiché n'est que l'arrondi — une seule formule, deux lectures.
+    why_of = {
+        t.id: wsjf_breakdown(t, target_day, settings=settings)
         for t in tasks
         if t.priority is not None and t.fibonacci_points is not None
     }
+    wsjf_of = {tid: round(breakdown.score, 1) for tid, breakdown in why_of.items()}
     blocked_tasks = [
         {"task": by_id[tid], "reasons": block_reasons.get(tid, [])}
         for tid in blocked_ids
@@ -643,6 +646,7 @@ def _build_kairos_context(
         "raised_ids": raised_ids,
         "bucket_of": bucket_of,
         "wsjf_of": wsjf_of,
+        "why_of": why_of,
         "fibonacci_scale": FIBONACCI_SCALE,
         "spent_by_task": spent_by_task,
         "avg_minutes_by_type": avg_minutes_by_type,
@@ -1024,6 +1028,15 @@ def _fmt_minutes(minutes: int) -> str:
 
 # Même format de durée dans les gabarits (guide d'estimation, audit UI).
 templates.env.filters["duree"] = _fmt_minutes
+
+
+def _fmt_number(value: float) -> str:
+    """Nombre court pour l'explication du score : une décimale au plus, sans
+    « .0 » inutile (« 16 », « 6.2 »). Point décimal, comme le badge du score."""
+    return f"{value:.1f}".removesuffix(".0")
+
+
+templates.env.filters["nombre"] = _fmt_number
 
 
 @app.post("/kairos/tasks")

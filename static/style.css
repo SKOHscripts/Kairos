@@ -437,7 +437,32 @@ summary:focus-visible,
    ligne dans la cellule, et un nœud texte blanc suffit à faire échouer `:empty`
    — la cellule vide restait affichée et ajoutait un espacement fantôme. */
 .mj-item-tags:not(:has(*)) { display: none; }
-.mj-item-key { grid-area: key; justify-content: flex-end; }
+.mj-item-key { grid-area: key; justify-content: flex-end; position: relative; }
+
+/* « Pourquoi à cette place ? » (audit UI) : le badge du score est le <summary>
+   d'un <details>, son explication un panneau posé sous la colonne « clés ».
+   Sans ombre portée (la charte n'en autorise qu'une, le panneau d'édition) :
+   bordure forte + surface. `z-index` sous les bandeaux d'alerte (70) et sous le
+   calque du panneau d'édition (79/80). */
+.mj-why > summary { list-style: none; cursor: pointer; }
+.mj-why > summary::-webkit-details-marker { display: none; }
+.mj-why > summary:hover { background: var(--accent-line); }
+.mj-why-body {
+  position: absolute; z-index: 60; top: calc(100% + 4px); right: 0;
+  width: min(19rem, calc(100vw - 2.5rem));
+  padding: 0.75rem 0.9rem; border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  background: var(--surface); font-size: 12.5px; color: var(--text-2); text-align: left;
+}
+.mj-why-title { margin: 0 0 0.45rem; font-weight: 700; color: var(--text); }
+.mj-why-alert { display: flex; gap: 0.35rem; align-items: baseline; margin: 0 0 0.45rem;
+  color: var(--bad-fg); font-weight: 600; }
+.mj-why-calc { display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 0.8rem; margin: 0; }
+.mj-why-calc dt { margin: 0; }
+.mj-why-calc dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums;
+  color: var(--text); font-weight: 600; }
+.mj-why-calc .mj-why-total { padding-top: 0.3rem; border-top: 1px solid var(--border);
+  color: var(--accent-700); font-weight: 800; }
+.mj-why-note { margin: 0.5rem 0 0; font-size: 11.5px; color: var(--text-3); }
 .mj-item-actions { grid-area: actions; }
 /* Ligne de la boîte de réception : une rangée de plus, zone nommée `qualify`,
    pour les pastilles de qualification — alignée sous le corps sur grand écran. */
@@ -514,6 +539,9 @@ summary:focus-visible,
       ".     key  key";
   }
   .mj-item-key { justify-content: flex-start; min-height: 0; }
+  /* Colonne « clés » alignée à gauche sous le corps : le panneau d'explication
+     s'ouvre donc vers la droite, jamais hors de l'écran. */
+  .mj-why-body { right: auto; left: 0; }
   .mj-item-key:not(:has(*)) { display: none; }
   /* Pastilles sur toute la largeur de la carte, coche comprise : entre la coche
      et les actions, le corps ne fait qu'environ 150px à 390px de large. */

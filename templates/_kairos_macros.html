@@ -289,9 +289,48 @@
    docs/DESIGN_SYSTEM.md) ; les points les accompagnent parce que c'est le
    dénominateur du score — les trois se lisent ensemble, à la même abscisse
    d'une ligne à l'autre. #}
+{# « Pourquoi à cette place ? » (audit UI) : le badge du score s'ouvre d'un clic
+   — ou d'un toucher, contrairement à l'ancienne infobulle `title`, invisible sur
+   mobile et dans l'APK — sur la décomposition du calcul. `<details>` natif :
+   aucun JavaScript requis pour l'ouvrir (le script de la page ne fait que
+   refermer au clic extérieur / Échap). Termes lus dans `why_of`
+   (`tasks_scheduling.wsjf_breakdown`), le score n'en étant que l'arrondi. #}
+{% macro score_explained(task, score, why) %}
+{% set plevel = priority_level(task.priority) %}
+<details class="mj-why">
+  <summary class="badge mj-score" title="Pourquoi à cette place ?">{{ icon('trending_up') }} {{ score }}</summary>
+  <div class="mj-why-body">
+    <p class="mj-why-title">Pourquoi à cette place ?</p>
+    {% if why.overdue %}
+    <p class="mj-why-alert">{{ icon('warning') }} En retard : passe devant les tâches à l'heure, quel que soit son score.</p>
+    {% endif %}
+    <dl class="mj-why-calc">
+      <dt>Priorité {% if plevel %}{{ plevel.code }} {{ plevel.label }}{% else %}non posée{% endif %}</dt>
+      <dd>{{ why.value|nombre }}</dd>
+      <dt>{% if why.date_kind %}{{ why.date_kind|capitalize }}
+        {%- if why.days_until < 0 %} dépassée de {{ -why.days_until }} j
+        {%- elif why.days_until == 0 %} aujourd'hui
+        {%- elif why.days_until == 1 %} demain
+        {%- else %} dans {{ why.days_until }} j{% endif %}
+        {%- else %}Aucune échéance{% endif %}</dt>
+      <dd>+ {{ why.criticality|nombre }}</dd>
+      <dt>Effort {% if why.effort_source == 'points' %}{{ why.effort|nombre }} pts
+        {%- elif why.effort_source == 'minutes' %}déduit de la durée{% else %}par défaut{% endif %}</dt>
+      <dd>÷ {{ why.effort|nombre }}</dd>
+      <dt class="mj-why-total">Score</dt>
+      <dd class="mj-why-total">= {{ score }}</dd>
+    </dl>
+    <p class="mj-why-note">Le plus haut score passe en premier. Une échéance proche fait monter le
+    score ; une grosse tâche le divise.</p>
+  </div>
+</details>
+{% endmacro %}
+
 {% macro task_key_badges(task) %}
 {% set score = wsjf_of.get(task.id) if wsjf_of else none %}
-{% if score is not none %}<span class="badge mj-score" title="Score WSJF = (valeur de la priorité + criticité de l'échéance) ÷ effort (points Fibonacci). Plus élevé = à faire en premier. C'est ce score qui ordonne la liste.">{{ icon('trending_up') }} {{ score }}</span>{% endif %}
+{% set why = why_of.get(task.id) if why_of else none %}
+{% if score is not none and why %}{{ score_explained(task, score, why) }}
+{% elif score is not none %}<span class="badge mj-score">{{ icon('trending_up') }} {{ score }}</span>{% endif %}
 {% set plevel = priority_level(task.priority) %}
 {% if task.priority is not none %}<span class="badge prio" title="Priorité {% if plevel %}{{ plevel.label }} : {{ plevel.meaning }}{% else %}P{{ task.priority }}{% endif %}">P{{ task.priority }}</span>{% endif %}
 {% set flevel = fibo_level(task.fibonacci_points) %}
