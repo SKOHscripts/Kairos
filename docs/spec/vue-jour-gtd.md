@@ -127,6 +127,39 @@ voit des colonnes qui s'alignent d'une ligne à l'autre) :
 Sur écran étroit, la colonne « priorité et points » passe sous le corps plutôt
 que de comprimer le titre ; les actions restent en haut à droite.
 
+**Comprendre sans quitter la liste (audit UI).** Kairos repose sur deux
+jugements que l'utilisateur doit poser lui-même — une **priorité** et une
+**taille en points** — puis trie à sa place. Les deux restaient opaques : la
+priorité n'avait de définition nulle part (seulement des poids internes), les
+points se choisissaient dans un menu « — / 1 / 2 / 3… » sans repère, et
+l'ordre de la liste ne s'expliquait qu'au survol d'un badge, donc jamais sur
+mobile ni dans l'APK Android. Quatre réponses :
+
+- **Le sens des priorités est défini, une fois, et affiché partout où l'on
+  choisit** : **P0 Critique** — bloquant ou engagement ferme, rare par nature
+  (le bandeau de surcharge le rappelle) ; **P1 Important** — compte vraiment,
+  à caser cette semaine ; **P2 Utile** — à faire quand il y a de la place. Ce
+  sont des degrés d'**importance**, pas de délai : l'urgence est déjà portée par
+  l'échéance dans le score, des libellés de délai auraient fait doublon.
+- **Qualifier se fait en un clic, sens compris.** Dans la boîte de réception
+  comme dans le panneau d'édition, priorité et points se choisissent sur une
+  rangée de pastilles (P0 · P1 · P2 ; 1 · 2 · 3 · 5 · 8 · 13 · 21) dont chacune
+  porte son sens en clair — lisible aussi au toucher, jamais seulement dans une
+  infobulle. Un clic pose la valeur, au lieu d'ouvrir un menu puis de choisir.
+  Cela fonctionne sans JavaScript.
+- **L'estimation en points s'appuie sur l'historique de l'utilisateur.**
+  L'estimation relative ne fonctionne qu'avec des points de repère ; Kairos en
+  a : les tâches déjà terminées. Pour chaque palier, le guide donne sa
+  description, le temps réel médian observé chez l'utilisateur (« chez toi,
+  3 pts ≈ 45 min, sur 6 tâches ») et un ou deux exemples de ses propres tâches
+  terminées à ce palier. Estimer devient une comparaison concrète (« plus gros
+  que celle-ci, plus petit que celle-là »). Sans historique à un palier, le
+  guide le dit, sans rien inventer.
+- **« Pourquoi à cette place ? »** Le score d'une tâche s'ouvre d'un clic (ou
+  d'un toucher) sur sa décomposition : la valeur de sa priorité, ce que son
+  échéance ajoute, l'effort qui divise le tout, et le calcul. Une tâche en
+  retard le dit aussi : elle passe devant quel que soit son score.
+
 **Lien vers la fiche d'origine d'une tâche importée.** Une tâche importée de
 GitLab porte déjà son projet en étiquette : cette étiquette devient un **lien
 cliquable vers l'issue d'origine** (issue #33), ouvert dans un nouvel onglet.
@@ -176,6 +209,12 @@ aller-retour (infos, sous-tâches en lot, bloqueurs, épinglage).
 - Un titre long fait grandir sa ligne vers le bas ; il ne pousse jamais la
   priorité, les points ou les actions hors de leur colonne, et ne provoque
   jamais de défilement horizontal (y compris à ~375px de large).
+- Poser la priorité ou les points d'une tâche de la boîte de réception prend
+  **un** clic, et le sens de chaque valeur est lisible sans survol.
+- Le guide des points affiche, pour chaque palier où l'utilisateur a terminé
+  des tâches chronométrées, le temps réel médian et au moins un exemple tiré de
+  ses propres tâches.
+- Le score d'une tâche s'explique au toucher, sans quitter la liste.
 - Le champ Description du panneau d'édition est atteignable sans déplier
   « Options avancées ».
 
