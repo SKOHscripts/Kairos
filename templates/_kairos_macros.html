@@ -60,6 +60,94 @@
 {%- endif -%}
 {% endmacro %}
 
+{# ------------------------------------------------------------------------
+   Pastilles de qualification (audit UI) : priorité et points se posent d'UN
+   clic, sur une rangée dont chaque pastille porte son sens en clair (source :
+   `app/task_guide.py`) — lisible au toucher, jamais seulement en infobulle.
+
+   Deux variantes, même apparence :
+   - `*_pills` (boîte de réception) : chaque pastille est un bouton `submit`
+     portant `name`/`value` → un clic enregistre (AJAX si JS, POST classique
+     sinon). Le script de la page ajoute le bouton cliqué au `FormData`,
+     que `new FormData(form)` n'inclut pas.
+   - `*_choice` (panneau d'édition) : des boutons radio stylés en pastilles,
+     dans le formulaire unique « Enregistrer » ; une pastille « — » vide le
+     champ. Les radios de points portent `.mj-fibo-radio` + `data-avg-minutes`
+     (remplissage de la durée, voir kairos.html) — jamais les pastilles de la
+     boîte de réception, qui ne doivent pas toucher à la durée.
+   ------------------------------------------------------------------------ #}
+{% macro priority_pills(task) %}
+<form method="post" action="/kairos/tasks/{{ task.id }}/priority" class="mj-pills-form" data-ajax>
+  <span class="mj-pills-label">Priorité</span>
+  <span class="mj-pills" role="group" aria-label="Priorité">
+    {% for level in priority_levels %}
+    <button type="submit" name="priority" value="{{ level.value }}"
+      class="mj-pill is-prio{% if task.priority == level.value %} is-on{% endif %}"
+      aria-pressed="{{ 'true' if task.priority == level.value else 'false' }}"
+      title="{{ level.code }} {{ level.label }} : {{ level.meaning }}"><b>{{ level.code }}</b> {{ level.label }}</button>
+    {% endfor %}
+  </span>
+</form>
+{% endmacro %}
+
+{% macro points_pills(task) %}
+<form method="post" action="/kairos/tasks/{{ task.id }}/points" class="mj-pills-form" data-ajax>
+  <span class="mj-pills-label">Points</span>
+  <span class="mj-pills" role="group" aria-label="Points de Fibonacci">
+    {% for level in fibonacci_guide %}
+    <button type="submit" name="points" value="{{ level.points }}"
+      class="mj-pill{% if task.fibonacci_points == level.points %} is-on{% endif %}"
+      aria-pressed="{{ 'true' if task.fibonacci_points == level.points else 'false' }}"
+      title="{{ level.points }} pts, {{ level.label }} : {{ level.meaning }}"><b>{{ level.points }}</b> {{ level.label }}</button>
+    {% endfor %}
+  </span>
+</form>
+{% endmacro %}
+
+{% macro priority_choice(task) %}
+<fieldset class="mj-choice">
+  <legend>Priorité</legend>
+  <span class="mj-pills">
+    <label class="mj-radio" title="Aucune priorité : la tâche retourne en boîte de réception">
+      <input type="radio" name="priority" value="" {% if task.priority is none %}checked{% endif %}>
+      <span class="mj-pill">—</span></label>
+    {% for level in priority_levels %}
+    <label class="mj-radio" title="{{ level.code }} {{ level.label }} : {{ level.meaning }}">
+      <input type="radio" name="priority" value="{{ level.value }}" {% if task.priority == level.value %}checked{% endif %}>
+      <span class="mj-pill is-prio"><b>{{ level.code }}</b> {{ level.label }}</span></label>
+    {% endfor %}
+  </span>
+</fieldset>
+{% endmacro %}
+
+{% macro points_choice(task) %}
+<fieldset class="mj-choice">
+  <legend>Points de Fibonacci</legend>
+  <span class="mj-pills">
+    <label class="mj-radio" title="Aucun point : la tâche retourne en boîte de réception">
+      <input type="radio" name="fibonacci_points" value="" class="mj-fibo-radio"
+        {% if task.fibonacci_points is none %}checked{% endif %}>
+      <span class="mj-pill">—</span></label>
+    {% for level in fibonacci_guide %}
+    <label class="mj-radio" title="{{ level.points }} pts, {{ level.label }} : {{ level.meaning }}">
+      <input type="radio" name="fibonacci_points" value="{{ level.points }}" class="mj-fibo-radio"
+        data-avg-minutes="{{ avg_minutes_by_fibo.get(level.points, '') }}"
+        {% if task.fibonacci_points == level.points %}checked{% endif %}>
+      <span class="mj-pill"><b>{{ level.points }}</b> {{ level.label }}</span></label>
+    {% endfor %}
+  </span>
+</fieldset>
+{% endmacro %}
+
+{# Sens des priorités, en toutes lettres (aide de la boîte de réception). #}
+{% macro priority_help() %}
+<ul class="mj-help-scale">
+  {% for level in priority_levels %}
+  <li><span class="badge prio">{{ level.code }}</span> <strong>{{ level.label }}</strong> — {{ level.meaning }}</li>
+  {% endfor %}
+</ul>
+{% endmacro %}
+
 {% macro fibo_help() %}
 <details class="mj-help">
   <summary>{{ icon('trending_up') }} Comment estimer les points ?</summary>
@@ -69,12 +157,9 @@
     rapport à tes tâches habituelles, en quelques secondes ; dans le doute, arrondis
     au-dessus.</p>
     <ul class="mj-help-scale">
-      <li><span class="badge mj-tag">1</span> trivial, expédié (valider une MR triviale)</li>
-      <li><span class="badge mj-tag">2</span> petit, chemin connu (petite revue de code)</li>
-      <li><span class="badge mj-tag">3</span> modéré, zéro inconnue (dev bien cadré)</li>
-      <li><span class="badge mj-tag">5</span> conséquent, plusieurs étapes ou un peu d'inconnu</li>
-      <li><span class="badge mj-tag">8</span> gros, vraie complexité ou inconnues</li>
-      <li><span class="badge mj-tag">13 · 21</span> trop gros pour une seule tâche → découpe en sous-tâches</li>
+      {% for level in fibonacci_guide %}
+      <li><span class="badge mj-tag">{{ level.points }}</span> <strong>{{ level.label }}</strong> — {{ level.meaning }} <span class="muted">(ex. {{ level.example }})</span></li>
+      {% endfor %}
     </ul>
     <p class="muted">Distinct de la <strong>durée (min)</strong> : les points nourrissent
     l'<strong>ordre</strong> (effort au dénominateur du score WSJF), la durée sert au
@@ -94,29 +179,14 @@
          description enfouie sous deux niveaux de divulgation n'est jamais lue. #}
       <label>Description<textarea name="description" rows="2"
         placeholder="Contexte, liens, étapes… visible directement dans la liste">{{ task.description }}</textarea></label>
+      {{ priority_choice(task) }}
+      {{ points_choice(task) }}
+      {{ fibo_help() }}
       <div class="mj-edit-row mj-edit-essentials">
-        <label>Priorité
-          <select name="priority">
-            <option value="" {% if task.priority is none %}selected{% endif %}>—</option>
-            {% for p in range(0, 3) %}
-            <option value="{{ p }}" {% if task.priority == p %}selected{% endif %}>{{ p }}</option>
-            {% endfor %}
-          </select>
-        </label>
-        <label title="Estimation agile de taille relative (volume × complexité × incertitude) : c'est l'EFFORT au dénominateur du score WSJF qui ordonne la liste. Voir « Comment estimer ? » sous la ligne.">Points Fibo
-          <select name="fibonacci_points" class="mj-fibo-select">
-            <option value="" {% if task.fibonacci_points is none %}selected{% endif %}>—</option>
-            {% for p in fibonacci_scale %}
-            <option value="{{ p }}" data-avg-minutes="{{ avg_minutes_by_fibo.get(p, '') }}"
-              {% if task.fibonacci_points == p %}selected{% endif %}>{{ p }}</option>
-            {% endfor %}
-          </select>
-        </label>
         <label>Échéance<input type="date" name="deadline" value="{{ task.deadline.isoformat() if task.deadline else '' }}"></label>
         <label>Durée (min)<input type="number" name="estimated_minutes" min="1" class="mj-estimated-minutes"
           value="{{ task.estimated_minutes if task.estimated_minutes else '' }}" style="width:80px;"></label>
       </div>
-      {{ fibo_help() }}
       <details class="mj-edit-advanced">
         <summary>{{ icon('chevron_right', '') }} Options avancées</summary>
         <div class="mj-edit-advanced-body">
@@ -202,8 +272,10 @@
 {% macro task_key_badges(task) %}
 {% set score = wsjf_of.get(task.id) if wsjf_of else none %}
 {% if score is not none %}<span class="badge mj-score" title="Score WSJF = (valeur de la priorité + criticité de l'échéance) ÷ effort (points Fibonacci). Plus élevé = à faire en premier. C'est ce score qui ordonne la liste.">{{ icon('trending_up') }} {{ score }}</span>{% endif %}
-{% if task.priority is not none %}<span class="badge prio" title="Priorité">P{{ task.priority }}</span>{% endif %}
-{% if task.fibonacci_points %}<span class="badge mj-tag" title="Points de Fibonacci (effort relatif, dénominateur du score WSJF)">{{ task.fibonacci_points }} pts</span>{% endif %}
+{% set plevel = priority_level(task.priority) %}
+{% if task.priority is not none %}<span class="badge prio" title="Priorité {% if plevel %}{{ plevel.label }} : {{ plevel.meaning }}{% else %}P{{ task.priority }}{% endif %}">P{{ task.priority }}</span>{% endif %}
+{% set flevel = fibo_level(task.fibonacci_points) %}
+{% if task.fibonacci_points %}<span class="badge mj-tag" title="{{ task.fibonacci_points }} points{% if flevel %}, {{ flevel.label }} : {{ flevel.meaning }}{% endif %} (effort relatif, dénominateur du score WSJF)">{{ task.fibonacci_points }} pts</span>{% endif %}
 {% endmacro %}
 
 {# Étiquettes de contexte d'une tâche (issue #33) : rendues dans le CORPS de la

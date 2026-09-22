@@ -36,6 +36,7 @@ from starlette.templating import Jinja2Templates
 
 from . import desktop_notify, secret_store, settings_store
 from .fr_dates import date_longue, jour_court
+from .task_guide import FIBONACCI_GUIDE, PRIORITY_LEVELS, fibo_level, priority_level
 from .calendar.timetree_source import fetch_busy_slots
 from .config import Settings, apply_proxy_env, get_settings, invalidate_settings_cache
 from .gitlab_direct import fetch_assigned_issues
@@ -206,6 +207,12 @@ templates.env.globals["is_android"] = os.environ.get("KAIROS_PLATFORM") == "andr
 # (voir `app/fr_dates.py` : `strftime('%A')` affichait les jours en anglais).
 templates.env.filters["date_longue"] = date_longue
 templates.env.filters["jour_court"] = jour_court
+# Sens des priorités et des paliers de points (audit UI) : une seule source
+# (`app/task_guide.py`), lue par les pastilles, le guide et les infobulles.
+templates.env.globals["priority_levels"] = PRIORITY_LEVELS
+templates.env.globals["fibonacci_guide"] = FIBONACCI_GUIDE
+templates.env.globals["priority_level"] = priority_level
+templates.env.globals["fibo_level"] = fibo_level
 # Anti-cache navigateur : suffixe `?v=` sur les liens vers static/ dans base.html.
 # Sans lui, un navigateur peut continuer à servir un vieux style.css en cache après
 # une mise à jour de l'app (nouvelle version installée, `git pull`...), ce qui donne

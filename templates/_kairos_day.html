@@ -7,7 +7,8 @@
    filtres/backlog, agenda ordonné + sections secondaires, colonne latérale. #}
 {% from "_icons.html" import icon %}
 {% from "_kairos_macros.html" import done_toggle, task_actions, time_spent, fibo_help, edit_panel,
-        task_key_badges, task_tags, task_description with context %}
+        task_key_badges, task_tags, task_description, priority_pills, points_pills,
+        priority_help with context %}
 
 {# --- 1. Capture GTD : toujours visible, jamais dans un <details> replié — la
      capture ne doit jamais demander un clic supplémentaire pour être atteinte.
@@ -101,12 +102,18 @@
     <span class="mj-section-title">Boîte de réception (À traiter)
       <span class="count">({{ visible_to_process|length }})</span></span>
     <details class="mj-help">
-      <summary>{{ icon('warning', '') }} pourquoi qualifier ?</summary>
+      <summary>{{ icon('warning', '') }} comment qualifier ?</summary>
       <div class="mj-help-body">
         <p>La <strong>capture</strong> (ci-dessus) ne pose qu'un titre, volontairement : c'est le
         principe GTD « capturer sans friction ». Une tâche n'entre dans l'agenda ordonné
         qu'une fois <strong>clarifiée</strong>, priorité et points Fibonacci posés, ici même,
         en un clic chacun (pas besoin d'ouvrir l'édition complète).</p>
+        <p><strong>Priorité</strong> : l'importance, pas le délai — l'échéance compte déjà à part
+        dans le calcul.</p>
+        {{ priority_help() }}
+        <p><strong>Points</strong> : la taille <em>relative</em> de la tâche, comparée à celles que
+        tu as déjà faites.</p>
+        {{ fibo_help() }}
       </div>
     </details>
   </div>
@@ -118,7 +125,10 @@
   l'édition complète pour tout régler d'un coup).</p>
   <ul class="kairos-list">
     {% for task in visible_to_process %}
-    <li class="kairos-item mj-bucket-{{ bucket_of.get(task.id, 4) }}">
+    {# `has-qualify` : cinquième zone NOMMÉE de la grille (`qualify`), sur sa propre
+       rangée — les pastilles ne tiennent pas dans la colonne du corps, étroite sur
+       mobile. Voir docs/spec/vue-jour-gtd.md § Ligne de tâche. #}
+    <li class="kairos-item has-qualify mj-bucket-{{ bucket_of.get(task.id, 4) }}">
       {{ done_toggle(task) }}
       <div class="mj-item-main">
         <div class="mj-item-head">
@@ -133,32 +143,14 @@
           {{ task_tags(task) }}
           {{ time_spent(task) }}
         </div>
-      <span class="mj-inline-qualify">
-        <form method="post" action="/kairos/tasks/{{ task.id }}/priority" class="inline mj-inline-form" data-ajax>
-          <label class="mj-inline-label">Priorité
-            <select name="priority" data-autosubmit>
-              <option value="" {% if task.priority is none %}selected{% endif %}>—</option>
-              {% for p in range(0, 3) %}
-              <option value="{{ p }}" {% if task.priority == p %}selected{% endif %}>P{{ p }}</option>
-              {% endfor %}
-            </select>
-          </label>
-        </form>
-        <form method="post" action="/kairos/tasks/{{ task.id }}/points" class="inline mj-inline-form" data-ajax>
-          <label class="mj-inline-label">Points
-            <select name="points" data-autosubmit>
-              <option value="" {% if task.fibonacci_points is none %}selected{% endif %}>—</option>
-              {% for p in fibonacci_scale %}
-              <option value="{{ p }}" {% if task.fibonacci_points == p %}selected{% endif %}>{{ p }}</option>
-              {% endfor %}
-            </select>
-          </label>
-        </form>
-      </span>
         {{ task_description(task) }}
       </div>
       <div class="mj-item-key">{{ task_key_badges(task) }}</div>
       <div class="mj-item-actions">{{ task_actions(task) }}{{ edit_panel(task) }}</div>
+      <div class="mj-inline-qualify">
+        {{ priority_pills(task) }}
+        {{ points_pills(task) }}
+      </div>
     </li>
     {% endfor %}
   </ul>

@@ -433,9 +433,19 @@ summary:focus-visible,
    lignes que nécessaire sans jamais repousser les deux colonnes de droite. */
 .mj-item-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.4rem;
   min-width: 0; }
-.mj-item-tags:empty { display: none; }
+/* `:not(:has(*))` et non `:empty` : les macros Jinja laissent des retours à la
+   ligne dans la cellule, et un nœud texte blanc suffit à faire échouer `:empty`
+   — la cellule vide restait affichée et ajoutait un espacement fantôme. */
+.mj-item-tags:not(:has(*)) { display: none; }
 .mj-item-key { grid-area: key; justify-content: flex-end; }
 .mj-item-actions { grid-area: actions; }
+/* Ligne de la boîte de réception : une rangée de plus, zone nommée `qualify`,
+   pour les pastilles de qualification — alignée sous le corps sur grand écran. */
+.kairos-item.has-qualify {
+  grid-template-areas: "check main key actions" ".  qualify qualify qualify";
+}
+.mj-inline-qualify { grid-area: qualify; display: flex; flex-direction: column; gap: 0.45rem;
+  min-width: 0; }
 .badge.mj-tag { background: var(--neu-bg); color: var(--neu-fg); }
 /* Score WSJF : c'est LUI qui ordonne la liste, un des deux seuls badges à accent. */
 .badge.mj-score { background: var(--accent-soft); color: var(--accent-700); font-weight: 800; }
@@ -499,7 +509,15 @@ summary:focus-visible,
       ".     key  key";
   }
   .mj-item-key { justify-content: flex-start; min-height: 0; }
-  .mj-item-key:empty { display: none; }
+  .mj-item-key:not(:has(*)) { display: none; }
+  /* Pastilles sur toute la largeur de la carte, coche comprise : entre la coche
+     et les actions, le corps ne fait qu'environ 150px à 390px de large. */
+  .kairos-item.has-qualify {
+    grid-template-areas:
+      "check main actions"
+      ".     key  key"
+      "qualify qualify qualify";
+  }
 }
 
 .mj-actions { display: inline-flex; gap: 0.3rem; }
@@ -569,6 +587,11 @@ summary:focus-visible,
    checkbox-labels du panneau d'édition (bloqueurs, « Bloc deep-work ») doivent rester
    en ligne : sélecteur à deux classes pour regagner la priorité. */
 .mj-edit-form .mj-check-label { flex-direction: row; align-items: center; gap: 0.4rem; }
+/* Même piège pour les pastilles radio du panneau (audit UI) : sans ceci, elles
+   héritent de la colonne, de la graisse 600 et de la couleur tertiaire des
+   libellés de champ. */
+.mj-edit-form .mj-radio { flex-direction: row; gap: 0; font-size: inherit; font-weight: 400;
+  color: inherit; }
 .mj-blocker-checks input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); flex: none; }
 /* Zone Supprimer/Archiver : nettement séparée en pied de panneau. */
 .mj-edit-danger { border-top: 1px solid var(--border); padding-top: 0.65rem; margin-top: 0.15rem; }
@@ -629,12 +652,44 @@ summary:focus-visible,
    soumission automatique au `change` (`data-autosubmit`, voir kairos.html) —
    distincte de `.mj-fibo-select`/`.mj-task-type-select` (édition complète) qui
    déclenchent en plus le remplissage de durée. */
-.mj-inline-qualify { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
-.mj-inline-form { display: inline-flex; align-items: center; margin: 0; }
-.mj-inline-label { display: inline-flex; flex-direction: column; gap: 0.15rem;
-  font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em;
-  color: var(--text-3); font-weight: 700; }
-.mj-inline-label select { padding: 0.25rem 1.5rem 0.25rem 0.45rem; font-size: 12px; min-width: 4rem; }
+/* Pastilles de qualification (audit UI) — priorité et points en un clic, chaque
+   valeur portant son sens (voir `app/task_guide.py`). Même apparence pour les
+   boutons de la boîte de réception (`.mj-pill.is-on`) et les radios du panneau
+   d'édition (`.mj-radio input:checked + .mj-pill`). Priorité sélectionnée = la
+   teinte du badge de priorité (l'un des deux seuls signaux à accent de la
+   charte) ; points sélectionnés = neutre renforcé, les points n'étant pas un
+   signal « clé ». */
+.mj-pills-form { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; margin: 0; }
+.mj-pills-label { min-width: 3.6rem; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--text-3); }
+.mj-pills { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; min-width: 0; }
+.mj-pill {
+  display: inline-flex; align-items: center; gap: 0.3rem; min-height: 28px;
+  padding: 0.2rem 0.65rem; border: 1px solid var(--border); border-radius: var(--r-pill);
+  background: var(--surface); color: var(--text-2); font: inherit; font-size: 12px;
+  line-height: 1.2; white-space: nowrap; cursor: pointer;
+}
+.mj-pill b { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+.mj-pill:hover { border-color: var(--border-strong); background: var(--surface-tint); color: var(--text); }
+.mj-pill.is-on, .mj-radio input:checked + .mj-pill {
+  background: var(--neu-bg); border-color: var(--text-2); color: var(--text); font-weight: 600;
+}
+.mj-pill.is-prio.is-on, .mj-radio input:checked + .mj-pill.is-prio {
+  background: var(--prio-bg); border-color: var(--accent-line); color: var(--prio-fg);
+}
+.mj-pill.is-prio.is-on b, .mj-radio input:checked + .mj-pill.is-prio b { color: var(--prio-fg); }
+/* Radio réelle gardée dans le DOM (clavier, lecteur d'écran, envoi du
+   formulaire) mais visuellement remplacée par sa pastille. Aucune descendance :
+   son `opacity: 0` ne peut rien composer d'autre (cf. le piège d'opacité tracé
+   dans vue-jour-gtd.md). */
+.mj-radio { position: relative; display: inline-flex; }
+.mj-radio input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0;
+  pointer-events: none; }
+.mj-radio input:focus-visible + .mj-pill { outline: 2px solid var(--accent-700); outline-offset: 2px; }
+.mj-choice { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0;
+  margin: 0; padding: 0; border: 0; }
+.mj-choice legend { margin-bottom: 0.3rem; padding: 0; font-size: 11px; font-weight: 600;
+  color: var(--text-3); }
 
 /* Contrôle de filtrage compact (Phase 1 point 6) : replié par défaut, un seul
    marqueur visible (`.badge.info`) quand un filtre est posé. */
@@ -645,7 +700,9 @@ summary:focus-visible,
      refonte (qualification en ligne, onglets de capture) — le reste de l'UI
      (icônes 28px, cases 15px) suit une convention établie plus ancienne,
      hors périmètre de ce chantier. */
-  .mj-inline-label select { min-height: 30px; }
+  /* Cibles tactiles ≥ 44px (CLAUDE.md § Navigation & mobile) sur les pastilles,
+     contrôle à un tap introduit par l'audit UI. */
+  .mj-pill { min-height: 44px; padding: 0.3rem 0.8rem; font-size: 12.5px; }
   .mj-add-toggle .mj-check-label { min-height: 30px; display: inline-flex; align-items: center; }
 }
 

@@ -497,7 +497,8 @@ def test_priority_badge_shown_when_priority_set(route_client) -> None:
         db.commit()
 
     resp = client.get("/kairos")
-    assert '<span class="badge prio" title="Priorité">P2</span>' in resp.text
+    # L'infobulle porte le sens de la valeur (audit UI), pas seulement « Priorité ».
+    assert '<span class="badge prio" title="Priorité Utile : à faire quand il y a de la place">P2</span>' in resp.text
 
 
 def test_wsjf_score_badge_shown(route_client) -> None:
@@ -541,7 +542,9 @@ def test_fibo_calibration_wired_into_edit_panel(route_client) -> None:
         db.commit()
 
     resp = client.get("/kairos")
-    assert 'class="mj-fibo-select"' in resp.text
+    # Pastilles radio depuis l'audit UI (plus de <select>) : la médiane calibrée
+    # est portée par la pastille du palier 3.
+    assert 'class="mj-fibo-radio"' in resp.text
     assert 'data-avg-minutes="90"' in resp.text
 
 
@@ -2217,8 +2220,9 @@ def test_update_points_route_clears_when_blank(route_client) -> None:
 
 def test_inbox_shows_inline_priority_and_points_controls(route_client) -> None:
     """Phase 2 : la boîte de réception expose des contrôles de qualification en
-    ligne (mini-<select> priorité + points, auto-soumis) — pas besoin d'ouvrir
-    l'édition complète pour clarifier une tâche capturée."""
+    ligne — pas besoin d'ouvrir l'édition complète pour clarifier une tâche
+    capturée. Depuis l'audit UI : des pastilles en un clic (un bouton submit par
+    valeur), qui portent leur sens en clair."""
     client, TestSession = route_client
     with TestSession() as db:
         task = Task(title="À qualifier vite", status="todo")
@@ -2229,8 +2233,13 @@ def test_inbox_shows_inline_priority_and_points_controls(route_client) -> None:
     page = client.get("/kairos")
     assert f'action="/kairos/tasks/{task_id}/priority"' in page.text
     assert f'action="/kairos/tasks/{task_id}/points"' in page.text
-    assert 'name="points" data-autosubmit' in page.text
-    assert 'name="priority" data-autosubmit' in page.text
+    assert 'data-autosubmit' not in page.text
+    for value in (0, 1, 2):
+        assert f'type="submit" name="priority" value="{value}"' in page.text
+    for points in (1, 2, 3, 5, 8, 13, 21):
+        assert f'type="submit" name="points" value="{points}"' in page.text
+    assert "<b>P0</b> Critique" in page.text
+    assert "<b>3</b> modéré" in page.text
 
 
 def test_action_returns_day_fragment_on_ajax_header(route_client) -> None:
@@ -2727,3 +2736,87 @@ def test_home_drops_remote_badges_and_duplicate_logo_from_the_readme() -> None:
     assert "actions/workflows/ci.yml/badge.svg" not in html
     assert 'src="static/icon-512.png"' not in html
     assert "En bref" in html  # le reste du README est toujours là
+
+
+# ---------------------------------------------------------------------------
+# Qualification en un clic (audit UI) — voir docs/spec/vue-jour-gtd.md
+# § Comprendre sans quitter la liste.
+# ---------------------------------------------------------------------------
+
+
+def test_inbox_pills_never_touch_the_estimated_duration(route_client) -> None:
+    """Seuls les radios du panneau d'édition portent `.mj-fibo-radio` (qui
+    remplit la durée) : qualifier en ligne ne modifie jamais la durée."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="À qualifier", source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    inbox = html.split('id="mj-inbox"', 1)[1].split("</section>", 1)[0]
+    qualify = inbox.split('class="mj-inline-qualify"', 1)[1]
+    assert "mj-fibo-radio" not in qualify
+    assert "data-avg-minutes" not in qualify
+
+
+def test_inbox_pill_marks_the_value_already_set(route_client) -> None:
+    """Une tâche qui n'a que sa priorité reste en boîte de réception : sa
+    pastille de priorité apparaît enfoncée, celles des points non."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Priorité seule", priority=1, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert 'value="1"\n      class="mj-pill is-prio is-on"' in html
+    assert 'aria-pressed="true"' in html
+    assert "mj-pill is-on" not in html.split('name="points"', 1)[1].split("</form>", 1)[0]
+
+
+def test_edit_panel_offers_priority_and_points_as_radio_pills(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Éditable", priority=2, fibonacci_points=5, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    assert 'type="radio" name="priority" value="2" checked' in html
+    assert 'type="radio" name="fibonacci_points" value="5" class="mj-fibo-radio"' in html
+    # Une pastille « — » permet de vider chaque champ.
+    assert 'type="radio" name="priority" value=""' in html
+    assert 'type="radio" name="fibonacci_points" value="" class="mj-fibo-radio"' in html
+
+
+def test_edit_with_empty_pill_clears_priority_and_points(route_client) -> None:
+    """La pastille « — » renvoie une valeur vide : la tâche retourne en boîte de
+    réception, comme avec l'ancienne option vide du menu."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        task = Task(title="À vider", priority=0, fibonacci_points=3, source="native")
+        db.add(task)
+        db.commit()
+        task_id = task.id
+
+    client.post(
+        f"/kairos/tasks/{task_id}/edit",
+        data={"title": "À vider", "priority": "", "fibonacci_points": ""},
+        follow_redirects=False,
+    )
+    with TestSession() as db:
+        task = db.get(Task, task_id)
+        assert task.priority is None
+        assert task.fibonacci_points is None
+
+
+def test_inbox_help_explains_priority_meanings_and_the_points_scale(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="À qualifier", source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    inbox = html.split('id="mj-inbox"', 1)[1].split("</section>", 1)[0]
+    help_block = inbox.split('class="mj-help"', 1)[1]
+    assert "bloquant ou engagement ferme" in help_block
+    assert "à faire quand il y a de la place" in help_block
+    assert "bien cadré, zéro inconnue" in help_block
