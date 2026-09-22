@@ -158,7 +158,11 @@ première ligne devient le titre de la tâche, **tout le reste devient sa descri
 
 ### « À traiter » (inbox GTD)
 Une tâche entre dans le tri automatique seulement quand sa **priorité** et ses **points de
-Fibonacci** sont renseignés tous les deux. Tant que l'un des deux manque, elle reste « À
+Fibonacci** sont renseignés tous les deux. Tu les poses en un clic, sur des pastilles qui
+disent ce que vaut chaque choix : **P0 Critique** (bloquant ou engagement ferme, rare),
+**P1 Important** (à caser cette semaine), **P2 Utile** (quand il y a de la place), et pour
+les points de « 1 trivial » à « 21 énorme ». La priorité mesure l'importance, pas le délai :
+l'échéance compte déjà à part dans le score. Tant que l'un des deux manque, elle reste « À
 traiter » dans une section dédiée, non repliée, en tête de page. La clarification prime sur
 tout : une tâche bloquée ou épinglée mais non qualifiée reste « À traiter ».
 
@@ -178,14 +182,22 @@ tout : une tâche bloquée ou épinglée mais non qualifiée reste « À traiter
   l'échéance : une tâche programmée plus tard est masquée (section « Programmées plus
   tard ») sauf si son échéance approche, car l'échéance prime toujours.
 - **Aide à l'estimation** : barème Fibonacci (1 à 21, taille relative, volume ×
-  complexité × incertitude), repliable dans le panneau d'édition.
+  complexité × incertitude), avec tes propres repères (voir ci-dessous).
+- **« Pourquoi à cette place ? »** : un clic (ou un toucher) sur le score d'une tâche
+  affiche son calcul : ce que vaut sa priorité, ce que son échéance ajoute, l'effort qui
+  divise le tout. Une tâche en retard le dit aussi : elle passe devant quel que soit son
+  score.
 
 #### Points de Fibonacci
 
 Dans le panneau d'édition, chaque tâche peut recevoir un nombre de points sur l'échelle
 `1, 2, 3, 5, 8, 13, 21`. C'est une taille **relative** (jamais des heures), estimée en
 quelques secondes par rapport à tes tâches habituelles : volume × complexité ×
-incertitude (« est-ce que je sais comment faire ? »). Repère indicatif : `1` trivial et
+incertitude (« est-ce que je sais comment faire ? »). Le guide « Comment estimer les
+points ? » te donne ces tâches habituelles : pour chaque palier, le temps réel médian de
+tes tâches terminées (« chez toi, 3 pts ≈ 50 min ») et deux d'entre elles en exemple. Tu
+compares (« plus gros que celle-ci, plus petit que celle-là ») au lieu d'estimer dans le
+vide. Repère indicatif : `1` trivial et
 expédié (valider une MR triviale), `2` à `3` petit à modéré sans inconnue (dev bien
 cadré), `5` conséquent ou avec un peu d'inconnu, `8` gros ou vraiment incertain, `13` et
 `21` trop gros pour une seule tâche, donc à découper en sous-tâches.
@@ -197,10 +209,10 @@ la **durée estimée (min)**, qui sert uniquement au *placement* dans l'agenda (
 temps le créneau occupe). Une tâche peut être courte mais tordue (peu de minutes, beaucoup
 de points) ou longue mais mécanique (l'inverse).
 
-Sans points renseignés, le **score affiché** se rabat sur la durée estimée (≈ 1 point /
-30 min, borné 1-21), puis sur `DEFAULT_FIBONACCI_POINTS` (3 par défaut). Ce repli concerne
-le score montré à titre indicatif : pour entrer dans le tri du jour, une tâche a de toute
-façon besoin de ses points (voir « À traiter » ci-dessus).
+Sans points renseignés, une tâche n'affiche pas de score : elle reste « À traiter » (voir
+ci-dessus) et n'entre dans aucun tri. En interne, le calcul se rabat alors sur la durée
+estimée (≈ 1 point / 30 min, borné 1-21), puis sur `DEFAULT_FIBONACCI_POINTS` (3 par
+défaut).
 
 #### Creux de l'après-midi (14h55)
 

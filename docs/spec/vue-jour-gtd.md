@@ -325,17 +325,25 @@ soumission, y compris JS actif) :
 (= `schedule.to_process` filtré par `_visible()`, recherche/facettes). Chaque
 ligne affiche un badge `.badge.warn` dont le libellé distingue les trois cas :
 « priorité et points manquants », « priorité manquante », « points manquants ».
-Qualification en ligne :
-- Deux formulaires `.mj-inline-form[data-ajax]` par ligne, chacun un
-  `<select data-autosubmit>` sans bouton visible : `POST
+Qualification en ligne (pastilles, audit UI) :
+- Deux formulaires `.mj-pills-form[data-ajax]` par ligne, rendus par
+  `priority_pills()` et `points_pills()` (`_kairos_macros.html`) : `POST
   /kairos/tasks/{id}/priority` (`update_task_priority`) et `POST
-  /kairos/tasks/{id}/points` (`update_task_points`).
-- `data-autosubmit` est un attribut **dédié**, distinct de `.mj-fibo-select`/
-  `.mj-task-type-select` (utilisées dans le panneau d'édition complet) : un
-  écouteur `change` délégué appelle `form.requestSubmit()` dès qu'un de ces deux
-  `<select>` change — volontairement **jamais** le remplissage automatique de
-  durée (réservé au panneau d'édition), pour ne pas mélanger qualification
-  rapide et estimation détaillée.
+  /kairos/tasks/{id}/points` (`update_task_points`). Chaque valeur est un
+  `<button type="submit" name="priority|points" value="…" class="mj-pill">`
+  qui affiche son code et son libellé (« P0 Critique », « 3 modéré ») et porte
+  sa définition en `title`. La valeur déjà posée porte `.is-on` et
+  `aria-pressed="true"`. Un clic enregistre, sans JavaScript requis (un vrai
+  clic de bouton inclut nativement `name`/`value` dans la requête).
+- Les pastilles vivent dans une **cinquième zone nommée** de la grille,
+  `qualify` (`<li class="kairos-item has-qualify">`, `.mj-inline-qualify`
+  enfant direct), sur sa propre rangée : dans la colonne du corps, elles
+  n'auraient eu qu'environ 150px à 390px de large. Sous 720px la zone prend
+  toute la largeur de la carte, coche comprise, et chaque pastille fait 44px
+  de haut (cible tactile de la charte).
+- Ces pastilles ne portent **jamais** `.mj-fibo-radio` ni `data-avg-minutes` :
+  qualifier en ligne ne touche pas à la durée estimée (réservé au panneau
+  d'édition, voir § Modale d'édition).
 - L'état vide (`.mj-inbox-empty`) réduit le padding vertical et affiche
   `.mj-inbox-empty-msg` (« Rien à traiter : tout est déjà clarifié ») au lieu de
   faire disparaître la section — rappel volontaire de « où regarder en premier ».
@@ -461,6 +469,11 @@ poursuivre en dessous — retour à la ligne **interne** au titre, via `.mj-titl
 { flex: 1 1 auto; min-width: 0 }`. Avec `flex-wrap`, le titre basculerait en
 bloc sous l'heure, ce qui gâche une ligne entière.
 
+**Cellule vide masquée par `:not(:has(*))`, pas par `:empty`** : les macros
+Jinja laissent des retours à la ligne dans une cellule sans badge, et un nœud
+texte blanc suffit à faire échouer `:empty`. La cellule restait affichée et
+ajoutait un espacement fantôme.
+
 **Deux macros, pas une** : `task_key_badges()` (les signaux de **tri** : score
 WSJF, priorité, points — les deux premiers sont les seuls badges à accent, voir
 `docs/DESIGN_SYSTEM.md`) et `task_tags()` (le **contexte** : projet, type,
@@ -482,6 +495,51 @@ l'essentiel de l'issue #33. Vérifié à 375px : aucun débordement horizontal.
 `display: flex`. La ligne n'y porte qu'un titre (déjà tronqué en ellipse) et un
 projet, sans coche, sans actions, sans priorité — la grille n'y aurait que des
 pistes vides à aligner.
+
+### Comprendre les valeurs et l'ordre (audit UI)
+
+**Source unique du sens** : `app/task_guide.py`. `PRIORITY_LEVELS` (code,
+libellé, définition : P0 Critique, P1 Important, P2 Utile) et
+`FIBONACCI_GUIDE` (points, libellé, définition, exemple générique, un par
+palier de `FIBONACCI_SCALE`), exposés aux gabarits en globales Jinja avec les
+recherches `priority_level()` et `fibo_level()`. Lus par les pastilles, l'aide
+de la boîte de réception, le guide d'estimation et les `title` des badges P
+et points. Deux tests vérifient que ces tables couvrent exactement l'échelle
+du modèle et celle de l'ordonnanceur (`_PRIORITY_MAX`). Des degrés
+d'importance et non de délai : l'échéance pèse déjà dans le score
+(`_time_criticality`).
+
+**Aide « comment qualifier ? »** (en-tête de la boîte de réception) : pourquoi
+qualifier, sens des priorités (`priority_help()`), puis le guide d'estimation.
+
+**Guide d'estimation ancré** (`fibo_help()`) : pour chaque palier, sa
+définition, puis les repères de `fibo_refs`
+(`tasks_stats.fibonacci_references`, voir `statistiques.md`) : temps réel
+médian chez l'utilisateur avec l'effectif, marqué « peu fiable » sous
+`MIN_SAMPLE`, et les titres de ses deux tâches terminées les plus récentes à
+ce palier. Sans historique à un palier : l'exemple générique et la mention
+« aucune de tes tâches terminées à ce palier pour l'instant ». Filtre Jinja
+`duree` (même format que `_fmt_minutes`).
+
+**« Pourquoi à cette place ? »** (`score_explained()`) : le badge du score est
+le `<summary>` d'un `<details class="mj-why">` ; le panneau `.mj-why-body`
+détaille les termes de `why_of[task.id]`
+(`tasks_scheduling.wsjf_breakdown`, voir `ordonnancement.md`) : valeur de la
+priorité, criticité avec la date la plus proche (« Échéance dépassée de
+12 j », « Date programmée demain », « Aucune échéance »), effort et sa
+provenance (points, déduit de la durée, par défaut), puis le score. Une tâche
+en retard affiche en tête qu'elle passe devant quel que soit son score (palier
+dur du tri). Filtre Jinja `nombre` : une décimale au plus, sans « .0 ».
+S'ouvre sans JavaScript ; le script referme au clic extérieur et à Échap, un
+panneau à la fois (écouteurs délégués sur `document`, hors
+`initDayScripts`). Panneau en `position: absolute` sous `.mj-item-key`
+(`position: relative`), sans ombre portée (charte), `z-index: 60` sous les
+bandeaux d'alerte (70) et le calque d'édition (79/80), aligné à gauche sous
+720px pour rester dans l'écran.
+
+**Score réservé aux tâches qualifiées** : `why_of` (et donc `wsjf_of`, son
+arrondi) ne couvre que les tâches ayant priorité **et** points (voir § Décisions
+et pièges tracés, point 0).
 
 ### Description d'une tâche (extrait dépliable)
 
@@ -550,11 +608,13 @@ l'extrait n'y apporterait que du bruit.
   sessions fraîches) ; sinon `RedirectResponse("/kairos", status_code=303)` — le
   comportement historique, identique sans JS. Chaque handler doit committer et
   **fermer** sa propre session avant cet appel (voir invariant plus haut).
-- `<select data-autosubmit>` : écouteur `change` délégué appelle
-  `form.requestSubmit()` (ou `form.submit()` en repli si `requestSubmit`
-  indisponible) — la soumission résultante est ensuite interceptée par l'écouteur
-  `submit` générique ci-dessus si le formulaire porte aussi `data-ajax` (c'est le
-  cas des deux formulaires de qualification de l'inbox).
+- **Bouton émetteur ajouté à la requête** (`kairosFormData`,
+  `kairosSubmitNatively`) : `new FormData(form)` n'inclut jamais le bouton
+  cliqué, et `form.submit()` (repli) non plus. Or les pastilles de
+  qualification transportent leur valeur dans le `name`/`value` du bouton :
+  l'écouteur lit `ev.submitter` et l'ajoute au `FormData` ; le repli ajoute
+  un `<input type="hidden">` équivalent avant `form.submit()`. Sans cela la
+  priorité choisie se perdait en route.
 - `initDayScripts(root = document)` : point de ré-initialisation, appelé une fois
   au chargement (`initDayScripts(document)`) et de nouveau après chaque swap
   (`initDayScripts(target)`). Ne gère **que** ce qui vit dans le sous-arbre
@@ -610,10 +670,20 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
     par `.mj-edit-form > label:first-child input`), **Description**
     (`<textarea name="description">`, juste sous le titre — remontée des options
     avancées par l'issue #32, voir § Description d'une tâche), puis
-    `.mj-edit-row.mj-edit-essentials` : Priorité (`range(0, 3)` → P0-P2), Points
-    Fibo (`.mj-fibo-select`, échelle `FIBONACCI_SCALE`), Échéance, Durée (min,
-    `.mj-estimated-minutes`). `fibo_help()` (légende de l'échelle, repliable)
-    juste en dessous.
+    Priorité et Points de Fibonacci en pastilles radio (`priority_choice()`,
+    `points_choice()`, audit UI) : `<label class="mj-radio"><input
+    type="radio">` + `<span class="mj-pill">`, la radio restant dans le DOM
+    (clavier, lecteur d'écran, envoi) mais visuellement remplacée par sa
+    pastille ; une pastille « — » (valeur vide) vide le champ et renvoie la
+    tâche en boîte de réception. Les radios de points portent
+    `.mj-fibo-radio` et `data-avg-minutes` (médiane calibrée du palier) :
+    l'écouteur `change` délégué remplace la durée estimée, comme le faisait
+    l'ancien `<select class="mj-fibo-select">`. Puis `fibo_help()` (guide
+    d'estimation, repliable), puis `.mj-edit-row.mj-edit-essentials` :
+    Échéance, Durée (min, `.mj-estimated-minutes`). Piège tracé : la règle
+    `.mj-edit-form label` (colonne, graisse 600, couleur tertiaire) s'applique
+    aussi aux `<label class="mj-radio">` ; `.mj-edit-form .mj-radio` la
+    neutralise, comme `.mj-edit-form .mj-check-label` avant elle.
   - **Options avancées** (`<details class="mj-edit-advanced">`, repliées) :
     Programmée pour (`scheduled_date`), Projet, Temps passé manuel,
     Récurrence + Jour du mois (visible seulement si `recurrence ==
@@ -748,10 +818,11 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
   cohérent avec l'usage actuel (aucune de ces six routes ne porte `data-ajax`).
 - Le formulaire de filtres reste en **GET**, jamais `data-ajax` : c'est une
   navigation dont l'état vit dans l'URL (bookmarkable), pas une mutation.
-- Les champs de qualification rapide de l'inbox utilisent **exclusivement**
-  `data-autosubmit` (jamais `.mj-fibo-select`/`.mj-task-type-select`) pour ne
-  jamais déclencher le remplissage automatique de durée réservé au panneau
-  d'édition complet.
+- Les pastilles de qualification de l'inbox ne portent **jamais**
+  `.mj-fibo-radio`, `.mj-task-type-select` ni `data-avg-minutes` : le
+  remplissage automatique de durée reste réservé au panneau d'édition.
+- Tout libellé ou définition de priorité ou de palier de points se lit dans
+  `app/task_guide.py`, jamais écrit en dur dans un gabarit.
 - Les routes d'édition/suppression de créneau ne doivent agir **que** sur
   `TimeBlock.source == 'manual'` (garde-fou déjà en place côté route) — les
   créneaux TimeTree sont transitoires, jamais persistés.
@@ -773,10 +844,11 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
   `document` au chargement du script ne doit jamais y être dupliqué.
 - `task_description()` reste appelée **en dernier** dans `.mj-item-main` :
   c'est un bloc pleine largeur du corps, il doit venir après les étiquettes.
-- Un `<li class="kairos-item">` ne contient que **quatre enfants directs** (les
-  quatre cellules de la grille). Tout nouvel élément d'une ligne de tâche
-  s'ajoute **à l'intérieur** d'une cellule — un cinquième enfant direct n'aurait
-  aucune zone nommée et se placerait dans une piste implicite, en cassant
+- Un `<li class="kairos-item">` ne contient que les cellules **nommées** de la
+  grille : les quatre de base, plus `qualify` pour une ligne de la boîte de
+  réception (`.has-qualify`, qui déclare la zone). Tout nouvel élément d'une
+  ligne de tâche s'ajoute **à l'intérieur** d'une cellule ; un enfant direct
+  sans zone nommée se placerait dans une piste implicite et casserait
   l'alignement de toutes les lignes.
 - Un badge de **longueur imprévisible** (phrase, note explicative) va dans
   `.mj-item-tags`, jamais dans `.mj-item-key` : la stabilité de la colonne

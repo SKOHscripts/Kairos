@@ -264,6 +264,18 @@ class Completeness:
 
 **Interprétation** : incite à remplir les métadonnées — la calibration d'estimation et le tri WSJF en dépendent. Si <70%, l'utilisateur laisse de la clarification en retard.
 
+### Repères du guide d'estimation (audit UI)
+
+`fibonacci_references(tasks, spent_by_task, *, examples_per_level=2) ->
+dict[int, FiboReference]` (pure) alimente le guide d'estimation de la vue
+Jour, hors dashboard. Pour chaque palier ayant au moins une tâche terminée :
+`calibration` (l'entrée de `fibonacci_calibration`, mêmes règles et même
+drapeau `reliable`, ou `None` si aucune tâche du palier n'est chronométrée)
+et `examples`, les titres des tâches terminées les plus récentes (tri sur
+`updated_at`, faute de date de fin dédiée). Les tâches non chronométrées
+restent des exemples : un exemple sert à comparer une taille, pas une durée.
+Un palier sans tâche terminée est absent du résultat.
+
 ### Décisions et pièges tracés
 
 #### Date de complétion approximée

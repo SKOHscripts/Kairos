@@ -60,9 +60,9 @@ La vue Semaine reste un gabarit simple, non concernée par cette réorganisation
   (`initDayScripts`, réappelable). Sans JS (ou en cas d'échec réseau), le même
   formulaire se soumet normalement → POST → redirection 303 côté serveur,
   identique au comportement historique — indispensable pour la WebView Android et
-  l'accessibilité. Un `<select data-autosubmit>` déclenche seul la soumission de son
-  formulaire au `change` (`form.requestSubmit()`), intercepté ensuite par le même
-  mécanisme `data-ajax`.
+  l'accessibilité. Le bouton cliqué est ajouté à la requête (`ev.submitter`) :
+  `new FormData(form)` l'ignore, et les pastilles de qualification portent leur
+  valeur dans leur `name`/`value`.
 
 ## Couleurs
 
@@ -189,12 +189,31 @@ pas de `<div>` imbriqué) reprend le traitement crème `#FFFAF1` + puce ambre
 Fibonacci). État vide : `.mj-inbox-empty` (padding réduit, pas de liste), présent
 plutôt que la section entière disparaissant du DOM.
 
-Chaque ligne de la boîte de réception porte deux mini-formulaires
-`.mj-inline-form[data-ajax]` (priorité, points Fibonacci) avec un `<select
-data-autosubmit>` — auto-soumis au `change`, distincts de `.mj-fibo-select`/
-`.mj-task-type-select` (édition complète) qui déclenchent en plus le remplissage de
-durée. Une fois les deux champs posés, la tâche quitte la boîte de réception et entre
-dans l'agenda ordonné (rendu par le fragment AJAX, sans rechargement de page).
+Chaque ligne de la boîte de réception porte deux rangées de **pastilles**
+(`.mj-pill`, audit UI) : priorité (« P0 Critique », « P1 Important », « P2 Utile »)
+et points (« 1 trivial » … « 21 énorme »), un bouton submit par valeur, dans la
+zone `qualify` de la grille. Un clic enregistre. Une fois les deux champs posés,
+la tâche quitte la boîte de réception et entre dans l'agenda ordonné (fragment
+AJAX, sans rechargement de page).
+
+### Pastilles de choix (`.mj-pill`)
+
+Même composant pour les boutons de la boîte de réception et les radios du panneau
+d'édition (`.mj-radio input:checked + .mj-pill`). Contour `--border`, rayon pilule,
+code en gras puis libellé. Valeur choisie : priorité dans la teinte du badge de
+priorité (`--prio-bg`/`--prio-fg`, l'un des deux signaux à accent de la charte) ;
+points en neutre renforcé (`--neu-bg`, bordure `--text-2`), les points n'étant pas
+un signal clé. 28px de haut sur grand écran, 44px sous 720px (cible tactile). Le
+sens de chaque valeur s'affiche en clair dans la pastille ; l'infobulle n'en
+donne que la définition longue.
+
+### Explication du score (`.mj-why`)
+
+Le badge du score WSJF est le `<summary>` d'un `<details>` : un clic ou un
+toucher ouvre, sous la colonne priorité/points, un panneau (surface, bordure
+`--border-strong`, rayon 8px, **sans ombre**) qui détaille le calcul de la tâche.
+Seul ajout d'accent : la ligne « Score » en `--accent-700`, le score étant l'un
+des deux signaux clés.
 
 ### Ligne de tâche (`.kairos-item`)
 

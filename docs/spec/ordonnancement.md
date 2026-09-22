@@ -367,6 +367,20 @@ l'extérieur) : les deux coexistent sans se remplacer.
   en heure locale naïve ; une session ouverte court jusqu'à `now` (injectable,
   fonction pure testable).
 
+### Décomposition du score (audit UI)
+
+`wsjf_breakdown(task, day, *, settings) -> WsjfBreakdown` (pure) renvoie les
+termes du score : `value` (`_priority_value`), `criticality`
+(`_time_criticality`), `effort` et `effort_source` (`_effort` :
+`"points"`, `"minutes"` ou `"défaut"`, la provenance du dénominateur),
+`date_kind` et `days_until` (la plus proche de l'échéance et de la date
+programmée, négatif si dépassée), `overdue` (`_is_overdue`, le palier dur du
+tri). Sa propriété `score` est **le** calcul : `wsjf_score` la lit, la formule
+n'existe qu'une fois et le score affiché ne peut pas diverger de son
+explication (test dédié). `_effort_points` reste, pour le creux de
+l'après-midi, un simple accès à `_effort(...)[0]`. Utilisée par la vue Jour
+(« pourquoi à cette place ? », `vue-jour-gtd.md`).
+
 ### Décisions et pièges tracés
 
 Micro-décisions et « pourquoi » relevés dans les commentaires de code, à ne pas
