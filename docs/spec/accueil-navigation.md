@@ -333,6 +333,16 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   d'ancre (`id=`) sur les titres et exposer l'arbre `toc_tokens` (sans lien
   permalien injecté dans le HTML, `permalink: False` — le sommaire séparé de
   `home.html` en tient lieu).
+- **Images retirées du rendu** (`_strip_readme_images`, fonction pure, audit UI) :
+  les badges distants (`<img src="https://…">`, CI, version, téléchargements,
+  plateformes) et le logo du README (`static/icon-512.png`), avec le lien qui
+  enveloppe un badge, puis les paragraphes devenus vides. Raisons : hors ligne
+  (exécutable de bureau, APK) ces badges s'affichaient cassés ; en ligne, chaque
+  ouverture de l'accueil déclenchait une requête vers un service tiers,
+  incohérent pour un outil local « sans compte ni cloud » ; leur information
+  (état de la CI, dernière version) ne concerne pas l'utilisateur de l'app
+  ouverte ; et le logo doublait celui du bandeau juste au-dessus. Le fichier
+  `README.md` n'est pas modifié — ces images restent utiles sur GitHub.
 - **Racine unique retenue** : `converter.toc_tokens[0]["children"]` — le nœud racine
   du `toc_tokens` correspond au H1 « Kairos » du README ; ses enfants (H2/H3)
   forment le sommaire utilisé par `home.html`. Le H1 lui-même n'est pas repris dans

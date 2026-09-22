@@ -18,9 +18,15 @@
   {% else %}
   <ul class="kairos-list">
     {% for note in open_notes %}
-    <li class="kairos-item" style="align-items:flex-start;">
-      <p style="flex:0 0 100%;margin:0;white-space:pre-wrap;color:var(--text);">{{ note.body }}</p>
-      <span class="muted" style="font-size:11px;">{{ note.created_at.strftime('%d/%m %Hh%M') }}</span>
+    {# `.mj-note-item`, jamais `.kairos-item` : depuis l'issue #33, `.kairos-item`
+       est la grille à quatre colonnes d'une ligne de TÂCHE (coche, corps, clés,
+       actions). Une note n'a ni coche ni priorité — la réutiliser écrasait son
+       corps dans la colonne étroite de la coche (régression constatée à
+       l'audit UI, débordement horizontal sur mobile). #}
+    <li class="mj-note-item">
+      <p class="mj-note-body">{{ note.body }}</p>
+      <div class="mj-note-foot">
+      <span class="mj-note-date">{{ note.created_at.strftime('%d/%m %Hh%M') }}</span>
       <span class="mj-actions">
         <form method="post" action="/kairos/notes/{{ note.id }}/convert" class="inline" data-ajax>
           <button type="submit" class="btn sm" title="Convertir en tâche (arrive titre-seul dans la boîte de réception de la vue Jour)">
@@ -51,6 +57,7 @@
           <button type="submit" class="btn sm danger" title="Supprimer définitivement">{{ icon('trash') }} Supprimer</button>
         </form>
       </span>
+      </div>
     </li>
     {% endfor %}
   </ul>
@@ -65,12 +72,14 @@
   <summary class="collapser">{{ icon('chevron_right', '') }} Traité / archivé ({{ archived_notes|length }})</summary>
   <ul class="kairos-list" style="padding:0 1.1rem 0.9rem;">
     {% for note in archived_notes %}
-    <li class="kairos-item" style="align-items:flex-start;">
-      <p class="muted" style="flex:0 0 100%;margin:0;white-space:pre-wrap;">{{ note.body }}</p>
-      <span class="muted" style="font-size:11px;">{{ note.created_at.strftime('%d/%m %Hh%M') }}</span>
-      {% if note.converted_task_id %}
-      <a class="badge info" href="/kairos#mj-inbox">{{ icon('arrow_up_right') }} voir la tâche créée</a>
-      {% endif %}
+    <li class="mj-note-item is-archived">
+      <p class="mj-note-body">{{ note.body }}</p>
+      <div class="mj-note-foot">
+        <span class="mj-note-date">{{ note.created_at.strftime('%d/%m %Hh%M') }}</span>
+        {% if note.converted_task_id %}
+        <a class="badge info" href="/kairos#mj-inbox">{{ icon('arrow_up_right') }} voir la tâche créée</a>
+        {% endif %}
+      </div>
     </li>
     {% endfor %}
   </ul>

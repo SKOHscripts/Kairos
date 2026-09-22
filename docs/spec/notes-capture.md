@@ -245,8 +245,11 @@ réutilise ni ne modifie le script de `kairos.html` — deux pages indépendante
 
 **`templates/_notes_list.html`** — fragment, deux sections :
 1. `<section class="card" id="mj-notes-open">` — liste `open_notes` en
-   `<ul class="kairos-list"><li class="kairos-item">`, corps de note en
-   `<p style="white-space:pre-wrap">{{ note.body }}</p>` (échappement Jinja
+   `<ul class="kairos-list"><li class="mj-note-item">`, corps de note en
+   `<p class="mj-note-body">{{ note.body }}</p>` (`white-space: pre-wrap`,
+   `overflow-wrap: anywhere` — une URL collée ne déborde jamais), suivi d'un
+   pied `.mj-note-foot` (date `.mj-note-date` à gauche, actions à droite, qui
+   passent à la ligne sur mobile) (échappement Jinja
    par défaut, **jamais** `| safe` — texte utilisateur brut, seuls les retours
    à la ligne sont préservés visuellement via `white-space: pre-wrap`, pas de
    rendu HTML/Markdown). État vide explicite (`.hint`) si `open_notes` est
@@ -267,6 +270,16 @@ réutilise ni ne modifie le script de `kairos.html` — deux pages indépendante
    de réception reste courte par construction).
 
 ### Décisions et pièges tracés
+
+- **Ligne de note propre (`.mj-note-item`), jamais `.kairos-item`.** La liste
+  réutilisait `.kairos-item`, pensée pour les tâches ; quand l'issue #33 l'a
+  transformée en grille à quatre colonnes (coche, corps, clés, actions), le
+  corps d'une note — qui n'a ni coche ni priorité — s'est retrouvé écrasé dans
+  la colonne étroite de la coche, avec un débordement horizontal mesuré sur
+  mobile (441px de contenu pour 390px d'écran, audit UI). Correctif : une classe
+  de ligne dédiée, dont la structure (corps pleine largeur, puis pied date +
+  actions) est celle d'une note. Règle générale qui en découle : ne jamais
+  réutiliser `.kairos-item` hors d'une ligne de tâche.
 
 - **Deux patrons de rendu parallèles (Notes / Kairos), pas un patron
   générique partagé.** `_build_notes_context`/`render_notes_response`/

@@ -354,7 +354,12 @@ details[open] .collapser .chev { transform: rotate(90deg); }
 .barrow .track { flex: 1; background: var(--neu-bg); border-radius: var(--r-pill); height: 8px; position: relative; overflow: hidden; }
 .barrow .fill { height: 8px; border-radius: var(--r-pill); background: var(--accent); }
 .barrow .fill.done { background: var(--c-done); }
-.barrow .barval { width: 26px; text-align: right; color: var(--text-2); }
+/* `min-width` et non `width` : la valeur porte souvent plus qu'un nombre
+   (« 86 % · 12/14 », « 3 h 10 · 42 % ») — une largeur fixe de 26px la cassait
+   sur trois lignes. `nowrap` + `flex: none` la gardent sur une ligne, la piste
+   `.track` (flex: 1) absorbant la différence. */
+.barrow .barval { min-width: 26px; flex: none; white-space: nowrap; text-align: right;
+  color: var(--text-2); }
 
 .progress { background: var(--neu-bg); border-radius: var(--r-pill); height: 7px; overflow: hidden; width: 100%; }
 .progress .done { height: 7px; border-radius: var(--r-pill); background: var(--c-done); }
@@ -864,6 +869,22 @@ summary:focus-visible,
 .mj-settings-actions { position: sticky; bottom: 0; padding: 0.9rem 0; margin-top: 0.5rem;
   background: linear-gradient(to top, var(--bg) 60%, transparent); }
 
+/* Ligne de note (page Notes) : corps pleine largeur, puis une ligne de pied
+   (date à gauche, actions à droite, qui passent à la ligne sur mobile). Classe
+   propre à la page Notes — `.kairos-item` est réservée à la grille d'une ligne
+   de tâche (issue #33) et ne doit pas être réutilisée pour autre chose.
+   `overflow-wrap: anywhere` : une URL collée dans une note ne fait jamais
+   déborder la carte. */
+.mj-note-item { display: flex; flex-direction: column; gap: 0.5rem;
+  padding: 0.65rem 0.8rem; border: 1px solid var(--border); border-left-width: 3px;
+  border-radius: var(--r-md); background: var(--surface); }
+.mj-note-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); }
+.mj-note-item.is-archived .mj-note-body { color: var(--text-3); }
+.mj-note-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; }
+.mj-note-date { margin-right: auto; font-size: 11px; color: var(--text-3);
+  font-variant-numeric: tabular-nums; }
+.mj-note-foot .mj-actions { flex-wrap: wrap; }
+
 /* =========================================================================
    Marge interne des boîtes sur petit écran. Bloc volontairement en toute fin
    de fichier : la plupart des sélecteurs ci-dessous (.mj-progress, .mj-capture,
@@ -889,7 +910,8 @@ summary:focus-visible,
     padding-left: 1.3rem;
     padding-right: 1.3rem;
   }
-  .kairos-item {
+  .kairos-item,
+  .mj-note-item {
     padding-left: 1rem;
     padding-right: 1rem;
   }

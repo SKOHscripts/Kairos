@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import signal
 import sys
 from contextlib import asynccontextmanager, contextmanager
@@ -34,6 +35,7 @@ from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 from . import desktop_notify, secret_store, settings_store
+from .fr_dates import date_longue, jour_court
 from .calendar.timetree_source import fetch_busy_slots
 from .config import Settings, apply_proxy_env, get_settings, invalidate_settings_cache
 from .gitlab_direct import fetch_assigned_issues
@@ -200,6 +202,10 @@ templates.env.globals["is_frozen"] = getattr(sys, "frozen", False)
 # `kairos_boot.py` avant tout import de ce module (voir docs/ANDROID_PACKAGING.md),
 # donc lu une seule fois ici, au même titre que `is_frozen`.
 templates.env.globals["is_android"] = os.environ.get("KAIROS_PLATFORM") == "android"
+# Dates en toutes lettres en français, indépendamment de la locale du système
+# (voir `app/fr_dates.py` : `strftime('%A')` affichait les jours en anglais).
+templates.env.filters["date_longue"] = date_longue
+templates.env.filters["jour_court"] = jour_court
 # Anti-cache navigateur : suffixe `?v=` sur les liens vers static/ dans base.html.
 # Sans lui, un navigateur peut continuer à servir un vieux style.css en cache après
 # une mise à jour de l'app (nouvelle version installée, `git pull`...), ce qui donne
@@ -219,6 +225,29 @@ def favicon(request: Request) -> Response:
     return FileResponse(BASE_DIR / "static" / "favicon.svg", media_type="image/svg+xml")
 
 
+# Images du README qui n'ont pas leur place dans l'application (audit UI) :
+# - les badges distants (CI, version, téléchargements, plateformes) pointent vers
+#   img.shields.io / github.com — cassés hors ligne (exécutable de bureau, APK),
+#   et sinon une requête vers un service tiers à chaque ouverture de l'accueil,
+#   incohérent pour un outil local « sans compte ni cloud » ; leur information
+#   (état de la CI, dernière version) ne concerne de toute façon pas l'utilisateur
+#   de l'app ouverte ;
+# - le logo du README (`static/icon-512.png`), doublon du logo du bandeau
+#   d'accueil juste au-dessus.
+# Le lien qui enveloppe un badge disparaît avec lui (sinon lien vide). Le README
+# lui-même n'est pas modifié : ces images restent utiles sur GitHub.
+_README_REMOTE_IMG_RE = re.compile(
+    r'(?:<a\b[^>]*>\s*)?<img\b[^>]*\bsrc="(?:https?://[^"]*|static/icon-512\.png)"[^>]*/?>(?:\s*</a>)?'
+)
+_EMPTY_PARAGRAPH_RE = re.compile(r"<p>\s*</p>")
+
+
+def _strip_readme_images(html: str) -> str:
+    """Retire du HTML du README les images listées ci-dessus, puis les
+    paragraphes devenus vides. Fonction pure."""
+    return _EMPTY_PARAGRAPH_RE.sub("", _README_REMOTE_IMG_RE.sub("", html))
+
+
 def _render_readme() -> tuple[str, str, list[dict]]:
     """Rend ``README.md`` en HTML pour la page d'accueil : source **unique**, jamais
     dupliquée à la main — toute modification du README y apparaît sans autre effort.
@@ -232,7 +261,9 @@ def _render_readme() -> tuple[str, str, list[dict]]:
         extensions=["extra", "sane_lists", "toc"],
         extension_configs={"toc": {"permalink": False}},
     )
-    html = converter.convert((BASE_DIR / "README.md").read_text(encoding="utf-8"))
+    html = _strip_readme_images(
+        converter.convert((BASE_DIR / "README.md").read_text(encoding="utf-8"))
+    )
     # Racine unique (le H1 « Kairos ») : ses enfants (H2/H3) forment le sommaire —
     # le H1 lui-même est déjà repris dans le bandeau de bienvenue, inutile en double.
     toc = converter.toc_tokens[0]["children"] if converter.toc_tokens else []
@@ -488,7 +519,15 @@ def _build_kairos_context(
     bucket_of = {t.id: urgency_bucket(t, target_day) for t in tasks}
     # Score WSJF affiché à côté de chaque tâche (transparence : on voit *pourquoi* cet
     # ordre) + détail valeur/urgence/effort au survol. Phase 9.
-    wsjf_of = {t.id: round(wsjf_score(t, target_day, settings=settings), 1) for t in tasks}
+    # Seulement pour les tâches QUALIFIÉES (priorité ET points) : une tâche de la
+    # boîte de réception « ne rentre dans aucun tri » (`to_process`), lui afficher
+    # un score calculé sur des valeurs par défaut (« 0.1 ») contredisait le texte
+    # juste au-dessus d'elle — constaté à l'audit UI.
+    wsjf_of = {
+        t.id: round(wsjf_score(t, target_day, settings=settings), 1)
+        for t in tasks
+        if t.priority is not None and t.fibonacci_points is not None
+    }
     blocked_tasks = [
         {"task": by_id[tid], "reasons": block_reasons.get(tid, [])}
         for tid in blocked_ids
@@ -571,6 +610,10 @@ def _build_kairos_context(
         "settings": settings,
         "view": view,
         "day": target_day,
+        # La vue Jour peut afficher un autre jour que le jour courant (lien
+        # « Voir le détail » de la vue Semaine) : la barre de titre ne dit
+        # « Aujourd'hui » que si c'est vrai.
+        "is_today": target_day == date.today(),
         "timetree_configured": settings.timetree_configured,
         "gitlab_direct_error": gitlab_direct_error,
         "blocked_tasks": blocked_tasks,

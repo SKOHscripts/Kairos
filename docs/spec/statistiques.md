@@ -306,11 +306,22 @@ class Completeness:
 
 **Justification** : à 375-393px de large (viewport mobile), `100px` tronquait
 « Points de Fibonacci » en « Points de Fibona… » — après padding de carte et
-`.barval` fixe (26px), il reste assez de place pour la piste `.track` même à
+`.barval` (26px au minimum), il reste assez de place pour la piste `.track` même à
 135px de label. `white-space: nowrap`/`text-overflow: ellipsis` restent en
 place comme filet de sécurité pour un libellé encore plus long à l'avenir ;
 combiné à l'attribut `title` (voir § Complétude des métadonnées), le texte
 complet reste toujours accessible même tronqué.
+
+#### Valeur `.barval` sur une seule ligne (audit UI)
+
+**Décision** : `.barrow .barval` passe de `width: 26px` à `min-width: 26px`,
+`flex: none`, `white-space: nowrap`.
+
+**Justification** : la valeur porte souvent plus qu'un nombre (« 86 % ·
+12/14 » en complétude, « 3 h 10 · 42 % » en répartition du temps) ; une largeur
+fixe de 26px la cassait sur trois lignes. La piste `.track` (`flex: 1`)
+absorbe la différence, les valeurs d'un seul nombre restent alignées à droite
+sur 26px comme avant.
 
 #### Réutilisation exclusive
 

@@ -318,3 +318,18 @@ def test_notes_nav_item_active_only_on_notes_page(route_client) -> None:
     day_page = client.get("/kairos")
     assert 'class="tn-item active" href="/kairos/notes"' not in day_page.text
     assert 'href="/kairos/notes"' in day_page.text  # l'entrée existe, non active
+
+
+def test_notes_use_their_own_row_layout_not_the_task_grid(route_client) -> None:
+    """Régression de l'issue #33 constatée à l'audit UI : `.kairos-item` est
+    devenue la grille à quatre colonnes d'une ligne de TÂCHE ; réutilisée pour
+    une note, elle écrasait son corps dans la colonne de la coche."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Note(body="Une note"))
+        db.add(Note(body="Une note archivée", status="archived"))
+        db.commit()
+
+    html = client.get("/kairos/notes").text
+    assert html.count('class="mj-note-item') == 2
+    assert "kairos-item" not in html

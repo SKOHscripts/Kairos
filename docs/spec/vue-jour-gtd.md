@@ -625,6 +625,26 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
 
 ### Décisions et pièges tracés
 
+0. **Correctifs de l'audit UI** (tous tracés ici pour ne pas les re-trancher) :
+   - **Dates en français, sans `setlocale`.** `strftime('%A %d %B %Y')`
+     affichait « Tuesday 22 September 2026 » : la locale d'un processus Python
+     vaut « C » par défaut, celle du poste n'est garantie ni sous PyInstaller,
+     ni dans l'APK, ni sous systemd, et `locale.setlocale` est global au
+     processus et non sûr entre threads (Uvicorn sert les routes synchrones
+     dans un pool). Deux tables fixes dans `app/fr_dates.py`
+     (`date_longue` → « mardi 22 septembre 2026 », « 1er » pour le premier du
+     mois ; `jour_court` → « mar. 22/09 »), exposées en filtres Jinja.
+   - **Titre de barre fidèle à la vue.** « Semaine · du lundi 21 septembre
+     2026 » sur la vue semaine (qui affichait « Aujourd'hui »), et
+     « Aujourd'hui » seulement si le jour affiché est le jour courant
+     (`is_today` dans le contexte) — sinon « Jour », le lien « Voir le détail »
+     de la vue semaine menant à n'importe quel jour. Même règle pour `<title>`.
+   - **Pas de score WSJF sur une tâche non qualifiée.** `wsjf_of` ne couvre
+     plus que les tâches ayant priorité **et** points : une tâche de la boîte
+     de réception « ne rentre dans aucun tri », lui afficher un score calculé
+     sur des valeurs par défaut (« 0.1 ») contredisait le texte juste
+     au-dessus d'elle.
+
 1. **Bug d'opacité corrigé sur `.kairos-item.mj-blocked` — ne jamais réutiliser
    `opacity` ici.** `.kairos-item.mj-blocked` utilisait `opacity: 0.75` : une
    opacité sur ce `<li>` crée un **contexte d'empilement** qui atténue au rendu

@@ -1,8 +1,16 @@
 {% extends "base.html" %}
 {% from "_icons.html" import icon %}
 {% from "_kairos_macros.html" import done_toggle, task_actions, time_spent, fibo_help, edit_panel with context %}
-{% block title %}Kairos · aujourd’hui{% endblock %}
-{% block topbar_title %}Aujourd’hui <span class="muted">· {{ day.strftime('%A %d %B %Y') }}</span>{% endblock %}
+{% block title %}Kairos · {% if view == 'week' %}semaine{% elif is_today %}aujourd’hui{% else %}jour{% endif %}{% endblock %}
+{# Titre fidèle à ce qui est affiché : « Semaine » sur la vue semaine, et
+   « Aujourd'hui » seulement si le jour affiché est bien aujourd'hui. #}
+{% block topbar_title %}{% if view == 'week' -%}
+Semaine <span class="muted">· du {{ week_start|date_longue }}</span>
+{%- elif is_today -%}
+Aujourd’hui <span class="muted">· {{ day|date_longue }}</span>
+{%- else -%}
+Jour <span class="muted">· {{ day|date_longue }}</span>
+{%- endif %}{% endblock %}
 
 {% block content %}
 
@@ -25,7 +33,7 @@
   <div class="mj-week-grid">
     {% for entry in week_days %}
     <div class="mj-week-day {% if entry.date == day %}today{% endif %}">
-      <h3>{{ entry.date.strftime('%a %d/%m') }}</h3>
+      <h3>{{ entry.date|jour_court }}</h3>
       {% for title in entry.all_day %}
       <div class="badge info" title="Événement journée entière">{{ icon('calendar') }} {{ title }}</div>
       {% endfor %}
@@ -38,13 +46,15 @@
       <ul class="kairos-list">
         {% for task in entry.done_tasks %}
         <li class="kairos-item mj-done">
-          <span class="mj-title">{{ task.title }}</span>
+          <span class="mj-title" title="{{ task.title }}">{{ task.title }}</span>
           {% if task.project_tag %}<span class="badge">{{ task.project_tag }}</span>{% endif %}
         </li>
         {% endfor %}
         {% for task in entry.tasks %}
+        {# Titre tronqué en ellipse par la grille semaine : `title` rend le texte
+           complet lisible au survol (le détail complet reste « Voir le détail »). #}
         <li class="kairos-item">
-          <span class="mj-title">{{ task.title }}</span>
+          <span class="mj-title" title="{{ task.title }}">{{ task.title }}</span>
           {% if task.project_tag %}<span class="badge">{{ task.project_tag }}</span>{% endif %}
         </li>
         {% endfor %}

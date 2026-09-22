@@ -2662,3 +2662,68 @@ def test_day_page_does_not_announce_server_notifications_without_a_tool(
     monkeypatch.setattr(main.desktop_notify, "is_available", lambda: False)
     html = _client_from("127.0.0.1").get("/kairos").text
     assert 'data-server-notify="0"' in html
+
+
+# ---------------------------------------------------------------------------
+# Correctifs de l'audit UI.
+# ---------------------------------------------------------------------------
+
+
+def test_topbar_dates_are_written_in_french(route_client) -> None:
+    from app.fr_dates import date_longue
+
+    client, _ = route_client
+    html = client.get("/kairos").text
+    topbar = html.split("<h1>", 1)[1].split("</h1>", 1)[0]
+    assert date_longue(TODAY) in topbar
+    english = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    assert not any(name in topbar for name in english)
+
+
+def test_week_view_title_says_semaine_not_aujourdhui(route_client) -> None:
+    client, _ = route_client
+    html = client.get("/kairos?view=week").text
+    topbar = html.split("<h1>", 1)[1].split("</h1>", 1)[0]
+    assert topbar.startswith("Semaine")
+    assert "Aujourd" not in topbar
+
+
+def test_day_view_of_another_day_is_not_titled_aujourdhui(route_client) -> None:
+    client, _ = route_client
+    other = TODAY + timedelta(days=3)
+    html = client.get(f"/kairos?view=day&start={other.isoformat()}").text
+    topbar = html.split("<h1>", 1)[1].split("</h1>", 1)[0]
+    assert topbar.startswith("Jour")
+
+
+def test_unqualified_inbox_task_shows_no_wsjf_score(route_client) -> None:
+    """Une tâche de la boîte de réception « ne rentre dans aucun tri » : lui
+    afficher un score calculé sur des valeurs par défaut contredisait ce texte."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Pas encore qualifiée", source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    inbox = html.split('id="mj-inbox"', 1)[1].split("</section>", 1)[0]
+    assert "Pas encore qualifiée" in inbox
+    assert "mj-score" not in inbox
+
+
+def test_qualified_task_still_shows_its_wsjf_score(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Qualifiée", priority=1, fibonacci_points=3, source="native"))
+        db.commit()
+
+    assert "mj-score" in client.get("/kairos").text
+
+
+def test_home_drops_remote_badges_and_duplicate_logo_from_the_readme() -> None:
+    """Badges img.shields.io : cassés hors ligne, et une requête vers un tiers à
+    chaque ouverture sinon. Le logo du README double celui du bandeau."""
+    html = TestClient(main.app).get("/").text
+    assert "img.shields.io" not in html
+    assert "actions/workflows/ci.yml/badge.svg" not in html
+    assert 'src="static/icon-512.png"' not in html
+    assert "En bref" in html  # le reste du README est toujours là
