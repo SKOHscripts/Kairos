@@ -114,7 +114,7 @@ de pilotage — avec seulement les tâches et blocs saisis à la main.
   (post-phase-6) comme automatisme possible, **jamais implémenté**. Aucun code
   ni route ne calcule ou n'affiche cet écart aujourd'hui ; à reprendre en
   interrogeant `pilotage_link` pour le statut courant du ticket au moment du
-  rendu de `task_meta`, si le besoin redevient concret.
+  rendu de `task_tags`, si le besoin redevient concret.
 - **Granularité fine des événements TimeTree « sur une période »** (ex. horaires
   réels de départ/retour d'un déplacement) : traités comme simple indication
   datée, sans découpage du premier/dernier jour — décision volontairement simple

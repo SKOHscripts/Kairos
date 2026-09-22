@@ -14,7 +14,8 @@ AJAX), pas les moteurs de calcul sous-jacents._
   « Maintenant » → bannières → filtres/backlog → agenda + sections secondaires →
   colonne latérale).
 - `templates/_kairos_macros.html` — macros partagées : `done_toggle`,
-  `task_actions`, `time_spent`, `fibo_help`, `edit_panel`, `task_meta`.
+  `task_actions`, `time_spent`, `fibo_help`, `edit_panel`, `task_key_badges`,
+  `task_tags`, `task_description`.
 - `templates/_kairos_banners.html`, `templates/_kairos_filters.html`,
   `templates/_kairos_backlog.html` — partiels `{% include %}` (contexte propagé
   tel quel, jamais de macro).
@@ -351,10 +352,13 @@ listes affichées.
 **6. Agenda ordonné** — `<details class="card" open>`, seule section de la vue
 Jour (hors « Maintenant ») **dépliée par défaut**. Liste `<ol>` (seule liste
 ordonnée sémantiquement de la page — l'ordre porte l'information). Chaque `<li
-class="kairos-item mj-bucket-{{ bucket_of[...] }}">` : coche, heure, titre (avec
-fil d'Ariane `{{ parent_title_of }} › ` si sous-tâche), badges conditionnels
-épinglée/deep-work/chemin-critique, `task_meta`, `time_spent`, notes
-`pushed`/`dip`/`conflict` en badges colorés, `task_actions`, `edit_panel`.
+class="kairos-item mj-bucket-{{ bucket_of[...] }}">` suit la grille de quatre
+cellules décrite plus bas (§ Ligne de tâche) : coche, puis le corps
+(`.mj-item-head` = heure + titre avec fil d'Ariane `{{ parent_title_of }} › `
+si sous-tâche ; `.mj-item-tags` = badges conditionnels
+épinglée/deep-work/chemin-critique, `task_tags`, `time_spent`, notes
+`pushed`/`dip`/`conflict` ; puis `task_description`), puis `task_key_badges`,
+puis `task_actions` + `edit_panel`.
 
 **7. Sections secondaires condensées** — chacune un `<details class="card">`
 **sans** attribut `open` (repliées par défaut), rendue seulement si sa liste est

@@ -46,7 +46,8 @@ La vue Semaine reste un gabarit simple, non concernée par cette réorganisation
 ### Partiels et mise à jour AJAX
 
 - `templates/_kairos_macros.html` porte les macros partagées (`done_toggle`,
-  `task_actions`, `time_spent`, `fibo_help`, `edit_panel`, `task_meta`), importées
+  `task_actions`, `time_spent`, `fibo_help`, `edit_panel`, `task_key_badges`,
+  `task_tags`, `task_description`), importées
   `with context` par `kairos.html` et `_kairos_day.html` — évite un cycle d'import
   entre les deux gabarits.
 - `templates/_kairos_day.html` est le partiel de la vue Jour : rendu à l'intérieur de

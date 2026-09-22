@@ -249,9 +249,18 @@ jamais écrite). Les cycles sont détectés et refusés.
   (dépassement signalé), total et ventilation par type du jour et de la semaine.
 - **Titre d'onglet vivant** : le compteur reste visible en arrière-plan.
 - **Alertes navigateur** (opt-in, bouton « Activer les alertes chrono ») : dépassement de
-  l'estimé, chrono oublié, rappel de pause. Nécessite un contexte sécurisé
-  (`127.0.0.1`/`localhost` ou HTTPS). Sinon, repli automatique sur le titre d'onglet et un
-  bandeau dans la page.
+  l'estimé, chrono oublié, rappel de pause.
+- **Une alerte aboutit même si le navigateur bloque les notifications.** Si tu as refusé
+  les notifications, ou si tu ouvres Kairos par une adresse réseau (pas `127.0.0.1`), le
+  navigateur ne peut plus rien afficher. Quand Kairos tourne sur la machine où tu le
+  consultes, il émet alors **lui-même** une notification système (`notify-send` sous
+  Linux, bulle Windows) — sans aucune permission à accorder. Rien à installer ni à
+  configurer.
+- Quand même cette voie est fermée (Kairos consulté depuis un autre appareil), le repli
+  dans la page prend le relais : **bandeau flottant qui ne disparaît pas tout seul**,
+  titre d'onglet clignotant, et un court signal sonore si tu l'actives dans les Réglages
+  (« Signal sonore de secours », désactivé par défaut). Le son ne joue jamais quand une
+  notification système a pu sortir.
 
 ### Vues & garde-fous
 - **Vue jour** (agenda détaillé et « À faire maintenant ») et **vue semaine** (7 jours,

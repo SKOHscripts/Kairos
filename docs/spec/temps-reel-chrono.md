@@ -7,8 +7,10 @@ informatifs (tâches qui traînent, surcharge de priorité maximale). Fichiers
 couverts : `app/tasks_time.py` (agrégats purs depuis `WorkSession`),
 `app/tasks_staleness.py` (détection des tâches qui traînent), la fonction
 `initDayScripts` de `templates/kairos.html` (chrono vivant, titre d'onglet,
-alertes, pont Android), et le pont natif
-`android/app/src/main/java/com/skohscripts/kairos/KairosNotificationBridge.java`.
+alertes, pont Android), le pont natif
+`android/app/src/main/java/com/skohscripts/kairos/KairosNotificationBridge.java`,
+et `app/desktop_notify.py` (notification système émise par le serveur lui-même,
+issue #34) avec sa route `POST /kairos/notify`.
 Le rail « réel » de la timeline (`session_timeline_entries`,
 `app/tasks_scheduling.py`) et son rendu serveur sont décrits par
 `ordonnancement.md` § 2.3 — ce document ne couvre que l'agrégation du temps et
@@ -180,6 +182,9 @@ Trois couches indépendantes composent ce domaine :
    `initDayScripts`) — minuteur, titre d'onglet, alertes ; complété par un
    pont natif optionnel côté Android
    (`KairosNotificationBridge.java`/`window.KairosAndroid`).
+4. **Sortie système de secours** (`app/desktop_notify.py` + route `POST
+   /kairos/notify`, issue #34) — le serveur émet lui-même une notification
+   quand le navigateur ne peut pas, sans aucune dépendance ajoutée.
 
 Les routes d'ouverture/fermeture de session (`POST
 /kairos/tasks/{id}/timer/start`, `.../timer/stop`, `app/main.py`) et le calcul
@@ -267,7 +272,7 @@ Dans `_render_kairos` :
   target_day, overdue_days=settings.stale_overdue_days,
   untouched_days=settings.stale_untouched_days)) is not None}` — calculé
   **après** le blocage (commentaire explicite : signal d'affichage seul,
-  calculé après coup) et consommé par la macro `task_meta`
+  calculé après coup) et consommé par la macro `task_tags`
   (`templates/_kairos_macros.html`) : `{% if stale_days %}<span class="badge
   warn">traîne depuis {{ stale_days }} j</span>{% endif %}`.
 - `priority_overload_count = count_max_priority_tasks([t for t in tasks if
@@ -318,10 +323,10 @@ ne continue jamais sur une tâche terminée).
 #### Chrono vivant, titre d'onglet, alertes (`templates/kairos.html::initDayScripts`)
 
 Fonction ré-appelable après chaque swap AJAX du fragment `#mj-day-content`
-(commentaire de tête, lignes 70-75) — un `.mj-timer` recréé après un swap
+(commentaire de tête du script) — un `.mj-timer` recréé après un swap
 doit réinitialiser son propre minuteur, sans accumuler d'intervalles
 orphelins sur un DOM détaché (`root.__kairosTimerHandle`, `clearInterval`
-avant réinjection, lignes 194-197, 302-304).
+avant réinjection).
 
 **Données côté serveur** consommées par le script :
 - `.mj-timer` (`_kairos_macros.html::time_spent`) : `data-started` (ISO,
@@ -345,12 +350,13 @@ alertes resteraient bloquées à « indisponibles » dans l'APK. Ailleurs
 `Notification` et `window.isSecureContext` — **contexte sécurisé requis**
 (HTTPS, ou `127.0.0.1`/`localhost`) : une notification demandée sur un accès
 réseau local en HTTP simple (ex. IP LAN sans TLS) est détectée comme
-indisponible, message explicite affiché plutôt qu'un échec silencieux
-(« Notifications indisponibles ici (ouvrez via 127.0.0.1 pour les
-activer). »).
+indisponible, message explicite affiché plutôt qu'un échec silencieux. Depuis
+l'issue #34, ce message dit ce qui prend le relais plutôt que de constater un
+manque : « Alertes chrono actives (notifications système de Kairos). » si le
+serveur peut notifier pour ce client, « Notifications indisponibles ici : les
+alertes s'afficheront dans la page. » sinon.
 
-**Bouton d'opt-in** (lignes 96-130) — trois branches mutuellement
-exclusives :
+**Bouton d'opt-in** — quatre branches mutuellement exclusives :
 1. **Pont Android présent** : `refreshAndroidStatus()` interroge
    `android.hasPermission()` à chaque rendu et après l'évènement DOM
    `kairos-android-permission-changed` (déclenché par
@@ -359,13 +365,17 @@ exclusives :
    Android est **asynchrone**, pas de valeur de retour exploitable
    directement par l'appel JS `requestPermission()`, d'où le rebouclage par
    évènement plutôt qu'une promesse).
-2. **Pas de pont, contexte non sécurisé ou API absente** : message
-   d'indisponibilité, bouton jamais affiché.
-3. **Web Notifications standard** : bouton affiché si permission ni accordée
+2. **Pas de pont, contexte non sécurisé ou API absente** : bouton jamais
+   affiché, message annonçant ce qui prend le relais — la notification système
+   émise par le serveur si `data-server-notify` vaut `1` (issue #34), le repli
+   dans la page sinon.
+3. **Web Notifications refusées** (`"denied"`, définitif pour l'origine) :
+   bouton jamais affiché, même message de relais qu'au point 2 (issue #34).
+4. **Web Notifications standard** : bouton affiché si permission ni accordée
    ni refusée (`Notification.permission === "default"`), clic →
    `Notification.requestPermission()`.
 
-**Anti-spam des alertes** (lignes 150-159, commentaire explicite) : au
+**Anti-spam des alertes** (commentaire explicite dans le script) : au
 chargement, `initSession`/`initTotal` sont calculés une fois pour déterminer
 quels seuils sont **déjà franchis avant même que la page ne s'ouvre** — ces
 seuils sont pré-marqués `fired[tag] = true` sans jamais déclencher
@@ -375,7 +385,7 @@ notification. Chaque type d'alerte (`over`, `idle`, `pomo`) a son propre
 verrou `fired[tag]`, indépendant des deux autres — franchir le seuil de
 dépassement ne bloque pas l'alerte d'oubli, et réciproquement.
 
-**Trois déclencheurs** (fonction `tick`, lignes 176-191), chacun optionnel
+**Trois déclencheurs** (fonction `tick`), chacun optionnel
 (seuil à 0 = désactivé) :
 - `over` — `estimate && total >= estimate` : dépassement de l'estimé.
 - `idle` — `idleMin && sessionMin >= idleMin` : chrono resté ouvert depuis
@@ -387,13 +397,72 @@ dépassement ne bloque pas l'alerte d'oubli, et réciproquement.
   phase 11 après avoir été écarté en phase 3 ; reste un simple rappel, jamais
   un mode focus plein écran.
 
-**Notification effective** (`alert(tag, body)`, lignes 161-170) : pont
-Android (`android.notify(title, body, tag)`) en priorité, sinon
-`new Notification(...)` si `canNotify && Notification.permission ===
-"granted"`, **et dans tous les cas** `flashInPage(...)` — le repli visuel
-(bandeau `.banner.warning` inséré en tête de `.page`) joue **systématiquement
-en plus**, jamais en substitut conditionnel : rien n'est silencieux même sans
-notification système autorisée.
+**Notification effective** (`alert(tag, body)`) — cascade du mécanisme le plus
+riche au dernier recours, remaniée par l'issue #34 :
+
+1. `kairosToast(msg)` **toujours**, en premier et quoi qu'il arrive —
+   l'invariant d'origine (« rien n'est jamais silencieux ») est conservé tel
+   quel, seule sa présentation change (voir ci-dessous).
+2. Pont Android (`android.notify(title, body, tag)`) s'il existe → terminé.
+3. Sinon `new Notification(...)` si `canNotify && Notification.permission ===
+   "granted"` → terminé.
+4. Sinon, si `data-server-notify` vaut `1`, `kairosNotifyServer(title, body)`
+   (`POST /kairos/notify`) ; **renforcement seulement si la promesse résout à
+   `false`** (la route a répondu autre chose que 204).
+5. Sinon, renforcement immédiat.
+
+**`reinforce(msg)` = titre d'onglet clignotant + son optionnel.** Conditionnel
+et non systématique : doubler d'un son et d'un clignotement une alerte déjà
+reçue en notification système serait du bruit. C'est la seule partie de la
+cascade qui dépend du résultat des étapes précédentes.
+
+**`data-server-notify` est posé par le serveur** (`server_notifications_
+available(request)`), jamais deviné côté client : lui seul sait si la page est
+ouverte depuis la machine qui l'héberge.
+
+**Helpers hors de `initDayScripts`** (`kairosToast`, `kairosStartFlash`/
+`kairosStopFlash`, `kairosBeep`, `kairosNotifyServer`, `kairosBaseTitle`) :
+aucun d'eux n'habite le sous-arbre remplacé par un swap AJAX, donc aucun ne
+doit être rebranché — application directe de l'invariant de
+`vue-jour-gtd.md`.
+
+**Bandeau flottant (`kairosToast`)** — remplace l'ancien `flashInPage`, qui
+insérait un `.banner.warning` en tête de `.page` :
+
+- **Ancré au `<body>`, pas à `.page`** : un swap AJAX remplace
+  `#mj-day-content`, un bandeau posé dedans disparaissait au premier
+  rafraîchissement — exactement quand l'utilisateur ne regarde pas.
+- **Persistant**, avec un bouton de fermeture : aucune disparition
+  automatique, une alerte manquée est une alerte perdue.
+- `position: fixed` en bas à droite (`.mj-alert-toasts`, `z-index: 70`, sous le
+  calque du panneau d'édition qui reste prioritaire), **sans ombre portée** —
+  la charte n'en autorise qu'une, celle du panneau d'édition ouvert
+  (`docs/DESIGN_SYSTEM.md` § Forme) ; décalé au-dessus de la bottom nav dans
+  l'APK Android, via un sélecteur de **frère** (`.layout.is-android ~`), le
+  conteneur vivant hors de `.layout`.
+
+**Titre d'onglet clignotant** : `kairosFlash = {msg, until, on}`, fenêtre de
+60 s. `tick()` reste le **seul** écrivain de `document.title` — il consulte cet
+état et cède la place au message plutôt qu'un second intervalle n'entre en
+concurrence avec lui. Arrêt dès que l'utilisateur a vu : `visibilitychange`
+(retour sur l'onglet) ou `pointerdown` (interaction avec la page), sans bouton
+dédié. `kairosBaseTitle` est capturé **une fois au chargement**, avant que
+minuteur ou clignotement n'aient pu écrire dans le titre : le recalculer après
+un swap capturerait le titre décoré au lieu du vrai.
+
+**Signal sonore** (`kairosBeep`, réglage `timer_alert_sound`, **désactivé par
+défaut**) : deux notes sinusoïdales courtes générées en WebAudio, avec
+enveloppe exponentielle (une note coupée net « claque »). WebAudio plutôt qu'un
+fichier audio — aucun binaire à empaqueter, cohérent avec « HTML/CSS pur, sans
+dépendance de build ». Un navigateur refuse de jouer un son tant que la page
+n'a pas reçu d'interaction : le contexte est déverrouillé au premier
+`pointerdown`/`keydown`, et l'absence de son sans interaction est assumée —
+jamais une erreur.
+
+**État affiché par l'opt-in** : il annonce ce qui va **réellement** se passer.
+Notifications refusées ou indisponibles mais voie serveur ouverte → « Kairos
+les émet lui-même » / « notifications système de Kairos », jamais
+« bloquées ».
 
 **Titre d'onglet vivant** (ligne 149, 180-181) : `baseTitle` capture le titre
 de base **une seule fois** au chargement, en retirant tout préfixe déjà posé
@@ -401,6 +470,66 @@ par une exécution précédente du minuteur (regex `/^\([0-9:]+\) .+ · /`) — 
 swap AJAX qui réexécute `initDayScripts` ne doit jamais accumuler de
 préfixes emboîtés. Chaque tick réécrit `document.title` avec le total formaté
 `(H:MM) <titre tâche> · <titre de base>`.
+
+#### `app/desktop_notify.py` — notification système émise par le serveur
+
+Ajouté par l'issue #34 pour les deux cas où le navigateur ne peut rien :
+permission refusée (`Notification.permission === "denied"`, définitif pour
+l'origine) et origine non sécurisée (accès LAN en HTTP simple). Kairos tournant
+le plus souvent **sur la machine de l'utilisateur**, le serveur s'adresse
+directement au système — aucune permission navigateur n'entre alors en jeu.
+
+**Sans aucune dépendance ajoutée** (ni `plyer`, ni `win10toast`, ni D-Bus en
+Python) : seulement des outils déjà présents sur le système cible, invoqués en
+sous-processus — cohérent avec « aucune extension native » du portage Android
+et de l'empaquetage PyInstaller (`packaging-lancement.md`).
+
+| Système | Mécanisme | Détail |
+| --- | --- | --- |
+| Linux | `notify-send` (libnotify) | `argv` direct, jamais de shell ; `--` ferme l'analyse des options, donc un texte commençant par un tiret reste un argument. |
+| Windows | `System.Windows.Forms.NotifyIcon` via PowerShell | Rendu en toast natif sur Windows 10/11. `Popen` et non `run` : le script attend 10 s l'affichage de la bulle, la requête HTTP ne doit pas attendre avec lui. |
+| macOS, autres | — | Hors périmètre du dépôt ; `is_available()` retourne `False`, l'appelant retombe sur son repli in-page. |
+
+Fonctions : `is_available()` (recherche de binaire, ne lance rien — consultée au
+rendu de page autant qu'avant l'envoi), `send(title, body)` (best-effort total :
+aucune exception ne remonte, une alerte qui ne sort pas ne doit jamais faire
+échouer une requête) et `loopback_client(host)`.
+
+**Route `POST /kairos/notify`** (`app/main.py`), et son gardien
+`server_notifications_available(request)` — trois conditions **toutes**
+nécessaires :
+
+1. pas dans l'APK Android (le pont natif y est prioritaire, et `notify-send`
+   n'y existe pas) ;
+2. un outil de notification existe sur l'hôte ;
+3. le client est la machine hôte elle-même (`loopback_client`).
+
+Réponses : `204` si la notification est partie, `503` sinon — le client garde
+son repli dans la page de toute façon, la réponse ne lui dit que s'il doit le
+**renforcer**. `403` si l'en-tête `X-Requested-With: fetch` manque.
+
+**Décisions de sûreté** (la route est joignable par tout ce qui tourne sur la
+machine — c'est la contrepartie assumée du choix « le serveur notifie ») :
+
+- **Titre toujours préfixé `Kairos · ` côté serveur**, jamais côté client : une
+  notification émise par Kairos s'annonce comme telle et ne peut donc pas être
+  fabriquée pour ressembler à un autre logiciel.
+- **`X-Requested-With: fetch` exigé** : un `<form>` d'une autre origine ne peut
+  pas poser d'en-tête personnalisé, et un `fetch` d'une autre origine qui en
+  pose déclenche une requête de contrôle préalable à laquelle cette app ne
+  répond jamais (aucun en-tête CORS n'est servi).
+- **Adresses de bouclage littérales uniquement**, sans résolution de nom ni
+  comparaison avec les adresses locales de la machine : en cas de doute on ne
+  notifie pas — le coût d'un faux négatif est un repli visuel, celui d'un faux
+  positif une notification sur l'écran de quelqu'un d'autre.
+- **Sur Windows, le texte transite par des variables d'environnement**
+  (`KAIROS_NOTIFY_TITLE`/`_BODY`), jamais par le texte du script PowerShell,
+  qui reste une constante : aucun échappement à faire, donc aucune injection
+  possible.
+- **Texte aplati et borné** (`_clean`) : une seule ligne, 120/400 caractères —
+  les retours à la ligne sont *remplacés* par des espaces (sinon deux mots se
+  colleraient) plutôt que conservés, `notify-send` et la bulle Windows ne les
+  traitant pas de la même façon.
 
 #### `KairosNotificationBridge.java` — pont natif Android
 
@@ -480,17 +609,22 @@ packaging Android, voir `docs/ANDROID_PACKAGING.md`).
    l'immédiat (en attente d'un bloqueur), diluant la pertinence du bandeau
    lui-même plutôt que le signal de priorité qu'il est censé protéger.
 7. **Anti-spam : seuils déjà franchis au chargement neutralisés d'emblée.**
-   Commentaire explicite du script (lignes 152-154) : sans ce garde-fou,
+   Commentaire explicite du script : sans ce garde-fou,
    chaque navigation/rechargement de page sur une tâche déjà en dépassement
    redéclencherait une notification — l'app ne doit notifier qu'un
    franchissement réel, observé pendant que la page reste ouverte.
 8. **Contexte sécurisé requis pour Web Notifications, détecté explicitement
    plutôt que de laisser échouer silencieusement.** `window.isSecureContext`
    est vérifié en plus de `'Notification' in window` ; un message dédié
-   explique la contrainte (« ouvrez via 127.0.0.1 ») plutôt que de laisser le
-   bouton disparaître sans explication — décision actée avec l'utilisateur en
-   phase 11 après confirmation que l'accès réel se fait en
-   `127.0.0.1` (contexte sécurisé de fait).
+   explique ce qui se passe plutôt que de laisser le bouton disparaître sans
+   explication — décision actée avec l'utilisateur en phase 11 après
+   confirmation que l'accès réel se fait en `127.0.0.1` (contexte sécurisé de
+   fait). L'issue #34 a **rouvert** cette décision sur un point précis : l'accès
+   hors contexte sécurisé n'est plus une impasse (le serveur notifie lui-même
+   quand le client est l'hôte), et le message n'invite donc plus à « ouvrir via
+   127.0.0.1 » quand une voie de secours existe. La détection elle-même, et la
+   priorité donnée aux Web Notifications quand elles sont disponibles, restent
+   inchangées.
 9. **Pont Android : `hasPermission()` unifie deux régimes de permission**
    plutôt que d'exposer deux méthodes distinctes selon la version d'API —
    commentaire explicite du code Java : simplifie l'appelant JS, qui n'a
@@ -532,9 +666,18 @@ packaging Android, voir `docs/ANDROID_PACKAGING.md`).
   `ordonnancement.md` : la seule influence de ce domaine sur le placement
   concerne le rail visuel « réel » de la timeline (hors périmètre, voir
   `ordonnancement.md`), jamais l'ordre des tâches lui-même.
-- **Le repli in-page (`flashInPage`) joue toujours**, indépendamment de l'état
-  de permission de notification — aucune alerte n'est jamais totalement
-  silencieuse.
+- **Le repli in-page (`kairosToast`) joue toujours**, indépendamment de l'état
+  de permission de notification et du résultat de la notification système —
+  aucune alerte n'est jamais totalement silencieuse. Seul le **renforcement**
+  (titre clignotant, son) est conditionnel.
+- **Le client ne décide jamais seul qu'une notification système est possible** :
+  `data-server-notify` vient de `server_notifications_available(request)`, qui
+  seul connaît l'adresse du client et l'outillage de l'hôte.
+- **`POST /kairos/notify` refuse tout client non-bouclage**, sans exception ni
+  réglage pour l'assouplir : une notification système s'affiche sur l'écran du
+  serveur.
+- **`document.title` n'a qu'un seul écrivain**, `tick()` — toute future
+  décoration du titre doit passer par lui, jamais par un second intervalle.
 - **Un seuil déjà franchi au chargement de la page ne notifie jamais** — seule
   une transition observée page ouverte déclenche une alerte.
 - **Le minuteur ne survit jamais à un swap AJAX sans être explicitement
