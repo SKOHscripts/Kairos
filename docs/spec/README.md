@@ -28,6 +28,7 @@ quel ; seules les décisions encore actives sont tracées.
 | [`reglages-secrets.md`](reglages-secrets.md) | Modèle `Settings`, validation, persistance, trousseau système avec repli fichier. `app/config.py`, `app/settings_*.py`, `app/secret_store.py`. |
 | [`integrations-externes.md`](integrations-externes.md) | GitLab (direct + via pilotage), TimeTree, résolution de jeton git : toutes optionnelles, lecture seule, dégradation propre. `app/gitlab_direct.py`, `app/tasks_gitlab_sync.py`, `app/pilotage_link.py`, `app/calendar/timetree_source.py`, `app/git_credentials.py`. |
 | [`packaging-lancement.md`](packaging-lancement.md) | Lancement desktop (port, verrou, crash log) et Android (env avant import), empaquetage PyInstaller. `app/launcher.py`, `app/android_launcher.py`, `packaging/`. |
+| [`mises-a-jour.md`](mises-a-jour.md) | Alerte de nouvelle version, téléchargement vérifié (`SHA256SUMS`) et installation (bureau, Android), source GitHub ou GitLab privé, publication par les deux CI. `app/updates.py`, `app/build_info.py`, `.gitlab-ci.yml`. |
 | [`accueil-navigation.md`](accueil-navigation.md) | Gabarit de base (topnav/topbar), page d'accueil et rendu du README, identité/nom. `templates/base.html`, `templates/home.html`. |
 
 ## Références transverses (non dupliquées ici)
