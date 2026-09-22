@@ -296,6 +296,13 @@ details > summary::-webkit-details-marker { display: none; }
   font-size: 13px; font-weight: 700; color: var(--text-2);
 }
 .collapser .chev { color: var(--text-3); transition: transform .15s ease; font-size: 15px; }
+/* Contenu d'une section repliable `details.card` (audit UI) : la carte n'a pas
+   de marge intérieure (seul son <summary> `.collapser` en a une), si bien que la
+   phrase d'aide touchait le bord et que chaque ligne de tâche doublait la
+   bordure de la carte. Défaut resté discret tant que ces sections étaient
+   repliées ; visible dès « Sans créneau aujourd'hui » dépliée par défaut. */
+details.card > p { margin: 0 1.1rem 0.6rem; }
+details.card > .kairos-list { margin: 0.5rem 1.1rem 1rem; }
 details[open] .collapser .chev { transform: rotate(90deg); }
 
 /* =========================================================================
@@ -538,6 +545,9 @@ summary:focus-visible,
       "check main actions"
       ".     key  key";
   }
+  /* Place horizontale comptée à 390px : marge de section réduite. */
+  details.card > p { margin-left: 0.7rem; margin-right: 0.7rem; }
+  details.card > .kairos-list { margin-left: 0.7rem; margin-right: 0.7rem; }
   .mj-item-key { justify-content: flex-start; min-height: 0; }
   /* Colonne « clés » alignée à gauche sous le corps : le panneau d'explication
      s'ouvre donc vers la droite, jamais hors de l'écran. */
@@ -660,6 +670,13 @@ summary:focus-visible,
    stylé plus haut). Le CTA « Ajouter » (`.btn.primary`) reste le seul bouton
    bleu de la zone. */
 .mj-capture { padding: 0.95rem 1.1rem 1.05rem; }
+/* Indice de raccourci clavier (audit UI). Masqué sur un écran tactile sans
+   survol (mobile, APK) : il n'y a pas de clavier physique à qui l'indiquer. */
+.mj-kbd-hint { display: inline-block; margin-left: 0.4rem; padding: 0 0.35rem;
+  border: 1px solid var(--border-strong); border-radius: 4px; background: var(--surface);
+  font-family: inherit; font-size: 10.5px; font-weight: 600; line-height: 1.5;
+  color: var(--text-3); vertical-align: 1px; }
+@media (hover: none) { .mj-kbd-hint { display: none; } }
 
 /* En-tête de section « carte » non repliable (boîte de réception) : titre +
    compte à gauche, aide repliable (`.mj-help`) à droite. */

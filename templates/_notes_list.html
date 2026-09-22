@@ -70,7 +70,7 @@
 {% if archived_notes %}
 <details class="card">
   <summary class="collapser">{{ icon('chevron_right', '') }} Traité / archivé ({{ archived_notes|length }})</summary>
-  <ul class="kairos-list" style="padding:0 1.1rem 0.9rem;">
+  <ul class="kairos-list">
     {% for note in archived_notes %}
     <li class="mj-note-item is-archived">
       <p class="mj-note-body">{{ note.body }}</p>

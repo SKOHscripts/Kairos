@@ -395,6 +395,35 @@ Jour <span class="muted">· {{ day|date_longue }}</span>
     document.querySelectorAll('.mj-why[open]').forEach(function (why) { why.open = false; });
   });
 
+  /* Raccourcis clavier (audit UI) : N place le curseur dans la capture de tâche
+     (en rebasculant sur l'onglet « Tâche » si besoin), / ouvre la recherche et y
+     place le curseur. Jamais pendant une saisie, jamais avec un modificateur
+     (Ctrl+N reste au navigateur), jamais quand le panneau d'édition est ouvert.
+     Signalés par un <kbd> à côté de chaque contrôle. */
+  document.addEventListener('keydown', function (ev) {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey || ev.defaultPrevented) return;
+    if (ev.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+    if (document.querySelector('.mj-edit-toggle[aria-expanded="true"]')) return;
+    if (ev.key === 'n' || ev.key === 'N') {
+      var input = document.querySelector('#mj-task-capture input[name="title"]');
+      if (!input) return;
+      ev.preventDefault();
+      var taskMode = document.querySelector('input[name="mj-add-mode"][value="task"]');
+      if (taskMode && !taskMode.checked) {
+        taskMode.checked = true;
+        taskMode.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      input.focus();
+    } else if (ev.key === '/') {
+      var box = document.querySelector('.mj-filter-compact');
+      var search = box && box.querySelector('input[name="q"]');
+      if (!search) return;
+      ev.preventDefault();
+      box.open = true;
+      search.focus();
+    }
+  });
+
   /* Bascule tâche / créneau dans la barre de capture (`.mj-capture`, toujours
      visible — Phase 1). Portée sur `.mj-capture` (pas `<details>` : la capture
      n'est plus repliable). */
@@ -489,6 +518,12 @@ Jour <span class="muted">· {{ day|date_longue }}</span>
       target.innerHTML = html;
       initDayScripts(target);
       window.scrollTo(0, scrollY);
+      /* Capture enchaînée (audit UI) : le formulaire de capture vient d'être
+         remplacé par le swap ; on replace le curseur dans le nouveau champ. */
+      if (form.id === 'mj-task-capture') {
+        var input = document.querySelector('#mj-task-capture input[name="title"]');
+        if (input) input.focus({ preventScroll: true });
+      }
     }).catch(function () {
       // repli : réseau indisponible, formulaire non intercepté
       kairosSubmitNatively(form, submitter);

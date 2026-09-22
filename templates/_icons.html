@@ -145,6 +145,13 @@
     <rect x="8.8" y="8.8" width="5" height="5" rx="1"/>
   {%- elif name == 'gitlab' -%}
     <path d="M8 14 2.5 9.7 4 3.2l2 4.2h4l2-4.2 1.5 6.5z"/>
+  {%- elif name == 'skip_forward' -%}
+    {#- « Décaler au prochain jour ouvré » (audit UI) : deux chevrons suivis d'une
+        barre, lu comme « passer à plus tard ». Remplace le chevron simple (›),
+        qui se lisait comme « ouvrir ». -#}
+    <polyline points="2.5 4 6.5 8 2.5 12"/>
+    <polyline points="7 4 11 8 7 12"/>
+    <line x1="13.5" y1="4" x2="13.5" y2="12"/>
   {%- elif name == 'chevron_left' -%}
     <polyline points="10.4 3.2 5.6 8 10.4 12.8"/>
   {%- elif name == 'search' -%}

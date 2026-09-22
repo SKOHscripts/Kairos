@@ -17,14 +17,19 @@
      réception) et Créneau / deep work (avec la liste d'édition des créneaux du
      jour). --- #}
 <div class="card mj-capture">
-  <div class="mj-capture-head">{{ icon('plus') }} Capturer</div>
+  <div class="mj-capture-head">{{ icon('plus') }} Capturer
+    <kbd class="mj-kbd-hint" title="Raccourci clavier : N place le curseur ici">N</kbd></div>
   <div class="mj-add-toggle">
     <label class="mj-check-label"><input type="radio" name="mj-add-mode" value="task" checked> Tâche</label>
     <label class="mj-check-label"><input type="radio" name="mj-add-mode" value="slot"> Créneau / deep work</label>
   </div>
 
   <div data-mj-add-pane="task">
-    <form method="post" action="/kairos/tasks" class="filters" style="align-items:flex-end;">
+    {# `data-ajax` + `id` (audit UI) : la tâche capturée apparaît dans la boîte de
+       réception sans rechargement, et le script replace le curseur dans ce champ
+       après le swap — on enchaîne les captures au clavier. #}
+    <form method="post" action="/kairos/tasks" class="filters" style="align-items:flex-end;"
+          id="mj-task-capture" data-ajax>
       <label style="flex:1;min-width:220px;">Titre
         <input type="text" name="title" placeholder="ex. Répondre à tel mail" required></label>
       <button type="submit" class="btn primary">{{ icon('plus') }} Ajouter</button>
@@ -166,8 +171,8 @@
   <div class="mj-next">{{ icon('chevron_right') }} <strong>À faire maintenant :</strong>
     {{ next_up_task.title }}{% if next_up_time %} <span class="muted">({{ next_up_time.strftime('%Hh%M') }})</span>{% endif %}</div>
   <div class="mj-next-actions">
-    {{ done_toggle(next_up_task) }}
-    {{ task_actions(next_up_task) }}
+    {{ done_toggle(next_up_task, labelled=true) }}
+    {{ task_actions(next_up_task, labelled=true) }}
   </div>
   {% endif %}
   <div class="mj-progress-stats">
@@ -206,9 +211,11 @@
 
 {% include "_kairos_banners.html" %}
 
-{% include "_kairos_filters.html" %}
-
-{% include "_kairos_backlog.html" %}
+{# Ordre rouvert avec l'utilisateur (audit UI) : la liste du jour vient juste
+   après « Maintenant », recherche et backlog passent en bas de colonne. Un
+   filtre ACTIF reste en tête : l'utilisateur doit voir pourquoi les listes sont
+   réduites. #}
+{% if filter_active %}{% include "_kairos_filters.html" %}{% endif %}
 
 <div class="mj-day-grid">
 <div class="mj-day-main">
@@ -256,7 +263,9 @@
 </details>
 
 {% if visible_unscheduled %}
-<details class="card">
+{# Dépliée (audit UI) : des tâches à faire AUJOURD'HUI qu'aucun créneau n'a pu
+   accueillir ; repliées, on les oubliait. Les autres sections restent repliées. #}
+<details class="card" open>
   <summary class="collapser">{{ icon('chevron_right', '') }} Sans créneau aujourd'hui ({{ visible_unscheduled|length }})</summary>
   <p class="hint">À faire aujourd'hui, mais pas encore casées dans un créneau horaire précis.</p>
   <ul class="kairos-list">
@@ -376,6 +385,9 @@
   </ul>
 </details>
 {% endif %}
+
+{% if not filter_active %}{% include "_kairos_filters.html" %}{% endif %}
+{% include "_kairos_backlog.html" %}
 </div>
 
 <div class="mj-side-col">

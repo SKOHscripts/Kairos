@@ -690,6 +690,12 @@ def _build_kairos_context(
         "filter_project": filter_project,
         "filter_type": filter_type,
         "filter_fibo": filter_fibo,
+        # Un filtre actif remonte en tête des listes qu'il réduit (vue Jour) ;
+        # inactif, le contrôle de filtrage reste en bas de colonne (audit UI).
+        "filter_active": bool(
+            search_q or filter_priority is not None or filter_project
+            or filter_type or filter_fibo is not None
+        ),
         "project_choices": project_choices,
     }
 
@@ -1040,8 +1046,13 @@ templates.env.filters["nombre"] = _fmt_number
 
 
 @app.post("/kairos/tasks")
-async def create_native_task(request: Request) -> RedirectResponse:
-    """Création rapide d'une tâche native (ou d'une sous-tâche si ``parent_id``)."""
+async def create_native_task(request: Request) -> Response:
+    """Création rapide d'une tâche native (ou d'une sous-tâche si ``parent_id``).
+
+    Réponse commune des actions rapides (audit UI, décision rouverte avec
+    l'utilisateur) : fragment AJAX si le formulaire de capture est intercepté
+    (`data-ajax`, curseur conservé pour enchaîner les captures), redirection
+    303 sinon, comme avant."""
     form = await request.form()
     title = str(form.get("title", "")).strip()
     with _request_session(get_tasks_session) as tasks_session:
@@ -1062,7 +1073,7 @@ async def create_native_task(request: Request) -> RedirectResponse:
                 )
             )
             tasks_session.commit()
-    return RedirectResponse("/kairos", status_code=303)
+    return _kairos_action_response(request)
 
 
 def _kairos_action_response(request: Request) -> Response:

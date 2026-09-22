@@ -2878,3 +2878,72 @@ def test_overdue_task_explains_that_it_jumps_the_queue(route_client) -> None:
     why = html.split('<details class="mj-why">', 1)[1].split("</details>", 1)[0]
     assert "En retard : passe devant" in why
     assert "Échéance dépassée de 4 j" in why
+
+
+# ---------------------------------------------------------------------------
+# Fluidité (audit UI) — voir docs/spec/vue-jour-gtd.md § Fluidité.
+# ---------------------------------------------------------------------------
+
+
+def test_capture_returns_the_day_fragment_when_intercepted(route_client) -> None:
+    """Décision rouverte avec l'utilisateur : la capture ne recharge plus la
+    page. En AJAX, la route renvoie le fragment où la tâche apparaît déjà."""
+    client, _ = route_client
+    resp = client.post(
+        "/kairos/tasks",
+        data={"title": "Capturée sans rechargement"},
+        headers={"X-Requested-With": "fetch"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 200
+    assert "Capturée sans rechargement" in resp.text
+    assert "<!DOCTYPE html>" not in resp.text
+    assert 'id="mj-task-capture" data-ajax' in resp.text
+
+
+def test_day_list_comes_before_search_and_backlog(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Au backlog", priority=1, fibonacci_points=2, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    day_list = html.index("Aujourd'hui, dans l'ordre")
+    assert day_list < html.index('class="card mj-filter-compact"')
+    assert day_list < html.index("Backlog, sans date")
+
+
+def test_active_filter_stays_above_the_lists_it_reduces(route_client) -> None:
+    client, _ = route_client
+    html = client.get("/kairos?q=rapport").text
+    marker = 'class="card mj-filter-compact"'
+    assert html.count(marker) == 1
+    assert html.index(marker) < html.index("Aujourd'hui, dans l'ordre")
+
+
+def test_unscheduled_section_is_open_by_default(route_client) -> None:
+    """Des tâches à faire aujourd'hui sans créneau : dépliées, sinon oubliées."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        for i in range(12):  # plus que la journée ne peut en placer
+            db.add(Task(title=f"Longue {i}", priority=1, fibonacci_points=3,
+                        estimated_minutes=240, deadline=TODAY, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    before = html.split("Sans créneau aujourd'hui", 1)[0]
+    opening = before[before.rindex("<details"):]
+    assert opening.startswith('<details class="card" open>')
+
+
+def test_now_card_names_its_actions(route_client) -> None:
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Prochaine", priority=0, fibonacci_points=1, source="native"))
+        db.commit()
+
+    html = client.get("/kairos").text
+    card = html.split('class="mj-next-actions"', 1)[1].split("</div>", 1)[0]
+    assert "Fait" in card
+    assert "Démarrer le chrono" in card
+    assert "Décaler" in card

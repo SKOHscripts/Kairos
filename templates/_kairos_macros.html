@@ -3,29 +3,37 @@
    réponses AJAX) — évite un import circulaire entre les deux gabarits. #}
 {% from "_icons.html" import icon %}
 
-{% macro done_toggle(task) %}
+{# `labelled` (audit UI) : variante nommée, pour la carte « Maintenant » où ces
+   actions sont les seules de la carte et doivent se comprendre sans survol.
+   Dans les listes, l'icône seule garde la densité. #}
+{% macro done_toggle(task, labelled=false) %}
 <form method="post" action="/kairos/tasks/{{ task.id }}/done" class="inline mj-item-check" data-ajax>
+  {% if labelled %}
+  <button type="submit" class="btn sm">{{ icon('check') }} {% if task.status == 'done' %}Rouvrir{% else %}Fait{% endif %}</button>
+  {% else %}
   <button type="submit" class="mj-check {% if task.status == 'done' %}is-done{% endif %}"
     title="{% if task.status == 'done' %}Rouvrir{% else %}Marquer fait{% endif %}">
     {% if task.status == 'done' %}{{ icon('check') }}{% endif %}</button>
+  {% endif %}
 </form>
 {% endmacro %}
 
-{% macro task_actions(task) %}
+{% macro task_actions(task, labelled=false) %}
+{% set cls = 'btn sm' if labelled else 'icbtn' %}
 <span class="mj-actions">
   {% if task.status == 'todo' %}
   {% if running_task_id == task.id %}
   <form method="post" action="/kairos/tasks/{{ task.id }}/timer/stop" class="inline" data-ajax>
-    <button type="submit" class="icbtn timer-on" title="Arrêter le chrono">{{ icon('clock') }}</button>
+    <button type="submit" class="{{ cls }} timer-on" title="Arrêter le chrono">{{ icon('clock') }}{% if labelled %} Arrêter le chrono{% endif %}</button>
   </form>
   {% else %}
   <form method="post" action="/kairos/tasks/{{ task.id }}/timer/start" class="inline" data-ajax>
-    <button type="submit" class="icbtn" title="Démarrer le chrono">{{ icon('clock') }}</button>
+    <button type="submit" class="{{ cls }}" title="Démarrer le chrono">{{ icon('clock') }}{% if labelled %} Démarrer le chrono{% endif %}</button>
   </form>
   {% endif %}
   {% endif %}
   <form method="post" action="/kairos/tasks/{{ task.id }}/snooze" class="inline" data-ajax>
-    <button type="submit" class="icbtn" title="Décaler au prochain jour ouvré">{{ icon('chevron_right') }}</button>
+    <button type="submit" class="{{ cls }}" title="Décaler au prochain jour ouvré">{{ icon('skip_forward') }}{% if labelled %} Décaler{% endif %}</button>
   </form>
 </span>
 {% endmacro %}
