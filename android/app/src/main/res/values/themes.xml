@@ -10,12 +10,20 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
         <item name="android:windowOptOutEdgeToEdgeEnforcement" tools:targetApi="35">true</item>
+        <!-- Un seul thème clair (charte) : refuse l'assombrissement automatique
+             qu'appliquent certains constructeurs (MIUI/HyperOS, One UI, option
+             développeur « Forcer le mode sombre »). Sans ça, le fond clair de
+             l'écran de démarrage pouvait être repeint en noir sur ces appareils
+             (écran noir au lancement) alors que la WebView restait claire. -->
+        <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
         <!-- Splash natif (API 31+, sans androidx.core:splashscreen — voir "pas
              d'AndroidX" dans docs/ANDROID_PACKAGING.md). En dessous de l'API 31,
-             `windowBackground` seul unifie déjà le flash de démarrage avec le
-             fond de l'app plutôt que le blanc générique. -->
+             la fenêtre de démarrage du système est `windowBackground` : fond de
+             l'app + logo centré (kairos_launch_background.xml), même place et
+             même taille que le logo du splash API 31+ et que l'écran de
+             démarrage de MainActivity. -->
         <item name="android:windowSplashScreenBackground" tools:targetApi="31">@color/kairos_bg</item>
-        <item name="android:windowBackground">@color/kairos_bg</item>
+        <item name="android:windowBackground">@drawable/kairos_launch_background</item>
         <!-- Icône animée dédiée (kairos_splash_icon.xml, AnimatedVectorDrawable
              natif) plutôt que l'icône de lanceur adaptative par défaut : le
              secteur du cadran « balaie » depuis midi jusqu'à sa position finale

@@ -9,7 +9,9 @@ import os
 import socket
 import sys
 import threading
+import time
 
+from app import desktop_splash
 from app.desktop_browser import (
     _desktop_entry_content,
     find_app_capable_browser,
@@ -21,9 +23,11 @@ from app.launcher import (
     _ensure_std_streams,
     _instance_already_running,
     _open_browser,
+    _open_browser_when_ready,
     _pick_port,
     _port_available,
     _read_lock_port,
+    _wait_until_serving,
     _write_lock,
 )
 
@@ -425,3 +429,47 @@ def test_install_linux_desktop_entry_never_raises_on_write_failure(monkeypatch, 
     monkeypatch.setattr("app.desktop_browser.Path.mkdir", failing_mkdir)
 
     install_linux_desktop_entry()  # ne doit pas lever
+
+
+def test_wait_until_serving_gives_up_after_timeout() -> None:
+    started = time.monotonic()
+    assert _wait_until_serving(_free_port(), timeout=0.3) is False
+    assert time.monotonic() - started < 2
+
+
+def test_open_browser_when_ready_opens_then_closes_splash(monkeypatch) -> None:
+    """La fenêtre s'ouvre une fois le serveur prêt, puis seulement après, la
+    fenêtre de démarrage se ferme (jamais d'instant sans rien à l'écran)."""
+    calls: list[str] = []
+    done = threading.Event()
+    monkeypatch.setattr("app.launcher._wait_until_serving", lambda port: True)
+    monkeypatch.setattr("app.launcher._open_browser", lambda url: calls.append(f"open {url}"))
+    monkeypatch.setattr("app.launcher._SPLASH_HANDOFF_DELAY", 0)
+    monkeypatch.setattr("app.launcher.desktop_splash.update", lambda text: calls.append(f"update {text}"))
+
+    def fake_close() -> None:
+        calls.append("close")
+        done.set()
+
+    monkeypatch.setattr("app.launcher.desktop_splash.close", fake_close)
+    _open_browser_when_ready(8123)
+    assert done.wait(5)
+    assert calls == ["update Ouverture de la fenêtre…", "open http://127.0.0.1:8123", "close"]
+
+
+def test_desktop_splash_is_a_no_op_outside_a_frozen_executable(monkeypatch) -> None:
+    """`pip install -e .` et tests : pas de `pyi_splash`, aucun appel ne lève."""
+    monkeypatch.delattr(sys, "frozen", raising=False)
+    desktop_splash.update("Démarrage…")
+    desktop_splash.close()
+
+
+def test_desktop_splash_ignores_missing_bootloader_window(monkeypatch) -> None:
+    """Exécutable figé mais fenêtre non affichée (Linux sans serveur X) : le
+    bootloader ne pose pas `_PYI_SPLASH_IPC`, rien n'est importé ni levé."""
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.delenv("_PYI_SPLASH_IPC", raising=False)
+    monkeypatch.delitem(sys.modules, "pyi_splash", raising=False)
+    assert desktop_splash._splash() is None
+    desktop_splash.update("Démarrage…")
+    desktop_splash.close()
