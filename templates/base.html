@@ -64,6 +64,7 @@
         <div class="tb-actions">{% block topbar_actions %}{% endblock %}</div>
       </header>
       <div class="page">
+        {% include "_update_banner.html" %}
         {% block content %}{% endblock %}
       </div>
     </main>
@@ -117,6 +118,193 @@
           requestAnimationFrame(function () { window.scrollTo(0, y); });
         }
       });
+    })();
+  </script>
+
+  <script>
+    /* Mises à jour (docs/spec/mises-a-jour.md) : tient le bandeau #mj-update à
+       jour, émet une seule notification système par version, lance et suit
+       l'installation. Toute la logique (vérification, téléchargement, somme de
+       contrôle, remplacement) est côté serveur, dans app/updates.py ; ce script
+       ne fait qu'afficher l'état et relayer les clics. */
+    (function () {
+      var box = document.getElementById('mj-update');
+      if (!box) return;
+      var state = {};
+      try { state = JSON.parse(box.getAttribute('data-state') || '{}'); } catch (e) {}
+      var android = window.KairosAndroid || null;
+      var text = box.querySelector('[data-update-text]');
+      var command = box.querySelector('[data-update-command]');
+      var installBtn = box.querySelector('[data-update-install]');
+      var link = box.querySelector('[data-update-link]');
+      var later = box.querySelector('[data-update-later]');
+      var BUSY = ['downloading', 'verifying', 'installing', 'restarting'];
+      var androidAsked = false;
+      var checkRetries = 0;
+      var restartStarted = 0;
+
+      function send(url, fields) {
+        var data = new FormData();
+        Object.keys(fields || {}).forEach(function (k) { data.append(k, fields[k]); });
+        return fetch(url, { method: 'POST', body: data, headers: { 'X-Requested-With': 'fetch' } });
+      }
+      function fetchStatus() {
+        return fetch('/kairos/updates/status', { headers: { 'X-Requested-With': 'fetch' } })
+          .then(function (r) { return r.json(); });
+      }
+      function busy(s) { return BUSY.indexOf(s.install.phase) !== -1; }
+      function setText(msg) { text.textContent = msg; }
+
+      function render(s) {
+        state = s;
+        var phase = s.install.phase;
+        var visible = (s.available && !s.dismissed) || busy(s) || phase === 'ready';
+        box.hidden = !visible;
+        if (!visible) return;
+        box.classList.toggle('warning', phase === 'error');
+        later.querySelector('[name=tag]').value = s.tag || '';
+        if (s.page_url) link.href = s.page_url;
+        command.hidden = !s.command;
+        installBtn.hidden = !s.can_install || busy(s);
+        installBtn.textContent = phase === 'error' ? 'Réessayer' : 'Mettre à jour';
+        later.hidden = busy(s);
+        if (phase === 'downloading') {
+          var pct = s.install.progress == null ? '' : ' ' + Math.round(s.install.progress * 100) + ' %';
+          setText('Téléchargement de Kairos ' + s.latest + '…' + pct);
+        } else if (phase === 'verifying') {
+          setText('Vérification de la somme de contrôle…');
+        } else if (phase === 'installing') {
+          setText('Installation de Kairos ' + s.latest + '…');
+        } else if (phase === 'restarting') {
+          setText('Redémarrage de Kairos ' + s.latest + '… la page se rechargera toute seule.');
+        } else if (phase === 'ready') {
+          installBtn.hidden = false;
+          installBtn.textContent = 'Installer';
+          setText('Kairos ' + s.latest + ' est téléchargé et vérifié : confirmez l’installation dans la fenêtre Android.');
+        } else if (phase === 'error') {
+          setText('Échec de la mise à jour : ' + s.install.message);
+        } else if (s.command) {
+          setText('Kairos ' + s.latest + ' est disponible (vous avez ' + s.current + '). Pour mettre à jour :');
+        } else {
+          setText('Kairos ' + s.latest + ' est disponible (vous avez ' + s.current + ').');
+        }
+      }
+
+      /* Android : l'APK vérifié est remis à l'installeur système par le pont
+         natif. La première fois, Android exige d'autoriser Kairos à installer
+         des applications : le pont ouvre ce réglage, l'utilisateur revient et
+         retouche « Installer ». */
+      function openAndroidInstaller() {
+        if (!android || !android.installUpdate) return;
+        var result = android.installUpdate();
+        if (result === 'permission') {
+          setText('Autorisez Kairos à installer des applications (réglage Android ouvert), puis touchez « Installer ».');
+        } else if (result !== 'started') {
+          setText('Impossible d’ouvrir l’installeur Android (' + result + ').');
+        }
+      }
+
+      /* Après « restarting », l'ancien serveur s'arrête : on attend qu'un
+         serveur réponde avec la nouvelle version, puis on recharge. */
+      function waitForRestart(target) {
+        if (!restartStarted) restartStarted = Date.now();
+        if (Date.now() - restartStarted > 90000) {
+          setText('Kairos ne répond plus après la mise à jour : relancez l’application.');
+          return;
+        }
+        setTimeout(function () {
+          fetchStatus().then(function (s) {
+            if (s.current === target) { window.location.reload(); return; }
+            waitForRestart(target);
+          }).catch(function () { waitForRestart(target); });
+        }, 1000);
+      }
+
+      function follow() {
+        setTimeout(function () {
+          fetchStatus().then(function (s) {
+            render(s);
+            if (s.install.phase === 'restarting') { waitForRestart(s.latest); return; }
+            if (s.install.phase === 'ready' && !androidAsked) { androidAsked = true; openAndroidInstaller(); }
+            if (busy(s)) follow();
+          }).catch(function () {
+            if (state.install && state.install.phase === 'restarting') waitForRestart(state.latest);
+          });
+        }, 700);
+      }
+
+      function install() {
+        if (state.install && state.install.phase === 'ready') { openAndroidInstaller(); return; }
+        if (!state.can_install) return;
+        installBtn.disabled = true;
+        send('/kairos/updates/install').then(function (r) {
+          return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+        }).then(function (res) {
+          installBtn.disabled = false;
+          if (!res.ok) { setText('Échec de la mise à jour : ' + res.body.error); return; }
+          androidAsked = false;
+          render(res.body);
+          follow();
+        }).catch(function () {
+          installBtn.disabled = false;
+          setText('Kairos ne répond pas : réessayez.');
+        });
+      }
+
+      /* Une seule notification système par version (le serveur arbitre entre
+         plusieurs pages ouvertes), par la même cascade que les alertes chrono :
+         pont Android, notification du navigateur si déjà autorisée, sinon
+         notification émise par Kairos lui-même. Un clic sur la notification
+         lance la mise à jour là où la plateforme le permet. */
+      function notifyOnce(s) {
+        if (!s.available || s.dismissed || s.notified) return;
+        send('/kairos/updates/notified', { tag: s.tag }).then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (!res.claimed) return;
+            var title = 'Mise à jour disponible';
+            var body = 'Kairos ' + s.latest + ' est disponible (vous avez ' + s.current + ').'
+              + (s.can_install ? ' Cliquez pour mettre à jour.' : '');
+            if (android && android.notifyUpdate) {
+              try { android.notifyUpdate(title, body); return; } catch (e) {}
+            }
+            if (('Notification' in window) && window.isSecureContext && Notification.permission === 'granted') {
+              try {
+                var n = new Notification('Kairos · ' + title, { body: body, tag: 'kairos-update' });
+                n.onclick = function () { window.focus(); n.close(); install(); };
+                return;
+              } catch (e) {}
+            }
+            if (s.server_notify) send('/kairos/notify', { title: title, body: body });
+          }).catch(function () {});
+      }
+
+      installBtn.addEventListener('click', install);
+      later.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        box.hidden = true;
+        send('/kairos/updates/dismiss', { tag: state.tag || '' });
+      });
+      /* Clic sur la notification Android (MainActivity relaie l'intention). */
+      window.addEventListener('kairos-update-install', install);
+      window.addEventListener('kairos-update-install-failed', function () {
+        setText('Aucun installeur Android n’a pu ouvrir le fichier téléchargé.');
+      });
+
+      function refresh() {
+        fetchStatus().then(function (s) {
+          render(s);
+          notifyOnce(s);
+          if (s.checking && checkRetries++ < 6) setTimeout(refresh, 5000);
+          if (busy(s)) follow();
+        }).catch(function () {});
+      }
+      render(state);
+      if (android && android.takePendingAction && android.takePendingAction() === 'install_update') {
+        install();
+      }
+      notifyOnce(state);
+      if (state.checking) setTimeout(refresh, 5000);
+      if (busy(state)) follow();
     })();
   </script>
 </body>

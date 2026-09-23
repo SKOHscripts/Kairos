@@ -217,6 +217,27 @@ code {
   bottom: calc(4.2rem + env(safe-area-inset-bottom, 0px));
 }
 
+/* Bandeau « nouvelle version » (templates/_update_banner.html,
+   docs/spec/mises-a-jour.md) : `.banner` neutre, `.banner.warning` en cas
+   d'échec ; le seul bouton accent est « Mettre à jour » (CTA). `[hidden]`
+   redit explicitement : `.banner` et `.btn` posent un `display` qui
+   l'emporterait sinon sur l'attribut. */
+.mj-update { align-items: center; }
+.mj-update[hidden], .mj-update [hidden] { display: none; }
+.mj-update-body {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem;
+  flex: 1; min-width: 0;
+}
+.mj-update-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-left: auto; }
+.mj-update-actions form { margin: 0; }
+.mj-update-command {
+  font-size: 12px; padding: 0.1rem 0.4rem; border-radius: var(--r-sm);
+  background: var(--surface); border: 1px solid var(--border); overflow-wrap: anywhere;
+}
+.mj-update-info { padding: 0 0 0.9rem; }
+.mj-update-info .hint { margin: 0 0 0.35rem; }
+.mj-update-info .error { color: var(--bad-fg); }
+
 /* =========================================================================
    Boutons & contrôles
    ========================================================================= */

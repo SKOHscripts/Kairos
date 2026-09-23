@@ -27,6 +27,7 @@ from app.launcher import (
     _pick_port,
     _port_available,
     _read_lock_port,
+    _take_restart_port,
     _wait_until_serving,
     _write_lock,
 )
@@ -431,6 +432,25 @@ def test_install_linux_desktop_entry_never_raises_on_write_failure(monkeypatch, 
     install_linux_desktop_entry()  # ne doit pas lever
 
 
+def test_clear_lock_keeps_a_lock_written_by_another_process(monkeypatch, tmp_path) -> None:
+    """Mise à jour : la nouvelle version réécrit le verrou avant que l'ancienne
+    n'ait fini de s'arrêter ; l'ancienne ne doit pas l'effacer."""
+    monkeypatch.setattr("app.launcher.data_dir", lambda: tmp_path)
+    (tmp_path / "kairos.lock").write_text('{"port": 8001, "pid": 999999999}', encoding="utf-8")
+    _clear_lock()
+    assert _read_lock_port() == 8001
+    _write_lock(8002)
+    _clear_lock()
+    assert _read_lock_port() is None
+
+
+def test_take_restart_port_reads_and_removes_variable(monkeypatch) -> None:
+    monkeypatch.setenv("KAIROS_RESTART_PORT", "8003")
+    assert _take_restart_port() == 8003
+    assert "KAIROS_RESTART_PORT" not in os.environ
+    assert _take_restart_port() is None
+    monkeypatch.setenv("KAIROS_RESTART_PORT", "abc")
+    assert _take_restart_port() is None
 def test_wait_until_serving_gives_up_after_timeout() -> None:
     started = time.monotonic()
     assert _wait_until_serving(_free_port(), timeout=0.3) is False
@@ -473,3 +493,21 @@ def test_desktop_splash_ignores_missing_bootloader_window(monkeypatch) -> None:
     assert desktop_splash._splash() is None
     desktop_splash.update("Démarrage…")
     desktop_splash.close()
+
+
+def test_open_browser_when_ready_after_update_only_closes_splash(monkeypatch) -> None:
+    """Reprise après une mise à jour sur le même port : la page restée ouverte
+    se recharge seule, aucune fenêtre ne s'ouvre, la fenêtre de démarrage se ferme."""
+    calls: list[str] = []
+    done = threading.Event()
+    monkeypatch.setattr("app.launcher._wait_until_serving", lambda port: True)
+    monkeypatch.setattr("app.launcher._open_browser", lambda url: calls.append("open"))
+
+    def fake_close() -> None:
+        calls.append("close")
+        done.set()
+
+    monkeypatch.setattr("app.launcher.desktop_splash.close", fake_close)
+    _open_browser_when_ready(8123, open_window=False)
+    assert done.wait(5)
+    assert calls == ["close"]

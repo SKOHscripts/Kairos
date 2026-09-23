@@ -139,6 +139,9 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   `git pull`), donnant une interface à moitié stylée. L'horodatage change dès que le
   fichier change (mise à jour) et reste stable entre deux requêtes d'un même
   lancement (cache normal conservé le reste du temps).
+- **Bandeau de mise à jour** : `{% include "_update_banner.html" %}` en tête de
+  `.page`, avant le bloc `content`, sur toutes les pages, et le script qui le
+  pilote en fin de `<body>` (détail : `docs/spec/mises-a-jour.md`).
 - **Topnav (`.topnav` + `.tn-brand`/`.tn-nav`)** : barre horizontale sticky en tête
   de page.
   - `.tn-brand` : lien vers `/`, logo Kairos (SVG inline, mire/cadran solaire,

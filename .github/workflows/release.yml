@@ -24,6 +24,16 @@ jobs:
       - name: Lancer les tests (garde-fou avant packaging)
         run: pytest
 
+      # Version et source des mises à jour embarquées dans l'exécutable
+      # (app/build_info.py, docs/spec/mises-a-jour.md) : ce dépôt GitHub.
+      - name: Embarquer la version et la source des mises à jour
+        shell: bash
+        run: >
+          python packaging/write_build_info.py
+          --version "${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}"
+          --server-url "${{ github.server_url }}"
+          --project "${{ github.repository }}"
+
       - name: Construire l'exécutable (PyInstaller)
         run: pyinstaller packaging/kairos.spec --distpath dist --noconfirm
 
@@ -95,6 +105,13 @@ jobs:
             echo "::warning::Secrets de signature absents : APK de validation NON signé."
           fi
 
+      - name: Embarquer la version et la source des mises à jour
+        run: >
+          python packaging/write_build_info.py
+          --version "${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}"
+          --server-url "${{ github.server_url }}"
+          --project "${{ github.repository }}"
+
       - name: Construire l'APK (Gradle + Chaquopy)
         working-directory: android
         env:
@@ -131,10 +148,18 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
+          merge-multiple: true
+
+      # Sommes de contrôle publiées avec la release : la mise à jour intégrée
+      # (app/updates.py) refuse d'installer un fichier qui n'y correspond pas,
+      # et n'installe rien d'une release qui n'en publie pas.
+      - name: Calculer SHA256SUMS
+        working-directory: artifacts
+        run: sha256sum kairos-* > SHA256SUMS && cat SHA256SUMS
 
       - name: Créer la release GitHub
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*
+          files: artifacts/*
           draft: true
           generate_release_notes: true

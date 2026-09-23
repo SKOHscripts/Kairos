@@ -52,3 +52,21 @@ def pilotage_session() -> Session:
     finally:
         db.close()
         engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+def _isolated_updates(tmp_path_factory, monkeypatch):
+    """Mises à jour (`app/updates.py`) : jamais de vérification réseau
+    automatique pendant les tests (chaque rendu de page la déclencherait), et
+    un état (`update-state.json`, téléchargements) isolé par test."""
+    from app import build_info, updates
+
+    monkeypatch.setenv("KAIROS_UPDATE_CHECK", "0")
+    # Source par défaut neutre : sinon elle dépendrait du remote git du clone
+    # qui lance les tests.
+    monkeypatch.setattr(build_info, "default_source", lambda: ("", ""))
+    state_dir = tmp_path_factory.mktemp("updates")
+    monkeypatch.setattr(updates, "data_dir", lambda: state_dir)
+    updates.reset_state()
+    yield
+    updates.reset_state()

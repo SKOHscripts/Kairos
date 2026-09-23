@@ -122,7 +122,8 @@ def main() -> int:
         with open(log_path, "wb") as log_file:
             process = subprocess.Popen(
                 [str(exe_path)],
-                env={**os.environ, "KAIROS_DATA_DIR": str(data_dir), "KAIROS_NO_BROWSER": "1"},
+                env={**os.environ, "KAIROS_DATA_DIR": str(data_dir), "KAIROS_NO_BROWSER": "1",
+                     "KAIROS_UPDATE_CHECK": "0"},
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
             )

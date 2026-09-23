@@ -1,0 +1,26 @@
+{% from "_icons.html" import icon %}
+{#- Bandeau « nouvelle version » (docs/spec/mises-a-jour.md), en tête de chaque
+    page. Rendu côté serveur quand l'état est déjà connu (lisible sans JS : lien
+    vers la release, « Plus tard ») ; le script de base.html le tient ensuite à
+    jour (vérification qui aboutit après le rendu, progression de
+    l'installation) et révèle « Mettre à jour », qui n'a de sens qu'avec JS. -#}
+{% set upd = update_status(request) %}
+<div id="mj-update" class="banner mj-update" role="status" data-state="{{ upd | tojson | forceescape }}"
+     {% if not (upd.available and not upd.dismissed) %}hidden{% endif %}>
+  {{ icon('download') }}
+  <div class="mj-update-body">
+    <span data-update-text>Kairos <strong>{{ upd.latest }}</strong> est disponible
+      (vous avez {{ upd.current }}).</span>
+    <code class="mj-update-command" data-update-command {% if not upd.command %}hidden{% endif %}>{{ upd.command or '' }}</code>
+    <span class="mj-update-actions">
+      <button type="button" class="btn sm primary" data-update-install hidden>Mettre à jour</button>
+      <a class="btn sm" data-update-link href="{{ upd.page_url or upd.releases_url or '#' }}"
+         target="_blank" rel="noopener">Notes de version</a>
+      <form method="post" action="/kairos/updates/dismiss" data-update-later>
+        <input type="hidden" name="tag" value="{{ upd.tag or '' }}">
+        <input type="hidden" name="next" value="{{ request.url.path }}">
+        <button type="submit" class="btn sm">Plus tard</button>
+      </form>
+    </span>
+  </div>
+</div>

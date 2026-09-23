@@ -3,6 +3,7 @@ package com.skohscripts.kairos;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -123,6 +124,9 @@ public class MainActivity extends Activity {
 
         notificationBridge = new KairosNotificationBridge(this, webView);
         webView.addJavascriptInterface(notificationBridge, "KairosAndroid");
+        // Lancement depuis la notification de mise à jour (appli fermée).
+        notificationBridge.handleAction(
+                getIntent().getStringExtra(KairosNotificationBridge.EXTRA_ACTION), false);
 
         setContentView(webView);
         // Écran de démarrage par-dessus toute la fenêtre (voir StartupScreen) :
@@ -315,6 +319,18 @@ public class MainActivity extends Activity {
                         finish();
                     }
                 });
+    }
+
+    /** Toucher d'une notification alors que Kairos est déjà ouvert
+     *  (FLAG_ACTIVITY_SINGLE_TOP) : la page est chargée, on la prévient. */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (notificationBridge != null) {
+            notificationBridge.handleAction(
+                    intent.getStringExtra(KairosNotificationBridge.EXTRA_ACTION), true);
+        }
     }
 
     @Override

@@ -221,3 +221,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Généré par packaging/write_build_info.py au build (CI) : jamais commité
+app/_build_info.py
