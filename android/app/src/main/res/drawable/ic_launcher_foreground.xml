@@ -2,7 +2,7 @@
 <!-- Premier plan de l'icône adaptative : le cadran plus sombre, le quartier « bon
      moment » et l'axe du cadran, repris de static/favicon.svg (coordonnées d'origine
      40×40, recentrées dans la zone sûre du canevas adaptatif 108×108). Le remplissage
-     ivoire du cercle est porté par le calque de fond (@color/ic_launcher_background),
+     fond clair du cadran est porté par le calque de fond (@color/ic_launcher_background),
      mais son cadre plus foncé fait partie de l'illustration au même titre que le
      secteur et le point : sans lui ici, il disparaît purement et simplement, le fond
      étant un aplat uni sans distinction avec le masque du lanceur. -->
@@ -17,15 +17,15 @@
         android:translateX="27"
         android:translateY="27">
         <path
-            android:strokeColor="#E7C4A2"
+            android:strokeColor="#FFCC85"
             android:strokeWidth="1.6"
             android:fillColor="#00000000"
             android:pathData="M1.5,20 A18.5,18.5 0 1 1 38.5,20 A18.5,18.5 0 1 1 1.5,20 Z" />
         <path
-            android:fillColor="#D9713C"
+            android:fillColor="#C28417"
             android:pathData="M20,20 L20,4 A16,16 0 0 1 35.76,17.22 Z" />
         <path
-            android:fillColor="#2B241E"
+            android:fillColor="#2B251C"
             android:pathData="M17.4,20 A2.6,2.6 0 1 1 22.6,20 A2.6,2.6 0 1 1 17.4,20 Z" />
     </group>
 </vector>

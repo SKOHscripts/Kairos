@@ -63,7 +63,7 @@ splash = Splash(
     datas=a.datas,
     text_pos=(32, 164),
     text_size=10,
-    text_color="#55606D",
+    text_color="#4F4539",  # --md-on-surface-variant
     text_default="Extraction des fichiers…",
     # Pas au premier plan forcé : l'utilisateur peut basculer vers une autre
     # application pendant un démarrage lent sans que la fenêtre la masque.

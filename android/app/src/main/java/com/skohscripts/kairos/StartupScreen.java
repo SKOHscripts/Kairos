@@ -193,8 +193,8 @@ final class StartupScreen {
         return lp;
     }
 
-    /** Bouton primaire de la charte : accent plein, survol/appui plus foncé,
-     *  rayon de contrôle 6dp. */
+    /** Bouton plein MD3 de la charte : primaire (miel), appui plus foncé,
+     *  forme en pilule (docs/DESIGN_SYSTEM.md § Forme). */
     private StateListDrawable buttonBackground() {
         StateListDrawable states = new StateListDrawable();
         states.addState(new int[] {android.R.attr.state_pressed}, rounded(color(R.color.kairos_accent_hover)));
@@ -205,7 +205,7 @@ final class StartupScreen {
     private GradientDrawable rounded(int fill) {
         GradientDrawable shape = new GradientDrawable();
         shape.setColor(fill);
-        shape.setCornerRadius(dp(6));
+        shape.setCornerRadius(dp(999)); // pilule : GradientDrawable borne le rayon à la demi-hauteur
         return shape;
     }
 

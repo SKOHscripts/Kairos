@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Fond de l'icône adaptative : l'ivoire du logo (static/favicon.svg). -->
-    <color name="ic_launcher_background">#FBEEDF</color>
-    <!-- Couleur de fond de l'app (variable bg dans static/style.css), pour la barre de
-         statut/navigation (voir themes.xml). -->
-    <color name="kairos_bg">#F3F5F8</color>
-    <!-- Jetons de docs/DESIGN_SYSTEM.md repris pour l'écran de démarrage natif
-         (MainActivity) : texte secondaire/tertiaire, accent (bouton
-         « Réessayer », seul bouton primaire de l'écran) et rouge critique. -->
-    <color name="kairos_text">#16202B</color>
-    <color name="kairos_text_2">#55606D</color>
-    <color name="kairos_text_3">#8A94A0</color>
-    <color name="kairos_accent">#2F6FED</color>
-    <color name="kairos_accent_hover">#2557C0</color>
-    <color name="kairos_critical">#B3261E</color>
+    <!-- Fond de l'icône adaptative : le cadran du logo, ton 95 de la graine miel
+         (static/favicon.svg, docs/DESIGN_SYSTEM.md § Logo). -->
+    <color name="ic_launcher_background">#FFEEDC</color>
+    <!-- Couleur de fond de l'app (rôle --md-surface de static/style.css), pour la
+         barre de statut/navigation et les écrans de démarrage (voir themes.xml). -->
+    <color name="kairos_bg">#FFF8F4</color>
+    <!-- Rôles MD3 de docs/DESIGN_SYSTEM.md repris pour l'écran de démarrage natif
+         (StartupScreen) : texte principal/secondaire (on-surface,
+         on-surface-variant, sa version atténuée), primaire (bouton
+         « Réessayer », seul bouton plein de l'écran, et son état appuyé) et
+         erreur. Les noms historiques des ressources sont conservés. -->
+    <color name="kairos_text">#201B13</color>
+    <color name="kairos_text_2">#4F4539</color>
+    <color name="kairos_text_3">#817567</color>
+    <color name="kairos_accent">#7F5610</color>
+    <color name="kairos_accent_hover">#624000</color>
+    <color name="kairos_critical">#BA1A1A</color>
 </resources>

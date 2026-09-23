@@ -24,11 +24,11 @@
   {% if task.status == 'todo' %}
   {% if running_task_id == task.id %}
   <form method="post" action="/kairos/tasks/{{ task.id }}/timer/stop" class="inline" data-ajax>
-    <button type="submit" class="{{ cls }} timer-on" title="Arrêter le chrono">{{ icon('clock') }}{% if labelled %} Arrêter le chrono{% endif %}</button>
+    <button type="submit" class="{{ cls }} timer-on" title="Arrêter le chrono">{{ icon('stop') }}{% if labelled %} Arrêter le chrono{% endif %}</button>
   </form>
   {% else %}
   <form method="post" action="/kairos/tasks/{{ task.id }}/timer/start" class="inline" data-ajax>
-    <button type="submit" class="{{ cls }}" title="Démarrer le chrono">{{ icon('clock') }}{% if labelled %} Démarrer le chrono{% endif %}</button>
+    <button type="submit" class="{{ cls }}" title="Démarrer le chrono">{{ icon('play') }}{% if labelled %} Démarrer le chrono{% endif %}</button>
   </form>
   {% endif %}
   {% endif %}
@@ -151,7 +151,7 @@
 {% macro priority_help() %}
 <ul class="mj-help-scale">
   {% for level in priority_levels %}
-  <li><span class="badge prio">{{ level.code }}</span> <span><strong>{{ level.label }}</strong> : {{ level.meaning }}</span></li>
+  <li><span class="badge prio{% if level.value == 0 %} is-p0{% endif %}">{{ level.code }}</span> <span><strong>{{ level.label }}</strong> : {{ level.meaning }}</span></li>
   {% endfor %}
 </ul>
 {% endmacro %}
@@ -292,9 +292,9 @@
 {% endmacro %}
 
 {# Colonne « clés » d'une ligne de tâche (issue #33) : score WSJF, priorité et
-   points, collés à la colonne d'actions et alignés à droite. Score et priorité
-   sont les deux seuls badges à porter l'accent bleu (voir
-   docs/DESIGN_SYSTEM.md) ; les points les accompagnent parce que c'est le
+   points, collés à la colonne d'actions et alignés à droite. Le score est en
+   couleur primaire et seule la priorité P0 passe en rouge (voir
+   docs/DESIGN_SYSTEM.md § Où va la couleur) ; les points les accompagnent parce que c'est le
    dénominateur du score — les trois se lisent ensemble, à la même abscisse
    d'une ligne à l'autre. #}
 {# « Pourquoi à cette place ? » (audit UI) : le badge du score s'ouvre d'un clic
@@ -340,7 +340,7 @@
 {% if score is not none and why %}{{ score_explained(task, score, why) }}
 {% elif score is not none %}<span class="badge mj-score">{{ icon('trending_up') }} {{ score }}</span>{% endif %}
 {% set plevel = priority_level(task.priority) %}
-{% if task.priority is not none %}<span class="badge prio" title="Priorité {% if plevel %}{{ plevel.label }} : {{ plevel.meaning }}{% else %}P{{ task.priority }}{% endif %}">P{{ task.priority }}</span>{% endif %}
+{% if task.priority is not none %}<span class="badge prio{% if task.priority == 0 %} is-p0{% endif %}" title="Priorité {% if plevel %}{{ plevel.label }} : {{ plevel.meaning }}{% else %}P{{ task.priority }}{% endif %}">P{{ task.priority }}</span>{% endif %}
 {% set flevel = fibo_level(task.fibonacci_points) %}
 {% if task.fibonacci_points %}<span class="badge mj-tag" title="{{ task.fibonacci_points }} points{% if flevel %}, {{ flevel.label }} : {{ flevel.meaning }}{% endif %} (effort relatif, dénominateur du score WSJF)">{{ task.fibonacci_points }} pts</span>{% endif %}
 {% endmacro %}
@@ -371,7 +371,7 @@
 {% if task.estimated_minutes %}<span class="muted">{{ task.estimated_minutes }} min</span>{% endif %}
 {% if task.deadline %}<span class="muted">échéance {{ task.deadline.strftime('%d/%m') }}</span>{% endif %}
 {% if task.scheduled_date %}<span class="muted">programmée {{ task.scheduled_date.strftime('%d/%m') }}</span>{% endif %}
-{% if task.recurrence %}{{ icon('refresh') }}{% endif %}
+{% if task.recurrence %}{{ icon('repeat', 'Tâche récurrente') }}{% endif %}
 {% set stale_days = stale_days_of.get(task.id) %}
 {% if stale_days %}<span class="badge warn" title="Aucune reprise depuis longtemps">{{ icon('warning') }} traîne depuis {{ stale_days }} j</span>{% endif %}
 {% endmacro %}

@@ -57,11 +57,23 @@ une fois la fenêtre Kairos ouverte. C'est la cible `Splash` de PyInstaller :
 (inclus dans les Python officiels Windows et dans `actions/setup-python` ; sur
 une Debian/Ubuntu avec le Python système : `sudo apt install python3-tk`).
 
-L'image `packaging/splash.png` est commitée. Pour la régénérer (police IBM
-Plex Sans de la charte, TTF de la release officielle IBM/plex) :
+L'image `packaging/splash.png` est commitée. `make_icon.py` la régénère avec
+les icônes (Roboto, la police de la charte, lue dans `static/fonts/` : rien à
+installer) :
 
 ```bash
-python packaging/make_icon.py --splash-font /chemin/IBMPlexSans-SemiBold.ttf
+python packaging/make_icon.py
+```
+
+## Icônes d'interface
+
+`templates/_icons.html` (macro `icon()`) est généré à partir des SVG Material
+Symbols par `packaging/make_icons.py`. Pour ajouter une icône, l'ajouter à la
+table `MAP` du script puis :
+
+```bash
+npm install --prefix /tmp/ms @material-symbols/svg-400
+python packaging/make_icons.py /tmp/ms/node_modules/@material-symbols/svg-400/outlined
 ```
 
 ## Points d'attention
