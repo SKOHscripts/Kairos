@@ -3,8 +3,9 @@ _Rôle : comment Kairos passe d'un dépôt Python à une application qu'on doubl
 (exécutable Windows/Linux) ou qu'on installe (APK Android), et comment elle démarre
 proprement dans les deux cas. Fichiers couverts : `app/launcher.py`,
 `app/desktop_browser.py`, `app/android_launcher.py`, `app/subprocess_env.py`,
-`packaging/` (`README.md`, `kairos.spec`, `smoke_test.py`, `make_icon.py`,
-`kairos.ico`, `android-requirements.txt`), `android/` (renvoi à
+`app/desktop_splash.py`, `packaging/` (`README.md`, `kairos.spec`,
+`smoke_test.py`, `make_icon.py`, `kairos.ico`, `splash.png`,
+`android-requirements.txt`), `android/` (renvoi à
 `docs/ANDROID_PACKAGING.md` pour le détail technique)._
 
 ## 1. Besoin métier (cahier des charges)
@@ -42,6 +43,23 @@ exposée sur le réseau par défaut, y compris pendant la phase de lancement.
   l'interface, qui n'aurait pas de sens ici.
 - Dans les deux cas, aucune donnée n'est accessible depuis un autre appareil du
   réseau local (le serveur n'écoute que sur la boucle locale).
+- **Écran de démarrage, sur toute plateforme** : entre le geste de lancement et
+  l'affichage de l'agenda, l'utilisateur voit toujours le logo Kairos et un état
+  lisible (« Démarrage… »), jamais un écran blanc, noir ou vide, ni rien du tout.
+  - **Bureau** : une petite fenêtre de démarrage (logo, nom, état) apparaît dès le
+    double-clic, pendant l'extraction de l'exécutable et le démarrage du serveur,
+    puis se ferme d'elle-même une fois la fenêtre Kairos ouverte.
+  - **Android** : même rendu quelle que soit la version (Android 7 à 15) et le
+    constructeur, thème sombre forcé compris : fond clair de l'app, logo centré
+    sans rognage ni saut de taille entre le splash système et l'écran applicatif,
+    état de progression sous le logo. Si le démarrage dure (premier lancement
+    après installation ou mise à jour), une ligne explique que cela peut prendre
+    jusqu'à une minute.
+  - **Échec** : si le démarrage échoue ou n'aboutit pas dans un délai raisonnable,
+    l'écran le dit (message court + détail technique) et propose « Réessayer »
+    sur Android, plutôt que de laisser un écran figé ou de dévoiler une page vide.
+    Sur bureau, la fenêtre de démarrage se ferme et la trace est écrite dans le
+    journal de crash (comportement existant).
 
 ### Critères de succès
 
@@ -57,6 +75,10 @@ exposée sur le réseau par défaut, y compris pendant la phase de lancement.
   publication d'une release ; un exécutable qui ne démarre pas bloque la release.
 - Signature Android stable d'une release à l'autre (mise à jour possible par-dessus
   l'installation existante, jamais besoin de désinstaller).
+- Aucun écran blanc ou noir au lancement, ni sur bureau ni sur Android (API 24 à
+  35, thème sombre système ou forcé par le constructeur) : le logo est visible dès
+  la première image affichée par le système, et reste visible jusqu'à l'agenda ou
+  jusqu'à un état d'erreur explicite.
 
 ### Hors périmètre / différé
 
@@ -137,7 +159,7 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
     serveur. Sans détection d'instance existante, relancer l'exécutable ferait
     avancer le port choisi à chaque fois (8001, 8002, ...) puisque l'instance
     précédente tourne toujours en arrière-plan.
-- **Ouverture du navigateur** (`_open_browser`, `_open_browser_later`) :
+- **Ouverture du navigateur** (`_open_browser`, `_open_browser_when_ready`) :
   - `KAIROS_NO_BROWSER` (variable d'environnement) : échappatoire pour les
     lancements automatisés (`packaging/smoke_test.py`) où un vrai navigateur est
     indésirable (processus fantôme sur un runner CI, effets de bord imprévisibles).
@@ -158,10 +180,28 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
     d'application, lui, passe son propre `env=` assaini directement à `Popen` (voir
     `app/desktop_browser.py::launch_app_window`) plutôt que par ce gestionnaire de
     contexte, puisque `subprocess.Popen` accepte un `env=` explicite.
-  - `_open_browser_later` : ouvre le navigateur (fenêtre d'application ou onglet de
-    repli, indifféremment ; la bascule est interne à `_open_browser`) après un
-    délai (`threading.Timer`, 1.2 s par défaut) pour laisser le temps à uvicorn de
-    démarrer avant la première requête.
+  - `_open_browser_when_ready(port)` : thread `kairos-open-window` qui attend que
+    le serveur réponde (`_wait_until_serving` : sonde `/favicon.ico` via
+    `_instance_already_running` toutes les 0.2 s, plafond `_READY_TIMEOUT = 60 s`
+    au-delà duquel la fenêtre s'ouvre quand même), puis ouvre le navigateur
+    (fenêtre d'application ou onglet de repli, indifféremment ; la bascule est
+    interne à `_open_browser`) et ferme la fenêtre de démarrage
+    `_SPLASH_HANDOFF_DELAY = 1.5 s` plus tard (le temps que Chromium dessine sa
+    première image : fermer tout de suite laisserait un instant sans rien à
+    l'écran). **Remplace l'ancien `_open_browser_later`** (délai fixe de 1.2 s via
+    `threading.Timer`) : trop court sur une machine lente (page d'erreur de
+    connexion dans la fenêtre), inutilement long sinon.
+- **Fenêtre de démarrage** (`app/desktop_splash.py`, cible `Splash` de
+  `packaging/kairos.spec`) : voir le détail dans la section `packaging/`
+  ci-dessous. Côté launcher, les états affichés sont :
+  - « Chargement de Kairos… », posé au niveau module **avant** `import uvicorn`
+    et `from app.main import app` (les imports lourds : SQLAlchemy, Jinja2...),
+    seule instruction exécutée entre deux blocs d'imports de ce module ;
+  - « Démarrage du serveur… » juste avant `uvicorn.run` ;
+  - « Ouverture de la fenêtre… » une fois le serveur prêt.
+  - Fermeture : après l'ouverture de la fenêtre (chemin normal), juste après
+    `_open_browser` quand une instance tourne déjà, et en tête du `except` du
+    journal de crash (une fenêtre de démarrage ne survit jamais à un échec).
 - **Reprise après une mise à jour** (`docs/spec/mises-a-jour.md`) :
   `app/updates.py::restart_desktop` lance le nouvel exécutable avec
   `KAIROS_RESTART_PORT=<port de l'ancienne instance>`. En tête de `main()`,
@@ -170,7 +210,9 @@ spec n'en reprend que ce qui concerne le **lancement** et n'y duplique pas le re
   attend que l'ancienne instance ne réponde plus sur ce port (sonde
   `_instance_already_running`, `_RESTART_WAIT = 30 s` au plus), puis le port
   est choisi à partir de celui-ci (`_pick_port(preferred=...)`). Quand c'est
-  bien le même port, aucune fenêtre n'est ouverte : la page restée ouverte se
+  bien le même port, aucune fenêtre n'est ouverte
+  (`_open_browser_when_ready(port, open_window=False)` : attend le serveur et
+  ferme la fenêtre de démarrage sans rien ouvrir) : la page restée ouverte se
   recharge d'elle-même. Sinon (port pris entre-temps), la fenêtre s'ouvre
   normalement sur le nouveau port.
 - **`_remove_previous_executable()`** (exécutable figé seulement) : supprime
@@ -334,7 +376,8 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
   pose `KAIROS_BASE_DIR`/`KAIROS_PLATFORM=android`, puis délègue à
   `android_launcher.prepare`), lance `kairos_boot.serve(port)` dans un thread Java
   nommé `kairos-uvicorn`, puis sonde `/favicon.ico` (même repère que le launcher de
-  bureau) avant de charger `http://127.0.0.1:<port>/kairos` dans la WebView. Détail
+  bureau, jusqu'à 90 s, écran d'erreur avec « Réessayer » au-delà) avant de
+  charger `http://127.0.0.1:<port>/kairos` dans la WebView. Détail
   complet (Gradle, Chaquopy, cycle de vie, notifications) :
   `docs/ANDROID_PACKAGING.md`. `KAIROS_PLATFORM` est posé **avant** tout import de
   `app.main` : c'est ce qui permet à `app/main.py` de le lire une seule fois au
@@ -397,6 +440,29 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
   - `icon=packaging/kairos.ico` : embarqué dans le `.exe` Windows (barre des tâches,
     explorateur) ; ignoré sans erreur pour le binaire Linux (qui n'en porte pas ;
     une icône de bureau viendrait d'un fichier `.desktop`, pas du binaire lui-même).
+  - **`Splash`** (fenêtre de démarrage) : image `packaging/splash.png` (420×200,
+    surface blanche, bordure forte `#C9D2DC`, logo 64 px, « Kairos » en IBM Plex
+    Sans SemiBold 30 px, sous-titre « le bon moment, la bonne tâche », tout
+    aligné sur une marge gauche de 32 px) et texte d'état dessiné par Tk à
+    `text_pos=(32, 164)` (ancré en bas à gauche par PyInstaller, d'où la
+    composition alignée à gauche), `text_size=10`, `text_color="#55606D"`,
+    `text_default="Extraction des fichiers…"`, `always_on_top=False` (un
+    démarrage lent ne doit pas masquer les autres applications). Passée à `EXE`
+    avec `splash.binaries` (Tcl/Tk minimal). Affichée par le **bootloader** dès
+    le double-clic, avant l'extraction onefile (la phase la plus longue sous
+    Windows, antivirus compris, pendant laquelle aucun code Python ne tourne) ;
+    pendant l'extraction, le bootloader remplace lui-même le texte par le nom de
+    chaque fichier extrait (comportement PyInstaller, non configurable sans
+    supprimer le texte d'état). Supportée sur Windows et Linux (pas macOS, hors
+    périmètre). Sans serveur X (runner CI Linux), le bootloader renonce à la
+    fenêtre sans erreur : le smoke test passe tel quel, vérifié en local.
+    Contrainte de build : `tkinter` doit être importable par le Python qui lance
+    PyInstaller (sinon `Splash` arrête le build avec un message explicite).
+  - `app/desktop_splash.py` : `update(text)` / `close()` pilotent la fenêtre via
+    le module `pyi_splash` (fourni par PyInstaller dans l'exécutable figé
+    seulement). No-op silencieux hors exécutable figé, quand le bootloader n'a
+    pas posé `_PYI_SPLASH_IPC` (fenêtre non affichée) ou quand la fenêtre est
+    déjà fermée : confort, jamais une cause d'échec du lancement.
 - **`packaging/README.md`** : mode d'emploi de construction locale
   (`pip install -e ".[dev]" pyinstaller pyinstaller-hooks-contrib` puis
   `pyinstaller packaging/kairos.spec --distpath dist --noconfirm`), et points
@@ -410,7 +476,12 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     juste un bandeau dans la page Réglages : à vérifier après chaque build par OS
     cible.
 - **`packaging/make_icon.py`** : régénère `kairos.ico` depuis le même dessin que
-  `static/favicon.svg`, après une évolution du logo (nécessite Pillow).
+  `static/favicon.svg`, après une évolution du logo (nécessite Pillow). Avec
+  `--splash-font <IBMPlexSans-SemiBold.ttf>` (le Regular attendu dans le même
+  dossier), régénère aussi `packaging/splash.png` (`render_splash`) ; sans
+  l'option, le PNG commité reste inchangé : la police de la charte n'est pas
+  installée sur les machines de build, d'où une image commitée plutôt que
+  générée en CI.
 - **`packaging/smoke_test.py`** : lance l'exécutable construit et vérifie qu'il
   répond en HTTP avant publication (`.github/workflows/release.yml` l'exécute pour
   chaque OS juste après le build PyInstaller ; échec = pas de publication).
@@ -467,20 +538,19 @@ cette spec (pas de duplication du reste) :
   `versionCode = X*10000 + Y*100 + Z`, plancher `1` (Android rejette `0`, ce que
   donnerait le défaut `0.0.0-dev`), garantit une valeur strictement croissante
   d'une release à l'autre pour qu'Android accepte la mise à jour par-dessus.
-- **Écran de démarrage** : un overlay applicatif (`MainActivity`, `FrameLayout`
-  WebView + overlay fond `@color/kairos_bg` + logo animé) porte le branding
-  pendant toute l'attente de Python/uvicorn, pas le splash système
-  d'Android (`android:windowSplashScreenBackground`/`windowBackground` dans
-  `themes.xml`, toujours posés pour le tout petit instant de cold-start avant
-  `onCreate`, mais plus load-bearing au-delà). Python/uvicorn démarrent sur un
-  thread dédié (`kairos-init`), jamais le thread principal : c'est ce qui
-  garantit que l'overlay se dessine et s'anime réellement, y compris sur un
-  premier lancement long (extraction du paquet Python embarqué). Logo animé :
-  `AnimatedVectorDrawable` dédié (`res/drawable/kairos_splash_icon*.xml` +
-  `res/animator/kairos_splash_wedge_sweep.xml`, natif, API 21+), le même asset
-  que l'ancien splash système, rejoué explicitement (`Animatable.start()`)
-  plutôt qu'automatiquement. Détail complet, y compris les deux approches
-  écartées avant celle-ci, dans `docs/ANDROID_PACKAGING.md`.
+- **Écran de démarrage** : trois relais qui placent le logo au même endroit et
+  à la même taille (boîte de 288dp centrée sur la fenêtre, logo réduit à 0.64
+  pour tenir dans le cercle de 192dp du splash API 31+) : fond de fenêtre
+  `kairos_launch_background.xml` (couleur + logo, seul splash avant l'API 31),
+  splash système animé (API 31+), puis `StartupScreen` (Java, par-dessus toute
+  la fenêtre : logo statique, étape en cours, explication au bout de 8 s,
+  état d'erreur avec détail et « Réessayer »). Il ne disparaît que sur une
+  page réellement chargée, jamais à l'aveugle (l'ancien masquage automatique
+  à 30 s dévoilait une WebView vide). `forceDarkAllowed=false` empêche
+  l'assombrissement forcé par certains constructeurs (écran noir). Python/
+  uvicorn démarrent sur un thread dédié (`kairos-init`), et une exception du
+  thread serveur est affichée au lieu de tuer le process. Détail complet, y
+  compris les approches écartées, dans `docs/ANDROID_PACKAGING.md`.
 - **`AndroidManifest.xml`** / **`MainActivity.java`** : geste retour prédictif
   Android 13+ (`android:enableOnBackInvokedCallback="true"` +
   `OnBackInvokedDispatcher` natif, `android.window`, pas AndroidX) : chemin

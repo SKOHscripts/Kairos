@@ -48,6 +48,22 @@ pip install Pillow
 python packaging/make_icon.py
 ```
 
+## Fenêtre de démarrage
+
+L'exécutable affiche une petite fenêtre (logo, nom, état du démarrage) dès le
+double-clic, pendant l'extraction et le démarrage du serveur ; elle se ferme
+une fois la fenêtre Kairos ouverte. C'est la cible `Splash` de PyInstaller :
+`tkinter` doit être disponible dans le Python qui construit l'exécutable
+(inclus dans les Python officiels Windows et dans `actions/setup-python` ; sur
+une Debian/Ubuntu avec le Python système : `sudo apt install python3-tk`).
+
+L'image `packaging/splash.png` est commitée. Pour la régénérer (police IBM
+Plex Sans de la charte, TTF de la release officielle IBM/plex) :
+
+```bash
+python packaging/make_icon.py --splash-font /chemin/IBMPlexSans-SemiBold.ttf
+```
+
 ## Points d'attention
 
 - Les données (réglages, base de tâches) vivent dans le dossier utilisateur de

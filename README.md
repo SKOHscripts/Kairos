@@ -69,7 +69,8 @@ Pas besoin de Python, de venv ni de terminal. Les
 [releases GitHub](https://github.com/SKOHscripts/Kairos/releases) proposent un exécutable
 autonome par OS (`kairos-linux-x86_64`, `kairos-windows-x86_64.exe`) et un APK Android
 (`kairos-android-arm64.apk`). Télécharge, double-clique (sous Linux, rends d'abord le
-fichier exécutable avec `chmod +x kairos-linux-x86_64`), et une fenêtre s'ouvre toute
+fichier exécutable avec `chmod +x kairos-linux-x86_64`) : une petite fenêtre de
+démarrage (logo et état) s'affiche aussitôt, puis une fenêtre s'ouvre toute
 seule sur Kairos, sans barre d'adresse ni onglets, comme une vraie application
 de bureau (si un navigateur de la famille Chromium est installé : Chrome, Edge, Brave,
 Vivaldi... ; sinon repli automatique sur un onglet du navigateur par défaut, sans rien
@@ -79,7 +80,10 @@ fichier `.env` à copier ou à éditer à la main.
 
 **Android** : télécharge l'APK depuis la release et ouvre-le (autorise l'installation
 depuis cette source si Android le demande). L'application embarque le serveur et
-affiche la même interface ; les données vivent dans le stockage privé de l'appli. Les
+affiche la même interface ; les données vivent dans le stockage privé de l'appli. Au
+lancement, un écran de démarrage montre le logo et l'étape en cours (le premier
+lancement après une installation ou une mise à jour peut prendre jusqu'à une minute) ;
+en cas d'échec, il affiche le détail et un bouton **Réessayer**. Les
 mises à jour s'installent par-dessus l'ancienne version, sans perte de données (même
 clé de signature d'une release à l'autre). Limite connue de cette première version :
 pas de service en arrière-plan, un chrono en cours ne survit pas à une mise en veille
@@ -468,6 +472,7 @@ base64 -w0 kairos-release.keystore   # → valeur du secret KAIROS_KEYSTORE_BASE
 | `launcher.py` | Point d'entrée de l'exécutable de bureau (choix de port, ouverture du navigateur) |
 | `build_info.py` | Version installée et source par défaut des mises à jour |
 | `updates.py` | Mises à jour : lecture des releases GitHub/GitLab, téléchargement vérifié, installation |
+| `desktop_splash.py` | Fenêtre de démarrage de l'exécutable de bureau (texte d'état, fermeture) |
 | `android_launcher.py` | Point d'entrée Android : environnement, port, uvicorn (WebView côté `android/`) |
 | `tasks_models.py` | Modèles SQLAlchemy : `Task`, `TimeBlock`, `TaskDependency`, `WorkSession`, `TaskSyncMeta` |
 | `tasks_db.py` | Engine/sessions + migrations légères + pose des données d'exemple sur base vierge |

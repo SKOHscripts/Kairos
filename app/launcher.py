@@ -36,6 +36,13 @@ import urllib.request
 import webbrowser
 from pathlib import Path
 
+# Avant tout import lourd (uvicorn, app.main : SQLAlchemy, Jinja2...) : la
+# fenêtre de démarrage affiche encore l'état du bootloader (fichiers extraits),
+# ce nouvel état couvre les quelques secondes d'import qui suivent.
+from app import desktop_splash
+
+desktop_splash.update("Chargement de Kairos…")
+
 import uvicorn
 
 # Imports absolus (pas `from .main import ...`) : PyInstaller exécute ce
@@ -91,8 +98,43 @@ def _open_browser(url: str) -> None:
         webbrowser.open(url)
 
 
-def _open_browser_later(url: str, delay: float = 1.2) -> None:
-    threading.Timer(delay, lambda: _open_browser(url)).start()
+# Attente maximale du premier 200 sur /favicon.ico avant d'ouvrir la fenêtre
+# quand même (uvicorn qui échoue lève dans `main`, ce plafond ne couvre que le
+# cas d'un serveur lent, jamais celui d'un serveur mort).
+_READY_TIMEOUT = 60.0
+_READY_POLL = 0.2
+# Délai entre le lancement de la fenêtre et la fermeture de la fenêtre de
+# démarrage : Chromium met environ une seconde à dessiner sa première image,
+# fermer tout de suite laisserait un instant sans rien à l'écran.
+_SPLASH_HANDOFF_DELAY = 1.5
+
+
+def _wait_until_serving(port: int, timeout: float = _READY_TIMEOUT) -> bool:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if _instance_already_running(port):
+            return True
+        time.sleep(_READY_POLL)
+    return False
+
+
+def _open_browser_when_ready(port: int, *, open_window: bool = True) -> None:
+    """Ouvre la fenêtre dès que le serveur répond (sonde `/favicon.ico`, même
+    repère que `_instance_already_running`), puis ferme la fenêtre de
+    démarrage. Remplace l'ancien délai fixe de 1.2 s, trop court sur une
+    machine lente (page d'erreur de connexion) et inutilement long sinon.
+    ``open_window=False`` (reprise après une mise à jour, même port) : la page
+    déjà ouverte se recharge seule, on ferme juste la fenêtre de démarrage."""
+
+    def run() -> None:
+        _wait_until_serving(port)
+        if open_window:
+            desktop_splash.update("Ouverture de la fenêtre…")
+            _open_browser(f"http://{_HOST}:{port}")
+            time.sleep(_SPLASH_HANDOFF_DELAY)
+        desktop_splash.close()
+
+    threading.Thread(target=run, name="kairos-open-window", daemon=True).start()
 
 
 def _lock_path():
@@ -215,19 +257,22 @@ def main() -> None:
         # l'exécutable sans avoir cliqué « Quitter ») : on la rouvre, sans
         # démarrer un second serveur ni consommer un nouveau port.
         _open_browser(f"http://{_HOST}:{existing_port}")
+        desktop_splash.close()
         return
 
     try:
         port = _pick_port(preferred=restart_port or _DEFAULT_PORT)
         _write_lock(port)
-        # Même port qu'avant la mise à jour : la page restée ouverte se
-        # recharge d'elle-même, une seconde fenêtre serait de trop.
-        if port != restart_port:
-            _open_browser_later(f"http://{_HOST}:{port}")
+        desktop_splash.update("Démarrage du serveur…")
+        # Même port qu'avant une mise à jour : la page restée ouverte se
+        # recharge d'elle-même, une seconde fenêtre serait de trop (la
+        # fenêtre de démarrage se ferme quand même une fois le serveur prêt).
+        _open_browser_when_ready(port, open_window=port != restart_port)
         # `reload`/`workers>1` reposent tous deux sur un ré-exec du process
         # (rechargeur, workers multiples) : incompatible avec un exécutable figé.
         uvicorn.run(app, host=_HOST, port=port, reload=False)
     except Exception:
+        desktop_splash.close()
         log_path = data_dir() / "kairos-crash.log"
         log_path.write_text(traceback.format_exc(), encoding="utf-8")
         logging.getLogger("kairos").error("Échec du démarrage, trace dans %s", log_path)

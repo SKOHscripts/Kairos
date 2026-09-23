@@ -5,4 +5,15 @@
     <string name="update_channel_name">Mises à jour</string>
     <string name="update_channel_description">Nouvelle version de Kairos disponible.</string>
     <string name="notification_channel_description">Dépassement d\'estimé, chrono oublié, rappel de pause pendant une tâche en cours.</string>
+    <!-- Écran de démarrage (MainActivity) : un état par étape, voir
+         docs/ANDROID_PACKAGING.md § Écran de démarrage. -->
+    <string name="startup_python">Démarrage de Python…</string>
+    <string name="startup_prepare">Préparation des données…</string>
+    <string name="startup_server">Démarrage du serveur…</string>
+    <string name="startup_page">Chargement de l\'agenda…</string>
+    <string name="startup_slow_hint">Le premier lancement après une installation ou une mise à jour peut prendre jusqu\'à une minute.</string>
+    <string name="startup_failed">Kairos n\'a pas pu démarrer.</string>
+    <string name="startup_server_timeout">Le serveur local ne répond pas.</string>
+    <string name="startup_page_timeout">La page ne s\'est pas chargée.</string>
+    <string name="startup_retry">Réessayer</string>
 </resources>

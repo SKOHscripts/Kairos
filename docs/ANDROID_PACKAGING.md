@@ -42,11 +42,10 @@ l'émulateur).
 
 Chaîne de démarrage :
 
-1. `MainActivity.onCreate` construit immédiatement la WebView **et** un overlay
-   de démarrage (fond `@color/kairos_bg` + logo animé) empilés dans un
-   `FrameLayout`, puis affiche cette hiérarchie (`setContentView`) : voir
-   « Écran de démarrage » ci-dessous pour le détail et le pourquoi de ce
-   choix. En parallèle, sur un thread dédié (`kairos-init`, jamais le thread
+1. `MainActivity.onCreate` construit immédiatement la WebView (contenu de
+   l'activité) **et** l'écran de démarrage (`StartupScreen`, ajouté par-dessus
+   toute la fenêtre) : voir « Écran de démarrage » ci-dessous pour le détail
+   et le pourquoi. Puis, sur un thread dédié (`kairos-init`, jamais le thread
    principal) : démarre Chaquopy et appelle `kairos_boot.prepare(filesDir)` :
    le paquet embarqué `kairos_dist` (extrait de l'APK en vrais fichiers, voir
    ci-dessous) est ajouté à `sys.path`, `KAIROS_BASE_DIR` et
@@ -59,11 +58,14 @@ Chaîne de démarrage :
    du gabarit/CSS restant strictement identique entre les trois cibles de
    packaging.
 2. `kairos_boot.serve(port)` lance uvicorn dans un thread dédié (`kairos-uvicorn`).
-3. Toujours depuis le thread `kairos-init`, une fois `prepare()` revenu : sonde
-   `/favicon.ico` (même repère que le launcher de bureau, thread
-   `kairos-probe`) puis charge `http://127.0.0.1:<port>/kairos` dans la
-   WebView (`runOnUiThread`). L'overlay de démarrage se masque en fondu dès
-   que cette page a fini de charger (`WebViewClient.onPageFinished`).
+   Une exception levée par `serve` y est rattrapée et gardée (`serverError`)
+   au lieu de tuer tout le process (« Kairos s'est arrêté »).
+3. Toujours depuis le thread `kairos-init` : sonde `/favicon.ico` (même repère
+   que le launcher de bureau) jusqu'à 90 s, en abandonnant tôt si le thread
+   serveur s'est arrêté, puis charge `http://127.0.0.1:<port>/kairos` dans la
+   WebView (`runOnUiThread`). L'écran de démarrage disparaît en fondu dès que
+   cette page a fini de charger (`WebViewClient.onPageFinished`), ou passe en
+   état d'erreur (voir ci-dessous).
 
 Empaquetage du code : la tâche Gradle `stageKairosPython` copie `app/`,
 `templates/`, `static/` et `README.md` dans un paquet Python unique
@@ -87,49 +89,69 @@ Points notables :
   redémarre au retour, SQLite committe à chaque requête. **Limite v1** : pas de
   foreground service, un chrono en cours ne survit pas à une mise en veille
   agressive.
-- **Écran de démarrage** (revue produit F-Droid/mobile, 2026-07, corrigé une
-  seconde fois : voir « Piège tracé » ci-dessous) : un **overlay applicatif**,
-  pas le splash système d'Android, porte le branding pendant toute l'attente
-  de Python/uvicorn.
-  - **Pourquoi pas le splash système (API 31+, `windowSplashScreenBackground`/
-    `windowSplashScreenAnimatedIcon` dans `themes.xml`)** : cette API vise des
-    attentes courtes (elle disparaît dès la première frame dessinée par
-    l'activité) et plusieurs OEM/AOSP la forcent à disparaître au-delà d'un
-    court délai, ce qui la rend inadaptée à un démarrage de plusieurs secondes (extraction
-    du paquet Python embarqué, première écriture SQLite). `themes.xml`
-    conserve ces attributs (`android:windowSplashScreenBackground`,
-    `android:windowBackground` : les deux à `@color/kairos_bg`,
-    `tools:targetApi="31"` pour le premier : annotation lint, pas un
-    mécanisme de qualification de ressource, ignorée sans erreur en dessous
-    de l'API 31, même mécanisme déjà en production pour
-    `windowLightNavigationBar`/`windowOptOutEdgeToEdgeEnforcement`) : ils
-    couvrent gratuitement le tout petit instant de cold-start *avant*
-    `onCreate`, mais ne sont plus **load-bearing** pour la suite.
-  - **`MainActivity`** construit dans `onCreate`, synchrone, avant tout appel
-    Python : un `FrameLayout` empilant la `WebView` (en dessous) et un
-    overlay plein écran (fond `@color/kairos_bg` + un `ImageView` centré,
-    au-dessus), via `buildStartupOverlay()`. L'`ImageView` réutilise
-    l'`AnimatedVectorDrawable` déjà créé pour l'ancien splash système
-    (`@drawable/kairos_splash_icon`, soit `kairos_splash_icon_base.xml` +
-    `res/animator/kairos_splash_wedge_sweep.xml`, natif
-    `android.graphics.drawable`, API 21+, pas AndroidX ; secteur terracotta
-    balayant depuis midi jusqu'à 80°, 5 images-clés pour éviter l'aplatissement
-    d'un morph `pathData` à deux points ; détail géométrique en commentaire du
-    fichier animator). L'animation est lancée explicitement en Java
-    (`Animatable.start()`) et non plus par le système comme pour le splash :
-    c'est le **même** asset, rejoué autrement.
+- **Écran de démarrage** (revue produit F-Droid/mobile 2026-07, repris en
+  2026-09 après des retours « écran blanc ou noir » persistants) : le logo est
+  visible dès la première image affichée par le système et jusqu'à l'agenda,
+  sur toutes les versions (API 24 à 35), en trois relais qui placent le logo
+  **au même endroit et à la même taille** (boîte de 288dp centrée sur la
+  fenêtre entière, logo réduit à 0.64 dans cette boîte) :
+  1. **Fenêtre de démarrage du système** : avant l'API 31, c'est
+     `android:windowBackground`, désormais `kairos_launch_background.xml`
+     (layer-list : `@color/kairos_bg` + `kairos_splash_logo` centré, 288dp).
+     Avant ce correctif, un aplat clair uni : c'était l'« écran blanc » des
+     appareils Android 7 à 11 pendant le démarrage du process et la création
+     de la WebView. À partir de l'API 31, c'est le splash système
+     (`windowSplashScreenBackground` + `windowSplashScreenAnimatedIcon` =
+     `kairos_splash_icon`, animation de balayage de 700 ms).
+  2. **Splash système API 31+ : taille de l'icône.** Le système dessine l'icône
+     dans une boîte de 288dp et la rogne à un cercle de 192dp (les 2/3
+     centraux, comme le premier plan d'une icône adaptative). Le dessin
+     d'origine occupait toute la boîte : logo zoomé, cadre et secteur coupés.
+     `kairos_splash_icon_base.xml` et `kairos_splash_logo.xml` enveloppent
+     désormais le tracé dans un `<group>` réduit à 0.64 autour du centre
+     (rayon utile 12.35 sur 13.33 disponibles, viewport 40).
+  3. **`StartupScreen`** (Java, ajouté à la `DecorView` pour couvrir toute la
+     fenêtre, barres système comprises : même repère de centrage que les deux
+     relais précédents) : fond `@color/kairos_bg`, `kairos_splash_logo`
+     **statique** (secteur à sa position finale) dans une boîte de 288dp.
+     L'animation n'est pas rejouée ici : le splash système l'a déjà jouée
+     (API 31+), et la rejouer depuis midi après un logo complet (API 24-30)
+     ferait clignoter le secteur. Sous le logo, une colonne d'état :
+     indicateur de progression neutre et étape en cours (« Démarrage de
+     Python… », « Préparation des données… », « Démarrage du serveur… »,
+     « Chargement de l'agenda… », annoncée par TalkBack), puis au bout de 8 s
+     une ligne « Le premier lancement après une installation ou une mise à
+     jour peut prendre jusqu'à une minute. ». Vues construites en code (pas
+     d'AndroidX, pas de layout XML), textes dans `strings.xml`, couleurs de
+     la charte dans `colors.xml`.
+  - **Thème sombre forcé** : `android:forceDarkAllowed=false` (API 29+) dans
+    `Theme.Kairos`. Certains constructeurs (MIUI/HyperOS, One UI, option
+    développeur « Forcer le mode sombre ») assombrissent sinon les vues
+    natives d'une app au thème clair : l'écran de démarrage devenait noir
+    alors que la WebView restait claire. Conforme à la charte (un seul thème
+    clair).
+  - **État d'erreur plutôt que dévoilement à l'aveugle** : l'ancien filet de
+    sécurité masquait l'overlay au bout de 30 s quoi qu'il arrive, ce qui
+    dévoilait une WebView vide (écran blanc) sur un premier lancement lent,
+    et la sonde chargeait l'URL même sans réponse du serveur (page d'erreur
+    du WebView). Décision rouverte et remplacée : l'écran de démarrage ne
+    disparaît que sur `onPageFinished` d'une page réussie. Sinon il affiche un
+    titre en rouge critique, un détail technique sélectionnable (à copier
+    dans un rapport de bug) et un bouton primaire « Réessayer » (44dp de
+    haut, sans ombre). Cas couverts : exception au démarrage de Python ou de
+    `prepare()` ; serveur qui ne répond pas en 90 s ou dont le thread s'est
+    arrêté ; `onReceivedError` sur le cadre principal (la page d'erreur du
+    WebView n'est jamais dévoilée, `onPageFinished` qui suit est ignoré) ;
+    page non chargée en 30 s (si elle finit par charger, l'écran disparaît
+    normalement). « Réessayer » relance la même chaîne : chaque étape est
+    idempotente (Python déjà démarré, port déjà choisi, thread serveur
+    relancé seulement s'il est mort), le réessai reprend donc là où l'échec
+    a eu lieu.
   - **Python/uvicorn démarrent sur un thread dédié** (`kairos-init`), jamais
     le thread principal : `Python.start()` et surtout
     `kairos_boot.prepare()` peuvent prendre plusieurs secondes au premier
-    lancement, ce qui bloquait auparavant `onCreate` de bout en bout ;
-    c'est ce blocage qui, dans la version précédente, empêchait le splash
-    (système ou applicatif) de s'afficher ou de s'animer : le thread qui
-    aurait dû le dessiner était occupé à extraire le paquet Python.
-  - **`onPageFinished`** (une fois la première page réellement chargée dans
-    la WebView, pas seulement une fois le serveur prêt) masque l'overlay en
-    fondu (`View.animate().alpha(0)`). Filet de sécurité : un `Handler`
-    masque aussi l'overlay après 30 s même sans `onPageFinished` (page en
-    échec), pour ne jamais rester bloqué sur le logo.
+    lancement ; les exécuter dans `onCreate` empêchait tout rendu (premier
+    écran blanc, corrigé en 2026-07, voir le piège ci-dessous).
   - **Piège tracé, pour ne pas le retrancher deux fois** : une première
     tentative avait retenu le splash *système* via
     `Activity.getSplashScreen().setKeepOnScreenCondition(...)` : cette
@@ -141,15 +163,17 @@ Points notables :
     frame de l'activité, compilait et fonctionnait, mais souffrait du même
     problème de fond que le splash système qu'il retenait : tant que
     `onCreate` restait bloqué par l'initialisation Python synchrone, rien ne
-    se dessinait à l'écran, splash retenu ou non. D'où le passage à un
-    overlay applicatif **et** à une initialisation hors thread principal :
-    les deux ensemble, pas l'un sans l'autre.
+    se dessinait à l'écran, splash retenu ou non. D'où un écran de démarrage
+    applicatif **et** une initialisation hors thread principal : les deux
+    ensemble, pas l'un sans l'autre. Le splash système (API 31+) reste
+    volontairement court : il disparaît à la première image de l'activité,
+    c'est `StartupScreen` qui porte l'attente.
 - **Geste retour prédictif** (Android 13+/15, même revue) : `AndroidManifest.xml`
   pose `android:enableOnBackInvokedCallback="true"` au niveau `<application>`
   (impératif : sans lui, tout enregistrement de callback reste sans effet même
   sur API 33+). `MainActivity.registerPredictiveBackCallback()` (appelée dans
-  `onCreate`, juste après `setContentView(root)`, `root` étant le `FrameLayout`
-  WebView+overlay décrit ci-dessus) enregistre un
+  `onCreate`, juste après `setContentView(webView)` et l'ajout de l'écran de
+  démarrage) enregistre un
   `OnBackInvokedCallback` (`android.window`, natif, pas AndroidX : même parti
   pris que `KairosNotificationBridge`) uniquement si
   `Build.VERSION.SDK_INT >= TIRAMISU` ; même logique que le chemin legacy
