@@ -3,7 +3,7 @@
     <!-- Fond de l'icône adaptative : le cadran du logo, ton 95 de la graine miel
          (static/favicon.svg, docs/DESIGN_SYSTEM.md § Logo). -->
     <color name="ic_launcher_background">#FFEEDC</color>
-    <!-- Couleur de fond de l'app (rôle --md-surface de static/style.css), pour la
+    <!-- Couleur de fond de l'app (rôle MD3 « surface », variable md-surface de static/style.css), pour la
          barre de statut/navigation et les écrans de démarrage (voir themes.xml). -->
     <color name="kairos_bg">#FFF8F4</color>
     <!-- Rôles MD3 de docs/DESIGN_SYSTEM.md repris pour l'écran de démarrage natif
