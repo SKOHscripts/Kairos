@@ -53,82 +53,94 @@ quatre étapes ci-dessous, dans cet ordre.
 
 ---
 
-# Design system Kairos — sobre & professionnel
+# Design system Kairos — Material Design 3, thème « miel »
 
-Cette charte remplace l'ancienne (« appli perso chaleureuse », ivoire/terracotta).
-Toute nouvelle vue ou composant Kairos doit s'y conformer. Source des jetons et détail
+Cette charte (2026-09) remplace la précédente (« sobre & professionnelle »,
+ardoise + bleu, IBM Plex). Toute nouvelle vue ou composant Kairos doit s'y
+conformer et suivre **Material Design 3** (https://m3.material.io) : chercher le
+composant MD3 correspondant avant d'en inventer un. Source des jetons et détail
 complet : `docs/DESIGN_SYSTEM.md` (mêmes noms de classes/variables que
 `static/style.css`).
 
 ## Palette
-- Neutres ardoise : fond `#F3F5F8`, surface `#FFFFFF`, bordure `#E2E6EB` /
-  `#C9D2DC` (forte), texte `#16202B` / `#55606D` (secondaire) / `#8A94A0`
-  (tertiaire).
-- **Un seul accent transverse**, bleu `#2F6FED` (hover `#2557C0`, fond doux
-  `#E4ECFB`). Réservé aux boutons primaires/CTA et aux deux seuls badges
-  « clés » : score WSJF et priorité. Tout le reste des badges reste neutre ou
-  sémantique bas-chroma (vert `#1F7A46` ok, rouge `#B3261E` critique, ambre
-  `#92660A` avertissement, gris `#55606D` neutre/info).
-- Surface sombre `#16202B` (texte `#F5F6F8`) : réservée à la pilule de nav
-  active et à la carte « En ce moment ». Seul endroit sombre de l'UI.
-- Un seul thème clair — pas de mode sombre.
-- **Exception assumée** : la carte « Progression du jour » (`.mj-progress`,
-  élément principal de la vue Jour, toujours dépliée — pas de `<details>`,
-  jamais repliable) reprend le traitement de `.mj-to-process` (« À traiter ») :
-  fond crème `#FFFAF1` + puce ambre `border-left: 3px solid var(--warn-fg)` —
-  décision produit explicite, à ne pas « corriger » vers le neutre/bleu. Les
-  classes `.card` et `.mj-progress` sont fusionnées sur le même élément (pas
-  de `<div>` imbriqué) pour que le fond suive les coins arrondis de la carte.
-  Ne pas étendre cette teinte à d'autres cartes ou badges.
+- Rôles MD3 générés (schéma *Tonal spot*) depuis **une seule graine, le miel
+  `#C28417`**, la couleur du logo : primaire `#7F5610`, conteneur primaire
+  `#FFDDB3`, conteneur secondaire `#FADEBC`, tertiaire (sauge) `#D4EABC`, erreur
+  `#BA1A1A` / `#FFDAD6`, surface `#FFF8F4`, texte `#201B13` / `#4F4539`,
+  contours `#817567` / `#D3C4B4`, surface inverse `#362F27`. Variables `--md-*`
+  uniquement : jamais de couleur en dur dans un composant. Pour changer de
+  couleur, regénérer TOUT le schéma depuis une nouvelle graine
+  (material-color-utilities), jamais retoucher un rôle isolé.
+- **Où va la couleur** : un seul bloc teinté par écran (« Maintenant »,
+  `primary-container`) ; primaire plein pour l'action principale d'une zone ;
+  score WSJF en chiffre primaire sans pastille ; rouge seulement pour P0, les
+  erreurs et les dépassements ; tertiaire seulement pour le deep work ; vert
+  « ok » (`--kx-ok*`, couleur personnalisée) pour le fait ; sélection en
+  `secondary-container` ; sombre (surface inverse) seulement pour la carte
+  « En ce moment » et la snackbar d'alerte. Tout le reste est neutre.
+- **Pas d'ambre** : indiscernable du miel. Les états « à surveiller » passent
+  par la forme (contour + icône : `.badge.warn`, `.stat.tone-amber`), les
+  bannières de dégradation (TimeTree, GitLab, surcharge) sont neutres ;
+  `.banner.warning` (conteneur d'erreur) est réservé aux vrais échecs.
+- Un seul thème clair pour l'instant (le schéma sombre se générerait depuis la
+  même graine).
 
-## Typographie
-- IBM Plex Sans (400/500/600/700) partout, y compris les nombres
-  (`font-variant-numeric: tabular-nums`).
-- Aucun registre décoratif/italique séparé : les titres d'accroche restent en Plex
-  Sans, poids 600-700, jamais italique — **sauf** `.mj-next` (« À faire
-  maintenant : ... » dans `.mj-progress`), seule ligne de l'app en Newsreader
-  italique 19px/500, `color: var(--text)` : registre historique repris tel
-  quel de l'ancienne charte pour cet élément principal. Police chargée via
-  Google Fonts (`Newsreader:ital,wght@1,500`) en plus d'IBM Plex Sans — ne pas
-  étendre à d'autres titres.
-- Corps 13.5px, labels majuscules 10-11px, KPI 18-26px en 800. Densité
-  d'information inchangée par rapport à l'existant — ne pas l'augmenter ni la
-  réduire lors de futurs ajouts.
+## Typographie & icônes
+- **Roboto** 400/500/700, **servie par l'app** (`static/fonts/`, `@font-face`) :
+  jamais de police distante (exécutable et APK hors ligne ; test
+  `test_fonts_are_served_locally_never_from_google`). Échelle typographique MD3
+  (title-large 22px pour le titre de page, title-medium 16px pour les titres de
+  carte, body-medium 14px pour le corps, labels 11-12px). Aucun italique
+  décoratif, aucune seconde police.
+- **Material Symbols** (Outlined 400) en SVG inline via `icon()`
+  (`templates/_icons.html`, GÉNÉRÉ par `packaging/make_icons.py` : ajouter une
+  icône dans le script, jamais à la main). Variante pleine (`fill=true`) pour la
+  destination active.
+- Densité d'information : corps 14px, proche de l'existant — ne pas l'augmenter
+  ni la réduire lors de futurs ajouts.
 
 ## Forme & effets
-- Rayons réduits : cartes 10px, cartes imbriquées 8px, contrôles 6px, pilules
-  999px.
-- Pas d'ombre portée nulle part, sauf le panneau de modification de tâche
-  ouvert (`.mj-edit-body`), seule vraie modale flottante de l'app.
-- Pas de dégradé (`linear-gradient`) nulle part, sauf le fondu de scroll du
-  bandeau d'actions sticky de la page Réglages (`.mj-settings-actions`).
-- Puce de priorité/urgence sur une ligne de tâche : `border-left: 3px solid`
-  (jamais de remplissage).
+- Formes MD3 : champs 4px, chips/pastilles 8px, cartes et lignes 12px, grands
+  blocs 16px, dialogue 28px, boutons/badges/indicateurs en pilule.
+- Cartes « outlined » (surface + contour) ou « filled » (conteneur de surface),
+  **jamais d'ombre sur une carte** : seuls les éléments flottants en portent une
+  (dialogue d'édition `.mj-edit-body`, snackbar, menu « Pourquoi »).
+- Couches d'état MD3 (survol 8 %, appui 12 %) sur tout élément interactif.
+- Pas de dégradé, sauf le fondu du bandeau sticky des Réglages
+  (`.mj-settings-actions`) et les hachures deep work de la timeline.
+- Liseré critique d'une ligne de tâche : `border-left: 3px` rouge
+  (`.mj-bucket-0`), jamais de remplissage.
 
 ## Identité
-- Logo (mire/cadran solaire) et nom **Kairos** inchangés, y compris ses
-  couleurs terracotta d'origine — c'est volontairement le seul point de
-  couleur chaude au milieu d'une interface sinon neutre.
+- Logo (mire/cadran solaire) : dessin inchangé, **couleurs tirées de la graine**
+  (cadran `#FFEEDC`, anneau `#FFCC85`, secteur `#C28417`, axe `#2B251C`). Toute
+  évolution passe aussi par `static/favicon.svg`, `packaging/make_icon.py`
+  (PNG, ICO, splash) et les ressources Android (voir `docs/DESIGN_SYSTEM.md` §
+  Logo).
 
 ## Navigation & mobile
-- Barre horizontale sticky en haut (`.topnav` + `.topbar`), pas de sidebar,
-  sur navigateur (dev, service) comme sur l'exécutable de bureau — seulement
-  redimensionnée sous 720px (sous-titre masqué, pilules resserrées), jamais
-  de barre de navigation basse : un navigateur simplement rétréci ne doit
-  jamais en afficher une.
-- **Exception** : l'APK Android affiche une bottom nav (`.bn-nav`, revue
-  produit F-Droid/mobile 2026-07) à la place de `.tn-nav` — seule dérogation
-  au principe « aucune détection de plateforme côté serveur » qui prévaut
-  partout ailleurs dans l'app. Gabarit gardé par `is_android`
-  (`app/main.py`, lu depuis `KAIROS_PLATFORM=android`, posé par
-  `kairos_boot.py` avant tout import de `app.main` — jamais par une media
-  query seule, justement pour ne jamais se déclencher sur un navigateur
-  desktop rétréci). Voir `docs/spec/accueil-navigation.md`.
-- Cibles tactiles ≥ 44px sur mobile ; vérifier qu'aucun composant (grille
-  semaine, panneau d'édition) ne déborde horizontalement sur ~375px de large.
+- **Bureau / navigateur, fenêtre > 720px : rail de navigation MD3** vertical à
+  gauche (`.topnav` en colonne, destinations `.tn-item` avec indicateur
+  `.tn-ind`) + barre d'application supérieure `.topbar`. Décision rouverte et
+  tranchée en 2026-09 (l'ancienne règle « pas de sidebar » est abandonnée).
+- **Fenêtre ≤ 720px** : la même navigation devient une barre horizontale
+  compacte en haut — **jamais de barre de navigation basse** dans un navigateur :
+  un navigateur simplement rétréci ne doit jamais en afficher une.
+- **Exception** : l'APK Android affiche une barre de navigation MD3 basse
+  (`.bn-nav`) à la place de `.tn-nav` — seule dérogation au principe « aucune
+  détection de plateforme côté serveur » qui prévaut partout ailleurs dans
+  l'app. Gabarit gardé par `is_android` (`app/main.py`, lu depuis
+  `KAIROS_PLATFORM=android`, posé par `kairos_boot.py` avant tout import de
+  `app.main` — jamais par une media query seule, justement pour ne jamais se
+  déclencher sur un navigateur desktop rétréci). Voir
+  `docs/spec/accueil-navigation.md`.
+- Cibles tactiles ≥ 44px sur mobile pour les contrôles à un tap ; vérifier
+  qu'aucun composant (grille semaine, dialogue d'édition) ne déborde
+  horizontalement sur ~375px de large.
 - L'app tourne aussi en exécutable de bureau (PyInstaller, Windows/Linux) :
-  rester en HTML/CSS pur, sans dépendance de build.
+  rester en HTML/CSS pur, sans dépendance de build ni bibliothèque de
+  composants JavaScript (les composants MD3 sont rendus par le CSS).
 
 ## Références
-- Charte complète, table des jetons : `docs/DESIGN_SYSTEM.md`.
+- Charte complète, rôles, composants : `docs/DESIGN_SYSTEM.md`.
 - Feuille de style : `static/style.css`.

@@ -123,7 +123,11 @@ Points notables :
      une ligne « Le premier lancement après une installation ou une mise à
      jour peut prendre jusqu'à une minute. ». Vues construites en code (pas
      d'AndroidX, pas de layout XML), textes dans `strings.xml`, couleurs de
-     la charte dans `colors.xml`.
+     la charte dans `colors.xml` : rôles MD3 du thème miel
+     (`docs/DESIGN_SYSTEM.md`), noms de ressources historiques conservés
+     (`kairos_bg` = surface `#FFF8F4`, `kairos_accent` = primaire `#7F5610`,
+     `kairos_critical` = erreur `#BA1A1A`…) ; logo et icône de lanceur
+     recolorés depuis la graine (`#FFEEDC`/`#FFCC85`/`#C28417`/`#2B251C`).
   - **Thème sombre forcé** : `android:forceDarkAllowed=false` (API 29+) dans
     `Theme.Kairos`. Certains constructeurs (MIUI/HyperOS, One UI, option
     développeur « Forcer le mode sombre ») assombrissent sinon les vues
@@ -138,7 +142,7 @@ Points notables :
     disparaît que sur `onPageFinished` d'une page réussie. Sinon il affiche un
     titre en rouge critique, un détail technique sélectionnable (à copier
     dans un rapport de bug) et un bouton primaire « Réessayer » (44dp de
-    haut, sans ombre). Cas couverts : exception au démarrage de Python ou de
+    haut, plein en primaire, forme en pilule MD3, sans ombre). Cas couverts : exception au démarrage de Python ou de
     `prepare()` ; serveur qui ne répond pas en 90 s ou dont le thread s'est
     arrêté ; `onReceivedError` sur le cadre principal (la page d'erreur du
     WebView n'est jamais dévoilée, `onPageFinished` qui suit est ignoré) ;

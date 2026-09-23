@@ -1,6 +1,7 @@
 # Accueil & navigation
-_Rôle : le gabarit commun de toutes les pages (barre de navigation horizontale
-sticky, bandeau de page, bouton Quitter conditionnel, restauration de scroll) et la
+_Rôle : le gabarit commun de toutes les pages (navigation : rail vertical sur
+bureau, barre horizontale en fenêtre étroite, barre basse dans l'APK ; barre
+d'application supérieure, bouton Quitter conditionnel, restauration de scroll) et la
 page d'accueil (`/`), qui présente Kairos et rend le `README.md` comme contenu
 éditorial. Fichiers couverts : `templates/base.html`, `templates/_icons.html`,
 `templates/home.html`, la route `/` (`app/main.py::home`) et
@@ -33,22 +34,26 @@ est pénible sur une longue liste.
 
 ### Comportement attendu (utilisateur)
 
-- Une barre de navigation horizontale, fixe en haut de l'écran (sticky), présente sur
-  toutes les pages : logo/nom Kairos (lien vers l'accueil), puis les entrées Accueil,
-  Notes, Jour, Semaine, Statistiques, Réglages. L'entrée correspondant à la page
-  affichée est mise en évidence. « Notes » est placée entre Accueil et Jour : la
+- Une navigation présente sur toutes les pages : logo/nom Kairos (lien vers
+  l'accueil), puis les entrées Accueil, Notes, Jour, Semaine, Statistiques,
+  Réglages, chacune avec une icône et un libellé. L'entrée correspondant à la page
+  affichée est mise en évidence (indicateur coloré + icône pleine). Sur bureau
+  (fenêtre de plus de 720px), c'est un **rail vertical** fixé à gauche (Material
+  Design 3) ; dans une fenêtre plus étroite, la même navigation devient une barre
+  horizontale compacte en haut de l'écran. « Notes » est placée entre Accueil et Jour : la
   capture (page Notes) précède la triage/exécution (vue Jour) dans le flux GTD,
   voir `docs/spec/notes-capture.md`.
 - **Exception, APK Android uniquement** : les six entrées sont déplacées vers une
   barre de navigation basse fixe (icône + libellé, cible tactile ≥ 44px), le logo
   Kairos restant seul dans la barre du haut. Cette bottom nav n'apparaît **jamais**
   sur un navigateur (dev, service, exécutable de bureau), quelle que soit la largeur
-  de la fenêtre : seule la topnav se redimensionne dans ce cas (voir § Décisions et
-  pièges tracés pour la justification de ce déclenchement serveur plutôt que CSS).
+  de la fenêtre : la navigation n'y prend que la forme du rail ou de la barre du
+  haut (voir § Décisions et pièges tracés pour la justification de ce
+  déclenchement serveur plutôt que CSS).
 - Sous chaque page, un bandeau secondaire (topbar) affiche le titre de la page et,
   le cas échéant, des actions rapides propres à cette page.
 - Sur l'exécutable de bureau uniquement, un bouton « Quitter » est visible dans la
-  barre de navigation ; cliquer dessus demande confirmation puis arrête le serveur.
+  navigation (en pied de rail) ; cliquer dessus demande confirmation puis arrête le serveur.
   Ce bouton est absent partout ailleurs (développement, service systemd, Android).
 - Après toute action qui recharge la page (ajout, suppression, marquage « fait »...),
   la page revient à la même position de défilement qu'avant l'action, jamais un
@@ -88,12 +93,12 @@ est pénible sur une longue liste.
 
 - Barre de navigation basse (bottom nav) sur un navigateur simplement rétréci
   (desktop, dev) : décision assumée de ne jamais en afficher une hors de l'APK
-  Android ; seule la topnav se redimensionne dans ce cas (voir § Décisions et
-  pièges tracés). La bottom nav elle-même, réservée à l'APK, est dans le
+  Android ; la navigation y devient une barre horizontale en haut (voir §
+  Décisions et pièges tracés). La bottom nav elle-même, réservée à l'APK, est dans le
   périmètre de cette spec (voir § Comportement attendu et § Détail par
   composant).
-- Sidebar verticale : abandonnée avec la charte visuelle actuelle (`docs/DESIGN_SYSTEM.md`)
-  au profit de la topnav horizontale.
+- Tiroir de navigation (navigation drawer MD3) ou rail étendu avec libellés
+  longs : non retenus, le rail compact de six destinations suffit.
 - Contenu détaillé de la vue Jour/GTD (filtres, backlog, progression du jour...) :
   `docs/spec/vue-jour-gtd.md`.
 - Contenu détaillé de la page Notes (capture, conversion en tâche, archivage) :
@@ -124,13 +129,15 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   SVG (`/static/favicon.svg?v={{ asset_version }}`), manifest PWA
   (`<link rel="manifest" href="/static/manifest.webmanifest">`) et icônes PNG
   (192/512, `apple-touch-icon`, `?v={{ asset_version }}` sur les trois comme sur
-  `style.css`) + `<meta name="theme-color" content="#F3F5F8">` : le contenu de ces
+  `style.css`) + `<meta name="theme-color" content="#FFF8F4">` (rôle
+  `--md-surface`) : le contenu de ces
   fichiers `static/` eux-mêmes (manifest, PNG) est hors périmètre de ce document
   (propriété/contenu d'un autre chantier), seules les balises `<link>`/`<meta>` de
   `base.html` y sont couvertes ; le favicon SVG existant reste inchangé en plus de
-  ces icônes PNG (navigateurs qui préfèrent le SVG le gardent). Polices Google Fonts
-  (IBM Plex Sans 400/500/600/700 + Newsreader italique 500, voir
-  `docs/DESIGN_SYSTEM.md`), feuille de style unique
+  ces icônes PNG (navigateurs qui préfèrent le SVG le gardent). **Aucune police
+  distante** : Roboto est déclarée par `@font-face` dans `style.css` et servie
+  depuis `static/fonts/` (voir `docs/DESIGN_SYSTEM.md` § Typographie), feuille de
+  style unique
   `/static/style.css?v={{ asset_version }}`. Le suffixe
   `?v=` (posé par `templates.env.globals["asset_version"]` dans `app/main.py`, valeur
   = horodatage de modification de `style.css`, ou `0` si illisible) est un
@@ -142,17 +149,35 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
 - **Bandeau de mise à jour** : `{% include "_update_banner.html" %}` en tête de
   `.page`, avant le bloc `content`, sur toutes les pages, et le script qui le
   pilote en fin de `<body>` (détail : `docs/spec/mises-a-jour.md`).
-- **Topnav (`.topnav` + `.tn-brand`/`.tn-nav`)** : barre horizontale sticky en tête
-  de page.
-  - `.tn-brand` : lien vers `/`, logo Kairos (SVG inline, mire/cadran solaire,
-    couleurs terracotta d'origine conservées volontairement, voir
-    `docs/DESIGN_SYSTEM.md` § Identité) + nom « Kairos » + sous-titre
-    « le bon moment, la bonne tâche » (masqué sous 720px, voir § Invariants).
-  - `.tn-nav` : six entrées (Accueil `/`, Notes `/kairos/notes`, Jour
-    `/kairos?view=day`, Semaine `/kairos?view=week`, Statistiques
-    `/kairos/stats`, Réglages `/kairos/settings`), chacune avec une icône
-    (`icon('home')`, `icon('notes')`, `icon('clock')`, `icon('calendar')`,
-    `icon('trending_up')`, `icon('gear')`) et un libellé texte.
+- **Navigation (`.topnav` + `.tn-brand`/`.tn-nav`)** : un seul bloc HTML, trois
+  formes selon le CSS (`static/style.css`, § « Layout ») :
+  - **fenêtre > 720px, hors APK** (`@media (min-width: 721px)` sur
+    `.layout:not(.is-android)`) : **rail de navigation MD3** — `.layout` passe en
+    ligne, `.topnav` devient une colonne sticky de 88px sur toute la hauteur
+    (`height: 100vh`, défilement propre si l'écran est très bas), logo + nom en
+    tête (sous-titre masqué), destinations empilées (indicateur 56×32 puis
+    libellé 12px), `.tn-quit` poussé en pied (`margin-top: auto`) ;
+  - **fenêtre ≤ 720px, hors APK** : barre horizontale sticky en haut, pilules
+    texte (l'icône `.tn-ind` masquée pour tenir sur une à deux lignes, pilule
+    active en `secondary-container`), sous-titre masqué ;
+  - **APK** : seule `.tn-brand` reste en haut, les destinations passent dans
+    `.bn-nav` (ci-dessous).
+  - `.tn-brand` : lien vers `/`, logo Kairos (SVG inline, mire/cadran solaire aux
+    couleurs de la graine miel, voir `docs/DESIGN_SYSTEM.md` § Logo) + nom
+    « Kairos » + sous-titre « le bon moment, la bonne tâche », masqué dans le
+    rail et sous 720px : il ne reste visible que dans la barre de marque de l'APK
+    sur un écran de plus de 720px (tablette).
+  - `.tn-nav` (`aria-label="Navigation principale"`) : six entrées (Accueil `/`,
+    Notes `/kairos/notes`, Jour `/kairos?view=day`, Semaine `/kairos?view=week`,
+    Statistiques `/kairos/stats`, Réglages `/kairos/settings`), chacune
+    `<a class="tn-item"><span class="tn-ind">{{ icon(...) }}</span><span>libellé</span></a>`
+    avec les icônes Material Symbols `home`, `notes` (*sticky_note_2*), `today`,
+    `date_range`, `bar_chart`, `gear` (*settings*). L'indicateur `.tn-ind` porte la
+    pilule MD3 de la destination active ; l'icône de la destination active est
+    rendue en variante pleine (`icon(..., fill=true)`, test
+    `test_navigation_marks_active_destination_with_filled_icon`). Les conditions
+    Jour/Semaine sont calculées une fois (`nav_day`, `nav_week`, `{% set %}` en
+    tête de navigation) et réutilisées par `.bn-nav`.
   - **Mise en évidence de l'entrée active** : classe `active` conditionnée sur les
     variables de contexte passées par chaque route, `page == 'home'`,
     `page == 'notes'` (Notes), `page == 'kairos' and (view is not defined or view
@@ -165,17 +190,21 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
     module (`templates.env.globals["is_frozen"] = getattr(sys, "frozen", False)`,
     `app/main.py`) : vraie uniquement dans un exécutable PyInstaller (l'attribut
     `sys.frozen` n'existe que dans ce cas). Formulaire `POST /kairos/shutdown` avec
-    confirmation JavaScript (`onsubmit="return confirm(...)"`) : « Quitter Kairos ?
+    confirmation JavaScript (`onsubmit="return confirm(...)"`), bouton `.btn.sm`
+    avec l'icône `logout` (rendu en destination de rail sur bureau) : « Quitter Kairos ?
     Le serveur va s'arrêter : il faudra relancer l'exécutable pour y revenir. »,
     voir `app/main.py::shutdown` pour le détail de l'arrêt côté serveur (SIGINT,
     tracé dans `docs/spec/packaging-lancement.md`).
 - **Bottom nav (`.bn-nav`), APK Android uniquement** : `<div class="layout {% if
   is_android %}is-android{% endif %}">` porte la classe `is-android` sur la racine
   du gabarit ; un second bloc `{% if is_android %}<nav class="bn-nav">...{% endif
-  %}</nav>` (dernier enfant de `.layout`, après `<main class="content">`) reprend
-  les six mêmes entrées et conditions `active` que `.tn-nav` (icône + libellé,
-  cette fois visible, contrairement à `.tn-item .ico`), sans dupliquer
-  `.tn-brand`/`.tn-quit`.
+  %}</nav>` (dernier enfant de `.layout`, après `<main class="content">`,
+  `aria-label="Navigation principale"`) reprend les six mêmes entrées, icônes
+  (`.tn-ind`, pleine sur l'active) et conditions `active` que `.tn-nav`, libellé
+  « Stats » au lieu de « Statistiques », sans dupliquer `.tn-brand`/`.tn-quit`.
+  Rendu en **barre de navigation MD3** : fond `surface-container`, indicateur
+  56×32 en `secondary-container` sur l'entrée active, libellés 12px, cible de
+  48px de haut.
   - `is_android` : variable globale Jinja2 posée une fois au chargement du module
     (`templates.env.globals["is_android"] = os.environ.get("KAIROS_PLATFORM") ==
     "android"`, `app/main.py`), au même titre que `is_frozen` juste au-dessus.
@@ -186,9 +215,10 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
     quittent la barre du haut, `.tn-brand` y reste seul) + `.is-android .bn-nav`
     affichée en `position: fixed; bottom: 0`. Le déclenchement est **entièrement
     porté par la classe `.is-android`**, jamais par une `@media` de largeur : un
-    navigateur desktop rétréci sous 720px continue de recevoir la topnav
-    redimensionnée existante (`.tn-nav`/`.tn-item`, inchangés), jamais la bottom
-    nav. `.is-android .page` ajoute un `padding-bottom` calculé (hauteur de la
+    navigateur desktop rétréci sous 720px reçoit la barre horizontale
+    (`.tn-nav`/`.tn-item`), jamais la bottom nav ; et le rail est lui-même exclu
+    de l'APK (`.layout:not(.is-android)`), même sur une tablette de plus de
+    720px. `.is-android .page` ajoute un `padding-bottom` calculé (hauteur de la
     barre + `env(safe-area-inset-bottom)`) pour que le contenu ne passe jamais
     dessous, avec une spécificité (deux classes) volontairement plus forte que
     les règles `.page` existantes (une classe) : insensible à l'ordre des règles
@@ -203,7 +233,9 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
     correctif, voir `docs/spec/notes-capture.md`).
   - Voir § Décisions et pièges tracés pour la justification du déclenchement
     serveur plutôt que CSS.
-- **Topbar (`.topbar`)** : sous la topnav, dans `<main class="content">`. Titre par
+- **Topbar (`.topbar`)** : barre d'application supérieure MD3, sticky en haut de
+  `<main class="content">` (à droite du rail sur bureau, sous la barre
+  horizontale sinon), 64px (56px sous 720px), titre en *title-large*. Titre par
   bloc (`{% block topbar_title %}Kairos{% endblock %}`, par défaut le nom de
   l'app : l'accueil ne le redéfinit plus, voir § Décisions et pièges tracés) et zone
   d'actions par bloc (`{% block topbar_actions %}{% endblock %}`, vide par défaut).
@@ -233,28 +265,38 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
 
 #### `templates/_icons.html` : bibliothèque d'icônes
 
-- Macro unique `icon(name, title='')`, appelée `{% from "_icons.html" import icon
-  %}` par chaque template qui en a besoin (dont `base.html`, `home.html`).
-- Deux gabarits SVG : un cas spécial `refresh` (`viewBox="0 0 35 35"`, `fill=
-  "currentColor"`, tracé plein), et le cas général (`viewBox="0 0 16 16"`, `fill=
-  "none"`, `stroke="currentColor"`, `stroke-width="1.5"`) qui couvre toutes les
-  autres icônes du projet par un grand `{% elif name == ... %}` (lock, warning,
-  error, check, check_circle, plus, link, folder, tag, download, close, clipboard,
-  pencil, save, trash, file_text, grid, share, blocked, comment, arrow_left,
-  arrow_up_right, trending_up, chevron_down, chevron_right, export_up, import_down,
-  dot, dot_empty, clock, calendar, layers, dashboard, gitlab, chevron_left, search,
-  home, gear, notes ; défaut : un simple cercle si `name` ne correspond à rien).
-  `notes` (rectangle arrondi + trois traits horizontaux, glyphe de bloc-notes) sert
-  à la sixième entrée de navigation, « Notes » (`docs/spec/notes-capture.md`) :
-  choisie plutôt que `file_text`/`clipboard` (existantes mais inutilisées ailleurs
-  dans l'app à ce jour) pour un glyphe visuellement distinct d'un document/d'un
-  presse-papier, plus proche d'un carnet de capture.
+- Macro unique `icon(name, title='', fill=false)`, appelée `{% from "_icons.html"
+  import icon %}` par chaque template qui en a besoin (dont `base.html`,
+  `home.html`).
+- **Fichier généré** par `packaging/make_icons.py` à partir des SVG **Material
+  Symbols** (Outlined, graisse 400) du paquet npm `@material-symbols/svg-400`
+  (Apache 2.0) : chaque nom Kairos (table `MAP` du script) est traduit vers un nom
+  Material Symbols et son tracé `d` recopié dans le gabarit (`viewBox="0 -960 960
+  960"`, `fill="currentColor"`). On ajoute une icône dans le script, jamais à la
+  main dans le gabarit.
+- Noms historiques conservés (aucun appel `icon()` existant n'a changé) : refresh,
+  lock, warning, error, check, check_circle, plus (*add*), link, folder, tag
+  (*sell*), download, close, clipboard (*content_paste*), pencil (*edit*), save,
+  trash (*delete*), file_text (*description*), grid (*grid_view*), share, blocked
+  (*block*), comment, arrow_left (*arrow_back*), arrow_up_right (*arrow_outward*),
+  trending_up, chevron_down (*keyboard_arrow_down*), chevron_right,
+  chevron_left, export_up (*upload*), import_down (*download*), dot
+  (*fiber_manual_record*), dot_empty (*radio_button_unchecked*), clock
+  (*schedule*), calendar (*calendar_month*), layers, dashboard, skip_forward
+  (*redo*), search, home, gear (*settings*), notes (*sticky_note_2*) ; ajoutés
+  avec la migration MD3 : today, date_range, bar_chart (navigation), play, stop
+  (chrono), repeat (récurrence), logout (Quitter). `gitlab` (marque absente de
+  Material Symbols) reste un tracé dessiné à la main. Un nom inconnu rend un SVG
+  vide.
+- `fill=true` : variante pleine (`<nom>-fill.svg` du paquet, quand elle diffère),
+  réservée à la destination active de la navigation (convention MD3).
+- Chaque SVG porte `class="ico ico-<nom>"` : `.ico` le dimensionne (`1em ×
+  1em`, `vertical-align: -0.14em`, `flex: none` : ne se comprime jamais dans un
+  conteneur flex serré), `.ico-<nom>` permet de cibler une icône précise (seul
+  `.ico-chevron_right` pivote à l'ouverture d'un `<details>`).
 - Accessibilité : `aria-hidden="true"` par défaut ; si `title` est fourni,
   `role="img" aria-label="{{ title }}"` à la place : jamais les deux, jamais aucun
   des deux.
-- Toutes les icônes : `1em × 1em`, `currentColor`, `vertical-align:-0.15em` (alignement
-  optique avec le texte adjacent), `flex-shrink:0` (ne se compriment jamais dans un
-  conteneur flex serré, ex. un bouton étroit).
 
 #### `templates/home.html` + route `/` (`app/main.py::home`) : page d'accueil
 
@@ -415,16 +457,25 @@ dans le template via le contexte de la route `/` (`app/main.py::home`).
   de plateforme côté serveur » (voir § Invariants) : assumée ici uniquement parce
   que la distinction voulue (app installée vs. navigateur, quelle que soit sa
   largeur) n'est, par construction, pas observable en CSS pur.
+- **Rail de navigation vertical sur bureau (2026-09, décision rouverte)** : la
+  charte précédente avait abandonné toute navigation verticale au profit d'une
+  topnav horizontale. La migration vers Material Design 3 (`docs/DESIGN_SYSTEM.md`
+  § Historique de la décision) a rouvert ce choix explicitement ; l'utilisateur a
+  retenu le **rail MD3** (canonique pour les fenêtres moyennes et larges) plutôt
+  qu'une barre du haut restylée. Le rail est déclenché par largeur
+  (`min-width: 721px`), ce qui est sans risque ici : contrairement à la barre
+  basse, un rail ne change pas la nature de l'app. Sous 720px, la même
+  navigation redevient une barre horizontale en haut, jamais une barre basse.
 - **Topnav toujours rendue, y compris dans l'APK Android** : `.tn-brand` (logo)
   reste affiché en haut même quand `.tn-nav` est masquée par `.is-android` ; pas
   de gabarit alternatif sans en-tête, cohérent avec le motif « barre de titre en
   haut + navigation en bas » de Material Design plutôt qu'une suppression pure et
   simple de la topnav sur Android.
-- **Logo aux couleurs terracotta d'origine, hors palette ardoise/bleu du reste de
-  l'UI** : exception assumée de la charte (`docs/DESIGN_SYSTEM.md` § Identité), le
-  seul point de couleur chaude volontaire au milieu d'une interface sinon neutre ;
-  ne pas « corriger » vers la palette neutre lors d'un futur passage sur
-  `base.html`/`home.html`.
+- **Logo aux couleurs de la graine** (2026-09) : l'ancien logo terracotta était
+  une exception à la palette ardoise/bleu. Avec MD3, la palette entière dérive de
+  la couleur du logo (graine miel `#C28417`, `docs/DESIGN_SYSTEM.md` § Logo) : le
+  logo n'est plus une exception mais la source. Toute nouvelle couleur de logo
+  impose de regénérer tout le schéma (et inversement).
 - **Repli du reste du README derrière un `<details>`** (revue produit F-Droid/mobile,
   2026-07) : seule la section « En bref » (`readme_intro_html`) et le sommaire
   restent toujours visibles ; le reste (`readme_rest_html`) passe derrière un

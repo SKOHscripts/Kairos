@@ -60,8 +60,8 @@
       <li class="ma-journee-item">
         <span class="mj-time">{{ block.start.strftime('%Hh%M') }}–{{ block.end.strftime('%Hh%M') }}</span>
         <span class="mj-title">{{ block.title or '(sans titre)' }}</span>
-        {% if block.kind == 'deepwork' %}<span class="badge ok" title="Bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
-        {% if block.recurrence %}<span class="badge info" title="Créneau récurrent : l'édition porte sur toutes les occurrences">{{ icon('refresh') }} {{ block_recurrence_labels.get(block.recurrence, block.recurrence) }}</span>{% endif %}
+        {% if block.kind == 'deepwork' %}<span class="badge ok mj-deepwork" title="Bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
+        {% if block.recurrence %}<span class="badge info" title="Créneau récurrent : l'édition porte sur toutes les occurrences">{{ icon('repeat') }} {{ block_recurrence_labels.get(block.recurrence, block.recurrence) }}</span>{% endif %}
         <span class="mj-edit">
           <button type="button" class="icbtn mj-edit-toggle" title="Éditer le créneau" aria-expanded="false">{{ icon('pencil') }}</button>
           <div class="mj-edit-body" hidden>
@@ -162,8 +162,8 @@
   {% endif %}
 </section>
 
-{# --- 3. Maintenant (Engage GTD) : poste de pilotage, crème/ambre + .mj-next en
-     Newsreader italique conservés tels quels (exception assumée) ; la prochaine
+{# --- 3. Maintenant (Engage GTD) : poste de pilotage, seul bloc teinté de
+     l'écran (primary-container, voir docs/DESIGN_SYSTEM.md) ; la prochaine
      tâche devient actionnable sur place (fait / chrono / décaler), sans passer par
      la liste plus bas. Élément principal de la vue Jour : jamais repliable. --- #}
 <div class="card mj-progress">
@@ -236,7 +236,7 @@
         </div>
         <div class="mj-item-tags">
           {% if item.pinned %}<span class="badge info" title="Tâche épinglée à heure fixe">{{ icon('dot') }} épinglée</span>{% endif %}
-          {% if item.deepwork %}<span class="badge ok" title="Placée dans un bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
+          {% if item.deepwork %}<span class="badge ok mj-deepwork" title="Placée dans un bloc deep-work réservé">{{ icon('check_circle') }} deep work</span>{% endif %}
           {% if item.task.id in raised_ids %}<span class="badge prio" title="Remontée : sur le chemin critique d'une tâche plus urgente qu'elle bloque">{{ icon('link') }} chemin critique</span>{% endif %}
           {{ task_tags(item.task) }}
           {{ time_spent(item.task) }}
@@ -399,7 +399,7 @@
     <div class="mj-now-timer">{{ spent_by_task.get(running_task_id, 0) }} min</div>
     {% if running_task_estimate %}<div class="mj-now-sub">estimé {{ running_task_estimate }} min</div>{% endif %}
     <form method="post" action="/kairos/tasks/{{ running_task_id }}/timer/stop" data-ajax>
-      <button type="submit" class="mj-now-stop">{{ icon('clock') }} Arrêter le chrono</button>
+      <button type="submit" class="mj-now-stop">{{ icon('stop') }} Arrêter le chrono</button>
     </form>
     {% else %}
     <p class="mj-now-empty">Aucun chrono en cours. Lance-le sur la tâche en cours pour suivre ton temps réel.</p>

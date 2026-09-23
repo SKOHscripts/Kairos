@@ -3,11 +3,15 @@
    semaine (haut de page, position historique) et la vue jour (repositionné sous
    « Maintenant », voir `_kairos_day.html`) — un seul `{% include %}` par vue rendue,
    jamais les deux à la fois : `{% include %}` transmet le contexte complet par
-   défaut, pas besoin de macro ni de paramètres explicites ici. #}
+   défaut, pas besoin de macro ni de paramètres explicites ici.
+   `.banner` neutre (surface tonale + icône), jamais `.banner.warning` : une
+   source indisponible ou une surcharge est un service dégradé, pas une
+   erreur — le conteneur d'erreur reste réservé aux vrais échecs
+   (docs/DESIGN_SYSTEM.md § Où va la couleur). #}
 {% from "_icons.html" import icon %}
 
 {% if timetree_configured and not timetree_ok %}
-<div class="banner warning">
+<div class="banner">
   {{ icon('warning') }} <span>Calendrier personnel TimeTree
   indisponible{% if timetree_detail %} ({{ timetree_detail }}){% endif %}.
   Seuls les créneaux saisis à la main sont pris en compte.</span>
@@ -15,14 +19,14 @@
 {% endif %}
 
 {% if gitlab_direct_error %}
-<div class="banner warning">
+<div class="banner">
   {{ icon('warning') }} <span>Import GitLab (issues assignées) indisponible ({{ gitlab_direct_error }}).
   Les tâches déjà importées restent affichées telles quelles.</span>
 </div>
 {% endif %}
 
 {% if priority_overload_count > priority_overload_threshold %}
-<div class="banner warning">
+<div class="banner">
   {{ icon('warning') }} <span>{{ priority_overload_count }} tâches sont déjà à priorité maximale. Le signal de priorité se dilue : dépriorise ce qui peut attendre.</span>
 </div>
 {% endif %}

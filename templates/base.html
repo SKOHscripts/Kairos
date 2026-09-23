@@ -9,10 +9,10 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png?v={{ asset_version }}">
   <link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png?v={{ asset_version }}">
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png?v={{ asset_version }}">
-  <meta name="theme-color" content="#F3F5F8">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Newsreader:ital,wght@1,500&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#FFF8F4">
+  {# Aucune police distante : Roboto est servie par l'app (`static/fonts/`,
+     `@font-face` de style.css), pour un rendu identique hors ligne
+     (exécutable, APK). Voir docs/DESIGN_SYSTEM.md § Typographie. #}
   <link rel="stylesheet" href="/static/style.css?v={{ asset_version }}">
 </head>
 <body>
@@ -22,10 +22,10 @@
       <a class="tn-brand" href="/">
         <span class="tn-logo" aria-hidden="true">
           <svg width="34" height="34" viewBox="0 0 40 40">
-            <circle cx="20" cy="20" r="18.5" fill="#FBEEDF"></circle>
-            <circle cx="20" cy="20" r="18.5" fill="none" stroke="#E7C4A2" stroke-width="1.6"></circle>
-            <path d="M20 20 L20 4 A16 16 0 0 1 35.76 17.22 Z" fill="#D9713C"></path>
-            <circle cx="20" cy="20" r="2.6" fill="#2B241E"></circle>
+            <circle cx="20" cy="20" r="18.5" fill="#FFEEDC"></circle>
+            <circle cx="20" cy="20" r="18.5" fill="none" stroke="#FFCC85" stroke-width="1.6"></circle>
+            <path d="M20 20 L20 4 A16 16 0 0 1 35.76 17.22 Z" fill="#C28417"></path>
+            <circle cx="20" cy="20" r="2.6" fill="#2B251C"></circle>
           </svg>
         </span>
         <div class="tn-titles">
@@ -33,19 +33,25 @@
           <div class="tn-sub">le bon moment, la bonne tâche</div>
         </div>
       </a>
-      <nav class="tn-nav">
+      {# Destinations : icône dans un indicateur `.tn-ind` (pilule MD3, pleine sur
+         la destination active), puis libellé. La même liste sert au rail
+         (bureau > 720px) et à la barre horizontale (fenêtre étroite) : seul le
+         CSS change de forme. Voir docs/spec/accueil-navigation.md. #}
+      {% set nav_day = page == 'kairos' and (view is not defined or view != 'week') %}
+      {% set nav_week = page == 'kairos' and view == 'week' %}
+      <nav class="tn-nav" aria-label="Navigation principale">
         <a class="tn-item {% if page == 'home' %}active{% endif %}" href="/">
-          {{ icon('home') }}<span>Accueil</span></a>
+          <span class="tn-ind">{{ icon('home', fill=page == 'home') }}</span><span>Accueil</span></a>
         <a class="tn-item {% if page == 'notes' %}active{% endif %}" href="/kairos/notes">
-          {{ icon('notes') }}<span>Notes</span></a>
-        <a class="tn-item {% if page == 'kairos' and (view is not defined or view != 'week') %}active{% endif %}" href="/kairos?view=day">
-          {{ icon('clock') }}<span>Jour</span></a>
-        <a class="tn-item {% if page == 'kairos' and view == 'week' %}active{% endif %}" href="/kairos?view=week">
-          {{ icon('calendar') }}<span>Semaine</span></a>
+          <span class="tn-ind">{{ icon('notes', fill=page == 'notes') }}</span><span>Notes</span></a>
+        <a class="tn-item {% if nav_day %}active{% endif %}" href="/kairos?view=day">
+          <span class="tn-ind">{{ icon('today', fill=nav_day) }}</span><span>Jour</span></a>
+        <a class="tn-item {% if nav_week %}active{% endif %}" href="/kairos?view=week">
+          <span class="tn-ind">{{ icon('date_range', fill=nav_week) }}</span><span>Semaine</span></a>
         <a class="tn-item {% if page == 'kairos_stats' %}active{% endif %}" href="/kairos/stats">
-          {{ icon('trending_up') }}<span>Statistiques</span></a>
+          <span class="tn-ind">{{ icon('bar_chart', fill=page == 'kairos_stats') }}</span><span>Statistiques</span></a>
         <a class="tn-item {% if page == 'settings' %}active{% endif %}" href="/kairos/settings">
-          {{ icon('gear') }}<span>Réglages</span></a>
+          <span class="tn-ind">{{ icon('gear', fill=page == 'settings') }}</span><span>Réglages</span></a>
       </nav>
       {% if is_frozen %}
       {# Exécutable de bureau (console=False) : pas de fenêtre de terminal à fermer
@@ -54,7 +60,7 @@
          un bouton qui coupe un service potentiellement partagé d'un clic malheureux). #}
       <form method="post" action="/kairos/shutdown" class="tn-quit"
             onsubmit="return confirm('Quitter Kairos ? Le serveur va s\'arrêter : il faudra relancer l\'exécutable pour y revenir.');">
-        <button type="submit" class="btn sm" title="Arrêter Kairos">{{ icon('close') }}<span>Quitter</span></button>
+        <button type="submit" class="btn sm" title="Arrêter Kairos">{{ icon('logout') }}<span>Quitter</span></button>
       </form>
       {% endif %}
     </header>
@@ -74,19 +80,19 @@
        apparaître sur un navigateur desktop simplement rétréci). Mêmes six
        destinations et mêmes conditions `active` que `.tn-nav` ci-dessus, sans
        dupliquer `.tn-brand`/`.tn-quit`. Voir docs/spec/accueil-navigation.md. #}
-    <nav class="bn-nav">
+    <nav class="bn-nav" aria-label="Navigation principale">
       <a class="bn-item {% if page == 'home' %}active{% endif %}" href="/">
-        {{ icon('home') }}<span>Accueil</span></a>
+        <span class="tn-ind">{{ icon('home', fill=page == 'home') }}</span><span>Accueil</span></a>
       <a class="bn-item {% if page == 'notes' %}active{% endif %}" href="/kairos/notes">
-        {{ icon('notes') }}<span>Notes</span></a>
-      <a class="bn-item {% if page == 'kairos' and (view is not defined or view != 'week') %}active{% endif %}" href="/kairos?view=day">
-        {{ icon('clock') }}<span>Jour</span></a>
-      <a class="bn-item {% if page == 'kairos' and view == 'week' %}active{% endif %}" href="/kairos?view=week">
-        {{ icon('calendar') }}<span>Semaine</span></a>
+        <span class="tn-ind">{{ icon('notes', fill=page == 'notes') }}</span><span>Notes</span></a>
+      <a class="bn-item {% if nav_day %}active{% endif %}" href="/kairos?view=day">
+        <span class="tn-ind">{{ icon('today', fill=nav_day) }}</span><span>Jour</span></a>
+      <a class="bn-item {% if nav_week %}active{% endif %}" href="/kairos?view=week">
+        <span class="tn-ind">{{ icon('date_range', fill=nav_week) }}</span><span>Semaine</span></a>
       <a class="bn-item {% if page == 'kairos_stats' %}active{% endif %}" href="/kairos/stats">
-        {{ icon('trending_up') }}<span>Stats</span></a>
+        <span class="tn-ind">{{ icon('bar_chart', fill=page == 'kairos_stats') }}</span><span>Stats</span></a>
       <a class="bn-item {% if page == 'settings' %}active{% endif %}" href="/kairos/settings">
-        {{ icon('gear') }}<span>Réglages</span></a>
+        <span class="tn-ind">{{ icon('gear', fill=page == 'settings') }}</span><span>Réglages</span></a>
     </nav>
     {% endif %}
   </div>

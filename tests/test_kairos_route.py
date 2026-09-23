@@ -501,6 +501,53 @@ def test_priority_badge_shown_when_priority_set(route_client) -> None:
     assert '<span class="badge prio" title="Priorité Utile : à faire quand il y a de la place">P2</span>' in resp.text
 
 
+def test_p0_priority_badge_is_the_only_red_one(route_client) -> None:
+    """Charte MD3 miel (docs/DESIGN_SYSTEM.md § Où va la couleur) : seule la
+    priorité P0 porte la couleur d'erreur (classe `is-p0`), les autres
+    priorités restent neutres."""
+    client, TestSession = route_client
+    with TestSession() as db:
+        db.add(Task(title="Critique", status="todo", priority=0))
+        db.add(Task(title="Utile", status="todo", priority=2))
+        db.commit()
+
+    resp = client.get("/kairos")
+    assert '<span class="badge prio is-p0" title="Priorité Critique' in resp.text
+    assert '<span class="badge prio" title="Priorité Utile' in resp.text
+
+
+def test_fonts_are_served_locally_never_from_google(route_client) -> None:
+    """L'exécutable et l'APK doivent rendre la charte hors ligne : aucune police
+    distante dans le gabarit, Roboto servie par l'app (`static/fonts/`)."""
+    client, _ = route_client
+    resp = client.get("/kairos")
+    assert "fonts.googleapis.com" not in resp.text
+    assert "fonts.gstatic.com" not in resp.text
+    css = client.get("/static/style.css").text
+    assert 'url("fonts/roboto-latin-400-normal.woff2")' in css
+    font = client.get("/static/fonts/roboto-latin-400-normal.woff2")
+    assert font.status_code == 200
+    assert font.content[:4] == b"wOF2"
+
+
+def test_navigation_marks_active_destination_with_filled_icon(route_client) -> None:
+    """Rail (bureau) / barre (fenêtre étroite) : chaque destination porte son
+    icône dans un indicateur `.tn-ind` ; seule la destination active a la
+    variante pleine de son icône (Material Symbols « fill »)."""
+    client, _ = route_client
+    html = client.get("/kairos").text
+    assert html.count('class="tn-item') == 6
+    assert html.count('<span class="tn-ind">') == 6
+    active = html.split('class="tn-item active"', 1)[1].split("</a>", 1)[0]
+    assert "<span>Jour</span>" in active
+    icons = main.templates.env.from_string(
+        '{% from "_icons.html" import icon %}{{ icon("today", fill=true) }}|{{ icon("today") }}'
+    ).render()
+    filled, outlined = icons.split("|")
+    assert filled != outlined
+    assert filled in active
+
+
 def test_wsjf_score_badge_shown(route_client) -> None:
     """Transparence phase 9 : le score WSJF qui ordonne la liste est affiché sur la tâche.
     Une P1 à 1 point Fibonacci → score 4.0 (valeur 4 / effort 1)."""
@@ -2163,7 +2210,7 @@ def test_bottom_nav_shown_when_android(route_client, monkeypatch) -> None:
     monkeypatch.setitem(main.templates.env.globals, "is_android", True)
     client, _ = route_client
     resp = client.get("/kairos")
-    assert '<nav class="bn-nav">' in resp.text
+    assert '<nav class="bn-nav"' in resp.text
     assert 'class="layout is-android"' in resp.text
     # Six entrées depuis l'ajout de la page Notes (capture GTD) entre Accueil et
     # Jour — voir docs/spec/accueil-navigation.md et docs/spec/notes-capture.md.
