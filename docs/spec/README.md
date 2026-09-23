@@ -29,12 +29,14 @@ quel ; seules les décisions encore actives sont tracées.
 | [`integrations-externes.md`](integrations-externes.md) | GitLab (direct + via pilotage), TimeTree, résolution de jeton git : toutes optionnelles, lecture seule, dégradation propre. `app/gitlab_direct.py`, `app/tasks_gitlab_sync.py`, `app/pilotage_link.py`, `app/calendar/timetree_source.py`, `app/git_credentials.py`. |
 | [`packaging-lancement.md`](packaging-lancement.md) | Lancement desktop (port, verrou, crash log) et Android (env avant import), empaquetage PyInstaller. `app/launcher.py`, `app/android_launcher.py`, `packaging/`. |
 | [`mises-a-jour.md`](mises-a-jour.md) | Alerte de nouvelle version, téléchargement vérifié (`SHA256SUMS`) et installation (bureau, Android), source GitHub ou GitLab privé, publication par les deux CI. `app/updates.py`, `app/build_info.py`, `.gitlab-ci.yml`. |
-| [`accueil-navigation.md`](accueil-navigation.md) | Gabarit de base (topnav/topbar), page d'accueil et rendu du README, identité/nom. `templates/base.html`, `templates/home.html`. |
+| [`accueil-navigation.md`](accueil-navigation.md) | Gabarit de base (navigation : rail bureau / barre étroite / barre basse Android, barre d'application), icônes, page d'accueil et rendu du README, identité/nom. `templates/base.html`, `templates/home.html`. |
 
 ## Références transverses (non dupliquées ici)
 
-- [`docs/DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md) : charte visuelle (jetons de
-  couleur, typographie, formes), citée par les specs UI plutôt que recopiée.
+- [`docs/DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md) : charte visuelle Material
+  Design 3, thème « miel » (rôles de couleur, typographie, icônes, formes,
+  composants, historique de la décision), citée par les specs UI plutôt que
+  recopiée.
 - [`docs/ANDROID_PACKAGING.md`](../ANDROID_PACKAGING.md) : détail technique du
   build Android (Chaquopy), cité par `packaging-lancement.md`.
 - [`README.md`](../../README.md) : documentation utilisateur des

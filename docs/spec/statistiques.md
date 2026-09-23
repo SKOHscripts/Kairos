@@ -66,7 +66,7 @@ Affichées en haut, avant les blocs de détail. Toutes sur la **fenêtre récent
 |---|---|---|---|
 | **Tâches terminées** | `sum(1 for t in tasks if _done_date(t) >= window_start)` | `completed_in_window` | KPI numérique large |
 | **Temps réel tracké (fenêtre)** | `sum(session_minutes(s) for s in sessions_in_range(window_start, today))` | `tracked_minutes_window` | formaté minutes/heures |
-| **Délai médian complétion** | `_median([(done - created).days for tâches terminées en fenêtre])` | `flow.completion_delay_days` | alerte si > 7 j (badge ambre) |
+| **Délai médian complétion** | `_median([(done - created).days for tâches terminées en fenêtre])` | `flow.completion_delay_days` | alerte si > 7 j (tuile à contour, `.stat.tone-amber`) |
 | **Taux respect échéances** | `100 * deadline_on_time / deadline_total` (tâches terminées ayant une échéance) | `flow.deadline_hit_pct` | vert ≥70%, rouge <70% |
 
 **Honnêteté** : aucun seuil ; affichés toujours même si faible effectif (mais le bloc « Flux & backlog » avertira de la faiblesse de l'échantillon).
@@ -146,7 +146,7 @@ class EstimationBias:
 - Agrégat, pas moyenne de ratios : somme estimée totale, somme réelle totale, ratio = réel/estimé.
 - `None` si aucune tâche éligible ou `estimated_minutes` total = 0.
 
-**Rendu** : court paragraphe sous la calibration Fibonacci. Badge coloré selon seuil : vert si 0.9–1.1 (juste), ambre si 1.1–1.25 ou 0.8–0.9 (léger biais), rouge si >1.25 ou <0.8 (important biais). Texte : « Vous sous-estimez » / « Vous surestimez » / « Estimations justes ». `n` et « peu fiable » si <MIN_SAMPLE.
+**Rendu** : court paragraphe sous la calibration Fibonacci. Badge selon seuil (deux états, comme le gabarit `kairos_stats.html`) : `.badge.warn` (contour, « à surveiller ») si le ratio est > 1.25 ou < 0.8 (biais important), sinon `.badge.ok` (vert). Le texte, lui, distingue trois cas (seuils 1.1 / 0.9). Texte : « Vous sous-estimez » / « Vous surestimez » / « Estimations justes ». `n` et « peu fiable » si <MIN_SAMPLE.
 
 **Usage** : valide le modèle WSJF, où l'effort = points Fibonacci (si calibré) ou `estimated_minutes` (si points manquent). Biais persistant justifie d'ajuster les poids ou d'être plus honnête à l'estimation.
 
@@ -228,7 +228,7 @@ class BacklogFlow:
 | `completion_delay_days` | Tâches terminées en fenêtre : `(done_date - created_at.date()).days`, médiane. Reflète la durée moyenne de traitement. |
 | `deadline_total` / `deadline_on_time` | Tâches terminées en fenêtre ayant une échéance (`deadline is not None`) ; count total et count où `done_date <= deadline`. |
 
-**Rendu** : quatre cellules `.stat` en grille (`open_count`, `median_age_days`, `overdue_count` avec alerte rouge si >0, `stale_count` avec alerte ambre si >0). Sous le flux, deux sections compactes sur les délais et respect des échéances.
+**Rendu** : quatre cellules `.stat` en grille (`open_count`, `median_age_days`, `overdue_count` avec alerte rouge si >0, `stale_count` avec alerte « à surveiller » (tuile à contour, `.stat.tone-amber`) si >0). Sous le flux, deux sections compactes sur les délais et respect des échéances.
 
 **Interprétation** :
 - WIP élevé = surcharge potentielle.

@@ -296,7 +296,7 @@ pour github.com). Volontairement distincts de `gitlab_url`/`gitlab_token`.
   (`onclick`) lance la mise à jour ; sinon `POST /kairos/notify` (notification
   émise par Kairos, non cliquable). Le bandeau s'affiche dans tous les cas.
 - Styles : `.mj-update*` dans `static/style.css` (bandeau neutre, seul le
-  bouton « Mettre à jour » en accent ; `[hidden]` réaffirmé car `.banner` et
+  bouton « Mettre à jour » plein ; `[hidden]` réaffirmé car `.banner` et
   `.btn` posent un `display`), `.mj-update-info` pour le bloc des réglages.
 
 ### Android (détail dans `docs/ANDROID_PACKAGING.md`)

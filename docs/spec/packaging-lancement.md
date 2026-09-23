@@ -441,11 +441,12 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     explorateur) ; ignoré sans erreur pour le binaire Linux (qui n'en porte pas ;
     une icône de bureau viendrait d'un fichier `.desktop`, pas du binaire lui-même).
   - **`Splash`** (fenêtre de démarrage) : image `packaging/splash.png` (420×200,
-    surface blanche, bordure forte `#C9D2DC`, logo 64 px, « Kairos » en IBM Plex
-    Sans SemiBold 30 px, sous-titre « le bon moment, la bonne tâche », tout
+    surface `#FFF8F4`, contour `#D3C4B4`, logo 64 px, « Kairos » en Roboto
+    Medium 30 px (texte `#201B13`, sous-titre `#4F4539`, rôles MD3 de
+    `docs/DESIGN_SYSTEM.md`), sous-titre « le bon moment, la bonne tâche », tout
     aligné sur une marge gauche de 32 px) et texte d'état dessiné par Tk à
     `text_pos=(32, 164)` (ancré en bas à gauche par PyInstaller, d'où la
-    composition alignée à gauche), `text_size=10`, `text_color="#55606D"`,
+    composition alignée à gauche), `text_size=10`, `text_color="#4F4539"` (`--md-on-surface-variant`),
     `text_default="Extraction des fichiers…"`, `always_on_top=False` (un
     démarrage lent ne doit pas masquer les autres applications). Passée à `EXE`
     avec `splash.binaries` (Tcl/Tk minimal). Affichée par le **bootloader** dès
@@ -475,13 +476,17 @@ navigateur, construction des arguments de lancement) pure et testable sans touch
     Kairos dégrade proprement vers un stockage fichier local, sans erreur, avec
     juste un bandeau dans la page Réglages : à vérifier après chaque build par OS
     cible.
-- **`packaging/make_icon.py`** : régénère `kairos.ico` depuis le même dessin que
-  `static/favicon.svg`, après une évolution du logo (nécessite Pillow). Avec
-  `--splash-font <IBMPlexSans-SemiBold.ttf>` (le Regular attendu dans le même
-  dossier), régénère aussi `packaging/splash.png` (`render_splash`) ; sans
-  l'option, le PNG commité reste inchangé : la police de la charte n'est pas
-  installée sur les machines de build, d'où une image commitée plutôt que
-  générée en CI.
+- **`packaging/make_icon.py`** : régénère `kairos.ico`, les PNG de la web app
+  (`static/icon-192.png`, `icon-512.png`, `apple-touch-icon.png`) et
+  `packaging/splash.png` (`render_splash`) depuis le même dessin que
+  `static/favicon.svg`, après une évolution du logo (nécessite Pillow). Le nom
+  « Kairos » du splash est dessiné en Roboto lue directement dans les WOFF2
+  embarqués (`static/fonts/`, ouverts par FreeType via Pillow) : plus d'option
+  `--splash-font` ni de police à installer. Les images restent commitées
+  (assets binaires), non générées en CI.
+- **`packaging/make_icons.py`** : génère `templates/_icons.html` (icônes Material
+  Symbols en SVG inline) depuis le paquet npm `@material-symbols/svg-400`, voir
+  `docs/spec/accueil-navigation.md` § `_icons.html`.
 - **`packaging/smoke_test.py`** : lance l'exécutable construit et vérifie qu'il
   répond en HTTP avant publication (`.github/workflows/release.yml` l'exécute pour
   chaque OS juste après le build PyInstaller ; échec = pas de publication).

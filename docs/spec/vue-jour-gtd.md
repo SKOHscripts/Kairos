@@ -72,7 +72,7 @@ Ordre vertical de la vue Jour (de haut en bas), chaque section correspondant à 
    replié. Deux volets par onglet radio : « Tâche » (titre seul, capture
    volontairement sans friction) et « Créneau / deep work » (titre + horaires +
    case deep-work + récurrence, avec en dessous la liste éditable des créneaux du
-   jour). Un seul bouton bleu (`.btn.primary`) par volet.
+   jour). Un seul bouton plein (`.btn.primary`) par volet.
 2. **Boîte de réception** (« À traiter », `#mj-inbox`) : juste sous la capture.
    Toute tâche sans priorité **ou** sans points Fibonacci, quelle que soit son
    origine (native, GitLab assigné...), y échoue et n'entre dans **aucun** tri tant
@@ -151,8 +151,8 @@ voit des colonnes qui s'alignent d'une ligne à l'autre) :
 3. **Priorité et points** : collés à la colonne d'actions, alignés à droite :
    d'une ligne à l'autre, ils tombent toujours au même endroit, ce qui rend la
    liste balayable d'un seul coup d'œil vertical. Le score WSJF les accompagne
-   (c'est lui qui ordonne la liste ; avec la priorité, ce sont les deux seuls
-   badges à porter l'accent, voir `docs/DESIGN_SYSTEM.md`).
+   (c'est lui qui ordonne la liste : chiffre en couleur primaire ; seule la
+   priorité P0 est en rouge, voir `docs/DESIGN_SYSTEM.md` § Où va la couleur).
 4. **Actions** : chrono, décaler, crayon d'édition : toujours tout à droite, à
    la même abscisse quelle que soit la tâche.
 
@@ -409,10 +409,12 @@ actions y sont **nommées** (`done_toggle(task, labelled=true)`,
 libellé « Fait », « Démarrer le chrono » ou « Arrêter le chrono »,
 « Décaler ») ; dans les listes, les mêmes macros sans `labelled` gardent les
 icônes seules (`.icbtn`), pour la densité. L'icône « décaler au prochain jour
-ouvré » est `skip_forward` (deux chevrons et une barre), le chevron simple se
-lisant comme « ouvrir ». Ligne de titre
-en Newsreader italique (`.mj-next`, exception de police assumée : voir « Décisions
-et pièges tracés »). Bloc de statistiques (`.mj-progress-stats`) : compte de
+ouvré » est `skip_forward` (Material Symbols *redo*), le chevron simple se
+lisant comme « ouvrir » ; le chrono utilise `play` pour démarrer et `stop` pour
+arrêter. Hiérarchie MD3 des trois actions nommées : « Fait » bouton plein,
+chrono contour, « Décaler » bouton texte ; les trois tiennent sur une ligne à
+390px. Carte en `primary-container` (seul bloc teinté de l'écran), ligne de
+titre `.mj-next` en *title-large* Roboto (voir « Décisions et pièges tracés »). Bloc de statistiques (`.mj-progress-stats`) : compte de
 tâches faites/à faire, `required_str`/`available_str` (temps requis vs
 disponible), `spent_total_str` (temps travaillé **aujourd'hui uniquement** ;
 correction d'un bug de scope temporel tracée en phase 7 de `SPEC_KAIROS.md`),
@@ -425,7 +427,9 @@ chrono (détail dans `docs/spec/temps-reel-chrono.md`), pas de logique propre à
 cette spec.
 
 **4. Bannières** (`_kairos_banners.html`) : trois conditions indépendantes,
-chacune `.banner.warning`. TimeTree (`timetree_configured and not
+chacune une `.banner` **neutre** (surface tonale + icône d'avertissement) : un
+service dégradé n'est pas une erreur, `.banner.warning` (conteneur d'erreur)
+restant réservé aux vrais échecs (`docs/DESIGN_SYSTEM.md` § Où va la couleur). TimeTree (`timetree_configured and not
 timetree_ok`, silencieux si non configuré, phase 18), import GitLab direct
 (`gitlab_direct_error` non vide), surcharge de priorité maximale
 (`priority_overload_count > priority_overload_threshold`). Position fixe : sous
@@ -486,9 +490,9 @@ tant que ces sections étaient toutes repliées.
 
 **8. Colonne latérale** (`.mj-day-grid` → `.mj-day-main` flex 1.7 + `.mj-side-col`
 largeur fixe 300px, pleine largeur sous 860px) :
-- `.mj-now-card` (fond `--dark-surface`, un des deux seuls endroits sombres de
-  l'app avec la pilule de nav active) : titre + minuteur de la tâche en cours
-  (`running_task_id`), bouton Arrêter (`POST
+- `.mj-now-card` (surface inverse MD3, seul élément sombre posé dans la page,
+  avec la snackbar d'alerte flottante) : titre + minuteur de la tâche en cours
+  (`running_task_id`), bouton Arrêter plein `inverse-primary`, icône `stop` (`POST
   /kairos/tasks/{id}/timer/stop`, `data-ajax`), ou message d'état vide.
 - `.mj-timeline-card` (« Agenda ») : grille horaire (`timeline_hours`), entrées
   positionnées en absolu (1 min = 1 px, classes `busy`/`work`/`pinned`/`conflict`/
@@ -522,8 +526,8 @@ même taille minimale automatique.
 
 **Alignement vertical** : la grille est en `align-items: start` (et non
 `center`, qui ferait flotter la coche au milieu d'une tâche à titre long +
-étiquettes + description). Les trois colonnes fixes portent `min-height: 28px`
-(hauteur d'un `.icbtn`) et centrent leur contenu dedans : elles s'alignent donc
+étiquettes + description). Les trois colonnes fixes portent `min-height: 32px`
+(hauteur d'un `.icbtn`, 36px sous 720px) et centrent leur contenu dedans : elles s'alignent donc
 sur la **première ligne** du corps, quelle que soit la hauteur totale de la
 ligne.
 
@@ -539,7 +543,7 @@ texte blanc suffit à faire échouer `:empty`. La cellule restait affichée et
 ajoutait un espacement fantôme.
 
 **Deux macros, pas une** : `task_key_badges()` (les signaux de **tri** : score
-WSJF, priorité, points ; les deux premiers sont les seuls badges à accent, voir
+WSJF, priorité, points ; score en chiffre primaire, P0 en rouge, voir
 `docs/DESIGN_SYSTEM.md`) et `task_tags()` (le **contexte** : projet, type,
 fiche liée, durée, échéance, date programmée, récurrence, « traîne depuis… »).
 La scission est ce qui permet à la colonne « clés » d'être stable d'une ligne à
@@ -597,7 +601,8 @@ dur du tri). Filtre Jinja `nombre` : une décimale au plus, sans « .0 ».
 S'ouvre sans JavaScript ; le script referme au clic extérieur et à Échap, un
 panneau à la fois (écouteurs délégués sur `document`, hors
 `initDayScripts`). Panneau en `position: absolute` sous `.mj-item-key`
-(`position: relative`), sans ombre portée (charte), `z-index: 60` sous les
+(`position: relative`), rendu en menu MD3 (`surface-container`, élévation 2 :
+il flotte au-dessus de la liste), `z-index: 60` sous les
 bandeaux d'alerte (70) et le calque d'édition (79/80), aligné à gauche sous
 720px pour rester dans l'écran.
 
@@ -838,8 +843,9 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
    d'un ancêtre opaque à moins de 1 (piège CSS classique, commenté verbatim dans
    `static/style.css` juste avant la règle). Remplacé par des propriétés
    ciblées qui ne composent jamais les descendants : fond `background:
-   var(--surface-tint)` + `border-style: dashed` sur le `<li>`, et
-   `color: var(--text-3)` sur `.mj-title` seul (pas sur toute la ligne). Exemple
+   var(--md-surface)` + contour pointillé sur le `<li>`, et
+   `color: var(--md-on-surface-variant)` sur `.mj-title` seul (pas sur toute la
+   ligne ; jetons MD3 depuis la migration, même principe). Exemple
    canonique du workflow spec-d'abord de ce dépôt : **ne pas revenir à
    `opacity`** pour cette classe ni pour tout futur ancêtre d'un panneau
    `position: fixed`.
@@ -863,18 +869,17 @@ reste indispensable : c'est le **bouton** qui doit devenir le calque plein écra
    déborder la carte sur les écrans les plus étroits (~375px), corrigé par
    `white-space: normal; text-align: left;` scopé à ces deux classes dans ce
    même bloc.
-3. **Exceptions crème/ambre assumées, à ne pas « corriger ».** `.mj-progress`
-   (« Maintenant ») et `.mj-to-process` (boîte de réception) partagent le même
-   traitement : fond `#FFFAF1` + puce ambre `border-left: 3px solid
-   var(--warn-fg)` — et fusionnent la classe utilitaire avec `.card` sur le même
-   élément (pas de `<div>` imbriqué), pour que le fond suive les coins arrondis.
-   `.mj-next` (la ligne « À faire maintenant : ... » dans `.mj-progress`) est la
-   seule ligne de l'app en Newsreader italique 19px/500 (police chargée en plus
-   d'IBM Plex Sans). Ces trois exceptions sont des décisions produit explicites,
-   documentées et non dupliquées ici : voir `CLAUDE.md` (racine) et
-   `docs/DESIGN_SYSTEM.md` § Couleurs/Typographie pour la charte complète et le
-   raisonnement. Ne pas les généraliser à d'autres cartes/badges/titres, ne pas
-   les « corriger » vers le bleu/neutre standard.
+3. **Anciennes exceptions crème/ambre et Newsreader absorbées par MD3
+   (2026-09, décision utilisateur).** `.mj-progress` (« Maintenant ») et
+   `.mj-to-process` (boîte de réception) portaient un fond crème `#FFFAF1` +
+   puce ambre, et `.mj-next` était la seule ligne en Newsreader italique. La
+   migration Material Design 3 (`docs/DESIGN_SYSTEM.md` § Historique de la
+   décision) les remplace par la règle « un seul bloc teinté par écran » :
+   `.mj-progress` en `primary-container`, `.mj-to-process` en carte « outlined »
+   standard, `.mj-next` en *title-large* Roboto. Les deux cartes gardent leurs
+   classes fusionnées avec `.card` sur le même élément (pas de `<div>` imbriqué),
+   pour que le fond suive les coins arrondis. Ne pas réintroduire de teinte
+   propre à la boîte de réception : elle ferait un second bloc teinté.
 
 ### Invariants et garde-fous
 

@@ -435,9 +435,9 @@ insérait un `.banner.warning` en tête de `.page` :
 - **Persistant**, avec un bouton de fermeture : aucune disparition
   automatique, une alerte manquée est une alerte perdue.
 - `position: fixed` en bas à droite (`.mj-alert-toasts`, `z-index: 70`, sous le
-  calque du panneau d'édition qui reste prioritaire), **sans ombre portée**,
-  la charte n'en autorise qu'une, celle du panneau d'édition ouvert
-  (`docs/DESIGN_SYSTEM.md` § Forme) ; décalé au-dessus de la bottom nav dans
+  calque du panneau d'édition qui reste prioritaire), rendu en **snackbar**
+  MD3 (surface inverse, élévation 3 : il flotte au-dessus du contenu, voir
+  `docs/DESIGN_SYSTEM.md` § Bannières et alertes) ; décalé au-dessus de la bottom nav dans
   l'APK Android, via un sélecteur de **frère** (`.layout.is-android ~`), le
   conteneur vivant hors de `.layout`.
 
