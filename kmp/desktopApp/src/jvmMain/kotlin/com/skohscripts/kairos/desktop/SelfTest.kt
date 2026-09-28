@@ -4,6 +4,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ImageComposeScene
 import com.skohscripts.kairos.ui.screens.AboutScreen
+import com.skohscripts.kairos.ui.settings.SettingsScreen
+import kotlinx.coroutines.runBlocking
 import com.skohscripts.kairos.ui.theme.KairosTheme
 import androidx.compose.ui.unit.Density
 import com.skohscripts.kairos.core.AppVersion
@@ -28,11 +30,19 @@ object SelfTest {
         dataDir.mkdirs()
         File(dataDir, "self-test.tmp").apply { writeText("ok") }.delete()
         val output = args.firstOrNull { it.startsWith("--self-test=") }?.substringAfter('=')?.let(::File)
-        val app: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) }
+        // Base en mémoire avec les exemples : le rendu montre une vraie journée.
+        val services = runBlocking { DesktopServices.open(dataDir, inMemory = true) }
+        val app: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { services } }
+        val settings: @Composable () -> Unit = { KairosTheme { Surface { SettingsScreen(services) {} } } }
         val about: @Composable () -> Unit = { KairosTheme { Surface { AboutScreen() } } }
-        val shots = listOf(Triple("wide", 1200, app), Triple("narrow", 420, app), Triple("about", 900, about))
+        val shots = listOf(
+            Triple("wide", 1200, app),
+            Triple("narrow", 420, app),
+            Triple("settings", 900, settings),
+            Triple("about", 900, about),
+        )
         for ((name, width, content) in shots) {
-            val png = render(width, 800, content)
+            val png = render(width, 1000, content)
             output?.let { it.mkdirs(); File(it, "desktop-$name.png").writeBytes(png) }
         }
         println("Kairos ${KairosBuild.VERSION_NAME} : auto-test réussi")

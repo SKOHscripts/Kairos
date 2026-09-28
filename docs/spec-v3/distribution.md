@@ -6,11 +6,13 @@ publié sur chaque cible. Fichiers couverts : `kmp/gradle.properties`
 `kmp/desktopApp/` (dont `Main.kt`, `DataDirectory.kt`, `SingleInstance.kt`,
 `CrashLog.kt`, `SelfTest.kt`, `icons/`), `kmp/webApp/`,
 `kmp/tools/make_app_icons.py`, `.github/workflows/kmp.yml`,
-`.github/workflows/kmp-release.yml`, et le filtre de tags de
-`.github/workflows/release.yml` (Kairos 2)._
+`.github/workflows/kmp-release.yml`, `.github/workflows/pages.yml`, et le
+filtre de tags de `.github/workflows/release.yml` (Kairos 2). Les services de
+fichiers et de sauvegarde de chaque plateforme sont décrits par
+`export-import.md`._
 
-État : **jalon M0**. Publication F-Droid, IzzyOnDroid, métadonnées Fastlane et
-page GitHub Pages : jalons M1 (préversion web) et M6 (le reste), plan § 9.
+État : **jalon M1**. Publication F-Droid, IzzyOnDroid, métadonnées Fastlane et
+page de téléchargement : jalon M6, plan § 9.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -62,15 +64,16 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   (plan § 6.2). Gatekeeper et SmartScreen afficheront un avertissement.
 - Mise à jour intégrée : jamais sur Android ; sur le bureau, simple
   vérification au jalon M5.
-- Déploiement GitHub Pages (préversion web en M1, page complète en M6),
-  recette F-Droid et métadonnées Fastlane (M6).
+- Page de téléchargement complète, recette F-Droid et métadonnées Fastlane
+  (M6).
 
 ## 2. Solution technique
 
 ### Versionnage
 
 - **Source unique** : `kmp/gradle.properties`, `kairos.versionName` et
-  `kairos.versionCode`. Jalon M0 : `3.0.0-alpha.1`, `29001`.
+  `kairos.versionCode`. Jalon M0 : `3.0.0-alpha.1` (`29001`) ; jalon M1 :
+  `3.0.0-alpha.2` (`29002`).
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
 - `versionCode` (`AppVersion.versionCode`) : `X*10000 + Y*100 + Z` ; alpha :
@@ -91,7 +94,15 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   (`resValue app_name`).
 - `minSdk 26`, `targetSdk 36`, `compileSdk 37`, Java 21.
 - `MainActivity` (`ComponentActivity`) : `enableEdgeToEdge()`, puis
-  `setContent { KairosApp(Platform.ANDROID) }`.
+  `setContent { KairosApp(Platform.ANDROID) { services.await() } }`. Les
+  services (`AndroidServices.open`) sont ouverts **une fois par process**
+  (`Deferred` du compagnon, portée `SupervisorJob` + `Dispatchers.Default`) :
+  une rotation retrouve la même base. Les sélecteurs de fichiers passent par
+  l'activité courante (sur le fil principal).
+- Base : `AndroidSqliteDriver` sur `kairos.db` avec un schéma factice
+  (`DeferredSchema` : version du schéma, création et migration vides), la
+  création réelle étant faite par `KairosStore.open` (`modele-donnees.md`).
+  Exemples dans la langue du système (`Locale.getDefault()`).
 - Manifeste : **aucune permission** (pas de `INTERNET`) ;
   `enableOnBackInvokedCallback="true"` (geste retour prédictif) ;
   `windowSoftInputMode="adjustResize"`.
@@ -119,7 +130,10 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   4. instance unique (`SingleInstance.acquire`), sinon sortie immédiate ;
   5. fenêtre 1200 × 800 dp (minimum 360 × 480 px), titre `Kairos` ou
      `Kairos Preview` (propriété JVM `kairos.preview`), icône = logo,
-     contenu `KairosApp(Platform.DESKTOP)`.
+     contenu `KairosApp(Platform.DESKTOP) { DesktopServices.open(dataDir) }`.
+- **Services** (`DesktopServices.open`) : `JdbcSqliteDriver` sur
+  `<données>/kairos.db` (ou en mémoire pour l'auto-test), exemples dans la
+  langue de la JVM, dossier des données affiché dans la carte Données.
 - **Dossier de données** : `KAIROS_DATA_DIR` s'il est défini, sinon la racine
   Kairos de `platformdirs` (celle de Kairos 2) + `v3` :
   - Windows : `%LOCALAPPDATA%\Kairos\v3` ;
@@ -134,11 +148,13 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   `crash.log` (date, fil, version, OS, Java, pile).
 - **Auto-test** (`SelfTest`) : vérifie la version (`AppVersion` et
   `KairosBuild` cohérents), écrit puis efface un fichier dans le dossier de
-  données, et rend hors écran (`ImageComposeScene`, 10 images pour laisser
-  charger polices et chaînes) l'application en 1200 px et en 420 px, et
-  l'écran « À propos » en 900 px. Avec `=dossier`, les rendus y sont écrits
-  (`desktop-wide.png`, `desktop-narrow.png`, `desktop-about.png`). Code de
-  sortie 0 ou 1.
+  données, ouvre une base **en mémoire** avec les exemples (pilote JDBC
+  réellement chargé), et rend hors écran (`ImageComposeScene`, 1000 px de
+  haut, 10 images pour laisser charger polices et chaînes) l'application en
+  1200 px et en 420 px de large, les Réglages et « À propos » en 900 px. Avec
+  `=dossier`, les rendus y sont écrits (`desktop-wide.png`,
+  `desktop-narrow.png`, `desktop-settings.png`, `desktop-about.png`). Code
+  de sortie 0 ou 1.
 - **Empaquetage** (plugin Compose Desktop, jpackage, runtime Java réduit
   embarquant `java.instrument`, `java.management`, `java.sql`,
   `jdk.unsupported` en plus des modules détectés) :
@@ -156,15 +172,37 @@ Pendant la réécriture, chaque jalon doit produire une version installable
 ### Web (`kmp/webApp`)
 
 - Kotlin/Wasm (`wasmJs`, module de sortie `kairos`, script `kairos.js`),
-  `ComposeViewport(document.body)` avec `KairosApp(Platform.WEB)`.
+  `ComposeViewport(document.body)` avec
+  `KairosApp(Platform.WEB) { WebServices.open() }` (base en mémoire dans un
+  worker sql.js, persistance OPFS et fichier lié : `export-import.md` §
+  Version web).
+- `index.html` charge `kairos-web.js` (fonctions navigateur,
+  `globalThis.KairosWeb`) **avant** `kairos.js`. La distribution contient
+  aussi `kairos-sqljs.worker.js`, `sql-wasm.js` et `sql-wasm.wasm` (copiés par
+  `webpack.config.d/sqljs.js`).
 - `index.html` : fond `#FFF8F4`, favicon, bloc `#kairos-loading` (logo +
   « Chargement de Kairos… ») retiré par `main()` au démarrage. Un test
   `WebAssembly.validate` d'un module WasmGC minimal remplace le texte par
   « navigateur trop ancien » (bilingue) si WasmGC manque (Chrome ou Edge avant
   119).
 - Distribution : `:webApp:wasmJsBrowserDistribution`
-  (`webApp/build/dist/wasmJs/productionExecutable/`). Données et
-  déploiement GitHub Pages : jalon M1 (plan § 5.3, § 6.3).
+  (`webApp/build/dist/wasmJs/productionExecutable/`).
+
+### GitHub Pages (`pages.yml`)
+
+- Déclenchement : push sur `main` touchant `kmp/**` ou `pages.yml`, release
+  publiée, lancement manuel. Construit toujours depuis `main`.
+- Site assemblé :
+  - `/preview/` : la version web construite depuis `main` (préversion) ;
+  - `/app/` : la version web (`Kairos-web.zip`) de la dernière release
+    **stable** `v3.*` (jamais une préversion), absente tant qu'il n'y en a pas ;
+  - `/` : page provisoire (liens vers `/app/` s'il existe, `/preview/`, les
+    releases), remplacée par la page de téléchargement au jalon M6.
+- Déploiement : `actions/upload-pages-artifact` puis `actions/deploy-pages`
+  (environnement `github-pages`).
+- **Prérequis, une fois, par le propriétaire du dépôt** : Settings → Pages →
+  Source : « GitHub Actions » (un workflow ne peut pas activer Pages avec le
+  jeton par défaut).
 
 ### CI et release (GitHub Actions)
 
@@ -172,7 +210,8 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   propres workflows) : JDK 21 Temurin, plateforme Android 37, tests JVM
   (`core`, `ui`, `desktopApp`), puis APK release, image de bureau Linux et
   version web ; **auto-test** de l'image Linux empaquetée ; captures en
-  artefact `kmp-ci-screens`.
+  artefact `kmp-ci-screens`. Tests JVM : `core`, `data`, `ui`,
+  `desktopApp`.
 - `kmp-release.yml` (tag `v3.*`, lancement manuel) :
   - `version` : lit `kairos.versionName` ; échec si le tag diffère ; drapeau
     `prerelease` si la version contient `-` ;
@@ -204,7 +243,15 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   l'interface.
 - **Web dans ce conteneur** : la distribution web exige un paquet npm servi par
   `codeload.github.com`, bloqué dans l'environnement de développement (403).
-  La compilation Wasm y est vérifiée ; la distribution complète est
+  La compilation Wasm y est vérifiée, et la sortie compilée y est testée dans
+  Chromium (`architecture.md` § Décisions) ; la distribution complète est
   construite par la CI GitHub.
+- **Tags posés par le propriétaire du dépôt** : l'environnement de
+  développement ne peut pousser que sa branche de travail, pas de tag. Un
+  workflow qui créerait lui-même le tag a été écarté (contournement d'une
+  restriction de l'environnement). Le tag `v<version>` est donc posé à la
+  main sur le commit du jalon (`git tag` + `git push`, ou « Draft a new
+  release » dans GitHub avec la branche comme cible), ce qui déclenche
+  `kmp-release.yml`.
 - **Runner macOS Intel** : `macos-15-intel`, dernier runner Intel de GitHub.
   S'il disparaît, la version macOS x64 est abandonnée (Apple Silicon reste).

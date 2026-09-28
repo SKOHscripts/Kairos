@@ -18,4 +18,4 @@ dependencyResolutionManagement {
     }
 }
 
-include(":core", ":ui", ":androidApp", ":desktopApp", ":webApp")
+include(":core", ":data", ":ui", ":androidApp", ":desktopApp", ":webApp")

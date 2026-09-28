@@ -41,7 +41,13 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   qu'il fait en quatre points, la formule du score de priorité, l'origine du
   nom), la version, la licence (MIT, données locales) et un lien vers le code
   source. Un bouton retour, le retour système Android ou Échap le ferment.
-- Jalon M0 : les cinq destinations affichent un écran « En construction ».
+- Jalon M1 : Jour (`vue-jour.md`) et Réglages (carte Données, entrée « À
+  propos et guide ») ; Notes, Semaine et Stats affichent « En construction ».
+- Au lancement, un indicateur « Ouverture de Kairos… » attend l'ouverture des
+  données ; un échec est affiché (« Impossible d'ouvrir les données » et le
+  détail), jamais un écran vide.
+- Les confirmations et erreurs brèves (export, import) passent par une
+  snackbar.
 
 ### Critères de succès
 
@@ -88,7 +94,9 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   Material Symbols (viewport 960, décalage `translationY = 960` du
   `viewBox="0 -960 960 960"`). Icônes M0 : `Notes`, `Today`, `DateRange`,
   `BarChart`, `Settings`, `Info` (et leurs variantes `…Filled`), `ArrowBack`,
-  `ChevronRight`, `OpenInNew`, `Construction`.
+  `ChevronRight`, `OpenInNew`, `Construction` ; jalon M1 : `CheckCircle`
+  (et `CheckCircleFilled`), `RadioUnchecked`, `Edit`, `Delete`, `Add`,
+  `Upload`, `Download`, `ExpandMore`, `ExpandLess`, `Inbox`, `Warning`.
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`
   épaisseur 1.6, secteur `#C28417` de 12 h à 2 h, axe `#2B251C` rayon 2.6,
   viewport 40), couleurs fixes, affiché par `Image` (jamais teinté).
@@ -101,9 +109,12 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   pleine. `START = DAY`.
 - `NavigationLayout.choose(platform, largeur)` : `RAIL` si largeur ≥ 600 dp
   (`COMPACT_WIDTH_LIMIT`), sinon `BOTTOM_BAR` sur Android, `TOP_BAR` ailleurs.
-- `KairosApp(platform)` : `KairosTheme` ; état `destination` et `aboutOpen`
-  (`rememberSaveable`) ; `BoxWithConstraints` fournit la largeur à `choose`.
-  Naviguer vers une destination ferme « À propos ».
+- `KairosApp(platform, openServices)` : `KairosTheme` ; appelle
+  `openServices()` une fois (`LaunchedEffect`) : indicateur de progression
+  pendant l'attente, titre d'erreur et détail en cas d'échec. Puis
+  `KairosShell` : état `destination` et `aboutOpen` (`rememberSaveable`) ;
+  `BoxWithConstraints` fournit la largeur à `choose`. Naviguer vers une
+  destination ferme « À propos ».
 - `AppShell` :
   - `TopAppBar` avec le titre (celui de la destination, ou « À propos et
     guide ») ; flèche retour quand « À propos » est ouvert ; sinon, sans rail,
@@ -115,15 +126,19 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
     (icône + libellé ; sélection en `secondaryContainer`, rôle MD3 par défaut
     des puces sélectionnées).
   - Quand « À propos » est ouvert, aucune destination n'est marquée active.
+  - `SnackbarHost` dans chaque `Scaffold` ; `LocalMessages` fournit aux
+    écrans une fonction qui y affiche un message.
   - `BackHandler(enabled = aboutOpen)` (`ui-backhandler`) : retour système
     Android (y compris le geste prédictif, `enableOnBackInvokedCallback`) et
     Échap sur le bureau et le web ferment « À propos ».
 
 ### Écrans (`screens/`)
 
-- `DestinationScreen` : jalon M0, écran « En construction » (icône
-  `Construction`, titre, texte centré) ; en Réglages, précédé d'une carte
-  « À propos et guide » (`OutlinedCard` + `ListItem`, icône `Info`, chevron).
+- `DestinationScreen(destination, services, onOpenAbout)` : `DAY` →
+  `DayScreen` ; `SETTINGS` → `SettingsScreen` (carte Données, carte « À
+  propos et guide » en `OutlinedCard` + `ListItem`, icône `Info`, chevron,
+  puis « En construction » pour les réglages à venir) ; sinon
+  `UnderConstruction` (icône `Construction`, titre, texte centré).
 - `AboutScreen` : colonne défilante de 720 dp au plus, centrée. Logo 56 dp +
   nom + devise ; phrase d'introduction ; trois cartes « filled »
   (`surfaceContainerLow`, élévation 0 : jamais d'ombre sur une carte) : « En

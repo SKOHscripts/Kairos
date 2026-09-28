@@ -26,7 +26,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import com.skohscripts.kairos.ui.app.AppServices
+import com.skohscripts.kairos.ui.app.LocalMessages
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -54,6 +62,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun AppShell(
     layout: NavigationLayout,
+    services: AppServices,
     destination: Destination,
     aboutOpen: Boolean,
     onNavigate: (Destination) -> Unit,
@@ -62,6 +71,10 @@ fun AppShell(
 ) {
     // Retour système (Android) ou Échap (bureau, web) : ferme « À propos ».
     BackHandler(enabled = aboutOpen) { onCloseAbout() }
+
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val showMessage: (String) -> Unit = { message -> scope.launch { snackbar.showSnackbar(message) } }
 
     val title = stringResource(if (aboutOpen) Res.string.title_about else destination.title)
     val topBar: @Composable () -> Unit = {
@@ -81,17 +94,20 @@ fun AppShell(
     }
     val content: @Composable (Modifier) -> Unit = { modifier ->
         Box(modifier.fillMaxSize()) {
-            if (aboutOpen) AboutScreen() else DestinationScreen(destination, onOpenAbout)
+            CompositionLocalProvider(LocalMessages provides showMessage) {
+                if (aboutOpen) AboutScreen() else DestinationScreen(destination, services, onOpenAbout)
+            }
         }
     }
 
     when (layout) {
         NavigationLayout.RAIL -> Row(Modifier.fillMaxSize()) {
             KairosNavigationRail(destination.takeUnless { aboutOpen }, onNavigate)
-            Scaffold(topBar = topBar) { padding -> content(Modifier.padding(padding)) }
+            Scaffold(topBar = topBar, snackbarHost = { SnackbarHost(snackbar) }) { padding -> content(Modifier.padding(padding)) }
         }
         NavigationLayout.BOTTOM_BAR -> Scaffold(
             topBar = topBar,
+            snackbarHost = { SnackbarHost(snackbar) },
             bottomBar = { KairosNavigationBar(destination.takeUnless { aboutOpen }, onNavigate) },
         ) { padding -> content(Modifier.padding(padding)) }
         NavigationLayout.TOP_BAR -> Scaffold(
@@ -101,6 +117,7 @@ fun AppShell(
                     KairosTopNavigation(destination.takeUnless { aboutOpen }, onNavigate)
                 }
             },
+            snackbarHost = { SnackbarHost(snackbar) },
         ) { padding -> content(Modifier.padding(padding)) }
     }
 }

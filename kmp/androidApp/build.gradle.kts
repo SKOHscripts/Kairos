@@ -74,4 +74,5 @@ android {
 dependencies {
     implementation(project(":ui"))
     implementation(libs.androidx.activity.compose)
+    implementation(libs.sqldelight.android.driver)
 }

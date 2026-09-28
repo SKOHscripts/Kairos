@@ -31,7 +31,7 @@ jobs:
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
 
       - name: Tests (JVM)
-        run: ./gradlew --no-daemon :core:jvmTest :ui:jvmTest :desktopApp:jvmTest
+        run: ./gradlew --no-daemon :core:jvmTest :data:jvmTest :ui:jvmTest :desktopApp:jvmTest
 
       - name: Builds (APK, bureau, web)
         run: >

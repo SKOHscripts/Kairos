@@ -200,7 +200,7 @@ v3 et dans le nouveau `CLAUDE.md`.
 |---|---|---|
 | Langage | Kotlin 2.x (dernière version stable au démarrage de M0) | — |
 | Interface | Compose Multiplatform (JetBrains) + `material3`, cibles Android, JVM et `wasmJs` | Interface native séparée par plateforme : deux interfaces à maintenir. |
-| Base de données | **SQLDelight 2** en mode **asynchrone** (`generateAsync`) : pilote Android, pilote JDBC `sqlite-jdbc` sur le bureau, pilote *web worker* avec SQLite Wasm officiel stocké dans l'OPFS dans le navigateur. Toute l'API de données est donc `suspend`, sur toutes les plateformes. | Room KMP : pas de cible web. SQLDelight garde un **SQL explicite**, pratique pour importer une base SQLite Python existante et pour écrire des migrations `.sqm` vérifiées. |
+| Base de données | **SQLDelight 2** en mode **asynchrone** (`generateAsync`) : pilote Android, pilote JDBC `sqlite-jdbc` sur le bureau, pilote *web worker* sur sql.js (SQLite en Wasm) dans le navigateur, base en mémoire sauvegardée en JSON (§ 5.3). Toute l'API de données est donc `suspend`, sur toutes les plateformes. | Room KMP : pas de cible web. SQLDelight garde un **SQL explicite**, pratique pour importer une base SQLite Python existante et pour écrire des migrations `.sqm` vérifiées. |
 | Dates et heures | `kotlinx-datetime` | `java.time` : absent du code commun. |
 | Sérialisation (export/import, réglages) | `kotlinx-serialization` (JSON) | — |
 | Navigation | Navigation Compose multiplateforme (`org.jetbrains.androidx.navigation`) | Pile d'états maison : on la garde en repli si la bibliothèque freine. |
@@ -303,9 +303,12 @@ intégrations retirées :
 
 ### 5.3 Données de la version web
 
-- La base SQLite vit dans l'**OPFS** du navigateur (stockage privé de
-  l'origine `skohscripts.github.io`), via le pilote *web worker* de
-  SQLDelight et SQLite Wasm.
+- La base SQLite (sql.js) tourne **en mémoire** dans un worker ; à chaque
+  modification, un instantané JSON (le format d'export) est écrit dans
+  l'**OPFS** du navigateur (stockage privé de l'origine
+  `skohscripts.github.io`). Décision prise au jalon M1 : le stockage SQLite
+  direct dans l'OPFS exige des en-têtes COOP/COEP que GitHub Pages n'envoie
+  pas (`docs/spec-v3/export-import.md` § Décisions).
 - Beaucoup de postes professionnels **vident les données du navigateur** à la
   fermeture. La version web propose donc de **lier la base à un fichier
   local** (API File System Access, disponible dans Edge et Chrome) : chaque

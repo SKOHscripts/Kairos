@@ -20,6 +20,10 @@ kotlin {
     sourceSets {
         wasmJsMain.dependencies {
             implementation(project(":ui"))
+            implementation(libs.sqldelight.web.worker.driver)
+            // sql.js (MIT) : SQLite compilé en Wasm, exécuté par kairos-sqljs.worker.js.
+            implementation(npm("sql.js", "1.14.2"))
+            implementation(devNpm("copy-webpack-plugin", "12.0.2"))
         }
     }
 }

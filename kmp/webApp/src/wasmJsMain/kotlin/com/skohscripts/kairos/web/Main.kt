@@ -13,6 +13,6 @@ fun main() {
     // index.html ; il est retiré dès que l'interface prend la page.
     document.getElementById("kairos-loading")?.remove()
     ComposeViewport(document.body!!) {
-        KairosApp(Platform.WEB)
+        KairosApp(Platform.WEB) { WebServices.open() }
     }
 }

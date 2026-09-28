@@ -1,0 +1,168 @@
+-- Schéma de Kairos 3 (docs/spec-v3/modele-donnees.md). Tables et colonnes de
+-- Kairos 2 (app/tasks_models.py), moins les intégrations retirées.
+-- Dates : TEXT ISO 8601 (« 2026-09-28 »), heures locales naïves : TEXT
+-- (« 2026-09-28T09:30 »), instants : TEXT ISO UTC (« 2026-09-28T07:00:00Z »).
+-- Références entre tables « molles » (sans FOREIGN KEY), comme en Kairos 2.
+
+CREATE TABLE task (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    priority INTEGER,
+    deadline TEXT,
+    project_tag TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'todo',
+    estimated_minutes INTEGER,
+    pinned_start TEXT,
+    parent_id INTEGER,
+    recurrence TEXT NOT NULL DEFAULT '',
+    scheduled_date TEXT,
+    recurrence_day_of_month INTEGER,
+    recurrence_day_of_week INTEGER,
+    recurrence_period TEXT NOT NULL DEFAULT '',
+    task_type TEXT NOT NULL DEFAULT '',
+    fibonacci_points INTEGER,
+    manual_time_spent_minutes INTEGER,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX task_status ON task(status);
+CREATE INDEX task_parent ON task(parent_id);
+
+CREATE TABLE time_block (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL DEFAULT '',
+    start TEXT NOT NULL,
+    end TEXT NOT NULL,
+    kind TEXT NOT NULL DEFAULT 'busy',
+    recurrence TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX time_block_start ON time_block(start);
+
+CREATE TABLE task_dependency (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INTEGER NOT NULL,
+    blocker_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE (task_id, blocker_id)
+);
+CREATE INDEX task_dependency_task ON task_dependency(task_id);
+CREATE INDEX task_dependency_blocker ON task_dependency(blocker_id);
+
+CREATE TABLE work_session (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INTEGER NOT NULL,
+    started_at TEXT NOT NULL,
+    ended_at TEXT,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX work_session_task ON work_session(task_id);
+
+CREATE TABLE note (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    body TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'open',
+    converted_task_id INTEGER,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX note_status ON note(status);
+
+-- Réglages : une seule ligne (id = 1), JSON de com.skohscripts.kairos.core.model.Settings.
+CREATE TABLE settings (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    json TEXT NOT NULL
+);
+
+-- Tâches ---------------------------------------------------------------------
+
+allTasks:
+SELECT * FROM task ORDER BY id;
+
+insertTask:
+INSERT INTO task (title, description, priority, deadline, project_tag, status, estimated_minutes,
+    pinned_start, parent_id, recurrence, scheduled_date, recurrence_day_of_month,
+    recurrence_day_of_week, recurrence_period, task_type, fibonacci_points,
+    manual_time_spent_minutes, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+insertTaskWithId:
+INSERT INTO task VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+lastInsertedId:
+SELECT last_insert_rowid();
+
+updateTask:
+UPDATE task SET title = ?, description = ?, priority = ?, deadline = ?, project_tag = ?, status = ?,
+    estimated_minutes = ?, pinned_start = ?, parent_id = ?, recurrence = ?, scheduled_date = ?,
+    recurrence_day_of_month = ?, recurrence_day_of_week = ?, recurrence_period = ?, task_type = ?,
+    fibonacci_points = ?, manual_time_spent_minutes = ?, updated_at = ?
+WHERE id = ?;
+
+deleteTask:
+DELETE FROM task WHERE id = ?;
+
+deleteAllTasks:
+DELETE FROM task;
+
+-- Créneaux ---------------------------------------------------------------------
+
+allTimeBlocks:
+SELECT * FROM time_block ORDER BY start, id;
+
+insertTimeBlockWithId:
+INSERT INTO time_block VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteAllTimeBlocks:
+DELETE FROM time_block;
+
+-- Dépendances ------------------------------------------------------------------
+
+allDependencies:
+SELECT * FROM task_dependency ORDER BY id;
+
+insertDependencyWithId:
+INSERT INTO task_dependency VALUES (?, ?, ?, ?);
+
+deleteDependenciesOf:
+DELETE FROM task_dependency WHERE task_id = :taskId OR blocker_id = :taskId;
+
+deleteAllDependencies:
+DELETE FROM task_dependency;
+
+-- Sessions ---------------------------------------------------------------------
+
+allWorkSessions:
+SELECT * FROM work_session ORDER BY id;
+
+insertWorkSessionWithId:
+INSERT INTO work_session VALUES (?, ?, ?, ?, ?);
+
+closeOpenSessionsOf:
+UPDATE work_session SET ended_at = ? WHERE task_id = ? AND ended_at IS NULL;
+
+deleteAllWorkSessions:
+DELETE FROM work_session;
+
+-- Notes ------------------------------------------------------------------------
+
+allNotes:
+SELECT * FROM note ORDER BY id;
+
+insertNoteWithId:
+INSERT INTO note VALUES (?, ?, ?, ?, ?, ?);
+
+deleteAllNotes:
+DELETE FROM note;
+
+-- Réglages ---------------------------------------------------------------------
+
+readSettings:
+SELECT json FROM settings WHERE id = 1;
+
+writeSettings:
+INSERT OR REPLACE INTO settings (id, json) VALUES (1, ?);
+
+deleteSettings:
+DELETE FROM settings;

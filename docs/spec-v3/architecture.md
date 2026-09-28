@@ -49,15 +49,21 @@ Linux, macOS) et dans un navigateur récent, à partir d'**un seul code**.
 
 | Module | Plugin(s) | Cibles | Rôle |
 |---|---|---|---|
-| `core` | KMP + bibliothèque Android KMP | JVM, Android, wasmJs | Code métier **pur**. En M0 : `AppVersion` (analyse, comparaison, `versionCode`) et `KairosBuild` (version, générée). |
-| `ui` | KMP + bibliothèque Android KMP + Compose | JVM, Android, wasmJs | Interface commune : thème, icônes, logo, navigation, écrans, chaînes FR/EN, polices. |
-| `androidApp` | application Android + compilateur Compose | Android | Activité, ressources de lancement (icône, écran de démarrage). |
-| `desktopApp` | KMP + Compose Desktop | JVM | `main()`, fenêtre, instance unique, journal de crash, auto-test, installeurs et image portable. |
-| `webApp` | KMP + Compose | wasmJs | `main()` navigateur, `index.html`. |
-| `data` | (jalon M1) | JVM, Android, wasmJs | Base SQLDelight, dépôts, export et import. |
+| `core` | KMP + bibliothèque Android KMP + sérialisation | JVM, Android, wasmJs | Code métier **pur** : `AppVersion`, `KairosBuild` (version, générée), modèle (`model/`), données d'exemple. |
+| `data` | KMP + bibliothèque Android KMP + SQLDelight + sérialisation | JVM, Android, wasmJs | Schéma et requêtes SQLDelight (asynchrones), ouverture et migrations (`KairosStore`), dépôt (`KairosRepository`), format d'export (`ExportCodec`). Sans pilote : chaque application fournit le sien. |
+| `ui` | KMP + bibliothèque Android KMP + Compose | JVM, Android, wasmJs | Interface commune : thème, icônes, logo, navigation, écrans, chaînes FR/EN, polices ; contrat des services de plateforme (`app/AppServices.kt`). |
+| `androidApp` | application Android + compilateur Compose | Android | Activité, services Android (pilote SQLite, sélecteurs de fichiers), ressources de lancement. |
+| `desktopApp` | KMP + Compose Desktop | JVM | `main()`, fenêtre, services du bureau (pilote JDBC, boîtes de dialogue), instance unique, journal de crash, auto-test, installeurs et image portable. |
+| `webApp` | KMP + Compose | wasmJs | `main()` navigateur, services web (worker sql.js, OPFS, fichier lié), `index.html`, scripts navigateur. |
 
-Graphe : `androidApp`, `desktopApp` et `webApp` → `ui` → `core` (`ui` expose
-`core` en `api`).
+Graphe : `androidApp`, `desktopApp` et `webApp` → `ui` → `data` → `core`
+(chaque module expose le suivant en `api`).
+
+**Services de plateforme** : l'interface reçoit un `AppServices` (dépôt
+ouvert, `FileService`, `BackupStore`, emplacement des données, fichier lié
+de la version web, horloge), construit par chaque application et passé à
+`KairosApp(platform) { … }` sous forme de fonction suspendue (ouverture
+asynchrone de la base).
 
 ### Pile technique (versions dans `kmp/gradle/libs.versions.toml`)
 
@@ -67,7 +73,11 @@ Graphe : `androidApp`, `desktopApp` et `webApp` → `ui` → `core` (`ui` expose
   `org.jetbrains.kotlin.plugin.compose`), `material3`, ressources Compose,
   `ui-backhandler` (retour système et Échap).
 - `androidx.activity:activity-compose` 1.13.0.
-- `kotlinx-coroutines` 1.11.0 (`-swing` sur le bureau).
+- `kotlinx-coroutines` 1.11.0 (`-swing` sur le bureau), `kotlinx-datetime`
+  0.8.0, `kotlinx-serialization-json` 1.11.0.
+- SQLDelight 2.4.0 (`android-driver`, `sqlite-driver` pour le bureau et les
+  tests, `web-worker-driver`, `async-extensions`) ; sql.js 1.14.2 (npm) et
+  `copy-webpack-plugin` 12.0.2 (npm, build) pour la version web.
 - JDK 21 partout (`jvmToolchain(21)`, Java 21 pour Android).
 - Android : `compileSdk 37` (exigé par Compose 1.12), `targetSdk 36`,
   `minSdk 26`.
@@ -120,5 +130,16 @@ Graphe : `androidApp`, `desktopApp` et `webApp` → `ui` → `core` (`ui` expose
   développement, `repo.maven.apache.org` renvoie des 429. Un script
   d'initialisation Gradle **local, non commité** y ajoute le miroir Google de
   Central. Le dépôt lui-même ne déclare que `google()` et `mavenCentral()`.
-- **Pas de bibliothèque de navigation en M0** : état Compose (destination +
+- **Pas de bibliothèque de navigation** : état Compose (destination +
   « À propos » ouvert) ; voir `navigation-theme.md` § Décisions.
+- **Pas de ViewModel** : les écrans lisent le `StateFlow` du dépôt et
+  appellent ses opérations dans une coroutine d'écran ; l'état vit dans la
+  base, une recréation d'activité Android ne perd rien.
+- **Tester la version web dans le conteneur** : la distribution webpack y est
+  impossible (paquet npm servi par `codeload.github.com`, bloqué), mais la
+  sortie de `:webApp:compileProductionExecutableKotlinWasmJs`
+  (`kairos.mjs`, `kairos.wasm`…) se sert telle quelle, avec `skiko.mjs` /
+  `skiko.wasm` (`build/wasm/packages_imported/skiko-js-wasm-runtime/`),
+  `@js-joda/core` en module ES par une `importmap`, `sql-wasm.js` /
+  `sql-wasm.wasm` et les ressources traitées ; Chromium (Playwright) la pilote
+  ensuite.

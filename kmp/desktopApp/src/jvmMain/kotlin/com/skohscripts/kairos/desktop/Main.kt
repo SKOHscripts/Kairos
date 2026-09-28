@@ -48,7 +48,7 @@ fun main(args: Array<String>) {
                     awtWindow.requestFocus()
                 }
             }
-            KairosApp(Platform.DESKTOP)
+            KairosApp(Platform.DESKTOP) { DesktopServices.open(dataDir) }
         }
     }
 }

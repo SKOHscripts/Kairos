@@ -25,7 +25,10 @@ plan § 2.2). Un domaine n'apparaît ici qu'une fois son jalon commencé.
 | [`architecture.md`](architecture.md) | Modules Gradle, pile technique, invariants (pureté de `core`, aucune dépendance non libre), versions. | M0 |
 | [`navigation-theme.md`](navigation-theme.md) | Thème MD3 « miel », typographie, icônes, logo, coquille de navigation (rail, barre haute, barre basse Android), écrans, « À propos et guide ». | M0 |
 | [`i18n.md`](i18n.md) | Langues (français par défaut, anglais), ressources de chaînes, choix de la langue. | M0 |
-| [`distribution.md`](distribution.md) | Versionnage, APK Android, installeurs et zips portables de bureau, version web, CI, releases. | M0 |
+| [`distribution.md`](distribution.md) | Versionnage, APK Android, installeurs et zips portables de bureau, version web, CI, releases, GitHub Pages. | M0, M1 |
+| [`modele-donnees.md`](modele-donnees.md) | Modèle (tâches, créneaux, dépendances, sessions, notes, réglages), stockage SQLDelight, ouverture et migrations, dépôt, exemples. | M1 |
+| [`vue-jour.md`](vue-jour.md) | Vue Jour : capture, « À traiter » et qualification en un clic, « À faire », « Fait », édition. | M1 |
+| [`export-import.md`](export-import.md) | Export et import JSON, sauvegardes, données de la version web (OPFS, fichier lié). | M1 |
 
 ## Références transverses
 

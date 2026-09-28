@@ -1,0 +1,84 @@
+# GitHub Pages de Kairos (docs/spec-v3/distribution.md § GitHub Pages).
+#
+# - /preview/ : version web construite depuis main (préversion, change à chaque push) ;
+# - /app/     : version web de la dernière release stable v3 (fichier Kairos-web.zip
+#               de la release), absente tant qu'aucune 3.x finale n'est publiée ;
+# - /         : page d'accueil provisoire (la vraie page de téléchargement arrive au
+#               jalon M6).
+#
+# Prérequis, une fois : Settings → Pages → Source : « GitHub Actions ».
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ["kmp/**", ".github/workflows/pages.yml"]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Version web (préversion, main)
+        working-directory: kmp
+        run: ./gradlew --no-daemon :webApp:wasmJsBrowserDistribution
+      - name: Assembler le site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p site/preview
+          cp -r kmp/webApp/build/dist/wasmJs/productionExecutable/. site/preview/
+          # Dernière release stable v3 (jamais une préversion) : sa version web sous /app/.
+          stable=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-pre-releases --exclude-drafts --limit 50 \
+            --json tagName --jq '[.[].tagName | select(startswith("v3."))][0] // empty')
+          if [ -n "$stable" ] && gh release download "$stable" --repo "$GITHUB_REPOSITORY" --pattern Kairos-web.zip --dir "$RUNNER_TEMP"; then
+            mkdir -p site/app && unzip -q "$RUNNER_TEMP/Kairos-web.zip" -d site/app
+            app_link='<p><a href="app/">Utiliser Kairos dans le navigateur</a> (version '"${stable#v}"')</p>'
+          else
+            app_link='<p>Aucune version stable de Kairos 3 n’est encore publiée.</p>'
+          fi
+          cat > site/index.html <<HTML
+          <!doctype html>
+          <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Kairos</title>
+          <style>body{margin:0;padding:32px 16px;background:#FFF8F4;color:#201B13;font:16px/24px system-ui,sans-serif}main{max-width:640px;margin:auto}a{color:#7F5610}</style>
+          </head><body><main>
+          <h1>Kairos</h1>
+          <p>Le bon moment pour chaque tâche. La page de téléchargement arrive bientôt.</p>
+          ${app_link}
+          <p><a href="preview/">Préversion web de Kairos 3</a> (en construction, les données restent dans ce navigateur).</p>
+          <p><a href="https://github.com/${GITHUB_REPOSITORY}/releases">Téléchargements (releases GitHub)</a></p>
+          </main></body></html>
+          HTML
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

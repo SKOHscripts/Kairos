@@ -16,6 +16,7 @@ kotlin {
             implementation(project(":ui"))
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
+            implementation(libs.sqldelight.sqlite.driver)
         }
         jvmTest.dependencies {
             implementation(kotlin("test"))

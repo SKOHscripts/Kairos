@@ -29,6 +29,17 @@ ICONS = {
     "ChevronRight": ("chevron_right", False),
     "OpenInNew": ("open_in_new", False),
     "Construction": ("construction", False),
+    "CheckCircle": ("check_circle", True),
+    "RadioUnchecked": ("radio_button_unchecked", False),
+    "Edit": ("edit", False),
+    "Delete": ("delete", False),
+    "Add": ("add", False),
+    "Upload": ("upload", False),
+    "Download": ("download", False),
+    "ExpandMore": ("keyboard_arrow_down", False),
+    "ExpandLess": ("keyboard_arrow_up", False),
+    "Inbox": ("inbox", False),
+    "Warning": ("warning", False),
 }
 
 

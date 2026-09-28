@@ -70,6 +70,8 @@ et décisions : `docs/plan-v3-kotlin.md`. Pendant la transition :
   (`kmp/gradle.properties`, source unique : `kairos.versionName` et
   `kairos.versionCode`, formule dans `docs/spec-v3/distribution.md`) **et un
   tag** `v3.0.0-alpha.N` qui déclenche `kmp-release.yml` (préversion GitHub).
+  L'environnement de développement ne peut pas pousser de tag : le
+  propriétaire du dépôt le pose sur le commit du jalon.
 - **Architecture** (`docs/spec-v3/architecture.md`) : `core` reste **pur**
   (ni Compose, ni plateforme, ni horloge, ni I/O : l'heure et les réglages
   sont des paramètres) ; toute interface vit dans `ui` ; dépendances
@@ -94,9 +96,11 @@ et décisions : `docs/plan-v3-kotlin.md`. Pendant la transition :
 - **Textes** : aucun texte d'interface en dur. Français (`values/`) **et**
   anglais (`values-en/`) à chaque ajout, apostrophe typographique `’`
   (`StringsParityTest`, `docs/spec-v3/i18n.md`).
-- **Vérifier avant de pousser** : `cd kmp && ./gradlew :core:jvmTest :ui:jvmTest
-  :desktopApp:jvmTest`, et pour l'interface `./gradlew :desktopApp:run
-  --args=--self-test=/tmp/captures` (rendu hors écran, à regarder).
+- **Vérifier avant de pousser** : `cd kmp && ./gradlew :core:jvmTest :data:jvmTest
+  :ui:jvmTest :desktopApp:jvmTest`, et pour l'interface `./gradlew :desktopApp:run
+  --args=--self-test=/tmp/captures` (rendu hors écran, à regarder). La version
+  web se teste dans Chromium à partir de la sortie compilée
+  (`docs/spec-v3/architecture.md` § Décisions).
 
 Les sections suivantes (charte, navigation, mobile) décrivent la charte
 commune et, dans leurs détails HTML/CSS, le code Kairos 2.
