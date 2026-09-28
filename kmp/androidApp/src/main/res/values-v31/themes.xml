@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- API 31+ : écran de démarrage système avec l'icône animée de Kairos 2
+         (le secteur du cadran balaie de midi à sa position, 700 ms). -->
+    <style name="Theme.Kairos" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/kairos_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowSplashScreenBackground">@color/kairos_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/kairos_splash_icon</item>
+        <item name="android:windowSplashScreenAnimationDuration">700</item>
+    </style>
+</resources>

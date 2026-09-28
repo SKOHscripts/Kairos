@@ -320,7 +320,9 @@ pour github.com). Volontairement distincts de `gitlab_url`/`gitlab_token`.
 
 ### CI
 
-- `.github/workflows/release.yml` : `write_build_info.py` (tag ou
+- `.github/workflows/release.yml` (tags `v1.*` et `v2.*` seulement : les tags
+  `v3.*` de la réécriture Kotlin sont publiés par `kmp-release.yml`, voir
+  `docs/spec-v3/distribution.md`) : `write_build_info.py` (tag ou
   `0.0.0-dev`, `github.server_url`, `github.repository`) avant PyInstaller et
   avant Gradle ; artefacts fusionnés (`merge-multiple`) puis `sha256sum
   kairos-* > SHA256SUMS` publié avec la release.

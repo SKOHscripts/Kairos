@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fond de fenêtre (android:windowBackground, themes.xml) : couleur de l'app
+     et logo centré dans une boîte de 288dp. Avant l'API 31, c'est lui que le
+     système affiche comme fenêtre de démarrage, du geste de lancement à la
+     première image de MainActivity : sans logo, cette phase (démarrage du
+     process + création de la WebView, jusqu'à plusieurs secondes sur un
+     appareil modeste) n'était qu'un aplat clair uni, perçu comme un écran
+     blanc. À partir de l'API 31, le splash système le remplace pendant cette
+     phase ; il reste dessous le contenu, toujours couvert. Dimensions
+     d'élément de layer-list (API 23+, minSdk 24). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/kairos_bg" />
+    <item
+        android:width="288dp"
+        android:height="288dp"
+        android:gravity="center"
+        android:drawable="@drawable/kairos_splash_logo" />
+</layer-list>

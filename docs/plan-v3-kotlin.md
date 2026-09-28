@@ -1,7 +1,9 @@
 # Plan d'attaque : Kairos 3, réécriture Kotlin Multiplatform
 
-_Statut : **proposition à valider** (étape 1 du workflow de `CLAUDE.md` :
-« spécifier d'abord »). Rien n'est implémenté. Une fois ce plan validé, il
+_Statut : **validé le 2026-09-28** (étape 1 du workflow de `CLAUDE.md` :
+« spécifier d'abord »), avec les réponses de l'utilisateur au § 12 et l'ajout
+d'une version web et d'un zip portable pour les postes sans droit
+d'installation (§ 1). Une fois ce plan validé, il
 sert de feuille de route. Chaque jalon rédige ou met à jour sa spec de domaine
 avant de coder, et la tient bijective avec le code livré._
 
@@ -14,13 +16,18 @@ avant de coder, et la tient bijective avec le code livré._
 1. Une application **Android native** (Kotlin, Jetpack Compose), prête pour
    **IzzyOnDroid** et **F-Droid** : compilable depuis les sources, sans
    dépendance propriétaire, sans anti-fonctionnalité.
-2. Des applications **de bureau Windows, Linux et macOS**, issues du même code.
+2. Des applications **de bureau Windows, Linux et macOS**, issues du même code,
+   en installeur **et en zip portable** (dézipper, lancer : aucune
+   installation, aucun droit administrateur).
 3. Une **page web sur GitHub Pages** qui présente Kairos et donne le bon
    installeur pour chaque OS, plus les liens F-Droid et IzzyOnDroid.
+4. Une **version web** de l'application, servie par la même page GitHub
+   Pages, pour les postes professionnels verrouillés : elle tourne dans Edge
+   ou Chrome, sans rien installer, et garde ses données sur le poste (§ 5.4).
 
 **Choix structurant.** On passe à **Kotlin Multiplatform + Compose
 Multiplatform** : un seul code métier et un seul code d'interface, pour
-Android et pour le bureau (JVM). Le serveur local Python, la WebView, Chaquopy
+Android, le bureau (JVM) et le navigateur (Kotlin/Wasm). Le serveur local Python, la WebView, Chaquopy
 et PyInstaller disparaissent.
 
 **Méthode.**
@@ -58,6 +65,9 @@ et PyInstaller disparaissent.
 | Langues | **Français + anglais dès le départ** (français par défaut). |
 | Synchronisation | Aucune. Chaque appareil a sa base locale, avec **export/import manuel** d'un fichier (sauvegarde, changement d'appareil). |
 | Méthode | Plan complet d'abord (ce document), puis version packagée après version packagée, en suivant une spec complète. |
+| Postes pro sans installation | Deux réponses : un **zip portable** par OS (équivalent de l'exécutable PyInstaller actuel, qui tourne déjà sur ces postes) et une **version web** (Kotlin/Wasm) sur GitHub Pages, base dans le navigateur liée à un fichier local. Navigateur visé sur ces postes : **Edge ou Chrome**. |
+| `CLAUDE.md` | Peut être remis en cause : il est réécrit pour la v3 (§ 3, § 8). |
+| Questions du § 12 | Toutes acceptées telles que proposées. |
 
 ---
 
@@ -189,8 +199,8 @@ v3 et dans le nouveau `CLAUDE.md`.
 | Besoin | Choix | Alternatives écartées |
 |---|---|---|
 | Langage | Kotlin 2.x (dernière version stable au démarrage de M0) | — |
-| Interface | Compose Multiplatform (JetBrains) + `material3` | Interface native séparée par plateforme : deux interfaces à maintenir. |
-| Base de données | **SQLDelight 2** (SQLite ; pilote Android et pilote JDBC `sqlite-jdbc` sur le bureau) | Room KMP : viable, mais demande KSP. SQLDelight garde un **SQL explicite**, pratique pour importer une base SQLite Python existante et pour écrire des migrations `.sqm` vérifiées. |
+| Interface | Compose Multiplatform (JetBrains) + `material3`, cibles Android, JVM et `wasmJs` | Interface native séparée par plateforme : deux interfaces à maintenir. |
+| Base de données | **SQLDelight 2** en mode **asynchrone** (`generateAsync`) : pilote Android, pilote JDBC `sqlite-jdbc` sur le bureau, pilote *web worker* avec SQLite Wasm officiel stocké dans l'OPFS dans le navigateur. Toute l'API de données est donc `suspend`, sur toutes les plateformes. | Room KMP : pas de cible web. SQLDelight garde un **SQL explicite**, pratique pour importer une base SQLite Python existante et pour écrire des migrations `.sqm` vérifiées. |
 | Dates et heures | `kotlinx-datetime` | `java.time` : absent du code commun. |
 | Sérialisation (export/import, réglages) | `kotlinx-serialization` (JSON) | — |
 | Navigation | Navigation Compose multiplateforme (`org.jetbrains.androidx.navigation`) | Pile d'états maison : on la garde en repli si la bibliothèque freine. |
@@ -219,10 +229,11 @@ kmp/
 │   ├── time/         agrégats de sessions, staleness, surcharge
 │   ├── stats/        indicateurs, calibration, guide des points
 │   └── alerts/       calcul des seuils du chrono (pur : quand notifier)
-├── data/          # KMP : SQLDelight, dépôts, export/import JSON, migration legacy
+├── data/          # KMP : SQLDelight, dépôts, export/import JSON, migration legacy (créé en M1)
 ├── ui/            # KMP Compose : thème miel, composants, écrans, ViewModels, ressources i18n
 ├── androidApp/    # Activity, notifications, alarmes, icône, métadonnées
-└── desktopApp/    # main(), fenêtre, plateau, notifications, instance unique, jpackage
+├── desktopApp/    # main(), fenêtre, plateau, notifications, instance unique, jpackage, zip portable
+└── webApp/        # main() wasmJs, index.html, stockage OPFS et fichier lié
 ```
 
 **Invariant d'architecture** : `core` est **pur**, comme aujourd'hui
@@ -290,7 +301,25 @@ intégrations retirées :
 - Aucun appel réseau : ni le fichier ni les données ne quittent l'appareil
   sans geste de l'utilisateur.
 
-### 5.3 Migration depuis la version Python
+### 5.3 Données de la version web
+
+- La base SQLite vit dans l'**OPFS** du navigateur (stockage privé de
+  l'origine `skohscripts.github.io`), via le pilote *web worker* de
+  SQLDelight et SQLite Wasm.
+- Beaucoup de postes professionnels **vident les données du navigateur** à la
+  fermeture. La version web propose donc de **lier la base à un fichier
+  local** (API File System Access, disponible dans Edge et Chrome) : chaque
+  modification y est recopiée, et au lancement, si l'OPFS est vide, la base
+  est rechargée depuis ce fichier. Le navigateur redemande l'accord de
+  l'utilisateur à chaque session, sauf s'il a choisi « Autoriser à chaque
+  visite ».
+- Sans fichier lié, un bandeau permanent rappelle le risque et propose
+  l'export. Le format du fichier lié est celui de l'export JSON (§ 5.2).
+  Ainsi, le même fichier s'ouvre dans l'application de bureau ou sur Android.
+- `navigator.storage.persist()` est demandé au premier lancement pour limiter
+  l'éviction automatique.
+
+### 5.4 Migration depuis la version Python
 
 | Cible | Mécanisme |
 |---|---|
@@ -354,7 +383,7 @@ l'installation par-dessus fonctionne pour eux.
   `fdroid build` dans le conteneur `fdroidserver` en CI, avant toute
   soumission.
 
-### 6.2 Bureau (Windows, Linux, macOS)
+### 6.2 Bureau (Windows, Linux, macOS) et postes sans installation
 
 - Plugin Compose Desktop, cible `nativeDistributions` (jpackage, runtime Java
   réduit par `jlink` et embarqué) :
@@ -362,6 +391,12 @@ l'installation par-dessus fonctionne pour eux.
     remplace la précédente ;
   - Linux : `.deb`, plus une archive `.tar.gz` portable ;
   - macOS : `.dmg`, une version Apple Silicon et une version Intel.
+- **Zip portable** pour chaque OS (`Kairos-windows-x64-portable.zip`,
+  `Kairos-linux-x64-portable.tar.gz`, `Kairos-macos-arm64-portable.zip`) :
+  l'image d'application produite par `createDistributable` (lanceur + runtime
+  Java embarqué), à dézipper n'importe où et à lancer, sans installation ni
+  droit administrateur. C'est l'équivalent de l'exécutable PyInstaller
+  actuel. Les données restent dans le dossier de données de l'utilisateur.
 - jpackage **ne compile pas pour un autre OS** : chaque installeur est produit
   sur un runner de son OS (matrice GitHub Actions `ubuntu`, `windows`,
   `macos` arm64 et x64).
@@ -386,7 +421,7 @@ l'installation par-dessus fonctionne pour eux.
     l'exécutable. C'est une **régression assumée** du « clic pour mettre à
     jour », à valider.
 
-### 6.3 Page GitHub Pages
+### 6.3 Page GitHub Pages et version web
 
 - Site statique dans `site/`, déployé par GitHub Actions
   (`actions/deploy-pages`) à chaque release et à chaque modification de
@@ -406,6 +441,12 @@ l'installation par-dessus fonctionne pour eux.
   (et ainsi de suite).
 - Un petit script facultatif détecte l'OS du visiteur pour mettre son bouton
   en avant. La page reste complète sans JavaScript.
+- La **version web** de l'application est servie au même endroit, sous
+  `/app/`. C'est le bouton « Utiliser dans le navigateur (sans installation) »,
+  pour Edge et Chrome récents : Kotlin/Wasm exige WasmGC, présent depuis
+  Chrome et Edge 119.
+- Pendant les alphas, la version web de préversion est publiée sous
+  `/preview/`, pour ne jamais remplacer une version stable.
 
 ### 6.4 CI (GitHub Actions)
 
@@ -413,7 +454,7 @@ l'installation par-dessus fonctionne pour eux.
 |---|---|---|
 | `ci.yml` | push et PR | Tests du code commun et JVM, lint (`ktlint` ou `detekt`), build de l'APK debug. Tests Python conservés **jusqu'à la bascule**, ainsi que les tests différentiels. |
 | `release.yml` | tag `v*` | Vérification tag = version ; APK signé (secrets `KAIROS_KEYSTORE_*` existants, **même clé**) ; installeurs sur trois OS ; `SHA256SUMS` ; release GitHub, en **préversion** si le tag a un suffixe. |
-| `pages.yml` | release publiée, modification de `site/` | Déploiement de la page. |
+| `pages.yml` | release publiée, modification de `site/` | Déploiement de la page et de la version web (`/app/` pour une release, `/preview/` pour une préversion). |
 | `fdroid-check.yml` | tag, ou manuel | `fdroid lint` et `fdroid build` de la recette dans le conteneur officiel, puis comparaison de reproductibilité avec l'APK publié. |
 
 ---
@@ -498,8 +539,8 @@ plus).
 
 | Jalon | Version | Contenu | Taille | Critère de sortie |
 |---|---|---|---|---|
-| **M0 — Fondations** | alpha.1 | Squelette Gradle `kmp/` (5 modules), catalogue de versions, thème miel `material3`, Roboto, générateur d'icônes, logo et icône adaptative, **coquille de navigation** (rail sur le bureau, barre basse sur Android compact), écrans vides, i18n FR/EN en place, CI complète (tests, APK, trois installeurs, release en préversion), instance unique sur le bureau. Specs : `architecture.md`, `distribution.md` (version initiale), `i18n.md`. | M | Les **quatre installeurs** s'installent et s'ouvrent sur Windows, Linux, macOS et Android. Ce jalon lève tôt les risques de packaging, notamment macOS. |
-| **M1 — Données et tâches** | alpha.2 | Schéma SQLDelight et migrations, dépôts, exemples au premier lancement, capture, boîte de réception et qualification en un clic, dialogue d'édition (champs essentiels), fait, suppression, **export et import JSON**. Portage de `test_tasks_models`, `test_tasks_seed`. | M | On crée, qualifie, édite, supprime et exporte des tâches. L'export réimporté redonne la même base. |
+| **M0 — Fondations** | alpha.1 | Squelette Gradle `kmp/` (`core`, `ui`, `androidApp`, `desktopApp`, `webApp`), catalogue de versions, thème miel `material3`, Roboto, générateur d'icônes, logo et icône adaptative, **coquille de navigation** (rail sur le bureau, barre basse sur Android compact), écrans vides, i18n FR/EN en place, CI complète (tests, APK, trois installeurs, **zips portables**, version web, release en préversion), instance unique sur le bureau. Specs : `architecture.md`, `distribution.md` (version initiale), `i18n.md`. | M | Les installeurs et les zips portables s'ouvrent sur Windows, Linux, macOS et Android. La coquille web s'affiche dans Chrome et Edge. Ce jalon lève tôt les risques de packaging, notamment macOS. |
+| **M1 — Données et tâches** | alpha.2 | Schéma SQLDelight et migrations, dépôts, exemples au premier lancement, capture, boîte de réception et qualification en un clic, dialogue d'édition (champs essentiels), fait, suppression, **export et import JSON**. Version web : base OPFS, **fichier lié** (Edge, Chrome), publication de la préversion web sous `/preview/`. Portage de `test_tasks_models`, `test_tasks_seed`. | L | On crée, qualifie, édite, supprime et exporte des tâches. L'export réimporté redonne la même base. |
 | **M2 — Moteur et vue Jour** | alpha.3 | `core` : WSJF, placement, creux, deep work, épinglage, dépendances, récurrences, jours fériés, snooze, staleness, surcharge. **Tests différentiels** en place. Vue Jour complète : Maintenant, agenda ordonné, sections secondaires, créneaux et deep work, timeline, « Pourquoi à cette place ? », filtres, recherche, backlog, sous-tâches, bloqueurs, récurrence dans l'édition, raccourcis `N` et `/`. | L | Les fixtures différentielles passent à 100 %. Les critères de succès de `ordonnancement.md`, `dependances.md`, `recurrence.md` et `vue-jour-gtd.md` sont vérifiés. |
 | **M3 — Temps réel** | alpha.4 | Sessions, chrono vivant, temps du jour et de la semaine par type, trois alertes, notifications Android (permanente, alarmes) et bureau (plateau), son en option, repli dans la fenêtre. | M | Critères de `temps-reel-chrono.md`. Un chrono survit à la fermeture de l'application et au redémarrage du téléphone. |
 | **M4 — Notes, Semaine, Stats** | alpha.5 | Page Notes (avec édition), vue Semaine, tableau de bord de statistiques, guide des points fondé sur l'historique. | M | Critères de `notes-capture.md` et `statistiques.md`. Fixtures différentielles de `tasks_stats`. |
@@ -538,6 +579,7 @@ Ordre justifié :
 | macOS : pas de Mac pour tester, pas de notarisation | Test de démarrage en CI sur un runner macOS dès M0. Contournement Gatekeeper documenté. Notarisation différée. |
 | Compose Desktop moins mûr que Compose Android (texte, clavier, notifications) | Coquille et raccourcis testés dès M0 et M2. Notifications de plateau à défaut de notifications natives riches. |
 | F-Droid refuse ou ralentit la revue | Recette validée en CI (`fdroid build`) avant soumission, zéro permission réseau, zéro dépendance non libre. IzzyOnDroid publie de toute façon, souvent en quelques jours. |
+| Version web : Compose pour le web encore en Beta, navigateur qui vide ses données | Web ajoutée en cible dès M0 (on voit tôt ce qui casse). Fichier lié et bandeau de risque (§ 5.3). Le zip portable reste la solution de repli sûre sur les postes pro. |
 | Taille de l'APK (limite IzzyOnDroid d'environ 30 Mo) | Compose + R8 : de l'ordre de 5 à 10 Mo attendus. Taille surveillée en CI. |
 | Chantier long, lassitude, double maintenance | Le Python est **gelé** (correctifs seulement). Chaque jalon livre un produit installable, utilisable en « Preview ». |
 | Migration Android impossible en cas de changement de clé | Même clé conservée (secrets existants). Export JSON en recours. |
@@ -545,7 +587,9 @@ Ordre justifié :
 
 ---
 
-## 12. Questions ouvertes (à trancher avant ou pendant M0)
+## 12. Questions tranchées le 2026-09-28
+
+Toutes les propositions ci-dessous ont été **acceptées** par l'utilisateur.
 
 1. **Navigation à cinq destinations** : « Accueil » devient « À propos et
    guide » dans les Réglages (§ 3, point 4). D'accord ?

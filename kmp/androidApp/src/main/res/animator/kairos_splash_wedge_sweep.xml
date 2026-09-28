@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Anime le secteur du cadran (path "wedge" de kairos_splash_icon_base.xml) d'un
+     sweep nul (aiguille collapsée à midi, aucune aire visible) jusqu'au tracé
+     final identique au logo statique (secteur 80° depuis midi, coordonnées
+     reprises telles quelles de ic_launcher_foreground.xml). Morph de `pathData`
+     par 5 images-clés (0/20/40/60/80°, coordonnées calculées sur le cercle de
+     rayon 16 — cx+16·sinθ, cy-16·cosθ) plutôt qu'un simple `valueFrom`/`valueTo`
+     à deux points : l'interpolation d'un `pathData` bouge les coordonnées de
+     l'arc en ligne droite (corde), jamais l'angle réel — sur un seul segment de
+     0 à 80°, la corde coupe jusqu'à ~3.7 sur un rayon de 16 au milieu du geste
+     (secteur visiblement "aplati" à mi-course). Avec des images-clés tous les
+     20°, l'écart tombe à ~0.24, imperceptible. -->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <objectAnimator
+        android:propertyName="pathData"
+        android:duration="700"
+        android:valueType="pathType"
+        android:interpolator="@android:interpolator/fast_out_slow_in">
+        <propertyValuesHolder android:propertyName="pathData">
+            <keyframe android:fraction="0" android:value="M20,20 L20,4 A16,16 0 0 1 20,4 Z" />
+            <keyframe android:fraction="0.25" android:value="M20,20 L20,4 A16,16 0 0 1 25.47,4.96 Z" />
+            <keyframe android:fraction="0.5" android:value="M20,20 L20,4 A16,16 0 0 1 30.28,7.74 Z" />
+            <keyframe android:fraction="0.75" android:value="M20,20 L20,4 A16,16 0 0 1 33.86,12.00 Z" />
+            <keyframe android:fraction="1" android:value="M20,20 L20,4 A16,16 0 0 1 35.76,17.22 Z" />
+        </propertyValuesHolder>
+    </objectAnimator>
+</set>

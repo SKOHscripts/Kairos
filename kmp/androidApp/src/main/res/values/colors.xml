@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fond de l'icône adaptative : le cadran du logo, ton 95 de la graine miel
+         (docs/DESIGN_SYSTEM.md § Logo). -->
+    <color name="ic_launcher_background">#FFEEDC</color>
+    <!-- Rôle MD3 « surface » (KairosColors.kt) : fond des fenêtres de démarrage. -->
+    <color name="kairos_bg">#FFF8F4</color>
+</resources>

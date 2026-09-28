@@ -1,0 +1,55 @@
+# CI de Kairos 3 (kmp/, docs/spec-v3/distribution.md § CI) : tests et builds
+# des quatre cibles à chaque PR et push sur main.
+name: Kairos 3 (KMP)
+
+on:
+  push:
+    branches: [main]
+    paths: ["kmp/**", ".github/workflows/kmp*.yml"]
+  pull_request:
+    paths: ["kmp/**", ".github/workflows/kmp*.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kmp
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Compose 1.12 compile contre l'API 37 (docs/spec-v3/architecture.md).
+      - name: Plateforme Android 37
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
+
+      - name: Tests (JVM)
+        run: ./gradlew --no-daemon :core:jvmTest :ui:jvmTest :desktopApp:jvmTest
+
+      - name: Builds (APK, bureau, web)
+        run: >
+          ./gradlew --no-daemon
+          :androidApp:assembleRelease
+          :desktopApp:createDistributable
+          :webApp:wasmJsBrowserDistribution
+
+      # L'application empaquetée démarre réellement (docs/spec-v3/distribution.md § Auto-test).
+      - name: Auto-test de l'application de bureau empaquetée
+        run: |
+          app_dir=$(ls -d desktopApp/build/compose/binaries/main/app/*/ | head -1)
+          name=$(basename "$app_dir")
+          KAIROS_DATA_DIR="$RUNNER_TEMP/kairos-data" "$app_dir/bin/$name" --self-test="$RUNNER_TEMP/screens"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kmp-ci-screens
+          path: ${{ runner.temp }}/screens
+          if-no-files-found: ignore
