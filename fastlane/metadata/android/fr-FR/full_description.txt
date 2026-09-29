@@ -1,0 +1,26 @@
+Kairos range vos tâches dans l’ordre où les faire et les place dans les trous de votre journée, au bon moment.
+
+<b>Un ordre qui s’explique</b>
+Chaque tâche reçoit un score de priorité (WSJF) : sa valeur (priorité P0, P1 ou P2, plus l’urgence de son échéance) divisée par son effort en points. Petit et important passe avant gros et lointain ; une tâche en retard passe toujours en tête. « Pourquoi à cette place ? » détaille le calcul d’un toucher.
+
+<b>Une journée réaliste</b>
+<ul>
+<li>Les tâches sont placées autour de vos réunions, avec une marge après chacune.</li>
+<li>Les créneaux de deep work sont protégés ; l’après-midi, les tâches complexes cèdent la place aux tâches légères.</li>
+<li>Heures fixes, tâches récurrentes (quotidiennes, jours ouvrés, hebdomadaires, « le 23 du mois »), dépendances entre tâches, sous-tâches, jours fériés français.</li>
+</ul>
+
+<b>Capturer sans friction (GTD)</b>
+Une idée ? Une note. Une tâche ? Un titre suffit : elle attend dans « À traiter » jusqu’à ce que vous lui donniez une priorité et une taille, d’un toucher chacune.
+
+<b>Le temps réel</b>
+Un chrono par tâche, avec notification permanente ; alertes de dépassement, de chrono oublié et de pause, même application fermée. Les statistiques comparent vos estimations au temps réellement passé.
+
+<b>Vos données restent chez vous</b>
+<ul>
+<li>Aucun compte, aucune publicité, aucun traceur, aucune permission réseau.</li>
+<li>Export et import dans un fichier JSON, pour sauvegarder ou changer d’appareil.</li>
+<li>Reprise des données de Kairos 2.</li>
+</ul>
+
+Kairos existe aussi pour Windows, Linux et macOS, et dans le navigateur. Logiciel libre sous licence MIT, en français et en anglais.
