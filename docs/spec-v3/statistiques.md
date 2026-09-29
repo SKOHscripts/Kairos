@@ -106,11 +106,16 @@ reçoit **toutes** les tâches, archivées comprises (comme Kairos 2).
 - Recalculé quand la base ou le jour changent ; colonne défilante de
   960 dp au plus.
 - `StatTile` : `surfaceContainerLow`, valeur en `headlineSmall` ; seuil
-  franchi = contour `outline` et icône `Warning`.
+  franchi = contour `outline` et icône `Warning`. Dans chaque `FlowRow`, une
+  tuile prend `weight(1f)` et au moins 150 dp : quatre par ligne en largeur
+  bureau, deux sur un téléphone (à largeur fixe de 200 dp, un téléphone n'en
+  plaçait qu'une par ligne, écran trois fois trop long ; défaut vu sur les
+  captures des magasins, `publication.md`).
 - `Panel` : `OutlinedCard`, icône, titre, phrase de rôle.
-- `BarRow` : libellé (120 dp), piste neutre `surfaceContainerHighest`,
+- `BarRow` : libellé (96 dp), piste neutre `surfaceContainerHighest`,
   remplissage **primaire** à bouts arrondis de 4 dp, valeur écrite à
-  droite (icône `Warning` si peu fiable). Débit et calibration : longueur
+  droite, entre 110 et 200 dp (icône `Warning` si peu fiable) : la piste
+  garde de la place sur un téléphone. Débit et calibration : longueur
   relative au maximum ; types et complétude : pourcentage.
 - Ratio du biais à deux décimales ; durées par `duration()`.
 

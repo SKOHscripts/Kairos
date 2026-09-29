@@ -61,6 +61,9 @@ import com.skohscripts.kairos.ui.generated.resources.action_save
 import com.skohscripts.kairos.ui.generated.resources.notes_archive
 import com.skohscripts.kairos.ui.generated.resources.notes_capture_action
 import com.skohscripts.kairos.ui.generated.resources.notes_capture_hint
+import com.skohscripts.kairos.ui.generated.resources.notes_capture_hint_touch
+import com.skohscripts.kairos.ui.LocalPlatform
+import com.skohscripts.kairos.ui.Platform
 import com.skohscripts.kairos.ui.generated.resources.notes_capture_label
 import com.skohscripts.kairos.ui.generated.resources.notes_capture_placeholder
 import com.skohscripts.kairos.ui.generated.resources.notes_converted
@@ -229,7 +232,9 @@ private fun NoteCapture(onCapture: (String) -> Unit) {
                     Icon(KairosIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text(stringResource(Res.string.notes_capture_action), modifier = Modifier.padding(start = 6.dp))
                 }
-                Text(stringResource(Res.string.notes_capture_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // Pas de raccourci clavier à annoncer sur Android (comme la vue Jour).
+                val hint = if (LocalPlatform.current == Platform.ANDROID) Res.string.notes_capture_hint_touch else Res.string.notes_capture_hint
+                Text(stringResource(hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

@@ -124,10 +124,13 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   pleine. `START = DAY`.
 - `NavigationLayout.choose(platform, largeur)` : `RAIL` si largeur ≥ 600 dp
   (`COMPACT_WIDTH_LIMIT`), sinon `BOTTOM_BAR` sur Android, `TOP_BAR` ailleurs.
-- `KairosApp(platform, openServices)` : `KairosTheme` ; appelle
+- `KairosApp(platform, initialDestination = Destination.START, openServices)` :
+  `KairosTheme` ; appelle
   `openServices()` une fois (`LaunchedEffect`) : indicateur de progression
   pendant l'attente, titre d'erreur et détail en cas d'échec. Puis
-  `KairosShell` : état `destination` et `aboutOpen` (`rememberSaveable`),
+  `KairosShell` : état `destination` (initialisé à `initialDestination`,
+  que seules les captures des magasins changent, `publication.md`) et
+  `aboutOpen` (`rememberSaveable`),
   `NavState` (jour et semaine regardés, `vue-semaine.md`) ;
   `BoxWithConstraints` fournit la largeur à `choose`. Naviguer vers une
   destination ferme « À propos » et ramène à aujourd'hui et à la semaine

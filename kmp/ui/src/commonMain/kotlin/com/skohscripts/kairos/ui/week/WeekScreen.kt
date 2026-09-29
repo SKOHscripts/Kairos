@@ -97,16 +97,15 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
 
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.widthIn(max = 1400.dp).fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Titre au-dessus des boutons : entre eux, il n'avait plus de place sur un
+            // téléphone et s'affichait une lettre par ligne.
+            Text(stringResource(Res.string.week_title, Dates.dayMonth(week.monday, language)), style = MaterialTheme.typography.titleMedium)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedButton(onClick = { nav.week = week.monday.minus(DatePeriod(days = 7)) }) {
                     Icon(KairosIcons.ChevronLeft, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text(stringResource(Res.string.week_prev), modifier = Modifier.padding(start = 4.dp))
                 }
-                Text(
-                    stringResource(Res.string.week_title, Dates.dayMonth(week.monday, language)),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
-                )
+                Spacer(Modifier.weight(1f))
                 OutlinedButton(onClick = { nav.week = week.monday.plus(DatePeriod(days = 7)) }) {
                     Text(stringResource(Res.string.week_next), modifier = Modifier.padding(end = 4.dp))
                     Icon(KairosIcons.ChevronRight, contentDescription = null, modifier = Modifier.size(18.dp))

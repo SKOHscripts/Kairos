@@ -441,4 +441,5 @@
     <string name="a11y_expanded">déplié</string>
     <string name="a11y_collapsed">replié</string>
     <string name="stats_percent">%1$d %</string>
+    <string name="notes_capture_hint_touch">Rien d’autre à décider maintenant : tu la traiteras plus tard.</string>
 </resources>
