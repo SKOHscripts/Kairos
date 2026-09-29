@@ -18,7 +18,7 @@ Binaries: https://github.com/SKOHscripts/Kairos/releases/download/v%v/Kairos-and
 Builds:
   - versionName: 3.0.0
     versionCode: 30000
-    commit: v3.0.0
+    commit: f5784cb564d42825d3c71cee45e3ec026d453a08
     subdir: kmp/androidApp
     gradle:
       - yes
