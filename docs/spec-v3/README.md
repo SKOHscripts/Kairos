@@ -35,6 +35,11 @@ plan § 2.2). Un domaine n'apparaît ici qu'une fois son jalon commencé.
 | [`notes-capture.md`](notes-capture.md) | Notes : capture libre, conversion en tâche (titre et description), modification, archivage, suppression. | M4 |
 | [`vue-semaine.md`](vue-semaine.md) | Vue Semaine : sept jours (échéances, fait, créneaux), temps réel de la semaine, navigation vers un autre jour. | M4 |
 | [`statistiques.md`](statistiques.md) | Statistiques : chiffres clés, débit, calibration et biais, temps par type, flux, complétude ; repères du guide des points ; tests différentiels. | M4 |
+| [`reglages.md`](reglages.md) | Écran Réglages : sections, champs, bornes de Kairos 2, validation par champ et entre champs, un seul « Enregistrer ». | M5 |
+| [`migration-2x.md`](migration-2x.md) | Migration d'une base Kairos 2 : conversion (toutes générations de schéma), Android automatique, bureau proposé, import manuel, tests sur de vraies bases. | M5 |
+| [`accueil.md`](accueil.md) | Accueil au premier lancement : présentation, exemples, bilan ou proposition de migration. | M5 |
+| [`mises-a-jour.md`](mises-a-jour.md) | Vérification des nouvelles versions sur le bureau (GitHub, 6 heures), bandeau, carte des Réglages. | M5 |
+| [`accessibilite.md`](accessibilite.md) | Lecteurs d'écran (boutons, états, titres), cibles de 48 dp, contrastes. | M5 |
 | [`export-import.md`](export-import.md) | Export et import JSON, sauvegardes, données de la version web (OPFS, fichier lié). | M1 |
 
 ## Références transverses

@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -48,7 +49,7 @@ compose.desktop {
             vendor = "Corentin Michel"
             copyright = "© 2026 Corentin Michel, licence MIT"
             licenseFile.set(rootProject.file("../LICENSE"))
-            modules("java.instrument", "java.management", "java.sql", "jdk.unsupported")
+            modules("java.instrument", "java.management", "java.net.http", "java.sql", "jdk.unsupported")
             windows {
                 iconFile.set(project.file("icons/kairos.ico"))
                 // Installation par utilisateur : aucun droit administrateur requis.

@@ -1,6 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
-import androidx.compose.foundation.clickable
+import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -69,7 +69,7 @@ internal fun FilterCard(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().disclosure(open, onToggle = onToggle).padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
             Icon(KairosIcons.Search, contentDescription = null, modifier = Modifier.size(20.dp))
             Text(stringResource(Res.string.filter_title), style = MaterialTheme.typography.titleSmall)

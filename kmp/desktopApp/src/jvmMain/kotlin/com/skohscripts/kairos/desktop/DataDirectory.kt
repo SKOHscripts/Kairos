@@ -6,7 +6,7 @@ import java.io.File
  * Dossier des données de Kairos 3 sur le bureau (docs/spec-v3/distribution.md
  * § Bureau). Même dossier racine que Kairos 2 (`platformdirs.user_data_dir(
  * "Kairos")`), sous-dossier `v3` : l'ancienne base n'est jamais touchée, et
- * reste trouvable pour la migration (jalon M5).
+ * reste trouvable pour la migration (`LegacyFiles`, docs/spec-v3/migration-2x.md).
  *
  * `KAIROS_DATA_DIR` prime (mode portable, tests), comme en Kairos 2.
  */

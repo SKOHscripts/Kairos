@@ -4,6 +4,7 @@ _Rôle : sauvegarder ou transférer toutes ses données dans un fichier, les
 restaurer, et garder les données de la version web à l'abri d'un nettoyage du
 navigateur. Fichiers couverts : `kmp/data/.../ExportCodec.kt`,
 `kmp/ui/.../settings/SettingsScreen.kt` (carte « Données »),
+`kmp/ui/.../app/Replace.kt` (`replaceWithBackup`, `fileStamp`),
 `kmp/ui/.../app/` (`AppServices.kt`, `LinkedStorage.kt`, `StorageBanner.kt`),
 `kmp/webApp/src/wasmJsMain/` (`WebServices.kt`, `WebInterop.kt`,
 `resources/kairos-web.js`, `resources/kairos-sqljs.worker.js`),
@@ -11,7 +12,8 @@ navigateur. Fichiers couverts : `kmp/data/.../ExportCodec.kt`,
 sauvegarde du bureau et d'Android (`DesktopServices.kt`, `AndroidServices.kt`,
 `MainActivity.kt`)._
 
-État : **jalon M1**. La migration d'une base Kairos 2 arrive au jalon M5.
+État : **jalon M1** ; la migration d'une base Kairos 2 (jalon M5) est décrite
+par `migration-2x.md`, ses boutons vivent dans la même carte Données.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -73,7 +75,7 @@ base. Il faut donc pouvoir :
 
 - Fusion de deux bases (sans synchronisation, une fusion créerait des
   doublons indétectables) : l'import remplace.
-- Import d'une base SQLite Kairos 2 : jalon M5.
+- Import d'une base SQLite Kairos 2 : `migration-2x.md`.
 - Chiffrement des exports.
 
 ## 2. Solution technique
@@ -115,7 +117,9 @@ JSON UTF-8 indenté :
   en cas d'échec) → `AlertDialog` de confirmation → `BackupStore.save(
   "avant-import-AAAAMMJJ-HHMM.json", export actuel)` ; si la sauvegarde
   échoue, message d'erreur et **pas d'import** ; sinon `replaceAll` puis
-  message « Import terminé : n tâches. ».
+  message « Import terminé : n tâches. ». Sauvegarde puis remplacement :
+  `replaceWithBackup` (`ui/app/Replace.kt`, partagé avec la migration
+  Kairos 2) ; horodatage des noms : `fileStamp`.
 - Messages : snackbar de la coquille (`LocalMessages`).
 
 ### Fichiers et sauvegardes par plateforme

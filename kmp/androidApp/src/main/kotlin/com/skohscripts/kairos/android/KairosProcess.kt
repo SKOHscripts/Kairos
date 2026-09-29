@@ -34,7 +34,7 @@ object KairosProcess {
         val app = context.applicationContext
         return services ?: scope.async {
             val notifier = AndroidNotifier(app)
-            AndroidServices.open(app, files, notifier).also { ChronoSync.start(app, it.repository, scope) }
+            AndroidServices.open(app, files, notifier) { target -> withContext(Dispatchers.Main) { activity?.openFileInto(target) ?: false } }.also { ChronoSync.start(app, it.repository, scope) }
         }.also { services = it }
     }
 }

@@ -28,7 +28,6 @@ ICONS = {
     "ArrowBack": ("arrow_back", False),
     "ChevronRight": ("chevron_right", False),
     "OpenInNew": ("open_in_new", False),
-    "Construction": ("construction", False),
     "CheckCircle": ("check_circle", True),
     "RadioUnchecked": ("radio_button_unchecked", False),
     "Edit": ("edit", False),

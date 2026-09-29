@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
-import androidx.compose.foundation.clickable
+import com.skohscripts.kairos.ui.app.heading
+import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -409,7 +410,7 @@ private class ListBuilder(private val scope: LazyListScope, private val position
             Column(Modifier.padding(top = 8.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { open[key] = !isOpen }.padding(vertical = 6.dp),
+                    modifier = Modifier.fillMaxWidth().disclosure(isOpen, heading = true) { open[key] = !isOpen }.padding(vertical = 6.dp),
                 ) {
                     Icon(if (isOpen) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
                     Text("${stringResource(title)} ($count)", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 4.dp))
@@ -473,7 +474,7 @@ private fun InboxQualify(task: Task, onPriority: (Int?) -> Unit, onPoints: (Int?
 
 @Composable
 private fun SectionTitle(text: String, count: Int, modifier: Modifier = Modifier) {
-    Text("$text ($count)", style = MaterialTheme.typography.titleMedium, modifier = modifier)
+    Text("$text ($count)", style = MaterialTheme.typography.titleMedium, modifier = modifier.heading())
 }
 
 @Composable

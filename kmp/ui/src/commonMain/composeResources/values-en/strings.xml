@@ -20,8 +20,6 @@
 
     <string name="action_back">Back</string>
 
-    <string name="placeholder_title">Under construction</string>
-    <string name="placeholder_body">Kairos 3 is being rewritten. This screen arrives in an upcoming preview; version 2 remains the everyday tool until then.</string>
 
     <string name="settings_about_entry">About &amp; guide</string>
     <string name="settings_about_entry_hint">What Kairos does, the priority score, the version</string>
@@ -102,7 +100,7 @@
     <string name="data_export">Export</string>
     <string name="data_import">Import</string>
     <string name="import_confirm_title">Replace all data?</string>
-    <string name="import_confirm_body">Importing replaces all tasks, time blocks, notes and settings on this device with those in the file. A backup of the current data is made just before.</string>
+    <string name="import_confirm_body">Importing replaces all tasks, time slots, notes and settings on this device with those in the file. A backup of the current data is made just before.</string>
     <string name="import_confirm_action">Replace</string>
     <string name="export_done">Export saved.</string>
     <string name="import_done">Import complete: %1$d tasks.</string>
@@ -292,7 +290,7 @@
     <string name="stats_empty">No data to analyse yet. Create tasks, time your work and fill in points and estimates: the figures build up as you use Kairos.</string>
     <string name="stats_kpi_done">task(s) done · %1$d wk</string>
     <string name="stats_kpi_tracked">real time tracked</string>
-    <string name="stats_kpi_delay">d median time to complete</string>
+    <string name="stats_kpi_delay">days to complete (median)</string>
     <string name="stats_kpi_deadlines">deadlines met</string>
     <string name="stats_throughput_title">Weekly throughput</string>
     <string name="stats_throughput_hint">Tasks done per week (summed Fibonacci points = velocity).</string>
@@ -305,17 +303,17 @@
     <string name="stats_bias">Estimate vs real: ×%1$s: %2$s real for %3$s estimated (%4$s).</string>
     <string name="stats_bias_under">You underestimate.</string>
     <string name="stats_bias_over">You overestimate.</string>
-    <string name="stats_bias_fair">Estimates are right.</string>
+    <string name="stats_bias_fair">Your estimates are accurate.</string>
     <string name="stats_types_title">Where the real time goes</string>
     <string name="stats_types_hint">Where the timed work goes, over %1$d weeks.</string>
     <string name="stats_types_empty">No timed work over the period.</string>
-    <string name="stats_types_row">%1$s · %2$d %</string>
+    <string name="stats_types_row">%1$s · %2$d%</string>
     <string name="stats_no_type">No type</string>
     <string name="stats_focus">Focus: %1$d session(s), %2$s on average (many short sessions = fragmented attention).</string>
     <string name="stats_flow_title">Flow and backlog</string>
     <string name="stats_flow_hint">Current state of the work in progress (everything open).</string>
     <string name="stats_flow_wip">in progress (WIP)</string>
-    <string name="stats_flow_age">d median age</string>
+    <string name="stats_flow_age">days old (median)</string>
     <string name="stats_flow_overdue">overdue</string>
     <string name="stats_flow_stale">lingering</string>
     <string name="stats_completeness_title">Metadata completeness</string>
@@ -323,7 +321,7 @@
     <string name="stats_completeness_points">Fibonacci points</string>
     <string name="stats_completeness_estimate">Estimated duration</string>
     <string name="stats_completeness_type">Task type</string>
-    <string name="stats_completeness_row">%1$d % · %2$d/%3$d</string>
+    <string name="stats_completeness_row">%1$d% · %2$d/%3$d</string>
     <string name="guide_points_title">How to estimate points?</string>
     <string name="guide_points_intro">Relative size (never hours): volume × complexity × uncertainty (“do I know how to do it?”). Compare with your own finished tasks: “bigger than this one, smaller than that one”. A few seconds; when in doubt, round up.</string>
     <string name="guide_points_outro">Different from the duration: points feed the order (effort divides the score), the duration is used to place the task in the day. A task can be short but tricky, or long but mechanical.</string>
@@ -348,4 +346,96 @@
     <string name="inbox_help_title">How to qualify?</string>
     <string name="inbox_help_why">Capture only sets a title, on purpose. A task enters the ordered schedule once clarified: priority and points set, right here, one click each.</string>
     <string name="inbox_help_priority">Priority: how important the task is. The deadline already counts on its own.</string>
+    <string name="settings_intro">All of Kairos’ settings, saved on this device. An invalid field is flagged under it; nothing is saved while one remains.</string>
+    <string name="settings_section_day">Working day</string>
+    <string name="settings_section_wsjf">Priority score (WSJF)</string>
+    <string name="settings_section_wsjf_body">Score = value (priority + date urgency) ÷ effort (points).</string>
+    <string name="settings_section_dip">Afternoon dip</string>
+    <string name="settings_section_dip_body">During the dip, complex tasks give way to light ones. Urgency and deadlines always come first; the displayed score does not change.</string>
+    <string name="settings_section_guards">Safeguards</string>
+    <string name="settings_section_types">Task types</string>
+    <string name="settings_section_stats">Statistics</string>
+    <string name="settings_section_holidays">Public holidays</string>
+    <string name="settings_section_holidays_body">Used for working days: “Snooze”, “on day N of the month” series.</string>
+    <string name="setting_default_duration">Default task duration (min)</string>
+    <string name="setting_default_duration_help">Given to a task without an estimate to place it in the day (never saved).</string>
+    <string name="setting_meeting_buffer">Buffer after a busy slot (min)</string>
+    <string name="setting_meeting_buffer_help">Meeting from 1 to 2 pm, buffer of 5: the next task starts at 2:05 pm.</string>
+    <string name="setting_workday_start">Start of day (hour, 0-23)</string>
+    <string name="setting_workday_start_help">Hour at which the schedule starts.</string>
+    <string name="setting_workday_end">End of day (hour, 0-23)</string>
+    <string name="setting_workday_end_help">Beyond it, the day “overflows”.</string>
+    <string name="setting_priority_base">Value base per priority</string>
+    <string name="setting_priority_base_help">Value of a priority: base ^ (2 − priority). 4 gives P0 = 16, P1 = 4, P2 = 1. Lower softens the gap, higher sharpens it.</string>
+    <string name="setting_urgency_horizon">Urgency horizon (days)</string>
+    <string name="setting_urgency_horizon_help">Number of days before the deadline when urgency starts to rise.</string>
+    <string name="setting_urgency_peak">Maximum urgency weight</string>
+    <string name="setting_urgency_peak_help">What a deadline that has been reached adds, in the same unit as the priority value.</string>
+    <string name="setting_default_points">Default points</string>
+    <string name="setting_default_points_help">Effort of a task with neither points nor duration (divides the score).</string>
+    <string name="setting_dip_enabled">Enable the afternoon dip</string>
+    <string name="setting_dip_start">Dip start (hour)</string>
+    <string name="setting_dip_trough">Deepest point (hour)</string>
+    <string name="setting_dip_end">Dip end (hour)</string>
+    <string name="setting_dip_help">Shift these hours to your rhythm (early bird or night owl). Start ≤ deepest point ≤ end.</string>
+    <string name="setting_dip_penalty">Penalty strength</string>
+    <string name="setting_dip_penalty_help">1 doubles the effort of a 21-point task at the deepest point; 0 neutralises the dip.</string>
+    <string name="setting_stale_overdue">“Lingering” threshold, overdue (days)</string>
+    <string name="setting_stale_overdue_help">Days after a missed deadline before the “lingering for N d” label (0 = never).</string>
+    <string name="setting_stale_untouched">“Lingering” threshold, no date (days)</string>
+    <string name="setting_stale_untouched_help">Days without a change to an undated task before the same label (0 = never).</string>
+    <string name="setting_overload">P0 overload threshold</string>
+    <string name="setting_overload_help">Beyond this number of unblocked P0 tasks, a banner warns that priority no longer tells anything apart.</string>
+    <string name="setting_task_types">Types offered when editing</string>
+    <string name="setting_task_types_help">Separated by commas. A task keeps its type even if it leaves the list.</string>
+    <string name="setting_stats_window">Statistics window (weeks)</string>
+    <string name="setting_stats_window_help">Period of the recent indicators: throughput, time by type, delays.</string>
+    <string name="setting_holidays_fr">French public holidays</string>
+    <string name="setting_extra_holidays">Extra public holidays</string>
+    <string name="setting_extra_holidays_help">Dates as YYYY-MM-DD, separated by commas (bridge days, closures).</string>
+    <string name="settings_error_required">Required.</string>
+    <string name="settings_error_integer">A whole number is expected.</string>
+    <string name="settings_error_number">A number is expected.</string>
+    <string name="settings_error_min">At least %1$s.</string>
+    <string name="settings_error_min_exclusive">Greater than %1$s.</string>
+    <string name="settings_error_max">At most %1$s.</string>
+    <string name="settings_error_date">Unreadable date: “%1$s” (format YYYY-MM-DD).</string>
+    <string name="settings_error_workday">The start of the day must be before its end.</string>
+    <string name="settings_error_dip">The afternoon dip must follow start ≤ deepest point ≤ end.</string>
+    <string name="settings_not_saved">Settings not saved: fix the flagged fields.</string>
+    <string name="settings_reset">Discard changes</string>
+    <string name="settings_unsaved">Unsaved changes</string>
+    <string name="legacy_import_action">Import a Kairos 2.x database</string>
+    <string name="legacy_import_hint">Brings in Kairos 2’s tasks.db file: tasks, time slots, notes, timer sessions and settings. TimeTree slots are not brought in.</string>
+    <string name="legacy_confirm_title">Import the Kairos 2 database?</string>
+    <string name="legacy_confirm_body">%1$d task(s), %2$d note(s), %3$d timer session(s) and %4$d time slot(s) will be brought in. They replace all current data; a backup is made just before.</string>
+    <string name="legacy_confirm_action">Import</string>
+    <string name="legacy_done">Kairos 2 database imported: %1$d task(s), %2$d note(s), %3$d session(s).</string>
+    <string name="legacy_not_a_database">This file is not a Kairos 2 database (tasks.db).</string>
+    <string name="legacy_read_error">Unable to read this Kairos 2 database.</string>
+    <string name="welcome_title">Welcome to Kairos</string>
+    <string name="welcome_body">Kairos puts your tasks in the order to do them: the value of each one (its priority and the urgency of its deadline) divided by its effort. Capture without thinking, qualify in one click, do things in order.</string>
+    <string name="welcome_examples">To get started, the day holds examples (titles “[Example]”, project “Example”): finish or delete them whenever you like.</string>
+    <string name="welcome_start">Get started</string>
+    <string name="welcome_about">About &amp; guide</string>
+    <string name="welcome_legacy_found">A Kairos 2 database was found: %1$s. Import it now? It replaces the examples. You can also do it later, in Settings → Data.</string>
+    <string name="welcome_legacy_import">Import the Kairos 2 database</string>
+    <string name="welcome_keep_examples">Keep the examples</string>
+    <string name="welcome_migrated">Your Kairos 2 data was brought over: %1$d task(s), %2$d note(s), %3$d timer session(s). The old database is kept, renamed.</string>
+    <string name="update_banner">Kairos %1$s is available (you have %2$s).</string>
+    <string name="update_download">Download</string>
+    <string name="update_later">Later</string>
+    <string name="settings_section_updates">Updates</string>
+    <string name="setting_update_check">Check for new versions</string>
+    <string name="update_help">At most every 6 hours, Kairos asks GitHub for the latest published version (pre-releases ignored). Nothing else leaves the device, and installing stays up to you.</string>
+    <string name="update_installed">Installed version: %1$s</string>
+    <string name="update_never">Not checked yet.</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_up_to_date">Up to date (checked %1$s).</string>
+    <string name="update_available">Kairos %1$s is available (checked %2$s).</string>
+    <string name="update_failed">Could not check on %1$s (offline?).</string>
+    <string name="update_check_now">Check now</string>
+    <string name="a11y_expanded">expanded</string>
+    <string name="a11y_collapsed">collapsed</string>
+    <string name="stats_percent">%1$d%</string>
 </resources>

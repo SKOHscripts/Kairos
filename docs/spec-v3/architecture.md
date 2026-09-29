@@ -49,11 +49,11 @@ Linux, macOS) et dans un navigateur récent, à partir d'**un seul code**.
 
 | Module | Plugin(s) | Cibles | Rôle |
 |---|---|---|---|
-| `core` | KMP + bibliothèque Android KMP + sérialisation | JVM, Android, wasmJs | Code métier **pur** : `AppVersion`, `KairosBuild` (version, générée), modèle (`model/`), données d'exemple, moteur (`engine/` : jours ouvrés, dépendances, récurrence, ancienneté, ordonnancement, temps réel, voir `ordonnancement.md` et `temps-reel-chrono.md`), seuils du chrono (`alerts/`), modèle de la vue Jour (`day/DayView`), statistiques (`stats/TaskStats`, `statistiques.md`), conversion d'une note (`notes/NoteConversion`), modèle de la vue Semaine (`week/WeekView`). |
+| `core` | KMP + bibliothèque Android KMP + sérialisation | JVM, Android, wasmJs | Code métier **pur** : `AppVersion`, `KairosBuild` (version, générée), modèle (`model/`), données d'exemple, moteur (`engine/` : jours ouvrés, dépendances, récurrence, ancienneté, ordonnancement, temps réel, voir `ordonnancement.md` et `temps-reel-chrono.md`), seuils du chrono (`alerts/`), modèle de la vue Jour (`day/DayView`), statistiques (`stats/TaskStats`, `statistiques.md`), conversion d'une note (`notes/NoteConversion`), modèle de la vue Semaine (`week/WeekView`), champs et validation des réglages (`settings/SettingsForm`, `reglages.md`), conversion d'une base Kairos 2 (`legacy/Kairos2Import`, `migration-2x.md`), lecture de la dernière version publiée (`updates/UpdateCheck`, `mises-a-jour.md`). |
 | `data` | KMP + bibliothèque Android KMP + SQLDelight + sérialisation | JVM, Android, wasmJs | Schéma et requêtes SQLDelight (asynchrones), ouverture et migrations (`KairosStore`), dépôt (`KairosRepository`), format d'export (`ExportCodec`). Sans pilote : chaque application fournit le sien. |
 | `ui` | KMP + bibliothèque Android KMP + Compose | JVM, Android, wasmJs | Interface commune : thème, icônes, logo, navigation, écrans, chaînes FR/EN, polices ; contrat des services de plateforme (`app/AppServices.kt`). |
-| `androidApp` | application Android + compilateur Compose | Android | Activité, services Android (pilote SQLite, sélecteurs de fichiers), ressources de lancement. |
-| `desktopApp` | KMP + Compose Desktop | JVM | `main()`, fenêtre, services du bureau (pilote JDBC, boîtes de dialogue), instance unique, journal de crash, auto-test, installeurs et image portable. |
+| `androidApp` | application Android + compilateur Compose | Android | Activité, services Android (pilote SQLite, sélecteurs de fichiers, lecture et migration automatique d'une base Kairos 2), ressources de lancement. |
+| `desktopApp` | KMP + Compose Desktop + sérialisation | JVM | `main()`, fenêtre, services du bureau (pilote JDBC, boîtes de dialogue, base Kairos 2, vérification des mises à jour), instance unique, journal de crash, auto-test, installeurs et image portable. |
 | `webApp` | KMP + Compose | wasmJs | `main()` navigateur, services web (worker sql.js, OPFS, fichier lié), `index.html`, scripts navigateur. |
 
 Graphe : `androidApp`, `desktopApp` et `webApp` → `ui` → `data` → `core`
@@ -115,6 +115,8 @@ asynchrone de la base).
 | `make_theme.py` | `ui/.../theme/KairosColors.kt` : les 36 rôles MD3 du schéma *Tonal spot* (spec 2021) de la graine `#C28417`. | `materialyoucolor` 3.0.4 |
 | `make_icons.py` | `ui/.../icons/KairosIcons.kt` : tracés Material Symbols (Outlined 400) et variantes pleines. | `@material-symbols/svg-400` 0.47.5 (npm) |
 | `make_app_icons.py` | `desktopApp/icons/kairos.{png,ico,icns}`, favicon et icônes de `webApp`. | Pillow |
+| `gen_fixtures.py` | Fixtures des tests différentiels (`core/src/jvmTest/resources/fixtures/`). | le Python de Kairos 2 |
+| `gen_legacy_db.py` | Vraies bases Kairos 2 pour les tests de migration (`desktopApp/src/jvmTest/resources/legacy/`). | le Python de Kairos 2 (SQLAlchemy) |
 
 ### Décisions et pièges tracés
 

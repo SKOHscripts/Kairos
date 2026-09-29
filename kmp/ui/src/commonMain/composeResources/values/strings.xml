@@ -23,8 +23,6 @@
 
     <string name="action_back">Retour</string>
 
-    <string name="placeholder_title">En construction</string>
-    <string name="placeholder_body">Kairos 3 est en cours de réécriture. Cet écran arrive dans une prochaine préversion ; la version 2 reste l’outil du quotidien d’ici là.</string>
 
     <string name="settings_about_entry">À propos et guide</string>
     <string name="settings_about_entry_hint">Ce que fait Kairos, le score de priorité, la version</string>
@@ -351,4 +349,96 @@
     <string name="inbox_help_title">Comment qualifier ?</string>
     <string name="inbox_help_why">La capture ne pose qu’un titre, volontairement. Une tâche n’entre dans l’agenda ordonné qu’une fois clarifiée : priorité et points posés, ici même, en un clic chacun.</string>
     <string name="inbox_help_priority">Priorité : l’importance de la tâche. Le délai compte déjà à part, par l’échéance.</string>
+    <string name="settings_intro">Tous les réglages de Kairos, enregistrés sur cet appareil. Un champ invalide est signalé sous le champ ; rien n’est enregistré tant qu’il en reste un.</string>
+    <string name="settings_section_day">Journée de travail</string>
+    <string name="settings_section_wsjf">Score de priorité (WSJF)</string>
+    <string name="settings_section_wsjf_body">Score = valeur (priorité + urgence de la date) ÷ effort (points).</string>
+    <string name="settings_section_dip">Creux de l’après-midi</string>
+    <string name="settings_section_dip_body">Pendant le creux, les tâches complexes cèdent leur place aux tâches légères. L’urgence et les échéances priment toujours ; le score affiché ne change pas.</string>
+    <string name="settings_section_guards">Garde-fous</string>
+    <string name="settings_section_types">Types de tâches</string>
+    <string name="settings_section_stats">Statistiques</string>
+    <string name="settings_section_holidays">Jours fériés</string>
+    <string name="settings_section_holidays_body">Utilisés pour les jours ouvrés : « Décaler », séries « le N du mois ».</string>
+    <string name="setting_default_duration">Durée par défaut d’une tâche (min)</string>
+    <string name="setting_default_duration_help">Attribuée à une tâche sans estimation pour la placer dans la journée (jamais enregistrée).</string>
+    <string name="setting_meeting_buffer">Marge après un créneau occupé (min)</string>
+    <string name="setting_meeting_buffer_help">Réunion de 13h à 14h, marge de 5 : la tâche suivante commence à 14h05.</string>
+    <string name="setting_workday_start">Début de journée (heure, 0-23)</string>
+    <string name="setting_workday_start_help">Heure à laquelle le planning commence.</string>
+    <string name="setting_workday_end">Fin de journée (heure, 0-23)</string>
+    <string name="setting_workday_end_help">Au-delà, la journée « déborde ».</string>
+    <string name="setting_priority_base">Base de valeur par priorité</string>
+    <string name="setting_priority_base_help">Valeur d’une priorité : base ^ (2 − priorité). 4 donne P0 = 16, P1 = 4, P2 = 1. Baisser adoucit l’écart, monter le durcit.</string>
+    <string name="setting_urgency_horizon">Horizon d’urgence (jours)</string>
+    <string name="setting_urgency_horizon_help">Nombre de jours avant l’échéance où l’urgence commence à monter.</string>
+    <string name="setting_urgency_peak">Poids maximal de l’urgence</string>
+    <string name="setting_urgency_peak_help">Ce qu’ajoute une échéance atteinte, dans la même unité que la valeur de la priorité.</string>
+    <string name="setting_default_points">Points par défaut</string>
+    <string name="setting_default_points_help">Effort d’une tâche sans points ni durée (diviseur du score).</string>
+    <string name="setting_dip_enabled">Activer le creux de l’après-midi</string>
+    <string name="setting_dip_start">Début du creux (heure)</string>
+    <string name="setting_dip_trough">Creux le plus profond (heure)</string>
+    <string name="setting_dip_end">Fin du creux (heure)</string>
+    <string name="setting_dip_help">Décale ces heures selon ton rythme (lève-tôt ou couche-tard). Début ≤ creux le plus profond ≤ fin.</string>
+    <string name="setting_dip_penalty">Force de la pénalité</string>
+    <string name="setting_dip_penalty_help">1 double l’effort d’une tâche de 21 points au plus profond du creux ; 0 neutralise le creux.</string>
+    <string name="setting_stale_overdue">Seuil « traîne » en retard (jours)</string>
+    <string name="setting_stale_overdue_help">Jours après une échéance dépassée avant l’étiquette « traîne depuis N j » (0 = jamais).</string>
+    <string name="setting_stale_untouched">Seuil « traîne » sans date (jours)</string>
+    <string name="setting_stale_untouched_help">Jours sans modification d’une tâche sans date avant la même étiquette (0 = jamais).</string>
+    <string name="setting_overload">Seuil de surcharge P0</string>
+    <string name="setting_overload_help">Au-delà de ce nombre de P0 non bloquées, un bandeau prévient que la priorité ne distingue plus rien.</string>
+    <string name="setting_task_types">Types proposés dans l’édition</string>
+    <string name="setting_task_types_help">Séparés par des virgules. Une tâche garde son type même s’il disparaît de la liste.</string>
+    <string name="setting_stats_window">Fenêtre des statistiques (semaines)</string>
+    <string name="setting_stats_window_help">Période des indicateurs récents : débit, temps par type, délais.</string>
+    <string name="setting_holidays_fr">Jours fériés français</string>
+    <string name="setting_extra_holidays">Jours fériés supplémentaires</string>
+    <string name="setting_extra_holidays_help">Dates au format AAAA-MM-JJ, séparées par des virgules (ponts, fermetures).</string>
+    <string name="settings_error_required">Obligatoire.</string>
+    <string name="settings_error_integer">Un nombre entier est attendu.</string>
+    <string name="settings_error_number">Un nombre est attendu.</string>
+    <string name="settings_error_min">Au moins %1$s.</string>
+    <string name="settings_error_min_exclusive">Plus grand que %1$s.</string>
+    <string name="settings_error_max">Au plus %1$s.</string>
+    <string name="settings_error_date">Date illisible : « %1$s » (format AAAA-MM-JJ).</string>
+    <string name="settings_error_workday">L’heure de début de journée doit être avant l’heure de fin.</string>
+    <string name="settings_error_dip">Le creux de l’après-midi doit respecter début ≤ creux le plus profond ≤ fin.</string>
+    <string name="settings_not_saved">Réglages non enregistrés : corrige les champs signalés.</string>
+    <string name="settings_reset">Annuler les modifications</string>
+    <string name="settings_unsaved">Modifications non enregistrées</string>
+    <string name="legacy_import_action">Importer une base Kairos 2.x</string>
+    <string name="legacy_import_hint">Reprend le fichier tasks.db de Kairos 2 : tâches, créneaux, notes, sessions de chrono et réglages. Les créneaux TimeTree ne sont pas repris.</string>
+    <string name="legacy_confirm_title">Importer la base Kairos 2 ?</string>
+    <string name="legacy_confirm_body">%1$d tâche(s), %2$d note(s), %3$d session(s) de chrono et %4$d créneau(x) seront repris. Ils remplacent toutes les données actuelles ; une sauvegarde est faite juste avant.</string>
+    <string name="legacy_confirm_action">Importer</string>
+    <string name="legacy_done">Base Kairos 2 importée : %1$d tâche(s), %2$d note(s), %3$d session(s).</string>
+    <string name="legacy_not_a_database">Ce fichier n’est pas une base Kairos 2 (tasks.db).</string>
+    <string name="legacy_read_error">Impossible de lire cette base Kairos 2.</string>
+    <string name="welcome_title">Bienvenue dans Kairos</string>
+    <string name="welcome_body">Kairos range tes tâches dans l’ordre où les faire : la valeur de chacune (sa priorité et l’urgence de son échéance) divisée par son effort. Capture sans réfléchir, qualifie d’un clic, fais dans l’ordre.</string>
+    <string name="welcome_examples">Pour découvrir, la journée contient des exemples (titres « [Exemple] », projet « Exemple ») : termine-les ou supprime-les quand tu veux.</string>
+    <string name="welcome_start">Commencer</string>
+    <string name="welcome_about">À propos et guide</string>
+    <string name="welcome_legacy_found">Une base Kairos 2 a été trouvée : %1$s. L’importer maintenant ? Elle remplace les exemples. Tu peux aussi le faire plus tard, dans Réglages → Données.</string>
+    <string name="welcome_legacy_import">Importer la base Kairos 2</string>
+    <string name="welcome_keep_examples">Garder les exemples</string>
+    <string name="welcome_migrated">Tes données de Kairos 2 ont été reprises : %1$d tâche(s), %2$d note(s), %3$d session(s) de chrono. L’ancienne base est conservée, renommée.</string>
+    <string name="update_banner">Kairos %1$s est disponible (tu as %2$s).</string>
+    <string name="update_download">Télécharger</string>
+    <string name="update_later">Plus tard</string>
+    <string name="settings_section_updates">Mises à jour</string>
+    <string name="setting_update_check">Vérifier les nouvelles versions</string>
+    <string name="update_help">Au plus toutes les 6 heures, Kairos demande à GitHub la dernière version publiée (préversions ignorées). Rien d’autre ne quitte l’appareil, et l’installation reste à ton initiative.</string>
+    <string name="update_installed">Version installée : %1$s</string>
+    <string name="update_never">Pas encore vérifié.</string>
+    <string name="update_checking">Vérification…</string>
+    <string name="update_up_to_date">À jour (vérifié le %1$s).</string>
+    <string name="update_available">Kairos %1$s est disponible (vérifié le %2$s).</string>
+    <string name="update_failed">Vérification impossible le %1$s (hors ligne ?).</string>
+    <string name="update_check_now">Vérifier maintenant</string>
+    <string name="a11y_expanded">déplié</string>
+    <string name="a11y_collapsed">replié</string>
+    <string name="stats_percent">%1$d %</string>
 </resources>

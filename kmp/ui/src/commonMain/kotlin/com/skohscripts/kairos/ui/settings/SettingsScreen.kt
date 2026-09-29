@@ -1,6 +1,38 @@
 package com.skohscripts.kairos.ui.settings
 
+import com.skohscripts.kairos.ui.app.heading
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.text.intl.Locale
+import com.skohscripts.kairos.ui.app.UpdateService
+import com.skohscripts.kairos.ui.app.UpdateStatus
+import com.skohscripts.kairos.ui.day.Dates
+import com.skohscripts.kairos.ui.generated.resources.settings_section_updates
+import com.skohscripts.kairos.ui.generated.resources.update_available
+import com.skohscripts.kairos.ui.generated.resources.update_check_now
+import com.skohscripts.kairos.ui.generated.resources.update_checking
+import com.skohscripts.kairos.ui.generated.resources.update_failed
+import com.skohscripts.kairos.ui.generated.resources.update_help
+import com.skohscripts.kairos.ui.generated.resources.update_installed
+import com.skohscripts.kairos.ui.generated.resources.update_never
+import com.skohscripts.kairos.ui.generated.resources.update_up_to_date
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import com.skohscripts.kairos.core.settings.FieldError
+import com.skohscripts.kairos.core.settings.GeneralError
+import com.skohscripts.kairos.core.settings.SettingsForm
+import com.skohscripts.kairos.ui.generated.resources.action_save
+import com.skohscripts.kairos.ui.generated.resources.settings_error_dip
+import com.skohscripts.kairos.ui.generated.resources.settings_error_workday
+import com.skohscripts.kairos.ui.generated.resources.settings_intro
+import com.skohscripts.kairos.ui.generated.resources.settings_not_saved
+import com.skohscripts.kairos.ui.generated.resources.settings_reset
+import com.skohscripts.kairos.ui.generated.resources.settings_saved
+import com.skohscripts.kairos.ui.generated.resources.settings_unsaved
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -35,6 +67,12 @@ import com.skohscripts.kairos.data.ExportCodec
 import com.skohscripts.kairos.data.ImportException
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.LocalMessages
+import com.skohscripts.kairos.ui.app.LegacyImportDialog
+import com.skohscripts.kairos.ui.app.fileStamp
+import com.skohscripts.kairos.ui.app.rememberLegacyImport
+import com.skohscripts.kairos.ui.app.replaceWithBackup
+import com.skohscripts.kairos.ui.generated.resources.legacy_import_action
+import com.skohscripts.kairos.ui.generated.resources.legacy_import_hint
 import com.skohscripts.kairos.ui.app.StorageBanner
 import com.skohscripts.kairos.ui.app.importErrorMessage
 import com.skohscripts.kairos.ui.generated.resources.Res
@@ -53,34 +91,140 @@ import com.skohscripts.kairos.ui.generated.resources.import_done
 import com.skohscripts.kairos.ui.generated.resources.settings_about_entry
 import com.skohscripts.kairos.ui.generated.resources.settings_about_entry_hint
 import com.skohscripts.kairos.ui.icons.KairosIcons
-import com.skohscripts.kairos.ui.screens.UnderConstruction
 import kotlinx.coroutines.launch
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.number
-import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
-/** Réglages : données (export/import), alertes du chrono, « À propos et guide » ; le reste au jalon M5. */
+/**
+ * Réglages (docs/spec-v3/reglages.md) : le formulaire complet (une carte par
+ * section, validation par champ, un seul « Enregistrer » dans une barre
+ * fixée en bas), puis les données (export, import) et « À propos et guide ».
+ * Rien n'est enregistré tant qu'un champ est invalide.
+ */
 @Composable
 fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
-    Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp),
-        ) {
-            DataCard(services)
-            ChronoSettingsCard(services)
-            OutlinedCard(onClick = onOpenAbout, modifier = Modifier.fillMaxWidth()) {
-                ListItem(
-                    leadingContent = { Icon(KairosIcons.Info, contentDescription = null) },
-                    headlineContent = { Text(stringResource(Res.string.settings_about_entry)) },
-                    supportingContent = { Text(stringResource(Res.string.settings_about_entry_hint)) },
-                    trailingContent = { Icon(KairosIcons.ChevronRight, contentDescription = null) },
-                )
+    val snapshot by services.repository.snapshot.collectAsState()
+    val current = snapshot.settings
+    val saved = remember(current) { SettingsForm.values(current) }
+    var values by remember(current) { mutableStateOf(saved) }
+    var errors by remember(current) { mutableStateOf<Map<String, FieldError>>(emptyMap()) }
+    var general by remember(current) { mutableStateOf<GeneralError?>(null) }
+    val dirty = values != saved
+    val scope = rememberCoroutineScope()
+    val messages = LocalMessages.current
+
+    fun save() {
+        val result = SettingsForm.validate(values, current)
+        errors = result.fieldErrors
+        general = result.general
+        val settings = result.settings
+        scope.launch {
+            if (settings == null) {
+                messages(getString(Res.string.settings_not_saved))
+            } else {
+                services.repository.updateSettings(settings)
+                messages(getString(Res.string.settings_saved))
             }
-            UnderConstruction()
+        }
+    }
+
+    Column(Modifier.fillMaxSize()) {
+        Box(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp),
+            ) {
+                Text(stringResource(Res.string.settings_intro), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth())
+                general?.let { GeneralErrorBanner(it) }
+                SettingsFormCards(values, errors) { key, value ->
+                    values = values + (key to value)
+                    errors = errors - key
+                }
+                services.updates?.let { updates ->
+                    UpdatesCard(updates, values["updateCheckEnabled"].orEmpty()) { values = values + ("updateCheckEnabled" to it) }
+                }
+                DataCard(services)
+                OutlinedCard(onClick = onOpenAbout, modifier = Modifier.fillMaxWidth()) {
+                    ListItem(
+                        leadingContent = { Icon(KairosIcons.Info, contentDescription = null) },
+                        headlineContent = { Text(stringResource(Res.string.settings_about_entry)) },
+                        supportingContent = { Text(stringResource(Res.string.settings_about_entry_hint)) },
+                        trailingContent = { Icon(KairosIcons.ChevronRight, contentDescription = null) },
+                    )
+                }
+            }
+        }
+        SaveBar(dirty, onReset = { values = saved; errors = emptyMap(); general = null }, onSave = ::save)
+    }
+}
+
+/**
+ * Mises à jour (bureau) : le réglage de vérification (enregistré avec le
+ * reste du formulaire), la version installée, le résultat de la dernière
+ * vérification et « Vérifier maintenant ».
+ */
+@Composable
+private fun UpdatesCard(updates: UpdateService, enabled: String, onEnabled: (String) -> Unit) {
+    val status by updates.status.collectAsState()
+    val scope = rememberCoroutineScope()
+    val language = Locale.current.language
+    @Composable
+    fun at(instant: Instant): String {
+        val t = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+        return "${Dates.dayMonth(t.date, language)} ${Dates.time(t, language)}"
+    }
+    OutlinedCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(Res.string.settings_section_updates), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
+            Text(stringResource(Res.string.update_help), style = MaterialTheme.typography.bodyMedium)
+            SettingInput("updateCheckEnabled", enabled, null, onEnabled)
+            Text(stringResource(Res.string.update_installed, KairosBuild.VERSION_NAME), style = MaterialTheme.typography.bodyMedium)
+            val line = when (val s = status) {
+                UpdateStatus.Never -> stringResource(Res.string.update_never)
+                UpdateStatus.Checking -> stringResource(Res.string.update_checking)
+                is UpdateStatus.UpToDate -> stringResource(Res.string.update_up_to_date, at(s.at))
+                is UpdateStatus.Available -> stringResource(Res.string.update_available, s.version, at(s.at))
+                is UpdateStatus.Failed -> stringResource(Res.string.update_failed, at(s.at))
+            }
+            Text(line, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedButton(enabled = status != UpdateStatus.Checking, onClick = { scope.launch { runCatching { updates.check(force = true) } } }) {
+                Text(stringResource(Res.string.update_check_now))
+            }
+        }
+    }
+}
+
+/** Règle inter-champs violée : bandeau en conteneur d'erreur (un vrai échec, charte), avec icône. */
+@Composable
+private fun GeneralErrorBanner(error: GeneralError) {
+    Surface(color = MaterialTheme.colorScheme.errorContainer, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Icon(KairosIcons.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
+            Text(
+                stringResource(if (error == GeneralError.WORKDAY_ORDER) Res.string.settings_error_workday else Res.string.settings_error_dip),
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+/** Barre fixée en bas : « Modifications non enregistrées », « Annuler les modifications », « Enregistrer ». */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SaveBar(dirty: Boolean, onReset: () -> Unit, onSave: () -> Unit) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            itemVerticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        ) {
+            if (dirty) {
+                Text(stringResource(Res.string.settings_unsaved), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(end = 8.dp))
+                TextButton(onClick = onReset) { Text(stringResource(Res.string.settings_reset)) }
+            }
+            Button(enabled = dirty, onClick = onSave) { Text(stringResource(Res.string.action_save)) }
         }
     }
 }
@@ -96,16 +240,11 @@ private fun DataCard(services: AppServices) {
     val scope = rememberCoroutineScope()
     val messages = LocalMessages.current
     var pending by remember { mutableStateOf<KairosSnapshot?>(null) }
-
-    fun stamp(): String {
-        val t = services.clock.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        fun two(n: Int) = n.toString().padStart(2, '0')
-        return "${t.year}${two(t.month.number)}${two(t.day)}-${two(t.hour)}${two(t.minute)}"
-    }
+    val legacy = rememberLegacyImport(services)
 
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(Res.string.data_title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(Res.string.data_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
             Text(stringResource(Res.string.data_body), style = MaterialTheme.typography.bodyMedium)
             services.dataLocation?.let {
                 Text(
@@ -119,7 +258,7 @@ private fun DataCard(services: AppServices) {
                 OutlinedButton(onClick = {
                     scope.launch {
                         val text = ExportCodec.encode(services.repository.snapshot.value, KairosBuild.VERSION_NAME, services.clock.now())
-                        val saved = runCatching { services.files.saveText("kairos-export-${stamp()}.json", text) }
+                        val saved = runCatching { services.files.saveText("kairos-export-${fileStamp(services)}.json", text) }
                         saved.onSuccess { if (it) messages(getString(Res.string.export_done)) }
                             .onFailure { messages(getString(Res.string.file_error)) }
                     }
@@ -144,6 +283,13 @@ private fun DataCard(services: AppServices) {
                     Text(stringResource(Res.string.data_import), modifier = Modifier.padding(start = 6.dp))
                 }
             }
+            if (services.legacy != null) {
+                Text(stringResource(Res.string.legacy_import_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedButton(onClick = legacy::pick) {
+                    Icon(KairosIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(stringResource(Res.string.legacy_import_action), modifier = Modifier.padding(start = 6.dp))
+                }
+            }
         }
     }
 
@@ -156,19 +302,14 @@ private fun DataCard(services: AppServices) {
                 TextButton(onClick = {
                     pending = null
                     scope.launch {
-                        val current = ExportCodec.encode(services.repository.snapshot.value, KairosBuild.VERSION_NAME, services.clock.now())
-                        runCatching { services.backups.save("avant-import-${stamp()}.json", current) }
-                            .onFailure {
-                                // Jamais d'import sans sauvegarde préalable.
-                                messages(getString(Res.string.file_error))
-                                return@launch
-                            }
-                        services.repository.replaceAll(snapshot)
-                        messages(getString(Res.string.import_done, snapshot.tasks.size))
+                        if (replaceWithBackup(services, snapshot, messages)) {
+                            messages(getString(Res.string.import_done, snapshot.tasks.size))
+                        }
                     }
                 }) { Text(stringResource(Res.string.import_confirm_action)) }
             },
             dismissButton = { TextButton(onClick = { pending = null }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
+    LegacyImportDialog(legacy)
 }

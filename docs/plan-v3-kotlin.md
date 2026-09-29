@@ -344,7 +344,8 @@ Point à trancher avec l'utilisateur au jalon M5 : sur Android, cette
 migration **ne marche pas** entre l'APK Python (clé personnelle) et un APK
 signé par F-Droid (autre clé). Comme la v3 est la **première** version publiée
 sur F-Droid, seuls les utilisateurs de l'APK GitHub sont concernés, et
-l'installation par-dessus fonctionne pour eux.
+l'installation par-dessus fonctionne pour eux. (Jalon M5 : migration faite, voir
+`docs/spec-v3/migration-2x.md` ; ce point reste à confirmer avant la 3.0.0.)
 
 ---
 

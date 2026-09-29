@@ -7,7 +7,7 @@ direct, et prévenir quand un seuil est franchi. Fichiers couverts :
 (`startTimer`, `stopTimer`), `kmp/ui/.../app/ChronoNotifier.kt`,
 `kmp/ui/.../chrono/` (`ChronoWatcher.kt`, `ChronoTexts.kt`), les éléments du
 chrono de la vue Jour (`day/TaskRow.kt`, `day/NowCard.kt`, `day/Timeline.kt`),
-`settings/ChronoSettingsCard.kt`, et par plateforme :
+la section « Alertes du chrono » des Réglages (`reglages.md`), et par plateforme :
 `androidApp/.../` (`AndroidNotifier.kt`, `ChronoSync.kt`, `ChronoReceiver.kt`,
 `KairosProcess.kt`, `MainActivity.kt`, manifeste),
 `desktopApp/.../DesktopNotifier.kt` et `Main.kt`,
@@ -133,8 +133,9 @@ ferme toute session ouverte ; n'écrit rien s'il n'y en a pas.
   alertes, libellés des notifications Android), mêmes phrases que Kairos 2.
 - `rememberLiveMinutes` : minuteur vivant (une seconde) du badge de ligne et
   de « En ce moment ».
-- `ChronoSettingsCard` (Réglages) : les deux seuils et le son, enregistrés
-  d'un bouton.
+- Réglages : les deux seuils et le son, section « Alertes du chrono » du
+  formulaire commun (`reglages.md` ; carte séparée au jalon M3, fondue au
+  jalon M5).
 
 ### Android
 
