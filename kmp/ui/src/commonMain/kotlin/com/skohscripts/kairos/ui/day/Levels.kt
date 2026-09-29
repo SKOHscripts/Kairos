@@ -12,6 +12,20 @@ import com.skohscripts.kairos.ui.generated.resources.points_2_name
 import com.skohscripts.kairos.ui.generated.resources.points_3_name
 import com.skohscripts.kairos.ui.generated.resources.points_5_name
 import com.skohscripts.kairos.ui.generated.resources.points_8_name
+import com.skohscripts.kairos.ui.generated.resources.points_1_meaning
+import com.skohscripts.kairos.ui.generated.resources.points_1_example
+import com.skohscripts.kairos.ui.generated.resources.points_2_meaning
+import com.skohscripts.kairos.ui.generated.resources.points_2_example
+import com.skohscripts.kairos.ui.generated.resources.points_3_meaning
+import com.skohscripts.kairos.ui.generated.resources.points_3_example
+import com.skohscripts.kairos.ui.generated.resources.points_5_meaning
+import com.skohscripts.kairos.ui.generated.resources.points_5_example
+import com.skohscripts.kairos.ui.generated.resources.points_8_meaning
+import com.skohscripts.kairos.ui.generated.resources.points_8_example
+import com.skohscripts.kairos.ui.generated.resources.points_13_meaning
+import com.skohscripts.kairos.ui.generated.resources.points_13_example
+import com.skohscripts.kairos.ui.generated.resources.points_21_meaning
+import com.skohscripts.kairos.ui.generated.resources.points_21_example
 import com.skohscripts.kairos.ui.generated.resources.priority_0_meaning
 import com.skohscripts.kairos.ui.generated.resources.priority_0_name
 import com.skohscripts.kairos.ui.generated.resources.priority_1_meaning
@@ -46,6 +60,26 @@ internal object Levels {
         8 -> Res.string.points_8_name
         13 -> Res.string.points_13_name
         else -> Res.string.points_21_name
+    }
+
+    fun pointsMeaning(points: Int): StringResource = when (points) {
+        1 -> Res.string.points_1_meaning
+        2 -> Res.string.points_2_meaning
+        3 -> Res.string.points_3_meaning
+        5 -> Res.string.points_5_meaning
+        8 -> Res.string.points_8_meaning
+        13 -> Res.string.points_13_meaning
+        else -> Res.string.points_21_meaning
+    }
+
+    fun pointsExample(points: Int): StringResource = when (points) {
+        1 -> Res.string.points_1_example
+        2 -> Res.string.points_2_example
+        3 -> Res.string.points_3_example
+        5 -> Res.string.points_5_example
+        8 -> Res.string.points_8_example
+        13 -> Res.string.points_13_example
+        else -> Res.string.points_21_example
     }
 
     fun missing(m: MissingQualification): StringResource = when (m) {

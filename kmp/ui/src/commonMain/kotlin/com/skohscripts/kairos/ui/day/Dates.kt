@@ -27,6 +27,35 @@ internal object Dates {
         return if (english(language)) "${EN[month]} ${date.day}" else "${date.day} ${FR[month]}"
     }
 
+    private val FR_LONG = listOf("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre")
+    private val EN_LONG = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+    private val FR_DAYS = listOf("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
+    private val EN_DAYS = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+    /** « mardi 30 septembre 2026 », « 1er » le premier du mois (`date_longue` de Kairos 2) ; « Tuesday, September 30, 2026 ». */
+    fun long(date: LocalDate, language: String): String {
+        val dow = date.dayOfWeek.ordinal
+        val month = date.month.ordinal
+        if (english(language)) return "${EN_DAYS[dow]}, ${EN_LONG[month]} ${date.day}, ${date.year}"
+        val day = if (date.day == 1) "1er" else date.day.toString()
+        return "${FR_DAYS[dow]} $day ${FR_LONG[month]} ${date.year}"
+    }
+
+    /** « mar. 30/09 » (`jour_court` de Kairos 2) ; « Tue 9/30 ». */
+    fun dayShort(date: LocalDate, language: String): String {
+        val dow = date.dayOfWeek.ordinal
+        return if (english(language)) {
+            "${EN_DAYS[dow].take(3)} ${date.month.ordinal + 1}/${date.day}"
+        } else {
+            "${FR_DAYS[dow].take(3)}. ${date.day.toString().padStart(2, '0')}/${(date.month.ordinal + 1).toString().padStart(2, '0')}"
+        }
+    }
+
+    /** « 28/09 » ; « 9/28 ». */
+    fun dayMonth(date: LocalDate, language: String): String =
+        if (english(language)) "${date.month.ordinal + 1}/${date.day}"
+        else "${date.day.toString().padStart(2, '0')}/${(date.month.ordinal + 1).toString().padStart(2, '0')}"
+
     /** « 09h15 » (Kairos 2) en français, « 09:15 » en anglais. */
     fun time(t: LocalTime, language: String): String {
         val h = t.hour.toString().padStart(2, '0')

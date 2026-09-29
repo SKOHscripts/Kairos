@@ -80,8 +80,8 @@ l'APK était en arrière-plan ; Kairos 3 les confie au système.
 
 ### Hors périmètre / différé
 
-- Temps de la **semaine** par type : calculé (`TimeTracking`), affiché avec
-  la vue Semaine (jalon M4).
+- Temps de la **semaine** par type : calculé ici (`TimeTracking`), affiché
+  par la vue Semaine (`vue-semaine.md`).
 - Mode focus plein écran, notification vers un autre appareil, rappels
   hors d'un chrono en cours (comme Kairos 2).
 - Alarmes exactes (voir Décisions).

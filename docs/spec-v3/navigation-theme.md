@@ -41,8 +41,13 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   qu'il fait en quatre points, la formule du score de priorité, l'origine du
   nom), la version, la licence (MIT, données locales) et un lien vers le code
   source. Un bouton retour, le retour système Android ou Échap le ferment.
-- Jalon M1 : Jour (`vue-jour.md`) et Réglages (carte Données, entrée « À
-  propos et guide ») ; Notes, Semaine et Stats affichent « En construction ».
+- Depuis le jalon M4, les cinq destinations sont portées : Notes
+  (`notes-capture.md`), Jour (`vue-jour.md`), Semaine (`vue-semaine.md`),
+  Stats (`statistiques.md`), Réglages (Données, chrono, « À propos et
+  guide » ; le reste « En construction » jusqu'au jalon M5).
+- Le titre de la barre dit ce qui est affiché : « Jour · mercredi 30
+  septembre 2026 » pour un autre jour qu'aujourd'hui, « Semaine · du lundi
+  28 septembre 2026 » pour la semaine regardée.
 - Au lancement, un indicateur « Ouverture de Kairos… » attend l'ouverture des
   données ; un échec est affiché (« Impossible d'ouvrir les données » et le
   détail), jamais un écran vide.
@@ -101,7 +106,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   (creux), `Block` (bloquée), `Repeat`, `PushPin` (épinglée, symbole
   `keep`), `TrendingUp` (score, chemin critique), `Description`, `Layers`
   (deep work) ; jalon M3 (chrono) : `PlayArrow`, `Stop`, `Close` (fermer une
-  alerte), `NotificationsActive`.
+  alerte), `NotificationsActive` ; jalon M4 : `ChevronLeft` (semaine
+  précédente).
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`
   épaisseur 1.6, secteur `#C28417` de 12 h à 2 h, axe `#2B251C` rayon 2.6,
   viewport 40), couleurs fixes, affiché par `Image` (jamais teinté).
@@ -119,12 +125,16 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
 - `KairosApp(platform, openServices)` : `KairosTheme` ; appelle
   `openServices()` une fois (`LaunchedEffect`) : indicateur de progression
   pendant l'attente, titre d'erreur et détail en cas d'échec. Puis
-  `KairosShell` : état `destination` et `aboutOpen` (`rememberSaveable`) ;
+  `KairosShell` : état `destination` et `aboutOpen` (`rememberSaveable`),
+  `NavState` (jour et semaine regardés, `vue-semaine.md`) ;
   `BoxWithConstraints` fournit la largeur à `choose`. Naviguer vers une
-  destination ferme « À propos ».
+  destination ferme « À propos » et ramène à aujourd'hui et à la semaine
+  courante ; `onOpenDay(jour)` ouvre la vue Jour d'un jour donné.
 - `AppShell` :
-  - `TopAppBar` avec le titre (celui de la destination, ou « À propos et
-    guide ») ; flèche retour quand « À propos » est ouvert ; sinon, sans rail,
+  - `TopAppBar` avec le titre, fidèle à ce qui est affiché (Kairos 2) :
+    « À propos et guide », « Jour · mercredi 30 septembre 2026 » pour un
+    autre jour qu'aujourd'hui, « Semaine · du lundi 28 septembre 2026 »,
+    sinon celui de la destination ; flèche retour quand « À propos » est ouvert ; sinon, sans rail,
     le logo en 28 dp.
   - `RAIL` : `NavigationRail` (en-tête : logo 34 dp + « Kairos ») à gauche
     d'un `Scaffold`.
@@ -141,11 +151,15 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
 
 ### Écrans (`screens/`)
 
-- `DestinationScreen(destination, services, onOpenAbout)` : `DAY` →
-  `DayScreen` ; `SETTINGS` → `SettingsScreen` (carte Données, carte « À
-  propos et guide » en `OutlinedCard` + `ListItem`, icône `Info`, chevron,
-  puis « En construction » pour les réglages à venir) ; sinon
-  `UnderConstruction` (icône `Construction`, titre, texte centré).
+- `DestinationScreen(destination, services, nav, onOpenDay, onNavigate,
+  onOpenAbout)` : les cinq destinations sont portées depuis le jalon M4 :
+  `NOTES` → `NotesScreen` (`notes-capture.md`), `DAY` → `DayScreen` du
+  jour de `nav.day` (`vue-jour.md`), `WEEK` → `WeekScreen`
+  (`vue-semaine.md`), `STATS` → `StatsScreen` (`statistiques.md`),
+  `SETTINGS` → `SettingsScreen` (carte Données, réglages du chrono, carte
+  « À propos et guide » en `OutlinedCard` + `ListItem`, icône `Info`,
+  chevron, puis `UnderConstruction` (icône `Construction`, titre, texte
+  centré) pour les réglages à venir, jalon M5).
 - `AboutScreen` : colonne défilante de 720 dp au plus, centrée. Logo 56 dp +
   nom + devise ; phrase d'introduction ; trois cartes « filled »
   (`surfaceContainerLow`, élévation 0 : jamais d'ombre sur une carte) : « En

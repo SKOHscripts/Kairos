@@ -159,7 +159,8 @@ heure) et écrit entrées et sorties en JSON ; `DifferentialTest` rejoue et
 exige l'égalité exacte (scores comparés en `Double` relus depuis le `repr`
 Python). Les fixtures sont commitées : le générateur ne se relance que si le
 moteur Python ou lui-même change ; elles restent après la suppression du
-Python.
+Python. Le même générateur écrit `stats.json` (jalon M4, rejoué par
+`StatsDifferentialTest`, voir `statistiques.md`).
 
 ### Décisions et pièges tracés
 

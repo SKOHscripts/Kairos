@@ -38,4 +38,14 @@ class DatesTest {
         assertEquals("0.1", Dates.number(0.1111))
         assertEquals("2", Dates.number(1.96))
     }
+
+    @Test
+    fun longAndShortDaysPerLanguage() {
+        assertEquals("mardi 29 septembre 2026", Dates.long(LocalDate(2026, 9, 29), "fr"))
+        assertEquals("jeudi 1er octobre 2026", Dates.long(LocalDate(2026, 10, 1), "fr"))
+        assertEquals("Tuesday, September 29, 2026", Dates.long(LocalDate(2026, 9, 29), "en"))
+        assertEquals("mar. 29/09", Dates.dayShort(LocalDate(2026, 9, 29), "fr"))
+        assertEquals("Tue 9/29", Dates.dayShort(LocalDate(2026, 9, 29), "en"))
+        assertEquals("28/09", Dates.dayMonth(LocalDate(2026, 9, 28), "fr"))
+    }
 }

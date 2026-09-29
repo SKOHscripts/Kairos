@@ -166,6 +166,8 @@ de SQLDelight.
     toutes ses occurrences (seul le modèle est stocké).
   - `deleteTask` : supprime la tâche et les dépendances où elle figure ; ses
     sous-tâches et sessions restent (comme `delete_task` de Kairos 2).
+  - Notes : `createNote`, `editNote`, `convertNote`, `archiveNote`,
+    `deleteNote` (`notes-capture.md`).
   - `updateSettings`.
   - `replaceAll(snapshot)` : vide toutes les tables et réinsère tout,
     identifiants compris, en une transaction. Sert à l'import, aux exemples et

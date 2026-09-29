@@ -26,6 +26,7 @@ import com.skohscripts.kairos.ui.generated.resources.error_open_title
 import com.skohscripts.kairos.ui.generated.resources.loading
 import com.skohscripts.kairos.ui.navigation.AppShell
 import com.skohscripts.kairos.ui.navigation.Destination
+import com.skohscripts.kairos.ui.navigation.NavState
 import com.skohscripts.kairos.ui.navigation.NavigationLayout
 import com.skohscripts.kairos.ui.theme.KairosTheme
 import org.jetbrains.compose.resources.stringResource
@@ -63,14 +64,24 @@ fun KairosApp(platform: Platform, openServices: suspend () -> AppServices) {
 private fun KairosShell(platform: Platform, services: AppServices) {
     var destination by rememberSaveable { mutableStateOf(Destination.START) }
     var aboutOpen by rememberSaveable { mutableStateOf(false) }
+    val nav = remember { NavState() }
     BoxWithConstraints {
         AppShell(
             layout = NavigationLayout.choose(platform, maxWidth),
             services = services,
             destination = destination,
             aboutOpen = aboutOpen,
+            nav = nav,
             onNavigate = {
+                // La navigation principale ramène à aujourd'hui et à la semaine courante.
+                nav.day = null
+                nav.week = null
                 destination = it
+                aboutOpen = false
+            },
+            onOpenDay = { day ->
+                nav.day = day
+                destination = Destination.DAY
                 aboutOpen = false
             },
             onOpenAbout = { aboutOpen = true },
