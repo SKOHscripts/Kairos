@@ -96,7 +96,7 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Réglages (docs/spec-v3/reglages.md) : le formulaire complet (une carte par
+ * Réglages (docs/spec/reglages.md) : le formulaire complet (une carte par
  * section, validation par champ, un seul « Enregistrer » dans une barre
  * fixée en bas), puis les données (export, import) et « À propos et guide ».
  * Rien n'est enregistré tant qu'un champ est invalide.
@@ -230,7 +230,7 @@ private fun SaveBar(dirty: Boolean, onReset: () -> Unit, onSave: () -> Unit) {
 }
 
 /**
- * Export et import (docs/spec-v3/export-import.md) : l'export écrit tout dans
+ * Export et import (docs/spec/export-import.md) : l'export écrit tout dans
  * un fichier JSON ; l'import remplace tout après confirmation, avec une
  * sauvegarde automatique juste avant.
  */

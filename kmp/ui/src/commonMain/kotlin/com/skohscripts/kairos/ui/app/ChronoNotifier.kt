@@ -3,7 +3,7 @@ package com.skohscripts.kairos.ui.app
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-/** Ce que les notifications système peuvent faire ici (docs/spec-v3/temps-reel-chrono.md § Notifications). */
+/** Ce que les notifications système peuvent faire ici (docs/spec/temps-reel-chrono.md § Notifications). */
 enum class NotifyState {
     /** Les notifications sortent. */
     ACTIVE,

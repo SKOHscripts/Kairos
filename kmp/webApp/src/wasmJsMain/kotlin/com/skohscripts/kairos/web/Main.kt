@@ -6,7 +6,7 @@ import com.skohscripts.kairos.ui.KairosApp
 import com.skohscripts.kairos.ui.Platform
 import kotlinx.browser.document
 
-/** Point d'entrée de la version web (docs/spec-v3/distribution.md § Web). */
+/** Point d'entrée de la version web (docs/spec/distribution.md § Web). */
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     // Le message de chargement (et de navigateur trop ancien) vit dans

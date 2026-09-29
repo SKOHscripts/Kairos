@@ -136,7 +136,7 @@ private val SECTIONS = listOf(
 )
 
 /**
- * Les cartes du formulaire des Réglages (docs/spec-v3/reglages.md) : une
+ * Les cartes du formulaire des Réglages (docs/spec/reglages.md) : une
  * carte à contour par section, un champ par réglage, l'erreur du champ à la
  * place de son aide. L'état (textes, erreurs) appartient à l'écran.
  */

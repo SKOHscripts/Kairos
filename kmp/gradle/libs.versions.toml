@@ -1,6 +1,6 @@
-# Versions figées (builds reproductibles, docs/spec-v3/distribution.md).
+# Versions figées (builds reproductibles, docs/spec/distribution.md).
 # Toute dépendance ajoutée doit être libre et publiée sur Maven Central ou le
-# dépôt Google (docs/spec-v3/architecture.md § Dépendances).
+# dépôt Google (docs/spec/architecture.md § Dépendances).
 [versions]
 kotlin = "2.4.20"
 agp = "9.4.1"

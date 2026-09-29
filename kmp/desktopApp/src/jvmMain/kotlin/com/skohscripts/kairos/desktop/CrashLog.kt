@@ -5,7 +5,7 @@ import java.io.PrintWriter
 import java.time.LocalDateTime
 
 /**
- * Journal de crash (docs/spec-v3/distribution.md § Bureau) : une exception non
+ * Journal de crash (docs/spec/distribution.md § Bureau) : une exception non
  * rattrapée est ajoutée à `crash.log` du dossier de données, exploitable sans
  * terminal (l'exécutable n'en a pas).
  */

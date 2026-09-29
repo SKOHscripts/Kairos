@@ -9,7 +9,8 @@ d'application, retour), plus l'écran « À propos et guide ». Fichiers couvert
 Les valeurs de la charte (rôles, formes, « où va la couleur ») viennent de
 [`docs/DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md), cité ici plutôt que recopié._
 
-Reprend le besoin de `docs/spec/accueil-navigation.md` (Kairos 2), moins ce qui
+Reprend le besoin de `docs/spec/accueil-navigation.md` (Kairos 2, tag
+`v2.6.0`), moins ce qui
 tenait au rendu serveur (bouton « Quitter », restauration du défilement,
 rendu du README) et avec **cinq** destinations au lieu de six.
 

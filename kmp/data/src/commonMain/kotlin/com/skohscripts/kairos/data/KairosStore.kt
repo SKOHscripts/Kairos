@@ -8,7 +8,7 @@ import app.cash.sqldelight.db.SqlDriver
 import com.skohscripts.kairos.data.db.KairosDatabase
 
 /**
- * Ouverture de la base (docs/spec-v3/modele-donnees.md § Ouverture et
+ * Ouverture de la base (docs/spec/modele-donnees.md § Ouverture et
  * migrations) : crée le schéma sur une base sans table `task`, applique les
  * migrations SQLDelight (fichiers `.sqm`) si `PRAGMA user_version` est en
  * retard, puis tient cette version à jour. Idempotent.

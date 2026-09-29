@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import java.awt.Toolkit
 
 /**
- * Notifications du bureau (docs/spec-v3/temps-reel-chrono.md § Bureau) : les
+ * Notifications du bureau (docs/spec/temps-reel-chrono.md § Bureau) : les
  * notifications passent par l'icône du plateau système ([tray], `null` si le
  * bureau n'en a pas : certaines sessions Linux) ; le titre de la fenêtre
  * porte le temps qui tourne ou l'alerte qui clignote.

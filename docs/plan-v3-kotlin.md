@@ -308,7 +308,7 @@ intégrations retirées :
   l'**OPFS** du navigateur (stockage privé de l'origine
   `skohscripts.github.io`). Décision prise au jalon M1 : le stockage SQLite
   direct dans l'OPFS exige des en-têtes COOP/COEP que GitHub Pages n'envoie
-  pas (`docs/spec-v3/export-import.md` § Décisions).
+  pas (`docs/spec/export-import.md` § Décisions).
 - Beaucoup de postes professionnels **vident les données du navigateur** à la
   fermeture. La version web propose donc de **lier la base à un fichier
   local** (API File System Access, disponible dans Edge et Chrome) : chaque
@@ -345,7 +345,7 @@ migration **ne marche pas** entre l'APK Python (clé personnelle) et un APK
 signé par F-Droid (autre clé). Comme la v3 est la **première** version publiée
 sur F-Droid, seuls les utilisateurs de l'APK GitHub sont concernés, et
 l'installation par-dessus fonctionne pour eux. (Jalon M5 : migration faite, voir
-`docs/spec-v3/migration-2x.md`.)
+`docs/spec/migration-2x.md`.)
 
 **Tranché avant la 3.0.0 (2026-09-29, jalon M7)** :
 
@@ -357,7 +357,7 @@ l'installation par-dessus fonctionne pour eux. (Jalon M5 : migration faite, voir
   F-Droid). Dernier service rendu : la release 3.0.0 publie une copie de
   l'APK sous le nom que cherche Kairos 2 (`kairos-android-arm64.apk`), pour
   que l'APK Python installe Kairos 3 en un clic
-  (`docs/spec-v3/migration-2x.md` § Pont de mise à jour).
+  (`docs/spec/migration-2x.md` § Pont de mise à jour).
 
 ---
 
@@ -459,7 +459,7 @@ l'installation par-dessus fonctionne pour eux. (Jalon M5 : migration faite, voir
   (`Kairos-windows-x64.msi`, et ainsi de suite) sous
   `releases/download/<tag v3>`, le tag étant choisi par `pages.yml` à chaque
   release. Révisé en M6 : `releases/latest/` désigne une 2.x tant que la
-  3.0.0 n'est pas sortie (`docs/spec-v3/publication.md` § Décisions).
+  3.0.0 n'est pas sortie (`docs/spec/publication.md` § Décisions).
 - Un petit script facultatif détecte l'OS du visiteur pour mettre son bouton
   en avant. La page reste complète sans JavaScript.
 - La **version web** de l'application est servie au même endroit, sous
@@ -604,7 +604,7 @@ Ordre justifié :
 | Taille de l'APK (limite IzzyOnDroid d'environ 30 Mo) | Compose + R8 : de l'ordre de 5 à 10 Mo attendus. Taille surveillée en CI. |
 | Chantier long, lassitude, double maintenance | Le Python est **gelé** (correctifs seulement). Chaque jalon livre un produit installable, utilisable en « Preview ». |
 | Migration Android impossible en cas de changement de clé | Même clé conservée (secrets existants). Export JSON en recours. |
-| Fuite de réglages ou d'API retirés dans le nouveau code | Liste du § 2.2 vérifiée à chaque jalon. Grep de garde en CI (`timetree`, `gitlab`, `pilotage`, `systemd`) sur `kmp/` et `docs/spec-v3/`. |
+| Fuite de réglages ou d'API retirés dans le nouveau code | Liste du § 2.2 vérifiée à chaque jalon. Grep de garde en CI (`timetree`, `gitlab`, `pilotage`, `systemd`) sur `kmp/` et `docs/spec-v3/` (`docs/spec/` depuis la bascule). |
 
 ---
 

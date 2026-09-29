@@ -7,7 +7,7 @@ import kotlinx.datetime.LocalDate
 enum class FieldKind { INT, DECIMAL, BOOL, TEXT, DATES }
 
 /**
- * Un réglage éditable (docs/spec-v3/reglages.md) : clé stable (nom du champ
+ * Un réglage éditable (docs/spec/reglages.md) : clé stable (nom du champ
  * de [Settings]), nature, bornes **incluses** de Kairos 2 (`ge`/`le`), ou
  * borne basse exclue (`gt`) si [minExclusive]. La valeur circule en texte :
  * celui du formulaire.

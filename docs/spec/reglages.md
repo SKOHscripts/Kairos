@@ -11,7 +11,7 @@ et `migration-2x.md`, la carte Mises à jour par `mises-a-jour.md`. Tests :
 `M5ScreensUiTest.anInvalidFieldBlocksSavingThenAValidFormIsSaved`._
 
 État : **jalon M5**. Reprend le besoin de `docs/spec/reglages-secrets.md`
-(Kairos 2), moins le périmètre retiré : chemin de la base, import GitLab,
+(Kairos 2, tag `v2.6.0`), moins le périmètre retiré : chemin de la base, import GitLab,
 base pilotage, TimeTree, proxy, niveau de log, source et jeton des mises à
 jour. Kairos 3 n'a plus aucun secret à stocker (pas de trousseau).
 

@@ -24,7 +24,7 @@ import java.util.Locale
 import kotlin.time.Clock
 
 /**
- * Services Android (docs/spec-v3/distribution.md § Android) : base
+ * Services Android (docs/spec/distribution.md § Android) : base
  * `kairos.db` du stockage privé, sélecteurs de fichiers du système (sans
  * permission de stockage), sauvegardes dans `files/backups/`.
  */
@@ -43,7 +43,7 @@ object AndroidServices {
         val opened = KairosStore.open(driver)
         val examples = { ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language) }
         // Base v3 neuve et base Kairos 2 héritée de l'APK Python : migration automatique
-        // (docs/spec-v3/migration-2x.md § Android). Illisible : les exemples, comme sans elle.
+        // (docs/spec/migration-2x.md § Android). Illisible : les exemples, comme sans elle.
         val legacyFile = AndroidLegacy.installed(context).takeIf { opened.created }
         val migration = legacyFile?.let { file ->
             runCatching {

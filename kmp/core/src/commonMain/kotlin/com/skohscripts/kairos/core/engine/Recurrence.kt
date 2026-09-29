@@ -14,7 +14,7 @@ import kotlinx.datetime.plus
 import kotlin.time.Instant
 
 /**
- * Récurrence des tâches et des créneaux (docs/spec-v3/recurrence.md) : portage
+ * Récurrence des tâches et des créneaux (docs/spec/recurrence.md) : portage
  * de `app/tasks_recurrence.py` (Kairos 2). Pur : les occurrences à créer sont
  * rendues, le dépôt les enregistre.
  */

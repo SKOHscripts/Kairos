@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- English strings (docs/spec-v3/i18n.md). Same keys as values/strings.xml. -->
+<!-- English strings (docs/spec/i18n.md). Same keys as values/strings.xml. -->
 <resources>
     <string name="app_name">Kairos</string>
     <string name="app_tagline">The right time for every task</string>

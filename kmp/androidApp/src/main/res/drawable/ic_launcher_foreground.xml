@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Premier plan de l'icône adaptative : le cadran plus sombre, le quartier « bon
-     moment » et l'axe du cadran, repris de static/favicon.svg (coordonnées d'origine
+     moment » et l'axe du cadran, repris du logo (docs/DESIGN_SYSTEM.md § Logo ; coordonnées d'origine
      40×40, recentrées dans la zone sûre du canevas adaptatif 108×108). Le remplissage
      fond clair du cadran est porté par le calque de fond (@color/ic_launcher_background),
      mais son cadre plus foncé fait partie de l'illustration au même titre que le

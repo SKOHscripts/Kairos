@@ -7,7 +7,7 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 
 /**
- * Jours ouvrés et jours fériés (docs/spec-v3/ordonnancement.md § Jours ouvrés) :
+ * Jours ouvrés et jours fériés (docs/spec/ordonnancement.md § Jours ouvrés) :
  * portage de `app/workdays.py` (Kairos 2). Pur.
  */
 object Workdays {

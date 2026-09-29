@@ -1,4 +1,4 @@
-# CI de Kairos 3 (kmp/, docs/spec-v3/distribution.md § CI) : tests et builds
+# CI de Kairos 3 (kmp/, docs/spec/distribution.md § CI) : tests et builds
 # des quatre cibles à chaque PR et push sur main.
 name: Kairos 3 (KMP)
 
@@ -26,7 +26,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # Compose 1.12 compile contre l'API 37 (docs/spec-v3/architecture.md).
+      # Compose 1.12 compile contre l'API 37 (docs/spec/architecture.md).
       - name: Plateforme Android 37
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
 
@@ -40,7 +40,7 @@ jobs:
           :desktopApp:createDistributable
           :webApp:wasmJsBrowserDistribution
 
-      # L'application empaquetée démarre réellement (docs/spec-v3/distribution.md § Auto-test).
+      # L'application empaquetée démarre réellement (docs/spec/distribution.md § Auto-test).
       - name: Auto-test de l'application de bureau empaquetée
         run: |
           app_dir=$(ls -d desktopApp/build/compose/binaries/main/app/*/ | head -1)

@@ -5,7 +5,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlin.time.Instant
 
 /**
- * Tâche (docs/spec-v3/modele-donnees.md). Mêmes champs que la table `task` de
+ * Tâche (docs/spec/modele-donnees.md). Mêmes champs que la table `task` de
  * Kairos 2, moins ceux des intégrations retirées (`source`, `external_id`,
  * `linked_ticket_id`).
  *

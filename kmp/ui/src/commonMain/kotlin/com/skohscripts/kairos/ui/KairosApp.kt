@@ -39,7 +39,7 @@ import org.jetbrains.compose.resources.stringResource
  * Navigation par état (destination courante + écran « À propos » ouvert ou
  * non) plutôt qu'une bibliothèque de navigation : cinq destinations de premier
  * niveau et un seul écran secondaire n'en justifient pas une
- * (docs/spec-v3/navigation-theme.md § Décisions).
+ * (docs/spec/navigation-theme.md § Décisions).
  */
 @Composable
 fun KairosApp(

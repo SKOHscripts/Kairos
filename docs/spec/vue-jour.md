@@ -12,7 +12,7 @@ clavier réels), `desktopApp/.../M4ScreensUiTest.kt` (autre jour, guide des
 points, durée suggérée)._
 
 État : **jalons M2 et M4**. Reprend le besoin de `docs/spec/vue-jour-gtd.md`
-(Kairos 2). Le moteur est décrit par `ordonnancement.md`, `dependances.md`
+(Kairos 2, tag `v2.6.0`). Le moteur est décrit par `ordonnancement.md`, `dependances.md`
 et `recurrence.md`. Le chrono (bouton de chaque ligne, « Démarrer le
 chrono » de « Maintenant », carte « En ce moment », temps passé, temps du
 jour par type, rail du réel sur la frise, alertes) est décrit par

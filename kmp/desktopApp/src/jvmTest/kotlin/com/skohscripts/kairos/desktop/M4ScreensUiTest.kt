@@ -36,7 +36,7 @@ import kotlin.time.Instant
 
 /**
  * Notes, Semaine, Statistiques et guide des points de bout en bout
- * (docs/spec-v3/notes-capture.md, vue-semaine.md, statistiques.md,
+ * (docs/spec/notes-capture.md, vue-semaine.md, statistiques.md,
  * vue-jour.md § Comprendre les valeurs) : base SQLite en mémoire, horloge
  * réglable (mardi 29 septembre 2026, 7 h UTC).
  */

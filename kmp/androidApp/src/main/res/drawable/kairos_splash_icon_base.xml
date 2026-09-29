@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Icône du splash screen (API 31+, voir themes.xml) : même tracé que le logo
-     Kairos (mire/cadran solaire — static/favicon.svg, templates/base.html,
+     Kairos (mire/cadran solaire — docs/DESIGN_SYSTEM.md § Logo,
      ic_launcher_foreground.xml), viewBox 40×40 identique pour réutiliser les
      mêmes coordonnées sans recalcul. Contrairement à ic_launcher_foreground.xml
      (juste le premier plan), ce drawable porte aussi son propre fond clair +

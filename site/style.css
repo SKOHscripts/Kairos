@@ -1,4 +1,4 @@
-/* Page de téléchargement de Kairos (docs/spec-v3/publication.md § Page).
+/* Page de téléchargement de Kairos (docs/spec/publication.md § Page).
    Charte « miel » (docs/DESIGN_SYSTEM.md) : rôles MD3, Roboto servie ici,
    cartes sans ombre, un seul bloc teinté (l'appel principal). */
 @font-face { font-family: Roboto; font-weight: 400; src: url("fonts/roboto_regular.ttf") format("truetype"); font-display: swap; }

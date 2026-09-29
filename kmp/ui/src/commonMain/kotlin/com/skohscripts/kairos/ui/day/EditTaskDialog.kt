@@ -81,7 +81,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Dialogue d'édition d'une tâche (docs/spec-v3/vue-jour.md § Édition) :
+ * Dialogue d'édition d'une tâche (docs/spec/vue-jour.md § Édition) :
  * essentiels toujours visibles (titre, description juste sous le titre,
  * priorité, points, échéance, durée), puis « Options avancées » repliées
  * (programmée pour, projet, temps passé manuel, récurrence et jour du mois,

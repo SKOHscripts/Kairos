@@ -18,7 +18,7 @@ import java.awt.Window as AwtWindow
 import javax.swing.SwingUtilities
 import kotlin.system.exitProcess
 
-/** Point d'entrée de l'application de bureau (docs/spec-v3/distribution.md § Bureau). */
+/** Point d'entrée de l'application de bureau (docs/spec/distribution.md § Bureau). */
 fun main(args: Array<String>) {
     val dataDir = DataDirectory.resolve()
     CrashLog.install(dataDir)
@@ -26,7 +26,7 @@ fun main(args: Array<String>) {
     if (args.any { it == "--self-test" || it.startsWith("--self-test=") }) {
         exitProcess(SelfTest.run(args.toList(), dataDir))
     }
-    // Captures des fiches de magasin (développement seulement, docs/spec-v3/publication.md).
+    // Captures des fiches de magasin (développement seulement, docs/spec/publication.md).
     args.firstOrNull { it.startsWith("--store-screenshots=") }?.let {
         exitProcess(StoreScreenshots.run(java.io.File(it.substringAfter('='))))
     }

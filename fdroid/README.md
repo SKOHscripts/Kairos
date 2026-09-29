@@ -3,7 +3,7 @@
 Dossier de soumission, à dérouler par le propriétaire du dépôt **après la release
 `v3.0.0`** (une préversion n’est proposée à aucun des deux dépôts : elle porte
 l’identifiant `com.skohscripts.kairos.preview`). Conception et décisions :
-`docs/spec-v3/publication.md`.
+`docs/spec/publication.md`.
 
 ## Ce que le dépôt fournit déjà
 

@@ -1,4 +1,4 @@
-# Vérification F-Droid et magasins (docs/spec-v3/publication.md § Vérification continue).
+# Vérification F-Droid et magasins (docs/spec/publication.md § Vérification continue).
 #
 # - metadata : fiches Fastlane FR/EN (longueurs, changelog du versionCode courant,
 #   icône, captures) ;

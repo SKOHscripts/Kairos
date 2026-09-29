@@ -19,7 +19,7 @@ import kotlinx.serialization.json.Json
 import kotlin.time.Instant
 
 /**
- * Format d'export de Kairos 3 (docs/spec-v3/export-import.md § Format) : un
+ * Format d'export de Kairos 3 (docs/spec/export-import.md § Format) : un
  * fichier JSON UTF-8 lisible, versionné (`formatVersion`), qui contient toutes
  * les tables et les réglages. Les codes (statut, récurrence, type de créneau)
  * sont ceux de la base, identiques à Kairos 2.

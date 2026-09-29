@@ -20,7 +20,7 @@ import org.jetbrains.skia.EncodedImageFormat
 import java.io.File
 
 /**
- * `--self-test[=dossier]` (docs/spec-v3/distribution.md § Auto-test) : vérifie,
+ * `--self-test[=dossier]` (docs/spec/distribution.md § Auto-test) : vérifie,
  * SANS fenêtre, que l'application empaquetée démarre réellement : version
  * cohérente, dossier de données inscriptible, et rendu hors écran de
  * l'interface complète (thème, polices, chaînes, icônes) en largeur bureau et

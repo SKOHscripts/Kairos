@@ -83,7 +83,7 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Notes (docs/spec-v3/notes-capture.md) : capture libre en amont de « À
+ * Notes (docs/spec/notes-capture.md) : capture libre en amont de « À
  * traiter ». Un seul champ, Ctrl+Entrée capture ; les notes en attente, la
  * plus récente en tête, avec « → Tâche », modifier, archiver, supprimer ;
  * « Traité / archivé » replié, avec le lien vers la tâche créée.

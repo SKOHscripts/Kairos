@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Bases Kairos 2 sur Android (docs/spec-v3/migration-2x.md § Android).
+ * Bases Kairos 2 sur Android (docs/spec/migration-2x.md § Android).
  * L'APK Python rangeait tout dans `files/kairos-data/` (`tasks.db`,
  * `settings.json`) : l'APK v3, installé par-dessus (même identifiant, même
  * clé), en hérite. Lecture seule ; l'ancienne base n'est jamais modifiée.

@@ -1,4 +1,4 @@
-# Release de Kairos 3 (docs/spec-v3/distribution.md § Release) : sur tag v3.*,
+# Release de Kairos 3 (docs/spec/distribution.md § Release) : sur tag v3.*,
 # APK signé, installeurs et images portables des trois OS de bureau, version
 # web, SHA256SUMS, release GitHub (préversion si le tag a un suffixe).
 name: Kairos 3 release
@@ -135,7 +135,7 @@ jobs:
       - name: Installeur et image portable
         run: ./gradlew --no-daemon :desktopApp:packageDistributionForCurrentOS :desktopApp:createDistributable
 
-      # Auto-test : l'image empaquetée démarre et rend l'interface (docs/spec-v3/distribution.md § Auto-test).
+      # Auto-test : l'image empaquetée démarre et rend l'interface (docs/spec/distribution.md § Auto-test).
       - name: Auto-test (Linux, macOS)
         if: runner.os != 'Windows'
         run: |

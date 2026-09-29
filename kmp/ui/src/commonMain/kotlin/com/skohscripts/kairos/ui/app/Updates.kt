@@ -30,7 +30,7 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
-/** Résultat de la dernière vérification des mises à jour (docs/spec-v3/mises-a-jour.md). */
+/** Résultat de la dernière vérification des mises à jour (docs/spec/mises-a-jour.md). */
 sealed interface UpdateStatus {
     data object Never : UpdateStatus
     data object Checking : UpdateStatus

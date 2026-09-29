@@ -4,7 +4,7 @@ Tous les rôles viennent de l'algorithme officiel (material-color-utilities,
 portage Python `materialyoucolor`, schéma *Tonal spot*, spec 2021, contraste
 standard) depuis UNE graine, le miel `#C28417` du logo. Pour changer de
 couleur : changer `SEED` et regénérer, jamais retoucher un rôle isolé
-(CLAUDE.md, docs/spec-v3/navigation-theme.md § Thème).
+(CLAUDE.md, docs/spec/navigation-theme.md § Thème).
 
     pip install materialyoucolor==3.0.4
     python kmp/tools/make_theme.py

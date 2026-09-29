@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Vérification F-Droid de Kairos 3 (docs/spec-v3/publication.md § F-Droid).
+# Vérification F-Droid de Kairos 3 (docs/spec/publication.md § F-Droid).
 #
 # À lancer DANS l'image officielle registry.gitlab.com/fdroid/fdroidserver:buildserver
 # (celle des serveurs de construction de F-Droid), le dépôt monté en lecture :

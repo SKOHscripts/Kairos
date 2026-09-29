@@ -9,7 +9,7 @@ câblage dans `KairosApp.kt`, `AppShell.kt` (titre) et
 `M4ScreensUiTest.weekOpensAnotherDayAndComesBack`._
 
 État : **jalon M4**. Reprend la vue Semaine de Kairos 2
-(`_build_week_view`, `docs/spec/vue-jour-gtd.md`), sans les puces
+(`_build_week_view`, `docs/spec/vue-jour-gtd.md` au tag `v2.6.0`), sans les puces
 « journée entière » (événements TimeTree, retirés). Le temps de la semaine
 par type, calculé au jalon M3 (`temps-reel-chrono.md`), s'affiche ici.
 

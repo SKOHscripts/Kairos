@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Logo Kairos (cadran solaire : cadran, anneau, secteur, axe), dessin identique
- * à `static/favicon.svg`, couleurs tirées de la graine (docs/DESIGN_SYSTEM.md
+ * au logo de Kairos 2, couleurs tirées de la graine (docs/DESIGN_SYSTEM.md
  * § Logo). Couleurs fixes : le logo n'est jamais teinté (`Image`, pas `Icon`).
  */
 val KairosLogo: ImageVector by lazy {

@@ -74,7 +74,7 @@ private fun kairosTypography(): Typography {
     )
 }
 
-/** Thème Kairos : un seul thème clair (charte « miel », docs/spec-v3/navigation-theme.md). */
+/** Thème Kairos : un seul thème clair (charte « miel », docs/spec/navigation-theme.md). */
 @Composable
 fun KairosTheme(content: @Composable () -> Unit) {
     MaterialTheme(

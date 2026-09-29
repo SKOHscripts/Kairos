@@ -22,7 +22,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
- * Le chrono hors de l'application (docs/spec-v3/temps-reel-chrono.md §
+ * Le chrono hors de l'application (docs/spec/temps-reel-chrono.md §
  * Android) : tant qu'une session est ouverte, une notification permanente
  * affiche le chronomètre du système (il tourne sans l'application) avec
  * « Arrêter » ; chaque seuil encore à venir a son alarme, qui poste l'alerte

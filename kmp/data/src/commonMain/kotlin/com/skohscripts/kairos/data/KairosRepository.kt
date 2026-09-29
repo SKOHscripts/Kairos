@@ -32,7 +32,7 @@ import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 
 /**
- * Accès à la base (docs/spec-v3/modele-donnees.md § Dépôt).
+ * Accès à la base (docs/spec/modele-donnees.md § Dépôt).
  *
  * Toute la base est relue après chaque écriture et publiée dans [snapshot] :
  * les volumes d'un outil personnel (quelques milliers de lignes au plus) le
@@ -234,7 +234,7 @@ class KairosRepository(
         queries.deleteTask(taskId)
     }
 
-    // --- Notes (docs/spec-v3/notes-capture.md) -----------------------------------
+    // --- Notes (docs/spec/notes-capture.md) -----------------------------------
 
     /** Capture libre : un corps nettoyé, rien d'autre ; vide → rien. */
     suspend fun createNote(body: String): Boolean {
@@ -400,7 +400,7 @@ class KairosRepository(
 }
 
 /**
- * Contenu du dialogue d'édition d'une tâche (docs/spec-v3/vue-jour.md §
+ * Contenu du dialogue d'édition d'une tâche (docs/spec/vue-jour.md §
  * Édition). [pinTime] vide désépingle ; sinon l'heure fixe tombe sur
  * [scheduledDate], à défaut sur [pinDay] (le jour affiché). [blockerIds] est
  * l'ensemble complet des bloqueurs voulus ; [newSubtasks] : une ligne, une

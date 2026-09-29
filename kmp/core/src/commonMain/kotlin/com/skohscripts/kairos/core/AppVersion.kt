@@ -2,7 +2,7 @@ package com.skohscripts.kairos.core
 
 /**
  * Version de Kairos au format `X.Y.Z` ou `X.Y.Z-alpha.N` / `X.Y.Z-beta.N`
- * (docs/spec-v3/distribution.md § Versionnage).
+ * (docs/spec/distribution.md § Versionnage).
  *
  * Sert à deux choses : calculer le `versionCode` Android attendu (la CI vérifie
  * que `gradle.properties` le respecte) et comparer deux versions (vérification

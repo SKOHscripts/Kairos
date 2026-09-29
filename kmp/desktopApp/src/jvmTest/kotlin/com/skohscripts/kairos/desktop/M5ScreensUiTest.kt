@@ -40,7 +40,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
- * Réglages de bout en bout (docs/spec-v3/reglages.md) : base SQLite en
+ * Réglages de bout en bout (docs/spec/reglages.md) : base SQLite en
  * mémoire, horloge figée (mardi 29 septembre 2026, 7 h UTC).
  */
 @OptIn(ExperimentalTestApi::class)

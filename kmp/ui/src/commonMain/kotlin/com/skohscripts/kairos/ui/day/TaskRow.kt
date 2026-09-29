@@ -77,7 +77,7 @@ internal class RowContext(
 )
 
 /**
- * Ligne de tâche en colonnes fixes (docs/spec-v3/vue-jour.md § Ligne de
+ * Ligne de tâche en colonnes fixes (docs/spec/vue-jour.md § Ligne de
  * tâche, issue #33 de Kairos 2) : [coche] [corps : heure et titre,
  * étiquettes, description] [score, priorité, points] [décaler, modifier]. Le
  * corps grandit vers le bas, jamais vers la droite : les colonnes de droite
@@ -106,7 +106,7 @@ internal fun TaskRow(
     val errorColor = scheme.error
     Surface(
         // Bloquée : fond de surface et contour, jamais d'opacité (décision tracée dans
-        // docs/spec/vue-jour-gtd.md, reprise telle quelle).
+        // docs/spec/vue-jour-gtd.md de Kairos 2, reprise telle quelle ; docs/spec/vue-jour.md).
         color = if (blocked) scheme.surface else scheme.surfaceContainerLow,
         border = if (blocked) BorderStroke(1.dp, scheme.outlineVariant) else null,
         shape = MaterialTheme.shapes.medium,

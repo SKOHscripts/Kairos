@@ -24,7 +24,7 @@ import org.w3c.dom.Worker
 import kotlin.time.Clock
 
 /**
- * Services de la version web (docs/spec-v3/export-import.md § Version web).
+ * Services de la version web (docs/spec/export-import.md § Version web).
  *
  * La base SQLite vit **en mémoire** dans un worker (sql.js). La persistance
  * est un instantané JSON (le format d'export) écrit à chaque changement dans

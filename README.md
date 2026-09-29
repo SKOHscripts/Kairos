@@ -1,36 +1,30 @@
 # Kairos
 
-<img align="right" src="static/icon-512.png" width="140" alt="Logo Kairos">
+<img align="right" src="fastlane/metadata/android/fr-FR/images/icon.png" width="140" alt="Logo Kairos">
 
-[![CI](https://github.com/SKOHscripts/Kairos/actions/workflows/ci.yml/badge.svg)](https://github.com/SKOHscripts/Kairos/actions/workflows/ci.yml)
+[![Kairos 3](https://github.com/SKOHscripts/Kairos/actions/workflows/kmp.yml/badge.svg)](https://github.com/SKOHscripts/Kairos/actions/workflows/kmp.yml)
 [![Release](https://img.shields.io/github/v/release/SKOHscripts/Kairos)](https://github.com/SKOHscripts/Kairos/releases/latest)
-[![Téléchargements](https://img.shields.io/github/downloads/SKOHscripts/Kairos/total)](https://github.com/SKOHscripts/Kairos/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows11&logoColor=white)
-![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black)
-![Android](https://img.shields.io/badge/Android-3DDC84?style=flat&logo=android&logoColor=white)
+**Le bon moment pour chaque tâche.** Kairos répond à une question concrète :
+« qu’est-ce que je fais maintenant, et dans quel ordre, sachant qu’une réunion
+de 13 h à 14 h m’empêche de traiter le sujet urgent avant 14 h 05 ? » Il range
+tes tâches dans l’ordre où les faire et les place dans les trous de ta
+journée. Sans compte, sans publicité, sans réseau : tes données restent sur
+ton appareil.
 
-Dashboard personnel de tâches. Il répond à une question concrète : « qu'est-ce que je fais
-maintenant, et dans quel ordre, sachant qu'une réunion 13h-14h m'empêche de traiter le
-sujet urgent avant 14h05 ? » Outil web local, mono-utilisateur, sans compte ni cloud. Une
-base SQLite, un navigateur, et c'est tout.
-
-**Application de bureau (Windows, Linux) et mobile (Android)**, à télécharger et lancer
-en un geste, sans rien installer. Voir
-[**⬇ Télécharger la dernière version**](https://github.com/SKOHscripts/Kairos/releases/latest).
+**Android, Windows, Linux, macOS, et dans le navigateur.**
+[**⬇ Télécharger**](https://skohscripts.github.io/Kairos/)
 
 ## En bref
 
-Ce que fait l'outil, au quotidien :
-
-- Il classe les tâches du jour par un score de priorité, affiché sur chacune.
-- Il pose chaque tâche dans les trous de l'agenda, autour des réunions, avec une marge
-  après chaque réunion.
-- Il protège des blocs de deep-work et allège le creux de l'après-midi (les tâches
-  complexes évitent les heures les moins propices).
-- Il suit le temps réel passé et le compare à l'estimé.
-- Il importe, en option, tes issues GitLab assignées et ton agenda TimeTree.
+- Il classe les tâches du jour par un score de priorité, affiché sur chacune,
+  et explique ce score en un toucher.
+- Il pose chaque tâche dans les trous de l’agenda, autour des réunions, avec
+  une marge après chacune.
+- Il protège des blocs de deep work et allège le creux de l’après-midi.
+- Il chronomètre le temps réel, alerte en cas de dépassement, de chrono
+  oublié ou de pause à prendre, et compare tes estimations au temps passé.
 
 Le score de priorité vient de la méthode WSJF (« Weighted Shortest Job First ») :
 
@@ -41,469 +35,205 @@ Le score de priorité vient de la méthode WSJF (« Weighted Shortest Job First 
 ```
 
 - `valeur(priorité)` est exponentielle : `4^(2 − p)`, donc P0 = 16, P1 = 4, P2 = 1.
-- `criticité(échéance)` monte en rampe à l'approche de l'échéance, ou de la date
-  programmée si elle est plus proche. Une tâche en retard reste un palier à part : elle
-  passe toujours devant, hors score.
-- `effort` est la taille en points de Fibonacci (1 à 21). Sans points, l'outil retombe
-  sur la durée estimée pour le score affiché.
+- `criticité(échéance)` monte en rampe à l’approche de l’échéance, ou de la
+  date programmée si elle est plus proche. Une tâche en retard reste un palier
+  à part : elle passe toujours devant, hors score.
+- `effort` est la taille en points de Fibonacci (1 à 21).
 
-Le petit et prioritaire passe donc devant le gros et lointain (règle de Smith/Reinertsen).
-Tous les poids se règlent depuis la page **Réglages**.
+Le petit et prioritaire passe donc devant le gros et lointain. Tous les poids
+se règlent dans les **Réglages**.
 
-> **Pourquoi « Kairos » ?** En grec, *καιρός* désigne le moment opportun, l'instant juste
-> où agir, par opposition à *Chronos*, le temps qui défile. C'est le métier de l'outil :
-> trouver le bon créneau pour chaque tâche. Nom de code : **14h55**, le creux
-> post-déjeuner, l'heure la moins productive de la journée. L'outil vise le bon moment et
-> porte le nom du pire : le clin d'œil est assumé.
+> **Pourquoi « Kairos » ?** En grec, *καιρός* désigne le moment opportun,
+> l’instant juste où agir, par opposition à *Chronos*, le temps qui défile.
+> C’est le métier de l’outil : trouver le bon créneau pour chaque tâche. Nom de
+> code : **14h55**, le creux post-déjeuner, l’heure la moins productive de la
+> journée.
 
-Application FastAPI autonome, extraite à l'origine de `pilotage-pleiade-gitlab`
-(l'intégration reste possible, en option, voir plus bas). La spécification
-complète, par domaine fonctionnel, est dans
-[`docs/spec/`](docs/spec/README.md).
+## Installer
 
----
+La [page de téléchargement](https://skohscripts.github.io/Kairos/) propose le
+bon fichier pour ton système. Tous les fichiers, et leurs sommes de contrôle
+(`SHA256SUMS`), sont aussi dans les
+[releases GitHub](https://github.com/SKOHscripts/Kairos/releases).
 
-## Télécharger l'application (Windows/Linux/Android)
+| Système | Fichier | Remarque |
+|---|---|---|
+| Android 8 ou plus récent | `Kairos-android.apk` (bientôt F-Droid et IzzyOnDroid) | Le même APK signé partout : on passera d’une source à l’autre sans désinstaller. |
+| Windows 10 ou 11 | `Kairos-windows-x64.msi` | Installation pour l’utilisateur courant, sans droit administrateur. |
+| Windows, poste verrouillé | `Kairos-windows-x64-portable.zip` | Dézipper, lancer `Kairos.exe` : rien n’est installé. |
+| Linux (x86-64) | `Kairos-linux-x64.deb`, ou `Kairos-linux-x64-portable.tar.gz` | |
+| macOS | `Kairos-macos-arm64.dmg` (Apple Silicon), `Kairos-macos-x64.dmg` (Intel) | |
+| Navigateur | [Kairos en ligne](https://skohscripts.github.io/Kairos/app/) | Edge ou Chrome récents ; rien à installer. |
 
-Pas besoin de Python, de venv ni de terminal. Les
-[releases GitHub](https://github.com/SKOHscripts/Kairos/releases) proposent un exécutable
-autonome par OS (`kairos-linux-x86_64`, `kairos-windows-x86_64.exe`) et un APK Android
-(`kairos-android-arm64.apk`). Télécharge, double-clique (sous Linux, rends d'abord le
-fichier exécutable avec `chmod +x kairos-linux-x86_64`) : une petite fenêtre de
-démarrage (logo et état) s'affiche aussitôt, puis une fenêtre s'ouvre toute
-seule sur Kairos, sans barre d'adresse ni onglets, comme une vraie application
-de bureau (si un navigateur de la famille Chromium est installé : Chrome, Edge, Brave,
-Vivaldi... ; sinon repli automatique sur un onglet du navigateur par défaut, sans rien
-à configurer). Les réglages et la base de tâches vivent dans le dossier de données
-standard de ton système, entièrement éditables depuis la page **Réglages**. Aucun
-fichier `.env` à copier ou à éditer à la main.
+**Première installation.**
 
-**Android** : télécharge l'APK depuis la release et ouvre-le (autorise l'installation
-depuis cette source si Android le demande). L'application embarque le serveur et
-affiche la même interface ; les données vivent dans le stockage privé de l'appli. Au
-lancement, un écran de démarrage montre le logo et l'étape en cours (le premier
-lancement après une installation ou une mise à jour peut prendre jusqu'à une minute) ;
-en cas d'échec, il affiche le détail et un bouton **Réessayer**. Les
-mises à jour s'installent par-dessus l'ancienne version, sans perte de données (même
-clé de signature d'une release à l'autre). Limite connue de cette première version :
-pas de service en arrière-plan, un chrono en cours ne survit pas à une mise en veille
-agressive de l'appli.
+- **macOS** : l’application n’est pas notariée par Apple. Au premier lancement,
+  clic droit sur Kairos, « Ouvrir », puis confirmer.
+- **Windows** : SmartScreen peut afficher « Windows a protégé votre
+  ordinateur » : « Informations complémentaires », puis « Exécuter quand même ».
+- **Android** : autoriser l’installation depuis le navigateur ou le
+  gestionnaire de fichiers quand Android le demande (inutile depuis F-Droid ou
+  IzzyOnDroid).
 
-Fermer l'onglet du navigateur n'arrête pas le serveur : il continue en arrière-plan.
-Utilise le bouton **Quitter** en haut à droite pour l'arrêter proprement. Sans quoi le
-prochain lancement choisira un autre port (8002, 8003…) puisque 8001 restera occupé par
-l'instance précédente.
+**Depuis Kairos 2.** Sur Android, Kairos 2 propose lui-même la mise à jour
+(« Mettre à jour », une dernière fois) : Kairos 3 s’installe par-dessus et
+reprend ses données automatiquement au premier lancement. Sur le bureau, il
+propose au premier lancement d’importer la base Kairos 2 trouvée à son
+emplacement habituel ; on peut aussi l’importer plus tard (Réglages →
+Données → « Importer une base Kairos 2.x »). L’ancienne base n’est jamais
+modifiée. Ne sont pas repris : TimeTree et l’import GitLab, retirés de
+Kairos 3.
 
-Le mode « git clone + venv » ci-dessous reste disponible pour un usage avancé
-(développement, service systemd démarré au boot). Il partage le même mécanisme de
-configuration que l'exécutable.
-
-> **Kairos 3 en préparation.** Une réécriture native (Android, Windows, Linux,
-> macOS, et une version web sans installation) avance par préversions
-> `v3.0.0-alpha.N`, publiées comme
-> [préversions GitHub](https://github.com/SKOHscripts/Kairos/releases) : APK
-> « Kairos Preview », installeurs et zips portables, qui s'installent **à côté** de
-> Kairos 2 sans toucher à ses données. Elles ne sont pas encore utilisables au
-> quotidien : Kairos 2 reste la version à utiliser. Feuille de route :
-> [`docs/plan-v3-kotlin.md`](docs/plan-v3-kotlin.md).
-
----
-
-## Démarrage rapide
-
-Sur un poste Linux, une seule commande installe tout (venv et dépendances) et active le
-service systemd utilisateur, démarrage automatique compris au prochain boot :
-
-```bash
-git clone <url-de-ce-dépôt> kairos
-cd kairos
-make service
-```
-
-C'est tout : http://127.0.0.1:8001. Aucune configuration requise. La base de tâches est
-créée au premier démarrage, avec quelques tâches et créneaux d'exemple pour découvrir les
-fonctionnalités, puis migrée automatiquement aux versions suivantes sans jamais perdre de
-données. Pour personnaliser, va sur la page **Réglages** (`/kairos/settings`) : chaque
-réglage y est expliqué et s'applique sans redémarrage pour la quasi-totalité d'entre eux.
-
-Sans service (usage ponctuel, développement, plateforme sans systemd) :
-
-```bash
-make install   # crée le venv + installe les dépendances
-make run       # lancement en mode normal, port 8001
-make dev       # lancement en développement (rechargement auto), port 8001
-make test      # venv + suite de tests complète
-```
-
----
+**Mises à jour.** Sur Android, par F-Droid, IzzyOnDroid ou un nouvel APK. Sur
+le bureau, Kairos vérifie toutes les 6 heures s’il existe une nouvelle version
+et l’annonce dans un bandeau (« Télécharger » ouvre sa page) ; réglage dans
+Réglages → Mises à jour. La version web est toujours la dernière.
 
 ## Fonctionnalités
 
-### Notes (capture GTD)
-Une page dédiée (`/kairos/notes`, entre Accueil et Jour dans la navigation) pour se
-décharger l'esprit sans réfléchir à la structure : une seule zone de texte libre, aucune
-priorité ni échéance à choisir sur le moment (Ctrl/Cmd+Entrée pour capturer sans lâcher
-le clavier). Chaque note capturée apparaît immédiatement dans la liste, sans rechargement
-de page. Une fois qu'une idée est prête à devenir actionnable, un clic sur **« → Tâche »**
-la convertit en tâche, qui atterrit directement dans la boîte de réception «
-À traiter » de la vue Jour. La note d'origine est archivée (jamais supprimée) avec un
-lien vers la tâche créée. Une note de plusieurs lignes ne perd rien à la conversion : la
-première ligne devient le titre de la tâche, **tout le reste devient sa description**. Une note peut aussi être éditée sur place ou classée sans suite
-(archivée) si elle ne mène nulle part.
+### Notes (capture)
 
-### Gestion des tâches
-- **Création rapide** en une ligne (le titre seul suffit). La tâche apparaît aussitôt dans
-  « À traiter », sans rechargement, et le curseur reste dans le champ : tu enchaînes
-  plusieurs captures au clavier. Édition complète ensuite :
-  titre, description, priorité 0-2 (P0 = la plus forte), échéance, date programmée,
-  projet, durée estimée, récurrence, type, points de Fibonacci, heure fixe, fiche liée,
-  sous-tâches en lot, bloqueurs. Un seul « Enregistrer » applique tout.
-- **Raccourcis clavier** sur la vue Jour : `N` pour capturer une tâche, `/` pour chercher.
-- **Description visible dans la liste** : une tâche qui porte une description l'annonce
-  sous son titre par un extrait d'une ligne, dépliable d'un clic sur place. Tu vois qu'il y a
-  du contexte à lire sans ouvrir l'édition.
-- **Sous-tâches** : avancement n/m sur la mère. Seules les feuilles sont planifiées (une
-  mère à filles ouvertes n'est jamais une unité de travail).
-- **Récurrence** : quotidienne, jours ouvrés, hebdomadaire, mensuelle (terminer une
-  occurrence crée la suivante), et calendaire « le N du mois » (générée par date, décalée
-  au jour ouvré précédent si week-end ou férié, calendrier français intégré).
-- **« Décaler à demain »** (snooze) : atterrit toujours sur un jour ouvré (un vendredi
-  passe à lundi, férié sauté).
-- **Suppression** : une tâche native se supprime. Une tâche importée s'archive, jamais
-  supprimée, pour préserver l'historique de priorisation.
+Un écran pour se décharger l’esprit sans réfléchir à la structure : un seul
+champ de texte libre, aucune priorité ni échéance à choisir sur le moment
+(Ctrl/Cmd+Entrée capture sans lâcher le clavier). Quand une idée est prête,
+**« → Tâche »** la convertit : la première ligne devient le titre, le reste la
+description, et la tâche arrive dans « À traiter ». La note est archivée,
+jamais perdue. Une note peut aussi être modifiée, archivée sans suite ou
+supprimée.
 
-### « À traiter » (inbox GTD)
-Une tâche entre dans le tri automatique seulement quand sa **priorité** et ses **points de
-Fibonacci** sont renseignés tous les deux. Tu les poses en un clic, sur des pastilles qui
-disent ce que vaut chaque choix : **P0 Critique** (bloquant ou engagement ferme, rare),
-**P1 Important** (à caser cette semaine), **P2 Utile** (quand il y a de la place), et pour
-les points de « 1 trivial » à « 21 énorme ». La priorité mesure l'importance. Le délai
-passe par l'échéance, déjà comptée dans le score. Tant que l'un des deux manque, elle reste « À
-traiter » dans une section dédiée, non repliée, en tête de page. La clarification prime sur
-tout : une tâche bloquée ou épinglée mais non qualifiée reste « À traiter ».
+### Tâches
 
-### Ordonnancement automatique (WSJF)
-- **Score** = `(valeur(priorité) + criticité(échéance)) / effort(points Fibonacci)`, la
-  formule détaillée en tête de ce README. La valeur croît de façon exponentielle par cran
-  de priorité. La criticité monte en rampe à l'approche de l'échéance. « En retard » reste
-  un palier dur qui passe toujours devant. Le score est affiché sur chaque tâche
-  (transparence), et tous les poids sont réglables.
-- **Programmer une tâche « pour aujourd'hui »** la fait passer au même palier prioritaire
-  qu'une échéance dépassée. C'est voulu : une tâche à traiter aujourd'hui
-  remonte devant le reste. Si l'effet surprend, on peut décaler la date à plus tard.
-- **Placement temporel** : les tâches sont posées dans les trous de la journée avec leurs
-  durées réelles, une marge après chaque réunion (13h-14h donne 14h05, avec une note
-  explicative), débordement signalé. L'**épinglage** à heure fixe n'est jamais déplacé, un
-  conflit est signalé. La **date programmée** (`scheduled_date`) est distincte de
-  l'échéance : une tâche programmée plus tard est masquée (section « Programmées plus
-  tard ») sauf si son échéance approche, car l'échéance prime toujours.
-- **Aide à l'estimation** : barème Fibonacci (1 à 21, taille relative, volume ×
-  complexité × incertitude), avec tes propres repères (voir ci-dessous).
-- **« Pourquoi à cette place ? »** : un clic (ou un toucher) sur le score d'une tâche
-  affiche son calcul : ce que vaut sa priorité, ce que son échéance ajoute, l'effort qui
-  divise le tout. Une tâche en retard le dit aussi : elle passe devant quel que soit son
-  score.
+- **Capture en une ligne** : la tâche arrive dans « À traiter », le champ
+  reste prêt pour la suivante.
+- **Édition complète** : titre, description, priorité, points, échéance, date
+  programmée, projet, durée estimée, type, récurrence, heure fixe, lien,
+  sous-tâches, bloqueurs. Un seul « Enregistrer ».
+- **Raccourcis clavier** (bureau et web) : `N` pour capturer, `/` pour
+  chercher.
+- **Sous-tâches** : avancement n/m sur la mère ; seules les feuilles sont
+  planifiées.
+- **Récurrence** : quotidienne, jours ouvrés, hebdomadaire, mensuelle (terminer
+  une occurrence crée la suivante), et « le N du mois » (décalée au jour ouvré
+  précédent si week-end ou férié).
+- **« Décaler »** : atterrit toujours sur un jour ouvré.
 
-#### Points de Fibonacci
+### « À traiter »
 
-Dans le panneau d'édition, chaque tâche peut recevoir un nombre de points sur l'échelle
-`1, 2, 3, 5, 8, 13, 21`. C'est une taille **relative** (jamais des heures), estimée en
-quelques secondes par rapport à tes tâches habituelles : volume × complexité ×
-incertitude (« est-ce que je sais comment faire ? »). Le guide « Comment estimer les
-points ? » te donne ces tâches habituelles : pour chaque palier, le temps réel médian de
-tes tâches terminées (« chez toi, 3 pts ≈ 50 min ») et deux d'entre elles en exemple. Tu
-compares (« plus gros que celle-ci, plus petit que celle-là ») au lieu d'estimer dans le
-vide. Repère indicatif : `1` trivial et
-expédié (valider une MR triviale), `2` à `3` petit à modéré sans inconnue (dev bien
-cadré), `5` conséquent ou avec un peu d'inconnu, `8` gros ou vraiment incertain, `13` et
-`21` trop gros pour une seule tâche, donc à découper en sous-tâches.
+Une tâche n’entre dans le tri qu’une fois sa **priorité** et ses **points**
+posés, en un toucher sur des pastilles qui disent ce que vaut chaque choix
+(**P0 Critique**, **P1 Important**, **P2 Utile** ; de « 1 trivial » à
+« 21 énorme »). « Comment qualifier ? » rappelle la règle.
 
-Ces points forment l'**effort**, au dénominateur du score. À priorité et échéance égales,
-plus une tâche a de points, plus son score baisse et plus elle recule dans l'ordre : le
-petit et prioritaire passe toujours devant le gros et lointain. L'effort est distinct de
-la **durée estimée (min)**, qui sert uniquement au *placement* dans l'agenda (combien de
-temps le créneau occupe). Une tâche peut être courte mais tordue (peu de minutes, beaucoup
-de points) ou longue mais mécanique (l'inverse).
+### Ordonnancement
 
-Sans points renseignés, une tâche n'affiche pas de score : elle reste « À traiter » (voir
-ci-dessus) et n'entre dans aucun tri. En interne, le calcul se rabat alors sur la durée
-estimée (≈ 1 point / 30 min, borné 1-21), puis sur `DEFAULT_FIBONACCI_POINTS` (3 par
-défaut).
+- **Score** affiché sur chaque tâche ; **« Pourquoi à cette place ? »** détaille
+  le calcul : ce que vaut la priorité, ce que l’échéance ajoute, l’effort qui
+  divise le tout.
+- **Placement** : les tâches sont posées dans les trous de la journée avec
+  leur durée, une marge après chaque réunion, le débordement signalé. Une
+  tâche **épinglée** à une heure n’est jamais déplacée ; un conflit est
+  signalé. Une tâche **programmée** plus tard reste masquée, sauf si son
+  échéance approche.
+- **Points de Fibonacci** : une taille relative (1, 2, 3, 5, 8, 13, 21). Le
+  guide « Comment estimer les points ? » montre, pour chaque palier, le temps
+  réel médian de tes propres tâches terminées et deux exemples ; l’édition
+  suggère une durée d’après ton historique.
+- **Creux de l’après-midi (14h55)** : pendant une fenêtre réglable (13 h → 16 h
+  par défaut), Kairos évite d’y placer les tâches complexes et y fait remonter
+  les légères. Les échéances et le chemin critique priment toujours ; le score
+  affiché ne change pas.
+- **Jours ouvrés et fériés** : calendrier français intégré, dates
+  supplémentaires dans les Réglages.
 
-#### Creux de l'après-midi (14h55)
+### Dépendances
 
-Le nom de code de l'outil, **14h55**, est le creux post-déjeuner (*post-lunch dip*),
-l'heure la moins propice à la réflexion. C'est un vrai phénomène circadien, le plus marqué
-pour les tâches complexes, qui récupère vers 15h-16h. Kairos le matérialise dans
-l'ordonnancement : pendant une fenêtre creuse configurable (par défaut 13h→16h, le plus
-profond à 15h), l'outil évite d'y poser les tâches trop complexes (points de Fibonacci
-élevés) et y fait remonter les tâches légères. Concrètement, à ces heures l'effort effectif
-d'une tâche est gonflé en proportion de sa complexité. Une tâche de 21 points voit son
-score de *placement* divisé par deux au tronc, une tâche de 1 point n'est jamais pénalisée.
-Une tâche simple prend donc le créneau creux, la complexe se pose juste avant ou après.
-L'effet reste gradué : une tâche complexe assez urgente peut encore l'emporter.
+« Bloqué par » : une tâche dont un bloqueur est encore à faire sort du planning
+(section « Bloquées », levée automatique). Un bloqueur d’une tâche urgente
+remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 
-Trois garde-fous. Les échéances et le chemin critique priment toujours (une tâche en
-retard ou un bloqueur d'une tâche urgente n'est jamais décalé par le creux). Le score
-affiché ne change pas, car c'est un choix de *placement*, pas de valeur ; une note
-« créneau creux » signale les tâches remontées. Et la matinée reste pilotée par l'urgence
-pure. Actif par défaut, réglable depuis la page **Réglages** : décale la fenêtre selon ton
-chronotype (alouette matinale, creux plus tôt) ou désactive-le.
+### Créneaux et deep work
 
-### Dépendances entre tâches
-« Bloqué par » (menu de sélection multiple) : une tâche dont un bloqueur est encore à faire
-sort du planning (section « Bloquées », levée automatique et transitive). Un bloqueur d'une
-tâche urgente remonte dans l'ordre (chemin critique, urgence dérivée calculée au rendu,
-jamais écrite). Les cycles sont détectés et refusés.
+- **Créneaux occupés** (réunions, déjeuner…), ponctuels ou récurrents
+  (quotidien, jours ouvrés, hebdomadaire), modifiables et supprimables.
+- **Deep work** : un créneau réservé à une seule tâche, la plus urgente ; les
+  autres le contournent.
+- **Frise** de la journée : planifié, occupé, épinglé, deep work, conflits, et
+  un rail du temps réellement chronométré.
 
-### Time blocking & deep work
-- **Créneaux occupés** : réunions saisies à la main, et calendrier personnel **TimeTree**
-  (optionnel, voir Configuration). Chaque créneau manuel est éditable (titre, horaires,
-  deep-work, récurrence) et supprimable depuis la liste « Créneaux du jour ».
-  L'intégration des agendas Google est à l'étude.
-- **Blocs deep-work protégés** : une fenêtre réservée à une seule tâche (la plus urgente),
-  sans fragmentation. Les autres la contournent.
-- **Blocs récurrents** : quotidien, jours ouvrés ou hebdomadaire (bloc déjeuner tous les
-  jours, deep-work chaque mardi matin). Le créneau saisi est le modèle ; les occurrences
-  sont projetées à la volée, jamais stockées une à une. Éditer ou supprimer un créneau
-  récurrent agit sur toutes ses occurrences.
-- **Timeline verticale** type agenda (1 min = 1 px, rendu serveur sans JavaScript) :
-  planifié, occupé, épinglé, deep-work, conflits, et un rail « réel » montrant les sessions
-  effectivement chronométrées à côté du planifié.
+### Temps réel et alertes
 
-### Suivi du temps réel & alertes
-- **Chrono par tâche** (une seule en cours), minuteur vivant, réel contre estimé
-  (dépassement signalé), total et ventilation par type du jour et de la semaine.
-- **Titre d'onglet vivant** : le compteur reste visible en arrière-plan.
-- **Alertes navigateur** (opt-in, bouton « Activer les alertes chrono ») : dépassement de
-  l'estimé, chrono oublié, rappel de pause.
-- **Une alerte aboutit même si le navigateur bloque les notifications.** Si tu as refusé
-  les notifications, ou si tu ouvres Kairos par une adresse réseau (pas `127.0.0.1`), le
-  navigateur ne peut plus rien afficher. Quand Kairos tourne sur la machine où tu le
-  consultes, il émet alors **lui-même** une notification système (`notify-send` sous
-  Linux, bulle Windows), sans permission à accorder. Rien à installer ni à configurer.
-- Quand même cette voie est fermée (Kairos consulté depuis un autre appareil), le repli
-  dans la page prend le relais : **bandeau flottant qui ne disparaît pas tout seul**,
-  titre d'onglet clignotant, et un court signal sonore si tu l'actives dans les Réglages
-  (« Signal sonore de secours », désactivé par défaut). Le son ne joue jamais quand une
-  notification système a pu sortir.
+- **Chrono par tâche** (un seul à la fois), en direct sur la ligne, dans
+  « Maintenant », la carte « En ce moment » et le titre de la fenêtre ; il
+  survit à la fermeture de l’application et au redémarrage du téléphone.
+- **Trois alertes** : dépassement de l’estimé, chrono oublié, pause
+  suggérée. Un bandeau dans l’application, et une notification système :
+  Android (notification permanente avec chronomètre, même application
+  fermée), zone de notification du bureau, notification du navigateur.
 
-### Vues & garde-fous
-- **Vue jour** (agenda détaillé et « À faire maintenant ») et **vue semaine** (7 jours,
-  tâches par échéance, créneaux, synthèse du temps réel par type).
-- **Lignes de tâche alignées en colonnes** : priorité, points et boutons d'action
-  tombent toujours au même endroit d'une ligne à l'autre, quel que soit le nombre
-  d'étiquettes ou la longueur du titre. Même chargée, la liste se lit d'un coup d'œil vertical.
-  Les étiquettes s'empilent sous le titre au lieu de repousser les actions.
-- Badge **« traîne depuis N j »** (échéance dépassée de longue date, ou tâche sans date
-  jamais retouchée), bandeau de **surcharge de priorité** (trop de tâches à priorité
-  maximale, signal dilué), bordure colorée par urgence, badge « chemin critique ».
+### Vues
 
-### Dashboard de statistiques (`/kairos/stats`)
-Indicateurs constructifs, en lecture seule : débit hebdomadaire (tâches et points terminés
-= vélocité), **calibration de l'estimation** (temps réel médian par palier de Fibonacci et
-biais estimé contre réel), répartition du temps réel par type et focus (fragmentation),
-flux et backlog (WIP, âge médian, retards), complétude des métadonnées. Honnêteté
-statistique : l'effectif `n` est affiché, un faible échantillon est marqué « peu fiable ».
+- **Jour** : « Maintenant », agenda ordonné, sections « À traiter »,
+  « Bloquées », « Programmées plus tard », filtres, backlog, frise ; badge
+  « traîne depuis N j » et bandeau de surcharge de P0. On peut regarder un
+  autre jour.
+- **Semaine** : sept jours (échéances, tâches faites, créneaux), temps réel de
+  la semaine par type.
+- **Statistiques** : débit hebdomadaire, calibration des estimations (temps
+  réel médian par palier, biais), temps par type, flux, complétude. L’effectif
+  est affiché ; un petit échantillon est marqué « peu fiable ».
 
----
+### Données
 
-## Configuration (page Réglages, tout est optionnel)
+- Tout reste sur l’appareil : aucune connexion réseau (Android n’a même pas la
+  permission), aucun compte.
+- **Export et import** JSON (Réglages → Données) ; une sauvegarde automatique
+  précède chaque import.
+- **Version web** : données enregistrées dans le navigateur, et, dans Edge ou
+  Chrome, **liées à un fichier** tenu à jour à chaque modification.
+- Interface en **français** et en **anglais** (langue du système).
 
-Tous les réglages se modifient depuis la page **Réglages** (`/kairos/settings`), chacun
-accompagné de son explication. Plus de fichier `.env` à copier ou éditer à la main. La
-quasi-totalité s'applique immédiatement, sans redémarrage (seul le chemin de la base de
-tâches en demande un, la page l'indique). Résumé des réglages disponibles :
+## Réglages
+
+Chaque réglage est expliqué sous son champ ; un seul « Enregistrer », et un
+champ invalide dit pourquoi.
 
 | Section | Réglages | Défaut |
 |---|---|---|
-| Base de données | Chemin de la base de tâches | dossier de données de l'OS |
-| Import GitLab assigné | Nom d'utilisateur assigné + (base de pilotage **ou** URL/jeton/projets/cache) | désactivé |
-| TimeTree | E-mail, mot de passe, code du calendrier, cache | désactivé |
-| Ordonnancement | Durée par défaut, marge après réunion, journée de travail | 30 min, 5 min, 9h-18h |
-| WSJF | Base de valeur, horizon/poids d'urgence, points par défaut | 4.0, 14 j, 8, 3 |
-| Creux après-midi | Activé, fenêtre 13h-15h-16h, force de la pénalité | activé, 1.0 |
-| Garde-fous | Seuils « en retard »/« sans date », surcharge P0 | 7 j, 14 j, 5 |
-| Statistiques | Fenêtre des indicateurs récents | 8 semaines |
-| Alertes chrono | Chrono oublié, rappel pomodoro | 180 min, 50 min |
-| Jours fériés | Calendrier français, dates supplémentaires | FR activé |
-| Réseau | Proxy HTTP/HTTPS sortant, domaines exclus | aucun |
-| Mises à jour | Vérification activée, forge et projet des versions, jeton de lecture | activée, source de la version installée |
-
-Identifiants sensibles (jetons GitLab et des mises à jour, mot de passe TimeTree) : stockés dans le trousseau
-système (Windows Credential Manager, GNOME Keyring/SecretService, Keychain macOS) quand il
-est disponible, sinon repli automatique et sans erreur vers le fichier de réglages local.
-Jamais réaffichés en clair dans le formulaire.
-
-**Mise à niveau depuis une ancienne installation `.env`** : au premier démarrage après
-mise à jour, un `.env` existant est importé automatiquement, une seule fois, dans le
-nouveau système de réglages (la page Réglages affiche la date de cette migration). Le
-fichier `.env` n'est jamais supprimé automatiquement ; il peut être retiré une fois la
-migration confirmée.
-
-### Mises à jour
-
-Kairos vérifie toutes les 6 heures si une nouvelle version est publiée. Si c'est le
-cas, un bandeau l'annonce en haut de chaque page, avec une notification système (une
-seule par version). **Mettre à jour**, dans le bandeau ou en cliquant sur la
-notification :
-
-- **exécutable Windows/Linux** : télécharge la nouvelle version, vérifie sa somme de
-  contrôle (`SHA256SUMS` publié avec la release), remplace l'exécutable et redémarre
-  Kairos ; la page se recharge toute seule sur la nouvelle version ;
-- **Android** : télécharge et vérifie l'APK, puis ouvre l'installeur Android (à
-  confirmer ; la première fois, Android demande d'autoriser Kairos à installer des
-  applications) ;
-- **installation depuis les sources** : le bandeau donne la commande
-  (`git pull && pip install -e .`, puis redémarrer Kairos).
-
-« Plus tard » masque le bandeau jusqu'à la version suivante. Rien n'est jamais installé
-sans ce clic, ni sans somme de contrôle correcte.
-
-Les versions viennent par défaut de la forge qui a construit la version installée :
-les releases GitHub pour un exécutable GitHub, les releases du projet GitLab pour un
-exécutable construit par la CI GitLab (voir `.gitlab-ci.yml`), le remote `origin` pour
-un clone. Section **Mises à jour** de la page Réglages : version installée, dernière
-vérification, **Vérifier maintenant**, et surcharge de la source (URL de la forge,
-projet). Pour un dépôt privé, renseigner un **jeton en lecture seule** (GitLab :
-`read_api` ; GitHub : lecture du contenu). Ces réglages sont indépendants de ceux de
-l'import des issues GitLab.
-
-### Calendrier TimeTree (optionnel)
-Utilise l'API non officielle du paquet `timetree-exporter` (reverse-engineerée : elle peut
-casser sans préavis, et les échecs sont toujours dégradés en bandeau, jamais en erreur).
-Les créneaux importés bloquent la planification. Les événements « journée entière » ou « sur
-une période » (plusieurs jours) ne sont que des indications (puces datées), jamais des
-obstacles. Cache local anti rate-limiting. Pour un réseau d'entreprise avec proxy sortant,
-règle-le dans la section « Réseau » de la page Réglages.
-
-### Import des issues GitLab assignées (optionnel, lecture seule)
-Deux façons **mutuellement exclusives** d'obtenir tes issues GitLab ouvertes comme tâches
-(le nom d'utilisateur assigné est commun aux deux). Sans aucune des deux, la fonctionnalité
-disparaît proprement de l'interface (cas normal, aucune erreur) :
-
-1. **Import direct** (cas normal d'un collègue sans pilotage) : renseigne l'URL de
-   l'instance GitLab, un jeton personnel (le scope `read_api` suffit) et le ou les projets
-   (séparés par des virgules). Appel en lecture seule à l'API REST GitLab, mis en cache
-   (même patron anti rate-limiting que TimeTree). Un échec (réseau, jeton invalide) se
-   dégrade en bandeau, jamais en erreur, et les tâches déjà importées restent affichées. Le
-   jeton est optionnel : laissé vide, il est résolu depuis les moyens d'authentification
-   déjà configurés pour `git` sur ce poste, via `git credential fill` (trousseau
-   GNOME/libsecret, Keychain macOS, Windows Credential Manager, ou tout autre
-   `credential.helper` en place), puis `~/.netrc` en repli. Cela évite de dupliquer un
-   jeton en clair (voir `app/git_credentials.py`). La résolution est mise en cache pour la
-   durée du processus : redémarre l'application après une rotation de jeton.
-
-Si la base de pilotage est renseignée, elle prime sur l'import direct (zéro appel réseau).
-Dans les deux cas : une issue fermée ou réassignée archive la tâche ; ta priorité et ton
-temps passé ne sont jamais écrasés. Sans ce réglage, ces deux fonctionnalités disparaissent
-proprement de l'interface. Kairos n'écrit **jamais** dans la base pilotage.
-
-L'étiquette de projet d'une tâche importée est **cliquable** : elle ouvre l'issue GitLab
-d'origine dans un nouvel onglet. Sans URL d'instance renseignée, elle reste un texte
-simple.
-
----
-
-## Service systemd (démarrage automatique)
-
-`make service` (§ Démarrage rapide) fait tout : venv, dépendances, unité systemd
-utilisateur activée. L'équivalent à la main, pour ne pas passer par `make` :
-
-```bash
-mkdir -p ~/.config/systemd/user
-sed "s#__PROJECT_DIR__#$(pwd)#g" deploy/kairos.service \
-  > ~/.config/systemd/user/kairos.service
-systemctl --user daemon-reload && systemctl --user enable --now kairos.service
-loginctl enable-linger "$USER"   # optionnel : démarre au boot sans session ouverte
-```
-
-Le service écoute sur le **port 8001**. Exploitation :
-`systemctl --user status kairos`, `journalctl --user -u kairos -f`,
-`systemctl --user restart kairos` après un `git pull` (la plupart des réglages s'appliquent
-sans redémarrage depuis la page Réglages). Désinstallation : `make service-uninstall`.
-
----
+| Journée de travail | Durée par défaut, marge après un créneau, début et fin | 30 min, 5 min, 9 h – 18 h |
+| Score de priorité (WSJF) | Base de valeur, horizon et poids de l’urgence, points par défaut | 4, 14 j, 8, 3 |
+| Creux de l’après-midi | Activé, début, creux, fin, force | activé, 13 h – 15 h – 16 h, 1 |
+| Garde-fous | Seuils « traîne » (en retard, sans date), surcharge P0 | 7 j, 14 j, 5 |
+| Types de tâches | Liste des types | |
+| Statistiques | Fenêtre des indicateurs | 8 semaines |
+| Alertes du chrono | Chrono oublié, pause suggérée, son de secours | 180 min, 50 min, désactivé |
+| Jours fériés | Calendrier français, dates supplémentaires | activé |
+| Mises à jour (bureau) | Vérifier les nouvelles versions | activé |
 
 ## Développement
 
-```bash
-source .venv/bin/activate
-pytest                       # aucun accès réseau réel
-uvicorn app.main:app --reload --port 8001
-```
-
-### Empaquetage (exécutables Windows/Linux, APK Android)
-`make build-exe` construit l'exécutable de bureau pour l'OS courant via PyInstaller (voir
-[`packaging/README.md`](packaging/README.md) pour le détail et les points d'attention). Les
-exécutables Windows et Linux publiés en release GitHub sont construits automatiquement par
-[`.github/workflows/release.yml`](.github/workflows/release.yml) au push d'un tag `vX.Y.Z`
-(PyInstaller ne fait pas de cross-compile : la CI build chaque OS sur un runner de cet OS).
-
-Chaque build embarque sa version et la source de ses mises à jour
-(`packaging/write_build_info.py`, appelé par la CI), et la release publie un
-`SHA256SUMS` que la mise à jour intégrée exige.
-
-**Hébergement GitLab** : [`.gitlab-ci.yml`](.gitlab-ci.yml) fait la même chose sur un
-GitLab (instance d'entreprise, dépôt privé) : tests à chaque push, puis sur un tag
-`vX.Y.Z` exécutable Linux, APK et release GitLab (fichiers déposés dans le registre de
-paquets génériques du projet, avec `SHA256SUMS`). L'exécutable Windows exige un runner
-Windows tagué `windows` et la variable CI `KAIROS_WINDOWS_RUNNER=true` ; sans lui, la
-release sort sans `.exe`. Signature de l'APK : mêmes quatre variables que les secrets
-GitHub ci-dessous (variables CI/CD masquées et protégées).
-
-L'**APK Android** est construit par le même workflow (job `build-android`) : projet Gradle
-dans [`android/`](android/) (Chaquopy embarque CPython 3.13 et les dépendances pip, une
-WebView affiche le serveur local), décisions et architecture dans
-[`docs/ANDROID_PACKAGING.md`](docs/ANDROID_PACKAGING.md). Build local :
-`cd android && ./gradlew assembleDebug` (SDK Android et JDK 17 requis, plus un
-`python3.13` sur le poste pour le pip de Chaquopy).
-
-La signature de release utilise un keystore dédié, fourni à la CI par quatre secrets
-GitHub (`KAIROS_KEYSTORE_BASE64`, `KAIROS_KEYSTORE_PASSWORD`, `KAIROS_KEY_ALIAS`,
-`KAIROS_KEY_PASSWORD`). Création (une seule fois, à conserver précieusement : le perdre
-oblige les utilisateurs à désinstaller/réinstaller) :
+Kairos 3 est écrit en **Kotlin Multiplatform** et **Compose Multiplatform**
+(dossier `kmp/`) : un seul code pour Android, le bureau (JVM) et le web
+(Kotlin/Wasm). Dépendances libres uniquement, versions figées dans
+`kmp/gradle/libs.versions.toml`.
 
 ```bash
-keytool -genkeypair -v -keystore kairos-release.keystore -alias kairos \
-  -keyalg RSA -keysize 4096 -validity 10000
-base64 -w0 kairos-release.keystore   # → valeur du secret KAIROS_KEYSTORE_BASE64
+cd kmp
+./gradlew :core:jvmTest :data:jvmTest :ui:jvmTest :desktopApp:jvmTest   # tests
+./gradlew :desktopApp:run                                                 # application de bureau
+./gradlew :desktopApp:run --args=--self-test=/tmp/captures                # rendu hors écran
+./gradlew :androidApp:assembleRelease                                     # APK
+./gradlew :webApp:wasmJsBrowserDistribution                               # version web
 ```
 
-### Architecture (`app/`)
-| Module | Rôle |
-|---|---|
-| `main.py` | Application FastAPI : routes, rendu, formulaires |
-| `config.py` | Modèle des réglages (pydantic `BaseModel`) |
-| `settings_store.py` | Persistance des réglages (JSON, dossier de données de l'OS) + migration `.env` unique |
-| `secret_store.py` | Jeton GitLab / mot de passe TimeTree : trousseau système, repli fichier local |
-| `settings_sections.py` | Regroupement des réglages pour l'affichage de la page Réglages |
-| `launcher.py` | Point d'entrée de l'exécutable de bureau (choix de port, ouverture du navigateur) |
-| `build_info.py` | Version installée et source par défaut des mises à jour |
-| `updates.py` | Mises à jour : lecture des releases GitHub/GitLab, téléchargement vérifié, installation |
-| `desktop_splash.py` | Fenêtre de démarrage de l'exécutable de bureau (texte d'état, fermeture) |
-| `android_launcher.py` | Point d'entrée Android : environnement, port, uvicorn (WebView côté `android/`) |
-| `tasks_models.py` | Modèles SQLAlchemy : `Task`, `TimeBlock`, `TaskDependency`, `WorkSession`, `TaskSyncMeta` |
-| `tasks_db.py` | Engine/sessions + migrations légères + pose des données d'exemple sur base vierge |
-| `tasks_seed.py` | Données d'exemple de la première utilisation (tâches et créneaux natifs) |
-| `tasks_scheduling.py` | Cœur pur : score WSJF, buckets, placement, timeline, gate « À traiter » |
-| `tasks_dependencies.py` | Moteur pur : blocage transitif, cycles (Kahn), urgence dérivée |
-| `tasks_recurrence.py` | Récurrence des tâches (à la complétion + calendaire) et des blocs (projection) |
-| `tasks_time.py` | Agrégats purs du temps réel (sessions, totaux, ventilation) |
-| `tasks_staleness.py` | Détection pure des tâches qui traînent |
-| `tasks_stats.py` | Agrégats purs du dashboard de statistiques |
-| `tasks_gitlab_sync.py` | Upsert pur des issues assignées → tâches (source indifférente : cache pilotage ou import direct) |
-| `pilotage_link.py` | Seul point de contact (optionnel, lecture seule) avec `pilotage.db` : cache GitLab + « Fiche liée » |
-| `gitlab_direct.py` | Seam GitLab direct (sans pilotage) : client REST minimal, cache, dégradation propre |
-| `calendar/timetree_source.py` | Seam TimeTree : appel Python natif de `timetree-exporter`, cache, dégradation propre |
-| `workdays.py` | Jours ouvrés + jours fériés français |
+- Architecture, modules et décisions : [`docs/spec/architecture.md`](docs/spec/architecture.md) ;
+  une spécification par domaine dans [`docs/spec/`](docs/spec/README.md).
+- Charte graphique (Material Design 3, thème « miel ») :
+  [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
+- Versions, releases et paquets : [`docs/spec/distribution.md`](docs/spec/distribution.md) ;
+  F-Droid, IzzyOnDroid et page de téléchargement :
+  [`docs/spec/publication.md`](docs/spec/publication.md).
+- Règles de contribution : [`CLAUDE.md`](CLAUDE.md).
 
-Principes tenus depuis la première phase : logique métier en fonctions pures (testées en
-isolation, sans I/O), routes minces, jamais de perte de données (migrations additives,
-archivage plutôt que suppression, invariant de non-perte vérifié par test de propriété),
-dégradation propre de toute source externe (jamais de page en erreur à cause de TimeTree,
-de la base pilotage ou de l'API GitLab), rendu serveur sans framework JavaScript.
+## Licence
 
-> **Charte visuelle** : couleurs, typographie, formes et composants sont documentés dans
-> [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). Toute nouvelle page ou tout nouveau
-> composant doit réutiliser ces jetons.
+[MIT](LICENSE).

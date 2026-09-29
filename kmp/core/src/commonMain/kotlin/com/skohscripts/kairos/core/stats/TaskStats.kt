@@ -18,7 +18,7 @@ import kotlin.math.roundToInt
 import kotlin.time.Instant
 
 /**
- * Statistiques (docs/spec-v3/statistiques.md), portage de `app/tasks_stats.py`
+ * Statistiques (docs/spec/statistiques.md), portage de `app/tasks_stats.py`
  * vérifié par tests différentiels. Pur : jour, instant et fuseau en paramètres.
  * Date de complétion d'une tâche faite = date de sa dernière modification
  * (pas d'horodatage dédié, comme Kairos 2).

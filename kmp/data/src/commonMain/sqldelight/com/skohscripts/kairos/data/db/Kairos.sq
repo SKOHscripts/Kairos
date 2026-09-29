@@ -1,4 +1,4 @@
--- Schéma de Kairos 3 (docs/spec-v3/modele-donnees.md). Tables et colonnes de
+-- Schéma de Kairos 3 (docs/spec/modele-donnees.md). Tables et colonnes de
 -- Kairos 2 (app/tasks_models.py), moins les intégrations retirées.
 -- Dates : TEXT ISO 8601 (« 2026-09-28 »), heures locales naïves : TEXT
 -- (« 2026-09-28T09:30 »), instants : TEXT ISO UTC (« 2026-09-28T07:00:00Z »).
