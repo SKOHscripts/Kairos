@@ -3,7 +3,11 @@ package com.skohscripts.kairos.desktop
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ImageComposeScene
+import com.skohscripts.kairos.ui.navigation.NavState
+import com.skohscripts.kairos.ui.notes.NotesScreen
 import com.skohscripts.kairos.ui.screens.AboutScreen
+import com.skohscripts.kairos.ui.stats.StatsScreen
+import com.skohscripts.kairos.ui.week.WeekScreen
 import com.skohscripts.kairos.ui.settings.SettingsScreen
 import kotlinx.coroutines.runBlocking
 import com.skohscripts.kairos.ui.theme.KairosTheme
@@ -42,6 +46,9 @@ object SelfTest {
             }
         }
         val chrono: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { timed } }
+        val notes: @Composable () -> Unit = { KairosTheme { Surface { NotesScreen(services) {} } } }
+        val week: @Composable () -> Unit = { KairosTheme { Surface { WeekScreen(services, NavState()) {} } } }
+        val stats: @Composable () -> Unit = { KairosTheme { Surface { StatsScreen(timed) } } }
         // Les deux dernières, très hautes, montrent toute la vue Jour (agenda, sections, frise).
         val shots = listOf(
             Shot("wide", 1200, 1000, app),
@@ -51,6 +58,10 @@ object SelfTest {
             Shot("day-full", 1200, 3000, app),
             Shot("day-full-narrow", 420, 5000, app),
             Shot("day-chrono", 1200, 1000, chrono),
+            Shot("notes", 900, 1000, notes),
+            Shot("week", 1200, 1000, week),
+            Shot("week-narrow", 420, 2400, week),
+            Shot("stats", 1200, 1600, stats),
         )
         for ((name, width, height, content) in shots) {
             val png = render(width, height, content)

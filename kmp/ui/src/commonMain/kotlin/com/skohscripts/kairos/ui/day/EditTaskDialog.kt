@@ -84,7 +84,8 @@ import org.jetbrains.compose.resources.stringResource
  * essentiels toujours visibles (titre, description juste sous le titre,
  * priorité, points, échéance, durée), puis « Options avancées » repliées
  * (programmée pour, projet, temps passé manuel, récurrence et jour du mois,
- * type, heure fixe, nouvelles sous-tâches, bloqueurs). Un seul
+ * type, heure fixe, nouvelles sous-tâches, bloqueurs). Guide des points
+ * sous les pastilles ; palier ou type calibré → durée suggérée. Un seul
  * « Enregistrer » pose tout. Dialogue MD3 : coins de 28 dp, seul élément
  * flottant à porter une ombre.
  */
@@ -96,6 +97,7 @@ internal fun EditTaskDialog(
     taskTypes: List<String>,
     candidates: List<Task>,
     blockerIds: Set<Long>,
+    estimates: Estimates,
     onDismiss: () -> Unit,
     onSave: (TaskEdit) -> Unit,
     onDelete: () -> Unit,
@@ -150,7 +152,13 @@ internal fun EditTaskDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 PriorityPills(priority, { priority = it }, showMeaning = true)
-                PointsPills(points, { points = it })
+                // Durée suggérée (Kairos 2, issue #15.6) : choisir un palier calibré
+                // REMPLACE la durée, même déjà saisie ; on reste libre de la retoucher.
+                PointsPills(points, { chosen ->
+                    points = chosen
+                    chosen?.let(estimates.minutesByPoints::get)?.let { minutes = it.toString() }
+                })
+                PointsGuide(estimates.references)
                 DateField(deadline, { deadline = it }, Res.string.field_deadline, deadlineInvalid)
                 OutlinedTextField(
                     minutes,
@@ -190,7 +198,12 @@ internal fun EditTaskDialog(
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
-                    TypeField(type, taskTypes) { type = it }
+                    // Suggestion par type (Kairos 2, issue #7) : seulement si la durée est
+                    // encore vide, pour ne jamais écraser une estimation saisie à la main.
+                    TypeField(type, taskTypes) { chosen ->
+                        type = chosen
+                        if (minutes.isBlank()) estimates.minutesByType[chosen]?.let { minutes = it.toString() }
+                    }
                     OutlinedTextField(
                         pin,
                         { pin = it },

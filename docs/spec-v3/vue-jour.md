@@ -5,17 +5,21 @@ et fait ses tâches. Fichiers couverts :
 `kmp/core/src/commonMain/.../core/day/DayView.kt` (modèle de l'écran, pur),
 `kmp/ui/src/commonMain/.../ui/day/` (`DayScreen.kt`, `TaskRow.kt`,
 `Why.kt`, `NowCard.kt`, `Timeline.kt`, `Capture.kt`, `Blocks.kt`,
-`Filters.kt`, `Qualify.kt`, `EditTaskDialog.kt`, `Levels.kt`, `Dates.kt`).
-Tests : `core/.../day/DayViewTest.kt`, `ui/.../day/DatesTest.kt`,
-`desktopApp/.../DayScreenUiTest.kt` (clics et clavier réels)._
+`Filters.kt`, `Qualify.kt`, `EditTaskDialog.kt`, `PointsGuide.kt`,
+`Levels.kt`, `Dates.kt`). Tests : `core/.../day/DayViewTest.kt`,
+`ui/.../day/DatesTest.kt`, `desktopApp/.../DayScreenUiTest.kt` (clics et
+clavier réels), `desktopApp/.../M4ScreensUiTest.kt` (autre jour, guide des
+points, durée suggérée)._
 
-État : **jalon M2**. Reprend le besoin de `docs/spec/vue-jour-gtd.md`
+État : **jalons M2 et M4**. Reprend le besoin de `docs/spec/vue-jour-gtd.md`
 (Kairos 2). Le moteur est décrit par `ordonnancement.md`, `dependances.md`
 et `recurrence.md`. Le chrono (bouton de chaque ligne, « Démarrer le
 chrono » de « Maintenant », carte « En ce moment », temps passé, temps du
 jour par type, rail du réel sur la frise, alertes) est décrit par
-`temps-reel-chrono.md` (jalon M3). Restent pour plus tard le guide des
-points fondé sur l'historique et la vue Semaine (M4).
+`temps-reel-chrono.md` (jalon M3). Le jalon M4 ajoute la vue d'un autre
+jour (ouverte depuis la vue Semaine, `vue-semaine.md`), l'aide « Comment
+qualifier ? », le guide des points fondé sur l'historique et les durées
+suggérées ; les repères viennent de `statistiques.md`.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -37,7 +41,9 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    manque, qualifiable en un clic par pastilles dont le sens est écrit
    (P0 Critique · P1 Important · P2 Utile ; 1 trivial … 21 énorme).
    Recliquer une valeur la retire. Vide : « Rien à traiter : tout est déjà
-   clarifié ».
+   clarifié ». Sous l'en-tête, « Comment qualifier ? » (replié) : pourquoi
+   qualifier, le sens des priorités (importance, le délai compte à part par
+   l'échéance), puis le guide des points (voir **Guide des points**).
 4. **Maintenant** (seul bloc teinté) : « À faire maintenant : » la première
    tâche placée (avec son heure), sinon la première sans créneau ; boutons
    nommés « Fait », « Démarrer le chrono » (ou « Arrêter le chrono ») et
@@ -83,14 +89,35 @@ la plus proche (« Échéance dépassée de 12 j », « Date programmée demain 
 « Aucune échéance »), l'effort et sa provenance, le score ; une tâche en
 retard le dit en tête. Le score n'est affiché que pour une tâche qualifiée.
 
-**Édition** (dialogue) : titre, description, priorité, points, échéance,
-durée ; « Options avancées » : programmée pour, projet, temps passé manuel,
+**Guide des points** (« Comment estimer les points ? », replié) : estimer
+en taille relative (volume × complexité × incertitude), en comparant à ses
+propres tâches terminées ; pour chaque palier, son sens (« 3 · modéré : bien
+cadré, zéro inconnue »), puis le temps réel médian observé chez
+l'utilisateur (« chez toi ≈ 45 min (médiane sur 6 tâche(s)) », « peu
+fiable » sous 3 tâches) et les titres de ses deux dernières tâches
+terminées à ce palier ; sans historique à un palier, l'exemple générique et
+« aucune de tes tâches terminées à ce palier pour l'instant ». Enfin, la
+différence entre points (l'ordre) et durée (le placement).
+
+**Édition** (dialogue) : titre, description, priorité, points (puis le
+guide des points), échéance, durée ; « Options avancées » : programmée pour, projet, temps passé manuel,
 récurrence (aucune, quotidienne, jours ouvrés, hebdomadaire, mensuelle,
 « le … du mois » avec le jour), type, heure fixe (HH:MM, vide = aucune),
 nouvelles sous-tâches (une par ligne), « Bloquée par » (cases à cocher).
-Un seul « Enregistrer » ; « Supprimer » avec confirmation. Dialogue de
+Un seul « Enregistrer » ; « Supprimer » avec confirmation. **Durée
+suggérée** : choisir un palier de points dont le temps réel médian est
+fiable (3 tâches au moins) **remplace** la durée par cette médiane ; choisir
+un type fiable ne la remplit que si elle est vide. On reste libre de la
+retoucher. Dialogue de
 créneau : mêmes champs que la capture de créneau, « Supprimer » qui dit
 « toutes ses occurrences » pour un récurrent.
+
+**Un autre jour** : « Voir le jour » d'une carte de la vue Semaine ouvre la
+vue Jour de ce jour-là, titrée « Jour · mercredi 30 septembre 2026 » : même
+écran, planning calculé depuis le début de la journée de travail (l'heure
+courante ne compte que pour aujourd'hui), « Fait » de ce jour-là, créneaux de
+ce jour proposés à la capture, et un bouton « Revenir à aujourd'hui » en
+tête. Changer de destination ramène à aujourd'hui.
 
 **Raccourcis clavier** (bureau et web ; indiqués à côté de leur contrôle,
 masqués sur Android) : `N` met le curseur dans la capture de tâche (en
@@ -109,6 +136,11 @@ Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt.
   un bloqueur et une heure fixe ; `N` et `/` placent le curseur
   (`DayScreenUiTest`).
 - Aucune ligne ne déborde horizontalement à 420 px (captures de l'auto-test).
+- Depuis la vue Semaine, « Voir le jour » ouvre le mercredi, titré ; « Revenir
+  à aujourd'hui » y ramène (`M4ScreensUiTest`).
+- Avec trois tâches terminées à 3 points et 45 min chacune, le guide dit
+  « chez toi ≈ 45 min (médiane sur 3 tâche(s)) » avec deux de leurs titres,
+  et choisir 3 points pose 45 min (`M4ScreensUiTest`).
 
 ## 2. Solution technique
 
@@ -124,12 +156,21 @@ heure, `why` (tâches qualifiées), `buckets`, `staleDays`, `raised`,
 modèles récurrents qui y tombent, par heure), `dayBlocks` (créneaux
 effectifs), `timeline`, `holidays`. Le backlog est trié par priorité (sans
 priorité en dernier) puis titre ; « Fait » par modification décroissante.
+Pour un autre jour que celui de l'heure courante, le placement part du
+début de la journée de travail (`Scheduling.buildDaySchedule` n'utilise
+l'heure que si elle tombe ce jour-là, comme Kairos 2).
 `DayFilter` : recherche insensible à la casse sur titre, description et
 projet ; `active` si la recherche n'est pas vide ou qu'une facette est
 posée.
 
 ### Écran (`DayScreen`, `ui`)
 
+- `DayScreen(services, selectedDay, onBackToToday)` : jour affiché =
+  `selectedDay` (posé par la vue Semaine dans `NavState.day`) ou
+  aujourd'hui ; « Revenir à aujourd'hui » (`OutlinedButton`, en tête de liste)
+  seulement pour un autre jour. `ensureCalendarOccurrences` reste appelé
+  pour **aujourd'hui** (l'occurrence du mois courant), quel que soit le jour
+  affiché. Titre de la barre : `AppShell` (`navigation-theme.md`).
 - L'heure est lue sur `services.clock` et réévaluée à chaque minute
   (`produceState`) ; `DayView` est recalculé quand la base, la minute ou le
   filtre changent. `LaunchedEffect(jour, tâches)` appelle
@@ -168,9 +209,23 @@ posée.
   `LabeledCheckbox` (libellé cliquable, 48 dp).
 - `FilterCard` : carte à contour repliable, `ExposedDropdownMenuBox` par
   facette.
+- `Estimates.of(tâches, sessions, maintenant)` (recalculé quand la base
+  change) : `references` (`TaskStats.fibonacciReferences`), et les médianes
+  **fiables** et non nulles par palier (`minutesByPoints`, depuis
+  `fibonacciCalibration`) et par type (`minutesByType`, depuis
+  `calibrationByType`), sur toutes les tâches, archivées comprises, temps
+  passé = sessions + saisie manuelle. `PointsGuide` (dialogue) et
+  `InboxHelp` (« À traiter ») : `TextButton` à chevron qui déplie le texte ;
+  sens et exemples génériques par `Levels.pointsMeaning` /
+  `pointsExample`. `EditTaskDialog` reçoit `estimates` : `PointsPills`
+  remplace la durée par `minutesByPoints[palier]`, `TypeField` ne remplit
+  qu'une durée vide avec `minutesByType[type]`.
 - `Dates` : « 30 sept. » / « Sep 30 », « 09h15 » / « 09:15 », graduations
   « 9h » / « 9:00 », nombres à une décimale sans « .0 » ; `duration()` :
-  « 1 h 30 », « 2 h », « 45 min ».
+  « 1 h 30 », « 2 h », « 45 min » ; `long` : « mardi 29 septembre 2026 »
+(« 1er » le premier du mois) / « Tuesday, September 29, 2026 » ;
+`dayShort` : « mar. 29/09 » / « Tue 9/29 » ; `dayMonth` : « 28/09 » /
+« 9/28 ».
 
 ### Décisions et pièges tracés
 
@@ -193,8 +248,17 @@ posée.
 - **Sections repliables sans carte englobante** : dans une liste paresseuse,
   une carte ne peut pas contenir plusieurs éléments ; titre cliquable avec
   chevron, puis lignes.
-- **Aujourd'hui seulement** : pas de navigation vers un autre jour avant la
-  vue Semaine (M4), qui y mène.
+- **Un autre jour, pas de navigation jour par jour** : on y arrive par la vue
+  Semaine (comme Kairos 2, `/kairos/day?day=`), sans flèches « veille /
+  lendemain » dans la vue Jour. La décision M2 « aujourd'hui seulement » est
+  levée par la vue Semaine.
+- **Durée suggérée : le palier remplace, le type complète** (décisions de
+  Kairos 2, issues #15.6 et #7) : choisir un palier est un geste
+  d'estimation, qui doit changer la durée ; un type n'est qu'un indice, qui ne
+  doit jamais écraser une estimation saisie. Les pastilles de « À traiter »
+  ne touchent jamais à la durée.
+- **Guide replié par défaut**, dans le dialogue comme dans « À traiter » :
+  il est long, et la phrase d'aide courte reste visible.
 - **Jour et heures saisis à part** pour un créneau : le `datetime-local` de
   Kairos 2 n'a pas d'équivalent commun à Compose.
 - **Projet dans les options avancées** (comme Kairos 2) ; le type garde une

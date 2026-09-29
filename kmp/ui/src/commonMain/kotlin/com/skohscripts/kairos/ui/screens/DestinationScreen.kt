@@ -23,23 +23,34 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.day.DayScreen
 import com.skohscripts.kairos.ui.navigation.Destination
+import com.skohscripts.kairos.ui.navigation.NavState
+import com.skohscripts.kairos.ui.notes.NotesScreen
+import com.skohscripts.kairos.ui.stats.StatsScreen
+import com.skohscripts.kairos.ui.week.WeekScreen
+import kotlinx.datetime.LocalDate
 import com.skohscripts.kairos.ui.settings.SettingsScreen
 import org.jetbrains.compose.resources.stringResource
 
-/** Contenu d'une destination. Jalon M1 : Jour et Réglages ; les autres sont en construction. */
+/** Contenu d'une destination (les cinq sont portées depuis le jalon M4). */
 @Composable
-fun DestinationScreen(destination: Destination, services: AppServices, onOpenAbout: () -> Unit) {
+fun DestinationScreen(
+    destination: Destination,
+    services: AppServices,
+    nav: NavState,
+    onOpenDay: (LocalDate?) -> Unit,
+    onNavigate: (Destination) -> Unit,
+    onOpenAbout: () -> Unit,
+) {
     when (destination) {
-        Destination.DAY -> DayScreen(services)
+        Destination.NOTES -> NotesScreen(services, onOpenTasks = { onNavigate(Destination.DAY) })
+        Destination.DAY -> DayScreen(services, nav.day, onBackToToday = { onOpenDay(null) })
+        Destination.WEEK -> WeekScreen(services, nav, onOpenDay)
+        Destination.STATS -> StatsScreen(services)
         Destination.SETTINGS -> SettingsScreen(services, onOpenAbout)
-        else -> Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        ) { UnderConstruction() }
     }
 }
 
-/** Écran « En construction » d'une destination pas encore portée. */
+/** Bloc « En construction » d'une partie pas encore portée (Réglages à venir, jalon M5). */
 @Composable
 fun UnderConstruction() {
     Column(

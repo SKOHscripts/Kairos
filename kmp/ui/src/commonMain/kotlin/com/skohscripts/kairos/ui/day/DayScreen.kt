@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,6 +72,7 @@ import com.skohscripts.kairos.ui.generated.resources.backlog_title
 import com.skohscripts.kairos.ui.generated.resources.blocked_by
 import com.skohscripts.kairos.ui.generated.resources.blocked_hint
 import com.skohscripts.kairos.ui.generated.resources.blocked_title
+import com.skohscripts.kairos.ui.generated.resources.day_back_today
 import com.skohscripts.kairos.ui.generated.resources.done_hint
 import com.skohscripts.kairos.ui.generated.resources.done_title
 import com.skohscripts.kairos.ui.generated.resources.inbox_empty
@@ -94,6 +96,7 @@ import com.skohscripts.kairos.ui.generated.resources.unscheduled_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
@@ -116,7 +119,7 @@ private val COMPACT_ROWS = 600.dp
  * changement de la base, de filtre, et chaque minute.
  */
 @Composable
-fun DayScreen(services: AppServices) {
+fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToToday: () -> Unit = {}) {
     val repository = services.repository
     val snapshot by repository.snapshot.collectAsState()
     val timeZone = remember { TimeZone.currentSystemDefault() }
@@ -131,7 +134,10 @@ fun DayScreen(services: AppServices) {
     val today = local.date
     val minute = LocalDateTime(today, LocalTime(local.hour, local.minute))
     var filter by remember { mutableStateOf(DayFilter()) }
-    val view = remember(snapshot, minute, filter) { DayView.build(snapshot, today, minute, timeZone, filter, instant = now) }
+    // Jour affiché : aujourd'hui, ou celui ouvert depuis la vue Semaine.
+    val day = selectedDay ?: today
+    val estimates = remember(snapshot) { Estimates.of(snapshot.tasks, snapshot.workSessions, now) }
+    val view = remember(snapshot, minute, filter, day) { DayView.build(snapshot, day, minute, timeZone, filter, instant = now) }
     val notifyState by services.notifier.state.collectAsState()
     val scope = rememberCoroutineScope()
     val language = Locale.current.language
@@ -220,9 +226,17 @@ fun DayScreen(services: AppServices) {
                     list.section(key, title, hint, count, sectionOpen, showEmpty, content)
 
                 one("storage") { StorageBanner(services, showWhenLinked = false) }
+                if (day != today) {
+                    one("back-today") {
+                        OutlinedButton(onClick = onBackToToday) {
+                            Icon(KairosIcons.Today, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Text(stringResource(Res.string.day_back_today), modifier = Modifier.padding(start = 6.dp))
+                        }
+                    }
+                }
                 one("capture") {
                     Capture(
-                        capture, today, view.editableBlocks, language, showShortcuts,
+                        capture, day, view.editableBlocks, language, showShortcuts,
                         onAddTask = { title -> scope.launch { repository.createTask(title) } },
                         onAddBlock = { edit -> scope.launch { repository.createBlock(edit) } },
                         onEditBlock = { editingBlock = it },
@@ -231,7 +245,12 @@ fun DayScreen(services: AppServices) {
 
                 // --- À traiter
                 one("inbox-title") { SectionTitle(stringResource(Res.string.inbox_title), view.inbox.size, Modifier.padding(top = 8.dp)) }
-                one("inbox-help") { Hint(stringResource(if (view.inbox.isEmpty()) Res.string.inbox_empty else Res.string.inbox_help)) }
+                one("inbox-help") {
+                    Column {
+                        Hint(stringResource(if (view.inbox.isEmpty()) Res.string.inbox_empty else Res.string.inbox_help))
+                        InboxHelp(estimates.references)
+                    }
+                }
                 rows("inbox", view.inbox) { task ->
                     TaskRow(task, ctx) {
                         InboxQualify(
@@ -326,10 +345,11 @@ fun DayScreen(services: AppServices) {
         } else {
             EditTaskDialog(
                 task = task,
-                day = today,
+                day = day,
                 taskTypes = snapshot.settings.taskTypeList,
                 candidates = view.openTasks,
                 blockerIds = view.blockersOf[id].orEmpty().toSet(),
+                estimates = estimates,
                 onDismiss = { editingId = null },
                 onSave = { edit -> scope.launch { repository.updateTask(id, edit) }; editingId = null },
                 onDelete = { scope.launch { repository.deleteTask(id) }; editingId = null },

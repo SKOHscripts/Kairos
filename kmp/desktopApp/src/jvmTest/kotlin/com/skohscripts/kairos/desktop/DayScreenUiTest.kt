@@ -176,8 +176,8 @@ class DayScreenUiTest {
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Alpha", substring = true).fetchSemanticsNodes().isNotEmpty() }
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Edit task").fetchSemanticsNodes().isNotEmpty() }
-        onNodeWithText("More options").performClick()
-        onNode(hasSetTextAction() and hasText("Fixed time (HH:MM)")).performTextInput("14:30")
+        onNodeWithText("More options").performScrollTo().performClick()
+        onNode(hasSetTextAction() and hasText("Fixed time (HH:MM)")).performScrollTo().performTextInput("14:30")
         onNodeWithText("Beta").performScrollTo().performClick()
         onNodeWithText("Save").performScrollTo().performClick()
         waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.dependencies.isNotEmpty() }

@@ -53,6 +53,14 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.icons.KairosLogo
 import com.skohscripts.kairos.ui.screens.AboutScreen
 import com.skohscripts.kairos.ui.screens.DestinationScreen
+import com.skohscripts.kairos.core.stats.TaskStats
+import com.skohscripts.kairos.ui.day.Dates
+import com.skohscripts.kairos.ui.generated.resources.title_day_other
+import com.skohscripts.kairos.ui.generated.resources.title_week_of
+import androidx.compose.ui.text.intl.Locale
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import com.skohscripts.kairos.ui.chrono.AlertBanners
 import com.skohscripts.kairos.ui.chrono.ChronoWatcher
 import org.jetbrains.compose.resources.stringResource
@@ -68,7 +76,9 @@ fun AppShell(
     services: AppServices,
     destination: Destination,
     aboutOpen: Boolean,
+    nav: NavState,
     onNavigate: (Destination) -> Unit,
+    onOpenDay: (LocalDate?) -> Unit,
     onOpenAbout: () -> Unit,
     onCloseAbout: () -> Unit,
 ) {
@@ -82,7 +92,16 @@ fun AppShell(
     val scope = rememberCoroutineScope()
     val showMessage: (String) -> Unit = { message -> scope.launch { snackbar.showSnackbar(message) } }
 
-    val title = stringResource(if (aboutOpen) Res.string.title_about else destination.title)
+    val language = Locale.current.language
+    val today = services.clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    val day = nav.day
+    // Titre fidèle à ce qui est affiché : « Aujourd'hui » seulement si c'est vrai (Kairos 2).
+    val title = when {
+        aboutOpen -> stringResource(Res.string.title_about)
+        destination == Destination.DAY && day != null && day != today -> stringResource(Res.string.title_day_other, Dates.long(day, language))
+        destination == Destination.WEEK -> stringResource(Res.string.title_week_of, Dates.long(TaskStats.monday(nav.week ?: today), language))
+        else -> stringResource(destination.title)
+    }
     val topBar: @Composable () -> Unit = {
         TopAppBar(
             title = { Text(title) },
@@ -101,7 +120,7 @@ fun AppShell(
     val content: @Composable (Modifier) -> Unit = { modifier ->
         Box(modifier.fillMaxSize()) {
             CompositionLocalProvider(LocalMessages provides showMessage) {
-                if (aboutOpen) AboutScreen() else DestinationScreen(destination, services, onOpenAbout)
+                if (aboutOpen) AboutScreen() else DestinationScreen(destination, services, nav, onOpenDay, onNavigate, onOpenAbout)
             }
             AlertBanners(alerts, Modifier.align(Alignment.BottomCenter))
         }

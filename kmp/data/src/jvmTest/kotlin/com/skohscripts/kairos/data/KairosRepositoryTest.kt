@@ -291,4 +291,31 @@ class KairosRepositoryTest {
         repo.startTimer(a)
         assertEquals(2, repo.snapshot.value.workSessions.size)
     }
+
+    @Test
+    fun notesAreCapturedEditedConvertedArchivedAndDeleted() = runTest {
+        val repo = empty()
+        assertTrue(!repo.createNote("   "))
+        assertTrue(repo.createNote("  Idée \n\n  - détail  "))
+        val note = repo.snapshot.value.notes.single()
+        assertEquals("Idée \n\n  - détail", note.body)
+        repo.editNote(note.id, " ")
+        assertEquals(note.body, repo.snapshot.value.notes.single().body)
+        repo.editNote(note.id, "Idée\n  - détail\n  - autre")
+        val taskId = assertNotNull(repo.convertNote(note.id))
+        val task = repo.snapshot.value.tasks.single()
+        assertEquals(taskId, task.id)
+        assertEquals("Idée" to "  - détail\n  - autre", task.title to task.description)
+        assertTrue(task.needsProcessing)
+        val converted = repo.snapshot.value.notes.single()
+        assertEquals(com.skohscripts.kairos.core.model.NoteStatus.ARCHIVED, converted.status)
+        assertEquals(taskId, converted.convertedTaskId)
+        assertNull(repo.convertNote(note.id)) // déjà convertie
+        repo.createNote("Autre")
+        val other = repo.snapshot.value.notes.single { it.body == "Autre" }
+        repo.archiveNote(other.id)
+        assertEquals(com.skohscripts.kairos.core.model.NoteStatus.ARCHIVED, repo.snapshot.value.notes.single { it.id == other.id }.status)
+        repo.deleteNote(other.id)
+        assertEquals(1, repo.snapshot.value.notes.size)
+    }
 }

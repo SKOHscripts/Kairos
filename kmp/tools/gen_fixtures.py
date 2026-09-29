@@ -18,7 +18,7 @@ import json
 import random
 import re
 import sys
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -45,6 +45,9 @@ from app.tasks_scheduling import (  # noqa: E402
     wsjf_score,
 )
 from app.tasks_staleness import days_stale  # noqa: E402
+from app.tasks_stats import calibration_by_type, compute_dashboard_stats, fibonacci_references  # noqa: E402
+from app.tasks_time import spent_minutes_by_task  # noqa: E402
+from app.tasks_models import WorkSession  # noqa: E402
 from app.workdays import (  # noqa: E402
     add_business_days,
     build_holidays,
@@ -307,6 +310,81 @@ def calendar_cases() -> dict:
     }
 
 
+TYPES = ["", "", "Dev", "Réunion", "Admin"]
+
+
+def stats_case(seed: int) -> dict:
+    """Statistiques (`compute_dashboard_stats`, repères du guide des points,
+    calibration par type) sur un historique tiré au hasard, en UTC."""
+    rng = random.Random(30_000 + seed)
+    today = date(2026, 1, 1) + timedelta(days=rng.randint(0, 600))
+    settings = Settings(
+        stats_window_weeks=rng.choice([1, 4, 8, 12]),
+        stale_overdue_days=rng.choice([0, 7]),
+        stale_untouched_days=rng.choice([0, 14]),
+    )
+    now = datetime.combine(today, time(rng.randint(8, 20), rng.randint(0, 59)), tzinfo=timezone.utc)
+    tasks = []
+    for task_id in range(1, rng.randint(0, 25) + 1):
+        created = datetime.combine(today - timedelta(days=rng.randint(0, 120)), time(rng.randint(0, 23), rng.randint(0, 59)))
+        updated = created + timedelta(days=rng.randint(0, 60), minutes=rng.randint(0, 600))
+        if updated > now.replace(tzinfo=None):
+            updated = now.replace(tzinfo=None) - timedelta(minutes=rng.randint(0, 300))
+        tasks.append(Task(
+            id=task_id, title=f"{rng.choice(WORDS)} {task_id}",
+            priority=rng.choice([None, 0, 1, 2]), fibonacci_points=rng.choice([None, 1, 2, 3, 5, 8, 13, 21, 0]),
+            estimated_minutes=rng.choice([None, 0, 15, 30, 45, 60, 120]),
+            task_type=rng.choice(TYPES), status=rng.choice(["todo"] * 3 + ["done"] * 3 + ["archived"]),
+            deadline=None if rng.random() < 0.5 else today + timedelta(days=rng.randint(-30, 20)),
+            scheduled_date=None if rng.random() < 0.8 else today + timedelta(days=rng.randint(-10, 10)),
+            manual_time_spent_minutes=rng.choice([None, None, None, 0, 10, 40]),
+            created_at=created, updated_at=updated,
+        ))
+    sessions = []
+    ids = [t.id for t in tasks] + [999]
+    for session_id in range(1, rng.randint(0, 30) + 1):
+        start = now - timedelta(days=rng.randint(0, 100), minutes=rng.randint(0, 900))
+        end = None if session_id == 1 and rng.random() < 0.3 else start + timedelta(minutes=rng.randint(0, 180), seconds=rng.randint(0, 59))
+        if end is not None and end > now:
+            end = now
+        sessions.append(WorkSession(id=session_id, task_id=rng.choice(ids), started_at=start.replace(tzinfo=None),
+                                    ended_at=end.replace(tzinfo=None) if end else None))
+    stats = compute_dashboard_stats(tasks, sessions, today, settings=settings, now=now)
+    spent = spent_minutes_by_task(sessions, now=now, tasks=tasks)
+    live = [t for t in tasks if t.status != "archived"]
+
+    def calib(items):
+        return [[str(c.points if hasattr(c, "points") else c.key), c.count, c.median_minutes] for c in items]
+
+    return {
+        "today": iso(today), "now": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "settings": {"statsWindowWeeks": settings.stats_window_weeks, "staleOverdueDays": settings.stale_overdue_days,
+                     "staleUntouchedDays": settings.stale_untouched_days},
+        "tasks": [dict(task_json(t), taskType=t.task_type, manualTimeSpentMinutes=t.manual_time_spent_minutes,
+                       createdAt=t.created_at.strftime("%Y-%m-%dT%H:%M:%SZ")) for t in tasks],
+        "sessions": [{"id": s.id, "taskId": s.task_id, "startedAt": s.started_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                      "endedAt": s.ended_at.strftime("%Y-%m-%dT%H:%M:%SZ") if s.ended_at else None} for s in sessions],
+        "expected": {
+            "windowWeeks": stats.window_weeks,
+            "completedInWindow": stats.completed_in_window,
+            "trackedMinutesWindow": stats.tracked_minutes_window,
+            "throughput": [[iso(w.week_start), w.completed, w.points] for w in stats.throughput],
+            "calibration": calib(stats.calibration),
+            "bias": None if stats.bias is None else [stats.bias.count, stats.bias.estimated_minutes, stats.bias.real_minutes, repr(stats.bias.ratio)],
+            "timeByType": [[s.key, s.minutes, s.pct] for s in stats.time_by_type],
+            "focus": [stats.focus.session_count, stats.focus.total_minutes, stats.focus.avg_session_minutes],
+            "flow": [stats.flow.open_count, stats.flow.median_age_days, stats.flow.overdue_count, stats.flow.stale_count,
+                     stats.flow.completion_delay_days, stats.flow.deadline_total, stats.flow.deadline_on_time, stats.flow.deadline_hit_pct],
+            "completeness": [stats.completeness.total, stats.completeness.with_points, stats.completeness.with_estimate,
+                             stats.completeness.with_type, stats.completeness.points_pct, stats.completeness.estimate_pct,
+                             stats.completeness.type_pct],
+            "references": {str(k): [None if r.calibration is None else [r.calibration.count, r.calibration.median_minutes], list(r.examples)]
+                           for k, r in fibonacci_references(live, spent_minutes_by_task(sessions, now=now, tasks=live)).items()},
+            "byType": calib(calibration_by_type(live, spent_minutes_by_task(sessions, now=now, tasks=live))),
+        },
+    }
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     fixtures = {
@@ -314,6 +392,7 @@ def main() -> None:
         + [scheduling_case(seed, dip=True) for seed in range(401, 481)],
         "dependencies.json": [dependencies_case(seed) for seed in range(1, 301)],
         "calendar.json": calendar_cases(),
+        "stats.json": [stats_case(seed) for seed in range(1, 201)],
     }
     for name, data in fixtures.items():
         (OUT / name).write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")

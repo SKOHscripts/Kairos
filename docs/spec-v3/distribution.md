@@ -75,7 +75,8 @@ Pendant la réécriture, chaque jalon doit produire une version installable
 - **Source unique** : `kmp/gradle.properties`, `kairos.versionName` et
   `kairos.versionCode`. Jalon M0 : `3.0.0-alpha.1` (`29001`) ; jalon M1 :
   `3.0.0-alpha.2` (`29002`) ; jalon M2 : `3.0.0-alpha.3` (`29003`) ;
-  jalon M3 : `3.0.0-alpha.4` (`29004`).
+  jalon M3 : `3.0.0-alpha.4` (`29004`) ; jalon M4 : `3.0.0-alpha.5`
+  (`29005`).
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
 - `versionCode` (`AppVersion.versionCode`) : `X*10000 + Y*100 + Z` ; alpha :
@@ -165,7 +166,9 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   (1200 × 1000 px). Avec `=dossier`, les rendus y sont écrits
   (`desktop-wide.png`, `desktop-narrow.png`, `desktop-settings.png`,
   `desktop-about.png`, `desktop-day-full.png`,
-  `desktop-day-full-narrow.png`, `desktop-day-chrono.png`). Code de sortie
+  `desktop-day-full-narrow.png`, `desktop-day-chrono.png`,
+  `desktop-notes.png`, `desktop-week.png`, `desktop-week-narrow.png`,
+  `desktop-stats.png`). Code de sortie
   0 ou 1.
 - **Empaquetage** (plugin Compose Desktop, jpackage, runtime Java réduit
   embarquant `java.instrument`, `java.management`, `java.sql`,

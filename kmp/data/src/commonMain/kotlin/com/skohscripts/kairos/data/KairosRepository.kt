@@ -9,6 +9,8 @@ import com.skohscripts.kairos.core.model.BlockKind
 import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.FIBONACCI_SCALE
 import com.skohscripts.kairos.core.model.KairosSnapshot
+import com.skohscripts.kairos.core.model.NoteStatus
+import com.skohscripts.kairos.core.notes.NoteConversion
 import com.skohscripts.kairos.core.model.PRIORITY_VALUES
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
@@ -231,6 +233,50 @@ class KairosRepository(
         queries.deleteDependenciesOf(taskId)
         queries.deleteTask(taskId)
     }
+
+    // --- Notes (docs/spec-v3/notes-capture.md) -----------------------------------
+
+    /** Capture libre : un corps nettoyé, rien d'autre ; vide → rien. */
+    suspend fun createNote(body: String): Boolean {
+        val clean = body.trim()
+        if (clean.isEmpty()) return false
+        write { queries.insertNote(clean, now(), now()) }
+        return true
+    }
+
+    /** Nouveau corps d'une note (nettoyé) ; vide → la note garde l'ancien. */
+    suspend fun editNote(noteId: Long, body: String) {
+        val note = state.value.notes.firstOrNull { it.id == noteId } ?: return
+        val clean = body.trim()
+        if (clean.isEmpty()) return
+        write { queries.updateNote(clean, note.status.code, note.convertedTaskId, now(), noteId) }
+    }
+
+    /**
+     * Note → tâche (`convert_note_to_task`) : titre = première ligne, description
+     * = le reste ([NoteConversion]) ; la tâche arrive « À traiter » ; la note est
+     * archivée et liée à la tâche, jamais supprimée. Rend l'identifiant de la tâche.
+     */
+    suspend fun convertNote(noteId: Long): Long? {
+        val note = state.value.notes.firstOrNull { it.id == noteId && it.status == NoteStatus.OPEN } ?: return null
+        val (title, description) = NoteConversion.fields(note.body)
+        if (title.isEmpty()) return null
+        var id: Long? = null
+        write {
+            id = insertNew(newTask(title, null).copy(description = description))
+            queries.updateNote(note.body, NoteStatus.ARCHIVED.code, id, now(), noteId)
+        }
+        return id
+    }
+
+    /** Classe une note sans suite : archivée, jamais supprimée. */
+    suspend fun archiveNote(noteId: Long) {
+        val note = state.value.notes.firstOrNull { it.id == noteId } ?: return
+        write { queries.updateNote(note.body, NoteStatus.ARCHIVED.code, note.convertedTaskId, now(), noteId) }
+    }
+
+    /** Suppression définitive. */
+    suspend fun deleteNote(noteId: Long) = write { queries.deleteNote(noteId) }
 
     suspend fun updateSettings(settings: Settings) = write {
         queries.writeSettings(json.encodeToString(Settings.serializer(), settings))
