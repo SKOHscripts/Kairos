@@ -8,8 +8,10 @@ plugins {
 val kairosVersionName = providers.gradleProperty("kairos.versionName").get()
 val kairosVersionCode = providers.gradleProperty("kairos.versionCode").get().toInt()
 // Préversion (X.Y.Z-alpha.N / -beta.N) : application distincte « Kairos Preview »,
-// installable à côté de Kairos 2 (plan § 9).
-val isPreview = kairosVersionName.contains('-')
+// installable à côté de Kairos 2 (plan § 9). `-Pkairos.preview=false` force
+// l'identifiant définitif : la vérification F-Droid d'une bêta construit
+// com.skohscripts.kairos, comme le fera la recette (docs/spec-v3/publication.md).
+val isPreview = providers.gradleProperty("kairos.preview").orNull?.toBooleanStrict() ?: kairosVersionName.contains('-')
 
 android {
     namespace = "com.skohscripts.kairos.android"

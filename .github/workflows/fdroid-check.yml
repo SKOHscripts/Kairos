@@ -1,0 +1,108 @@
+# Vérification F-Droid et magasins (docs/spec-v3/publication.md § Vérification continue).
+#
+# - metadata : fiches Fastlane FR/EN (longueurs, changelog du versionCode courant,
+#   icône, captures) ;
+# - build : la recette fdroid/com.skohscripts.kairos.yml passe `fdroid lint` et se
+#   construit dans l'image des serveurs de F-Droid, au commit testé ;
+# - reproducible : l'APK du runner, construit comme la release, est identique à
+#   celui de F-Droid ;
+# - après la release d'une version finale (tag sans suffixe) : même construction,
+#   comparée par `fdroid build` à l'APK signé publié (preuve de reproductibilité
+#   exigée pour que F-Droid distribue notre APK, signature comprise).
+name: F-Droid
+
+on:
+  pull_request:
+    paths: ["fdroid/**", "fastlane/**", "kmp/**", ".github/workflows/fdroid-check.yml"]
+  push:
+    branches: [main]
+    paths: ["fdroid/**", "fastlane/**", "kmp/**", ".github/workflows/fdroid-check.yml"]
+  # Une release créée par un workflow (jeton GITHUB_TOKEN) ne déclenche pas
+  # l'événement `release` : on suit donc la fin du workflow de release.
+  workflow_run:
+    workflows: ["Kairos 3 release"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  metadata:
+    if: github.event_name != 'workflow_run'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 kmp/tools/validate_fastlane.py
+
+  build:
+    # Après une release : seulement une version finale taguée (vX.Y.Z, sans suffixe).
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+       && !contains(github.event.workflow_run.head_branch, '-'))
+    runs-on: ubuntu-latest
+    container: registry.gitlab.com/fdroid/fdroidserver:buildserver
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+      - name: fdroid lint + fdroid build
+        env:
+          REPO: ${{ github.workspace }}
+          OUT: ${{ runner.temp }}/fdroid
+          # Comparaison à l'APK publié : seulement après la release d'une version
+          # finale (une préversion porte l'identifiant « .preview », F-Droid ne la
+          # distribue pas).
+          BINARIES: ${{ github.event_name == 'workflow_run' && '--binaries' || '' }}
+        run: bash kmp/tools/fdroid_check.sh $BINARIES
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fdroid-unsigned-apk
+          path: ${{ runner.temp }}/fdroid/*.apk
+
+  # Reproductibilité à chaque changement, sans attendre une release : l'APK que
+  # construit F-Droid (job build) doit être identique, octet pour octet, à celui
+  # que construit le runner exactement comme kmp-release.yml (Temurin 21), non
+  # signé et sous l'identifiant définitif.
+  reproducible:
+    needs: build
+    if: github.event_name != 'workflow_run'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kmp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Plateforme Android 37
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
+      - name: APK non signé (comme la release)
+        run: ./gradlew --no-daemon :androidApp:assembleRelease -Pkairos.preview=false
+      - uses: actions/download-artifact@v4
+        with:
+          name: fdroid-unsigned-apk
+          path: ${{ runner.temp }}/fdroid
+      - name: Comparaison
+        run: |
+          ours=androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk
+          theirs=$(ls "$RUNNER_TEMP"/fdroid/*.apk)
+          sha256sum "$ours" "$theirs"
+          if ! cmp -s "$ours" "$theirs"; then
+            echo "::error::APK non reproductible : l'APK construit par F-Droid diffère de celui du runner."
+            # Entrées qui diffèrent (nom, CRC), pour orienter l'analyse.
+            python3 - "$ours" "$theirs" <<'PY'
+          import sys, zipfile
+          a, b = (dict((i.filename, i.CRC) for i in zipfile.ZipFile(p).infolist()) for p in sys.argv[1:])
+          for name in sorted(set(a) | set(b)):
+              if a.get(name) != b.get(name):
+                  print(f"  {name}: {a.get(name)} / {b.get(name)}")
+          PY
+            exit 1
+          fi
+          echo "APK reproductible."
