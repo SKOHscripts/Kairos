@@ -1,0 +1,1 @@
+Kairos 3: rewritten as a native app, instant start, no network permission. Installed over Kairos 2, it brings over your tasks, notes and timer sessions. Day view ordered by score, Week, Notes, Statistics, timer with notification and alerts even when the app is closed. Updates now come through F-Droid, IzzyOnDroid or a new APK. TimeTree and GitLab import are removed.

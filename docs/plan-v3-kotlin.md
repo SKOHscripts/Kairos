@@ -345,7 +345,19 @@ migration **ne marche pas** entre l'APK Python (clé personnelle) et un APK
 signé par F-Droid (autre clé). Comme la v3 est la **première** version publiée
 sur F-Droid, seuls les utilisateurs de l'APK GitHub sont concernés, et
 l'installation par-dessus fonctionne pour eux. (Jalon M5 : migration faite, voir
-`docs/spec-v3/migration-2x.md` ; ce point reste à confirmer avant la 3.0.0.)
+`docs/spec-v3/migration-2x.md`.)
+
+**Tranché avant la 3.0.0 (2026-09-29, jalon M7)** :
+
+- F-Droid distribue **notre** APK signé (`Binaries` +
+  `AllowedAPKSigningKeys`, build reproductible vérifié en CI) : la question
+  de la clé ne se pose plus, l'APK Python se met à jour vers Kairos 3 quelle
+  que soit la source.
+- La mise à jour intégrée d'Android est abandonnée (elle n'attendait que
+  F-Droid). Dernier service rendu : la release 3.0.0 publie une copie de
+  l'APK sous le nom que cherche Kairos 2 (`kairos-android-arm64.apk`), pour
+  que l'APK Python installe Kairos 3 en un clic
+  (`docs/spec-v3/migration-2x.md` § Pont de mise à jour).
 
 ---
 

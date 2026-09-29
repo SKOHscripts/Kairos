@@ -10,7 +10,7 @@ GitHub. Fichiers couverts : `fastlane/metadata/android/` (fiches FR/EN),
 propriété `kairos.preview` de `kmp/androidApp/build.gradle.kts`. Versions,
 construction et releases : `distribution.md`._
 
-État : **jalon M6** (`3.0.0-beta.1`). Les soumissions elles-mêmes (merge
+État : **jalon M7** (`3.0.0`) ; mis en place au jalon M6 (`3.0.0-beta.1`). Les soumissions elles-mêmes (merge
 request fdroiddata, demande IzzyOnDroid) sont faites par le propriétaire du
 dépôt après la release `v3.0.0` (`fdroid/README.md`).
 
@@ -78,7 +78,7 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
   présente la formule du score, le placement dans la journée, le chrono et
   ses alertes, les statistiques, et l'absence de compte et de réseau.
 - **Une note de version par versionCode publié** (`29501` pour
-  `3.0.0-beta.1`) : à chaque changement de version, en ajouter une dans les
+  `3.0.0-beta.1`, `30000` pour `3.0.0`) : à chaque changement de version, en ajouter une dans les
   deux langues.
 - `validate_fastlane.py` (sans dépendance) vérifie pour chaque langue : fichiers
   présents, non vides, longueurs ; note de version du `kairos.versionCode`

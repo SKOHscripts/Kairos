@@ -1,97 +1,42 @@
 # Design system Kairos — Material Design 3, thème « miel »
 
-Charte visuelle de l'application, construite sur **Material Design 3** (MD3) : un
-design system complet et documenté (https://m3.material.io), natif sur Android et
-lisible sur un bureau Windows/Linux, à suivre pour toute évolution future. Tout
-nouveau gabarit ou composant réutilise ces rôles et composants plutôt que d'en
-réinventer. Implémentés dans `static/style.css` (variables `:root`, `@font-face`),
-`templates/_icons.html` (icônes) et `templates/base.html` (logo, navigation).
+Charte visuelle de l'application, construite sur **Material Design 3** (MD3,
+https://m3.material.io) et rendue par les composants **Material 3 de Compose
+Multiplatform**, les mêmes sur Android, le bureau et le web. Tout nouvel écran
+ou composant réutilise ces rôles et ces composants plutôt que d'en réinventer :
+chercher d'abord le composant Material 3 correspondant.
+
+Mise en œuvre : `kmp/ui/.../theme/` (`KairosColors.kt` généré, `KairosTheme.kt`),
+`kmp/ui/.../icons/` (`KairosIcons.kt` généré, `KairosLogo.kt`), polices dans
+`kmp/ui/src/commonMain/composeResources/font/`. Détail technique :
+`docs/spec/navigation-theme.md` ; composants de chaque écran : sa spec de
+domaine.
 
 ## Historique de la décision
 
 - **Charte précédente** (« sobre & professionnelle », ardoise + accent bleu
-  `#2F6FED`, IBM Plex Sans, topnav horizontale) : remplacée en 2026-09 à la
+  `#2F6FED`, IBM Plex Sans, navigation horizontale) : remplacée en 2026-09 à la
   demande de l'utilisateur, qui la jugeait trop marquée par un style « généré »
   et voulait un design system complet, pérenne, cohérent sur Windows, Linux et
   Android.
 - **Trois pistes comparées** (Carbon d'IBM, MD3, Fluent 2), puis maquettes
-  Carbon/MD3 : **MD3 retenu** (bottom nav, FAB, chips natifs sur Android ;
-  composants tous documentés ; palette dérivée d'une seule couleur, donc un
-  thème sombre générable plus tard).
+  Carbon/MD3 : **MD3 retenu** (barre de navigation basse, puces natives sur
+  Android ; composants tous documentés ; palette dérivée d'une seule couleur,
+  donc un thème sombre générable plus tard).
 - **Graine de couleur** : le terracotta du logo (`#D9713C`) jugé trop orange ;
   **miel `#C28417`** retenu (lumière de fin de journée sur le cadran solaire :
   chaud sans être orange, et 50° de teinte d'écart avec le rouge d'erreur — le
-  terracotta n'en avait que 18°, P0 et primaire se confondaient). Le logo suit la
-  graine (§ Logo).
+  terracotta n'en avait que 18°, P0 et primaire se confondaient). Le logo suit
+  la graine (§ Logo).
 - **Schéma « Tonal spot »** (défaut d'Android) préféré à « Fidelity » : moins
   saturé, conteneurs pêche/miel clair plutôt que le terracotta plein.
-- **Rail de navigation vertical sur bureau** : décision « pas de sidebar »
-  explicitement **rouverte** et tranchée par l'utilisateur en faveur du rail MD3
+- **Rail de navigation** sur grand écran : décision « pas de barre latérale »
+  explicitement rouverte et tranchée par l'utilisateur en faveur du rail MD3
   (§ Navigation).
-- **Exceptions de l'ancienne charte absorbées** (décision utilisateur) : la
-  carte « Progression du jour » crème/ambre, la boîte de réception crème/ambre et
-  la ligne « À faire maintenant » en Newsreader italique disparaissent ; « Maintenant »
-  devient le bloc `primary-container`, la ligne passe en Roboto *title-large*.
-
-## Architecture de l'information : vue Jour (flux GTD)
-
-La vue Jour (`templates/kairos.html` + `templates/_kairos_day.html`) est organisée
-autour du flux GTD **capturer → traiter la boîte de réception → faire**, de haut en
-bas :
-
-1. **Barre de capture** (`.mj-capture`) : toujours visible, jamais dans un `<details>`
-   replié : la capture ne doit jamais coûter un clic de plus. Deux volets par onglet
-   (radios `mj-add-mode`) : « Tâche » (titre seul ; capture GTD volontairement sans
-   friction, la clarification vient après) et « Créneau / deep work » (avec la liste
-   d'édition des créneaux du jour). Le CTA « Ajouter » (`.btn.primary`) est le seul
-   bouton plein de la zone.
-2. **Boîte de réception** (`.mj-to-process`, id `#mj-inbox`) : juste sous la capture,
-   pour qu'une tâche capturée y apparaisse immédiatement. Jamais masquée (pas de
-   `<details>`) : affiche un état vide discret (`.mj-inbox-empty`) plutôt que de
-   disparaître, pour toujours rappeler où regarder en premier. Qualification **en
-   ligne** (priorité + points Fibonacci, voir « Composants » plus bas) : une tâche
-   qualifiée quitte la boîte de réception et entre dans l'agenda ordonné, sans ouvrir
-   l'édition complète.
-3. **« Maintenant »** (`.mj-progress`) : poste de pilotage, prochaine tâche
-   actionnable sur place, toujours dépliée. Ses trois actions sont des boutons
-   nommés (« Fait », « Démarrer le chrono », « Décaler »), les seuls de l'app à
-   porter texte et icône hors formulaires : ailleurs, les icônes suffisent. Seul bloc
-   teinté de l'écran (`primary-container`), voir « Où va la couleur » plus bas.
-4. **Bannières d'alerte** (TimeTree, GitLab, surcharge de priorité) : sous
-   « Maintenant », pas en tout premier : ce ne sont que des avertissements de
-   dégradation, pas le point d'entrée du flux (bannières neutres, jamais rouges).
-5. **Agenda ordonné** (« Aujourd'hui, dans l'ordre », `<details open>`) : la liste
-   centrale, triée par score WSJF, toujours dépliée, juste sous « Maintenant ».
-6. **Sections secondaires condensées** (Sans créneau / Bloquées / Plus tard / Mères /
-   Fait) : `<details>` repliés sauf « Sans créneau », chaque `<summary>` porte un
-   compte et une courte phrase de rôle (`.hint`).
-7. **Filtres compacts** (`.mj-filter-compact`) et **Backlog** : utilitaires
-   secondaires, repliés, en bas de colonne. Un filtre actif remonte en tête.
-8. **Colonne latérale** (`.mj-day-grid` → `.mj-side-col`) : inchangée : carte
-   « En ce moment » (chrono) + Agenda (timeline verticale).
-
-La vue Semaine reste un gabarit simple, non concernée par cette réorganisation.
-
-### Partiels et mise à jour AJAX
-
-- `templates/_kairos_macros.html` porte les macros partagées (`done_toggle`,
-  `task_actions`, `time_spent`, `fibo_help`, `edit_panel`, `task_key_badges`,
-  `task_tags`, `task_description`), importées
-  `with context` par `kairos.html` et `_kairos_day.html` : évite un cycle d'import
-  entre les deux gabarits.
-- `templates/_kairos_day.html` est le partiel de la vue Jour : rendu à l'intérieur de
-  `<div id="mj-day-content">` par `kairos.html` (page pleine), **et** rendu
-  directement (sans cette enveloppe) par `app.main.render_kairos_response(fragment=True)`
-  pour les réponses AJAX. Un seul `id="mj-day-content"` dans toute l'app.
-- **Amélioration progressive, jamais de JS obligatoire** : un `<form data-ajax>`
-  se soumet en `fetch` (en-tête `X-Requested-With: fetch`), remplace
-  `#mj-day-content` par le fragment renvoyé, puis réinitialise le chrono vivant
-  (`initDayScripts`, réappelable). Sans JS (ou en cas d'échec réseau), le même
-  formulaire se soumet normalement → POST → redirection 303 côté serveur,
-  identique au comportement historique : indispensable pour la WebView Android et
-  l'accessibilité. Le bouton cliqué est ajouté à la requête (`ev.submitter`) :
-  `new FormData(form)` l'ignore, et les pastilles de qualification portent leur
-  valeur dans leur `name`/`value`.
+- **Kairos 3** (2026-10) : la charte, née en HTML/CSS pour Kairos 2, est
+  transposée telle quelle en Compose ; les rôles, formes et règles d'usage de
+  la couleur ne changent pas, seuls les composants deviennent ceux de
+  Material 3.
 
 ## Couleurs
 
@@ -99,151 +44,146 @@ La vue Semaine reste un gabarit simple, non concernée par cette réorganisation
 
 Générés par l'algorithme officiel (material-color-utilities, portage Python
 `materialyoucolor`, `SchemeTonalSpot`, spec 2021, contraste standard) depuis la
-graine **`#C28417`**. Variables `--md-*` de `static/style.css` ; un seul thème
-clair (pas de mode sombre pour l'instant, mais les mêmes outils le génèrent
-depuis la même graine).
+graine **`#C28417`**, par `kmp/tools/make_theme.py`, dans `KairosColors.kt`
+(`lightColorScheme`, 36 rôles). Un seul thème clair (pas de mode sombre pour
+l'instant, mais le même outil le génère depuis la même graine). Pour changer de
+couleur : changer la graine et regénérer tout le schéma, jamais retoucher un
+rôle isolé.
 
-| Rôle | Variable CSS | Valeur | Usage principal |
+| Rôle | `MaterialTheme.colorScheme` | Valeur | Usage principal |
 |---|---|---|---|
-| Primaire | `--md-primary` / `--md-on-primary` | `#7F5610` / `#FFFFFF` | bouton plein, score WSJF, liens, focus |
-| Conteneur primaire | `--md-primary-container` / `--md-on-primary-container` | `#FFDDB3` / `#624000` | carte « Maintenant », chrono en cours |
-| Secondaire | `--md-secondary` | `#6F5B40` | (réservé) |
-| Conteneur secondaire | `--md-secondary-container` / `--md-on-secondary-container` | `#FADEBC` / `#56442A` | sélection : destination active, chips/pastilles choisies, créneaux de travail de l'agenda |
-| Conteneur tertiaire | `--md-tertiary-container` / `--md-on-tertiary-container` (trait `--md-tertiary`) | `#D4EABC` / `#3A4C2A` (`#516440`) | deep work, uniquement |
-| Erreur | `--md-error` / `--md-on-error` | `#BA1A1A` / `#FFFFFF` | texte d'erreur, liseré critique |
-| Conteneur d'erreur | `--md-error-container` / `--md-on-error-container` | `#FFDAD6` / `#93000A` | P0, badges `.bad`, bannière d'erreur |
-| Surface | `--md-surface` / `--md-on-surface` | `#FFF8F4` / `#201B13` | fond de page, cartes « outlined », texte |
-| Conteneurs de surface | `--md-surface-container-lowest` … `-highest` | `#FFFFFF`, `#FEF1E5`, `#F9ECDF`, `#F3E6DA`, `#EDE0D4` | cartes « filled », lignes de tâche, badges neutres, dialogue |
-| Texte secondaire | `--md-on-surface-variant` | `#4F4539` | libellés, aides, métadonnées |
-| Contours | `--md-outline` / `--md-outline-variant` | `#817567` / `#D3C4B4` | champs, boutons « outlined » / cartes, séparateurs |
-| Surface inverse | `--md-inverse-surface` / `--md-inverse-on-surface` / `--md-inverse-primary` | `#362F27` / `#FCEFE2` / `#F4BD6F` | carte « En ce moment », snackbar d'alerte |
-| Voile | `--md-scrim` | `rgba(0,0,0,.32)` | derrière le dialogue d'édition |
+| Primaire | `primary` / `onPrimary` | `#7F5610` / `#FFFFFF` | bouton plein, score WSJF, liens, focus |
+| Conteneur primaire | `primaryContainer` / `onPrimaryContainer` | `#FFDDB3` / `#624000` | carte « Maintenant », chrono en cours |
+| Secondaire | `secondary` | `#6F5B40` | contour du jour courant (vue Semaine) |
+| Conteneur secondaire | `secondaryContainer` / `onSecondaryContainer` | `#FADEBC` / `#56442A` | sélection : destination active, puces et pastilles choisies, créneaux de travail de la frise |
+| Conteneur tertiaire | `tertiaryContainer` / `onTertiaryContainer` (trait `tertiary`) | `#D4EABC` / `#3A4C2A` (`#516440`) | deep work, uniquement |
+| Erreur | `error` / `onError` | `#BA1A1A` / `#FFFFFF` | texte d'erreur, liseré critique |
+| Conteneur d'erreur | `errorContainer` / `onErrorContainer` | `#FFDAD6` / `#93000A` | P0, badges d'erreur, bandeau d'échec |
+| Surface | `surface` / `onSurface` | `#FFF8F4` / `#201B13` | fond, cartes à contour, texte |
+| Conteneurs de surface | `surfaceContainerLowest` … `Highest` | `#FFFFFF`, `#FEF1E5`, `#F9ECDF`, `#F3E6DA`, `#EDE0D4` | cartes « filled », lignes de tâche, badges neutres, dialogue |
+| Texte secondaire | `onSurfaceVariant` | `#4F4539` | libellés, aides, métadonnées |
+| Contours | `outline` / `outlineVariant` | `#817567` / `#D3C4B4` | champs, boutons à contour / cartes, séparateurs |
+| Surface inverse | `inverseSurface` / `inverseOnSurface` / `inversePrimary` | `#362F27` / `#FCEFE2` / `#F4BD6F` | carte « En ce moment », snackbar d'alerte |
 
-Contrastes texte/fond (WCAG 2.1) : 6,4:1 et plus pour tous les couples ci-dessus,
-au-delà du minimum AA (4,5:1).
+Contrastes texte/fond (WCAG 2.1) : 6,4:1 et plus pour tous les couples
+ci-dessus, au-delà du minimum AA (4,5:1) ; voir `docs/spec/accessibilite.md`.
+
+**Jamais de `Color(0x…)` dans un composant** : une couleur vient de
+`MaterialTheme.colorScheme` ou de `LocalKairosExtraColors`. Seules exceptions :
+le logo (couleurs fixes, § Logo) et le schéma généré lui-même.
 
 ### Couleur personnalisée « fait / ok »
 
-`--kx-ok` `#36693D`, `--kx-ok-container` `#B7F1B8`, `--kx-on-ok-container`
-`#1D5127` (palette tonale teinte 150°, chroma 36, mêmes tons que les rôles
-d'erreur). **Non harmonisée** vers la graine : harmonisée, elle virait à
-l'olive, trop proche de la tertiaire.
+`LocalKairosExtraColors` : `ok` `#36693D`, `okContainer` `#B7F1B8`,
+`onOkContainer` `#1D5127` (palette tonale teinte 150°, chroma 36, mêmes tons
+que les rôles d'erreur). **Non harmonisée** vers la graine : harmonisée, elle
+virait à l'olive, trop proche de la tertiaire.
 
 ### Pas d'ambre d'avertissement (décision)
 
 Un ambre d'avertissement (`#755B00`/`#FFDF90`) serait **indiscernable du miel
 primaire** ; harmonisé vers la graine, il devenait même identique au conteneur
 primaire. Les états « à surveiller » sont donc rendus **par la forme** : badge
-`.warn`/`.at_risk` à contour (`--md-outline`) + icône, tuile `.stat.tone-amber`
-à contour, bannière de dégradation neutre. Le nom historique `tone-amber` est
-conservé côté gabarit.
+à contour (`outline`) + icône `Warning` (`WarnBadge`), tuile de statistique à
+contour et icône, bandeau de dégradation neutre.
 
 ### Où va la couleur (et nulle part ailleurs)
 
 1. **Un seul bloc teinté par écran** : la carte « Maintenant »
-   (`.mj-progress`, `primary-container`).
-2. **Le primaire plein** est réservé à l'action principale de chaque zone :
-   « Ajouter », « Fait » (dans « Maintenant »), « Enregistrer », « Mettre à jour »,
-   « Ouvrir Aujourd'hui ».
-3. **Le score WSJF** (`.badge.mj-score`) est un chiffre en couleur primaire, sans
-   pastille pleine (couche d'état au survol : il ouvre « Pourquoi à cette place ? »).
-4. **Le rouge** ne sert qu'à P0 (`.badge.prio.is-p0`), aux erreurs et aux
-   dépassements (`.badge.bad`, `.stat.tone-red`, liseré `.mj-bucket-0`), toujours
+   (`primaryContainer`) ; sur la page de téléchargement, la carte du système
+   du visiteur.
+2. **Le primaire plein** (`Button`) est réservé à l'action principale de chaque
+   zone : « Ajouter », « Fait » (dans « Maintenant »), « Enregistrer »,
+   « → Tâche », « Capturer ».
+3. **Le score WSJF** est un chiffre en couleur primaire, sans pastille pleine
+   (il ouvre « Pourquoi à cette place ? »).
+4. **Le rouge** ne sert qu'à P0, aux erreurs et aux dépassements (badge
+   d'erreur, liseré d'une ligne P0, temps au-delà de l'estimé), toujours
    accompagné d'un texte ou d'une icône. P1/P2 restent neutres.
-5. **La tertiaire** (vert sauge) ne sert qu'au deep work (badge
-   `.badge.ok.mj-deepwork`, blocs de la timeline).
-6. **Le vert « ok »** marque le fait (`.badge.ok`, coche `.mj-check.is-done`,
-   barres « done »).
-7. **Les bannières de dégradation** (TimeTree, GitLab, surcharge de priorité)
-   sont neutres (`.banner`, `surface-container-high` + icône) : un service
-   dégradé n'est pas un danger. `.banner.warning` = conteneur d'erreur, pour les
-   vrais échecs (réglages refusés, trousseau indisponible, échec de mise à jour).
-8. **La sélection** (destination active, onglets de capture, pastilles
-   choisies, créneaux de travail) utilise `secondary-container`.
-9. **Le sombre** (surface inverse) est réservé à la carte « En ce moment » et à
-   la snackbar d'alerte de chrono.
+5. **La tertiaire** (vert sauge) ne sert qu'au deep work (badge, blocs de la
+   frise).
+6. **Le vert « ok »** marque le fait (badge, coche, barres « fait », rail du
+   temps chronométré).
+7. **Les bandeaux de dégradation** (surcharge de priorité, mise à jour
+   disponible, données web non liées à un fichier) sont neutres
+   (`surfaceContainerHigh` + icône) : une dégradation n'est pas un danger. Le
+   conteneur d'erreur est réservé aux vrais échecs (réglages refusés, import
+   impossible).
+8. **La sélection** (destination active, volets de capture, pastilles
+   choisies, créneaux de travail) utilise `secondaryContainer`.
+9. **Le sombre** (surface inverse) est réservé à la carte « En ce moment » et
+   à la snackbar d'alerte du chrono.
 
-### Badges (pilules, `--md-shape-full`)
+### Badges (pilules)
 
-| Rôle | Classe | Fond | Texte |
-|---|---|---|---|
-| Neutre / info / tag / projet | `.badge`, `.badge.neutral`, `.badge.info`, `.badge.mj-tag` | `surface-container-highest` | `on-surface-variant` |
-| Priorité P1, P2 | `.badge.prio` | `surface-container-highest` | `on-surface`, gras |
-| Priorité P0 | `.badge.prio.is-p0` | `error-container` | `on-error-container` |
-| Score WSJF | `.badge.mj-score` | transparent | `primary`, gras |
-| Chrono en cours | `.badge.mj-timer` | `primary-container` | `on-primary-container` |
-| Fait / ok | `.badge.ok` | `--kx-ok-container` | `--kx-on-ok-container` |
-| Deep work | `.badge.ok.mj-deepwork` | `tertiary-container` | `on-tertiary-container` |
-| Critique / erreur | `.badge.bad` | `error-container` | `on-error-container` |
-| À surveiller | `.badge.warn`, `.badge.at_risk` | transparent, contour `outline` | `on-surface` |
+| Rôle | Fond | Texte |
+|---|---|---|
+| Neutre, tag, projet | `surfaceContainerHighest` | `onSurfaceVariant` |
+| Priorité P1, P2 | `surfaceContainerHighest` | `onSurface`, gras |
+| Priorité P0 | `errorContainer` | `onErrorContainer` |
+| Score WSJF | transparent | `primary`, gras |
+| Chrono en cours | `primaryContainer` | `onPrimaryContainer` |
+| Fait / ok | `okContainer` | `onOkContainer` |
+| Deep work | `tertiaryContainer` | `onTertiaryContainer` |
+| Critique / erreur | `errorContainer` | `onErrorContainer` |
+| À surveiller | transparent, contour `outline`, icône `Warning` | `onSurface` |
 
 ## Typographie
 
-- **Roboto** (400/500/700), la police de MD3, **servie par l'app** : fichiers WOFF2
-  des sous-ensembles latin et latin-ext dans `static/fonts/` (paquet npm
-  `@fontsource/roboto` 5.3.0, licence OFL `static/fonts/Roboto-OFL.txt`),
-  déclarés par `@font-face` en tête de `style.css`. **Aucune police distante** :
-  l'exécutable et l'APK rendent la charte hors ligne (l'ancienne charte chargeait
-  IBM Plex et Newsreader depuis Google Fonts, dégradées sans réseau). Test :
-  `test_fonts_are_served_locally_never_from_google`.
-- Échelle MD3 appliquée : *title-large* 22/28 400 (titre de page, « À faire
-  maintenant »), *title-medium* 16/24 500 (titres de carte/section),
-  *title-small / label-large* 14/20 500 (boutons, résumés repliables),
-  *body-medium* 14/20 (corps), *body-small* 12–13 px (aides, étiquettes),
-  *label-small* 11–12 px 500 en majuscules (sur-titres), *headline-small*
-  24/32 400 (KPI), *display-small* 36/44 400 (minuteur « En ce moment »).
-- Chiffres en `font-variant-numeric: tabular-nums` (heures, scores, KPI).
+- **Roboto** 400/500/700, la police de MD3, **embarquée** en TTF dans
+  `composeResources/font/` (licence OFL, `kmp/licenses/Roboto-OFL.txt`) :
+  **aucune police distante**, l'application est entièrement hors ligne. La
+  page de téléchargement (`site/`) sert les mêmes fichiers.
+- Échelle typographique MD3 par défaut (`Typography` de Material 3) en
+  Roboto ; `titleLarge` 22/28 (titre de page, « À faire maintenant »),
+  `titleMedium` pour les titres de carte et de section, `bodyMedium` 14 sp
+  pour le corps, `bodySmall` pour les aides, `labelLarge` pour les boutons,
+  `headlineSmall` pour les chiffres clés, `displaySmall` pour le minuteur
+  « En ce moment ».
 - Aucun italique décoratif, aucune seconde police.
+- Densité d'information : corps 14 sp ; ne pas l'augmenter ni la réduire lors
+  de futurs ajouts.
 
 ## Icônes
 
-**Material Symbols** (style *Outlined*, graisse 400), en **SVG inline**
-(`fill="currentColor"`) générés dans `templates/_icons.html` par
-`packaging/make_icons.py` depuis le paquet npm `@material-symbols/svg-400`
-(Apache 2.0) : ni police d'icônes, ni requête réseau. La macro garde les noms
-historiques de Kairos (`icon('pencil')` → *edit*, `icon('clock')` → *schedule*,
-`icon('skip_forward')` → *redo*…) : aucun appel existant n'a changé. Ajouts :
-`today`, `date_range`, `bar_chart` (navigation), `play`/`stop` (chrono),
-`repeat` (récurrence), `logout` (Quitter). Paramètre `fill=true` : variante
-pleine, portée par la destination active de la navigation (convention MD3).
-Chaque SVG porte `class="ico ico-<nom>"` (ex. seuls les chevrons
-`.ico-chevron_right` pivotent à l'ouverture d'un `<details>`, jamais la loupe de
-la recherche). `gitlab` (marque absente de Material Symbols) reste dessinée à la
-main.
+**Material Symbols** (style *Outlined*, graisse 400), en `ImageVector`
+générés dans `KairosIcons.kt` par `kmp/tools/make_icons.py` depuis le paquet
+npm `@material-symbols/svg-400` (Apache 2.0) : ni police d'icônes, ni requête
+réseau. **Ajouter une icône dans le script, jamais à la main.** Variante pleine
+(`…Filled`) pour la destination active de la navigation (convention MD3).
 
 ## Forme & élévation
 
-- Formes MD3 : `--md-shape-xs` 4px (champs, snackbar, menu « Pourquoi »),
-  `--md-shape-sm` 8px (chips/pastilles, entrées de l'agenda), `--md-shape-md`
-  12px (cartes, lignes de tâche, bannières), `--md-shape-lg` 16px (bandeau
-  d'accueil, carte « En ce moment »), `--md-shape-xl` 28px (dialogue d'édition),
-  `--md-shape-full` (boutons, badges, indicateurs de navigation).
-- Cartes : « outlined » par défaut (`.card`, `.panel` : surface + contour
-  `outline-variant`) ; « filled » pour la capture (`surface-container-low`), les
-  lignes de tâche et de note, les tuiles `.stat`.
-- **Élévation** : les cartes ne portent jamais d'ombre, leur plan se lit par la
-  surface tonale. Seuls les éléments qui **flottent** au-dessus du contenu en
-  ont une : dialogue d'édition et son bouton ✕ (`--md-elevation-3`), snackbar
-  d'alerte (`--md-elevation-3`), menu « Pourquoi à cette place ? »
-  (`--md-elevation-2`), survol du bouton plein (niveau 1).
-- **Couches d'état** : survol 8 %, appui 12 % de la couleur du contenu
-  (`color-mix`), sur boutons, boutons-icônes, chips, destinations.
-- Liseré critique d'une ligne de tâche : `border-left: 3px` `--md-error`
-  (`.mj-bucket-0`), transparent sur les autres lignes pour garder le même retrait.
-- Dégradés : uniquement le fondu du bandeau d'actions sticky des Réglages
-  (`.mj-settings-actions`) et les hachures des fenêtres deep work réservées de la
-  timeline (`.mj-tl-entry.deepwork`, `repeating-linear-gradient`).
+- Formes MD3 (`KairosShapes`) : `extraSmall` 4 dp (champs, menu « Pourquoi »,
+  snackbar), `small` 8 dp (puces et pastilles, entrées de la frise), `medium`
+  12 dp (cartes, lignes de tâche, bandeaux), `large` 16 dp (carte « En ce
+  moment »), `extraLarge` 28 dp (dialogues) ; boutons, badges et indicateurs de
+  navigation en pilule.
+- Cartes : `OutlinedCard` (surface + contour `outlineVariant`) ou `Card`
+  « filled » (`surfaceContainerLow`, élévation 0) pour la capture, les lignes
+  de tâche et de note, les tuiles de statistiques.
+- **Élévation** : une carte ne porte **jamais d'ombre**, son plan se lit par la
+  surface tonale. Seuls les éléments qui flottent au-dessus du contenu en ont
+  une, celle que Material 3 leur donne : dialogues, snackbar, menus.
+- **Couches d'état** : celles des composants Material 3 (survol, focus, appui)
+  sur tout élément interactif ; un élément cliquable maison passe par
+  `clickable` avec l'indication par défaut.
+- Liseré critique d'une ligne de tâche P0 : bord gauche rouge de 3 dp (`error`),
+  jamais de remplissage.
+- **Tâche bloquée** : fond `surface` et contour, titre atténué par sa couleur —
+  **jamais d'opacité** (décision de Kairos 2, `docs/spec/vue-jour.md`).
+- Dégradés : aucun, sauf les hachures des créneaux deep work réservés de la
+  frise.
 
 ## Boutons & champs
 
-- `.btn` = bouton MD3 **outlined** (36px, pilule, texte primaire) ; `.btn.primary`
-  = **filled** ; `.btn.sm` 32px ; `.btn.danger` texte d'erreur ; désactivé =
-  on-surface 12 % / 38 %.
-- `.icbtn` = **bouton-icône standard** rond, sans contour, 32px (36px sous
-  720px) : actions de ligne (chrono, décaler, crayon).
-- Champs = **outlined** (contour `outline`, rayon 4px, focus primaire 2px) ; le
-  libellé reste au-dessus du champ (porté par le `<label>` existant, pas de
-  libellé flottant : même HTML, mêmes tests).
+- Hiérarchie MD3 : `Button` (plein, action principale), `OutlinedButton`,
+  `TextButton` (action tertiaire, « Décaler », « Plus tard »), `IconButton`
+  pour les actions de ligne (chrono, décaler, modifier) ; destruction en
+  couleur d'erreur, avec confirmation.
+- Champs `OutlinedTextField` (rayon 4 dp) ; menus déroulants
+  `ExposedDropdownMenuBox` ; choix exclusifs en `SingleChoiceSegmentedButtonRow`
+  ou en puces (`FilterChip`) ; interrupteurs dont toute la ligne se touche.
 
 ## Logo
 
@@ -267,189 +207,56 @@ s'accorde à l'interface au lieu d'y faire exception.
 </svg>
 ```
 
-Repris dans `static/favicon.svg`, `templates/base.html`, `templates/home.html`,
-les icônes PNG/ICO et `packaging/splash.png` (générés par
-`packaging/make_icon.py`) et les ressources Android (`colors.xml`,
-`mipmap/ic_launcher.xml`, `drawable/ic_launcher_foreground.xml`,
-`drawable/kairos_splash_logo.xml`, `drawable/kairos_splash_icon_base.xml`).
+Repris par `KairosLogo.kt` (affiché en `Image`, jamais teinté), les icônes
+d'application et des fiches générées par `kmp/tools/make_app_icons.py`
+(bureau `.ico`/`.icns`/`.png`, web, Fastlane, page `site/`) et les ressources
+Android (`colors.xml`, `mipmap-anydpi/ic_launcher.xml`,
+`drawable/ic_launcher_foreground.xml`, écran de démarrage). Toute évolution
+passe par tous ces endroits.
 
 ## Navigation
 
-Une seule navigation (`.topnav`, six destinations `.tn-item`, icône dans un
-indicateur `.tn-ind` + libellé), trois formes selon le contexte :
+Cinq destinations (Notes, Jour, Semaine, Statistiques, Réglages), trois formes
+selon la fenêtre et la plateforme (`NavigationLayout`) :
 
-- **Bureau / navigateur, fenêtre > 720px** : **rail de navigation MD3** vertical,
-  collé à gauche (88px, logo + « Kairos » en tête, destinations empilées,
-  « Quitter » en pied pour l'exécutable). Destination active : indicateur
-  `secondary-container` 56×32 + icône pleine + libellé gras.
-- **Fenêtre ≤ 720px (navigateur rétréci)** : barre horizontale compacte en haut
-  (pilules texte, l'active en `secondary-container`), **jamais** de barre basse :
-  un navigateur de bureau simplement rétréci n'en affiche pas.
-- **APK Android** (`is_android`) : petite barre de marque en haut + **barre de
-  navigation MD3** basse (`.bn-nav`, `surface-container`, indicateurs 56×32,
-  libellés 12px), quelle que soit la largeur. Seule dérogation au principe
-  « aucune détection de plateforme côté serveur » (`docs/spec/accueil-navigation.md`).
+- **Fenêtre de 600 dp ou plus** : **rail de navigation** MD3 (`NavigationRail`)
+  à gauche, logo + « Kairos » en tête ; destination active en
+  `secondaryContainer` + icône pleine.
+- **Moins de 600 dp, Android** : **barre de navigation basse** MD3
+  (`NavigationBar`).
+- **Moins de 600 dp, bureau et web** : barre d'application puis une rangée de
+  puces en haut, **jamais** de barre basse : une fenêtre ou un navigateur
+  simplement rétrécis n'en affichent pas.
 
-Sous la navigation, la **barre d'application supérieure** (`.topbar`, sticky,
-64px, 56px sous 720px) porte le titre de page en *title-large*.
+Au-dessus du contenu, la **barre d'application** (`TopAppBar`) porte le titre de
+page en `titleLarge`.
 
-## Composants de la vue Jour
+## Composants récurrents
 
-### Barre de capture
+Le détail de chaque écran vit dans sa spec (`docs/spec/vue-jour.md`,
+`vue-semaine.md`, `notes-capture.md`, `statistiques.md`, `reglages.md`) ; les
+invariants visuels à garder :
 
-`.mj-capture` : carte « filled » (`surface-container-low`) non repliable, toujours
-en tête de la vue Jour. Les deux volets (`[data-mj-add-pane="task"]` /
-`[data-mj-add-pane="slot"]`) se basculent par les radios `mj-add-mode`, rendues
-en **chips de filtre** : le `<label>` entier est la chip (sélection
-`secondary-container` + coche via `:has(input:checked)`), la radio native reste
-dans le DOM (clavier, bascule JS inchangée).
+- **Capture** toujours visible en tête de la vue Jour et des Notes, jamais
+  repliée : capturer ne coûte jamais un geste de plus.
+- **« À traiter »** jamais masquée ; qualification en ligne par pastilles
+  (priorité, points), sélection en `secondaryContainer` + coche.
+- **Ligne de tâche** : colonnes stables d'une ligne à l'autre
+  `[coche] [corps] [priorité/points] [actions]` ; seul le corps s'étire et
+  empile titre, étiquettes et extrait ; un badge de longueur imprévisible va
+  dans les étiquettes, jamais dans la colonne priorité/points ; en largeur
+  étroite, priorité et points passent sous le corps.
+- **« Pourquoi à cette place ? »** : menu MD3 ouvert depuis le score.
+- **Dialogue d'édition** : dialogue MD3 (`extraLarge`), essentiels visibles,
+  options avancées repliées.
+- **Bandeaux** neutres (`surfaceContainerHigh` + icône) ; **alertes du chrono**
+  en snackbar sur surface inverse.
 
-### Boîte de réception + qualification en ligne
+## Contraintes transverses
 
-`.mj-to-process` : carte « outlined » standard (fusionnée avec `.card` sur le même
-élément). `.mj-section-head` porte le titre + le compte (`.count`) et une aide
-repliable (`.mj-help`). État vide : `.mj-inbox-empty` (padding réduit, pas de
-liste), présent plutôt que la section entière disparaissant du DOM.
-
-Chaque ligne de la boîte de réception porte deux rangées de **pastilles**
-(`.mj-pill`) : priorité (« P0 Critique », « P1 Important », « P2 Utile ») et
-points (« 1 trivial » … « 21 énorme »), un bouton submit par valeur, dans la zone
-`qualify` de la grille. Un clic enregistre ; une fois les deux champs posés, la
-tâche quitte la boîte de réception (fragment AJAX, sans rechargement).
-
-### Pastilles de choix (`.mj-pill`) = chips de filtre MD3
-
-Même composant pour les boutons de la boîte de réception et les radios du
-panneau d'édition (`.mj-radio input:checked + .mj-pill`). Contour
-`outline-variant`, rayon 8px, code en gras puis libellé. Valeur choisie :
-`secondary-container` + coche « ✓ » (priorité comme points). 32px de haut sur
-grand écran, 44px sous 720px (cible tactile).
-
-### Carte « Maintenant » (`.mj-progress`)
-
-Seul bloc teinté de l'écran (`primary-container` / `on-primary-container`).
-« À faire maintenant : … » (`.mj-next`) en *title-large* (22/28, 18/24 sous
-720px). Actions en hiérarchie MD3 : « Fait » bouton plein, « Démarrer le chrono »
-contour, « Décaler » bouton texte ; les trois tiennent sur une ligne à 390px.
-
-### Explication du score (`.mj-why`)
-
-Le score WSJF est le `<summary>` d'un `<details>` : un clic ou un toucher ouvre,
-sous la colonne priorité/points, un **menu** MD3 (`surface-container`, rayon 4px,
-élévation 2) qui détaille le calcul ; la ligne « Score » en primaire.
-
-### Ligne de tâche (`.kairos-item`)
-
-Carte « filled » (`surface-container-low`, rayon 12px, sans contour). Grille de
-quatre colonnes, invisible à l'œil mais stable d'une ligne à l'autre (issue
-#33) : `[coche] [corps] [priorité/points] [actions]`, zones nommées `check main
-key actions`. Seul le corps est élastique (`minmax(0, 1fr)`) : il empile titre,
-étiquettes (`.mj-item-tags`, le seul conteneur qui s'enroule) et extrait de
-description **vers le bas**. Les trois autres colonnes se dimensionnent sur leur
-contenu (hauteur de référence 32px, 36px sous 720px), si bien que priorité et
-actions tombent à la même abscisse sur toutes les lignes.
-
-Règles à respecter pour tout ajout à une ligne de tâche :
-
-- un nouvel élément s'ajoute **dans** une cellule, jamais comme cinquième
-  enfant direct du `<li>` (il tomberait dans une piste implicite et casserait
-  l'alignement général) ;
-- un badge de longueur imprévisible (phrase, note explicative) va dans les
-  étiquettes du corps, jamais dans la colonne priorité/points, réservée aux
-  signaux de tri courts (score WSJF, `P0`-`P2`, `N pts`) ;
-- sous 720px la colonne priorité/points passe sous le corps ; actions et coche
-  ne bougent pas.
-
-Coche « fait » (`.mj-check`) : rond de 22px contour `on-surface-variant`, rempli
-du conteneur « ok » une fois la tâche faite. Tâche bloquée (`.mj-blocked`) :
-fond `surface` + contour pointillé, titre atténué — **jamais d'`opacity`**
-(piège tracé dans `docs/spec/vue-jour-gtd.md`).
-
-### Contrôle de filtrage compact
-
-`.mj-filter-compact` : la recherche + les 4 filtres à facettes tiennent dans un
-`<details class="card mj-filter-compact">`, replié par défaut. Un seul marqueur
-visible (`<span class="badge info">filtre actif</span>`) quand un filtre est posé.
-
-### Carte « En ce moment »
-
-`.mj-now-card` : surface inverse (`inverse-surface`, rayon 16px), sur-titre en
-`inverse-primary`, minuteur *display-small* (36/44), bouton « Arrêter le chrono »
-plein `inverse-primary` (icône `stop`). En plus du badge `.mj-timer` de la ligne
-(`primary-container`, minuteur vivant en JS inchangé).
-
-### Timeline (« Agenda »)
-
-Entrées en rayon 8px : occupé `surface-container-highest`, travail
-`secondary-container`, épinglé `secondary-container` + contour pointillé,
-conflit `error-container`, deep work réservé en hachures tertiaires + tâche
-deep work en `tertiary-container`, rail du temps chronométré (`.mj-tl-session`)
-en vert « ok ».
-
-### Vue Semaine
-
-Cartes de jour « outlined » ; aujourd'hui : `surface-container-low` + contour
-primaire, titre primaire. Les créneaux et événements du jour (`.mj-week-day >
-.badge`) **passent à la ligne** (`white-space: normal`) au lieu de déborder de
-la carte (défaut antérieur, aggravé par la largeur du rail, corrigé avec la
-migration).
-
-## Panneau de modification d'une tâche (dialogue MD3)
-
-`edit_panel(task)` (`.mj-edit` / `.mj-edit-body` dans `templates/_kairos_macros.html`)
-se présente comme un **dialogue** MD3 (`surface-container-high`, rayon 28px,
-élévation 3) centré sur un voile (`--md-scrim`), en CSS + JS minimal (un seul
-écouteur `click` délégué sur `document`, voir `templates/kairos.html`) :
-- Un bouton `.mj-edit-toggle` (le crayon) bascule `hidden` sur le `.mj-edit-body`
-  associé (`aria-expanded` reflète l'état). Quand il est ouvert
-  (`[aria-expanded="true"]`), ce même bouton devient le voile plein écran
-  (`position: fixed; inset: 0`) : cliquer n'importe où en dehors du dialogue le
-  referme (même écouteur `click`). **Échap** referme aussi le panneau ouvert
-  (écouteur `keydown` délégué).
-- Un glyphe ✕ (`::after` de ce même bouton, seulement quand ouvert, rond 36px
-  `surface-container-high`) est positionné juste à côté du coin haut-droit du
-  dialogue, **jamais par-dessus** : un pseudo-élément ne peut pas peindre
-  au-dessus d'une boîte empilée plus haut (ici `.mj-edit-body`, qui doit rester
-  au-dessus pour que ses champs restent cliquables).
-- Piège évité : le survol du voile ouvert garde la couleur du voile (règle
-  `:hover` explicite, sinon la couche d'état du bouton-icône s'appliquerait à
-  tout l'écran) ; aucune règle `:hover` sur le glyphe ✕ (le bouton couvre tout
-  l'écran, il serait « survolé » en permanence).
-
-**Divulgation progressive** : deux niveaux, mêmes `name=` de champs (donc
-`edit_task`, `app/main.py`, inchangé) :
-- **Essentiels**, toujours visibles : Titre, Description, Priorité, Points Fibo,
-  Échéance, Durée.
-- **Options avancées** (`<details class="mj-edit-advanced">`, repliées) :
-  programmation, projet, temps passé manuel, récurrence, type, heure fixe, fiche
-  liée, sous-tâches, bloqueurs.
-
-**Bloqueurs en cases à cocher** (`.mj-blocker-checks`, `<input type="checkbox"
-name="blocker_ids">`). Piège de spécificité CSS : la règle générique `.mj-edit-form
-label` (`display:flex; flex-direction:column`) est plus spécifique
-qu'`.mj-check-label` seul et empilait la case au-dessus du texte ; la règle
-`.mj-edit-form .mj-check-label { flex-direction: row; }` lui rend la priorité.
-
-## Bannières et alertes
-
-- `.banner` : `surface-container-high`, rayon 12px, icône `on-surface-variant` —
-  informations et dégradations (sources externes, surcharge, « Réglages
-  enregistrés »… ; `.banner.success` en conteneur « ok »).
-- `.banner.warning` : conteneur d'erreur — vrais échecs uniquement.
-- **Bandeau de mise à jour** (`.mj-update`, `templates/_update_banner.html`,
-  `docs/spec/mises-a-jour.md`) : `.banner` neutre, icône `download`,
-  `.banner.warning` en cas d'échec ; « Mettre à jour » seul bouton plein.
-- **Alertes de chrono flottantes** (`.mj-alert-toast`, issue #34) : **snackbar**
-  MD3 (surface inverse, rayon 4px, élévation 3, ✕ en `inverse-primary`), en bas à
-  droite, au-dessus de la barre basse sur Android.
-
-## Contraintes transverses (inchangées)
-
-- HTML/CSS pur, sans dépendance de build ; le JavaScript reste une amélioration
-  progressive (aucune bibliothèque de composants MD3 en JS, type Material Web :
-  les composants sont rendus par le CSS sur le HTML existant).
-- Cibles tactiles ≥ 44px sur mobile pour les contrôles à un tap (pastilles),
-  36px minimum pour les boutons-icônes de ligne ; aucun défilement horizontal à
-  390px (vérifié sur toutes les pages, navigateur étroit et APK).
-- Densité d'information : proche de l'existant (corps 14px au lieu de 13.5px) ;
-  ne pas l'augmenter ni la réduire lors de futurs ajouts.
+- Composants Material 3 de Compose uniquement, dépendances libres ; aucune
+  bibliothèque de composants tierce.
+- Cibles tactiles ≥ 48 dp pour les contrôles à un toucher
+  (`docs/spec/accessibilite.md`) ; aucun défilement horizontal sur un
+  téléphone (~360 dp de large), vérifié sur les captures des magasins.
+- Aucun texte en dur : français et anglais (`docs/spec/i18n.md`).

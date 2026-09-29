@@ -6,13 +6,12 @@ publié sur chaque cible. Fichiers couverts : `kmp/gradle.properties`
 `kmp/desktopApp/` (dont `Main.kt`, `DataDirectory.kt`, `SingleInstance.kt`,
 `CrashLog.kt`, `SelfTest.kt`, `icons/`), `kmp/webApp/`,
 `kmp/tools/make_app_icons.py`, `.github/workflows/kmp.yml`,
-`.github/workflows/kmp-release.yml`, `.github/workflows/pages.yml` (sa
-partie version web), et le filtre de tags de `.github/workflows/release.yml`
-(Kairos 2). Les services de fichiers et de sauvegarde de chaque plateforme
+`.github/workflows/kmp-release.yml` et `.github/workflows/pages.yml` (sa
+partie version web). Les services de fichiers et de sauvegarde de chaque plateforme
 sont décrits par `export-import.md` ; F-Droid, IzzyOnDroid, fiches Fastlane et
 page de téléchargement par `publication.md`._
 
-État : **jalon M6** (`3.0.0-beta.1`).
+État : **jalon M7** (`3.0.0`, bascule : Kairos 3 remplace Kairos 2).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -27,14 +26,15 @@ utilisateurs travaillent :
   l'exécutable de Kairos 2 tourne déjà : par un **zip portable** ou par la
   **version web** dans Edge ou Chrome.
 
-Pendant la réécriture, chaque jalon doit produire une version installable
-**à côté** de Kairos 2, qui reste l'outil du quotidien.
+Pendant la réécriture, chaque jalon devait produire une version installable
+**à côté** de Kairos 2, qui restait l'outil du quotidien ; la 3.0.0, elle,
+**remplace** Kairos 2 en s'installant par-dessus.
 
 ### Comportement attendu (utilisateur)
 
-- **Chaque jalon** donne une version (`3.0.0-alpha.N`) et un tag
-  (`v3.0.0-alpha.N`), publiés en **préversion GitHub** avec tous les
-  fichiers.
+- **Chaque version** a un tag : une préversion (`vX.Y.Z-alpha.N`,
+  `vX.Y.Z-beta.N`) est publiée en **préversion GitHub**, une version finale
+  (`vX.Y.Z`) en release GitHub, avec tous les fichiers.
 - **Android** : un APK. Tant que la version est une préversion, l'application
   s'appelle « Kairos Preview » et s'installe à côté de Kairos 2. Aucune
   permission réseau ; deux permissions pour le chrono (notifier, reprendre
@@ -76,7 +76,8 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   `3.0.0-alpha.2` (`29002`) ; jalon M2 : `3.0.0-alpha.3` (`29003`) ;
   jalon M3 : `3.0.0-alpha.4` (`29004`) ; jalon M4 : `3.0.0-alpha.5`
   (`29005`) ; jalon M5 : `3.0.0-alpha.6` (`29006`) ; jalon M6 (fonctions
-  complètes, publication prête) : `3.0.0-beta.1` (`29501`).
+  complètes, publication prête) : `3.0.0-beta.1` (`29501`) ; jalon M7
+  (bascule) : `3.0.0` (`30000`).
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
 - `versionCode` (`AppVersion.versionCode`) : `X*10000 + Y*100 + Z` ; alpha :
@@ -131,7 +132,7 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   `KAIROS_KEY_ALIAS`, `KAIROS_KEY_PASSWORD` si présentes, APK non signé
   sinon ; `dependenciesInfo` désactivé (bloc illisible par F-Droid, nuisible
   aux builds reproductibles).
-- Taille M0 : environ 1,3 Mo.
+- Taille : environ 1,3 Mo au jalon M0, 2 Mo à la `3.0.0-beta.1`.
 
 ### Bureau (`kmp/desktopApp`)
 
@@ -241,9 +242,14 @@ Pendant la réécriture, chaque jalon doit produire une version installable
     (`fakeroot` installé sous Linux), **auto-test de l'image empaquetée**, puis
     `Kairos-<id>.{deb,msi,dmg}` et `Kairos-<id>-portable.{tar.gz,zip}` ;
     captures en artefacts `screens-<id>` ;
-  - `release` (tag seulement) : `SHA256SUMS` de tous les `Kairos-*`, release
-    GitHub « Kairos <version> » (préversion si suffixe), notes générées.
-- `release.yml` (Kairos 2) ne réagit plus qu'aux tags `v1.*` et `v2.*`.
+  - `release` (tag seulement) : pour une version finale, copie de
+    `Kairos-android.apk` en `kairos-android-arm64.apk` (pont de mise à jour
+    de Kairos 2, `migration-2x.md`) ; `SHA256SUMS` de tous les fichiers
+    publiés ; release GitHub « Kairos <version> » (préversion si suffixe),
+    notes générées.
+- Kairos 2 (Python) n'est plus dans le dépôt depuis la bascule : son code se
+  lit au tag `v2.6.0`, ses releases `v1.*` et `v2.*` restent publiées, et son
+  workflow de release (`release.yml`) comme sa CI (`ci.yml`) sont supprimés.
 
 ### Décisions et pièges tracés
 

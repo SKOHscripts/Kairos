@@ -9,10 +9,11 @@ pure), `kmp/desktopApp/.../` (`LegacyFiles.kt`, `DesktopServices.kt` :
 (`AppServices.kt` : `LegacyImport`, `migrated` ; `Replace.kt` :
 `LegacyImportFlow`, `LegacyImportDialog`, `replaceWithBackup` ;
 `Welcome.kt`), la carte Données (`settings/SettingsScreen.kt`) et
-`kmp/tools/gen_legacy_db.py`. Tests : `desktopApp/.../LegacyMigrationTest.kt`
+`kmp/tools/gen_legacy_db.py`, et le pont de mise à jour du job `release` de
+`.github/workflows/kmp-release.yml`. Tests : `desktopApp/.../LegacyMigrationTest.kt`
 (vraies bases), `M5ScreensUiTest` (accueil, Réglages)._
 
-État : **jalon M5**, règles du plan § 5.4.
+État : **jalon M7** (bascule 3.0.0), règles du plan § 5.4.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -30,6 +31,16 @@ perte, ni risque pour l'ancienne base.
   est **automatique** ; l'accueil le confirme (« Tes données de Kairos 2 ont
   été reprises : N tâche(s), N note(s), N session(s) de chrono »). L'ancien
   fichier est renommé `tasks.db.migrated-to-v3`, jamais supprimé.
+- **Android, arriver à la 3.0.0** : Kairos 2 propose lui-même la mise à jour
+  (son bandeau « Mettre à jour », comme pour toute version 2.x) ; un toucher
+  télécharge et installe Kairos 3 par-dessus. Installer à la main
+  `Kairos-android.apk` de la release, ou passer par F-Droid ou IzzyOnDroid
+  (même APK signé), revient au même.
+- **Bureau, arriver à la 3.0.0** : Kairos 2 annonce la version, mais ne peut
+  pas l'installer seul (il remplaçait un exécutable unique ; Kairos 3 est un
+  installeur ou un dossier portable) : son bandeau n'offre que « Notes de
+  version », la page de la release, d'où l'on installe Kairos 3, qui propose
+  ensuite l'import.
 - **Bureau** : au premier lancement, si une base Kairos 2 est à son
   emplacement habituel, l'accueil **propose** de l'importer (chemin affiché ;
   « Importer la base Kairos 2 » ou « Garder les exemples »).
@@ -150,7 +161,27 @@ la suppression du Python.
   tâche « À traiter » plutôt que d'inventer P2.
 - **Les réglages « Pilotage/dette technique » gardés** : la liste des types
   est à l'utilisateur ; ses tâches de ce type gardent leur valeur.
-- **Point ouvert (plan § 5.4)** : un APK signé par F-Droid (autre clé) ne
-  peut pas s'installer par-dessus l'APK Python ; seuls les utilisateurs de
-  l'APK GitHub bénéficient de la migration automatique. À confirmer par le
-  propriétaire du dépôt avant la 3.0.0.
+- **Même clé partout** (tranché avant la 3.0.0, plan § 5.4) : F-Droid
+  distribue notre APK signé (`publication.md`), si bien que l'APK Python se
+  met à jour vers Kairos 3 quelle que soit la source choisie.
+
+### Pont de mise à jour depuis Kairos 2
+
+- Le Kairos 2 Android (`app/updates.py`, tag `v2.6.0`) lit la dernière release
+  **stable** (`/releases/latest`), cherche l'asset `kairos-android-arm64.apk`
+  et sa ligne dans `SHA256SUMS`, vérifie l'empreinte puis ouvre l'installeur.
+- Le job `release` de `kmp-release.yml` copie donc, pour une version finale
+  seulement, `Kairos-android.apk` en `kairos-android-arm64.apk`, publié et
+  listé dans `SHA256SUMS` : Kairos 2 installe Kairos 3 en un clic (même
+  identifiant, même clé, `versionCode` 30000 > 20600), puis la migration
+  automatique reprend ses données. Une préversion n'a pas ce fichier : son
+  identifiant `.preview` ne remplacerait pas Kairos 2.
+- C'est le dernier usage de la mise à jour intégrée : Kairos 3 n'a pas de
+  permission réseau, ses mises à jour passent par F-Droid, IzzyOnDroid ou un
+  nouvel APK (décision du plan, confirmée avant la 3.0.0). La copie est
+  gardée aux versions suivantes, pour qu'un Kairos 2 resté en retard arrive
+  toujours à la dernière version.
+- Le Kairos 2 de bureau cherche `kairos-windows-x86_64.exe` ou
+  `kairos-linux-x86_64`, absents des releases de Kairos 3 : sans eux, il
+  n'offre pas « Mettre à jour », seulement le lien de la release (aucun
+  exécutable unique ne remplacerait proprement une installation Kairos 3).
