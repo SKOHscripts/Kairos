@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
  * Kairos 2 que la v3 garde (plan § 2.3), mêmes noms (en camelCase) et mêmes
  * valeurs par défaut. Stockés en JSON dans la base ; un champ absent du JSON
  * prend sa valeur par défaut (ajout de réglage sans migration).
- * La validation par champ et l'écran Réglages arrivent au jalon M5.
+ * Bornes, validation par champ et écran : `settings/SettingsForm`
+ * (docs/spec-v3/reglages.md).
  */
 @Serializable
 data class Settings(
@@ -35,7 +36,7 @@ data class Settings(
     val extraHolidays: String = "",
     /** Types proposés dans la fiche, séparés par des virgules (libellé = valeur stockée). */
     val taskTypes: String = DEFAULT_TASK_TYPES_FR,
-    /** Bureau seulement (jalon M5). */
+    /** Vérification des nouvelles versions, bureau seulement (docs/spec-v3/mises-a-jour.md). */
     val updateCheckEnabled: Boolean = true,
 ) {
     /** Types de tâche, dans l'ordre, sans vides. */

@@ -69,6 +69,17 @@ class MainActivity : ComponentActivity(), FileService {
         return true
     }
 
+    /** Fait choisir un fichier quelconque (une base Kairos 2) et le copie dans [target] ; `false` si annulé. */
+    suspend fun openFileInto(target: java.io.File): Boolean {
+        val result = CompletableDeferred<Uri?>().also { pendingOpen = it }
+        openDocument.launch(arrayOf("*/*"))
+        val uri = result.await() ?: return false
+        withContext(Dispatchers.IO) {
+            contentResolver.openInputStream(uri)!!.use { input -> target.outputStream().use { input.copyTo(it) } }
+        }
+        return true
+    }
+
     override suspend fun openText(): String? {
         val result = CompletableDeferred<Uri?>().also { pendingOpen = it }
         openDocument.launch(arrayOf("application/json", "text/plain", "application/octet-stream"))

@@ -43,8 +43,10 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   source. Un bouton retour, le retour système Android ou Échap le ferment.
 - Depuis le jalon M4, les cinq destinations sont portées : Notes
   (`notes-capture.md`), Jour (`vue-jour.md`), Semaine (`vue-semaine.md`),
-  Stats (`statistiques.md`), Réglages (Données, chrono, « À propos et
-  guide » ; le reste « En construction » jusqu'au jalon M5).
+  Stats (`statistiques.md`), Réglages (`reglages.md`).
+- Au premier lancement, un accueil présente Kairos et les exemples
+  (`accueil.md`) ; sur le bureau, un bandeau signale une nouvelle version
+  au-dessus de chaque écran (`mises-a-jour.md`).
 - Le titre de la barre dit ce qui est affiché : « Jour · mercredi 30
   septembre 2026 » pour un autre jour qu'aujourd'hui, « Semaine · du lundi
   28 septembre 2026 » pour la semaine regardée.
@@ -69,7 +71,6 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
 - Thème sombre : un seul thème clair pour l'instant (charte). Le schéma
   sombre se générerait depuis la même graine avec `make_theme.py`.
 - Tiroir de navigation, rail étendu : non retenus, cinq destinations suffisent.
-- Accueil au premier lancement (présentation des exemples) : jalon M5.
 
 ## 2. Solution technique
 
@@ -99,7 +100,7 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   Material Symbols (viewport 960, décalage `translationY = 960` du
   `viewBox="0 -960 960 960"`). Icônes M0 : `Notes`, `Today`, `DateRange`,
   `BarChart`, `Settings`, `Info` (et leurs variantes `…Filled`), `ArrowBack`,
-  `ChevronRight`, `OpenInNew`, `Construction` ; jalon M1 : `CheckCircle`
+  `ChevronRight`, `OpenInNew` ; jalon M1 : `CheckCircle`
   (et `CheckCircleFilled`), `RadioUnchecked`, `Edit`, `Delete`, `Add`,
   `Upload`, `Download`, `ExpandMore`, `ExpandLess`, `Inbox`, `Warning` ;
   jalon M2 (vue Jour complète) : `Redo` (décaler), `Search`, `Schedule`
@@ -107,7 +108,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `keep`), `TrendingUp` (score, chemin critique), `Description`, `Layers`
   (deep work) ; jalon M3 (chrono) : `PlayArrow`, `Stop`, `Close` (fermer une
   alerte), `NotificationsActive` ; jalon M4 : `ChevronLeft` (semaine
-  précédente).
+  précédente). `Construction` (écran « En construction ») est retiré au
+  jalon M5, plus rien n'étant en construction.
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`
   épaisseur 1.6, secteur `#C28417` de 12 h à 2 h, axe `#2B251C` rayon 2.6,
   viewport 40), couleurs fixes, affiché par `Image` (jamais teinté).
@@ -145,6 +147,10 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   - Quand « À propos » est ouvert, aucune destination n'est marquée active.
   - `SnackbarHost` dans chaque `Scaffold` ; `LocalMessages` fournit aux
     écrans une fonction qui y affiche un message.
+  - Au-dessus du contenu de chaque destination : `UpdateBanner`
+    (`mises-a-jour.md`) ; hors des branches de mise en page :
+    `WelcomeDialog` (`accueil.md`) ; veilles de toute l'application :
+    `ChronoWatcher` (`temps-reel-chrono.md`) et `UpdateWatcher`.
   - `BackHandler(enabled = aboutOpen)` (`ui-backhandler`) : retour système
     Android (y compris le geste prédictif, `enableOnBackInvokedCallback`) et
     Échap sur le bureau et le web ferment « À propos ».
@@ -156,10 +162,9 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `NOTES` → `NotesScreen` (`notes-capture.md`), `DAY` → `DayScreen` du
   jour de `nav.day` (`vue-jour.md`), `WEEK` → `WeekScreen`
   (`vue-semaine.md`), `STATS` → `StatsScreen` (`statistiques.md`),
-  `SETTINGS` → `SettingsScreen` (carte Données, réglages du chrono, carte
-  « À propos et guide » en `OutlinedCard` + `ListItem`, icône `Info`,
-  chevron, puis `UnderConstruction` (icône `Construction`, titre, texte
-  centré) pour les réglages à venir, jalon M5).
+  `SETTINGS` → `SettingsScreen` (`reglages.md` : formulaire complet, carte
+  Données, carte « À propos et guide » en `OutlinedCard` + `ListItem`,
+  icône `Info`, chevron).
 - `AboutScreen` : colonne défilante de 720 dp au plus, centrée. Logo 56 dp +
   nom + devise ; phrase d'introduction ; trois cartes « filled »
   (`surfaceContainerLow`, élévation 0 : jamais d'ombre sur une carte) : « En

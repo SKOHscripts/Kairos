@@ -1,7 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -254,7 +254,7 @@ private fun Description(task: Task, ctx: RowContext) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.Top,
-        modifier = Modifier.clickable { open = !open }.padding(vertical = 2.dp),
+        modifier = Modifier.disclosure(open, minHeight = false) { open = !open }.padding(vertical = 2.dp),
     ) {
         Icon(
             KairosIcons.Description,

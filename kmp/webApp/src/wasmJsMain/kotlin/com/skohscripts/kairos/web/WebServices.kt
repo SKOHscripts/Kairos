@@ -63,6 +63,8 @@ object WebServices {
             linkedStorage = storage,
             clock = clock,
             notifier = WebNotifier,
+            // Ni instantané ni fichier lié en attente : premier passage dans ce navigateur.
+            firstLaunch = snapshot == null && !restorePending,
         )
     }
 }

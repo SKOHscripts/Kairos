@@ -64,7 +64,7 @@ Pendant la réécriture, chaque jalon doit produire une version installable
 - Signature et notarisation macOS, signature Authenticode Windows : différées
   (plan § 6.2). Gatekeeper et SmartScreen afficheront un avertissement.
 - Mise à jour intégrée : jamais sur Android ; sur le bureau, simple
-  vérification au jalon M5.
+  vérification (`mises-a-jour.md`).
 - Page de téléchargement complète, recette F-Droid et métadonnées Fastlane
   (M6).
 
@@ -76,7 +76,7 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   `kairos.versionCode`. Jalon M0 : `3.0.0-alpha.1` (`29001`) ; jalon M1 :
   `3.0.0-alpha.2` (`29002`) ; jalon M2 : `3.0.0-alpha.3` (`29003`) ;
   jalon M3 : `3.0.0-alpha.4` (`29004`) ; jalon M4 : `3.0.0-alpha.5`
-  (`29005`).
+  (`29005`) ; jalon M5 : `3.0.0-alpha.6` (`29006`).
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
 - `versionCode` (`AppVersion.versionCode`) : `X*10000 + Y*100 + Z` ; alpha :
@@ -168,11 +168,13 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   `desktop-about.png`, `desktop-day-full.png`,
   `desktop-day-full-narrow.png`, `desktop-day-chrono.png`,
   `desktop-notes.png`, `desktop-week.png`, `desktop-week-narrow.png`,
-  `desktop-stats.png`). Code de sortie
-  0 ou 1.
+  `desktop-stats.png`). L'auto-test n'affiche pas l'accueil du premier
+  lancement et ne vérifie pas les mises à jour (aucun réseau). Code de
+  sortie 0 ou 1.
 - **Empaquetage** (plugin Compose Desktop, jpackage, runtime Java réduit
-  embarquant `java.instrument`, `java.management`, `java.sql`,
-  `jdk.unsupported` en plus des modules détectés) :
+  embarquant `java.instrument`, `java.management`, `java.net.http` (depuis
+  M5, vérification des mises à jour), `java.sql`, `jdk.unsupported` en plus
+  des modules détectés) :
   - formats `Msi`, `Deb`, `Dmg` ; `createDistributable` produit l'image
     portable ;
   - version finale : produit `Kairos`, version `X.Y.Z` ; préversion : produit

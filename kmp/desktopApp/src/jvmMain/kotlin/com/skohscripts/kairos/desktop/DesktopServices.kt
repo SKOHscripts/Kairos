@@ -9,6 +9,8 @@ import com.skohscripts.kairos.ui.app.BackupStore
 import com.skohscripts.kairos.ui.app.ChronoNotifier
 import com.skohscripts.kairos.ui.app.NoNotifier
 import com.skohscripts.kairos.ui.app.FileService
+import com.skohscripts.kairos.ui.app.LegacyImport
+import com.skohscripts.kairos.core.legacy.LegacyDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
@@ -33,8 +35,9 @@ object DesktopServices {
         val url = if (inMemory) JdbcSqliteDriver.IN_MEMORY else "jdbc:sqlite:${File(dataDir, DATABASE_FILE).absolutePath}"
         val clock = Clock.System
         val language = Locale.getDefault().language
+        val opened = KairosStore.open(JdbcSqliteDriver(url))
         val repository = KairosRepository.open(
-            KairosStore.open(JdbcSqliteDriver(url)),
+            opened,
             examples = { ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language) },
             clock = clock,
         )
@@ -45,7 +48,30 @@ object DesktopServices {
             dataLocation = dataDir.absolutePath,
             clock = clock,
             notifier = notifier,
+            legacy = DesktopLegacy(if (inMemory) null else LegacyFiles.find()),
+            // L'auto-test (base en mémoire) rend l'interface habituelle, sans l'accueil ni réseau.
+            firstLaunch = opened.created && !inMemory,
+            updates = if (inMemory) null else DesktopUpdates(File(dataDir, "updates.json")),
         )
+    }
+}
+
+/**
+ * Base Kairos 2 du bureau (docs/spec-v3/migration-2x.md § Bureau) : celle
+ * trouvée à l'emplacement habituel, ou un `tasks.db` choisi (avec le
+ * `settings.json` voisin s'il existe).
+ */
+private class DesktopLegacy(private val base: LegacyFiles.Found?) : LegacyImport {
+    override val found: String? = base?.database?.absolutePath
+
+    override suspend fun readFound(): LegacyDatabase = withContext(Dispatchers.IO) {
+        val b = requireNotNull(base)
+        LegacyFiles.read(b.database, b.settings)
+    }
+
+    override suspend fun pick(): LegacyDatabase? {
+        val file = DialogFiles.choose(FileDialog.LOAD, null) ?: return null
+        return withContext(Dispatchers.IO) { LegacyFiles.read(file, File(file.parentFile, "settings.json").takeIf { it.isFile }) }
     }
 }
 
@@ -62,7 +88,7 @@ private object DialogFiles : FileService {
         return withContext(Dispatchers.IO) { file.readText() }
     }
 
-    private suspend fun choose(mode: Int, name: String?): File? = withContext(Dispatchers.Main) {
+    suspend fun choose(mode: Int, name: String?): File? = withContext(Dispatchers.Main) {
         val dialog = FileDialog(null as Frame?, "Kairos", mode)
         if (name != null) dialog.file = name
         dialog.isVisible = true

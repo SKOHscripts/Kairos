@@ -25,7 +25,8 @@ où passe le temps, ni si le backlog grossit.
 Destination « Stats », en lecture seule. Sans aucune donnée : un état vide
 qui explique comment les chiffres se construisent. Sinon, de haut en bas :
 
-- **Quatre chiffres clés** sur la fenêtre récente (8 semaines par défaut) :
+- **Quatre chiffres clés** sur la fenêtre récente (8 semaines par défaut,
+  réglable dans Réglages → Statistiques, `reglages.md`) :
   tâches terminées, temps réel chronométré, délai médian de complétion (en
   jours ; alerte au-delà de 7), part des échéances tenues (alerte sous
   70 %).
@@ -62,9 +63,6 @@ marqué « peu fiable » (icône d'alerte), mais reste affiché.
 
 ### Hors périmètre / différé
 
-- Réglage de la fenêtre (`statsWindowWeeks`, 8 par défaut) dans l'écran
-  Réglages : jalon M5 (plan § 9) ; la valeur importée d'une sauvegarde est
-  déjà respectée.
 - Graphiques temporels fins, export, estimation par apprentissage, filtres
   interactifs (comme Kairos 2).
 

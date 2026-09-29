@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.LocalMessages
+import com.skohscripts.kairos.ui.app.WelcomeDialog
+import com.skohscripts.kairos.ui.app.UpdateBanner
+import com.skohscripts.kairos.ui.app.UpdateWatcher
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -89,8 +93,11 @@ fun AppShell(
     // Veille du chrono pour toute l'application : les alertes jouent quel que soit l'écran.
     val alerts = remember { mutableStateListOf<String>() }
     ChronoWatcher(services, alerts)
+    UpdateWatcher(services)
     val scope = rememberCoroutineScope()
     val showMessage: (String) -> Unit = { message -> scope.launch { snackbar.showSnackbar(message) } }
+    // Hors des branches de mise en page : un redimensionnement ne rouvre pas l'accueil.
+    CompositionLocalProvider(LocalMessages provides showMessage) { WelcomeDialog(services, onOpenAbout) }
 
     val language = Locale.current.language
     val today = services.clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -118,11 +125,14 @@ fun AppShell(
         )
     }
     val content: @Composable (Modifier) -> Unit = { modifier ->
-        Box(modifier.fillMaxSize()) {
-            CompositionLocalProvider(LocalMessages provides showMessage) {
-                if (aboutOpen) AboutScreen() else DestinationScreen(destination, services, nav, onOpenDay, onNavigate, onOpenAbout)
+        Column(modifier.fillMaxSize()) {
+            UpdateBanner(services)
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                CompositionLocalProvider(LocalMessages provides showMessage) {
+                    if (aboutOpen) AboutScreen() else DestinationScreen(destination, services, nav, onOpenDay, onNavigate, onOpenAbout)
+                }
+                AlertBanners(alerts, Modifier.align(Alignment.BottomCenter))
             }
-            AlertBanners(alerts, Modifier.align(Alignment.BottomCenter))
         }
     }
 

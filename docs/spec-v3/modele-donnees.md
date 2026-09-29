@@ -38,14 +38,13 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   (`KairosRepositoryTest.newDatabaseGetsTheExamplesOnceOnly`).
 - Une erreur pendant la pose des exemples n'empêche jamais le démarrage.
 - Mêmes tables, mêmes champs et mêmes codes (statuts, récurrences, types de
-  créneau) que Kairos 2, pour que l'import d'une base 2.x (jalon M5) soit une
-  simple copie.
+  créneau) que Kairos 2, pour que l'import d'une base 2.x
+  (`migration-2x.md`) soit une simple copie.
 
 ### Hors périmètre
 
 - Synchronisation entre appareils (décision du 2026-09-28 : export/import
   manuel seulement, `export-import.md`).
-- Migration d'une base Kairos 2 : jalon M5.
 - Colonnes des intégrations retirées : `task.source`, `task.external_id`,
   `task.linked_ticket_id`, `time_block.source`, `time_block.external_id`,
   table `task_sync_meta`.
@@ -85,7 +84,7 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   champ inconnu est ignoré : ajouter un réglage ne demande pas de migration.
   `Settings.defaults(langue)` : types de tâche dans la langue de l'interface
   (français : ceux de Kairos 2 moins « Pilotage/dette technique » ; anglais :
-  traduction).
+  traduction). Bornes, validation et écran : `reglages.md`.
 - `KairosSnapshot` : toutes les tables et les réglages. C'est la forme
   commune de l'export, de l'import, des exemples et de la sauvegarde web.
 

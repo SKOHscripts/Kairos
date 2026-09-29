@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.app.expandedState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -168,7 +169,7 @@ internal fun EditTaskDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                TextButton(onClick = { advanced = !advanced }) {
+                TextButton(onClick = { advanced = !advanced }, modifier = Modifier.expandedState(advanced)) {
                     Icon(if (advanced) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
                     Text(stringResource(Res.string.edit_advanced), modifier = Modifier.padding(start = 4.dp))
                 }

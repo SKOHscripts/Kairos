@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.week
 
+import com.skohscripts.kairos.ui.app.expandedState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -145,7 +146,7 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
 @Composable
 private fun BacklogList(titles: List<String>, open: Boolean, onToggle: () -> Unit) {
     Column {
-        TextButton(onClick = onToggle) {
+        TextButton(onClick = onToggle, modifier = Modifier.expandedState(open)) {
             Icon(if (open) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
             Text("${stringResource(Res.string.backlog_title)} (${titles.size})", modifier = Modifier.padding(start = 4.dp))
         }

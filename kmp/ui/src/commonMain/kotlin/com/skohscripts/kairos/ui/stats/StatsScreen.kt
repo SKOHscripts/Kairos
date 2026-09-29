@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.stats
 
+import com.skohscripts.kairos.ui.app.heading
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -64,6 +65,7 @@ import com.skohscripts.kairos.ui.generated.resources.stats_kpi_delay
 import com.skohscripts.kairos.ui.generated.resources.stats_kpi_done
 import com.skohscripts.kairos.ui.generated.resources.stats_kpi_tracked
 import com.skohscripts.kairos.ui.generated.resources.stats_no_type
+import com.skohscripts.kairos.ui.generated.resources.stats_percent
 import com.skohscripts.kairos.ui.generated.resources.stats_sample
 import com.skohscripts.kairos.ui.generated.resources.stats_throughput_hint
 import com.skohscripts.kairos.ui.generated.resources.stats_throughput_row
@@ -108,7 +110,7 @@ fun StatsScreen(services: AppServices) {
                 StatTile(duration(stats.trackedMinutesWindow), stringResource(Res.string.stats_kpi_tracked))
                 // Seuils de Kairos 2 : délai médian de plus de 7 j, moins de 70 % d'échéances tenues.
                 StatTile(stats.flow.completionDelayDays?.toString() ?: "—", stringResource(Res.string.stats_kpi_delay), warn = (stats.flow.completionDelayDays ?: 0) > 7)
-                StatTile(stats.flow.deadlineHitPct?.let { "$it %" } ?: "—", stringResource(Res.string.stats_kpi_deadlines), warn = (stats.flow.deadlineHitPct ?: 100) < 70)
+                StatTile(stats.flow.deadlineHitPct?.let { stringResource(Res.string.stats_percent, it) } ?: "—", stringResource(Res.string.stats_kpi_deadlines), warn = (stats.flow.deadlineHitPct ?: 100) < 70)
             }
 
             Panel(KairosIcons.TrendingUp, stringResource(Res.string.stats_throughput_title), stringResource(Res.string.stats_throughput_hint)) {
@@ -221,7 +223,7 @@ private fun Panel(icon: ImageVector, title: String, hint: String, content: @Comp
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
-                Text(title, style = MaterialTheme.typography.titleMedium)
+                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
             }
             Muted(hint)
             content()

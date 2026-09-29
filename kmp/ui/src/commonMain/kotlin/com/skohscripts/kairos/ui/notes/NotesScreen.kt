@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.ui.notes
 
-import androidx.compose.foundation.clickable
+import com.skohscripts.kairos.ui.app.heading
+import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -106,7 +107,7 @@ fun NotesScreen(services: AppServices, onOpenTasks: () -> Unit) {
             item { NoteCapture { body -> scope.launch { repository.createNote(body) } } }
             item {
                 Column(Modifier.padding(top = 8.dp)) {
-                    Text("${stringResource(Res.string.notes_open_title)} (${open.size})", style = MaterialTheme.typography.titleMedium)
+                    Text("${stringResource(Res.string.notes_open_title)} (${open.size})", style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
                     if (open.isEmpty()) Text(stringResource(Res.string.notes_empty), style = MaterialTheme.typography.bodySmall)
                 }
             }
@@ -134,7 +135,7 @@ fun NotesScreen(services: AppServices, onOpenTasks: () -> Unit) {
                     Column(Modifier.padding(top = 8.dp)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().clickable { doneOpen = !doneOpen }.padding(vertical = 6.dp),
+                            modifier = Modifier.fillMaxWidth().disclosure(doneOpen, heading = true) { doneOpen = !doneOpen }.padding(vertical = 6.dp),
                         ) {
                             Icon(if (doneOpen) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
                             Text(

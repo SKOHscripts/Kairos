@@ -6,7 +6,7 @@ package com.skohscripts.kairos.core
  *
  * Sert à deux choses : calculer le `versionCode` Android attendu (la CI vérifie
  * que `gradle.properties` le respecte) et comparer deux versions (vérification
- * des mises à jour sur le bureau, jalon M5).
+ * des mises à jour sur le bureau, `updates/UpdateCheck`).
  */
 data class AppVersion(
     val major: Int,
