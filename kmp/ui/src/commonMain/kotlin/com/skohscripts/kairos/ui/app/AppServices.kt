@@ -17,6 +17,8 @@ class AppServices(
     /** Version web seulement : fichier lié (docs/spec-v3/export-import.md § Version web). */
     val linkedStorage: LinkedStorage? = null,
     val clock: Clock = Clock.System,
+    /** Notifications du chrono (docs/spec-v3/temps-reel-chrono.md). */
+    val notifier: ChronoNotifier = NoNotifier,
 )
 
 /** Choix d'un fichier par l'utilisateur (boîtes de dialogue du système). */

@@ -272,4 +272,23 @@ class KairosRepositoryTest {
         repo.deleteBlock(block.id)
         assertTrue(repo.snapshot.value.timeBlocks.isEmpty())
     }
+
+    @Test
+    fun onlyOneTimerRunsAtATime() = runTest {
+        val repo = empty()
+        val a = repo.createTask("A")!!
+        val b = repo.createTask("B")!!
+        repo.startTimer(a)
+        repo.startTimer(b)
+        val sessions = repo.snapshot.value.workSessions
+        assertEquals(2, sessions.size)
+        assertEquals(listOf(b), sessions.filter { it.endedAt == null }.map { it.taskId })
+        assertEquals(now, sessions.single { it.taskId == a }.endedAt)
+        repo.stopTimer()
+        assertTrue(repo.snapshot.value.workSessions.all { it.endedAt != null })
+        // Une tâche faite ne démarre pas de chrono.
+        repo.toggleDone(a)
+        repo.startTimer(a)
+        assertEquals(2, repo.snapshot.value.workSessions.size)
+    }
 }

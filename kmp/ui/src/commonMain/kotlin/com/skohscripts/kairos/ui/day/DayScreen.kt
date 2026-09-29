@@ -111,8 +111,8 @@ private val COMPACT_ROWS = 600.dp
  * Vue Jour (docs/spec-v3/vue-jour.md), dans l'ordre du flux GTD : capture,
  * « À traiter », « Maintenant », bandeau de surcharge, « Aujourd'hui, dans
  * l'ordre », sections secondaires (sans créneau, bloquées, plus tard, mères,
- * fait), recherche et backlog ; la frise « Agenda » à droite en largeur
- * bureau, en bas sinon. Tout dérive de [DayView.build], recalculé à chaque
+ * fait), recherche et backlog ; « En ce moment » (chrono) et la frise
+ * « Agenda » à droite en largeur bureau, en bas sinon. Tout dérive de [DayView.build], recalculé à chaque
  * changement de la base, de filtre, et chaque minute.
  */
 @Composable
@@ -131,7 +131,8 @@ fun DayScreen(services: AppServices) {
     val today = local.date
     val minute = LocalDateTime(today, LocalTime(local.hour, local.minute))
     var filter by remember { mutableStateOf(DayFilter()) }
-    val view = remember(snapshot, minute, filter) { DayView.build(snapshot, today, minute, timeZone, filter) }
+    val view = remember(snapshot, minute, filter) { DayView.build(snapshot, today, minute, timeZone, filter, instant = now) }
+    val notifyState by services.notifier.state.collectAsState()
     val scope = rememberCoroutineScope()
     val language = Locale.current.language
     val showShortcuts = LocalPlatform.current != Platform.ANDROID
@@ -149,6 +150,9 @@ fun DayScreen(services: AppServices) {
     var captureRequest by remember { mutableIntStateOf(0) }
     var searchRequest by remember { mutableIntStateOf(0) }
     val positions = remember { mutableMapOf<String, Int>() }
+    val toggleTimer: (Task) -> Unit = { t ->
+        scope.launch { if (view.running?.taskId == t.id) repository.stopTimer() else repository.startTimer(t.id) }
+    }
     // Sections repliées par défaut, sauf « Sans créneau aujourd'hui » (audit UI de Kairos 2).
     val sectionOpen = remember { mutableStateMapOf("unscheduled" to true) }
 
@@ -199,6 +203,8 @@ fun DayScreen(services: AppServices) {
             onToggleDone = { t -> scope.launch { repository.toggleDone(t.id) } },
             onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
             onEdit = { t -> editingId = t.id },
+            onToggleTimer = toggleTimer,
+            clock = services.clock,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxHeight()) {
             LazyColumn(
@@ -239,9 +245,11 @@ fun DayScreen(services: AppServices) {
                 // --- Maintenant, puis bandeau de surcharge (un avertissement, jamais en tête)
                 one("now") {
                     NowCard(
-                        view, language,
+                        view, language, notifyState,
                         onDone = { t -> scope.launch { repository.toggleDone(t.id) } },
                         onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
+                        onToggleTimer = toggleTimer,
+                        onEnableAlerts = { scope.launch { services.notifier.requestPermission() } },
                     )
                 }
                 if (view.priorityOverload) one("overload") { OverloadBanner(view.priorityOverloadCount) }
@@ -294,10 +302,17 @@ fun DayScreen(services: AppServices) {
                 section("backlog", Res.string.backlog_title, Res.string.backlog_hint, view.backlog.size, showEmpty = true) {
                     rows("backlog", view.backlog) { TaskRow(it, ctx) }
                 }
-                if (!twoColumns) one("timeline") { TimelineCard(view, snapshot.settings, language) }
+                if (!twoColumns) {
+                    one("running") { RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } }) }
+                    one("timeline") { TimelineCard(view, snapshot.settings, language) }
+                }
             }
             if (twoColumns) {
-                Column(Modifier.width(320.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = 16.dp)) {
+                Column(
+                    Modifier.width(320.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } })
                     TimelineCard(view, snapshot.settings, language)
                 }
             }

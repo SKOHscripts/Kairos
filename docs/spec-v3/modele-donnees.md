@@ -147,6 +147,8 @@ de SQLDelight.
     dans la même transaction (`recurrence.md`) ; `done` → `todo` ;
     `archived` inchangée.
   - `snooze` : « Décaler » (`recurrence.md` § Décaler).
+  - `startTimer`, `stopTimer` : chrono, au plus une session ouverte
+    (`temps-reel-chrono.md`).
   - `ensureCalendarOccurrences(jour)` : occurrences du mois des séries
     « le N du mois » ; n'écrit rien s'il n'y a rien à créer.
   - `updateTask(TaskEdit)` : l'édition complète en un enregistrement :

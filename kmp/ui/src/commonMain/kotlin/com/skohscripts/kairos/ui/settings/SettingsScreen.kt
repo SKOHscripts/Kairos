@@ -61,7 +61,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
-/** Réglages, jalon M1 : données (export/import), « À propos et guide » ; le reste au jalon M5. */
+/** Réglages : données (export/import), alertes du chrono, « À propos et guide » ; le reste au jalon M5. */
 @Composable
 fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
@@ -71,6 +71,7 @@ fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
             modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp),
         ) {
             DataCard(services)
+            ChronoSettingsCard(services)
             OutlinedCard(onClick = onOpenAbout, modifier = Modifier.fillMaxWidth()) {
                 ListItem(
                     leadingContent = { Icon(KairosIcons.Info, contentDescription = null) },

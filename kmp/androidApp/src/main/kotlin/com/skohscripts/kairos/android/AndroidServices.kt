@@ -12,6 +12,7 @@ import com.skohscripts.kairos.data.KairosStore
 import com.skohscripts.kairos.data.db.KairosDatabase
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.BackupStore
+import com.skohscripts.kairos.ui.app.ChronoNotifier
 import com.skohscripts.kairos.ui.app.FileService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,7 +30,7 @@ import kotlin.time.Clock
 object AndroidServices {
     const val DATABASE_NAME = "kairos.db"
 
-    suspend fun open(context: Context, files: FileService): AppServices = withContext(Dispatchers.IO) {
+    suspend fun open(context: Context, files: FileService, notifier: ChronoNotifier): AppServices = withContext(Dispatchers.IO) {
         val clock = Clock.System
         val language = Locale.getDefault().language
         val driver = AndroidSqliteDriver(DeferredSchema, context, DATABASE_NAME)
@@ -44,6 +45,7 @@ object AndroidServices {
             backups = FolderBackups(File(context.filesDir, "backups")),
             dataLocation = null,
             clock = clock,
+            notifier = notifier,
         )
     }
 

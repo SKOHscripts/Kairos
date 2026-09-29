@@ -103,6 +103,27 @@ class KairosRepository(
     }
 
     /**
+     * Démarre le chrono sur une tâche à faire (`start_timer`) : toute session
+     * encore ouverte, sur n'importe quelle tâche, est d'abord fermée (au plus
+     * une session ouverte à la fois).
+     */
+    suspend fun startTimer(taskId: Long) {
+        val task = find(taskId) ?: return
+        if (task.status != TaskStatus.TODO) return
+        write {
+            val now = now()
+            queries.closeAllOpenSessions(now)
+            queries.insertWorkSession(taskId, now, now)
+        }
+    }
+
+    /** Arrête le chrono : ferme la session ouverte, quelle que soit sa tâche. */
+    suspend fun stopTimer() {
+        if (state.value.workSessions.none { it.endedAt == null }) return
+        write { queries.closeAllOpenSessions(now()) }
+    }
+
+    /**
      * « Décaler » (Kairos 2 `snooze_task`) : l'échéance passe au jour ouvré qui
      * suit (elle-même si elle est à venir, sinon aujourd'hui) ; week-ends et
      * jours fériés des réglages sautés.

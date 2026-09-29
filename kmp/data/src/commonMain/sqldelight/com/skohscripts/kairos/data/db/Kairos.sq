@@ -157,6 +157,12 @@ INSERT INTO work_session VALUES (?, ?, ?, ?, ?);
 closeOpenSessionsOf:
 UPDATE work_session SET ended_at = ? WHERE task_id = ? AND ended_at IS NULL;
 
+closeAllOpenSessions:
+UPDATE work_session SET ended_at = ? WHERE ended_at IS NULL;
+
+insertWorkSession:
+INSERT INTO work_session (task_id, started_at, ended_at, created_at) VALUES (?, ?, NULL, ?);
+
 deleteAllWorkSessions:
 DELETE FROM work_session;
 

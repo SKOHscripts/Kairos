@@ -100,7 +100,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   jalon M2 (vue Jour complète) : `Redo` (décaler), `Search`, `Schedule`
   (creux), `Block` (bloquée), `Repeat`, `PushPin` (épinglée, symbole
   `keep`), `TrendingUp` (score, chemin critique), `Description`, `Layers`
-  (deep work).
+  (deep work) ; jalon M3 (chrono) : `PlayArrow`, `Stop`, `Close` (fermer une
+  alerte), `NotificationsActive`.
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`
   épaisseur 1.6, secteur `#C28417` de 12 h à 2 h, axe `#2B251C` rayon 2.6,
   viewport 40), couleurs fixes, affiché par `Image` (jamais teinté).

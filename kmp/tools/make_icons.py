@@ -49,6 +49,10 @@ ICONS = {
     "TrendingUp": ("trending_up", False),
     "Description": ("description", False),
     "Layers": ("layers", False),
+    "PlayArrow": ("play_arrow", False),
+    "Stop": ("stop", False),
+    "Close": ("close", False),
+    "NotificationsActive": ("notifications_active", False),
 }
 
 
