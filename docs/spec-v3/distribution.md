@@ -73,7 +73,7 @@ Pendant la réécriture, chaque jalon doit produire une version installable
 
 - **Source unique** : `kmp/gradle.properties`, `kairos.versionName` et
   `kairos.versionCode`. Jalon M0 : `3.0.0-alpha.1` (`29001`) ; jalon M1 :
-  `3.0.0-alpha.2` (`29002`).
+  `3.0.0-alpha.2` (`29002`) ; jalon M2 : `3.0.0-alpha.3` (`29003`).
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
 - `versionCode` (`AppVersion.versionCode`) : `X*10000 + Y*100 + Z` ; alpha :
@@ -151,10 +151,12 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   données, ouvre une base **en mémoire** avec les exemples (pilote JDBC
   réellement chargé), et rend hors écran (`ImageComposeScene`, 1000 px de
   haut, 10 images pour laisser charger polices et chaînes) l'application en
-  1200 px et en 420 px de large, les Réglages et « À propos » en 900 px. Avec
-  `=dossier`, les rendus y sont écrits (`desktop-wide.png`,
-  `desktop-narrow.png`, `desktop-settings.png`, `desktop-about.png`). Code
-  de sortie 0 ou 1.
+  1200 px et en 420 px de large, les Réglages et « À propos » en 900 px,
+  puis la vue Jour entière en 1200 × 3000 px et 420 × 5000 px (agenda,
+  sections, frise). Avec `=dossier`, les rendus y sont écrits
+  (`desktop-wide.png`, `desktop-narrow.png`, `desktop-settings.png`,
+  `desktop-about.png`, `desktop-day-full.png`,
+  `desktop-day-full-narrow.png`). Code de sortie 0 ou 1.
 - **Empaquetage** (plugin Compose Desktop, jpackage, runtime Java réduit
   embarquant `java.instrument`, `java.management`, `java.sql`,
   `jdk.unsupported` en plus des modules détectés) :
@@ -208,10 +210,10 @@ Pendant la réécriture, chaque jalon doit produire une version installable
 
 - `kmp.yml` (push sur `main`, PR, lancement manuel ; chemins `kmp/**` et ses
   propres workflows) : JDK 21 Temurin, plateforme Android 37, tests JVM
-  (`core`, `ui`, `desktopApp`), puis APK release, image de bureau Linux et
-  version web ; **auto-test** de l'image Linux empaquetée ; captures en
-  artefact `kmp-ci-screens`. Tests JVM : `core`, `data`, `ui`,
-  `desktopApp`.
+  (`core` dont les tests différentiels, `data`, `ui`, `desktopApp` dont les
+  tests d'interface de la vue Jour), puis APK release, image de bureau Linux
+  et version web ; **auto-test** de l'image Linux empaquetée ; captures en
+  artefact `kmp-ci-screens`.
 - `kmp-release.yml` (tag `v3.*`, lancement manuel) :
   - `version` : lit `kairos.versionName` ; échec si le tag diffère ; drapeau
     `prerelease` si la version contient `-` ;

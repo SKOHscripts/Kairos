@@ -1,18 +1,75 @@
 package com.skohscripts.kairos.ui.day
 
+import androidx.compose.runtime.Composable
+import com.skohscripts.kairos.ui.generated.resources.Res
+import com.skohscripts.kairos.ui.generated.resources.duration_hours
+import com.skohscripts.kairos.ui.generated.resources.duration_hours_minutes
+import com.skohscripts.kairos.ui.generated.resources.duration_minutes
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import org.jetbrains.compose.resources.stringResource
+import kotlin.math.round
 
 /**
- * Date courte lisible (« 30 sept. », « Sep 30 ») pour les étiquettes de
- * tâche. Noms de mois fixes par langue : le code commun n'a pas de
- * formatage localisé des dates.
+ * Dates, heures et nombres lisibles (« 30 sept. », « 09h15 », « 1 h 30 »).
+ * Noms de mois et formats fixes par langue : le code commun n'a pas de
+ * formatage localisé. Le français est la langue par défaut.
  */
 internal object Dates {
     private val FR = listOf("janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc.")
     private val EN = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
+    private fun english(language: String) = language.lowercase().startsWith("en")
+
     fun short(date: LocalDate, language: String): String {
         val month = date.month.ordinal
-        return if (language.lowercase().startsWith("en")) "${EN[month]} ${date.day}" else "${date.day} ${FR[month]}"
+        return if (english(language)) "${EN[month]} ${date.day}" else "${date.day} ${FR[month]}"
+    }
+
+    /** « 09h15 » (Kairos 2) en français, « 09:15 » en anglais. */
+    fun time(t: LocalTime, language: String): String {
+        val h = t.hour.toString().padStart(2, '0')
+        val m = t.minute.toString().padStart(2, '0')
+        return if (english(language)) "$h:$m" else "${h}h$m"
+    }
+
+    fun time(t: LocalDateTime, language: String): String = time(t.time, language)
+
+    /** Graduation de la frise : « 9h », « 9:00 ». */
+    fun hour(h: Int, language: String): String = if (english(language)) "$h:00" else "${h}h"
+
+    /** « HH:MM » pour un champ de saisie. */
+    fun field(t: LocalTime): String = "${t.hour.toString().padStart(2, '0')}:${t.minute.toString().padStart(2, '0')}"
+
+    /** Lit « 9:30 », « 09:30 » ou « 9h30 » ; `null` si invalide. */
+    fun parseTime(text: String): LocalTime? {
+        val parts = text.trim().lowercase().split(':', 'h')
+        if (parts.size != 2) return null
+        val h = parts[0].toIntOrNull() ?: return null
+        val m = parts[1].ifEmpty { "0" }.toIntOrNull() ?: return null
+        return if (h in 0..23 && m in 0..59) LocalTime(h, m) else null
+    }
+
+    fun parseDate(text: String): LocalDate? = text.trim().takeIf { it.isNotEmpty() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+
+    /** Une décimale au plus, sans « .0 » (filtre `nombre` de Kairos 2) : « 16 », « 6.2 ». */
+    fun number(value: Double): String {
+        val rounded = round(value * 10) / 10
+        val whole = rounded.toLong()
+        return if (rounded == whole.toDouble()) whole.toString() else rounded.toString()
+    }
+}
+
+/** Durée lisible (`_fmt_minutes` de Kairos 2) : « 1 h 30 », « 2 h », « 45 min ». */
+@Composable
+internal fun duration(minutes: Int): String {
+    val m = maxOf(0, minutes)
+    val hours = m / 60
+    val rest = m % 60
+    return when {
+        hours > 0 && rest > 0 -> stringResource(Res.string.duration_hours_minutes, hours, rest.toString().padStart(2, '0'))
+        hours > 0 -> stringResource(Res.string.duration_hours, hours)
+        else -> stringResource(Res.string.duration_minutes, rest)
     }
 }

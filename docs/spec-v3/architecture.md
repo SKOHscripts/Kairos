@@ -49,7 +49,7 @@ Linux, macOS) et dans un navigateur récent, à partir d'**un seul code**.
 
 | Module | Plugin(s) | Cibles | Rôle |
 |---|---|---|---|
-| `core` | KMP + bibliothèque Android KMP + sérialisation | JVM, Android, wasmJs | Code métier **pur** : `AppVersion`, `KairosBuild` (version, générée), modèle (`model/`), données d'exemple. |
+| `core` | KMP + bibliothèque Android KMP + sérialisation | JVM, Android, wasmJs | Code métier **pur** : `AppVersion`, `KairosBuild` (version, générée), modèle (`model/`), données d'exemple, moteur (`engine/` : jours ouvrés, dépendances, récurrence, ancienneté, ordonnancement, voir `ordonnancement.md`), modèle de la vue Jour (`day/DayView`). |
 | `data` | KMP + bibliothèque Android KMP + SQLDelight + sérialisation | JVM, Android, wasmJs | Schéma et requêtes SQLDelight (asynchrones), ouverture et migrations (`KairosStore`), dépôt (`KairosRepository`), format d'export (`ExportCodec`). Sans pilote : chaque application fournit le sien. |
 | `ui` | KMP + bibliothèque Android KMP + Compose | JVM, Android, wasmJs | Interface commune : thème, icônes, logo, navigation, écrans, chaînes FR/EN, polices ; contrat des services de plateforme (`app/AppServices.kt`). |
 | `androidApp` | application Android + compilateur Compose | Android | Activité, services Android (pilote SQLite, sélecteurs de fichiers), ressources de lancement. |
@@ -98,6 +98,9 @@ asynchrone de la base).
   Central ou le dépôt Google. Aucune bibliothèque Google Play Services,
   Firebase, analytics ou rapport de crash distant. Les ajouts se font dans
   le catalogue de versions, avec une version figée (builds reproductibles).
+  Les tests d'interface du bureau utilisent `compose.desktop.uiTestJUnit4`
+  (bibliothèque de test de Compose Multiplatform, même version que
+  Compose, test seulement : rien n'entre dans les applications).
 - **Code généré, jamais édité à la main** : `KairosColors.kt`
   (`tools/make_theme.py`), `KairosIcons.kt` (`tools/make_icons.py`), icônes
   d'application (`tools/make_app_icons.py`), `KairosBuild` (Gradle).
