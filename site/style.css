@@ -1,0 +1,102 @@
+/* Page de téléchargement de Kairos (docs/spec-v3/publication.md § Page).
+   Charte « miel » (docs/DESIGN_SYSTEM.md) : rôles MD3, Roboto servie ici,
+   cartes sans ombre, un seul bloc teinté (l'appel principal). */
+@font-face { font-family: Roboto; font-weight: 400; src: url("fonts/roboto_regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: Roboto; font-weight: 500; src: url("fonts/roboto_medium.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: Roboto; font-weight: 700; src: url("fonts/roboto_bold.ttf") format("truetype"); font-display: swap; }
+
+:root {
+  --md-primary: #7F5610;
+  --md-on-primary: #FFFFFF;
+  --md-primary-container: #FFDDB3;
+  --md-on-primary-container: #624000;
+  --md-secondary-container: #FADEBC;
+  --md-surface: #FFF8F4;
+  --md-surface-container-low: #FEF1E5;
+  --md-surface-container-high: #F3E6DA;
+  --md-on-surface: #201B13;
+  --md-on-surface-variant: #4F4539;
+  --md-outline: #817567;
+  --md-outline-variant: #D3C4B4;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--md-surface);
+  color: var(--md-on-surface);
+  font: 16px/24px Roboto, system-ui, sans-serif;
+}
+a { color: var(--md-primary); }
+main, header, footer { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+
+header { display: flex; align-items: center; gap: 12px; padding-top: 24px; flex-wrap: wrap; }
+header img { width: 48px; height: 48px; }
+header .name { font-size: 28px; font-weight: 500; }
+header nav { margin-left: auto; font-size: 14px; }
+
+.notice {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 12px;
+  background: var(--md-surface-container-low);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.hero { padding: 32px 0 8px; }
+.hero h1 { font-size: 36px; line-height: 44px; font-weight: 500; margin: 0 0 12px; }
+.hero p { font-size: 18px; line-height: 28px; color: var(--md-on-surface-variant); margin: 0; max-width: 720px; }
+
+h2 { font-size: 22px; line-height: 28px; font-weight: 500; margin: 40px 0 16px; }
+
+.points { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.card {
+  background: var(--md-surface);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 12px;
+  padding: 16px;
+}
+.card h3 { font-size: 16px; font-weight: 500; margin: 0 0 8px; }
+.card p { margin: 0; font-size: 14px; line-height: 20px; color: var(--md-on-surface-variant); }
+.formula { font-weight: 700; color: var(--md-primary); }
+
+.downloads { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.os h3 { display: flex; align-items: center; gap: 8px; }
+.os ul { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+/* Système du visiteur (os.js) : le seul bloc teinté de la page. */
+.os.current { background: var(--md-primary-container); border-color: var(--md-primary-container); }
+.os.current h3::after { content: attr(data-yours); font-size: 12px; font-weight: 500; color: var(--md-on-primary-container); }
+
+.button {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 40px; padding: 8px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--md-outline);
+  color: var(--md-primary);
+  font-weight: 500; font-size: 14px; text-decoration: none; text-align: center;
+}
+.button.filled { background: var(--md-primary); border-color: var(--md-primary); color: var(--md-on-primary); }
+.button:hover { background: rgba(127, 86, 16, 0.08); }
+.button.filled:hover { background: #6d4a0e; }
+.small { font-size: 12px; line-height: 16px; color: var(--md-on-surface-variant); }
+
+.shots { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
+.shots img {
+  width: 220px; height: auto; flex: none;
+  border: 1px solid var(--md-outline-variant); border-radius: 16px;
+  scroll-snap-align: start;
+}
+
+.notes { font-size: 14px; line-height: 20px; color: var(--md-on-surface-variant); }
+.notes li { margin-bottom: 8px; }
+
+footer { padding-top: 32px; padding-bottom: 32px; font-size: 14px; color: var(--md-on-surface-variant); }
+
+@media (max-width: 480px) {
+  .hero h1 { font-size: 28px; line-height: 36px; }
+  .hero p { font-size: 16px; line-height: 24px; }
+  .shots img { width: 180px; }
+}

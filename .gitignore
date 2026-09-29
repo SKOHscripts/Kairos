@@ -171,8 +171,7 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
+# (Pas de mkdocs : `site/` est la page GitHub Pages de Kairos 3, versionnée.)
 
 # mypy
 .mypy_cache/
