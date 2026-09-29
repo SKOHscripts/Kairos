@@ -29,7 +29,7 @@ class LegacyMigrationTest {
 
     private fun resource(path: String): File {
         // Copie : la ressource peut être dans un JAR, et on vérifie que l'original n'est pas modifié.
-        val source = javaClass.getResource("/legacy/$path") ?: return File("missing")
+        val source = requireNotNull(javaClass.getResource("/legacy/$path")) { "base de test absente : legacy/$path (gen_legacy_db.py)" }
         val dir = createTempDirectory("kairos2").toFile()
         return File(dir, File(path).name).also { target -> source.openStream().use { Files.copy(it, target.toPath()) } }
     }

@@ -161,6 +161,8 @@ venv.bak/
 
 # Base SQLite de Kairos (générée au premier démarrage)
 *.db
+# Vraies bases Kairos 2 des tests de migration (kmp/tools/gen_legacy_db.py) : versionnées.
+!kmp/desktopApp/src/jvmTest/resources/legacy/**/tasks.db
 
 # Spyder project settings
 .spyderproject
