@@ -1,7 +1,7 @@
 Categories:
+  - Calendar & Agenda
   - Task
   - Time Tracker
-  - Calendar & Agenda
 License: MIT
 AuthorName: SKOHscripts
 WebSite: https://skohscripts.github.io/Kairos/
@@ -27,6 +27,7 @@ AllowedAPKSigningKeys: 3885399c1116bea6fed50ce144a1cb10d516bc74d9c9e0773dad23a4e
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
-UpdateCheckData: kmp/gradle.properties|kairos\.versionCode=(\d+)|kmp/gradle.properties|kairos\.versionName=(.+)
+UpdateCheckData: 
+  kmp/gradle.properties|kairos\.versionCode=(\d+)|kmp/gradle.properties|kairos\.versionName=(.+)
 CurrentVersion: 3.0.0
 CurrentVersionCode: 30000

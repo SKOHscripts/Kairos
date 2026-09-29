@@ -111,7 +111,7 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
 
 ### Recette F-Droid (`fdroid/com.skohscripts.kairos.yml`)
 
-- Catégories `Task`, `Time Tracker`, `Calendar & Agenda` (liste officielle,
+- Catégories `Calendar & Agenda`, `Task`, `Time Tracker` (liste officielle,
   `config/categories.yml` de fdroiddata), licence MIT, liens site, source,
   tickets, releases ; `AutoName: Kairos`.
 - Construction : `subdir: kmp/androidApp`, `gradle: [yes]` (variante release),
@@ -140,7 +140,9 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
   1. clone `fdroidserver` (`FDROIDSERVER_REF`, par défaut `master`) et le
      dossier `config/` de fdroiddata (clone partiel : catégories et leurs
      icônes, que `fdroid lint` exige) ;
-  2. `fdroid lint` de la recette publiée ;
+  2. `fdroid lint` de la recette publiée, puis `fdroid rewritemeta` : la
+     recette doit déjà être sous sa forme canonique (le fichier réécrit est
+     comparé à l'original), comme l'exige la CI de fdroiddata ;
   3. copie de la recette : dernière construction réécrite à la version de
      `gradle.properties` et au commit courant, `gradleprops:
      [kairos.preview=false]`, `Repo` = copie locale du dépôt (branche
@@ -202,6 +204,11 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
 
 ### Décisions et pièges tracés
 
+- **Recette sous forme canonique** : `fdroid rewritemeta` trie les catégories,
+  replie les lignes longues (`UpdateCheckData` passe à la ligne) et exige une
+  fin de ligne finale ; la CI de fdroiddata échoue sinon. Constaté à la
+  soumission de la 3.0.0 (fichier collé dans l'éditeur web de GitLab, sans
+  fin de ligne) ; la vérification continue le contrôle depuis.
 - **F-Droid distribue notre APK** (`Binaries` + `AllowedAPKSigningKeys`)
   plutôt que de signer avec sa propre clé : avec la clé F-Droid, un
   utilisateur de Kairos 2 (APK GitHub) ou des releases GitHub ne pourrait pas
