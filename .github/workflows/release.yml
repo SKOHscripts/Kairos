@@ -2,7 +2,9 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    # Kairos 2 (Python) seulement : les tags v3.* sont publiés par
+    # kmp-release.yml (Kairos 3, docs/spec-v3/distribution.md).
+    tags: ["v1.*", "v2.*"]
   workflow_dispatch:
 
 jobs:

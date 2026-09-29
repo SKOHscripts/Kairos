@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kairos</title>
+  <meta name="description" content="Kairos : le bon moment pour chaque tâche. Version web, sans installation.">
+  <meta name="theme-color" content="#FFF8F4">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    html, body { height: 100%; margin: 0; background: #FFF8F4; color: #201B13; }
+    body { font: 14px/20px system-ui, sans-serif; overflow: hidden; }
+    #kairos-loading { position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px; padding: 16px; text-align: center; }
+    #kairos-loading img { width: 96px; height: 96px; }
+    #kairos-loading p { max-width: 420px; margin: 0; color: #4F4539; }
+  </style>
+</head>
+<body>
+  <!-- Visible pendant le chargement du module Wasm, et comme message si le
+       navigateur ne peut pas le charger (WasmGC absent : Edge / Chrome avant 119). -->
+  <div id="kairos-loading">
+    <img src="icon-192.png" alt="">
+    <p id="kairos-loading-text">Chargement de Kairos…</p>
+  </div>
+  <script>
+    // Kotlin/Wasm exige WasmGC : sans lui, on le dit plutôt que de laisser un écran figé.
+    (function () {
+      var gc = false;
+      try {
+        gc = WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 95, 1, 120, 0]));
+      } catch (e) { gc = false; }
+      if (!gc) {
+        document.getElementById("kairos-loading-text").textContent =
+          "Ce navigateur est trop ancien pour Kairos : utilise une version récente d'Edge, de Chrome ou de Firefox. " +
+          "This browser is too old for Kairos: use a recent Edge, Chrome or Firefox.";
+      }
+    })();
+  </script>
+  <script src="kairos-web.js"></script>
+  <script src="kairos.js"></script>
+</body>
+</html>

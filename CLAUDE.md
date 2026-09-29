@@ -26,6 +26,8 @@ quatre étapes ci-dessous, dans cet ordre.
 
 ## Où vivent les specs
 
+- `docs/spec-v3/` : même principe pour Kairos 3 (`kmp/`), voir la section
+  « Kairos 3 » ci-dessous.
 - `docs/spec/` : **une spec par domaine fonctionnel** (ordonnancement,
   dépendances, temps réel, vue Jour/GTD, packaging, intégrations externes,
   réglages, etc.).
@@ -50,6 +52,58 @@ quatre étapes ci-dessous, dans cet ordre.
   de code avant de reprendre une conception.
 - Les commentaires de code portent le « pourquoi » local non évident (invariant,
   piège, décision produit) ; la spec de domaine en est le registre consolidé.
+
+---
+
+# Kairos 3 : réécriture Kotlin Multiplatform (`kmp/`)
+
+Kairos est en cours de réécriture en Kotlin Multiplatform + Compose
+Multiplatform (Android, bureau Windows/Linux/macOS, web Wasm). Feuille de route
+et décisions : `docs/plan-v3-kotlin.md`. Pendant la transition :
+
+- **Deux codes, deux registres de spec** : le Python (`app/`, `templates/`,
+  `static/`, `android/`, `packaging/`) est **gelé** (correctifs seulement) et
+  décrit par `docs/spec/` ; le code `kmp/` est décrit par `docs/spec-v3/`, avec
+  les mêmes règles (besoin métier puis solution technique, bijectivité). À la
+  bascule `v3.0.0`, le Python disparaît et `docs/spec-v3/` remplace `docs/spec/`.
+- **Jalons** (plan § 9) : chaque jalon se termine par une version
+  (`kmp/gradle.properties`, source unique : `kairos.versionName` et
+  `kairos.versionCode`, formule dans `docs/spec-v3/distribution.md`) **et un
+  tag** `v3.0.0-alpha.N` qui déclenche `kmp-release.yml` (préversion GitHub).
+  L'environnement de développement ne peut pas pousser de tag : le
+  propriétaire du dépôt le pose sur le commit du jalon.
+- **Architecture** (`docs/spec-v3/architecture.md`) : `core` reste **pur**
+  (ni Compose, ni plateforme, ni horloge, ni I/O : l'heure et les réglages
+  sont des paramètres) ; toute interface vit dans `ui` ; dépendances
+  **libres** uniquement (Maven Central, Google), versions figées dans
+  `kmp/gradle/libs.versions.toml` : l'APK doit rester acceptable par F-Droid,
+  sans permission réseau.
+- **Parité** : le comportement de référence est celui de Kairos 2 (specs
+  `docs/spec/`, tests `tests/`), moins le périmètre retiré (TimeTree, import
+  GitLab, base pilotage, service systemd). Les moteurs portés sont validés
+  par des tests différentiels contre le Python (plan § 7).
+- **Charte en Compose** : les règles de la section suivante valent pour
+  Kairos 3, transposées :
+  - couleurs : `MaterialTheme.colorScheme` et `LocalKairosExtraColors`
+    uniquement, jamais de `Color(0x…)` dans un composant. Le schéma est
+    **généré** par `kmp/tools/make_theme.py` depuis la graine ;
+  - icônes : `KairosIcons`, **généré** par `kmp/tools/make_icons.py` ;
+    ajouter l'icône dans le script, jamais à la main ;
+  - Roboto embarquée dans `composeResources/font/`, jamais de police distante ;
+  - navigation : rail si la fenêtre fait 600 dp ou plus, barre basse
+    **seulement** sur Android en largeur compacte, barre horizontale en haut
+    sinon (`NavigationLayout`, `docs/spec-v3/navigation-theme.md`).
+- **Textes** : aucun texte d'interface en dur. Français (`values/`) **et**
+  anglais (`values-en/`) à chaque ajout, apostrophe typographique `’`
+  (`StringsParityTest`, `docs/spec-v3/i18n.md`).
+- **Vérifier avant de pousser** : `cd kmp && ./gradlew :core:jvmTest :data:jvmTest
+  :ui:jvmTest :desktopApp:jvmTest`, et pour l'interface `./gradlew :desktopApp:run
+  --args=--self-test=/tmp/captures` (rendu hors écran, à regarder). La version
+  web se teste dans Chromium à partir de la sortie compilée
+  (`docs/spec-v3/architecture.md` § Décisions).
+
+Les sections suivantes (charte, navigation, mobile) décrivent la charte
+commune et, dans leurs détails HTML/CSS, le code Kairos 2.
 
 ---
 

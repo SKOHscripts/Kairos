@@ -1,0 +1,210 @@
+# Release de Kairos 3 (docs/spec-v3/distribution.md § Release) : sur tag v3.*,
+# APK signé, installeurs et images portables des trois OS de bureau, version
+# web, SHA256SUMS, release GitHub (préversion si le tag a un suffixe).
+name: Kairos 3 release
+
+on:
+  push:
+    tags: ["v3.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.v.outputs.name }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      # Le tag doit être la version déclarée dans kmp/gradle.properties (source
+      # unique) ; le versionCode, lui, est vérifié par AppVersionTest.
+      - id: v
+        run: |
+          name=$(sed -n 's/^kairos.versionName=//p' kmp/gradle.properties)
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          if [[ "$name" == *-* ]]; then echo "prerelease=true" >> "$GITHUB_OUTPUT"; else echo "prerelease=false" >> "$GITHUB_OUTPUT"; fi
+          if [ "${{ github.ref_type }}" = "tag" ] && [ "${{ github.ref_name }}" != "v$name" ]; then
+            echo "::error::Le tag ${{ github.ref_name }} ne correspond pas à kairos.versionName=$name (kmp/gradle.properties)."
+            exit 1
+          fi
+
+  android:
+    needs: version
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kmp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Plateforme Android 37
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
+      - name: Tests
+        run: ./gradlew --no-daemon :core:jvmTest :data:jvmTest :ui:jvmTest :desktopApp:jvmTest
+      # Même keystore que Kairos 2 (mêmes secrets) : la 3.0.0 s'installe par-dessus
+      # l'APK 2.x. Un tag DOIT être signé ; un lancement manuel sans secrets
+      # produit un APK non signé de validation.
+      - name: Keystore de signature
+        id: keystore
+        env:
+          KAIROS_KEYSTORE_BASE64: ${{ secrets.KAIROS_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KAIROS_KEYSTORE_BASE64" ]; then
+            echo "$KAIROS_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/kairos-release.keystore"
+            echo "file=$RUNNER_TEMP/kairos-release.keystore" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "::error::Secret KAIROS_KEYSTORE_BASE64 absent : une release taguée doit être signée."
+            exit 1
+          else
+            echo "::warning::Secrets de signature absents : APK de validation NON signé."
+          fi
+      - name: APK
+        env:
+          KAIROS_KEYSTORE_FILE: ${{ steps.keystore.outputs.file }}
+          KAIROS_KEYSTORE_PASSWORD: ${{ secrets.KAIROS_KEYSTORE_PASSWORD }}
+          KAIROS_KEY_ALIAS: ${{ secrets.KAIROS_KEY_ALIAS }}
+          KAIROS_KEY_PASSWORD: ${{ secrets.KAIROS_KEY_PASSWORD }}
+        run: |
+          ./gradlew --no-daemon :androidApp:assembleRelease
+          mkdir -p "$RUNNER_TEMP/out"
+          cp androidApp/build/outputs/apk/release/androidApp-release*.apk "$RUNNER_TEMP/out/Kairos-android.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kairos3-android
+          path: ${{ runner.temp }}/out/*
+
+  web:
+    needs: version
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kmp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Version web
+        run: |
+          ./gradlew --no-daemon :webApp:wasmJsBrowserDistribution
+          mkdir -p "$RUNNER_TEMP/out"
+          (cd webApp/build/dist/wasmJs/productionExecutable && zip -qr "$RUNNER_TEMP/out/Kairos-web.zip" .)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kairos3-web
+          path: ${{ runner.temp }}/out/*
+
+  desktop:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            id: linux-x64
+          - os: windows-latest
+            id: windows-x64
+          - os: macos-latest
+            id: macos-arm64
+          - os: macos-15-intel
+            id: macos-x64
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: kmp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: fakeroot (paquet .deb)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y fakeroot > /dev/null
+      - name: Installeur et image portable
+        run: ./gradlew --no-daemon :desktopApp:packageDistributionForCurrentOS :desktopApp:createDistributable
+
+      # Auto-test : l'image empaquetée démarre et rend l'interface (docs/spec-v3/distribution.md § Auto-test).
+      - name: Auto-test (Linux, macOS)
+        if: runner.os != 'Windows'
+        run: |
+          app=desktopApp/build/compose/binaries/main/app
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            bundle=$(ls -d "$app"/*.app | head -1); name=$(basename "$bundle" .app)
+            exe="$bundle/Contents/MacOS/$name"
+          else
+            dir=$(ls -d "$app"/*/ | head -1); name=$(basename "$dir"); exe="$dir/bin/$name"
+          fi
+          KAIROS_DATA_DIR="$RUNNER_TEMP/kairos-data" "$exe" --self-test="$RUNNER_TEMP/screens"
+      - name: Auto-test (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $dir = Get-ChildItem desktopApp/build/compose/binaries/main/app -Directory | Select-Object -First 1
+          $exe = Join-Path $dir.FullName ($dir.Name + ".exe")
+          $env:KAIROS_DATA_DIR = Join-Path $env:RUNNER_TEMP "kairos-data"
+          $p = Start-Process -FilePath $exe -ArgumentList "--self-test=$env:RUNNER_TEMP\screens" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { Write-Error "Auto-test en échec ($($p.ExitCode))"; exit 1 }
+
+      - name: Nommer les fichiers
+        run: |
+          out="$RUNNER_TEMP/out"; mkdir -p "$out"
+          bin=desktopApp/build/compose/binaries/main
+          id=${{ matrix.id }}
+          case "$RUNNER_OS" in
+            Linux)
+              cp "$bin"/deb/*.deb "$out/Kairos-$id.deb"
+              (cd "$bin/app" && tar czf "$out/Kairos-$id-portable.tar.gz" *) ;;
+            Windows)
+              cp "$bin"/msi/*.msi "$out/Kairos-$id.msi"
+              (cd "$bin/app" && 7z a -tzip -bso0 "$(cygpath -w "$out")\\Kairos-$id-portable.zip" *) ;;
+            macOS)
+              cp "$bin"/dmg/*.dmg "$out/Kairos-$id.dmg"
+              (cd "$bin/app" && ditto -c -k --keepParent *.app "$out/Kairos-$id-portable.zip") ;;
+          esac
+          ls -la "$out"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kairos3-${{ matrix.id }}
+          path: ${{ runner.temp }}/out/*
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screens-${{ matrix.id }}
+          path: ${{ runner.temp }}/screens
+          if-no-files-found: ignore
+
+  release:
+    needs: [version, android, web, desktop]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: kairos3-*
+          merge-multiple: true
+      - name: SHA256SUMS
+        working-directory: artifacts
+        run: sha256sum Kairos-* > SHA256SUMS && cat SHA256SUMS
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Kairos ${{ needs.version.outputs.name }}
+          prerelease: ${{ needs.version.outputs.prerelease == 'true' }}
+          generate_release_notes: true
+          files: |
+            artifacts/Kairos-*
+            artifacts/SHA256SUMS

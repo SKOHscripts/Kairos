@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chaînes françaises : langue par défaut et de repli (docs/spec-v3/i18n.md).
+     Toute chaîne ajoutée ici l'est aussi dans values-en/strings.xml (test
+     StringsParityTest). Apostrophe typographique ’, jamais \' : les
+     ressources Compose n'interprètent pas les échappements Android. -->
+<resources>
+    <string name="app_name">Kairos</string>
+    <string name="app_tagline">Le bon moment pour chaque tâche</string>
+
+    <string name="nav_notes">Notes</string>
+    <string name="nav_day">Jour</string>
+    <string name="nav_week">Semaine</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_settings">Réglages</string>
+    <string name="nav_navigation">Navigation principale</string>
+
+    <string name="title_notes">Notes</string>
+    <string name="title_day">Aujourd’hui</string>
+    <string name="title_week">Semaine</string>
+    <string name="title_stats">Statistiques</string>
+    <string name="title_settings">Réglages</string>
+    <string name="title_about">À propos et guide</string>
+
+    <string name="action_back">Retour</string>
+
+    <string name="placeholder_title">En construction</string>
+    <string name="placeholder_body">Kairos 3 est en cours de réécriture. Cet écran arrive dans une prochaine préversion ; la version 2 reste l’outil du quotidien d’ici là.</string>
+
+    <string name="settings_about_entry">À propos et guide</string>
+    <string name="settings_about_entry_hint">Ce que fait Kairos, le score de priorité, la version</string>
+
+    <string name="about_intro">Kairos classe tes tâches du jour et les pose dans les trous de ton agenda, au bon moment.</string>
+    <string name="about_brief_title">En bref</string>
+    <string name="about_brief_1">Il classe les tâches du jour par un score de priorité, affiché sur chacune.</string>
+    <string name="about_brief_2">Il pose chaque tâche dans les trous de l’agenda, autour des réunions, avec une marge après chaque réunion.</string>
+    <string name="about_brief_3">Il protège des blocs de deep work et allège le creux de l’après-midi.</string>
+    <string name="about_brief_4">Il suit le temps réellement passé et le compare à l’estimation.</string>
+    <string name="about_score_title">Le score de priorité (WSJF)</string>
+    <string name="about_score_formula">score = (valeur de la priorité + criticité de l’échéance) ÷ effort</string>
+    <string name="about_score_body">La valeur est multipliée par 4 à chaque cran de priorité (P0 vaut 4 fois P1), l’échéance pèse de plus en plus en approchant, et l’effort se mesure en points de Fibonacci. Le petit et prioritaire passe devant le gros et lointain. Une tâche en retard passe toujours devant.</string>
+    <string name="about_name_title">Pourquoi « Kairos » ?</string>
+    <string name="about_name_body">En grec, kairos désigne le moment opportun, l’instant juste où agir, par opposition à chronos, le temps qui défile. C’est le métier de l’outil : trouver le bon créneau pour chaque tâche.</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_license">Logiciel libre sous licence MIT. Tes données restent sur cet appareil.</string>
+    <string name="about_source">Code source</string>
+
+    <string name="loading">Ouverture de Kairos…</string>
+    <string name="error_open_title">Impossible d’ouvrir les données</string>
+
+    <string name="capture_label">Nouvelle tâche</string>
+    <string name="capture_placeholder">Qu’y a-t-il à faire ?</string>
+    <string name="capture_add">Ajouter</string>
+
+    <string name="inbox_title">À traiter</string>
+    <string name="inbox_help">Donne une priorité et une taille en points à chaque tâche : c’est ce qui permet à Kairos de la classer.</string>
+    <string name="inbox_empty">Rien à traiter : tout est déjà clarifié.</string>
+    <string name="missing_both">priorité et points manquants</string>
+    <string name="missing_priority">priorité manquante</string>
+    <string name="missing_points">points manquants</string>
+
+    <string name="todo_title">À faire</string>
+    <string name="todo_provisional">Ordre provisoire (priorité, puis échéance) : le score de priorité et le placement dans la journée arrivent dans la prochaine préversion.</string>
+    <string name="todo_empty">Rien à faire pour l’instant.</string>
+    <string name="done_title">Fait</string>
+
+    <string name="priority_label">Priorité</string>
+    <string name="points_label">Taille (points)</string>
+    <string name="priority_0_name">Critique</string>
+    <string name="priority_0_meaning">bloquant ou engagement ferme, rare par nature</string>
+    <string name="priority_1_name">Important</string>
+    <string name="priority_1_meaning">à caser cette semaine</string>
+    <string name="priority_2_name">Utile</string>
+    <string name="priority_2_meaning">à faire quand il y a de la place</string>
+    <string name="points_1_name">trivial</string>
+    <string name="points_2_name">petit</string>
+    <string name="points_3_name">modéré</string>
+    <string name="points_5_name">conséquent</string>
+    <string name="points_8_name">gros</string>
+    <string name="points_13_name">très gros</string>
+    <string name="points_21_name">énorme</string>
+    <string name="points_badge">%1$d pts</string>
+    <string name="deadline_badge">échéance %1$s</string>
+    <string name="minutes_badge">%1$d min</string>
+
+    <string name="action_done">Marquer comme fait</string>
+    <string name="action_undo">Marquer comme à faire</string>
+    <string name="action_edit">Modifier</string>
+    <string name="action_delete">Supprimer</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_save">Enregistrer</string>
+
+    <string name="edit_title">Modifier la tâche</string>
+    <string name="field_title">Titre</string>
+    <string name="field_description">Description</string>
+    <string name="field_deadline">Échéance (AAAA-MM-JJ)</string>
+    <string name="field_deadline_invalid">Date attendue au format AAAA-MM-JJ</string>
+    <string name="field_minutes">Durée estimée (minutes)</string>
+    <string name="field_project">Projet</string>
+    <string name="field_type">Type</string>
+    <string name="field_type_none">Non classé</string>
+    <string name="field_none">Aucune</string>
+    <string name="delete_confirm_title">Supprimer cette tâche ?</string>
+    <string name="delete_confirm_body">« %1$s » sera supprimée définitivement.</string>
+
+    <string name="data_title">Données</string>
+    <string name="data_body">Tes données restent sur cet appareil. Exporte-les dans un fichier pour les sauvegarder ou les transférer vers un autre appareil.</string>
+    <string name="data_location">Emplacement : %1$s</string>
+    <string name="data_export">Exporter</string>
+    <string name="data_import">Importer</string>
+    <string name="import_confirm_title">Remplacer toutes les données ?</string>
+    <string name="import_confirm_body">L’import remplace toutes les tâches, créneaux, notes et réglages de cet appareil par ceux du fichier. Une sauvegarde des données actuelles est faite juste avant.</string>
+    <string name="import_confirm_action">Remplacer</string>
+    <string name="export_done">Export enregistré.</string>
+    <string name="import_done">Import terminé : %1$d tâches.</string>
+    <string name="import_error_not_export">Ce fichier n’est pas un export Kairos.</string>
+    <string name="import_error_too_new">Cet export vient d’une version plus récente de Kairos : mets à jour l’application.</string>
+    <string name="import_error_corrupted">Cet export Kairos est illisible (valeur invalide).</string>
+    <string name="file_error">Le fichier n’a pas pu être lu ou écrit.</string>
+
+    <string name="web_not_linked">Tes données ne sont enregistrées que dans ce navigateur, qui peut les effacer (nettoyage, poste d’entreprise). Lie-les à un fichier sur ton poste pour les garder.</string>
+    <string name="web_unsupported">Tes données ne sont enregistrées que dans ce navigateur, qui peut les effacer. Exporte-les régulièrement (Réglages), ou utilise Edge ou Chrome pour les lier à un fichier.</string>
+    <string name="web_link_create">Créer un fichier</string>
+    <string name="web_link_open">Ouvrir un fichier Kairos</string>
+    <string name="web_linked">Enregistré aussi dans le fichier « %1$s ».</string>
+    <string name="web_restore">Le navigateur a perdu tes données. Autorise l’accès au fichier « %1$s » pour les recharger.</string>
+    <string name="web_reauthorize">Kairos n’a plus le droit d’écrire dans « %1$s ». Autorise l’accès pour continuer à l’y enregistrer.</string>
+    <string name="web_authorize">Autoriser l’accès</string>
+    <string name="web_save_failed">L’enregistrement dans le navigateur a échoué : %1$s. Exporte tes données.</string>
+    <string name="web_link_open_confirm_body">Les données de ce navigateur seront remplacées par celles de « %1$s », qui sera ensuite tenu à jour.</string>
+</resources>

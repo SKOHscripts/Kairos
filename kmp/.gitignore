@@ -1,0 +1,7 @@
+# Kairos 3 (Gradle / Kotlin Multiplatform)
+.gradle/
+.kotlin/
+build/
+local.properties
+*.iml
+.idea/

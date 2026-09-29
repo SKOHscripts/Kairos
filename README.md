@@ -98,6 +98,15 @@ Le mode « git clone + venv » ci-dessous reste disponible pour un usage avancé
 (développement, service systemd démarré au boot). Il partage le même mécanisme de
 configuration que l'exécutable.
 
+> **Kairos 3 en préparation.** Une réécriture native (Android, Windows, Linux,
+> macOS, et une version web sans installation) avance par préversions
+> `v3.0.0-alpha.N`, publiées comme
+> [préversions GitHub](https://github.com/SKOHscripts/Kairos/releases) : APK
+> « Kairos Preview », installeurs et zips portables, qui s'installent **à côté** de
+> Kairos 2 sans toucher à ses données. Elles ne sont pas encore utilisables au
+> quotidien : Kairos 2 reste la version à utiliser. Feuille de route :
+> [`docs/plan-v3-kotlin.md`](docs/plan-v3-kotlin.md).
+
 ---
 
 ## Démarrage rapide
