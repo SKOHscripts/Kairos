@@ -8,7 +8,8 @@
 #     registry.gitlab.com/fdroid/fdroidserver:buildserver \
 #     bash /repo/kmp/tools/fdroid_check.sh [--binaries]
 #
-# 1. `fdroid lint` sur la recette publiée (fdroid/com.skohscripts.kairos.yml) ;
+# 1. `fdroid lint` et `fdroid rewritemeta` (forme canonique) sur la recette publiée
+#    (fdroid/com.skohscripts.kairos.yml) ;
 # 2. `fdroid build` d'une copie de la recette pointée sur le commit courant et la
 #    version de kmp/gradle.properties, identifiant définitif forcé
 #    (-Pkairos.preview=false) : l'APK non signé est écrit dans $OUT ;
@@ -57,6 +58,14 @@ chmod 600 config.yml
 # 1. Lint de la recette telle qu'elle sera proposée à fdroiddata.
 cp "$REPO/fdroid/$APP.yml" "metadata/$APP.yml"
 fdroid lint "$APP"
+# Mise en forme canonique, que la CI de fdroiddata exige : `fdroid rewritemeta`
+# ne doit rien changer (ordre des catégories, lignes longues repliées, fin de ligne).
+fdroid rewritemeta "$APP"
+if ! cmp -s "$REPO/fdroid/$APP.yml" "metadata/$APP.yml"; then
+  echo "ÉCHEC : la recette n'est pas sous sa forme canonique (fdroid rewritemeta) :" >&2
+  diff -u "$REPO/fdroid/$APP.yml" "metadata/$APP.yml" >&2 || true
+  exit 1
+fi
 
 # 2. Recette de vérification : même contenu, construite au commit courant.
 python3 - "$REPO/fdroid/$APP.yml" "metadata/$APP.yml" "$WORK/source" "$COMMIT" "$version_name" "$version_code" "$BINARIES" <<'PY'
