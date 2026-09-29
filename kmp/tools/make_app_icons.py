@@ -8,6 +8,8 @@ avec Pillow (pas de dépendance de conversion SVG). Sorties, commitées :
 - desktopApp/icons/kairos.ico  (Windows, 16 à 256 px)
 - desktopApp/icons/kairos.icns (macOS)
 - webApp/src/wasmJsMain/resources/favicon.png, icon-192.png, icon-512.png
+- fastlane/metadata/android/{fr-FR,en-US}/images/icon.png (512 px, fiches F-Droid
+  et IzzyOnDroid) et site/icon.png, site/favicon.png (page de téléchargement)
 
     pip install Pillow
     python kmp/tools/make_app_icons.py
@@ -54,7 +56,16 @@ def main() -> None:
     web.mkdir(parents=True, exist_ok=True)
     for size, name in ((64, "favicon.png"), (192, "icon-192.png"), (512, "icon-512.png")):
         master.resize((size, size), Image.LANCZOS).save(web / name)
-    print("Icônes écrites :", icons, web)
+    repo = ROOT.parent
+    for locale in ("fr-FR", "en-US"):
+        images = repo / "fastlane" / "metadata" / "android" / locale / "images"
+        images.mkdir(parents=True, exist_ok=True)
+        master.resize((512, 512), Image.LANCZOS).save(images / "icon.png")
+    site = repo / "site"
+    site.mkdir(parents=True, exist_ok=True)
+    master.resize((192, 192), Image.LANCZOS).save(site / "icon.png")
+    master.resize((64, 64), Image.LANCZOS).save(site / "favicon.png")
+    print("Icônes écrites :", icons, web, repo / "fastlane", site)
 
 
 if __name__ == "__main__":

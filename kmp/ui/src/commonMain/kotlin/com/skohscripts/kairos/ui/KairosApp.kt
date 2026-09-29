@@ -42,7 +42,12 @@ import org.jetbrains.compose.resources.stringResource
  * (docs/spec-v3/navigation-theme.md § Décisions).
  */
 @Composable
-fun KairosApp(platform: Platform, openServices: suspend () -> AppServices) {
+fun KairosApp(
+    platform: Platform,
+    /** Destination d'ouverture ; autre que « Jour » seulement pour les captures des magasins. */
+    initialDestination: Destination = Destination.START,
+    openServices: suspend () -> AppServices,
+) {
     KairosTheme {
         CompositionLocalProvider(LocalPlatform provides platform) {
             var services by remember { mutableStateOf<AppServices?>(null) }
@@ -52,7 +57,7 @@ fun KairosApp(platform: Platform, openServices: suspend () -> AppServices) {
             }
             val ready = services
             when {
-                ready != null -> KairosShell(platform, ready)
+                ready != null -> KairosShell(platform, ready, initialDestination)
                 failure != null -> Status(stringResource(Res.string.error_open_title), failure.toString())
                 else -> Status(stringResource(Res.string.loading), null, progress = true)
             }
@@ -61,8 +66,8 @@ fun KairosApp(platform: Platform, openServices: suspend () -> AppServices) {
 }
 
 @Composable
-private fun KairosShell(platform: Platform, services: AppServices) {
-    var destination by rememberSaveable { mutableStateOf(Destination.START) }
+private fun KairosShell(platform: Platform, services: AppServices, initialDestination: Destination) {
+    var destination by rememberSaveable { mutableStateOf(initialDestination) }
     var aboutOpen by rememberSaveable { mutableStateOf(false) }
     val nav = remember { NavState() }
     BoxWithConstraints {

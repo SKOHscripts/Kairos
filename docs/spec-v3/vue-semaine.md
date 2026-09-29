@@ -23,8 +23,8 @@ un autre jour.
 
 ### Comportement attendu (utilisateur)
 
-- En tête : « Semaine précédente », « Semaine du 28/09 », « Semaine
-  suivante ». La barre de titre dit « Semaine · du lundi 28 septembre
+- En tête : « Semaine du 28/09 », puis dessous « Semaine précédente » à
+  gauche et « Semaine suivante » à droite. La barre de titre dit « Semaine · du lundi 28 septembre
   2026 ».
 - « Temps réel cette semaine : 3 h 10 (Dev 2 h · Réunion 1 h 10) » :
   sessions commencées dans la semaine, ventilées par type (types non vides).
@@ -78,7 +78,10 @@ un autre jour.
   la courante). Changer de destination remet les deux à `null` ;
   `onOpenDay(jour)` pose `day` et va sur « Jour ».
 - `WeekScreen(services, nav, onOpenDay)` : colonne défilante de 1 400 dp au
-  plus ; boutons `OutlinedButton` à chevron ; `FilterCard` et backlog de la
+  plus ; titre au-dessus d'une `Row` des deux boutons `OutlinedButton` à
+  chevron séparés par un `Spacer(weight(1f))` (placé entre eux, le titre
+  n'avait plus de place sur un téléphone et s'écrivait une lettre par
+  ligne) ; `FilterCard` et backlog de la
   vue Jour (`DayView.build(...).backlog` d'aujourd'hui) ; grille :
   `BoxWithConstraints`, `Row` à cartes `weight(1f)` et hauteur
   intrinsèque si 7 × 140 dp + 6 × 8 dp tiennent, sinon `FlowRow` de cartes

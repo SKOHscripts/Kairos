@@ -105,12 +105,14 @@ fun StatsScreen(services: AppServices) {
                 Text(stringResource(Res.string.stats_empty), style = MaterialTheme.typography.bodyLarge)
                 return@Column
             }
+            // Tuiles souples : 4 par ligne au large, 2 sur un téléphone, jamais une seule étirée.
             FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatTile(stats.completedInWindow.toString(), stringResource(Res.string.stats_kpi_done, stats.windowWeeks))
-                StatTile(duration(stats.trackedMinutesWindow), stringResource(Res.string.stats_kpi_tracked))
+                val tile = Modifier.weight(1f).widthIn(min = 150.dp)
+                StatTile(stats.completedInWindow.toString(), stringResource(Res.string.stats_kpi_done, stats.windowWeeks), tile)
+                StatTile(duration(stats.trackedMinutesWindow), stringResource(Res.string.stats_kpi_tracked), tile)
                 // Seuils de Kairos 2 : délai médian de plus de 7 j, moins de 70 % d'échéances tenues.
-                StatTile(stats.flow.completionDelayDays?.toString() ?: "—", stringResource(Res.string.stats_kpi_delay), warn = (stats.flow.completionDelayDays ?: 0) > 7)
-                StatTile(stats.flow.deadlineHitPct?.let { stringResource(Res.string.stats_percent, it) } ?: "—", stringResource(Res.string.stats_kpi_deadlines), warn = (stats.flow.deadlineHitPct ?: 100) < 70)
+                StatTile(stats.flow.completionDelayDays?.toString() ?: "—", stringResource(Res.string.stats_kpi_delay), tile, warn = (stats.flow.completionDelayDays ?: 0) > 7)
+                StatTile(stats.flow.deadlineHitPct?.let { stringResource(Res.string.stats_percent, it) } ?: "—", stringResource(Res.string.stats_kpi_deadlines), tile, warn = (stats.flow.deadlineHitPct ?: 100) < 70)
             }
 
             Panel(KairosIcons.TrendingUp, stringResource(Res.string.stats_throughput_title), stringResource(Res.string.stats_throughput_hint)) {
@@ -167,10 +169,11 @@ fun StatsScreen(services: AppServices) {
 
             Panel(KairosIcons.Inbox, stringResource(Res.string.stats_flow_title), stringResource(Res.string.stats_flow_hint)) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    StatTile(stats.flow.openCount.toString(), stringResource(Res.string.stats_flow_wip))
-                    StatTile(stats.flow.medianAgeDays?.toString() ?: "—", stringResource(Res.string.stats_flow_age))
-                    StatTile(stats.flow.overdueCount.toString(), stringResource(Res.string.stats_flow_overdue), warn = stats.flow.overdueCount > 0)
-                    StatTile(stats.flow.staleCount.toString(), stringResource(Res.string.stats_flow_stale), warn = stats.flow.staleCount > 0)
+                    val tile = Modifier.weight(1f).widthIn(min = 150.dp)
+                    StatTile(stats.flow.openCount.toString(), stringResource(Res.string.stats_flow_wip), tile)
+                    StatTile(stats.flow.medianAgeDays?.toString() ?: "—", stringResource(Res.string.stats_flow_age), tile)
+                    StatTile(stats.flow.overdueCount.toString(), stringResource(Res.string.stats_flow_overdue), tile, warn = stats.flow.overdueCount > 0)
+                    StatTile(stats.flow.staleCount.toString(), stringResource(Res.string.stats_flow_stale), tile, warn = stats.flow.staleCount > 0)
                 }
             }
 
@@ -199,13 +202,13 @@ private fun twoDecimals(x: Double): String {
 
 /** Tuile de chiffre clé : la valeur en grand, son libellé dessous. Un seuil franchi prend un contour, jamais une couleur seule. */
 @Composable
-private fun StatTile(value: String, label: String, warn: Boolean = false) {
+private fun StatTile(value: String, label: String, modifier: Modifier, warn: Boolean = false) {
     val scheme = MaterialTheme.colorScheme
     Surface(
         color = scheme.surfaceContainerLow,
         shape = MaterialTheme.shapes.medium,
         border = if (warn) androidx.compose.foundation.BorderStroke(1.dp, scheme.outline) else null,
-        modifier = Modifier.width(200.dp),
+        modifier = modifier,
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -236,11 +239,11 @@ private fun Panel(icon: ImageVector, title: String, hint: String, content: @Comp
 private fun BarRow(label: String, fraction: Float, value: String, warn: Boolean = false) {
     val scheme = MaterialTheme.colorScheme
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-        Text(label, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(120.dp))
+        Text(label, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(96.dp))
         Box(Modifier.weight(1f).height(12.dp).background(scheme.surfaceContainerHighest, RoundedCornerShape(4.dp))) {
             Box(Modifier.fillMaxHeight().fillMaxWidth(fraction.coerceIn(0f, 1f)).background(scheme.primary, RoundedCornerShape(4.dp)))
         }
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.widthIn(min = 150.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.widthIn(min = 110.dp, max = 200.dp)) {
             if (warn) Icon(KairosIcons.Warning, contentDescription = null, modifier = Modifier.size(14.dp).padding(end = 2.dp))
             Text(value, style = MaterialTheme.typography.bodySmall)
         }

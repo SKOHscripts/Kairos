@@ -438,4 +438,5 @@
     <string name="a11y_expanded">expanded</string>
     <string name="a11y_collapsed">collapsed</string>
     <string name="stats_percent">%1$d%</string>
+    <string name="notes_capture_hint_touch">Nothing else to decide now: you will process it later.</string>
 </resources>

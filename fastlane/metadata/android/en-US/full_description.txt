@@ -1,0 +1,26 @@
+Kairos puts your tasks in the order to do them and fits them into the gaps of your day, at the right time.
+
+<b>An order you can explain</b>
+Each task gets a priority score (WSJF): its value (priority P0, P1 or P2, plus the urgency of its deadline) divided by its effort in points. Small and important goes before big and distant; an overdue task always comes first. “Why this position?” shows the calculation in one tap.
+
+<b>A realistic day</b>
+<ul>
+<li>Tasks are placed around your meetings, with a buffer after each one.</li>
+<li>Deep-work slots are protected; in the afternoon, complex tasks give way to lighter ones.</li>
+<li>Fixed times, recurring tasks (daily, weekdays, weekly, “on the 23rd of the month”), dependencies between tasks, subtasks, French public holidays.</li>
+</ul>
+
+<b>Capture without friction (GTD)</b>
+An idea? A note. A task? A title is enough: it waits in “To process” until you give it a priority and a size, one tap each.
+
+<b>Real time</b>
+A timer per task, with an ongoing notification; alerts when you go past the estimate, forget a running timer or need a break, even with the app closed. Statistics compare your estimates with the time actually spent.
+
+<b>Your data stays with you</b>
+<ul>
+<li>No account, no ads, no trackers, no network permission.</li>
+<li>Export and import a JSON file, to back up or switch devices.</li>
+<li>Brings over your Kairos 2 data.</li>
+</ul>
+
+Kairos is also available for Windows, Linux and macOS, and in the browser. Free software under the MIT licence, in French and English.

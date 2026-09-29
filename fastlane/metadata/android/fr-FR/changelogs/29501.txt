@@ -1,0 +1,1 @@
+Première version de Kairos 3, réécrit en application native : ouverture instantanée, aucune permission réseau. Vue Jour ordonnée par score, Semaine, Notes, Statistiques, chrono avec notification et alertes même application fermée, réglages complets, reprise des données de Kairos 2.

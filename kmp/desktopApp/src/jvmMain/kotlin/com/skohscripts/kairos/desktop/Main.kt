@@ -26,6 +26,10 @@ fun main(args: Array<String>) {
     if (args.any { it == "--self-test" || it.startsWith("--self-test=") }) {
         exitProcess(SelfTest.run(args.toList(), dataDir))
     }
+    // Captures des fiches de magasin (développement seulement, docs/spec-v3/publication.md).
+    args.firstOrNull { it.startsWith("--store-screenshots=") }?.let {
+        exitProcess(StoreScreenshots.run(java.io.File(it.substringAfter('='))))
+    }
 
     // Instance déjà ouverte : elle est ramenée au premier plan, celle-ci s'arrête.
     val instance = SingleInstance.acquire(dataDir) ?: exitProcess(0)

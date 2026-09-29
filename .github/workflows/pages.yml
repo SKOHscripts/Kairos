@@ -1,10 +1,13 @@
-# GitHub Pages de Kairos (docs/spec-v3/distribution.md § GitHub Pages).
+# GitHub Pages de Kairos (docs/spec-v3/publication.md § Page de téléchargement).
 #
-# - /preview/ : version web construite depuis main (préversion, change à chaque push) ;
-# - /app/     : version web de la dernière release stable v3 (fichier Kairos-web.zip
-#               de la release), absente tant qu'aucune 3.x finale n'est publiée ;
-# - /         : page d'accueil provisoire (la vraie page de téléchargement arrive au
-#               jalon M6).
+# - /          : page de téléchargement, versionnée dans site/ (FR, et en/ pour l'anglais) ;
+# - /preview/  : version web construite depuis main (préversion, change à chaque push) ;
+# - /app/      : version web de la dernière release stable v3 (Kairos-web.zip de la
+#                release), absente tant qu'aucune 3.x finale n'est publiée.
+#
+# Les liens de téléchargement visent une release v3 nommée par son tag, jamais
+# releases/latest : « latest » désigne la dernière release stable du dépôt, qui
+# reste une 2.x tant que la 3.0.0 n'est pas sortie (autres noms de fichiers).
 #
 # Prérequis, une fois : Settings → Pages → Source : « GitHub Actions ».
 name: Pages
@@ -12,9 +15,14 @@ name: Pages
 on:
   push:
     branches: [main]
-    paths: ["kmp/**", ".github/workflows/pages.yml"]
+    paths: ["kmp/**", "site/**", "fastlane/**", ".github/workflows/pages.yml"]
   release:
     types: [published]
+  # La release créée par kmp-release.yml (jeton GITHUB_TOKEN) ne déclenche pas
+  # l'événement `release` ci-dessus : on suit la fin de ce workflow.
+  workflow_run:
+    workflows: ["Kairos 3 release"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -45,33 +53,51 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p site/preview
-          cp -r kmp/webApp/build/dist/wasmJs/productionExecutable/. site/preview/
-          # Dernière release stable v3 (jamais une préversion) : sa version web sous /app/.
-          stable=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-pre-releases --exclude-drafts --limit 50 \
-            --json tagName --jq '[.[].tagName | select(startswith("v3."))][0] // empty')
-          if [ -n "$stable" ] && gh release download "$stable" --repo "$GITHUB_REPOSITORY" --pattern Kairos-web.zip --dir "$RUNNER_TEMP"; then
-            mkdir -p site/app && unzip -q "$RUNNER_TEMP/Kairos-web.zip" -d site/app
-            app_link='<p><a href="app/">Utiliser Kairos dans le navigateur</a> (version '"${stable#v}"')</p>'
+          out="$RUNNER_TEMP/site"
+          cp -r site "$out"
+          mkdir -p "$out/preview" "$out/fonts" "$out/screens/fr" "$out/screens/en"
+          cp -r kmp/webApp/build/dist/wasmJs/productionExecutable/. "$out/preview/"
+          # Roboto servie par la page elle-même (jamais de police distante).
+          cp kmp/ui/src/commonMain/composeResources/font/*.ttf "$out/fonts/"
+          # Captures : celles des magasins (fastlane), une seule source.
+          cp fastlane/metadata/android/fr-FR/images/phoneScreenshots/*.png "$out/screens/fr/"
+          cp fastlane/metadata/android/en-US/images/phoneScreenshots/*.png "$out/screens/en/"
+
+          releases=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --limit 100 --json tagName,isPrerelease)
+          stable=$(jq -r '[.[] | select(.tagName | startswith("v3.")) | select(.isPrerelease | not) | .tagName][0] // empty' <<<"$releases")
+          pre=$(jq -r '[.[] | select(.tagName | startswith("v3.")) | .tagName][0] // empty' <<<"$releases")
+          base="https://github.com/$GITHUB_REPOSITORY/releases"
+          notice_fr="" notice_en="" web="preview/"
+          if [ -n "$stable" ]; then
+            dl="$base/download/$stable"
+            if gh release download "$stable" --repo "$GITHUB_REPOSITORY" --pattern Kairos-web.zip --dir "$RUNNER_TEMP"; then
+              mkdir -p "$out/app" && unzip -q "$RUNNER_TEMP/Kairos-web.zip" -d "$out/app"
+              web="app/"
+            fi
+          elif [ -n "$pre" ]; then
+            dl="$base/download/$pre"
+            v=${pre#v}
+            notice_fr="<p class=\"notice\"><strong>Préversion $v.</strong> Kairos 3 n’est pas encore sorti : les liens ci-dessous mènent à sa dernière préversion. Sur Android, elle s’installe à côté de Kairos 2, sous le nom « Kairos Preview ».</p>"
+            notice_en="<p class=\"notice\"><strong>Preview $v.</strong> Kairos 3 is not out yet: the links below lead to its latest preview. On Android it installs next to Kairos 2, as “Kairos Preview”.</p>"
           else
-            app_link='<p>Aucune version stable de Kairos 3 n’est encore publiée.</p>'
+            dl="$base"
           fi
-          cat > site/index.html <<HTML
-          <!doctype html>
-          <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>Kairos</title>
-          <style>body{margin:0;padding:32px 16px;background:#FFF8F4;color:#201B13;font:16px/24px system-ui,sans-serif}main{max-width:640px;margin:auto}a{color:#7F5610}</style>
-          </head><body><main>
-          <h1>Kairos</h1>
-          <p>Le bon moment pour chaque tâche. La page de téléchargement arrive bientôt.</p>
-          ${app_link}
-          <p><a href="preview/">Préversion web de Kairos 3</a> (en construction, les données restent dans ce navigateur).</p>
-          <p><a href="https://github.com/${GITHUB_REPOSITORY}/releases">Téléchargements (releases GitHub)</a></p>
-          </main></body></html>
-          HTML
+          echo "Téléchargements : $dl ; web : $web"
+          # Substitution sans interprétation des caractères spéciaux (& / \) du remplacement.
+          DL="$dl" WEB="$web" NFR="$notice_fr" NEN="$notice_en" python3 - "$out/index.html" "$out/en/index.html" <<'PY'
+          import os, sys
+          subs = {"@@DL@@": os.environ["DL"], "@@WEB@@": os.environ["WEB"],
+                  "@@NOTICE_FR@@": os.environ["NFR"], "@@NOTICE_EN@@": os.environ["NEN"]}
+          for path in sys.argv[1:]:
+              text = open(path, encoding="utf-8").read()
+              for key, value in subs.items():
+                  text = text.replace(key, value)
+              assert "@@" not in text, f"marqueur non remplacé dans {path}"
+              open(path, "w", encoding="utf-8").write(text)
+          PY
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: ${{ runner.temp }}/site
 
   deploy:
     needs: build

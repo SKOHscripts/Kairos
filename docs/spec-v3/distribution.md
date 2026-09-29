@@ -6,13 +6,13 @@ publié sur chaque cible. Fichiers couverts : `kmp/gradle.properties`
 `kmp/desktopApp/` (dont `Main.kt`, `DataDirectory.kt`, `SingleInstance.kt`,
 `CrashLog.kt`, `SelfTest.kt`, `icons/`), `kmp/webApp/`,
 `kmp/tools/make_app_icons.py`, `.github/workflows/kmp.yml`,
-`.github/workflows/kmp-release.yml`, `.github/workflows/pages.yml`, et le
-filtre de tags de `.github/workflows/release.yml` (Kairos 2). Les services de
-fichiers et de sauvegarde de chaque plateforme sont décrits par
-`export-import.md`._
+`.github/workflows/kmp-release.yml`, `.github/workflows/pages.yml` (sa
+partie version web), et le filtre de tags de `.github/workflows/release.yml`
+(Kairos 2). Les services de fichiers et de sauvegarde de chaque plateforme
+sont décrits par `export-import.md` ; F-Droid, IzzyOnDroid, fiches Fastlane et
+page de téléchargement par `publication.md`._
 
-État : **jalon M1**. Publication F-Droid, IzzyOnDroid, métadonnées Fastlane et
-page de téléchargement : jalon M6, plan § 9.
+État : **jalon M6** (`3.0.0-beta.1`).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -65,8 +65,7 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   (plan § 6.2). Gatekeeper et SmartScreen afficheront un avertissement.
 - Mise à jour intégrée : jamais sur Android ; sur le bureau, simple
   vérification (`mises-a-jour.md`).
-- Page de téléchargement complète, recette F-Droid et métadonnées Fastlane
-  (M6).
+- F-Droid, IzzyOnDroid, fiches et page de téléchargement : `publication.md`.
 
 ## 2. Solution technique
 
@@ -76,7 +75,8 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   `kairos.versionCode`. Jalon M0 : `3.0.0-alpha.1` (`29001`) ; jalon M1 :
   `3.0.0-alpha.2` (`29002`) ; jalon M2 : `3.0.0-alpha.3` (`29003`) ;
   jalon M3 : `3.0.0-alpha.4` (`29004`) ; jalon M4 : `3.0.0-alpha.5`
-  (`29005`) ; jalon M5 : `3.0.0-alpha.6` (`29006`).
+  (`29005`) ; jalon M5 : `3.0.0-alpha.6` (`29006`) ; jalon M6 (fonctions
+  complètes, publication prête) : `3.0.0-beta.1` (`29501`).
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
 - `versionCode` (`AppVersion.versionCode`) : `X*10000 + Y*100 + Z` ; alpha :
@@ -87,14 +87,17 @@ Pendant la réécriture, chaque jalon doit produire une version installable
 - `KairosBuild` (généré par `core`) expose la version au code commun.
 - Le tag de release doit valoir `v` + `kairos.versionName` (job `version` de
   `kmp-release.yml`).
-- F-Droid (jalon M6) lira la version dans `kmp/gradle.properties` par
-  `UpdateCheckData`.
+- F-Droid lit la version dans `kmp/gradle.properties` par `UpdateCheckData`
+  (`publication.md`) ; chaque versionCode publié a sa note de version
+  Fastlane dans les deux langues.
 
 ### Android (`kmp/androidApp`)
 
 - `applicationId` `com.skohscripts.kairos` (celui de Kairos 2), suffixé
   `.preview` si la version contient `-` ; nom `Kairos Preview` ou `Kairos`
-  (`resValue app_name`).
+  (`resValue app_name`). La propriété Gradle `kairos.preview` (`true` ou
+  `false`) force l'un ou l'autre (vérification F-Droid d'une bêta,
+  `publication.md`).
 - `minSdk 26`, `targetSdk 36`, `compileSdk 37`, Java 21.
 - `MainActivity` (`ComponentActivity`) : `enableEdgeToEdge()`, puis
   `setContent { KairosApp(Platform.ANDROID) { services.await() } }`. Les
@@ -207,14 +210,11 @@ Pendant la réécriture, chaque jalon doit produire une version installable
 
 ### GitHub Pages (`pages.yml`)
 
-- Déclenchement : push sur `main` touchant `kmp/**` ou `pages.yml`, release
-  publiée, lancement manuel. Construit toujours depuis `main`.
-- Site assemblé :
-  - `/preview/` : la version web construite depuis `main` (préversion) ;
-  - `/app/` : la version web (`Kairos-web.zip`) de la dernière release
-    **stable** `v3.*` (jamais une préversion), absente tant qu'il n'y en a pas ;
-  - `/` : page provisoire (liens vers `/app/` s'il existe, `/preview/`, les
-    releases), remplacée par la page de téléchargement au jalon M6.
+- Construit toujours depuis `main` ; `/preview/` : la version web construite
+  depuis `main` (préversion) ; `/app/` : la version web (`Kairos-web.zip`) de
+  la dernière release **stable** `v3.*` (jamais une préversion), absente tant
+  qu'il n'y en a pas ; `/` : la page de téléchargement. Déclencheurs,
+  assemblage et liens : `publication.md` § Page de téléchargement.
 - Déploiement : `actions/upload-pages-artifact` puis `actions/deploy-pages`
   (environnement `github-pages`).
 - **Prérequis, une fois, par le propriétaire du dépôt** : Settings → Pages →

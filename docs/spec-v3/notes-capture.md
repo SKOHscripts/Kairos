@@ -29,7 +29,10 @@ capture.
 - Destination « Notes » (avant « Jour » : capturer avant de traiter). En
   tête, toujours visible : un seul champ, le corps de la note (plusieurs
   lignes), et « Capturer ». Ctrl+Entrée (Cmd+Entrée sur Mac) capture ; le
-  champ se vide et garde le curseur. Aucun autre champ : ni priorité, ni
+  champ se vide et garde le curseur. L'aide sous le champ cite ce raccourci
+  sur le bureau et le web ; sur Android, sans clavier physique, elle dit
+  seulement « Rien d’autre à décider maintenant : tu la traiteras plus
+  tard. ». Aucun autre champ : ni priorité, ni
   points, ni échéance.
 - Dessous, « Notes (N) » : les notes en attente, la plus récente en tête ;
   « Rien en attente. » si aucune. Chaque note offre :
@@ -80,7 +83,8 @@ capture.
   titre) ; `archiveNote` ; `deleteNote`.
 - `NotesScreen(services, onOpenTasks)` : `LazyColumn` de 840 dp au plus ;
   capture dans une carte (`surfaceContainerLow`), `onPreviewKeyEvent` pour
-  Ctrl/Cmd+Entrée ; « → Tâche » en `Button` (action principale de la
+  Ctrl/Cmd+Entrée ; aide `notes_capture_hint`, ou `notes_capture_hint_touch`
+  si `LocalPlatform` vaut `ANDROID` ; « → Tâche » en `Button` (action principale de la
   ligne), « Modifier » et « Archiver » en `TextButton`, supprimer en
   `IconButton` ; message par `LocalMessages` (snackbar de la coquille) ;
   « Traité / archivé » : en-tête cliquable à chevron, état gardé

@@ -438,13 +438,16 @@ l'installation par-dessus fonctionne pour eux. (Jalon M5 : migration faite, voir
   - présentation en trois points, avec la formule du score ;
   - captures d'écran ;
   - boutons de téléchargement par OS ;
-  - badges IzzyOnDroid, F-Droid et APK GitHub ;
+  - badges IzzyOnDroid, F-Droid et APK GitHub (au jalon M7, une fois
+    l'application référencée ; d'ici là, « Bientôt sur F-Droid et
+    IzzyOnDroid ») ;
   - note de première installation (macOS, SmartScreen) ;
   - lien vers le code et la licence.
-- Les liens de téléchargement sont **stables sans régénération** grâce à des
-  noms d'assets fixes :
-  `https://github.com/SKOHscripts/Kairos/releases/latest/download/Kairos-windows-x64.msi`
-  (et ainsi de suite).
+- Les liens de téléchargement reposent sur des **noms d'assets fixes**
+  (`Kairos-windows-x64.msi`, et ainsi de suite) sous
+  `releases/download/<tag v3>`, le tag étant choisi par `pages.yml` à chaque
+  release. Révisé en M6 : `releases/latest/` désigne une 2.x tant que la
+  3.0.0 n'est pas sortie (`docs/spec-v3/publication.md` § Décisions).
 - Un petit script facultatif détecte l'OS du visiteur pour mettre son bouton
   en avant. La page reste complète sans JavaScript.
 - La **version web** de l'application est servie au même endroit, sous
