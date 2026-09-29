@@ -20,6 +20,8 @@ kotlin {
         }
         jvmTest.dependencies {
             implementation(kotlin("test"))
+            // Tests d'interface (clics, saisie, clavier) sur la vue Jour, sans fenêtre.
+            implementation(compose.desktop.uiTestJUnit4)
         }
     }
 }

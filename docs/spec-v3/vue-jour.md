@@ -1,111 +1,198 @@
 # Vue Jour et flux GTD
 
-_Rôle : l'écran d'ouverture de Kairos, où l'on capture, qualifie et fait
-ses tâches. Fichiers couverts : `kmp/ui/src/commonMain/.../ui/day/`
-(`DayScreen.kt`, `DayLists.kt`, `TaskRow.kt`, `Qualify.kt`,
-`EditTaskDialog.kt`, `Levels.kt`, `Dates.kt`)._
+_Rôle : l'écran d'ouverture de Kairos, où l'on capture, qualifie, ordonne
+et fait ses tâches. Fichiers couverts :
+`kmp/core/src/commonMain/.../core/day/DayView.kt` (modèle de l'écran, pur),
+`kmp/ui/src/commonMain/.../ui/day/` (`DayScreen.kt`, `TaskRow.kt`,
+`Why.kt`, `NowCard.kt`, `Timeline.kt`, `Capture.kt`, `Blocks.kt`,
+`Filters.kt`, `Qualify.kt`, `EditTaskDialog.kt`, `Levels.kt`, `Dates.kt`).
+Tests : `core/.../day/DayViewTest.kt`, `ui/.../day/DatesTest.kt`,
+`desktopApp/.../DayScreenUiTest.kt` (clics et clavier réels)._
 
-État : **jalon M1**. Reprend le besoin de `docs/spec/vue-jour-gtd.md`
-(Kairos 2) pour la capture, la boîte de réception, la liste, « Fait » et
-l'édition. « Maintenant », l'agenda trié par score WSJF, les créneaux, la
-timeline, les sections secondaires (sans créneau, bloquées, plus tard),
-filtres, recherche, sous-tâches, bloqueurs, récurrence, « Pourquoi à cette
-place ? », guide des points et raccourcis arrivent avec le moteur (M2).
+État : **jalon M2**. Reprend le besoin de `docs/spec/vue-jour-gtd.md`
+(Kairos 2). Le moteur est décrit par `ordonnancement.md`, `dependances.md`
+et `recurrence.md`. Restent pour plus tard : le chrono (« Démarrer le
+chrono », carte « En ce moment », temps passé, rail du réel sur la frise :
+M3), le guide des points fondé sur l'historique et la vue Semaine (M4).
 
 ## 1. Besoin métier (cahier des charges)
 
 ### Objectif / problème
 
-La vue Jour répond, à l'ouverture, à trois questions : qu'est-ce qui n'est pas
-encore clarifié, qu'est-ce que je fais, qu'est-ce qui est fait. Elle suit le
-cycle GTD : **capturer** sans friction, **traiter** la boîte de réception
-(donner une priorité et une taille), **faire**.
+À l'ouverture, répondre à trois questions sans changer d'écran : qu'est-ce
+qui n'est pas encore clarifié, qu'est-ce que je fais maintenant, qu'est-ce
+qui vient ensuite. Cycle GTD : **capturer** sans friction, **traiter** la
+boîte de réception (priorité et taille), **faire** dans l'ordre du score.
 
-### Comportement attendu (utilisateur)
+### Comportement attendu (utilisateur), de haut en bas
 
-1. **Capture**, toujours visible en tête : un seul champ (le titre) et un
-   bouton « Ajouter ». Entrée ajoute ; le champ se vide et garde le curseur
-   pour enchaîner les captures au clavier.
-2. **À traiter** (boîte de réception) : toute tâche à laquelle il manque la
-   priorité **ou** les points. Chacune dit ce qui manque (« priorité et points
-   manquants », « priorité manquante », « points manquants ») et se qualifie
-   en un clic : pastilles **P0 Critique · P1 Important · P2 Utile** et
-   **1 trivial · 2 petit · 3 modéré · 5 conséquent · 8 gros · 13 très gros ·
-   21 énorme**. Le sens est écrit sur la pastille, jamais seulement au survol.
-   Recliquer une valeur la retire. Section vide : « Rien à traiter : tout est
-   déjà clarifié » (la section ne disparaît pas).
-3. **À faire** : les tâches qualifiées, dans un **ordre provisoire**
-   (priorité, puis échéance, les tâches sans échéance en dernier, puis
-   ancienneté). Une phrase dit que le score et le placement arrivent dans la
-   préversion suivante.
-4. **Fait** : repliée par défaut, avec son compte ; la plus récente en tête.
-   Décocher une tâche la remet à faire.
-5. **Ligne de tâche** : coche ronde en tête ; titre, puis étiquettes (projet,
-   type, « échéance 30 sept. », « 45 min ») qui passent à la ligne, puis la
-   première ligne de la description, atténuée ; à droite, la priorité (P0 en
-   rouge, P1 et P2 neutres) et les points ; tout à droite, le crayon
-   d'édition. Un titre long fait grandir la ligne vers le bas.
-6. **Édition** (dialogue) : titre, description (juste sous le titre),
-   priorité et points (pastilles avec leur sens complet), échéance
-   (AAAA-MM-JJ, refusée si invalide), durée estimée en minutes, projet, type
-   (liste des Réglages ; une valeur retirée de la liste reste affichée).
-   « Enregistrer » pose tout ; « Supprimer » demande confirmation et
-   supprime définitivement.
-7. **Version web** : un bandeau en tête rappelle que les données ne sont que
-   dans le navigateur tant qu'elles ne sont pas liées à un fichier
-   (`export-import.md` § Version web).
+1. **Bandeau de stockage** (version web seulement, `export-import.md`).
+2. **Capture**, toujours visible, deux volets : « Tâche » (titre seul ;
+   Entrée ajoute, le champ se vide et garde le curseur) et « Créneau / deep
+   work » (titre, jour, début, fin, case deep work, récurrence ; puis la
+   liste des créneaux du jour, chacun modifiable).
+3. **À traiter** : toute tâche sans priorité **ou** sans points, avec ce qui
+   manque, qualifiable en un clic par pastilles dont le sens est écrit
+   (P0 Critique · P1 Important · P2 Utile ; 1 trivial … 21 énorme).
+   Recliquer une valeur la retire. Vide : « Rien à traiter : tout est déjà
+   clarifié ».
+4. **Maintenant** (seul bloc teinté) : « À faire maintenant : » la première
+   tâche placée (avec son heure), sinon la première sans créneau ; boutons
+   nommés « Fait » et « Décaler » ; bilan : faites aujourd'hui, à faire,
+   « requis … · disponible … », « la journée déborde de … » s'il y a lieu.
+5. **Bandeau de surcharge** si plus de P0 non bloquées que le seuil.
+6. **Aujourd'hui, dans l'ordre** : les tâches placées par heure, ordre du
+   score ; étiquettes « épinglée », « deep work », « chemin critique » ;
+   notes « à partir de 14h05, après « Réunion » » (« (épinglée) » si
+   l'obstacle est une tâche épinglée), « créneau creux (~15 h) : tâche
+   légère privilégiée », « chevauche « Réunion » ». Vide : « Aucune tâche à
+   faire n'est actuellement planifiée ».
+7. **Sections secondaires**, chacune avec son compte et une phrase de rôle,
+   absentes si vides : « Sans créneau aujourd'hui » (**dépliée**),
+   « Bloquées » (« en attente de : … »), « Programmées plus tard »,
+   « Tâches mères en cours » (« 1/2 sous-tâche(s) »), « Fait » (terminées
+   aujourd'hui). Les quatre dernières sont repliées.
+8. **Rechercher / filtrer** (repliée) : recherche dans le titre, la
+   description et le projet, facettes priorité, projet, type, points ;
+   « filtre actif » et « Réinitialiser ». Un filtre actif remonte au-dessus
+   de l'agenda. Il réduit les listes, jamais le planning.
+9. **Backlog, sans date** (replié, toujours présent) : tâches à faire sans
+   échéance ni date programmée, non bloquées.
+10. **Agenda** (frise) : la journée de travail heure par heure, créneaux et
+    tâches placées ; à droite de la liste en largeur bureau, en bas sinon.
+
+**Ligne de tâche** (toutes sections) : coche ronde ; corps : heure (agenda),
+« Mère › » pour une sous-tâche, titre, puis étiquettes (projet, type,
+durée, « échéance 30 sept. », « programmée 2 oct. », icône de récurrence,
+« traîne depuis N j ») qui passent à la ligne, puis la description sur une
+ligne, dépliable d'un clic ; colonne « clés » alignée à droite : score (qui
+s'ouvre sur « Pourquoi à cette place ? »), priorité (P0 en rouge), points ;
+actions : décaler (tâches à faire), modifier. En largeur étroite, la
+colonne « clés » passe sous le corps. Liseré rouge de 3 dp à gauche pour
+une tâche en retard. Tâche bloquée : fond de surface, contour, titre
+atténué.
+
+**Pourquoi à cette place ?** : valeur de la priorité, ce qu'ajoute la date
+la plus proche (« Échéance dépassée de 12 j », « Date programmée demain »,
+« Aucune échéance »), l'effort et sa provenance, le score ; une tâche en
+retard le dit en tête. Le score n'est affiché que pour une tâche qualifiée.
+
+**Édition** (dialogue) : titre, description, priorité, points, échéance,
+durée ; « Options avancées » : programmée pour, projet, temps passé manuel,
+récurrence (aucune, quotidienne, jours ouvrés, hebdomadaire, mensuelle,
+« le … du mois » avec le jour), type, heure fixe (HH:MM, vide = aucune),
+nouvelles sous-tâches (une par ligne), « Bloquée par » (cases à cocher).
+Un seul « Enregistrer » ; « Supprimer » avec confirmation. Dialogue de
+créneau : mêmes champs que la capture de créneau, « Supprimer » qui dit
+« toutes ses occurrences » pour un récurrent.
+
+**Raccourcis clavier** (bureau et web ; indiqués à côté de leur contrôle,
+masqués sur Android) : `N` met le curseur dans la capture de tâche (en
+revenant au volet « Tâche »), `/` ouvre la recherche et y met le curseur.
+Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt.
 
 ### Critères de succès
 
-- Une tâche capturée apparaît aussitôt dans « À traiter », jamais dans « À
-  faire » tant qu'il lui manque la priorité ou les points.
-- Poser la priorité ou les points prend **un** clic, sans ouvrir l'édition.
-- Une tâche dans une seule liste à la fois ; une tâche archivée (base 2.x)
-  n'apparaît nulle part (`DayListsTest`).
-- Aucun débordement horizontal à 420 px de large (vérifié sur le rendu de
-  l'auto-test).
+- Une tâche capturée apparaît aussitôt dans « À traiter », jamais dans le
+  planning tant qu'il lui manque la priorité ou les points ; qualifiée d'un
+  clic chacune, elle entre dans l'agenda (`DayScreenUiTest`).
+- Toute tâche ouverte est dans une seule section (`DayViewTest`).
+- « Pourquoi à cette place ? » s'ouvre d'un clic et se referme d'un clic à
+  côté ; « Fait » et « Décaler » de « Maintenant » agissent sur la bonne
+  tâche ; un créneau saisi apparaît dans la liste du jour ; l'édition pose
+  un bloqueur et une heure fixe ; `N` et `/` placent le curseur
+  (`DayScreenUiTest`).
+- Aucune ligne ne déborde horizontalement à 420 px (captures de l'auto-test).
 
 ## 2. Solution technique
 
-- `DayScreen(services)` : lit `repository.snapshot` (`collectAsState`),
-  dérive `DayLists.of(tasks)` ; `LazyColumn` centrée (840 dp au plus) :
-  bandeau de stockage (web), capture, titre et aide ou état vide de « À
-  traiter », lignes avec `InboxQualify`, titre de « À faire » et phrase
-  d'ordre provisoire ou « Rien à faire pour l'instant », lignes, bouton
-  repliable « Fait (n) » et ses lignes. Chaque action appelle le dépôt dans
-  une coroutine de l'écran ; l'état republié redessine l'écran.
-- `DayLists.of` : `inbox` = `todo` et `needsProcessing`, par identifiant ;
-  `todo` = `todo` qualifiées, triées par (priorité, sans échéance, échéance,
-  identifiant) ; `done` = `done`, par `updatedAt` décroissant.
-- `Capture` : carte « filled » (`surfaceContainerLow`, élévation 0),
-  `OutlinedTextField` sur une ligne ; Entrée (touche physique, intercepté par
-  `onPreviewKeyEvent`, ou action « OK » du clavier virtuel) et le bouton
-  appellent `submit` : ajoute si non vide, vide le champ, redonne le focus.
-- `PriorityPills` / `PointsPills` (`Qualify.kt`) : `FilterChip` en
-  `FlowRow`, hauteur minimale 48 dp ; libellés `Levels` (définitions de
-  `app/task_guide.py`) ; `showMeaning` ajoute le sens complet des priorités
-  (dialogue d'édition).
-- `TaskRow` : `Surface` `surfaceContainerLow` en forme `medium` (12 dp) ;
-  `IconButton` coche (`RadioUnchecked`, ou `CheckCircleFilled` teinte « ok »
-  si faite) ; colonne corps en `weight(1f)` ; rangée priorité
-  (`PriorityBadge` : P0 en `errorContainer`) et points (`Badge` neutre) ;
-  `IconButton` crayon. Titre barré et atténué si fait. Emplacement `extra`
-  sous la ligne (qualification de la boîte de réception).
-- `EditTaskDialog` : `Dialog` + `Surface` `extraLarge` (28 dp),
-  `surfaceContainerHigh`, ombre (élément flottant), 640 dp au plus,
-  défilant. Échéance analysée par `LocalDate.parse` ; invalide → erreur
-  sous le champ et « Enregistrer » désactivé. Durée : chiffres seulement,
-  4 au plus. Type : `ExposedDropdownMenuBox` en lecture seule (« Non classé »
-  = vide). Suppression : `AlertDialog` de confirmation.
-- `Dates.short(date, langue)` : « 30 sept. » en français (langue par défaut),
-  « Sep 30 » en anglais. Langue lue par `Locale.current`.
+### Modèle (`DayView.build`, `core`)
+
+`DayView.build(snapshot, jour, maintenant, fuseau, filtre)` rend en une fois
+tout ce que l'écran affiche : `schedule` (planning complet, jamais filtré),
+listes filtrées (`inbox`, `agenda`, `unscheduled`, `later`, `blocked` avec
+motifs, `parents` avec avancement, `doneToday`, `backlog`), `nextUp` et son
+heure, `why` (tâches qualifiées), `buckets`, `staleDays`, `raised`,
+`parentTitle`, `blockersOf`, `openTasks` (candidats bloqueurs, par titre),
+`priorityOverload`, `projects`, `editableBlocks` (ponctuels du jour et
+modèles récurrents qui y tombent, par heure), `dayBlocks` (créneaux
+effectifs), `timeline`, `holidays`. Le backlog est trié par priorité (sans
+priorité en dernier) puis titre ; « Fait » par modification décroissante.
+`DayFilter` : recherche insensible à la casse sur titre, description et
+projet ; `active` si la recherche n'est pas vide ou qu'une facette est
+posée.
+
+### Écran (`DayScreen`, `ui`)
+
+- L'heure est lue sur `services.clock` et réévaluée à chaque minute
+  (`produceState`) ; `DayView` est recalculé quand la base, la minute ou le
+  filtre changent. `LaunchedEffect(jour, tâches)` appelle
+  `ensureCalendarOccurrences`.
+- `BoxWithConstraints` : deux colonnes (liste de 840 dp au plus, frise de
+  320 dp) à partir de 900 dp de large ; en dessous, frise en fin de liste.
+  Lignes « compactes » sous 600 dp de liste.
+- `LazyColumn` construite par `ListBuilder`, qui retient la position de
+  chaque entrée nommée (capture, filtres, sections) pour y faire défiler les
+  raccourcis. États d'ouverture des sections : `mutableStateMapOf`, gardés
+  tant que l'écran vit.
+- Racine focalisable (`focusRequester` + `focusable` + `onKeyEvent`, marque
+  de test `day-screen`) ; elle reprend le focus après la première image et à
+  la fermeture d'un dialogue. Un champ de saisie consomme la frappe avant
+  elle : les raccourcis sont inactifs pendant une saisie.
+- `TaskRow(tâche, RowContext, heure?, bloquée, modifiable, description,
+  before, after, extra)` : `RowContext` porte la vue, la langue, le mode
+  compact et les actions. Formes et couleurs de la charte : `Badge` neutre,
+  `WarnBadge` (contour et icône, jamais d'ambre), `ErrorBadge` (conflit),
+  `PriorityBadge`, score en chiffre primaire (`ScoreBadge`, menu déroulant
+  MD3 de 300 dp).
+- `NowCard` : `primaryContainer`, `Button` « Fait », `TextButton`
+  « Décaler », badges du bilan (vert « ok » pour les faites).
+- `TimelineCard` : carte à contour, 1 min = 1 dp, graduations par heure,
+  8 dp de marge en haut et en bas ; occupé en conteneur de surface le plus
+  haut, travail et épinglée en conteneur secondaire (contour pour
+  l'épinglée), conflit en conteneur d'erreur, deep work en tertiaire
+  (hachures dessinées pour le bloc réservé) ; libellé « heure · titre » si
+  l'entrée fait au moins 14 min.
+- `Capture` : `SingleChoiceSegmentedButtonRow` ; `CaptureState` (volet,
+  `FocusRequester` du champ). `BlockFormState` / `BlockFields` : jour
+  (AAAA-MM-JJ), début et fin (`Dates.parseTime` accepte « 9:30 »,
+  « 09h30 », « 14h »), fin après début sinon erreur et bouton inactif ;
+  `LabeledCheckbox` (libellé cliquable, 48 dp).
+- `FilterCard` : carte à contour repliable, `ExposedDropdownMenuBox` par
+  facette.
+- `Dates` : « 30 sept. » / « Sep 30 », « 09h15 » / « 09:15 », graduations
+  « 9h » / « 9:00 », nombres à une décimale sans « .0 » ; `duration()` :
+  « 1 h 30 », « 2 h », « 45 min ».
 
 ### Décisions et pièges tracés
 
-- **Ordre provisoire affiché comme tel** : plutôt que d'imiter le score
-  WSJF sans le moteur, M1 trie simplement et le dit à l'écran. La phrase
-  disparaît en M2.
-- **Priorité et points restent à droite même en largeur étroite** (Kairos 2
-  les passait sous le corps sous 720 px) : à reprendre avec la ligne complète
-  en M2.
-- **Pas de raccourci `N` ni `/`** en M1 : ils arrivent avec la recherche (M2).
+- **Défiler seulement après composition** : un raccourci qui change l'état
+  (volet « Tâche », section ouverte) puis fait défiler la liste dans la même
+  image fait échouer la liste paresseuse (erreur interne de Compose,
+  constatée par `DayScreenUiTest`). On attend deux images
+  (`awaitComposed`), on défile, on attend encore, puis on donne le focus.
+  Un `delay` fixe ne convient pas non plus : l'horloge de test ne l'avance
+  pas.
+- **Focus racine après la première image** : demandé plus tôt, l'écran
+  n'est pas encore attaché et les raccourcis restaient sourds.
+- **« Fait » du jour en heure locale** (fuseau injecté) : Kairos 2 comparait
+  la date UTC de modification, si bien qu'une tâche faite à 0 h 30 à Paris
+  tombait la veille. Écart volontaire.
+- **Pas de « Décaler » sur une tâche faite** (Kairos 2 l'affichait aussi
+  dans « Fait », sans utilité).
+- **Score affiché « 16 », pas « 16.0 »** : même format que « Pourquoi à
+  cette place ? » (Kairos 2 affichait l'arrondi Python brut dans le badge).
+- **Sections repliables sans carte englobante** : dans une liste paresseuse,
+  une carte ne peut pas contenir plusieurs éléments ; titre cliquable avec
+  chevron, puis lignes.
+- **Aujourd'hui seulement** : pas de navigation vers un autre jour avant la
+  vue Semaine (M4), qui y mène.
+- **Jour et heures saisis à part** pour un créneau : le `datetime-local` de
+  Kairos 2 n'a pas d'équivalent commun à Compose.
+- **Projet dans les options avancées** (comme Kairos 2) ; le type garde une
+  valeur retirée de la liste des réglages (décision M1).
+- **Opacité interdite sur une ligne bloquée** : décision de Kairos 2 reprise
+  (fond et contour à la place), même si le dialogue de Compose, fenêtre à
+  part, n'hérite pas de l'opacité.
+- **Priorité et points passent sous le corps en largeur étroite** (comme
+  Kairos 2) : décision M1 rouverte et tranchée au jalon M2.

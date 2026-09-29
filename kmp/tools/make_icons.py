@@ -40,6 +40,15 @@ ICONS = {
     "ExpandLess": ("keyboard_arrow_up", False),
     "Inbox": ("inbox", False),
     "Warning": ("warning", False),
+    "Redo": ("redo", False),
+    "Search": ("search", False),
+    "Schedule": ("schedule", False),
+    "Block": ("block", False),
+    "Repeat": ("repeat", False),
+    "PushPin": ("keep", False),
+    "TrendingUp": ("trending_up", False),
+    "Description": ("description", False),
+    "Layers": ("layers", False),
 }
 
 

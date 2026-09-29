@@ -96,14 +96,20 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `BarChart`, `Settings`, `Info` (et leurs variantes `…Filled`), `ArrowBack`,
   `ChevronRight`, `OpenInNew`, `Construction` ; jalon M1 : `CheckCircle`
   (et `CheckCircleFilled`), `RadioUnchecked`, `Edit`, `Delete`, `Add`,
-  `Upload`, `Download`, `ExpandMore`, `ExpandLess`, `Inbox`, `Warning`.
+  `Upload`, `Download`, `ExpandMore`, `ExpandLess`, `Inbox`, `Warning` ;
+  jalon M2 (vue Jour complète) : `Redo` (décaler), `Search`, `Schedule`
+  (creux), `Block` (bloquée), `Repeat`, `PushPin` (épinglée, symbole
+  `keep`), `TrendingUp` (score, chemin critique), `Description`, `Layers`
+  (deep work).
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`
   épaisseur 1.6, secteur `#C28417` de 12 h à 2 h, axe `#2B251C` rayon 2.6,
   viewport 40), couleurs fixes, affiché par `Image` (jamais teinté).
 
 ### Navigation (`navigation/`, `KairosApp.kt`)
 
-- `Platform` : `ANDROID`, `DESKTOP`, `WEB`, fourni par le point d'entrée.
+- `Platform` : `ANDROID`, `DESKTOP`, `WEB`, fourni par le point d'entrée ;
+  `KairosApp` le pose aussi dans `LocalPlatform` pour les écrans qui en
+  dépendent (la vue Jour masque les raccourcis clavier sur Android).
 - `Destination` (enum, dans l'ordre) : `NOTES`, `DAY`, `WEEK`, `STATS`,
   `SETTINGS`, chacune avec libellé court, titre de page, icône et icône
   pleine. `START = DAY`.

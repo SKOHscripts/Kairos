@@ -35,14 +35,17 @@ object SelfTest {
         val app: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { services } }
         val settings: @Composable () -> Unit = { KairosTheme { Surface { SettingsScreen(services) {} } } }
         val about: @Composable () -> Unit = { KairosTheme { Surface { AboutScreen() } } }
+        // Les deux dernières, très hautes, montrent toute la vue Jour (agenda, sections, frise).
         val shots = listOf(
-            Triple("wide", 1200, app),
-            Triple("narrow", 420, app),
-            Triple("settings", 900, settings),
-            Triple("about", 900, about),
+            Shot("wide", 1200, 1000, app),
+            Shot("narrow", 420, 1000, app),
+            Shot("settings", 900, 1000, settings),
+            Shot("about", 900, 1000, about),
+            Shot("day-full", 1200, 3000, app),
+            Shot("day-full-narrow", 420, 5000, app),
         )
-        for ((name, width, content) in shots) {
-            val png = render(width, 1000, content)
+        for ((name, width, height, content) in shots) {
+            val png = render(width, height, content)
             output?.let { it.mkdirs(); File(it, "desktop-$name.png").writeBytes(png) }
         }
         println("Kairos ${KairosBuild.VERSION_NAME} : auto-test réussi")
@@ -52,6 +55,8 @@ object SelfTest {
         e.printStackTrace()
         1
     }
+
+    private data class Shot(val name: String, val width: Int, val height: Int, val content: @Composable () -> Unit)
 
     private fun render(width: Int, height: Int, content: @Composable () -> Unit): ByteArray {
         val scene = ImageComposeScene(width, height, Density(1f), content = content)

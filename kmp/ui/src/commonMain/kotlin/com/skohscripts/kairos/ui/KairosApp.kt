@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,16 +43,18 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun KairosApp(platform: Platform, openServices: suspend () -> AppServices) {
     KairosTheme {
-        var services by remember { mutableStateOf<AppServices?>(null) }
-        var failure by remember { mutableStateOf<Throwable?>(null) }
-        LaunchedEffect(Unit) {
-            runCatching { openServices() }.onSuccess { services = it }.onFailure { failure = it }
-        }
-        val ready = services
-        when {
-            ready != null -> KairosShell(platform, ready)
-            failure != null -> Status(stringResource(Res.string.error_open_title), failure.toString())
-            else -> Status(stringResource(Res.string.loading), null, progress = true)
+        CompositionLocalProvider(LocalPlatform provides platform) {
+            var services by remember { mutableStateOf<AppServices?>(null) }
+            var failure by remember { mutableStateOf<Throwable?>(null) }
+            LaunchedEffect(Unit) {
+                runCatching { openServices() }.onSuccess { services = it }.onFailure { failure = it }
+            }
+            val ready = services
+            when {
+                ready != null -> KairosShell(platform, ready)
+                failure != null -> Status(stringResource(Res.string.error_open_title), failure.toString())
+                else -> Status(stringResource(Res.string.loading), null, progress = true)
+            }
         }
     }
 }

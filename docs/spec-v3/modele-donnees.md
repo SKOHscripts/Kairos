@@ -133,19 +133,35 @@ de SQLDelight.
   dans `snapshot` (`StateFlow<KairosSnapshot>`). L'interface dérive tout de
   cet état. Les écritures sont sérialisées (`Mutex`) et transactionnelles ;
   `onChanged` reçoit chaque nouvel état (sauvegarde de la version web).
-- `open(opened, examples, clock, onChanged)` : si la base vient d'être
-  créée, y pose `examples()` (une erreur y est ignorée : le démarrage passe
-  toujours), puis charge l'état.
-- Opérations (jalon M1) :
-  - `createTask(titre)` : titre nettoyé ; vide → rien (`null`). Ni priorité
-    ni points : la tâche arrive « À traiter ».
+- `open(opened, examples, clock, timeZone, onChanged)` : si la base vient
+  d'être créée, y pose `examples()` (une erreur y est ignorée : le démarrage
+  passe toujours), puis charge l'état. `timeZone` (défaut : celui du
+  système) donne « aujourd'hui » aux opérations qui en dépendent.
+- Opérations :
+  - `createTask(titre, parentId?)` : titre nettoyé ; vide → rien (`null`).
+    Ni priorité ni points : la tâche arrive « À traiter ». Une mère inconnue
+    est ignorée (la tâche naît au premier niveau).
   - `setPriority`, `setPoints` : une valeur hors échelle est vidée.
   - `toggleDone` : `todo` → `done` en fermant la session de chrono ouverte
-    sur la tâche ; `done` → `todo` ; `archived` inchangée. (La recréation
-    d'une occurrence récurrente arrive avec le moteur, M2.)
-  - `updateEssentials(TaskEdit)` : titre (vide → ancien titre gardé),
-    description, priorité, points, échéance, durée (≤ 0 → vide), projet et
-    type (nettoyés).
+    sur la tâche et, pour une récurrente, en créant l'occurrence suivante
+    dans la même transaction (`recurrence.md`) ; `done` → `todo` ;
+    `archived` inchangée.
+  - `snooze` : « Décaler » (`recurrence.md` § Décaler).
+  - `ensureCalendarOccurrences(jour)` : occurrences du mois des séries
+    « le N du mois » ; n'écrit rien s'il n'y a rien à créer.
+  - `updateTask(TaskEdit)` : l'édition complète en un enregistrement :
+    titre (vide → ancien titre gardé), description, priorité, points,
+    échéance, date programmée, durée (≤ 0 → vide), projet et type
+    (nettoyés), temps passé manuel (< 0 → vide), récurrence (jour du mois
+    gardé seulement pour « le … du mois » et dans 1-31 ; ancre de semaine =
+    jour de l'échéance pour l'hebdomadaire), heure fixe (sur la date
+    programmée, sinon sur le jour affiché `pinDay` ; vide = désépinglée),
+    sous-tâches en lot (une ligne non vide = une sous-tâche), bloqueurs
+    (ensemble cible complet, `dependances.md`).
+  - `createBlock`, `updateBlock`, `deleteBlock` (`BlockEdit` : titre
+    nettoyé, début, fin, nature, récurrence) : refusés (`false`) si la fin
+    n'est pas après le début ; un récurrent modifié ou supprimé l'est pour
+    toutes ses occurrences (seul le modèle est stocké).
   - `deleteTask` : supprime la tâche et les dépendances où elle figure ; ses
     sous-tâches et sessions restent (comme `delete_task` de Kairos 2).
   - `updateSettings`.
@@ -159,7 +175,7 @@ de SQLDelight.
 
 - **Toute la base en mémoire, relue à chaque écriture** : un outil personnel
   compte quelques milliers de lignes au plus ; en échange, un seul état
-  cohérent et un moteur d'ordonnancement (M2) qui a de toute façon besoin de
+  cohérent et un moteur d'ordonnancement qui a de toute façon besoin de
   tout. À revoir seulement si la relecture devient perceptible.
 - **Création décidée par la présence de `task`, pas par `user_version`** : le
   pilote Android pose lui-même `user_version`. Il reçoit donc un schéma

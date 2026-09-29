@@ -7,7 +7,13 @@ import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.WorkSession
 import kotlinx.coroutines.test.runTest
+import com.skohscripts.kairos.core.model.BlockKind
+import com.skohscripts.kairos.core.model.BlockRecurrence
+import com.skohscripts.kairos.core.model.TaskRecurrence
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
 import java.io.File
 import java.nio.file.Files
 import kotlin.test.Test
@@ -24,11 +30,12 @@ class KairosRepositoryTest {
     private val clock = object : Clock {
         override fun now() = now
     }
+    private val today = LocalDate(2026, 9, 28) // lundi
     private val examples = { ExampleData.snapshot(LocalDate(2026, 9, 28), now, "fr") }
 
     private suspend fun open(file: File? = null): KairosRepository {
         val driver = JdbcSqliteDriver(if (file == null) JdbcSqliteDriver.IN_MEMORY else "jdbc:sqlite:${file.path}")
-        return KairosRepository.open(KairosStore.open(driver), examples, clock)
+        return KairosRepository.open(KairosStore.open(driver), examples, clock, timeZone = TimeZone.UTC)
     }
 
     private suspend fun empty(): KairosRepository = open().also { it.replaceAll(KairosSnapshot()) }
@@ -112,10 +119,10 @@ class KairosRepositoryTest {
     fun essentialsEditKeepsTheTitleWhenBlank() = runTest {
         val repo = empty()
         val id = repo.createTask("Titre")!!
-        repo.updateEssentials(
+        repo.updateTask(
             id,
             TaskEdit(title = " ", description = "Détails", priority = 0, points = 8, deadline = LocalDate(2026, 10, 1),
-                estimatedMinutes = 0, projectTag = " Kairos ", taskType = "Réunion"),
+                estimatedMinutes = 0, projectTag = " Kairos ", taskType = "Réunion", pinDay = today),
         )
         val t = repo.snapshot.value.tasks.single()
         assertEquals("Titre", t.title)
@@ -166,5 +173,103 @@ class KairosRepositoryTest {
         repo.createTask("A")
         repo.createTask("B")
         assertEquals(listOf(0, 1, 2), seen)
+    }
+
+    private fun edit(title: String = "T", vararg changes: (TaskEdit) -> TaskEdit): TaskEdit =
+        changes.fold(TaskEdit(title = title, pinDay = today)) { e, f -> f(e) }
+
+    @Test
+    fun completingARecurringTaskCreatesTheNextOccurrenceOnce() = runTest {
+        val repo = empty()
+        val id = repo.createTask("Point hebdo")!!
+        repo.updateTask(id, TaskEdit("Point hebdo", priority = 1, points = 3, deadline = LocalDate(2026, 9, 24),
+            recurrence = TaskRecurrence.WEEKLY, pinTime = LocalTime(10, 30), pinDay = today))
+        val weekly = repo.snapshot.value.tasks.single()
+        assertEquals(3, weekly.recurrenceDayOfWeek) // jeudi, jour de l'échéance
+        assertEquals(LocalDateTime(2026, 9, 28, 10, 30), weekly.pinnedStart)
+        repo.toggleDone(id)
+        val next = repo.snapshot.value.tasks.single { it.id != id }
+        assertEquals(LocalDate(2026, 10, 1), next.deadline) // jeudi suivant, pas lundi + 7
+        assertEquals(next.deadline, next.scheduledDate)
+        assertEquals(LocalDateTime(2026, 10, 1, 10, 30), next.pinnedStart)
+        assertEquals(TaskStatus.TODO, next.status)
+        assertEquals(1 to 3, next.priority to next.fibonacciPoints)
+        // Rouvrir puis refaire : aucune seconde occurrence.
+        repo.toggleDone(id)
+        repo.toggleDone(id)
+        assertEquals(2, repo.snapshot.value.tasks.size)
+    }
+
+    @Test
+    fun calendarSeriesGetsThisMonthOccurrenceOnce() = runTest {
+        val repo = empty()
+        val id = repo.createTask("Note de frais")!!
+        repo.updateTask(id, edit("Note de frais", { it.copy(recurrence = TaskRecurrence.MONTHLY_ON_DAY, recurrenceDayOfMonth = 23, deadline = LocalDate(2026, 8, 21)) }))
+        repo.toggleDone(id) // une série calendaire ne se recrée pas à la complétion
+        assertEquals(1, repo.snapshot.value.tasks.size)
+        repo.ensureCalendarOccurrences(LocalDate(2026, 11, 2))
+        repo.ensureCalendarOccurrences(LocalDate(2026, 11, 20))
+        val occ = repo.snapshot.value.tasks.single { it.id != id }
+        assertEquals(LocalDate(2026, 11, 23), occ.deadline)
+        assertEquals("2026-11", occ.recurrencePeriod)
+        assertEquals(2, repo.snapshot.value.tasks.size)
+    }
+
+    @Test
+    fun snoozeSkipsWeekendAndHolidays() = runTest {
+        val repo = empty()
+        val id = repo.createTask("T")!!
+        repo.updateTask(id, edit(changes = arrayOf({ it.copy(deadline = LocalDate(2026, 10, 30)) }))) // vendredi
+        repo.snooze(id)
+        // Lundi 2 novembre (le 1er, dimanche, est férié de toute façon).
+        assertEquals(LocalDate(2026, 11, 2), repo.snapshot.value.tasks.single().deadline)
+        repo.updateTask(id, edit(changes = arrayOf({ it.copy(deadline = null) })))
+        repo.snooze(id)
+        assertEquals(LocalDate(2026, 9, 29), repo.snapshot.value.tasks.single().deadline) // lendemain ouvré d'aujourd'hui
+    }
+
+    @Test
+    fun blockersAreATargetSetAndCyclesAreIgnored() = runTest {
+        val repo = empty()
+        val a = repo.createTask("A")!!
+        val b = repo.createTask("B")!!
+        val c = repo.createTask("C")!!
+        repo.updateTask(a, edit("A", { it.copy(blockerIds = setOf(b, c, a)) }))
+        assertEquals(setOf(b, c), repo.snapshot.value.dependencies.filter { it.taskId == a }.map { it.blockerId }.toSet())
+        // B bloqué par A bouclerait : ignoré, le reste de l'enregistrement passe.
+        repo.updateTask(b, edit("B renommée", { it.copy(blockerIds = setOf(a)) }))
+        assertEquals("B renommée", repo.snapshot.value.tasks.single { it.id == b }.title)
+        assertTrue(repo.snapshot.value.dependencies.none { it.taskId == b })
+        repo.updateTask(a, edit("A", { it.copy(blockerIds = setOf(c)) }))
+        assertEquals(listOf(c), repo.snapshot.value.dependencies.map { it.blockerId })
+    }
+
+    @Test
+    fun subtasksInBatchAndPinOnScheduledDate() = runTest {
+        val repo = empty()
+        val id = repo.createTask("Mère")!!
+        repo.updateTask(id, edit("Mère", { it.copy(newSubtasks = "Une\n  \n Deux ", scheduledDate = LocalDate(2026, 10, 2), pinTime = LocalTime(9, 15)) }))
+        val tasks = repo.snapshot.value.tasks
+        assertEquals(listOf("Une", "Deux"), tasks.filter { it.parentId == id }.map { it.title })
+        assertEquals(LocalDateTime(2026, 10, 2, 9, 15), tasks.single { it.id == id }.pinnedStart)
+        assertNull(repo.snapshot.value.tasks.single { it.title == "Une" }.priority)
+        val sub = repo.createTask("Trois", parentId = 999)!!
+        assertNull(repo.snapshot.value.tasks.single { it.id == sub }.parentId)
+    }
+
+    @Test
+    fun blocksAreValidatedAndEditedAsTemplates() = runTest {
+        val repo = empty()
+        val start = LocalDateTime(2026, 9, 28, 12, 0)
+        assertTrue(!repo.createBlock(BlockEdit("Faux", start, start)))
+        assertTrue(repo.createBlock(BlockEdit(" Déjeuner ", start, LocalDateTime(2026, 9, 28, 13, 0), recurrence = BlockRecurrence.DAILY)))
+        val block = repo.snapshot.value.timeBlocks.single()
+        assertEquals("Déjeuner", block.title)
+        assertTrue(repo.updateBlock(block.id, BlockEdit("Focus", start, LocalDateTime(2026, 9, 28, 14, 0), BlockKind.DEEPWORK)))
+        val edited = repo.snapshot.value.timeBlocks.single()
+        assertEquals(BlockKind.DEEPWORK, edited.kind)
+        assertEquals(BlockRecurrence.NONE, edited.recurrence)
+        repo.deleteBlock(block.id)
+        assertTrue(repo.snapshot.value.timeBlocks.isEmpty())
     }
 }

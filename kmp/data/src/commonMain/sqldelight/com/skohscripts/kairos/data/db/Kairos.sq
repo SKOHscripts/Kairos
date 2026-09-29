@@ -114,6 +114,15 @@ SELECT * FROM time_block ORDER BY start, id;
 insertTimeBlockWithId:
 INSERT INTO time_block VALUES (?, ?, ?, ?, ?, ?, ?);
 
+insertTimeBlock:
+INSERT INTO time_block (title, start, end, kind, recurrence, created_at) VALUES (?, ?, ?, ?, ?, ?);
+
+updateTimeBlock:
+UPDATE time_block SET title = ?, start = ?, end = ?, kind = ?, recurrence = ? WHERE id = ?;
+
+deleteTimeBlock:
+DELETE FROM time_block WHERE id = ?;
+
 deleteAllTimeBlocks:
 DELETE FROM time_block;
 
@@ -124,6 +133,12 @@ SELECT * FROM task_dependency ORDER BY id;
 
 insertDependencyWithId:
 INSERT INTO task_dependency VALUES (?, ?, ?, ?);
+
+insertDependency:
+INSERT INTO task_dependency (task_id, blocker_id, created_at) VALUES (?, ?, ?);
+
+deleteDependency:
+DELETE FROM task_dependency WHERE task_id = ? AND blocker_id = ?;
 
 deleteDependenciesOf:
 DELETE FROM task_dependency WHERE task_id = :taskId OR blocker_id = :taskId;
