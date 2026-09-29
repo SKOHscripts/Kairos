@@ -232,4 +232,33 @@
     <string name="field_blockers_hint">While a checked blocker is still to do, this task is not ordered.</string>
     <string name="field_blockers_none">no other task</string>
     <string name="field_day_invalid">Day expected between 1 and 31</string>
+
+    <!-- Temps réel et chrono (M3) -->
+    <string name="action_timer_start">Start the timer</string>
+    <string name="action_timer_stop">Stop the timer</string>
+    <string name="spent_of_estimate">%1$d min / %2$d</string>
+    <string name="timer_running">Timer running</string>
+    <string name="stats_spent_today">worked today %1$s</string>
+    <string name="now_running_label">Right now</string>
+    <string name="now_running_estimate">estimated %1$s</string>
+    <string name="now_running_empty">No timer running. Start it on the current task to track your real time.</string>
+    <string name="timeline_rail_hint">The rail on the left shows the timed work.</string>
+    <string name="alerts_enable">Turn on timer alerts</string>
+    <string name="alerts_active">Timer alerts are on.</string>
+    <string name="alerts_denied">Notifications are blocked: alerts will show in the app.</string>
+    <string name="alerts_unavailable">Notifications are not available here: alerts will show in the app.</string>
+    <string name="alert_title">Kairos · %1$s</string>
+    <string name="alert_over">real time %1$s, past the estimate (%2$s).</string>
+    <string name="alert_idle">the timer has been running for %1$s. Stop it if you are done.</string>
+    <string name="alert_pomodoro">%1$s of continuous focus: time for a short break?</string>
+    <string name="alert_close">Dismiss the alert</string>
+    <string name="settings_chrono_title">Timer alerts</string>
+    <string name="settings_chrono_body">Reminders while a timer runs. A threshold of 0 turns the alert off; going past the estimate is always reported.</string>
+    <string name="settings_idle">Forgotten timer after (min)</string>
+    <string name="settings_pomodoro">Break suggested after (min)</string>
+    <string name="settings_sound">Sound when no notification can be shown</string>
+    <string name="settings_saved">Settings saved.</string>
+    <string name="notif_channel_chrono">Running timer</string>
+    <string name="notif_channel_alerts">Timer alerts</string>
+    <string name="notif_stop">Stop</string>
 </resources>

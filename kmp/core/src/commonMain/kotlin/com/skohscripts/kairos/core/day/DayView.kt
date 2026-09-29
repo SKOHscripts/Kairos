@@ -4,19 +4,23 @@ import com.skohscripts.kairos.core.engine.Dependencies
 import com.skohscripts.kairos.core.engine.Recurrence
 import com.skohscripts.kairos.core.engine.Scheduling
 import com.skohscripts.kairos.core.engine.Staleness
+import com.skohscripts.kairos.core.engine.TimeTracking
 import com.skohscripts.kairos.core.engine.Workdays
 import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TimeBlock
+import com.skohscripts.kairos.core.model.WorkSession
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
 import kotlinx.datetime.plus
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 
 /**
  * Filtre d'affichage de la vue Jour (docs/spec-v3/vue-jour.md § Filtres) :
@@ -92,17 +96,34 @@ data class DayView(
     val dayBlocks: List<TimeBlock>,
     val timeline: List<Scheduling.TimelineEntry>,
     val holidays: Set<LocalDate>,
+    /** Temps passé par tâche (sessions et saisie manuelle), en minutes. */
+    val spentByTask: Map<Long, Int> = emptyMap(),
+    /** Session de chrono ouverte, sa tâche, et le temps déjà passé sur celle-ci avant la session. */
+    val running: WorkSession? = null,
+    val runningTask: Task? = null,
+    val runningBaseMinutes: Int = 0,
+    /** Temps chronométré aujourd'hui (sessions commencées ce jour), et par type (types non vides seulement). */
+    val spentToday: Int = 0,
+    val spentByTypeToday: Map<String, Int> = emptyMap(),
+    /** Rail « réel » de la frise. */
+    val sessionTimeline: List<Scheduling.TimelineEntry> = emptyList(),
 ) {
     /** Bandeau de surcharge : plus de P0 non bloquées que le seuil des réglages. */
     val priorityOverload: Boolean get() = priorityOverloadCount > priorityOverloadThreshold
 
     companion object {
+        /**
+         * [now] : heure locale du placement (`null` = début de journée) ;
+         * [instant] : l'instant courant pour le temps passé (défaut : [now],
+         * ou le début du jour, dans [timeZone]).
+         */
         fun build(
             snapshot: KairosSnapshot,
             day: LocalDate,
             now: LocalDateTime?,
             timeZone: TimeZone,
             filter: DayFilter = DayFilter(),
+            instant: Instant = (now ?: day.atTime(0, 0)).toInstant(timeZone),
         ): DayView {
             val settings = snapshot.settings
             val holidays = Workdays.holidaysFor(day, settings.holidaysFr, settings.extraHolidays)
@@ -165,6 +186,13 @@ data class DayView(
 
             val directBlockers = snapshot.dependencies.groupBy({ it.taskId }, { it.blockerId })
 
+            val sessions = snapshot.workSessions
+            val spent = TimeTracking.spentMinutesByTask(sessions, instant, all)
+            val running = TimeTracking.runningSession(sessions)
+            val runningTask = running?.let { r -> byId[r.taskId] }
+            val today = TimeTracking.sessionsOnDay(sessions, day, timeZone)
+            val typeById = all.associate { it.id to it.taskType }
+
             return DayView(
                 day = day,
                 schedule = schedule,
@@ -193,6 +221,13 @@ data class DayView(
                 dayBlocks = dayBlocks.sortedBy { it.start },
                 timeline = timeline,
                 holidays = holidays,
+                spentByTask = spent,
+                running = running,
+                runningTask = runningTask,
+                runningBaseMinutes = running?.let { (spent[it.taskId] ?: 0) - TimeTracking.sessionMinutes(it, instant) } ?: 0,
+                spentToday = TimeTracking.totalMinutes(today, instant),
+                spentByTypeToday = TimeTracking.spentMinutesByType(today, typeById, instant).filter { (k, v) -> k.isNotEmpty() && v > 0 },
+                sessionTimeline = TimeTracking.sessionTimeline(today, day, all.associate { it.id to it.title }, settings, instant, timeZone),
             )
         }
     }

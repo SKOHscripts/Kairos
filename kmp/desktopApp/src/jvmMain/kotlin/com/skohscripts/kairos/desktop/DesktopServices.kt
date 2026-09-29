@@ -6,6 +6,8 @@ import com.skohscripts.kairos.data.KairosRepository
 import com.skohscripts.kairos.data.KairosStore
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.BackupStore
+import com.skohscripts.kairos.ui.app.ChronoNotifier
+import com.skohscripts.kairos.ui.app.NoNotifier
 import com.skohscripts.kairos.ui.app.FileService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -26,7 +28,7 @@ object DesktopServices {
     const val DATABASE_FILE = "kairos.db"
 
     /** Ouvre (ou crée, exemples compris) la base de [dataDir] ; `inMemory` pour l'auto-test. */
-    suspend fun open(dataDir: File, inMemory: Boolean = false): AppServices = withContext(Dispatchers.IO) {
+    suspend fun open(dataDir: File, inMemory: Boolean = false, notifier: ChronoNotifier = NoNotifier): AppServices = withContext(Dispatchers.IO) {
         dataDir.mkdirs()
         val url = if (inMemory) JdbcSqliteDriver.IN_MEMORY else "jdbc:sqlite:${File(dataDir, DATABASE_FILE).absolutePath}"
         val clock = Clock.System
@@ -42,6 +44,7 @@ object DesktopServices {
             backups = FolderBackups(File(dataDir, "backups")),
             dataLocation = dataDir.absolutePath,
             clock = clock,
+            notifier = notifier,
         )
     }
 }

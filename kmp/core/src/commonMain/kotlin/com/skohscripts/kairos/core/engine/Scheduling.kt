@@ -393,7 +393,8 @@ object Scheduling {
 
     // --- Timeline -------------------------------------------------------------------
 
-    enum class TimelineKind { BUSY, DEEPWORK, WORK, PINNED, CONFLICT, DEEPWORK_TASK }
+    /** `SESSION` : temps réellement chronométré (rail « réel », `TimeTracking.sessionTimeline`). */
+    enum class TimelineKind { BUSY, DEEPWORK, WORK, PINNED, CONFLICT, DEEPWORK_TASK, SESSION }
 
     /** Bloc de la timeline : décalage et hauteur en minutes depuis le début de la journée de travail. */
     data class TimelineEntry(

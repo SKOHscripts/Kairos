@@ -37,6 +37,11 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.MutableStateFlow
+import com.skohscripts.kairos.ui.app.ChronoNotifier
+import com.skohscripts.kairos.ui.app.NotifyState
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -181,5 +186,68 @@ class DayScreenUiTest {
         assertEquals("2026-09-29T14:30", repository.snapshot.value.tasks.single { it.id == a }.pinnedStart.toString())
         // Alpha, bloquée par Beta, passe dans « Bloquées ».
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Blocked (1)").fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    /** Horloge réglable et notifications système simulées (refusées : le bandeau et le titre prennent le relais). */
+    private class Harness {
+        var now = Instant.parse("2026-09-29T07:00:00Z")
+        val clock = object : Clock {
+            override fun now() = this@Harness.now
+        }
+        val notified = mutableListOf<String>()
+        val titles = mutableListOf<String?>()
+        var beeps = 0
+        val notifier = object : ChronoNotifier {
+            override val state = MutableStateFlow(NotifyState.DENIED)
+            override suspend fun notify(title: String, body: String, tag: String): Boolean {
+                notified += body
+                return false
+            }
+            override fun setTitle(prefix: String?) {
+                titles += prefix
+            }
+            override fun beep() {
+                beeps++
+            }
+        }
+    }
+
+    @Test
+    fun timerRunsAlertsAndStops() = runComposeUiTest {
+        val h = Harness()
+        val services = runBlocking {
+            val repository = KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, h.clock)
+            val id = repository.createTask("Write the report")!!
+            repository.setPriority(id, 1)
+            repository.setPoints(id, 3)
+            repository.updateSettings(repository.snapshot.value.settings.copy(pomodoroFocusMinutes = 1, timerAlertSound = true))
+            AppServices(repository, object : FileService {
+                override suspend fun saveText(suggestedName: String, text: String) = false
+                override suspend fun openText(): String? = null
+            }, { _, _ -> }, clock = h.clock, notifier = h.notifier)
+        }
+        setContent { KairosApp(Platform.DESKTOP) { services } }
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Start the timer").fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Notifications are blocked: alerts will show in the app.").assertExists()
+        onNodeWithText("No timer running. Start it on the current task to track your real time.").assertExists()
+
+        onNodeWithText("Start the timer").performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Stop the timer").fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Right now").assertExists()
+        assertEquals(1, services.repository.snapshot.value.workSessions.count { it.endedAt == null })
+
+        // Une minute plus tard : le seuil de pause (1 min) est franchi pendant la veille.
+        h.now += 61.seconds
+        mainClock.advanceTimeBy(2_000)
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Write the report · 1 min of continuous focus: time for a short break?").fetchSemanticsNodes().isNotEmpty() }
+        assertEquals(listOf("1 min of continuous focus: time for a short break?"), h.notified)
+        assertEquals(1, h.beeps)
+        assertTrue(h.titles.any { it != null && it.startsWith("⚠") })
+
+        // Le bandeau se ferme d'un clic ; le chrono s'arrête depuis « En ce moment ».
+        onNodeWithContentDescription("Dismiss the alert").performClick()
+        onAllNodesWithText("Stop the timer").onFirst().performClick()
+        waitUntil(timeoutMillis = 5_000) { services.repository.snapshot.value.workSessions.all { it.endedAt != null } }
+        waitUntil(timeoutMillis = 5_000) { h.titles.lastOrNull() == null }
     }
 }

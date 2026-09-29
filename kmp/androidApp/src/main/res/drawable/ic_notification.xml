@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Petite icône des notifications (barre d'état : silhouette blanche, le système
+     la teinte) : le cadran du logo réduit à ses formes, mêmes coordonnées 40×40
+     que static/favicon.svg et ic_launcher_foreground.xml (anneau, secteur, axe). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="40"
+    android:viewportHeight="40">
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="3"
+        android:fillColor="#00000000"
+        android:pathData="M2,20 A18,18 0 1 1 38,20 A18,18 0 1 1 2,20 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M20,20 L20,6 A14,14 0 0 1 33.79,17.57 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M17,20 A3,3 0 1 1 23,20 A3,3 0 1 1 17,20 Z" />
+</vector>

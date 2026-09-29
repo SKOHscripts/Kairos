@@ -35,6 +35,13 @@ object SelfTest {
         val app: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { services } }
         val settings: @Composable () -> Unit = { KairosTheme { Surface { SettingsScreen(services) {} } } }
         val about: @Composable () -> Unit = { KairosTheme { Surface { AboutScreen() } } }
+        // Seconde base avec un chrono en marche sur la première tâche qualifiée.
+        val timed = runBlocking {
+            DesktopServices.open(dataDir, inMemory = true).also { s ->
+                s.repository.snapshot.value.tasks.firstOrNull { !it.needsProcessing }?.let { s.repository.startTimer(it.id) }
+            }
+        }
+        val chrono: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { timed } }
         // Les deux dernières, très hautes, montrent toute la vue Jour (agenda, sections, frise).
         val shots = listOf(
             Shot("wide", 1200, 1000, app),
@@ -43,6 +50,7 @@ object SelfTest {
             Shot("about", 900, 1000, about),
             Shot("day-full", 1200, 3000, app),
             Shot("day-full-narrow", 420, 5000, app),
+            Shot("day-chrono", 1200, 1000, chrono),
         )
         for ((name, width, height, content) in shots) {
             val png = render(width, height, content)

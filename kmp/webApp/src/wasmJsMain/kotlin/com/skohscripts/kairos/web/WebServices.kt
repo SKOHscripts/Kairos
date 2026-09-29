@@ -62,6 +62,7 @@ object WebServices {
             dataLocation = null,
             linkedStorage = storage,
             clock = clock,
+            notifier = WebNotifier,
         )
     }
 }

@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Aucune permission : Kairos 3 sur Android ne fait aucun appel réseau
+<!-- Aucune permission réseau : Kairos 3 sur Android ne fait aucun appel réseau
      (pas de INTERNET), donc aucune anti-fonctionnalité F-Droid
-     (docs/spec-v3/distribution.md § Android). -->
+     (docs/spec-v3/distribution.md § Android). Deux permissions pour le chrono
+     (docs/spec-v3/temps-reel-chrono.md § Android) : notifier (demandée à
+     l'opt-in des alertes, jamais au démarrage) et remettre la notification et
+     les alarmes après un redémarrage. Aucune alarme exacte : pas de
+     SCHEDULE_EXACT_ALARM. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
@@ -13,11 +19,23 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <receiver
+            android:name=".ChronoReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

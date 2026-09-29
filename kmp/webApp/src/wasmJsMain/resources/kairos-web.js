@@ -189,5 +189,51 @@
         return false;
       }
     },
+
+    // --- Chrono (docs/spec-v3/temps-reel-chrono.md § Web) ---------------------
+    // État des notifications : "granted", "denied", "default", ou "unavailable"
+    // (API absente ou page hors contexte sécurisé).
+    notifyState() {
+      if (!("Notification" in window) || !window.isSecureContext) return "unavailable";
+      return Notification.permission;
+    },
+    async notifyRequest() {
+      try {
+        return await Notification.requestPermission();
+      } catch (e) {
+        return "unavailable";
+      }
+    },
+    // Rend true si la notification a pu être créée.
+    notify(title, body, tag) {
+      try {
+        if (!("Notification" in window) || Notification.permission !== "granted") return false;
+        new Notification(title, { body: body, tag: tag });
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+    // Titre de l'onglet : préfixe (chrono qui tourne, alerte) devant le titre de la page.
+    setTitle(prefix) {
+      if (!window.__kairosTitle) window.__kairosTitle = document.title;
+      document.title = prefix ? prefix + " · " + window.__kairosTitle : window.__kairosTitle;
+    },
+    // Court bip (dernier recours, seulement si activé dans les réglages).
+    beep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.value = 880;
+        gain.gain.value = 0.1;
+        osc.connect(gain).connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+        osc.onended = () => ctx.close();
+      } catch (e) {
+        // Pas de son possible : le bandeau et le titre suffisent.
+      }
+    },
   };
 })();

@@ -36,8 +36,9 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   (`v3.0.0-alpha.N`), publiés en **préversion GitHub** avec tous les
   fichiers.
 - **Android** : un APK. Tant que la version est une préversion, l'application
-  s'appelle « Kairos Preview » et s'installe à côté de Kairos 2. Elle ne
-  demande **aucune permission**.
+  s'appelle « Kairos Preview » et s'installe à côté de Kairos 2. Aucune
+  permission réseau ; deux permissions pour le chrono (notifier, reprendre
+  après un redémarrage), voir `temps-reel-chrono.md`.
 - **Bureau** : un installeur par OS (`.msi`, `.deb`, `.dmg`), qui n'exige pas
   de droits administrateur sous Windows, et un **zip portable** par OS : on
   dézippe, on lance, rien n'est installé.
@@ -73,7 +74,8 @@ Pendant la réécriture, chaque jalon doit produire une version installable
 
 - **Source unique** : `kmp/gradle.properties`, `kairos.versionName` et
   `kairos.versionCode`. Jalon M0 : `3.0.0-alpha.1` (`29001`) ; jalon M1 :
-  `3.0.0-alpha.2` (`29002`) ; jalon M2 : `3.0.0-alpha.3` (`29003`).
+  `3.0.0-alpha.2` (`29002`) ; jalon M2 : `3.0.0-alpha.3` (`29003`) ;
+  jalon M3 : `3.0.0-alpha.4` (`29004`).
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
 - `versionCode` (`AppVersion.versionCode`) : `X*10000 + Y*100 + Z` ; alpha :
@@ -103,9 +105,15 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   (`DeferredSchema` : version du schéma, création et migration vides), la
   création réelle étant faite par `KairosStore.open` (`modele-donnees.md`).
   Exemples dans la langue du système (`Locale.getDefault()`).
-- Manifeste : **aucune permission** (pas de `INTERNET`) ;
+- Manifeste : **aucune permission réseau** (pas de `INTERNET`) ;
+  `POST_NOTIFICATIONS` (demandée à l'opt-in des alertes) et
+  `RECEIVE_BOOT_COMPLETED` pour le chrono (`temps-reel-chrono.md`), avec
+  ses deux récepteurs (`ChronoReceiver` non exporté, `BootReceiver`) ;
+  activité `singleTop` (la notification du chrono la rouvre) ;
   `enableOnBackInvokedCallback="true"` (geste retour prédictif) ;
-  `windowSoftInputMode="adjustResize"`.
+  `windowSoftInputMode="adjustResize"`. Base et suivi du chrono ouverts une
+  fois par processus (`KairosProcess`), quel que soit le point d'entrée
+  (activité, alarme, redémarrage).
 - Thème de fenêtre `Theme.Kairos` (reprise de Kairos 2) :
   `forceDarkAllowed=false` ; avant l'API 31, `windowBackground` =
   `kairos_launch_background` (fond `#FFF8F4` + logo centré 288 dp) ; API 31+
@@ -153,10 +161,12 @@ Pendant la réécriture, chaque jalon doit produire une version installable
   haut, 10 images pour laisser charger polices et chaînes) l'application en
   1200 px et en 420 px de large, les Réglages et « À propos » en 900 px,
   puis la vue Jour entière en 1200 × 3000 px et 420 × 5000 px (agenda,
-  sections, frise). Avec `=dossier`, les rendus y sont écrits
+  sections, frise), et une seconde base en mémoire avec un chrono en marche
+  (1200 × 1000 px). Avec `=dossier`, les rendus y sont écrits
   (`desktop-wide.png`, `desktop-narrow.png`, `desktop-settings.png`,
   `desktop-about.png`, `desktop-day-full.png`,
-  `desktop-day-full-narrow.png`). Code de sortie 0 ou 1.
+  `desktop-day-full-narrow.png`, `desktop-day-chrono.png`). Code de sortie
+  0 ou 1.
 - **Empaquetage** (plugin Compose Desktop, jpackage, runtime Java réduit
   embarquant `java.instrument`, `java.management`, `java.sql`,
   `jdk.unsupported` en plus des modules détectés) :

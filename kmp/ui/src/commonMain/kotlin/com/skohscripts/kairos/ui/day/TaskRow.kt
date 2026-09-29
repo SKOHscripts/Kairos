@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,6 +44,9 @@ import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_done
 import com.skohscripts.kairos.ui.generated.resources.action_edit
 import com.skohscripts.kairos.ui.generated.resources.action_snooze
+import com.skohscripts.kairos.ui.generated.resources.action_timer_start
+import com.skohscripts.kairos.ui.generated.resources.action_timer_stop
+import com.skohscripts.kairos.ui.generated.resources.spent_of_estimate
 import com.skohscripts.kairos.ui.generated.resources.action_undo
 import com.skohscripts.kairos.ui.generated.resources.deadline_badge
 import com.skohscripts.kairos.ui.generated.resources.description_expand
@@ -51,10 +55,12 @@ import com.skohscripts.kairos.ui.generated.resources.points_badge
 import com.skohscripts.kairos.ui.generated.resources.tag_recurring
 import com.skohscripts.kairos.ui.generated.resources.tag_scheduled
 import com.skohscripts.kairos.ui.generated.resources.tag_stale
+import com.skohscripts.kairos.ui.chrono.rememberLiveMinutes
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.theme.LocalKairosExtraColors
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Clock
 
 /** Ce dont une ligne de tâche a besoin, commun à toutes les sections de la vue Jour. */
 internal class RowContext(
@@ -65,6 +71,9 @@ internal class RowContext(
     val onToggleDone: (Task) -> Unit,
     val onSnooze: (Task) -> Unit,
     val onEdit: (Task) -> Unit,
+    /** Démarre le chrono sur la tâche, ou l'arrête si c'est elle qui tourne. */
+    val onToggleTimer: (Task) -> Unit = {},
+    val clock: Clock = Clock.System,
 )
 
 /**
@@ -135,6 +144,14 @@ internal fun TaskRow(
                     Row(Modifier.padding(top = 10.dp, start = 8.dp)) { KeyBadges(task, ctx) }
                 }
                 if (task.status == TaskStatus.TODO) {
+                    val running = ctx.view.running?.taskId == task.id
+                    IconButton(onClick = { ctx.onToggleTimer(task) }) {
+                        Icon(
+                            if (running) KairosIcons.Stop else KairosIcons.PlayArrow,
+                            contentDescription = stringResource(if (running) Res.string.action_timer_stop else Res.string.action_timer_start),
+                            tint = if (running) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+                        )
+                    }
                     IconButton(onClick = { ctx.onSnooze(task) }) {
                         Icon(KairosIcons.Redo, contentDescription = stringResource(Res.string.action_snooze))
                     }
@@ -186,8 +203,32 @@ private fun TaskTags(task: Task, ctx: RowContext) {
             modifier = Modifier.size(16.dp),
         )
     }
+    TimeSpent(task, ctx)
     if (task.status == TaskStatus.TODO) {
         ctx.view.staleDays[task.id]?.takeIf { it > 0 }?.let { WarnBadge(stringResource(Res.string.tag_stale, it)) }
+    }
+}
+
+/**
+ * Temps passé (`time_spent` de Kairos 2) : minuteur vivant si le chrono
+ * tourne sur la tâche ; sinon « 40 min / 30 » (rouge au-delà de l'estimé).
+ */
+@Composable
+private fun TimeSpent(task: Task, ctx: RowContext) {
+    val scheme = MaterialTheme.colorScheme
+    val running = ctx.view.running
+    if (running != null && running.taskId == task.id) {
+        val minutes by rememberLiveMinutes(running.startedAt, ctx.view.runningBaseMinutes, ctx.clock)
+        Badge(duration(minutes), scheme.secondaryContainer, scheme.onSecondaryContainer, icon = KairosIcons.Schedule)
+        return
+    }
+    val spent = ctx.view.spentByTask[task.id] ?: return
+    if (spent <= 0) return
+    val estimate = task.estimatedMinutes?.takeIf { it > 0 }
+    when {
+        estimate == null -> Badge(stringResource(Res.string.minutes_badge, spent))
+        spent > estimate -> Badge(stringResource(Res.string.spent_of_estimate, spent, estimate), scheme.errorContainer, scheme.onErrorContainer)
+        else -> Badge(stringResource(Res.string.spent_of_estimate, spent, estimate))
     }
 }
 

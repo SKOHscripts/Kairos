@@ -235,4 +235,33 @@
     <string name="field_blockers_hint">Tant qu’un bloqueur coché est encore à faire, cette tâche ne rentre dans aucun tri.</string>
     <string name="field_blockers_none">aucune autre tâche</string>
     <string name="field_day_invalid">Jour attendu entre 1 et 31</string>
+
+    <!-- Temps réel et chrono (M3) -->
+    <string name="action_timer_start">Démarrer le chrono</string>
+    <string name="action_timer_stop">Arrêter le chrono</string>
+    <string name="spent_of_estimate">%1$d min / %2$d</string>
+    <string name="timer_running">Chrono en cours</string>
+    <string name="stats_spent_today">temps travaillé aujourd’hui %1$s</string>
+    <string name="now_running_label">En ce moment</string>
+    <string name="now_running_estimate">estimé %1$s</string>
+    <string name="now_running_empty">Aucun chrono en cours. Lance-le sur la tâche en cours pour suivre ton temps réel.</string>
+    <string name="timeline_rail_hint">Le rail à gauche marque le temps chronométré.</string>
+    <string name="alerts_enable">Activer les alertes chrono</string>
+    <string name="alerts_active">Alertes chrono actives.</string>
+    <string name="alerts_denied">Notifications bloquées : les alertes s’afficheront dans l’application.</string>
+    <string name="alerts_unavailable">Notifications indisponibles ici : les alertes s’afficheront dans l’application.</string>
+    <string name="alert_title">Kairos · %1$s</string>
+    <string name="alert_over">temps réel %1$s au-delà de l’estimé (%2$s).</string>
+    <string name="alert_idle">le chrono tourne depuis %1$s. Pense à l’arrêter si c’est terminé.</string>
+    <string name="alert_pomodoro">%1$s de focus continu, une courte pause ?</string>
+    <string name="alert_close">Fermer l’alerte</string>
+    <string name="settings_chrono_title">Alertes du chrono</string>
+    <string name="settings_chrono_body">Rappels pendant qu’un chrono tourne. Un seuil à 0 désactive l’alerte ; le dépassement de l’estimé est toujours signalé.</string>
+    <string name="settings_idle">Chrono oublié après (min)</string>
+    <string name="settings_pomodoro">Pause suggérée après (min)</string>
+    <string name="settings_sound">Son quand aucune notification ne peut s’afficher</string>
+    <string name="settings_saved">Réglages enregistrés.</string>
+    <string name="notif_channel_chrono">Chrono en cours</string>
+    <string name="notif_channel_alerts">Alertes du chrono</string>
+    <string name="notif_stop">Arrêter</string>
 </resources>

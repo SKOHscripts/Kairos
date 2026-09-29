@@ -30,6 +30,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import com.skohscripts.kairos.ui.app.AppServices
@@ -52,6 +53,8 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.icons.KairosLogo
 import com.skohscripts.kairos.ui.screens.AboutScreen
 import com.skohscripts.kairos.ui.screens.DestinationScreen
+import com.skohscripts.kairos.ui.chrono.AlertBanners
+import com.skohscripts.kairos.ui.chrono.ChronoWatcher
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -73,6 +76,9 @@ fun AppShell(
     BackHandler(enabled = aboutOpen) { onCloseAbout() }
 
     val snackbar = remember { SnackbarHostState() }
+    // Veille du chrono pour toute l'application : les alertes jouent quel que soit l'écran.
+    val alerts = remember { mutableStateListOf<String>() }
+    ChronoWatcher(services, alerts)
     val scope = rememberCoroutineScope()
     val showMessage: (String) -> Unit = { message -> scope.launch { snackbar.showSnackbar(message) } }
 
@@ -97,6 +103,7 @@ fun AppShell(
             CompositionLocalProvider(LocalMessages provides showMessage) {
                 if (aboutOpen) AboutScreen() else DestinationScreen(destination, services, onOpenAbout)
             }
+            AlertBanners(alerts, Modifier.align(Alignment.BottomCenter))
         }
     }
 

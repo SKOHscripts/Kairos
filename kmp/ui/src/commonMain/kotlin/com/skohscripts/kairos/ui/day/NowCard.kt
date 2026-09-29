@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -15,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -27,25 +30,106 @@ import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_done_labelled
 import com.skohscripts.kairos.ui.generated.resources.action_snooze_labelled
+import com.skohscripts.kairos.ui.generated.resources.action_timer_start
+import com.skohscripts.kairos.ui.generated.resources.action_timer_stop
+import com.skohscripts.kairos.ui.generated.resources.alerts_active
+import com.skohscripts.kairos.ui.generated.resources.alerts_denied
+import com.skohscripts.kairos.ui.generated.resources.alerts_enable
+import com.skohscripts.kairos.ui.generated.resources.alerts_unavailable
+import com.skohscripts.kairos.ui.generated.resources.now_running_empty
+import com.skohscripts.kairos.ui.generated.resources.now_running_estimate
+import com.skohscripts.kairos.ui.generated.resources.now_running_label
+import com.skohscripts.kairos.ui.generated.resources.stats_spent_today
 import com.skohscripts.kairos.ui.generated.resources.now_label
 import com.skohscripts.kairos.ui.generated.resources.stats_done
 import com.skohscripts.kairos.ui.generated.resources.stats_load
 import com.skohscripts.kairos.ui.generated.resources.stats_overflow
 import com.skohscripts.kairos.ui.generated.resources.stats_todo
 import com.skohscripts.kairos.ui.generated.resources.todo_empty
+import com.skohscripts.kairos.ui.app.NotifyState
+import com.skohscripts.kairos.ui.chrono.rememberLiveMinutes
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.theme.LocalKairosExtraColors
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Clock
+
+/**
+ * Alertes du chrono : bouton d'autorisation tant qu'elle est à demander,
+ * sinon ce qui va réellement se passer (Kairos 2, issue #34).
+ */
+@Composable
+private fun AlertsOptIn(state: NotifyState, onEnable: () -> Unit) {
+    if (state == NotifyState.CAN_REQUEST) {
+        TextButton(onClick = onEnable) {
+            Icon(KairosIcons.NotificationsActive, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(stringResource(Res.string.alerts_enable), modifier = Modifier.padding(start = 6.dp))
+        }
+        return
+    }
+    val text = when (state) {
+        NotifyState.ACTIVE -> Res.string.alerts_active
+        NotifyState.DENIED -> Res.string.alerts_denied
+        else -> Res.string.alerts_unavailable
+    }
+    Text(stringResource(text), style = MaterialTheme.typography.bodySmall)
+}
+
+/**
+ * « En ce moment » (surface inverse, seul élément sombre posé dans la page) :
+ * la tâche du chrono, son minuteur vivant, l'estimé, « Arrêter le chrono ».
+ */
+@Composable
+internal fun RunningCard(view: DayView, clock: Clock, onStop: () -> Unit, modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    Card(
+        colors = CardDefaults.cardColors(containerColor = scheme.inverseSurface, contentColor = scheme.inverseOnSurface),
+        elevation = CardDefaults.cardElevation(0.dp),
+        shape = MaterialTheme.shapes.large,
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(Res.string.now_running_label), style = MaterialTheme.typography.labelLarge)
+            val running = view.running
+            val task = view.runningTask
+            if (running == null || task == null) {
+                Text(stringResource(Res.string.now_running_empty), style = MaterialTheme.typography.bodyMedium)
+                return@Column
+            }
+            Text(task.title, style = MaterialTheme.typography.titleMedium)
+            val minutes by rememberLiveMinutes(running.startedAt, view.runningBaseMinutes, clock)
+            Text(duration(minutes), style = MaterialTheme.typography.displaySmall)
+            task.estimatedMinutes?.takeIf { it > 0 }?.let {
+                Text(stringResource(Res.string.now_running_estimate, duration(it)), style = MaterialTheme.typography.bodySmall)
+            }
+            Button(
+                onClick = onStop,
+                colors = ButtonDefaults.buttonColors(containerColor = scheme.inversePrimary, contentColor = scheme.onPrimaryContainer),
+            ) {
+                Icon(KairosIcons.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.action_timer_stop), modifier = Modifier.padding(start = 6.dp))
+            }
+        }
+    }
+}
 
 /**
  * « Maintenant » : le seul bloc teinté de l'écran (conteneur primaire). La
- * prochaine tâche et ses actions nommées (« Fait » plein, « Décaler » texte ;
- * le chrono arrive au jalon M3), puis le bilan de la journée : faites, à
- * faire, requis contre disponible, débordement.
+ * prochaine tâche et ses actions nommées (« Fait » plein, chrono en contour,
+ * « Décaler » texte), puis le bilan de la journée : faites, à faire, requis
+ * contre disponible, débordement, temps travaillé aujourd'hui par type ; et
+ * l'état des alertes du chrono.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun NowCard(view: DayView, language: String, onDone: (Task) -> Unit, onSnooze: (Task) -> Unit) {
+internal fun NowCard(
+    view: DayView,
+    language: String,
+    notifyState: NotifyState,
+    onDone: (Task) -> Unit,
+    onSnooze: (Task) -> Unit,
+    onToggleTimer: (Task) -> Unit,
+    onEnableAlerts: () -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
     Card(
         colors = CardDefaults.cardColors(containerColor = scheme.primaryContainer, contentColor = scheme.onPrimaryContainer),
@@ -73,6 +157,14 @@ internal fun NowCard(view: DayView, language: String, onDone: (Task) -> Unit, on
                         Icon(KairosIcons.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(Res.string.action_done_labelled), modifier = Modifier.padding(start = 6.dp))
                     }
+                    val running = view.running?.taskId == next.id
+                    OutlinedButton(onClick = { onToggleTimer(next) }) {
+                        Icon(if (running) KairosIcons.Stop else KairosIcons.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text(
+                            stringResource(if (running) Res.string.action_timer_stop else Res.string.action_timer_start),
+                            modifier = Modifier.padding(start = 6.dp),
+                        )
+                    }
                     TextButton(onClick = { onSnooze(next) }) {
                         Icon(KairosIcons.Redo, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(Res.string.action_snooze_labelled), modifier = Modifier.padding(start = 6.dp))
@@ -93,7 +185,15 @@ internal fun NowCard(view: DayView, language: String, onDone: (Task) -> Unit, on
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 if (stats.overflowMinutes > 0) ErrorBadge(stringResource(Res.string.stats_overflow, duration(stats.overflowMinutes)))
+                val parts = mutableListOf<String>()
+                for ((type, minutes) in view.spentByTypeToday) parts += "$type ${duration(minutes)}"
+                val byType = parts.joinToString(" · ")
+                Text(
+                    stringResource(Res.string.stats_spent_today, duration(view.spentToday)) + if (byType.isEmpty()) "" else " ($byType)",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
+            AlertsOptIn(notifyState, onEnableAlerts)
         }
     }
 }

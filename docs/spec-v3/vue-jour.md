@@ -11,9 +11,11 @@ Tests : `core/.../day/DayViewTest.kt`, `ui/.../day/DatesTest.kt`,
 
 État : **jalon M2**. Reprend le besoin de `docs/spec/vue-jour-gtd.md`
 (Kairos 2). Le moteur est décrit par `ordonnancement.md`, `dependances.md`
-et `recurrence.md`. Restent pour plus tard : le chrono (« Démarrer le
-chrono », carte « En ce moment », temps passé, rail du réel sur la frise :
-M3), le guide des points fondé sur l'historique et la vue Semaine (M4).
+et `recurrence.md`. Le chrono (bouton de chaque ligne, « Démarrer le
+chrono » de « Maintenant », carte « En ce moment », temps passé, temps du
+jour par type, rail du réel sur la frise, alertes) est décrit par
+`temps-reel-chrono.md` (jalon M3). Restent pour plus tard le guide des
+points fondé sur l'historique et la vue Semaine (M4).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -38,8 +40,11 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    clarifié ».
 4. **Maintenant** (seul bloc teinté) : « À faire maintenant : » la première
    tâche placée (avec son heure), sinon la première sans créneau ; boutons
-   nommés « Fait » et « Décaler » ; bilan : faites aujourd'hui, à faire,
-   « requis … · disponible … », « la journée déborde de … » s'il y a lieu.
+   nommés « Fait », « Démarrer le chrono » (ou « Arrêter le chrono ») et
+   « Décaler » ; bilan : faites aujourd'hui, à faire, « requis … · disponible
+   … », « la journée déborde de … » s'il y a lieu, temps travaillé
+   aujourd'hui et par type ; état des alertes du chrono
+   (`temps-reel-chrono.md`).
 5. **Bandeau de surcharge** si plus de P0 non bloquées que le seuil.
 6. **Aujourd'hui, dans l'ordre** : les tâches placées par heure, ordre du
    score ; étiquettes « épinglée », « deep work », « chemin critique » ;
@@ -58,16 +63,17 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    de l'agenda. Il réduit les listes, jamais le planning.
 9. **Backlog, sans date** (replié, toujours présent) : tâches à faire sans
    échéance ni date programmée, non bloquées.
-10. **Agenda** (frise) : la journée de travail heure par heure, créneaux et
-    tâches placées ; à droite de la liste en largeur bureau, en bas sinon.
+10. **En ce moment** (chrono en cours) puis **Agenda** (frise) : la journée
+    de travail heure par heure, créneaux, tâches placées et rail du temps
+    chronométré ; à droite de la liste en largeur bureau, en bas sinon.
 
 **Ligne de tâche** (toutes sections) : coche ronde ; corps : heure (agenda),
 « Mère › » pour une sous-tâche, titre, puis étiquettes (projet, type,
 durée, « échéance 30 sept. », « programmée 2 oct. », icône de récurrence,
-« traîne depuis N j ») qui passent à la ligne, puis la description sur une
+temps passé ou minuteur vivant, « traîne depuis N j ») qui passent à la ligne, puis la description sur une
 ligne, dépliable d'un clic ; colonne « clés » alignée à droite : score (qui
 s'ouvre sur « Pourquoi à cette place ? »), priorité (P0 en rouge), points ;
-actions : décaler (tâches à faire), modifier. En largeur étroite, la
+actions : chrono et décaler (tâches à faire), modifier. En largeur étroite, la
 colonne « clés » passe sous le corps. Liseré rouge de 3 dp à gauche pour
 une tâche en retard. Tâche bloquée : fond de surface, contour, titre
 atténué.
@@ -141,12 +147,14 @@ posée.
   elle : les raccourcis sont inactifs pendant une saisie.
 - `TaskRow(tâche, RowContext, heure?, bloquée, modifiable, description,
   before, after, extra)` : `RowContext` porte la vue, la langue, le mode
-  compact et les actions. Formes et couleurs de la charte : `Badge` neutre,
+  compact, les actions (chrono compris) et l'horloge du minuteur vivant. Formes et couleurs de la charte : `Badge` neutre,
   `WarnBadge` (contour et icône, jamais d'ambre), `ErrorBadge` (conflit),
   `PriorityBadge`, score en chiffre primaire (`ScoreBadge`, menu déroulant
   MD3 de 300 dp).
-- `NowCard` : `primaryContainer`, `Button` « Fait », `TextButton`
-  « Décaler », badges du bilan (vert « ok » pour les faites).
+- `NowCard` : `primaryContainer`, `Button` « Fait », `OutlinedButton`
+  du chrono, `TextButton` « Décaler », badges du bilan (vert « ok » pour les
+  faites), temps du jour, état des alertes. `RunningCard` (« En ce
+  moment ») : `inverseSurface`, bouton `inversePrimary`.
 - `TimelineCard` : carte à contour, 1 min = 1 dp, graduations par heure,
   8 dp de marge en haut et en bas ; occupé en conteneur de surface le plus
   haut, travail et épinglée en conteneur secondaire (contour pour

@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -23,6 +25,7 @@ import com.skohscripts.kairos.core.engine.Scheduling.TimelineKind
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.day.DayView
 import com.skohscripts.kairos.ui.generated.resources.Res
+import com.skohscripts.kairos.ui.generated.resources.timeline_rail_hint
 import com.skohscripts.kairos.ui.generated.resources.timeline_title
 import org.jetbrains.compose.resources.stringResource
 
@@ -57,6 +60,17 @@ internal fun TimelineCard(view: DayView, settings: Settings, language: String, m
                         modifier = Modifier.offset(y = top - 7.dp),
                     )
                 }
+                // Rail « réel » : le temps chronométré, dans la gouttière gauche, à côté du planifié.
+                for (e in view.sessionTimeline) {
+                    Box(
+                        Modifier
+                            .padding(start = GUTTER - 2.dp)
+                            .offset(y = MINUTE * e.topMinutes)
+                            .width(5.dp)
+                            .height(MINUTE * e.heightMinutes)
+                            .background(scheme.primary, MaterialTheme.shapes.extraSmall),
+                    )
+                }
                 for (e in view.timeline) {
                     val (container, content) = when (e.kind) {
                         TimelineKind.BUSY -> scheme.surfaceContainerHighest to scheme.onSurfaceVariant
@@ -64,6 +78,7 @@ internal fun TimelineCard(view: DayView, settings: Settings, language: String, m
                         TimelineKind.CONFLICT -> scheme.errorContainer to scheme.onErrorContainer
                         TimelineKind.DEEPWORK -> scheme.surface to scheme.onTertiaryContainer
                         TimelineKind.DEEPWORK_TASK -> scheme.tertiaryContainer to scheme.onTertiaryContainer
+                        TimelineKind.SESSION -> continue
                     }
                     val border = when (e.kind) {
                         TimelineKind.PINNED -> BorderStroke(1.dp, scheme.secondary)
@@ -108,6 +123,14 @@ internal fun TimelineCard(view: DayView, settings: Settings, language: String, m
                         }
                     }
                 }
+            }
+            if (view.sessionTimeline.isNotEmpty()) {
+                Text(
+                    stringResource(Res.string.timeline_rail_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
             }
         }
     }
