@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 
 /**
  * Chaque langue a exactement les mêmes clés, sans valeur vide
- * (docs/spec-v3/i18n.md § Invariants) : une chaîne ajoutée en français
+ * (docs/spec/i18n.md § Invariants) : une chaîne ajoutée en français
  * l'est aussi en anglais, et inversement.
  */
 class StringsParityTest {

@@ -1,5 +1,5 @@
-// data : base SQLDelight, dépôt, export/import (docs/spec-v3/modele-donnees.md,
-// docs/spec-v3/export-import.md). Les pilotes SQLite sont fournis par chaque
+// data : base SQLDelight, dépôt, export/import (docs/spec/modele-donnees.md,
+// docs/spec/export-import.md). Les pilotes SQLite sont fournis par chaque
 // application (Android, JDBC sur le bureau, web worker dans le navigateur).
 plugins {
     alias(libs.plugins.kotlin.multiplatform)

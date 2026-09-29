@@ -53,7 +53,7 @@ const val SOURCE_URL = "https://github.com/SKOHscripts/Kairos"
 /**
  * « À propos et guide » : remplace la page d'accueil de Kairos 2 (qui rendait
  * le README). Contenu natif et traduit : ce que fait Kairos, le score, le nom,
- * la version, la licence (docs/spec-v3/navigation-theme.md § À propos).
+ * la version, la licence (docs/spec/navigation-theme.md § À propos).
  */
 @Composable
 fun AboutScreen() {

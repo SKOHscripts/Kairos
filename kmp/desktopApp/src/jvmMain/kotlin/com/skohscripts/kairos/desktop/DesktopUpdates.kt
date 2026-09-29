@@ -23,7 +23,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
- * Vérification des mises à jour du bureau (docs/spec-v3/mises-a-jour.md) :
+ * Vérification des mises à jour du bureau (docs/spec/mises-a-jour.md) :
  * un GET sur l'API GitHub, rien d'autre ne quitte le poste. L'état (dernière
  * vérification, dernière version vue, version masquée) vit dans
  * `updates.json` du dossier de données, pour tenir la cadence de 6 heures

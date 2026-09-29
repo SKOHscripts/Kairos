@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Notifications Android (docs/spec-v3/temps-reel-chrono.md § Android) : les
+ * Notifications Android (docs/spec/temps-reel-chrono.md § Android) : les
  * seuils du chrono sont notifiés par des **alarmes** ([ChronoSync]), même
  * application fermée ; l'application n'ajoute que son bandeau. L'autorisation
  * (Android 13 et plus) est demandée à l'opt-in, jamais au démarrage.

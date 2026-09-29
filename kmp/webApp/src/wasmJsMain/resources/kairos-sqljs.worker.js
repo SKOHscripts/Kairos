@@ -1,4 +1,4 @@
-// Worker SQLite de la version web (docs/spec-v3/export-import.md § Version web).
+// Worker SQLite de la version web (docs/spec/export-import.md § Version web).
 //
 // Même protocole que @cashapp/sqldelight-sqljs-worker (SQLDelight, Apache 2.0),
 // réécrit pour une seule raison : celui-ci cherche sql-wasm.wasm à la RACINE du

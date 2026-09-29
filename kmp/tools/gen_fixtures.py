@@ -6,15 +6,18 @@ dans `kmp/core/src/jvmTest/resources/fixtures/`. Les tests Kotlin
 (`DifferentialTest`) rejouent chaque scénario sur le moteur porté et exigent
 exactement les mêmes sorties : ordre, heures, listes, scores (flottants exacts).
 
-À relancer seulement si le moteur Python ou ce générateur change (les fixtures sont
-commitées ; le Python disparaît à la bascule 3.0.0, les fixtures restent) :
+À relancer seulement si ce générateur change (les fixtures sont commitées). Le
+Python de Kairos 2 n'est plus dans le dépôt depuis la 3.0.0 : il se lit au tag
+`v2.6.0`, désigné par `KAIROS2_SRC` :
 
-    pip install -e ".[dev]"          # à la racine du dépôt
-    python kmp/tools/gen_fixtures.py
+    git worktree add /tmp/kairos2 v2.6.0
+    pip install -e "/tmp/kairos2[dev]"
+    KAIROS2_SRC=/tmp/kairos2 python kmp/tools/gen_fixtures.py
 """
 from __future__ import annotations
 
 import json
+import os
 import random
 import re
 import sys
@@ -22,7 +25,11 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT))
+# Code de Kairos 2 (paquet `app`) : un checkout du tag v2.6.0 (voir l'en-tête).
+KAIROS2 = Path(os.environ.get("KAIROS2_SRC", ROOT))
+if not (KAIROS2 / "app" / "tasks_models.py").is_file():
+    sys.exit("Kairos 2 introuvable : KAIROS2_SRC doit désigner un checkout du tag v2.6.0.")
+sys.path.insert(0, str(KAIROS2))
 
 from app.config import Settings  # noqa: E402
 from app.tasks_dependencies import (  # noqa: E402

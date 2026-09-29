@@ -39,7 +39,7 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Instant
 
 /**
- * Guide d'estimation des points (docs/spec-v3/vue-jour.md § Comprendre les
+ * Guide d'estimation des points (docs/spec/vue-jour.md § Comprendre les
  * valeurs), replié par défaut : pour chaque palier, son sens, puis les repères
  * tirés de l'historique (`TaskStats.fibonacciReferences`) : temps réel médian
  * avec l'effectif (« peu fiable » sous `MIN_SAMPLE`) et les titres des deux

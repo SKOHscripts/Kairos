@@ -1,5 +1,5 @@
 // ui : interface Compose Multiplatform commune (thème, navigation, écrans),
-// partagée par androidApp, desktopApp et webApp (docs/spec-v3/architecture.md).
+// partagée par androidApp, desktopApp et webApp (docs/spec/architecture.md).
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kmp.library)

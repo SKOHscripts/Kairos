@@ -44,7 +44,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 /**
- * Captures des fiches de magasin (docs/spec-v3/publication.md § Captures) :
+ * Captures des fiches de magasin (docs/spec/publication.md § Captures) :
  * `--store-screenshots=<dossier fastlane/metadata/android>` rend hors écran,
  * en français et en anglais, l'interface **Android** en largeur téléphone
  * (1080 × 2400 px, densité 2,625) sur un jeu de données réaliste, et écrit

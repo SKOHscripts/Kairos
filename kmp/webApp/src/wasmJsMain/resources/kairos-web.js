@@ -1,4 +1,4 @@
-// Fonctions navigateur de la version web de Kairos (docs/spec-v3/export-import.md
+// Fonctions navigateur de la version web de Kairos (docs/spec/export-import.md
 // § Version web), appelées depuis Kotlin/Wasm (WebInterop.kt). Toutes les
 // fonctions asynchrones rendent une Promise ; aucune ne lève d'exception vers
 // Kotlin sauf mention contraire.
@@ -190,7 +190,7 @@
       }
     },
 
-    // --- Chrono (docs/spec-v3/temps-reel-chrono.md § Web) ---------------------
+    // --- Chrono (docs/spec/temps-reel-chrono.md § Web) ---------------------
     // État des notifications : "granted", "denied", "default", ou "unavailable"
     // (API absente ou page hors contexte sécurisé).
     notifyState() {

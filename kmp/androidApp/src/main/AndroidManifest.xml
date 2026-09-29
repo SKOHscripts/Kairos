@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Aucune permission réseau : Kairos 3 sur Android ne fait aucun appel réseau
      (pas de INTERNET), donc aucune anti-fonctionnalité F-Droid
-     (docs/spec-v3/distribution.md § Android). Deux permissions pour le chrono
-     (docs/spec-v3/temps-reel-chrono.md § Android) : notifier (demandée à
+     (docs/spec/distribution.md § Android). Deux permissions pour le chrono
+     (docs/spec/temps-reel-chrono.md § Android) : notifier (demandée à
      l'opt-in des alertes, jamais au démarrage) et remettre la notification et
      les alarmes après un redémarrage. Aucune alarme exacte : pas de
      SCHEDULE_EXACT_ALARM. -->

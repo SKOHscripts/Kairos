@@ -23,7 +23,7 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Instant
 
 /**
- * Filtre d'affichage de la vue Jour (docs/spec-v3/vue-jour.md § Filtres) :
+ * Filtre d'affichage de la vue Jour (docs/spec/vue-jour.md § Filtres) :
  * recherche plein texte (titre, description, projet) et facettes. Ne change
  * jamais l'ordonnancement, seulement les listes montrées.
  */

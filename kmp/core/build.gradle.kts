@@ -1,4 +1,4 @@
-// core : code métier commun et PUR (docs/spec-v3/architecture.md § Invariants).
+// core : code métier commun et PUR (docs/spec/architecture.md § Invariants).
 // Aucune dépendance d'interface, de base de données, d'horloge ou de réseau.
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -7,7 +7,7 @@ plugins {
 }
 
 // Version de l'application exposée au code commun (KairosBuild), générée depuis
-// gradle.properties : source unique (docs/spec-v3/distribution.md § Versionnage).
+// gradle.properties : source unique (docs/spec/distribution.md § Versionnage).
 val generatedDir = layout.buildDirectory.dir("generated/kairosBuild/commonMain/kotlin")
 val generateKairosBuild = tasks.register("generateKairosBuild") {
     val versionName = providers.gradleProperty("kairos.versionName")

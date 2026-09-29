@@ -16,7 +16,7 @@ import kotlinx.datetime.plus
 import kotlin.time.Instant
 
 /**
- * Données d'exemple posées sur une base **neuve** (docs/spec-v3/modele-donnees.md
+ * Données d'exemple posées sur une base **neuve** (docs/spec/modele-donnees.md
  * § Exemples) : le même jeu que Kairos 2 (`app/tasks_seed.py`), traduit. De
  * simples objets ordinaires (tag de projet « Exemple », titre préfixé
  * « [Exemple] ») que l'utilisateur supprime ou termine comme les siens.

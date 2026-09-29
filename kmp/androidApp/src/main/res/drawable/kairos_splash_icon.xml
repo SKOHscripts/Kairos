@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- AnimatedVectorDrawable natif (android.graphics.drawable, API 21+, pas
      AndroidX) posé sur android:windowSplashScreenAnimatedIcon (themes.xml,
-     API 31+ seulement — voir docs/ANDROID_PACKAGING.md). Le système détecte
+     API 31+ seulement — voir docs/spec/distribution.md § Android). Le système détecte
      que ce drawable implémente Animatable et joue l'animation automatiquement
      à l'affichage du splash, sans code Java dédié. -->
 <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"

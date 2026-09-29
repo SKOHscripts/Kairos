@@ -1,5 +1,5 @@
 // webApp : version web (Kotlin/Wasm), pour les postes sans droit d'installation,
-// servie par GitHub Pages (docs/spec-v3/distribution.md § Web).
+// servie par GitHub Pages (docs/spec/distribution.md § Web).
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.compose)

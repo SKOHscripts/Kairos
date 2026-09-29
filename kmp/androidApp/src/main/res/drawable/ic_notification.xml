@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Petite icône des notifications (barre d'état : silhouette blanche, le système
      la teinte) : le cadran du logo réduit à ses formes, mêmes coordonnées 40×40
-     que static/favicon.svg et ic_launcher_foreground.xml (anneau, secteur, axe). -->
+     que le logo (docs/DESIGN_SYSTEM.md § Logo) et ic_launcher_foreground.xml (anneau, secteur, axe). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"

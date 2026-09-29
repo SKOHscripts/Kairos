@@ -20,7 +20,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 /**
- * Migration de vraies bases Kairos 2 (docs/spec-v3/migration-2x.md § Tests),
+ * Migration de vraies bases Kairos 2 (docs/spec/migration-2x.md § Tests),
  * générées par `kmp/tools/gen_legacy_db.py` avec les modèles SQLAlchemy de
  * Kairos 2 : schéma final et schéma de la phase 1.
  */

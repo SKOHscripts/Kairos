@@ -1,4 +1,4 @@
-# GitHub Pages de Kairos (docs/spec-v3/publication.md § Page de téléchargement).
+# GitHub Pages de Kairos (docs/spec/publication.md § Page de téléchargement).
 #
 # - /          : page de téléchargement, versionnée dans site/ (FR, et en/ pour l'anglais) ;
 # - /preview/  : version web construite depuis main (préversion, change à chaque push) ;

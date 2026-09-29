@@ -10,7 +10,7 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Instant
 
 /**
- * Temps réellement passé (docs/spec-v3/temps-reel-chrono.md), portage de
+ * Temps réellement passé (docs/spec/temps-reel-chrono.md), portage de
  * `app/tasks_time.py` : agrégats purs sur les sessions de chrono. L'instant
  * courant et le fuseau sont des paramètres.
  */

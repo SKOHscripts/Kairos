@@ -1,7 +1,7 @@
 package com.skohscripts.kairos.core.engine
 
 /**
- * Dépendances « bloquée par » (docs/spec-v3/ordonnancement.md § Dépendances) :
+ * Dépendances « bloquée par » (docs/spec/ordonnancement.md § Dépendances) :
  * portage de `app/tasks_dependencies.py` (Kairos 2). Pur.
  *
  * Arête = `(bloquée, bloquante)`. Les cycles sont neutralisés (arêtes ignorées),

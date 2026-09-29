@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Alarmes de seuil et action « Arrêter » de la notification permanente
- * (docs/spec-v3/temps-reel-chrono.md § Android). Fonctionne application
+ * (docs/spec/temps-reel-chrono.md § Android). Fonctionne application
  * fermée : la base est ouverte par [KairosProcess] si besoin.
  */
 class ChronoReceiver : BroadcastReceiver() {

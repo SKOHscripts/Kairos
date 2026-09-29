@@ -2,7 +2,7 @@
 
 Tracés du paquet npm `@material-symbols/svg-400` (style Outlined, graisse 400,
 Apache 2.0) recopiés en `ImageVector` : ni police d'icônes, ni requête réseau,
-l'app reste utilisable hors ligne (docs/spec-v3/navigation-theme.md § Icônes).
+l'app reste utilisable hors ligne (docs/spec/navigation-theme.md § Icônes).
 
 Pour ajouter une icône : l'ajouter à `ICONS` (nom Kotlin -> nom Material
 Symbols, voir https://fonts.google.com/icons), puis :

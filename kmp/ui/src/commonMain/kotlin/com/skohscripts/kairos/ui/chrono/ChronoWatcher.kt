@@ -54,7 +54,7 @@ fun rememberLiveMinutes(start: Instant, base: Int, clock: Clock): State<Int> = p
 private fun minutesSince(start: Instant, now: Instant) = maxOf(0L, (now - start).inWholeSeconds / 60).toInt()
 
 /**
- * Veille du chrono, pour toute l'application (docs/spec-v3/temps-reel-chrono.md
+ * Veille du chrono, pour toute l'application (docs/spec/temps-reel-chrono.md
  * § Alertes) : chaque seconde, le titre de fenêtre montre le temps qui tourne ;
  * un seuil franchi **pendant** la veille ajoute un bandeau (toujours), une
  * notification système (sauf si le système s'en charge déjà), et à défaut le

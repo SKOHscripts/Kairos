@@ -15,7 +15,7 @@ import com.skohscripts.kairos.ui.generated.resources.a11y_expanded
 import org.jetbrains.compose.resources.stringResource
 
 /*
- * Accessibilité commune (docs/spec-v3/accessibilite.md) : ce que TalkBack et
+ * Accessibilité commune (docs/spec/accessibilite.md) : ce que TalkBack et
  * les lecteurs d'écran du bureau doivent entendre sur les éléments que
  * Compose ne décrit pas seul.
  */

@@ -1,7 +1,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 // desktopApp : application de bureau Windows / Linux / macOS (JVM), installeurs
-// jpackage et image portable (docs/spec-v3/distribution.md § Bureau).
+// jpackage et image portable (docs/spec/distribution.md § Bureau).
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.compose)
@@ -27,7 +27,7 @@ kotlin {
     }
 }
 
-// Version des paquets de bureau (docs/spec-v3/distribution.md § Versionnage) :
+// Version des paquets de bureau (docs/spec/distribution.md § Versionnage) :
 // MSI et DMG n'acceptent que MAJEUR.MINEUR.CORRECTIF numériques. Une version
 // finale X.Y.Z garde son numéro ; une préversion est un produit distinct
 // (« Kairos Preview », autre identifiant) numéroté 1.0.<versionCode>, toujours

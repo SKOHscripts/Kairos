@@ -11,7 +11,7 @@ import java.sql.DriverManager
 import java.util.Properties
 
 /**
- * Bases Kairos 2 sur le bureau (docs/spec-v3/migration-2x.md § Bureau) :
+ * Bases Kairos 2 sur le bureau (docs/spec/migration-2x.md § Bureau) :
  * où les trouver, et comment les lire **en lecture seule** (JDBC, le pilote
  * SQLite déjà embarqué pour SQLDelight). L'ancienne base n'est jamais
  * modifiée.

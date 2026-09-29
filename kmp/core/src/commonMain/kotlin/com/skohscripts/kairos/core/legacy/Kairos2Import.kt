@@ -53,7 +53,7 @@ data class LegacyReport(
 class NotALegacyDatabase : Exception("not a Kairos 2 database")
 
 /**
- * Migration d'une base Kairos 2 (docs/spec-v3/migration-2x.md), pure. Toutes
+ * Migration d'une base Kairos 2 (docs/spec/migration-2x.md), pure. Toutes
  * les générations de schéma : une colonne ajoutée après coup (phases 2 à 6)
  * et absente prend sa valeur par défaut. Règles du plan § 5.4 : tâches
  * GitLab → tâches natives (projet gardé), créneaux TimeTree ignorés,

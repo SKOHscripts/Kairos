@@ -112,7 +112,7 @@ private val TWO_COLUMNS = 900.dp
 private val COMPACT_ROWS = 600.dp
 
 /**
- * Vue Jour (docs/spec-v3/vue-jour.md), dans l'ordre du flux GTD : capture,
+ * Vue Jour (docs/spec/vue-jour.md), dans l'ordre du flux GTD : capture,
  * « À traiter », « Maintenant », bandeau de surcharge, « Aujourd'hui, dans
  * l'ordre », sections secondaires (sans créneau, bloquées, plus tard, mères,
  * fait), recherche et backlog ; « En ce moment » (chrono) et la frise

@@ -1,5 +1,5 @@
 """Génère de vraies bases Kairos 2 pour tester la migration de Kairos 3
-(docs/spec-v3/migration-2x.md § Tests).
+(docs/spec/migration-2x.md § Tests).
 
 Deux générations de schéma, écrites dans `kmp/desktopApp/src/jvmTest/resources/legacy/` :
 
@@ -11,13 +11,17 @@ Deux générations de schéma, écrites dans `kmp/desktopApp/src/jvmTest/resourc
   `_ensure_tasks_columns`), sans tables de notes, sessions ni dépendances, et
   sans `settings.json`.
 
-À relancer seulement si ce script change (les bases sont commitées) :
+À relancer seulement si ce script change (les bases sont commitées). Le Python de
+Kairos 2 se lit au tag `v2.6.0`, désigné par `KAIROS2_SRC` :
 
-    python kmp/tools/gen_legacy_db.py
+    git worktree add /tmp/kairos2 v2.6.0
+    pip install -e "/tmp/kairos2[dev]"
+    KAIROS2_SRC=/tmp/kairos2 python kmp/tools/gen_legacy_db.py
 """
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import sys
 from dataclasses import asdict
@@ -25,7 +29,11 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT))
+# Code de Kairos 2 (paquet `app`) : un checkout du tag v2.6.0 (voir l'en-tête).
+KAIROS2 = Path(os.environ.get("KAIROS2_SRC", ROOT))
+if not (KAIROS2 / "app" / "tasks_models.py").is_file():
+    sys.exit("Kairos 2 introuvable : KAIROS2_SRC doit désigner un checkout du tag v2.6.0.")
+sys.path.insert(0, str(KAIROS2))
 
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402

@@ -1,4 +1,4 @@
-# Release de Kairos 3 (docs/spec-v3/distribution.md § Release) : sur tag v3.*,
+# Release de Kairos 3 (docs/spec/distribution.md § Release) : sur tag v3.*,
 # APK signé, installeurs et images portables des trois OS de bureau, version
 # web, SHA256SUMS, release GitHub (préversion si le tag a un suffixe).
 name: Kairos 3 release
@@ -135,7 +135,7 @@ jobs:
       - name: Installeur et image portable
         run: ./gradlew --no-daemon :desktopApp:packageDistributionForCurrentOS :desktopApp:createDistributable
 
-      # Auto-test : l'image empaquetée démarre et rend l'interface (docs/spec-v3/distribution.md § Auto-test).
+      # Auto-test : l'image empaquetée démarre et rend l'interface (docs/spec/distribution.md § Auto-test).
       - name: Auto-test (Linux, macOS)
         if: runner.os != 'Windows'
         run: |
@@ -197,9 +197,21 @@ jobs:
           path: artifacts
           pattern: kairos3-*
           merge-multiple: true
+      # Pont depuis Kairos 2 (docs/spec/migration-2x.md § Pont de mise à jour) :
+      # l'APK Python cherche `kairos-android-arm64.apk` et sa ligne de SHA256SUMS
+      # dans la dernière release stable. Une copie de notre APK sous ce nom lui
+      # fait installer Kairos 3 par-dessus, en un clic (même identifiant, même
+      # clé). Jamais pour une préversion (« Kairos Preview », autre identifiant).
+      - name: Pont de mise à jour Kairos 2
+        if: needs.version.outputs.prerelease != 'true'
+        working-directory: artifacts
+        run: cp Kairos-android.apk kairos-android-arm64.apk
       - name: SHA256SUMS
         working-directory: artifacts
-        run: sha256sum Kairos-* > SHA256SUMS && cat SHA256SUMS
+        run: |
+          shopt -s nullglob
+          sha256sum Kairos-* kairos-* > SHA256SUMS
+          cat SHA256SUMS
       - uses: softprops/action-gh-release@v2
         with:
           name: Kairos ${{ needs.version.outputs.name }}
@@ -207,4 +219,5 @@ jobs:
           generate_release_notes: true
           files: |
             artifacts/Kairos-*
+            artifacts/kairos-android-arm64.apk
             artifacts/SHA256SUMS

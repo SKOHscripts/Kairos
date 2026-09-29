@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Notifications de la version web (docs/spec-v3/temps-reel-chrono.md § Web) :
+ * Notifications de la version web (docs/spec/temps-reel-chrono.md § Web) :
  * API `Notification` du navigateur (contexte sécurisé : GitHub Pages est en
  * HTTPS), titre de l'onglet, bip Web Audio.
  */

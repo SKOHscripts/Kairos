@@ -15,7 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** Seule activité : l'interface Compose commune, bord à bord (docs/spec-v3/distribution.md § Android). */
+/** Seule activité : l'interface Compose commune, bord à bord (docs/spec/distribution.md § Android). */
 class MainActivity : ComponentActivity(), FileService {
     private var pendingSave: CompletableDeferred<Uri?>? = null
     private var pendingOpen: CompletableDeferred<Uri?>? = null

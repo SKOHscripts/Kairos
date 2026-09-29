@@ -1,689 +1,195 @@
-# Suivi du temps réel, chrono & garde-fous d'affichage
+# Temps réel, chrono et alertes
 
-_Rôle : mesurer et afficher le temps réellement passé sur les tâches (chrono
-par tâche, agrégats jour/semaine/type), tenir un minuteur vivant côté client
-avec alertes opt-in, et porter deux garde-fous d'affichage purement
-informatifs (tâches qui traînent, surcharge de priorité maximale). Fichiers
-couverts : `app/tasks_time.py` (agrégats purs depuis `WorkSession`),
-`app/tasks_staleness.py` (détection des tâches qui traînent), la fonction
-`initDayScripts` de `templates/kairos.html` (chrono vivant, titre d'onglet,
-alertes, pont Android), le pont natif
-`android/app/src/main/java/com/skohscripts/kairos/KairosNotificationBridge.java`,
-et `app/desktop_notify.py` (notification système émise par le serveur lui-même,
-issue #34) avec sa route `POST /kairos/notify`.
-Le rail « réel » de la timeline (`session_timeline_entries`,
-`app/tasks_scheduling.py`) et son rendu serveur sont décrits par
-`ordonnancement.md` § 2.3 : ce document ne couvre que l'agrégation du temps et
-le comportement vivant côté client, pas la projection sur la grille horaire.
-Le dashboard `/kairos/stats` (calibration, biais d'estimation) est décrit par
-`statistiques.md`, qui réutilise les fonctions de `tasks_time.py` sans les
-redéfinir._
+_Rôle : mesurer le temps réellement passé sur les tâches, le montrer en
+direct, et prévenir quand un seuil est franchi. Fichiers couverts :
+`kmp/core/.../engine/TimeTracking.kt`, `kmp/core/.../alerts/ChronoAlerts.kt`,
+`kmp/core/.../day/DayView.kt` (champs du temps), `data/KairosRepository.kt`
+(`startTimer`, `stopTimer`), `kmp/ui/.../app/ChronoNotifier.kt`,
+`kmp/ui/.../chrono/` (`ChronoWatcher.kt`, `ChronoTexts.kt`), les éléments du
+chrono de la vue Jour (`day/TaskRow.kt`, `day/NowCard.kt`, `day/Timeline.kt`),
+la section « Alertes du chrono » des Réglages (`reglages.md`), et par plateforme :
+`androidApp/.../` (`AndroidNotifier.kt`, `ChronoSync.kt`, `ChronoReceiver.kt`,
+`KairosProcess.kt`, `MainActivity.kt`, manifeste),
+`desktopApp/.../DesktopNotifier.kt` et `Main.kt`,
+`webApp/.../WebNotifier.kt` et `kairos-web.js`. Tests : `TimeTrackingTest`,
+`ChronoAlertsTest`, `KairosRepositoryTest`, `DayScreenUiTest`
+(`timerRunsAlertsAndStops`)._
+
+État : **jalon M3**. Reprend le besoin de `docs/spec/temps-reel-chrono.md`
+(Kairos 2), sans serveur : la voie de secours « notification émise par le
+serveur » (issue #34) devient la notification native de chaque plateforme.
+L'ancienneté (« traîne depuis ») et le bandeau de surcharge sont décrits par
+`ordonnancement.md`.
 
 ## 1. Besoin métier (cahier des charges)
 
 ### Objectif / problème
 
-Kairos propose une estimation (`estimated_minutes`) mais ne mesurait, jusqu'à
-la phase 3, jamais le temps **réellement** passé : impossible de comparer
-l'un à l'autre ou de savoir où va le temps de la journée. Une fois le chrono
-introduit, deux limites concrètes sont apparues à l'usage : (1) le badge
-« temps travaillé aujourd'hui » de l'en-tête comptait en réalité **toutes**
-les sessions jamais enregistrées, pas seulement celles du jour affiché ; un
-vrai bug, pas juste un manque ; (2) le chrono restait « muet » : il comptait
-le temps sans jamais avertir d'un dépassement, d'un oubli, ou du besoin d'une
-pause. Par ailleurs, deux angles morts distincts (mais rapprochés dans le
-même chantier, phase 7) menaçaient la fiabilité du signal d'urgence : une
-tâche en retard depuis 1 jour et une tâche en retard depuis 3 semaines
-étaient traitées identiquement (même bucket), et rien n'empêchait
-d'accumuler un grand nombre de tâches à priorité maximale, diluant le sens
-même de cette priorité.
+Comparer le temps réel à l'estimation, savoir où va la journée, et ne pas
+laisser un chrono tourner en silence : dépassement de l'estimé, chrono
+oublié, besoin d'une pause. Kairos 2 perdait ses alertes quand la page ou
+l'APK était en arrière-plan ; Kairos 3 les confie au système.
 
 ### Comportement attendu (utilisateur)
 
-- Démarrer le chrono sur une tâche ferme automatiquement toute session encore
-  ouverte ailleurs (au plus une session active à la fois) ; l'arrêter clôt la
-  session. Le temps s'affiche en minuteur vivant, sans rechargement de page.
-- Le badge « temps travaillé aujourd'hui » ne compte que les sessions dont le
-  début tombe le jour affiché : jamais l'historique complet.
-- Une ventilation par type de tâche accompagne ce total (jour et semaine).
-- Le titre de l'onglet du navigateur affiche le temps qui tourne en direct,
-  visible même onglet en arrière-plan.
-- Un bouton opt-in permet d'activer des alertes de chrono : dépassement de
-  l'estimé, chrono resté ouvert trop longtemps (« oublié »), rappel de pause
-  après une session de focus continu prolongée. Chaque seuil ne notifie
-  qu'une fois par franchissement, jamais en boucle, et jamais pour un seuil
-  déjà dépassé au moment où la page se charge.
-- Les notifications passent par le mécanisme le plus riche disponible (pont
-  natif Android, puis notifications système du navigateur, puis notification
-  système émise par Kairos lui-même), avec un repli visuel dans la page qui
-  joue **toujours**, même sans permission accordée.
-- **Une alerte n'est jamais perdue parce que le navigateur bloque les
-  notifications** (issue #34). Deux situations, jusque-là sans issue :
-  - l'utilisateur (ou une politique d'entreprise) a refusé les notifications
-    pour cette origine : `Notification.permission` reste `"denied"`,
-    définitivement, et aucune redemande n'est possible ;
-  - Kairos est ouvert par une adresse qui n'est pas un contexte sécurisé
-    (l'unité systemd écoute sur toutes les interfaces : un accès en
-    `http://ip-du-poste:8001` depuis un autre appareil n'expose même pas
-    l'API `Notification`).
-
-  Dans ces cas, quand le navigateur tourne **sur la machine qui héberge
-  Kairos**, l'alerte sort quand même : le serveur émet lui-même une
-  notification système (`notify-send` sur Linux, bulle Windows), qui ne
-  dépend d'aucune permission navigateur.
-- Quand même cette voie est fermée (serveur distant, outil de notification
-  absent du système), le repli dans la page est **renforcé** pour rester
-  perceptible fenêtre en arrière-plan : bandeau flottant persistant (il ne
-  disparaît pas tout seul, il se ferme d'un clic), titre d'onglet clignotant,
-  et (seulement si l'utilisateur l'a activé dans les Réglages) un court
-  signal sonore.
-- Le son est **désactivé par défaut** et ne joue jamais quand une notification
-  système a pu sortir : il est le dernier recours, pas un doublon.
-- Le minuteur (et donc les alertes) s'affiche quelle que soit la section où
-  vit la tâche en cours : y compris « Sans créneau aujourd'hui », pas
-  seulement la liste planifiée.
-- Une tâche en retard depuis longtemps, ou sans échéance non retouchée depuis
-  longtemps, porte un badge « traîne depuis N j » distinct d'une tâche en
-  retard depuis peu : sans jamais changer sa position dans le tri.
-- Au-delà d'un certain nombre de tâches à priorité maximale simultanées, un
-  bandeau prévient que le signal se dilue : purement informatif, jamais
-  bloquant, jamais un tri automatique de rattrapage.
+- **Démarrer** le chrono sur une tâche (bouton ▷ de chaque ligne, ou
+  « Démarrer le chrono » dans « Maintenant ») ferme toute session ouverte
+  ailleurs : au plus un chrono à la fois. **Arrêter** (■ sur la ligne,
+  « Arrêter le chrono » dans « Maintenant », dans « En ce moment », dans la
+  notification Android) clôt la session. Terminer la tâche l'arrête aussi.
+- Le temps s'affiche en direct : badge de la ligne, carte « En ce moment »
+  (surface sombre : tâche, minuteur, estimé, « Arrêter le chrono »), titre
+  de la fenêtre ou de l'onglet (« (0:12) Tâche · Kairos »). Une tâche sans
+  chrono en cours montre « 40 min / 30 » (rouge au-delà de l'estimé).
+- « Maintenant » affiche le temps travaillé **aujourd'hui** (sessions
+  commencées ce jour, jamais l'historique entier) et sa ventilation par
+  type. La frise montre à gauche un rail du temps chronométré à côté du
+  planifié.
+- **Trois alertes**, chacune une fois par franchissement, jamais pour un
+  seuil déjà dépassé quand on commence à regarder : dépassement de
+  l'estimé, chrono oublié (180 min de session par défaut), pause suggérée
+  (50 min de focus par défaut). Réglages : les deux seuils (0 = désactivé)
+  et le son de dernier recours (désactivé par défaut).
+- Toute alerte affiche un **bandeau** dans l'application, qui reste jusqu'à
+  ce qu'on le ferme. En plus, la **notification système** : Android (même
+  application fermée, même après un redémarrage du téléphone), plateau du
+  bureau, notification du navigateur. Si elle ne peut pas sortir : le titre
+  de la fenêtre clignote une minute, et le son joue s'il est activé.
+- « Maintenant » dit l'état des alertes : « Activer les alertes chrono »
+  tant que l'autorisation est à demander, sinon « Alertes chrono actives »,
+  « Notifications bloquées… » ou « Notifications indisponibles ici… ».
+- Un chrono survit à la fermeture de l'application, au rechargement de la
+  page web et au redémarrage du téléphone : c'est un instant de départ en
+  base.
 
 ### Critères de succès
 
-Repris et fusionnés des phases historiques (SPEC_KAIROS.md phases 3, 7, 11) :
-
-- Une session chronométrée sur une tâche puis démarrée sur une autre ferme
-  automatiquement la première (invariant « une session ouverte à la fois »).
-- Le badge « temps travaillé aujourd'hui » ne compte plus que les sessions du
-  jour affiché (vérifié par un test qui échouait avant le correctif).
-- La vue semaine affiche une synthèse du temps réel par type de tâche pour la
-  semaine, sans graphique.
-- Une tâche en retard ou sans échéance non retouchée depuis longtemps affiche
-  le badge « traîne depuis N jours », sans changer sa position dans le tri.
-- Dépasser le seuil de tâches à priorité maximale affiche un bandeau ; en
-  dessous, rien ne s'affiche.
-- Les sessions chronométrées du jour apparaissent en rail « réel » sur la
-  timeline (voir `ordonnancement.md`).
-- Le titre de l'onglet affiche le temps qui tourne quand un chrono est actif.
-- Un bouton opt-in demande la permission de notifier ; l'état affiché reflète
-  actif/bloqué/indisponible selon le contexte (pont Android, contexte
-  sécurisé navigateur, ou aucun des deux).
-- Les trois alertes (dépassement, oubli, pomodoro) se déclenchent au
-  franchissement, sans re-spam à chaque navigation, avec repli in-page si les
-  notifications ne sont pas autorisées.
-- Notifications refusées par le navigateur, Kairos ouvert sur la machine qui
-  l'héberge : l'alerte produit quand même une notification système, et
-  l'interface annonce « alertes actives » plutôt que « bloquées ».
-- Kairos ouvert depuis **un autre appareil** que celui qui l'héberge : aucune
-  notification système n'est émise (elle s'afficherait sur le mauvais écran),
-  le repli renforcé prend le relais ; et l'interface le dit.
-- Aucun outil de notification sur le système : aucune erreur, aucune page
-  cassée, repli renforcé et message honnête.
-- Le son ne joue jamais tant qu'il n'a pas été activé dans les Réglages.
-- Le minuteur (et les alertes) s'affiche aussi quand la tâche en cours est
-  « sans créneau ».
+- Démarrer sur B ferme la session de A ; une tâche faite ne démarre pas de
+  chrono (`KairosRepositoryTest`).
+- Temps du jour limité aux sessions commencées ce jour (`TimeTrackingTest`).
+- Démarrer, voir « En ce moment », franchir le seuil de pause avec une
+  horloge simulée, voir le bandeau, le titre clignotant et le son quand la
+  notification est refusée, fermer le bandeau, arrêter
+  (`DayScreenUiTest.timerRunsAlertsAndStops`).
+- Web : le titre de l'onglet porte le chrono, qui survit au rechargement
+  (vérifié dans Chromium).
+- Android : notification permanente avec chronomètre du système et
+  « Arrêter » ; alarmes des seuils ; reprise après redémarrage (vérification
+  sur appareil à faire : pas d'émulateur dans l'environnement de
+  développement).
 
 ### Hors périmètre / différé
 
-- **Mode focus plein écran** : écarté explicitement à plusieurs reprises
-  (phase 3, phase 11) ; le pomodoro reste un simple rappel, pas un mode dédié.
-- **Notification vers un autre appareil que celui qui héberge Kairos**
-  (issue #34) : explicitement hors périmètre. Y répondre demanderait un canal
-  sortant (service de push, compte tiers, ou un agent installé sur chaque
-  appareil) : tout l'inverse d'un outil local, mono-utilisateur, sans compte
-  et sans dépendance réseau. Le repli renforcé dans la page est la réponse
-  assumée à ce cas.
-- **Service worker / PWA installable pour contourner le blocage** : sans
-  effet. Un service worker ne contourne ni `Notification.permission ===
-  "denied"`, ni l'absence de contexte sécurisé : il exige au contraire un
-  contexte sécurisé pour s'enregistrer. Écarté après analyse (issue #34), pas
-  par méconnaissance.
-- **Servir Kairos en HTTPS avec un certificat auto-signé** pour rendre
-  l'origine « sécurisée » depuis le LAN : écarté (issue #34) ; cela déplace le
-  problème sur une bannière d'avertissement de certificat à chaque ouverture,
-  et l'utilisateur devrait quand même accorder la permission.
-- **Digest/rappel proactif au-delà des trois alertes de chrono** : l'outil
-  reste 100 % pull (analyse post-phase-6) ; les alertes de chrono sont la
-  seule exception, strictement liées à une session en cours, jamais un
-  rappel déclenché en dehors d'un chrono actif.
-- **Mémorisation automatique de durées par type de tâche** : explicitement
-  différée au futur modèle ML sur l'historique `WorkSession` (analyse
-  post-phase-6, confirmé phase 7) ; ce module alimente cet historique mais ne
-  calcule aucune suggestion lui-même (la suggestion de durée par type/palier
-  Fibonacci affichée au panneau d'édition est calculée par
-  `tasks_stats.calibration_by_type`/`fibonacci_calibration`, hors périmètre
-  de ce document, voir `statistiques.md`).
-- **Nudge de découpage des tâches à points Fibonacci élevés** : identifié en
-  analyse post-phase-6, explicitement non retenu pour la phase 7.
-- **Modification du tri/des buckets d'urgence par la staleness ou la
-  surcharge** : les deux garde-fous de ce document sont **strictement des
-  signaux d'affichage** ; `days_stale` n'entre dans aucune clé de tri
-  (`ordonnancement.md` reste seul maître de l'ordre), et le bandeau de
-  surcharge ne retire ni ne réordonne aucune tâche.
-- **Défaut de priorité automatique déduit de l'échéance à la création** :
-  écarté explicitement en phase 7 : le garde-fou de surcharge avertit après
-  coup, il ne calcule jamais de priorité à la place de l'utilisateur.
-- **Bannière distincte pour la charge de la semaine** : écartée en phase 7 ;
-  le débordement du jour (`schedule.stats.overflow_minutes`,
-  `ordonnancement.md`) suffit, pas de doublon.
+- Temps de la **semaine** par type : calculé ici (`TimeTracking`), affiché
+  par la vue Semaine (`vue-semaine.md`).
+- Mode focus plein écran, notification vers un autre appareil, rappels
+  hors d'un chrono en cours (comme Kairos 2).
+- Alarmes exactes (voir Décisions).
 
 ## 2. Solution technique
 
-### Vue d'ensemble
+### Calcul (`core`, pur)
 
-Trois couches indépendantes composent ce domaine :
+- `TimeTracking` (portage de `app/tasks_time.py`) : `sessionMinutes`
+  (minutes entières, jamais négatives, une session ouverte court jusqu'à
+  maintenant), `spentMinutesByTask` (sessions **plus** saisie manuelle),
+  `runningSession` (la plus récente des ouvertes), `totalMinutes`,
+  `sessionsInRange` / `sessionsOnDay` (date **locale** du début, fuseau
+  passé), `spentMinutesByType` (clé `""` sans type), `sessionTimeline` (rail :
+  sessions bornées à la journée de travail, une minute au moins, nature
+  `SESSION`).
+- `ChronoAlerts.thresholds(début, base, estimé, oubli, pause)` : instants de
+  franchissement. Dépassement : `début + (estimé − base)` (au plus tôt le
+  début), le total cité est l'estimé ; oubli et pause : `début + seuil`, sur
+  la **session**. Seuil à 0 ou sans estimé : pas d'alerte. `crossed(since,
+  now)` : franchis dans `]since, now]` ; `upcoming(now)` : encore à venir.
+- `DayView` : `spentByTask`, `running`, `runningTask`, `runningBaseMinutes`
+  (temps de la tâche avant la session), `spentToday`, `spentByTypeToday`
+  (types non vides, minutes > 0), `sessionTimeline`. `build` reçoit
+  l'instant courant.
 
-1. **Agrégation pure** (`app/tasks_time.py`) : calculs de durées à partir de
-   `WorkSession` déjà chargées en mémoire, aucune I/O.
-2. **Détection pure** (`app/tasks_staleness.py`) : un seul signal
-   (`days_stale`), aucune I/O, aucun accès à la base.
-3. **Comportement vivant côté client** (`templates/kairos.html`,
-   `initDayScripts`) : minuteur, titre d'onglet, alertes ; complété par un
-   pont natif optionnel côté Android
-   (`KairosNotificationBridge.java`/`window.KairosAndroid`).
-4. **Sortie système de secours** (`app/desktop_notify.py` + route `POST
-   /kairos/notify`, issue #34) : le serveur émet lui-même une notification
-   quand le navigateur ne peut pas, sans aucune dépendance ajoutée.
+### Dépôt
 
-Les routes d'ouverture/fermeture de session (`POST
-/kairos/tasks/{id}/timer/start`, `.../timer/stop`, `app/main.py`) et le calcul
-du garde-fou de surcharge (`count_max_priority_tasks`,
-`app/tasks_scheduling.py`) ne vivent pas dans les fichiers couverts par ce
-document, mais sont l'unique point d'écriture / la seule source du signal :
-documentés ici pour leur rôle d'appelant.
+`startTimer(tâche)` : refusé si la tâche n'est pas à faire ; ferme toutes
+les sessions ouvertes puis en insère une (même instant). `stopTimer()` :
+ferme toute session ouverte ; n'écrit rien s'il n'y en a pas.
 
-### Détail par composant
+### Interface commune
 
-#### `app/tasks_time.py` : agrégats de temps réel
+- `ChronoNotifier` (dans `AppServices`, `NoNotifier` par défaut) : `state`
+  (`ACTIVE`, `CAN_REQUEST`, `DENIED`, `UNAVAILABLE`), `systemHandlesAlerts`,
+  `requestPermission`, `notify` (`false` si rien n'est sorti), `setTitle`,
+  `beep`.
+- `ChronoWatcher`, dans la coquille (toutes destinations) : relancé quand la
+  session, la tâche, son estimé, le temps de base ou les réglages changent ;
+  chaque seconde, il notifie les seuils franchis depuis la seconde
+  précédente (le premier tour part de l'instant où la veille commence : un
+  seuil déjà passé ne notifie pas), puis écrit le titre. Par alerte : bandeau
+  (`AlertBanners`, surface inverse, fermeture au clic) ; si le système ne
+  gère pas déjà les alertes, `notify` ; si elle échoue, titre clignotant
+  (« ⚠ Tâche · message ») une minute et `beep` si le son est activé. À
+  l'arrêt, le titre redevient normal.
+- `ChronoTexts` : textes hors composition (durées, titre et corps des
+  alertes, libellés des notifications Android), mêmes phrases que Kairos 2.
+- `rememberLiveMinutes` : minuteur vivant (une seconde) du badge de ligne et
+  de « En ce moment ».
+- Réglages : les deux seuils et le son, section « Alertes du chrono » du
+  formulaire commun (`reglages.md` ; carte séparée au jalon M3, fondue au
+  jalon M5).
 
-Toutes les fonctions acceptent un paramètre `now: datetime | None = None`
-(défaut `datetime.now(timezone.utc)`) pour rester testables avec une horloge
-figée.
+### Android
 
-- **`_aware(dt)`** : normalise une datetime en UTC-aware ; les datetimes
-  SQLite reviennent naïves (`tzinfo=None`), donc toute comparaison
-  d'intervalle passe d'abord par cette fonction pour éviter une erreur de
-  comparaison naïf/aware.
-- **`session_minutes(session, *, now=None)`** : durée d'une session en
-  minutes entières (`// 60`, jamais négative ; `max(0, ...)`) ; une session
-  encore ouverte (`ended_at is None`) court jusqu'à `now`.
-- **`spent_minutes_by_task(sessions, *, now=None, tasks=None)`** : total par
-  tâche : somme des `session_minutes` **plus**, si `tasks` est fourni, le
-  temps saisi à la main (`Task.manual_time_spent_minutes`, issue #6). Les
-  deux s'**additionnent**, jamais l'un ne remplace l'autre : le manuel comble
-  ce que le chrono n'a pas mesuré (session oubliée en partie), il ne
-  remplace jamais une mesure automatique existante.
-- **`running_session(sessions)`** : la session ouverte (`ended_at is None`),
-  ou `None` ; si plusieurs subsistaient (ne devrait jamais arriver, invariant
-  d'unicité appliqué côté route), retourne la plus récemment démarrée.
-- **`total_minutes(sessions, *, now=None)`** : somme brute, toutes tâches
-  confondues, sur exactement les sessions fournies (le filtrage par période
-  est à la charge de l'appelant, voir ci-dessous).
-- **`sessions_in_range(sessions, start_day, end_day)`** : sessions dont le
-  **début** tombe dans `[start_day, end_day]` bornes incluses. Docstring
-  explicite (phase 7) : sert à corriger le calcul « temps travaillé
-  aujourd'hui », qui additionnait auparavant toutes les sessions jamais
-  enregistrées faute de filtrage par date en amont ; **le filtrage se fait
-  ici, pas dans `total_minutes`/`spent_minutes_by_task`**, volontairement
-  laissées inchangées : elles reçoivent la liste déjà filtrée par l'appelant.
-- **`sessions_on_day(sessions, day)`** : cas particulier de
-  `sessions_in_range` à borne unique (`start_day == end_day == day`).
-- **`spent_minutes_by_type(sessions, task_type_by_id, *, now=None)`** : même
-  patron que `spent_minutes_by_task`, mais regroupé par `Task.task_type`. Une
-  tâche sans type (`""`) ou absente de `task_type_by_id` (tâche supprimée
-  entre-temps, session orpheline) tombe sous la clé `""`.
+- `KairosProcess` : une base par processus pour l'activité, les alarmes et
+  le redémarrage ; `ChronoSync.start` y suit l'état de la base (clé :
+  session, début, titre, base, estimé, seuils).
+- `ChronoSync.apply` : canaux `chrono` (importance basse) et
+  `chrono-alerts` (haute) ; sans session : notification permanente retirée et
+  alarmes annulées ; avec session : notification permanente (catégorie
+  chronomètre, `setUsesChronometer`, départ `début − base` pour afficher le
+  total, action « Arrêter », ouverture de l'application au toucher), et une
+  alarme `setAndAllowWhileIdle` par seuil à venir, titre et corps déjà
+  rédigés dans ses extras.
+- `ChronoReceiver` : l'alarme poste l'alerte ; « Arrêter » ouvre la base si
+  besoin et arrête le chrono (`goAsync`). `BootReceiver` (démarrage,
+  mise à jour de l'application) : ouvrir la base suffit à tout remettre.
+- `AndroidNotifier` : `ACTIVE` si l'autorisation (Android 13+) est accordée
+  et les notifications activées ; alors `systemHandlesAlerts` (les alarmes
+  notifient, l'application n'ajoute que son bandeau). Autorisation demandée
+  par `MainActivity` à l'opt-in ; état relu à chaque retour dans
+  l'application. Son : `ToneGenerator`.
+- Manifeste : `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED` ; icône de
+  notification `ic_notification` (silhouette du cadran).
 
-#### `app/tasks_staleness.py` : tâches qui traînent
+### Bureau
 
-Une seule fonction publique, **pure** :
+`DesktopNotifier` : notification par l'icône du plateau (`Tray` de Compose
+Desktop, si le bureau en a un ; sinon `UNAVAILABLE`) ; le titre de la
+fenêtre lit `titlePrefix` ; bip `Toolkit.beep`. Toucher l'icône du plateau
+ramène la fenêtre.
 
-```python
-def days_stale(task, today, *, overdue_days, untouched_days) -> int | None:
-```
+### Web
 
-Une tâche « traîne » si :
-1. sa `deadline` **ou** sa `scheduled_date` est dépassée de plus de
-   `overdue_days` jours : la **plus ancienne** des deux dates dépassées sert
-   de référence (« c'est depuis ce moment-là que la tâche est actionnable »,
-   docstring) ; **ou**
-2. elle n'a **ni l'une ni l'autre** et n'a pas été modifiée
-   (`Task.updated_at`) depuis plus de `untouched_days` jours.
-
-Retourne le nombre de jours « de trop » (strictement supérieur au seuil :
-pile au seuil ne compte pas encore, voir `test_deadline_exactly_at_threshold_
-returns_none`), ou `None` sinon. Une tâche ayant une date (deadline ou
-programmée) mais **non encore dépassée** n'est jamais rapportée « qui
-traîne » via la branche « sans date », même si `updated_at` est ancien : les
-deux branches sont mutuellement exclusives (`if task.deadline is None and
-task.scheduled_date is None` en garde de la seconde).
-
-Docstring de tête explicite le contrat central : **fonction pure, aucun accès
-DB, purement un signal d'affichage supplémentaire** ; ne modifie jamais
-l'ordre de tri ni les buckets d'urgence de `app/tasks_scheduling.py` : une
-tâche qui traîne depuis 1 jour et une qui traîne depuis 3 semaines partagent
-le même bucket de tri, seule cette fonction distingue les deux à l'affichage.
-
-#### Point d'entrée dans `app/main.py`
-
-Dans `_render_kairos` :
-
-- `stale_days_of = {t.id: days for t in tasks if (days := days_stale(t,
-  target_day, overdue_days=settings.stale_overdue_days,
-  untouched_days=settings.stale_untouched_days)) is not None}`, calculé
-  **après** le blocage (commentaire explicite : signal d'affichage seul,
-  calculé après coup) et consommé par la macro `task_tags`
-  (`templates/_kairos_macros.html`) : `{% if stale_days %}<span class="badge
-  warn">traîne depuis {{ stale_days }} j</span>{% endif %}`.
-- `priority_overload_count = count_max_priority_tasks([t for t in tasks if
-  t.id not in blocked_ids])`, **exclut les tâches bloquées** du décompte
-  (`app/tasks_scheduling.py`, commentaire lignes 416-420) : une tâche bloquée
-  ne peut de toute façon rien faire dans l'immédiat, donc ne doit pas diluer
-  le signal de priorité du jour. `count_max_priority_tasks` (module
-  `ordonnancement.md`) compte les tâches à priorité **strictement P0**, la
-  même définition resserrée que le bucket d'urgence 1 (voir
-  `ordonnancement.md` § décisions, point 2 : barème P0/P1/P2). Rendu par
-  `_kairos_banners.html` : `{% if priority_overload_count >
-  priority_overload_threshold %}` ; bandeau strictement au-delà du seuil,
-  jamais à l'égalité.
-- Le suivi du temps réel : `sessions = list(tasks_session.scalars(select(
-  WorkSession)))` (toutes, une fois par requête) ; `spent_by_task =
-  spent_minutes_by_task(sessions, tasks=all_tasks)` ; `running =
-  running_session(sessions)` ; `today_sessions = sessions_on_day(sessions,
-  target_day)` ; `spent_total_str = _fmt_minutes(total_minutes(
-  today_sessions))` — **c'est le filtrage préalable par `sessions_on_day` qui
-  corrige le bug historique** (le total n'est calculé que sur les sessions du
-  jour, jamais sur `sessions` brut). `spent_by_type_today =
-  spent_minutes_by_type(today_sessions, task_type_by_id)`, filtré pour ne
-  garder que les entrées non vides et non nulles.
-- Vue semaine : `week_sessions = sessions_in_range(sessions, monday, sunday)`
-  puis `spent_by_type_week = spent_minutes_by_type(week_sessions,
-  task_type_by_id)`, même filtre ; agrégat hebdomadaire ajouté phase 7 sans
-  nouveau graphique, juste des totaux textuels par type.
-
-#### Ouverture/fermeture de session (`app/main.py`)
-
-```python
-@app.post("/kairos/tasks/{task_id:int}/timer/start")
-def start_timer(request):
-    ...
-    _stop_running_sessions(tasks_session)  # ferme toute session ouverte, ailleurs
-    tasks_session.add(WorkSession(task_id=task_id))
-```
-
-`_stop_running_sessions` (lignes 1013-1019) ferme **toute** session encore
-ouverte (`WHERE ended_at IS NULL`) avant d'en ouvrir une nouvelle : c'est ici,
-côté route, que l'invariant « au plus une session ouverte à la fois »
-(documenté dans `modele-donnees.md` comme appliqué au niveau applicatif, pas
-par contrainte SQL) est réellement fait respecter. `stop_timer` clôt toute
-session ouverte sur la tâche visée (`ended_at = now`) ; `toggle_task_done`
-fait de même quand une tâche passant `done` avait un chrono actif (le chrono
-ne continue jamais sur une tâche terminée).
-
-#### Chrono vivant, titre d'onglet, alertes (`templates/kairos.html::initDayScripts`)
-
-Fonction ré-appelable après chaque swap AJAX du fragment `#mj-day-content`
-(commentaire de tête du script) : un `.mj-timer` recréé après un swap
-doit réinitialiser son propre minuteur, sans accumuler d'intervalles
-orphelins sur un DOM détaché (`root.__kairosTimerHandle`, `clearInterval`
-avant réinjection).
-
-**Données côté serveur** consommées par le script :
-- `.mj-timer` (`_kairos_macros.html::time_spent`) : `data-started` (ISO,
-  posé uniquement si la tâche en cours a un chrono actif), `data-base`
-  (minutes déjà accumulées avant cette session, incluant le temps manuel),
-  `data-estimate` (`estimated_minutes` ou vide), `data-title`.
-- `#mj-alert-config` (`_kairos_day.html`) : `data-idle` =
-  `settings.timer_idle_alert_minutes`, `data-pomodoro` =
-  `settings.pomodoro_focus_minutes`.
-
-**Détection de capacité de notification** (ligne 93-94) :
-```js
-var android = window.KairosAndroid || null;
-var canNotify = android ? true : (('Notification' in window) && window.isSecureContext);
-```
-Le pont Android, s'il existe (APK, `MainActivity#onCreate` l'injecte comme
-`window.KairosAndroid`), prime toujours : `android.webkit.WebView`
-n'implémente pas `window.Notification` nativement, donc sans ce pont les
-alertes resteraient bloquées à « indisponibles » dans l'APK. Ailleurs
-(navigateur desktop/mobile), `canNotify` exige à la fois l'existence de l'API
-`Notification` et `window.isSecureContext` : **contexte sécurisé requis**
-(HTTPS, ou `127.0.0.1`/`localhost`) : une notification demandée sur un accès
-réseau local en HTTP simple (ex. IP LAN sans TLS) est détectée comme
-indisponible, message explicite affiché plutôt qu'un échec silencieux. Depuis
-l'issue #34, ce message dit ce qui prend le relais plutôt que de constater un
-manque : « Alertes chrono actives (notifications système de Kairos). » si le
-serveur peut notifier pour ce client, « Notifications indisponibles ici : les
-alertes s'afficheront dans la page. » sinon.
-
-**Bouton d'opt-in** : quatre branches mutuellement exclusives :
-1. **Pont Android présent** : `refreshAndroidStatus()` interroge
-   `android.hasPermission()` à chaque rendu et après l'évènement DOM
-   `kairos-android-permission-changed` (déclenché par
-   `KairosNotificationBridge#notifyPermissionChanged`, appelé depuis
-   `MainActivity#onRequestPermissionsResult` : la demande de permission
-   Android est **asynchrone**, pas de valeur de retour exploitable
-   directement par l'appel JS `requestPermission()`, d'où le rebouclage par
-   évènement plutôt qu'une promesse).
-2. **Pas de pont, contexte non sécurisé ou API absente** : bouton jamais
-   affiché, message annonçant ce qui prend le relais ; la notification système
-   émise par le serveur si `data-server-notify` vaut `1` (issue #34), le repli
-   dans la page sinon.
-3. **Web Notifications refusées** (`"denied"`, définitif pour l'origine) :
-   bouton jamais affiché, même message de relais qu'au point 2 (issue #34).
-4. **Web Notifications standard** : bouton affiché si permission ni accordée
-   ni refusée (`Notification.permission === "default"`), clic →
-   `Notification.requestPermission()`.
-
-**Anti-spam des alertes** (commentaire explicite dans le script) : au
-chargement, `initSession`/`initTotal` sont calculés une fois pour déterminer
-quels seuils sont **déjà franchis avant même que la page ne s'ouvre** ; ces
-seuils sont pré-marqués `fired[tag] = true` sans jamais déclencher
-`alert(...)`. Seule une transition franchie **pendant que la page reste
-ouverte** (dans `tick()`, appelé chaque seconde) déclenche réellement une
-notification. Chaque type d'alerte (`over`, `idle`, `pomo`) a son propre
-verrou `fired[tag]`, indépendant des deux autres : franchir le seuil de
-dépassement ne bloque pas l'alerte d'oubli, et réciproquement.
-
-**Trois déclencheurs** (fonction `tick`), chacun optionnel
-(seuil à 0 = désactivé) :
-- `over` : `estimate && total >= estimate` : dépassement de l'estimé.
-- `idle` : `idleMin && sessionMin >= idleMin` : chrono resté ouvert depuis
-  plus de `timer_idle_alert_minutes` (défaut 180) minutes **de la session en
-  cours** (pas du cumulé), « chrono oublié ».
-- `pomo` : `pomoMin && sessionMin >= pomoMin` : focus continu de plus de
-  `pomodoro_focus_minutes` (défaut 50) minutes de la session en cours,
-  rappel de pause, réintroduit à la demande explicite de l'utilisateur en
-  phase 11 après avoir été écarté en phase 3 ; reste un simple rappel, jamais
-  un mode focus plein écran.
-
-**Notification effective** (`alert(tag, body)`) : cascade du mécanisme le plus
-riche au dernier recours, remaniée par l'issue #34 :
-
-1. `kairosToast(msg)` **toujours**, en premier et quoi qu'il arrive :
-   l'invariant d'origine (« rien n'est jamais silencieux ») est conservé tel
-   quel, seule sa présentation change (voir ci-dessous).
-2. Pont Android (`android.notify(title, body, tag)`) s'il existe → terminé.
-3. Sinon `new Notification(...)` si `canNotify && Notification.permission ===
-   "granted"` → terminé.
-4. Sinon, si `data-server-notify` vaut `1`, `kairosNotifyServer(title, body)`
-   (`POST /kairos/notify`) ; **renforcement seulement si la promesse résout à
-   `false`** (la route a répondu autre chose que 204).
-5. Sinon, renforcement immédiat.
-
-**`reinforce(msg)` = titre d'onglet clignotant + son optionnel.** Conditionnel
-et non systématique : doubler d'un son et d'un clignotement une alerte déjà
-reçue en notification système serait du bruit. C'est la seule partie de la
-cascade qui dépend du résultat des étapes précédentes.
-
-**`data-server-notify` est posé par le serveur** (`server_notifications_
-available(request)`), jamais deviné côté client : lui seul sait si la page est
-ouverte depuis la machine qui l'héberge.
-
-**Helpers hors de `initDayScripts`** (`kairosToast`, `kairosStartFlash`/
-`kairosStopFlash`, `kairosBeep`, `kairosNotifyServer`, `kairosBaseTitle`) :
-aucun d'eux n'habite le sous-arbre remplacé par un swap AJAX, donc aucun ne
-doit être rebranché : application directe de l'invariant de
-`vue-jour-gtd.md`.
-
-**Bandeau flottant (`kairosToast`)** : remplace l'ancien `flashInPage`, qui
-insérait un `.banner.warning` en tête de `.page` :
-
-- **Ancré au `<body>`, pas à `.page`** : un swap AJAX remplace
-  `#mj-day-content`, un bandeau posé dedans disparaissait au premier
-  rafraîchissement, exactement quand l'utilisateur ne regarde pas.
-- **Persistant**, avec un bouton de fermeture : aucune disparition
-  automatique, une alerte manquée est une alerte perdue.
-- `position: fixed` en bas à droite (`.mj-alert-toasts`, `z-index: 70`, sous le
-  calque du panneau d'édition qui reste prioritaire), rendu en **snackbar**
-  MD3 (surface inverse, élévation 3 : il flotte au-dessus du contenu, voir
-  `docs/DESIGN_SYSTEM.md` § Bannières et alertes) ; décalé au-dessus de la bottom nav dans
-  l'APK Android, via un sélecteur de **frère** (`.layout.is-android ~`), le
-  conteneur vivant hors de `.layout`.
-
-**Titre d'onglet clignotant** : `kairosFlash = {msg, until, on}`, fenêtre de
-60 s. `tick()` reste le **seul** écrivain de `document.title` : il consulte cet
-état et cède la place au message plutôt qu'un second intervalle n'entre en
-concurrence avec lui. Arrêt dès que l'utilisateur a vu : `visibilitychange`
-(retour sur l'onglet) ou `pointerdown` (interaction avec la page), sans bouton
-dédié. `kairosBaseTitle` est capturé **une fois au chargement**, avant que
-minuteur ou clignotement n'aient pu écrire dans le titre : le recalculer après
-un swap capturerait le titre décoré au lieu du vrai.
-
-**Signal sonore** (`kairosBeep`, réglage `timer_alert_sound`, **désactivé par
-défaut**) : deux notes sinusoïdales courtes générées en WebAudio, avec
-enveloppe exponentielle (une note coupée net « claque »). WebAudio plutôt qu'un
-fichier audio : aucun binaire à empaqueter, cohérent avec « HTML/CSS pur, sans
-dépendance de build ». Un navigateur refuse de jouer un son tant que la page
-n'a pas reçu d'interaction : le contexte est déverrouillé au premier
-`pointerdown`/`keydown`, et l'absence de son sans interaction est assumée ;
-jamais une erreur.
-
-**État affiché par l'opt-in** : il annonce ce qui va **réellement** se passer.
-Notifications refusées ou indisponibles mais voie serveur ouverte → « Kairos
-les émet lui-même » / « notifications système de Kairos », jamais
-« bloquées ».
-
-**Titre d'onglet vivant** (ligne 149, 180-181) : `baseTitle` capture le titre
-de base **une seule fois** au chargement, en retirant tout préfixe déjà posé
-par une exécution précédente du minuteur (regex `/^\([0-9:]+\) .+ · /`) ; un
-swap AJAX qui réexécute `initDayScripts` ne doit jamais accumuler de
-préfixes emboîtés. Chaque tick réécrit `document.title` avec le total formaté
-`(H:MM) <titre tâche> · <titre de base>`.
-
-#### `app/desktop_notify.py` : notification système émise par le serveur
-
-Ajouté par l'issue #34 pour les deux cas où le navigateur ne peut rien :
-permission refusée (`Notification.permission === "denied"`, définitif pour
-l'origine) et origine non sécurisée (accès LAN en HTTP simple). Kairos tournant
-le plus souvent **sur la machine de l'utilisateur**, le serveur s'adresse
-directement au système : aucune permission navigateur n'entre alors en jeu.
-
-**Sans aucune dépendance ajoutée** (ni `plyer`, ni `win10toast`, ni D-Bus en
-Python) : seulement des outils déjà présents sur le système cible, invoqués en
-sous-processus, cohérent avec « aucune extension native » du portage Android
-et de l'empaquetage PyInstaller (`packaging-lancement.md`).
-
-| Système | Mécanisme | Détail |
-| --- | --- | --- |
-| Linux | `notify-send` (libnotify) | `argv` direct, jamais de shell ; `--` ferme l'analyse des options, donc un texte commençant par un tiret reste un argument. |
-| Windows | `System.Windows.Forms.NotifyIcon` via PowerShell | Rendu en toast natif sur Windows 10/11. `Popen` et non `run` : le script attend 10 s l'affichage de la bulle, la requête HTTP ne doit pas attendre avec lui. |
-| macOS, autres | — | Hors périmètre du dépôt ; `is_available()` retourne `False`, l'appelant retombe sur son repli in-page. |
-
-Fonctions : `is_available()` (recherche de binaire, ne lance rien ; consultée au
-rendu de page autant qu'avant l'envoi), `send(title, body)` (best-effort total :
-aucune exception ne remonte, une alerte qui ne sort pas ne doit jamais faire
-échouer une requête) et `loopback_client(host)`.
-
-**Route `POST /kairos/notify`** (`app/main.py`), et son gardien
-`server_notifications_available(request)` : trois conditions **toutes**
-nécessaires :
-
-1. pas dans l'APK Android (le pont natif y est prioritaire, et `notify-send`
-   n'y existe pas) ;
-2. un outil de notification existe sur l'hôte ;
-3. le client est la machine hôte elle-même (`loopback_client`).
-
-Réponses : `204` si la notification est partie, `503` sinon ; le client garde
-son repli dans la page de toute façon, la réponse ne lui dit que s'il doit le
-**renforcer**. `403` si l'en-tête `X-Requested-With: fetch` manque.
-
-**Décisions de sûreté** (la route est joignable par tout ce qui tourne sur la
-machine : c'est la contrepartie assumée du choix « le serveur notifie ») :
-
-- **Titre toujours préfixé `Kairos · ` côté serveur**, jamais côté client : une
-  notification émise par Kairos s'annonce comme telle et ne peut donc pas être
-  fabriquée pour ressembler à un autre logiciel.
-- **`X-Requested-With: fetch` exigé** : un `<form>` d'une autre origine ne peut
-  pas poser d'en-tête personnalisé, et un `fetch` d'une autre origine qui en
-  pose déclenche une requête de contrôle préalable à laquelle cette app ne
-  répond jamais (aucun en-tête CORS n'est servi).
-- **Adresses de bouclage littérales uniquement**, sans résolution de nom ni
-  comparaison avec les adresses locales de la machine : en cas de doute on ne
-  notifie pas, le coût d'un faux négatif est un repli visuel, celui d'un faux
-  positif une notification sur l'écran de quelqu'un d'autre.
-- **Sur Windows, le texte transite par des variables d'environnement**
-  (`KAIROS_NOTIFY_TITLE`/`_BODY`), jamais par le texte du script PowerShell,
-  qui reste une constante : aucun échappement à faire, donc aucune injection
-  possible.
-- **Texte aplati et borné** (`_clean`) : une seule ligne, 120/400 caractères,
-  les retours à la ligne sont *remplacés* par des espaces (sinon deux mots se
-  colleraient) plutôt que conservés, `notify-send` et la bulle Windows ne les
-  traitant pas de la même façon.
-
-#### `KairosNotificationBridge.java` : pont natif Android
-
-Exposé en JavaScript sous `window.KairosAndroid`
-(`MainActivity#onCreate`/`webView.addJavascriptInterface`). Quatre méthodes
-`@JavascriptInterface` :
-
-- **`canNotify()`** : retourne toujours `true` : la seule existence du pont
-  (contrairement à `'Notification' in window`, absent de
-  `android.webkit.WebView`) prouve la capacité. Non utilisée côté JS
-  actuellement (`window.KairosAndroid` lui-même sert de test de présence),
-  conservée pour un usage explicite futur.
-- **`hasPermission()`** : `NotificationManager#areNotificationsEnabled()`,
-  qui **unifie les deux régimes** de permission Android : avant l'API 33, pas
-  de permission runtime (seul le réglage système « notifications activées »
-  pour l'app compte) ; depuis l'API 33, ce même indicateur reflète aussi
-  `POST_NOTIFICATIONS`. Une seule méthode plateforme couvre les deux
-  régimes depuis `minSdk 24` : l'appelant JS n'a jamais besoin de distinguer.
-- **`requestPermission()`** : déclenche la boîte de dialogue système
-  seulement sur API 33+ (Tiramisu) ; en dessous, il n'y a rien à demander
-  (le réglage système gère seul), donc rebouclage direct vers
-  `notifyPermissionChanged()`. Toujours appelé depuis le bouton d'opt-in
-  existant, **jamais au démarrage** de l'app (rappelé en commentaire de
-  `AndroidManifest.xml`).
-- **`notify(title, body, tag)`** : no-op silencieux si `!hasPermission()` ;
-  sinon construit une `Notification` (canal `kairos-chrono-alerts`, créé une
-  fois à l'instanciation du pont si API ≥ 26) avec un `PendingIntent` qui
-  rouvre `MainActivity`, et `getManager().notify(tag, NOTIFICATION_ID,
-  builder.build())` — **`tag` réutilisé comme clé de déduplication système**
-  (même `tag` = notification remplacée, pas empilée), cohérent avec le
-  `tag` par type d'alerte (`over`/`idle`/`pomo`) déjà envoyé côté JS.
-
-`notifyPermissionChanged()` (package-private, appelée depuis
-`MainActivity#onRequestPermissionsResult`) poste sur le thread UI de la
-WebView (`webView.post(...)`, sûr depuis n'importe quel thread appelant, y
-compris le worker thread du pont JS) et déclenche
-`window.dispatchEvent(new Event('kairos-android-permission-changed'))` : seul
-canal disponible pour qu'un callback natif **asynchrone** informe le JS,
-faute de retour direct possible et d'AndroidX (contrainte transverse du
-packaging Android, voir `docs/ANDROID_PACKAGING.md`).
+`WebNotifier` : API `Notification` (contexte sécurisé exigé ; GitHub Pages
+est en HTTPS), état relu à chaque notification, autorisation à l'opt-in ;
+`document.title` ; bip Web Audio (`kairos-web.js`).
 
 ### Décisions et pièges tracés
 
-1. **Bug corrigé, pas une nouvelle fonctionnalité : filtrage par date déplacé
-   en amont, pas dans les fonctions d'agrégation existantes.** Le
-   commentaire de `sessions_in_range` est explicite : le bug historique
-   (« temps travaillé aujourd'hui » gonflé par tout l'historique) se corrige
-   en filtrant les `WorkSession` **avant** de les passer à `total_minutes`/
-   `spent_minutes_by_task`, jamais en réécrivant ces deux fonctions ;
-   `total_minutes`/`spent_minutes_by_task` restent volontairement génériques
-   (elles ignorent la notion de « jour »), la responsabilité de la fenêtre
-   temporelle reste entièrement chez l'appelant.
-2. **Temps manuel additionné, jamais substitué.** `manual_time_spent_minutes`
-   comble ce qu'un chrono oublié n'a pas mesuré ; l'additionner plutôt que
-   l'utiliser en repli évite de perdre la mesure automatique déjà collectée
-   si l'utilisateur saisit un complément après coup.
-3. **`days_stale` : seuil strict, pas « au moins ».** Testé explicitement
-   (`test_deadline_exactly_at_threshold_returns_none`) : pile au seuil ne
-   compte pas encore comme « qui traîne » ; évite un badge qui apparaîtrait
-   au jour près du seuil configuré, jugé prématuré.
-4. **`days_stale` ne mélange jamais les deux branches** (dates dépassées vs
-   sans date non modifiée) : une tâche avec une date non encore dépassée
-   n'est jamais évaluée sur son `updated_at`, même ancien ; la présence d'une
-   date fixe la seule référence pertinente pour cette tâche.
-5. **Staleness et surcharge de priorité : garde-fous d'affichage purs,
-   jamais de rétroaction sur le tri.** Répété à deux niveaux (docstring de
-   `tasks_staleness.py`, décision actée phase 7 point 5) : le principe
-   central de ce chantier est de ne **jamais** faire dépendre l'algorithme
-   d'ordonnancement (`ordonnancement.md`) d'un signal purement visuel ; un
-   changement de seuil de configuration (`stale_overdue_days`,
-   `priority_overload_threshold`) ne doit jamais faire bouger l'ordre des
-   tâches, seulement des badges/bandeaux.
-6. **Garde-fou de surcharge exclut les tâches bloquées du décompte.**
-   Décision tracée dans `app/main.py` (commentaire lignes 416-420) : sans
-   cette exclusion, le bandeau se déclencherait pour des tâches P0 sur
-   lesquelles l'utilisateur ne peut de toute façon rien faire dans
-   l'immédiat (en attente d'un bloqueur), diluant la pertinence du bandeau
-   lui-même plutôt que le signal de priorité qu'il est censé protéger.
-7. **Anti-spam : seuils déjà franchis au chargement neutralisés d'emblée.**
-   Commentaire explicite du script : sans ce garde-fou,
-   chaque navigation/rechargement de page sur une tâche déjà en dépassement
-   redéclencherait une notification ; l'app ne doit notifier qu'un
-   franchissement réel, observé pendant que la page reste ouverte.
-8. **Contexte sécurisé requis pour Web Notifications, détecté explicitement
-   plutôt que de laisser échouer silencieusement.** `window.isSecureContext`
-   est vérifié en plus de `'Notification' in window` ; un message dédié
-   explique ce qui se passe plutôt que de laisser le bouton disparaître sans
-   explication : décision actée avec l'utilisateur en phase 11 après
-   confirmation que l'accès réel se fait en `127.0.0.1` (contexte sécurisé de
-   fait). L'issue #34 a **rouvert** cette décision sur un point précis : l'accès
-   hors contexte sécurisé n'est plus une impasse (le serveur notifie lui-même
-   quand le client est l'hôte), et le message n'invite donc plus à « ouvrir via
-   127.0.0.1 » quand une voie de secours existe. La détection elle-même, et la
-   priorité donnée aux Web Notifications quand elles sont disponibles, restent
-   inchangées.
-9. **Pont Android : `hasPermission()` unifie deux régimes de permission**
-   plutôt que d'exposer deux méthodes distinctes selon la version d'API ;
-   commentaire explicite du code Java : simplifie l'appelant JS, qui n'a
-   jamais besoin de savoir sur quelle version d'Android il tourne.
-10. **`requestPermission()` Android jamais appelé au démarrage.** Rappelé à
-    la fois dans le commentaire Java et `AndroidManifest.xml` : la demande de
-    permission ne doit se déclencher que sur un geste utilisateur explicite
-    (clic sur le bouton d'opt-in), cohérent avec la contrainte de
-    `Notification.requestPermission()` côté navigateur (« une permission ne
-    s'obtient que sur geste utilisateur », commentaire de
-    `SPEC_KAIROS.md` phase 11 repris ici).
-11. **`tag` de notification réutilisé comme clé de déduplication système**
-    (Android `NotificationManager#notify(tag, id, ...)` et `new
-    Notification(..., { tag })` côté Web Notifications) : une alerte du même
-    type qui se redéclencherait (ce que l'anti-spam empêche déjà côté JS)
-    remplacerait la précédente plutôt que d'empiler des notifications
-    redondantes ; double filet, pas une fonctionnalité indépendante.
-12. **Correctif d'ergonomie découvert au passage (phase 11) : `time_spent`
-    appelé aussi dans la liste des tâches sans créneau.** Avant, le badge de
-    chrono n'était rendu que dans la liste planifiée
-    (`visible_scheduled`) ; une tâche en cours reléguée « sans créneau »
-    (soir, journée pleine) perdait visuellement son minuteur, et donc ses
-    alertes (le script cherche `.mj-timer` n'importe où sous `root`, mais
-    encore fallait-il que le template le rende). Le template
-    `_kairos_day.html` appelle désormais `{{ time_spent(task) }}` dans les
-    deux boucles (`visible_scheduled` et `visible_unscheduled`).
-
-### Invariants et garde-fous
-
-- **Au plus une `WorkSession` ouverte à la fois**, appliqué au niveau
-  applicatif par `_stop_running_sessions` (appelé avant toute nouvelle
-  ouverture) : aucune contrainte SQL ne l'impose (voir `modele-donnees.md`).
-- **`tasks_time.py` et `tasks_staleness.py` sont des modules purs** : aucune
-  session SQLAlchemy, aucun appel réseau, entièrement testables en isolation
-  sur des `WorkSession`/`Task` en mémoire (`tests/test_tasks_time.py`,
-  `tests/test_tasks_staleness.py`).
-- **Aucun signal de ce document (staleness, surcharge, temps réel) n'entre
-  jamais dans une clé de tri** : invariant partagé et répété avec
-  `ordonnancement.md` : la seule influence de ce domaine sur le placement
-  concerne le rail visuel « réel » de la timeline (hors périmètre, voir
-  `ordonnancement.md`), jamais l'ordre des tâches lui-même.
-- **Le repli in-page (`kairosToast`) joue toujours**, indépendamment de l'état
-  de permission de notification et du résultat de la notification système :
-  aucune alerte n'est jamais totalement silencieuse. Seul le **renforcement**
-  (titre clignotant, son) est conditionnel.
-- **Le client ne décide jamais seul qu'une notification système est possible** :
-  `data-server-notify` vient de `server_notifications_available(request)`, qui
-  seul connaît l'adresse du client et l'outillage de l'hôte.
-- **`POST /kairos/notify` refuse tout client non-bouclage**, sans exception ni
-  réglage pour l'assouplir : une notification système s'affiche sur l'écran du
-  serveur.
-- **`document.title` n'a qu'un seul écrivain**, `tick()` : toute future
-  décoration du titre doit passer par lui, jamais par un second intervalle.
-- **Un seuil déjà franchi au chargement de la page ne notifie jamais** : seule
-  une transition observée page ouverte déclenche une alerte.
-- **Le minuteur ne survit jamais à un swap AJAX sans être explicitement
-  réinitialisé** : `root.__kairosTimerHandle` est nettoyé (`clearInterval`)
-  avant toute réinjection de `#mj-day-content`, pour ne jamais laisser un
-  intervalle orphelin écrire sur un nœud DOM détaché.
-- **Contexte sécurisé obligatoire pour les Web Notifications** (hors pont
-  Android, qui n'y est pas soumis) : `window.isSecureContext` conditionne
-  strictement l'affichage du bouton d'opt-in navigateur.
+- **Seuils calculés d'avance**, pas vérifiés par comparaison chaque
+  seconde : les mêmes instants servent à la veille de l'application et aux
+  alarmes Android.
+- **Alarmes inexactes** (`setAndAllowWhileIdle`) : aucune autorisation
+  d'alarme exacte (`SCHEDULE_EXACT_ALARM` demande un passage par les
+  réglages du système, `USE_EXACT_ALARM` est réservé aux réveils et
+  agendas). Téléphone en veille profonde, une alerte peut arriver quelques
+  minutes après le seuil ; acceptable pour des rappels de 50 min et plus.
+- **Pas de service au premier plan** : le chronomètre de la notification est
+  dessiné par le système ; rien ne tourne dans l'application.
+- **Un seuil franchi pendant que le téléphone est éteint** n'est pas
+  rattrapé au redémarrage (seuls les seuils à venir sont reprogrammés).
+- **Temps du jour en date locale** : Kairos 2 prenait la date UTC du début
+  (même écart volontaire que « Fait » dans `vue-jour.md`).
+- **Double notification évitée sur Android** : quand le système notifie par
+  alarme, la veille n'appelle pas `notify`.
+- **Tests d'interface avec une horloge simulée** : `AppServices.clock` et un
+  `ChronoNotifier` de test (refusé) rendent l'alerte déterministe.

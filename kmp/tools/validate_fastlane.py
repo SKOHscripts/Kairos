@@ -1,4 +1,4 @@
-"""Vérifie les métadonnées Fastlane de Kairos 3 (docs/spec-v3/publication.md).
+"""Vérifie les métadonnées Fastlane de Kairos 3 (docs/spec/publication.md).
 
 F-Droid et IzzyOnDroid lisent `fastlane/metadata/android/<langue>/` dans le
 dépôt, au commit du tag : une fiche incomplète ou trop longue se voit trop tard.

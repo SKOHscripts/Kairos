@@ -19,7 +19,7 @@ import com.skohscripts.kairos.data.db.Task_dependency as DependencyRow
 import com.skohscripts.kairos.data.db.Time_block as BlockRow
 import com.skohscripts.kairos.data.db.Work_session as SessionRow
 
-// Conversions ligne SQLite <-> modèle (docs/spec-v3/modele-donnees.md § Stockage) :
+// Conversions ligne SQLite <-> modèle (docs/spec/modele-donnees.md § Stockage) :
 // dates « 2026-09-28 », heures locales « 2026-09-28T09:30 », instants ISO UTC.
 
 internal fun LocalDate?.store(): String? = this?.toString()

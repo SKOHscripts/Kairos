@@ -29,7 +29,7 @@ import com.skohscripts.kairos.ui.icons.KairosLogo
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Accueil du premier lancement (docs/spec-v3/accueil.md), une seule fois :
+ * Accueil du premier lancement (docs/spec/accueil.md), une seule fois :
  * ce que fait Kairos et les exemples ; sur Android, le bilan de la migration
  * automatique de Kairos 2 ; sur le bureau, la proposition d'importer la base
  * Kairos 2 trouvée à son emplacement habituel.

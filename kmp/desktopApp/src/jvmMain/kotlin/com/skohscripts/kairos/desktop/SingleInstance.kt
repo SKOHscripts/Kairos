@@ -9,7 +9,7 @@ import java.nio.file.StandardWatchEventKinds
 import kotlin.concurrent.thread
 
 /**
- * Instance unique sur le bureau (docs/spec-v3/distribution.md § Bureau) : un
+ * Instance unique sur le bureau (docs/spec/distribution.md § Bureau) : un
  * verrou de fichier dans le dossier de données. Une seconde instance ne
  * s'ouvre pas : elle réécrit le fichier `activate`, que l'instance principale
  * surveille pour ramener sa fenêtre au premier plan. Aucun port réseau.

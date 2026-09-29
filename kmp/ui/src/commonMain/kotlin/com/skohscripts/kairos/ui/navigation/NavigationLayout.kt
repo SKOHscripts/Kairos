@@ -4,7 +4,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.Platform
 
-/** Forme de la navigation principale (docs/spec-v3/navigation-theme.md § Navigation). */
+/** Forme de la navigation principale (docs/spec/navigation-theme.md § Navigation). */
 enum class NavigationLayout {
     /** Rail vertical à gauche : fenêtre moyenne ou large, toute plateforme. */
     RAIL,
@@ -23,7 +23,7 @@ enum class NavigationLayout {
         /**
          * Jamais de barre basse hors d'Android : un navigateur ou une fenêtre de
          * bureau simplement rétrécie garde sa navigation en haut (règle reprise
-         * de Kairos 2, docs/spec/accueil-navigation.md).
+         * de Kairos 2, docs/spec/accueil-navigation.md au tag v2.6.0).
          */
         fun choose(platform: Platform, windowWidth: Dp): NavigationLayout = when {
             windowWidth >= COMPACT_WIDTH_LIMIT -> RAIL

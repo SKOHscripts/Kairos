@@ -57,7 +57,7 @@ suspend fun replaceWithBackup(services: AppServices, snapshot: KairosSnapshot, m
 }
 
 /**
- * Parcours d'import d'une base Kairos 2 (docs/spec-v3/migration-2x.md) : on
+ * Parcours d'import d'une base Kairos 2 (docs/spec/migration-2x.md) : on
  * lit, on convertit, on montre ce qui sera repris, puis on remplace (avec
  * sauvegarde) après confirmation.
  */

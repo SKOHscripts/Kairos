@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Thème de fenêtre (docs/spec-v3/distribution.md § Android) : l'interface
+    <!-- Thème de fenêtre (docs/spec/distribution.md § Android) : l'interface
          elle-même est dessinée par Compose (KairosTheme). Un seul thème clair :
          forceDarkAllowed=false refuse l'assombrissement automatique de certains
          constructeurs (décision reprise de Kairos 2). Avant l'API 31, la fenêtre

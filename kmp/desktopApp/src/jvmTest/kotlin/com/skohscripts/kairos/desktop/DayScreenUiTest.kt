@@ -46,7 +46,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
- * Vue Jour de bout en bout (docs/spec-v3/vue-jour.md § Critères de succès) :
+ * Vue Jour de bout en bout (docs/spec/vue-jour.md § Critères de succès) :
  * vraie base SQLite en mémoire, horloge figée à 7 h UTC, clics et clavier.
  */
 @OptIn(ExperimentalTestApi::class)

@@ -10,7 +10,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
 /**
- * Vérification des nouvelles versions (docs/spec-v3/mises-a-jour.md), partie
+ * Vérification des nouvelles versions (docs/spec/mises-a-jour.md), partie
  * pure : lire la réponse de l'API GitHub, comparer, décider s'il est temps de
  * redemander. L'appel réseau appartient au bureau (Android n'a pas la
  * permission réseau ; la version web est toujours la dernière).

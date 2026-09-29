@@ -62,7 +62,7 @@ internal suspend fun importErrorMessage(e: ImportException): String = getString(
 )
 
 /**
- * Bandeau du fichier lié (version web seulement, docs/spec-v3/export-import.md
+ * Bandeau du fichier lié (version web seulement, docs/spec/export-import.md
  * § Version web). Vue Jour : seulement quand il y a quelque chose à faire
  * ([showWhenLinked] faux). Réglages : toujours, état « lié » compris.
  * Bandeau neutre (une dégradation n'est pas un danger), sauf l'échec

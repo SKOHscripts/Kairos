@@ -14,7 +14,7 @@ import kotlinx.datetime.daysUntil
 import kotlin.math.pow
 
 /**
- * Ordonnancement de la journée (docs/spec-v3/ordonnancement.md) : portage
+ * Ordonnancement de la journée (docs/spec/ordonnancement.md) : portage
  * **à l'identique** de `app/tasks_scheduling.py` (Kairos 2), vérifié par les
  * tests différentiels (`kmp/tools/gen_fixtures.py`). Pur : aucune horloge,
  * aucun accès aux données ; le jour, l'heure et les réglages sont passés.

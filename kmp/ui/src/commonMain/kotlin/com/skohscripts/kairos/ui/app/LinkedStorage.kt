@@ -3,7 +3,7 @@ package com.skohscripts.kairos.ui.app
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Fichier lié de la version web (docs/spec-v3/export-import.md § Version web) :
+ * Fichier lié de la version web (docs/spec/export-import.md § Version web) :
  * copie des données dans un vrai fichier local, à l'abri d'un nettoyage du
  * navigateur. Absent sur Android et le bureau (données déjà dans un fichier).
  */

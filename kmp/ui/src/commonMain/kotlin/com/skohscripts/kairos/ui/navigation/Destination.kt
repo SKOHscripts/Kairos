@@ -19,7 +19,7 @@ import org.jetbrains.compose.resources.StringResource
  * Les cinq destinations de premier niveau, dans l'ordre du flux GTD : capturer
  * (Notes) avant de traiter et faire (Jour). Cinq au plus : limite MD3 d'une
  * barre de navigation. « À propos et guide » n'est pas une destination : on y
- * accède depuis Réglages (docs/spec-v3/navigation-theme.md).
+ * accède depuis Réglages (docs/spec/navigation-theme.md).
  */
 enum class Destination(
     val label: StringResource,

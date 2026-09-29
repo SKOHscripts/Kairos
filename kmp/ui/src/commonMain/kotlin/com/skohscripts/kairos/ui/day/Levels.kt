@@ -37,7 +37,7 @@ import org.jetbrains.compose.resources.StringResource
 /**
  * Sens des priorités et des points, affiché partout où on les choisit
  * (docs/spec/vue-jour-gtd.md § Comprendre les valeurs : définitions de
- * `app/task_guide.py`, Kairos 2).
+ * `app/task_guide.py`, Kairos 2, tag v2.6.0).
  */
 internal object Levels {
     fun priorityName(p: Int): StringResource = when (p) {

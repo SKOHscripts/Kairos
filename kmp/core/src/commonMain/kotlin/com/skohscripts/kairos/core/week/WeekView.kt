@@ -20,7 +20,7 @@ import kotlin.time.Instant
 data class WeekDay(val date: LocalDate, val tasks: List<Task>, val done: List<Task>, val blocks: List<TimeBlock>)
 
 /**
- * Vue Semaine (docs/spec-v3/vue-semaine.md), `_build_week_view` de Kairos 2 :
+ * Vue Semaine (docs/spec/vue-semaine.md), `_build_week_view` de Kairos 2 :
  * sept jours du lundi au dimanche ; tâches à faire groupées par **échéance**
  * (priorité d'abord, sans priorité en dernier), tâches faites par jour de
  * complétion (titre), créneaux du jour (occurrences des récurrents comprises)

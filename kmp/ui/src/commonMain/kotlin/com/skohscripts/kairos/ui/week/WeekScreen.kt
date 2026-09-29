@@ -75,7 +75,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Vue Semaine (docs/spec-v3/vue-semaine.md) : navigation d'une semaine à
+ * Vue Semaine (docs/spec/vue-semaine.md) : navigation d'une semaine à
  * l'autre, temps réel de la semaine par type, recherche et filtres, backlog
  * (sans date, donc absent de la grille), puis la grille des sept jours ;
  * « Voir le détail » ouvre la vue Jour de ce jour-là.

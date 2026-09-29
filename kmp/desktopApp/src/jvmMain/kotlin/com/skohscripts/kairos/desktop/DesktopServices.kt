@@ -22,7 +22,7 @@ import java.util.Locale
 import kotlin.time.Clock
 
 /**
- * Services du bureau (docs/spec-v3/distribution.md § Bureau) : base SQLite
+ * Services du bureau (docs/spec/distribution.md § Bureau) : base SQLite
  * `kairos.db` dans le dossier de données, boîtes de dialogue de fichiers du
  * système, sauvegardes dans `backups/`.
  */
@@ -57,7 +57,7 @@ object DesktopServices {
 }
 
 /**
- * Base Kairos 2 du bureau (docs/spec-v3/migration-2x.md § Bureau) : celle
+ * Base Kairos 2 du bureau (docs/spec/migration-2x.md § Bureau) : celle
  * trouvée à l'emplacement habituel, ou un `tasks.db` choisi (avec le
  * `settings.json` voisin s'il existe).
  */

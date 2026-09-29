@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Chaînes françaises : langue par défaut et de repli (docs/spec-v3/i18n.md).
+<!-- Chaînes françaises : langue par défaut et de repli (docs/spec/i18n.md).
      Toute chaîne ajoutée ici l'est aussi dans values-en/strings.xml (test
      StringsParityTest). Apostrophe typographique ’, jamais \' : les
      ressources Compose n'interprètent pas les échappements Android. -->

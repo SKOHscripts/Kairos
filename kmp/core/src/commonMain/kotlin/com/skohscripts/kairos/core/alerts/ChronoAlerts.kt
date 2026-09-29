@@ -3,7 +3,7 @@ package com.skohscripts.kairos.core.alerts
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
-/** Les trois alertes du chrono (docs/spec-v3/temps-reel-chrono.md § Alertes). */
+/** Les trois alertes du chrono (docs/spec/temps-reel-chrono.md § Alertes). */
 enum class ChronoAlertKind { OVER, IDLE, POMODORO }
 
 /**

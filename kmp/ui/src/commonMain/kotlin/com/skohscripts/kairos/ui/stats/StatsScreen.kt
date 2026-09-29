@@ -82,7 +82,7 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.math.round
 
 /**
- * Statistiques (docs/spec-v3/statistiques.md), lecture seule : chiffres clés
+ * Statistiques (docs/spec/statistiques.md), lecture seule : chiffres clés
  * de la fenêtre récente, débit hebdomadaire, calibration de l'estimation et
  * biais, répartition du temps par type et focus, flux et backlog, complétude.
  * Chaque agrégat montre son effectif ; sous 3, « peu fiable ». Barres d'une
