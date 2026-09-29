@@ -115,7 +115,9 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
   `config/categories.yml` de fdroiddata), licence MIT, liens site, source,
   tickets, releases ; `AutoName: Kairos`.
 - Construction : `subdir: kmp/androidApp`, `gradle: [yes]` (variante release),
-  au tag `vX.Y.Z`. Rien à supprimer (`scandelete`) : le scanner de F-Droid
+  `commit` = **hash complet** du commit du tag `vX.Y.Z` (exigence des
+  relecteurs de fdroiddata : jamais un tag ni une branche, qui peuvent bouger ;
+  `f5784cb…` pour la 3.0.0). Rien à supprimer (`scandelete`) : le scanner de F-Droid
   retire lui-même les `gradle-wrapper.jar`, et le dépôt ne contient aucun
   binaire à exclure ; une entrée inutile y est une erreur.
 - **APK signé par nous** : `Binaries` (asset `Kairos-android.apk` de la release

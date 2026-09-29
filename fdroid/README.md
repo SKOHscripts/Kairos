@@ -32,10 +32,18 @@ Fiche d’identité de l’application :
    des serveurs F-Droid est identique à l’APK publié.
 2. Forker https://gitlab.com/fdroid/fdroiddata, copier la recette dans
    `metadata/com.skohscripts.kairos.yml`, ouvrir une merge request
-   (modèle « App inclusion »).
+   (modèle « App inclusion »). Le champ `commit` de la recette est le **hash
+   complet** du commit que désigne le tag (exigence des relecteurs : ni tag ni
+   branche, un tag pouvant être déplacé) ; pour `v3.0.0` :
+   `f5784cb564d42825d3c71cee45e3ec026d453a08`
+   (`git rev-parse v3.0.0^{commit}`).
 3. Les versions suivantes sont détectées seules (`UpdateCheckMode: Tags`,
-   `AutoUpdateMode: Version`) : rien à refaire à chaque release, tant que le tag
-   final `vX.Y.Z` pointe sur un commit où `kmp/gradle.properties` porte cette version.
+   `AutoUpdateMode: Version`) : le robot de F-Droid ajoute lui-même l'entrée de
+   construction dans fdroiddata, rien à refaire à chaque release, tant que le tag
+   final `vX.Y.Z` pointe sur un commit où `kmp/gradle.properties` porte cette
+   version. La copie de la recette dans ce dépôt garde l'entrée de la 3.0.0 :
+   `fdroid_check.sh` réécrit de toute façon la dernière entrée à la version et
+   au commit testés.
 
 Grâce à `Binaries` et `AllowedAPKSigningKeys`, F-Droid distribue **notre** APK
 signé : les utilisateurs peuvent passer de GitHub à F-Droid (et inversement) sans
@@ -52,3 +60,34 @@ désinstaller.
    - certificat SHA-256 ci-dessus ;
    - construction reproductible : recette et vérification F-Droid ci-dessus.
 2. Rien à faire aux versions suivantes : IzzyOnDroid relève les nouvelles releases.
+
+Texte de la demande (anglais), tel qu'envoyé pour la 3.0.0 :
+
+````markdown
+**Repository:** https://github.com/SKOHscripts/Kairos
+**License:** MIT · **Package:** `com.skohscripts.kairos` · **Anti-features:** none (no network permission, no trackers, no proprietary dependencies)
+**Metadata:** Fastlane, `fastlane/metadata/android/` (en-US, fr-FR)
+
+**APK:** release asset `Kairos-android.apk` of each `vX.Y.Z` release
+(pattern `Kairos-android\.apk`). Please ignore pre-releases (`vX.Y.Z-beta.N`, different
+applicationId `.preview`) and the asset `kairos-android-arm64.apk`, which is an identical
+copy kept only for the in-app updater of the legacy 2.x app.
+
+**Signing certificate SHA-256:**
+`3885399c1116bea6fed50ce144a1cb10d516bc74d9c9e0773dad23a4e8fa2111`
+
+**Reproducible build** (verified in CI for every change, and against the published v3.0.0 APK):
+- Source: tag `v3.0.0`, Gradle project in `kmp/`
+- JDK 21 (Temurin 21 in our CI; Debian's OpenJDK 21 in the F-Droid buildserver image gives a byte-identical APK)
+- Android SDK: platform `android-37` (compileSdk 37); build-tools 36 are installed by AGP
+- Gradle 9.8.0 via the wrapper; no NDK (the only native library is AndroidX `graphics-path`, prebuilt from Google Maven)
+- Build: `cd kmp && ./gradlew --no-daemon :androidApp:assembleRelease`
+  → `kmp/androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk`
+  (unsigned when the `KAIROS_KEYSTORE_*` variables are not set)
+- Compare with the published APK, e.g. `apksigcopier compare Kairos-android.apk --unsigned androidApp-release-unsigned.apk`
+- An F-Droid recipe using `Binaries` + `AllowedAPKSigningKeys` is in `fdroid/com.skohscripts.kairos.yml`
+````
+
+La copie `kairos-android-arm64.apk` (pont de mise à jour de Kairos 2,
+`docs/spec/migration-2x.md`) est à signaler : sans la consigne de l'ignorer,
+l'outil d'IzzyOnDroid verrait deux APK par release.
