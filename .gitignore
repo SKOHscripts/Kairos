@@ -10,6 +10,8 @@ venv/
 *.db
 # Vraies bases Kairos 2 des tests de migration (kmp/tools/gen_legacy_db.py) : versionnées.
 !kmp/desktopApp/src/jvmTest/resources/legacy/**/tasks.db
+# Schémas SQLDelight de référence (verifyMigrations) : un par version, versionnés.
+!kmp/data/src/commonMain/sqldelight/databases/*.db
 
 # Éditeurs et systèmes
 .idea/

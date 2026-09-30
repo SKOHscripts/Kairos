@@ -39,6 +39,10 @@ data class Task(
     val manualTimeSpentMinutes: Int? = null,
     val createdAt: Instant,
     val updatedAt: Instant,
+    /** Espace de la tâche (docs/spec/equipe.md) : les tâches d'équipe ne sont jamais lues par l'espace Perso, sauf celles assignées à « moi ». */
+    val space: TaskSpace = TaskSpace.PERSONAL,
+    /** Membre d'équipe assigné (`TeamMember.id`, référence « molle »). Sans effet sur une tâche [TaskSpace.PERSONAL]. */
+    val assigneeId: Long? = null,
 ) {
     /**
      * Pas encore clarifiée (GTD) : il manque la priorité **ou** les points. Elle
@@ -55,6 +59,21 @@ data class Task(
             fibonacciPoints == null -> MissingQualification.POINTS
             else -> null
         }
+}
+
+/**
+ * Espace d'une tâche ; [code] = valeur stockée (entier). Un code inconnu se lit
+ * comme [PERSONAL] : une donnée illisible ne doit jamais faire apparaître une
+ * tâche dans l'espace Équipe, ni la faire disparaître de l'espace Perso.
+ */
+enum class TaskSpace(val code: Int) {
+    PERSONAL(0),
+    TEAM(1),
+    ;
+
+    companion object {
+        fun fromCode(code: Int): TaskSpace = entries.firstOrNull { it.code == code } ?: PERSONAL
+    }
 }
 
 enum class MissingQualification { PRIORITY, POINTS, BOTH }

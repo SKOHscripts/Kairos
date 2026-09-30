@@ -24,10 +24,17 @@ CREATE TABLE task (
     fibonacci_points INTEGER,
     manual_time_spent_minutes INTEGER,
     created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    -- Espace Équipe (docs/spec/equipe.md). En fin de table : c'est l'ordre que
+    -- donne ALTER TABLE ADD COLUMN (migration 1.sqm), et `insertTaskWithId` est
+    -- positionnel, donc une base migrée et une base neuve doivent coïncider.
+    space INTEGER NOT NULL DEFAULT 0,
+    assignee_id INTEGER
 );
 CREATE INDEX task_status ON task(status);
 CREATE INDEX task_parent ON task(parent_id);
+CREATE INDEX task_space ON task(space);
+CREATE INDEX task_assignee ON task(assignee_id);
 
 CREATE TABLE time_block (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,6 +76,21 @@ CREATE TABLE note (
 );
 CREATE INDEX note_status ON note(status);
 
+-- Membres de l'équipe (espace Équipe, docs/spec/equipe.md) : vide tant que l'espace n'a pas servi.
+-- Référencés par task.assignee_id (sans FOREIGN KEY).
+CREATE TABLE team_member (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uid TEXT NOT NULL,
+    name TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT '',
+    availability_percent INTEGER NOT NULL DEFAULT 100,
+    hours_per_day REAL NOT NULL,
+    is_self INTEGER NOT NULL DEFAULT 0,
+    archived INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
 -- Réglages : une seule ligne (id = 1), JSON de com.skohscripts.kairos.core.model.Settings.
 CREATE TABLE settings (
     id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -84,11 +106,11 @@ insertTask:
 INSERT INTO task (title, description, priority, deadline, project_tag, status, estimated_minutes,
     pinned_start, parent_id, recurrence, scheduled_date, recurrence_day_of_month,
     recurrence_day_of_week, recurrence_period, task_type, fibonacci_points,
-    manual_time_spent_minutes, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    manual_time_spent_minutes, created_at, updated_at, space, assignee_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 insertTaskWithId:
-INSERT INTO task VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO task VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 lastInsertedId:
 SELECT last_insert_rowid();
@@ -97,7 +119,7 @@ updateTask:
 UPDATE task SET title = ?, description = ?, priority = ?, deadline = ?, project_tag = ?, status = ?,
     estimated_minutes = ?, pinned_start = ?, parent_id = ?, recurrence = ?, scheduled_date = ?,
     recurrence_day_of_month = ?, recurrence_day_of_week = ?, recurrence_period = ?, task_type = ?,
-    fibonacci_points = ?, manual_time_spent_minutes = ?, updated_at = ?
+    fibonacci_points = ?, manual_time_spent_minutes = ?, updated_at = ?, space = ?, assignee_id = ?
 WHERE id = ?;
 
 deleteTask:
@@ -185,6 +207,17 @@ DELETE FROM note WHERE id = ?;
 
 deleteAllNotes:
 DELETE FROM note;
+
+-- Membres ----------------------------------------------------------------------
+
+allTeamMembers:
+SELECT * FROM team_member ORDER BY id;
+
+insertTeamMemberWithId:
+INSERT INTO team_member VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteAllTeamMembers:
+DELETE FROM team_member;
 
 -- Réglages ---------------------------------------------------------------------
 

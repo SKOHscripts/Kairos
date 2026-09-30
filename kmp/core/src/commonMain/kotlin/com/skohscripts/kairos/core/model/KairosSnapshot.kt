@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.core.model
 
+import com.skohscripts.kairos.core.team.TeamMember
+
 /**
  * Contenu complet d'une base Kairos : toutes les tables et les réglages.
  * C'est la forme commune de l'export, de l'import, de la sauvegarde de la
@@ -14,4 +16,6 @@ data class KairosSnapshot(
     val workSessions: List<WorkSession> = emptyList(),
     val notes: List<Note> = emptyList(),
     val settings: Settings = Settings(),
+    /** Membres de l'équipe (espace Équipe) ; toujours vide tant que l'espace n'a jamais servi. */
+    val members: List<TeamMember> = emptyList(),
 )

@@ -7,14 +7,17 @@ import com.skohscripts.kairos.core.model.NoteStatus
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskDependency
 import com.skohscripts.kairos.core.model.TaskRecurrence
+import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TimeBlock
 import com.skohscripts.kairos.core.model.WorkSession
+import com.skohscripts.kairos.core.team.TeamMember
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlin.time.Instant
 import com.skohscripts.kairos.data.db.Note as NoteRow
 import com.skohscripts.kairos.data.db.Task as TaskRow
+import com.skohscripts.kairos.data.db.Team_member as MemberRow
 import com.skohscripts.kairos.data.db.Task_dependency as DependencyRow
 import com.skohscripts.kairos.data.db.Time_block as BlockRow
 import com.skohscripts.kairos.data.db.Work_session as SessionRow
@@ -48,6 +51,21 @@ internal fun TaskRow.toModel() = Task(
     taskType = task_type,
     fibonacciPoints = fibonacci_points?.toInt(),
     manualTimeSpentMinutes = manual_time_spent_minutes?.toInt(),
+    createdAt = created_at.instant(),
+    updatedAt = updated_at.instant(),
+    space = TaskSpace.fromCode(space.toInt()),
+    assigneeId = assignee_id,
+)
+
+internal fun MemberRow.toModel() = TeamMember(
+    id = id,
+    uid = uid,
+    name = name,
+    role = role,
+    availabilityPercent = availability_percent.toInt(),
+    hoursPerDay = hours_per_day,
+    isSelf = is_self != 0L,
+    archived = archived != 0L,
     createdAt = created_at.instant(),
     updatedAt = updated_at.instant(),
 )
