@@ -122,6 +122,8 @@ données.
 - Transport automatique (courriel, dossier synchronisé surveillé, réseau
   local) : Kairos n'a pas de permission réseau ; le transport est l'affaire
   de l'utilisateur.
+- Feuille de partage Android : écartée le 2026-09-30, l'usage managérial
+  étant surtout sur ordinateur ; **fichier seulement**.
 - Chiffrement ou signature des fichiers (comme l'export) : les paquets
   contiennent des titres de tâches ; l'écran de l'envoi le rappelle.
 - Tâches créées **par** le membre et remontées au manager (hors

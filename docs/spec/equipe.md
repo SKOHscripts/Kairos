@@ -96,11 +96,18 @@ rien changer pour qui ne l'active pas.
   import (`export-import.md`) ; sans sauvegarde réussie, rien n'est
   supprimé.
 
-#### Deux espaces, un sélecteur
+#### Deux espaces, un sélecteur dans les Réglages
 
-- Espace Équipe activé : un **sélecteur d'espace** « Perso | Équipe »
-  (bouton segmenté MD3) apparaît en tête du rail (sous le logo) ou, sans
-  rail, dans la barre d'application.
+- Espace Équipe activé : la carte Équipe des Réglages montre un
+  **sélecteur d'espace** « Espace affiché : Perso | Équipe » (bouton
+  segmenté MD3). Il n'est **nulle part ailleurs** : ni dans le rail, ni
+  dans la barre d'application (décision du 2026-09-30 : la coquille de
+  navigation reste celle du mode solo). Réglages est une destination des
+  deux espaces, le sélecteur est donc toujours à portée.
+- Le sélecteur agit **aussitôt** (c'est de la navigation, pas un réglage) :
+  il ne passe pas par « Enregistrer », et fonctionne même quand le
+  formulaire a des modifications non enregistrées (elles restent en
+  place).
 - L'espace **Perso** garde exactement ses cinq destinations (Notes, Jour,
   Semaine, Stats, Réglages).
 - L'espace **Équipe** a ses cinq destinations :
@@ -216,11 +223,13 @@ d'équipe n'entre dans un calcul personnel.
 - `Workspaces.teamView(snapshot): TeamSnapshot` : tâches `TEAM`, membres,
   absences, journal, scénarios, dépendances entre tâches d'équipe, sessions
   des tâches d'équipe.
-- **Point de passage obligé** : tous les écrans et calculs de l'espace Perso
-  (`DayView.build`, `WeekView`, `TaskStats`, `ChronoWatcher`, notifications
-  Android, raccourcis) reçoivent `personalView(snapshot)` au lieu de
-  `snapshot`. Le filtre est appliqué une fois, là où l'interface lit l'état
-  du dépôt (`KairosShell`), jamais dans chaque écran.
+- **Point de passage obligé** : le dépôt calcule `personalView` une fois à
+  chaque rechargement et le publie dans `KairosRepository.personalSnapshot`
+  (`StateFlow`, à côté de `snapshot`, qui reste la base complète). Tous les
+  écrans et calculs de l'espace Perso (vue Jour, vue Semaine, Notes, Stats,
+  `ChronoWatcher`, `ChronoSync` Android) lisent `personalSnapshot` ; seuls
+  l'export, les sauvegardes, la persistance web et les écrans d'équipe
+  lisent `snapshot`. Aucun écran n'appelle le filtre lui-même.
 - Sur une base sans tâche `TEAM`, `personalView` rend un instantané
   **égal** à l'entrée (propriété testée sur les 480 scénarios différentiels
   existants) : c'est ce qui garantit l'isolation sans toucher aux moteurs.
@@ -259,18 +268,20 @@ d'équipe n'entre dans un calcul personnel.
 
 ### Stockage (`data`)
 
-- **Première migration** du schéma : `1.sqm` (la base passe de
-  `user_version` 1 à 2), **additive** seulement :
-  - `ALTER TABLE task ADD COLUMN space INTEGER NOT NULL DEFAULT 0`, puis
-    `assignee_id INTEGER`, `progress_percent INTEGER`, `started_on TEXT`,
-    `team_uid TEXT`, et, pour les échanges (`equipe-echanges.md`),
-    `origin TEXT`, `origin_removed INTEGER NOT NULL DEFAULT 0`,
-    `reported_minutes INTEGER` ;
-  - `CREATE TABLE team_member (…)`, `member_absence (…)`,
-    `team_event (…)`, `team_scenario (…)` ;
-  - index `task(space)`, `task(assignee_id)`, `task(team_uid)`,
-    `member_absence(member_id)`, `team_event(task_id)`,
-    `team_event(member_id)`.
+- **Une migration additive par jalon**, qui n'ajoute que ce que le jalon
+  utilise (aucune table ni colonne sans code qui la lit : bijectivité) :
+  - **E1, `1.sqm`** (`user_version` 1 → 2) :
+    `ALTER TABLE task ADD COLUMN space INTEGER NOT NULL DEFAULT 0`,
+    `ALTER TABLE task ADD COLUMN assignee_id INTEGER`,
+    `CREATE TABLE team_member (id, uid, name, role, availability_percent,
+    hours_per_day, is_self, archived, created_at, updated_at)`, index
+    `task(space)` et `task(assignee_id)` ;
+  - **E2** : `member_absence` (index `member_id`) ;
+  - **E3** : `task.progress_percent`, `task.started_on`, `task.team_uid`
+    (index), `team_event` (index `task_id`, `member_id`) ;
+  - **E5** : `team_scenario` ;
+  - **E6** : `task.origin`, `task.origin_removed`, `task.reported_minutes`,
+    `team_member.last_report_at` (`equipe-echanges.md`).
   Références sans `FOREIGN KEY` (parti pris existant).
 - Une base 2.x importée (`migration-2x.md`) n'a aucune tâche d'équipe :
   `Kairos2Import` n'écrit pas les nouvelles colonnes (défauts SQL).
@@ -321,8 +332,9 @@ transaction (`equipe-backlog-suivi.md` § Journal) :
   `NavigationLayout.choose` est inchangé : rail, barre haute ou barre basse
   selon les règles actuelles, cinq entrées au plus dans chaque espace.
 - Sélecteur : `SingleChoiceSegmentedButtonRow` MD3 à deux segments, icônes
-  `Person` et `Groups`, affiché seulement si `teamModeEnabled` ; cible
-  48 dp. Espace désactivé alors qu'on était dans l'espace Équipe : retour à
+  `Person` et `Groups`, dans `TeamSettingsCard`, affiché seulement si
+  `teamModeEnabled` (valeur **enregistrée**) ; cible 48 dp ; appelle
+  directement `onSpaceChange` de la coquille. Espace désactivé alors qu'on était dans l'espace Équipe : retour à
   l'espace Perso, destination Jour.
 - Écrans : `TeamBoardScreen`, `TeamBacklogScreen`, `TeamMembersScreen`
   (+ `MemberSheet` : fiche, absences), `ForecastScreen` ; carte
@@ -371,8 +383,8 @@ transaction (`equipe-backlog-suivi.md` § Journal) :
 | Jalon | Contenu | Specs |
 |---|---|---|
 | **E0** | Specs et skills (cette PR). | toutes |
-| **E1** | Fondations : migration `1.sqm`, `space` et champs d'équipe, `personalView` branché partout, réglages et carte Équipe, sélecteur d'espace et coquille à deux espaces (écrans vides), export 2 et règle d'isolation, tests d'isolation. | `equipe.md` |
-| **E2** | Membres et absences, destination Équipe (sans charge). | `equipe.md` |
+| **E1** | Fondations : migration `1.sqm`, `Task.space` et `Task.assigneeId`, `TeamMember` (lu, écrit par `replaceAll` et l'import seulement), `personalView` branché partout, `TeamSettings` et carte Équipe (activation, nom, manager, sélecteur d'espace), coquille à deux espaces (écrans d'équipe en état vide), export 2 et règle d'isolation, tests d'isolation. | `equipe.md` |
+| **E2** | Membres et absences (création, fiche, archivage, « C'est moi »), destination Équipe sans charge, « Supprimer les données d'équipe… ». | `equipe.md` |
 | **E3** | Backlog, assignation, réaffectation, suivi, journal, tâches assignées à moi. | `equipe-backlog-suivi.md` |
 | **E4** | Capacité, charge, plan de charge, suggestion de répartition. | `equipe-charge.md` |
 | **E5** | Prévisions Monte Carlo et scénarios. | `equipe-simulation.md` |
@@ -385,13 +397,16 @@ visible en mode solo : c'est le jalon qui prouve l'isolation.
 
 ### Questions ouvertes (à trancher au plus tard au jalon indiqué)
 
-- **E1** : le sélecteur d'espace dans la barre d'application sur téléphone
-  tient-il à 360 dp avec le titre ? Repli prévu : une icône `Groups` qui
-  ouvre un menu à deux entrées.
-- **E3** : une tâche d'équipe récurrente garde-t-elle son assigné à
-  l'occurrence suivante ? Proposition : oui.
-- **E6** : faut-il un partage direct (feuille de partage Android) des
-  paquets, en plus de l'enregistrement de fichier ?
+Tranchées le 2026-09-30 :
+
+- ~~E1 : sélecteur d'espace dans la barre d'application~~ → le sélecteur
+  vit dans la carte Équipe des Réglages (§ Deux espaces).
+- ~~E3 : assigné d'une tâche récurrente~~ → l'occurrence suivante **garde
+  l'assigné** (`equipe-backlog-suivi.md` § États et avancement).
+- ~~E6 : partage direct Android~~ → **fichier seulement** : l'usage
+  managérial est surtout sur ordinateur (`equipe-echanges.md`).
+
+Aucune question ouverte à ce jour.
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 

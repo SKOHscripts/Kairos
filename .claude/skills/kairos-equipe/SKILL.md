@@ -30,10 +30,12 @@ C'est la propriété la plus importante du chantier. Elle se garantit par
 construction, pas par des `if` dispersés :
 
 - **Un seul filtre** : `Workspaces.personalView(snapshot)` (`core/team/`).
-  Tout ce qui est « Perso » (vue Jour, vue Semaine, stats, chrono,
-  notifications, raccourcis) le reçoit ; il est appliqué **une fois**, dans
-  `KairosShell`, là où l'interface lit l'état du dépôt. Ne jamais passer
-  `repository.snapshot` brut à un écran Perso.
+  Le dépôt l'applique **une fois** par rechargement et publie
+  `KairosRepository.personalSnapshot`. Tout ce qui est « Perso » (vue Jour,
+  vue Semaine, Notes, Stats, chrono, notifications Android) lit
+  `personalSnapshot` ; ne jamais passer `repository.snapshot` brut à un
+  écran Perso (il reste réservé à l'export, aux sauvegardes, au web et aux
+  écrans d'équipe).
 - **Réglages** : un seul champ `Settings.team: TeamSettings?`, `null` tant
   que l'espace n'a jamais été activé. **Ne jamais** ajouter un réglage
   d'équipe à plat dans `Settings` : `encodeDefaults = true` le ferait
