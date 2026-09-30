@@ -1,0 +1,12 @@
+-- Schéma 2 -> 3 (jalon E2 de l'espace Équipe, docs/spec/equipe.md) : additive.
+-- Absences des membres ; la table naît vide, donc une base migrée se comporte
+-- exactement comme avant (aucune donnée d'équipe).
+CREATE TABLE member_absence (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_id INTEGER NOT NULL,
+    start TEXT NOT NULL,
+    end TEXT NOT NULL,
+    label TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX member_absence_member ON member_absence(member_id);

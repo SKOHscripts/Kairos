@@ -41,18 +41,41 @@ fun fileStamp(services: AppServices): String {
 }
 
 /**
+ * Sauvegarde automatique de toutes les données actuelles, nommée
+ * `<prefixe>-<fileStamp>.json` (`avant-import-…`, `avant-suppression-equipe-…`).
+ * Sans sauvegarde réussie, le message d'erreur est affiché et le résultat est
+ * `false` : l'appelant ne change alors rien.
+ */
+suspend fun saveBackup(services: AppServices, prefix: String, messages: (String) -> Unit): Boolean {
+    val current = ExportCodec.encode(services.repository.snapshot.value, KairosBuild.VERSION_NAME, services.clock.now())
+    val backed = runCatching { services.backups.save("$prefix-${fileStamp(services)}.json", current) }
+    if (backed.isFailure) {
+        messages(getString(Res.string.file_error))
+        return false
+    }
+    return true
+}
+
+/**
  * Remplace toutes les données par [snapshot], après une sauvegarde des
  * données actuelles (`avant-import-…json`). Sans sauvegarde réussie, rien
  * n'est remplacé et le message d'erreur est affiché : `false`.
  */
 suspend fun replaceWithBackup(services: AppServices, snapshot: KairosSnapshot, messages: (String) -> Unit): Boolean {
-    val current = ExportCodec.encode(services.repository.snapshot.value, KairosBuild.VERSION_NAME, services.clock.now())
-    val backed = runCatching { services.backups.save("avant-import-${fileStamp(services)}.json", current) }
-    if (backed.isFailure) {
-        messages(getString(Res.string.file_error))
-        return false
-    }
+    if (!saveBackup(services, "avant-import", messages)) return false
     services.repository.replaceAll(snapshot)
+    return true
+}
+
+/**
+ * Supprime les données d'équipe (`KairosRepository.clearTeamData`) après une
+ * sauvegarde des données actuelles (`avant-suppression-equipe-…json`), même
+ * mécanisme que l'import (docs/spec/equipe.md § Activation). Sans sauvegarde
+ * réussie, rien n'est supprimé et le message d'erreur est affiché : `false`.
+ */
+suspend fun clearTeamDataWithBackup(services: AppServices, messages: (String) -> Unit): Boolean {
+    if (!saveBackup(services, "avant-suppression-equipe", messages)) return false
+    services.repository.clearTeamData()
     return true
 }
 

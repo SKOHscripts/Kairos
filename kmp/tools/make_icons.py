@@ -60,6 +60,10 @@ ICONS = {
     "ViewKanban": ("view_kanban", True),
     "Stacks": ("stacks", True),
     "Monitoring": ("monitoring", True),
+    "PersonAdd": ("person_add", False),
+    "EventBusy": ("event_busy", False),
+    "Archive": ("archive", False),
+    "Unarchive": ("unarchive", False),
 }
 
 

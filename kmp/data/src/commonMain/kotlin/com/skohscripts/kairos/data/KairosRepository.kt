@@ -16,6 +16,8 @@ import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskRecurrence
 import com.skohscripts.kairos.core.model.TaskStatus
+import com.skohscripts.kairos.core.team.MemberForm
+import com.skohscripts.kairos.core.team.TeamMembers
 import com.skohscripts.kairos.core.team.Workspaces
 import com.skohscripts.kairos.data.db.KairosDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -298,6 +300,145 @@ class KairosRepository(
     /** Suppression définitive. */
     suspend fun deleteNote(noteId: Long) = write { queries.deleteNote(noteId) }
 
+    // --- Équipe : membres et absences (docs/spec/equipe.md § Dépôt) --------------
+
+    /**
+     * Crée un membre. Le nom est nettoyé ; un nom vide, des heures non finies
+     * ou un membre refusé rendent `null`. La quotité et les heures par jour sont
+     * ramenées dans leurs bornes (1-100, 1-24) : la validation de saisie est
+     * celle de `MemberForm`, ceci n'est qu'un garde-fou. L'`uid` (identité des
+     * échanges) est tiré ici : `core` reste sans hasard. [isSelf] retire « C'est
+     * moi » aux autres membres dans la même transaction.
+     */
+    @OptIn(ExperimentalUuidApi::class)
+    suspend fun createMember(name: String, role: String, availabilityPercent: Int, hoursPerDay: Double, isSelf: Boolean): Long? {
+        val clean = name.trim()
+        if (clean.isEmpty() || !hoursPerDay.isFinite()) return null
+        var id: Long? = null
+        write {
+            queries.insertTeamMember(
+                Uuid.random().toString(), clean, role.trim(), boundedAvailability(availabilityPercent), boundedHours(hoursPerDay),
+                if (isSelf) 1L else 0L, now(), now(),
+            )
+            id = queries.lastInsertedId().awaitAsOneOrNull()
+            if (isSelf) id?.let { queries.clearSelfExcept(now(), it) }
+        }
+        return id
+    }
+
+    /**
+     * Modifie les champs d'un membre (mêmes règles que [createMember]) ; `false`
+     * si le membre est inconnu ou si le nom est vide. Poser [isSelf] retire « C'est
+     * moi » aux autres, dans la même transaction ; un membre archivé n'est jamais
+     * « moi ».
+     */
+    suspend fun updateMember(id: Long, name: String, role: String, availabilityPercent: Int, hoursPerDay: Double, isSelf: Boolean): Boolean {
+        val clean = name.trim()
+        if (clean.isEmpty() || !hoursPerDay.isFinite()) return false
+        var done = false
+        write {
+            val member = state.value.members.firstOrNull { it.id == id } ?: return@write
+            val self = isSelf && !member.archived
+            queries.updateTeamMember(
+                clean, role.trim(), boundedAvailability(availabilityPercent), boundedHours(hoursPerDay),
+                if (self) 1L else 0L, now(), id,
+            )
+            if (self) queries.clearSelfExcept(now(), id)
+            done = true
+        }
+        return done
+    }
+
+    /**
+     * Archive un membre (départ de l'équipe) : ses tâches d'équipe **à faire**
+     * repassent au backlog (`assigneeId = null`), les faites (et archivées) restent
+     * à son nom, et « C'est moi » lui est retiré. `false` si le membre est inconnu
+     * ou déjà archivé.
+     */
+    suspend fun archiveMember(id: Long): Boolean {
+        var done = false
+        write {
+            val member = state.value.members.firstOrNull { it.id == id && !it.archived } ?: return@write
+            queries.unassignTasksOf(now(), member.id)
+            queries.setMemberArchived(1L, now(), member.id)
+            done = true
+        }
+        return done
+    }
+
+    /** Réactive un membre archivé ; `false` s'il est inconnu ou déjà actif. Ses anciennes tâches ne lui reviennent pas. */
+    suspend fun restoreMember(id: Long): Boolean {
+        var done = false
+        write {
+            val member = state.value.members.firstOrNull { it.id == id && it.archived } ?: return@write
+            queries.setMemberArchived(0L, now(), member.id)
+            done = true
+        }
+        return done
+    }
+
+    /**
+     * Supprime un membre et ses absences. Refusé (`false`) si le membre est inconnu
+     * ou s'il a déjà eu une tâche, quel que soit son statut : seul l'archivage reste
+     * possible, l'historique garde son nom.
+     */
+    suspend fun deleteMember(id: Long): Boolean {
+        var done = false
+        write {
+            if (state.value.members.none { it.id == id } || TeamMembers.hasHadTask(state.value.tasks, id)) return@write
+            queries.deleteAbsencesOfMember(id)
+            queries.deleteTeamMember(id)
+            done = true
+        }
+        return done
+    }
+
+    /** Ajoute une absence (jours début et fin inclus) ; `null` si la fin précède le début ou si le membre est inconnu. */
+    suspend fun addAbsence(memberId: Long, start: LocalDate, end: LocalDate, label: String = ""): Long? {
+        if (!MemberForm.isValidAbsence(start, end)) return null
+        var id: Long? = null
+        write {
+            if (state.value.members.none { it.id == memberId }) return@write
+            queries.insertMemberAbsence(memberId, start.toString(), end.toString(), label.trim(), now())
+            id = queries.lastInsertedId().awaitAsOneOrNull()
+        }
+        return id
+    }
+
+    /** Modifie les dates et le libellé d'une absence ; `false` si elle est inconnue ou si la fin précède le début. */
+    suspend fun updateAbsence(id: Long, start: LocalDate, end: LocalDate, label: String = ""): Boolean {
+        if (!MemberForm.isValidAbsence(start, end)) return false
+        var done = false
+        write {
+            if (state.value.absences.none { it.id == id }) return@write
+            queries.updateMemberAbsence(start.toString(), end.toString(), label.trim(), id)
+            done = true
+        }
+        return done
+    }
+
+    suspend fun deleteAbsence(id: Long) = write { queries.deleteMemberAbsence(id) }
+
+    /**
+     * Supprime définitivement les données d'équipe : membres, absences, tâches
+     * `TEAM` avec leurs dépendances et leurs sessions ; toute tâche restante perd
+     * son assigné. Les réglages d'équipe (`settings.team`) sont gardés. La
+     * sauvegarde préalable est faite par l'interface (aucun retour en arrière ici).
+     */
+    suspend fun clearTeamData() = write {
+        queries.deleteDependenciesOfTeamTasks()
+        queries.deleteSessionsOfTeamTasks()
+        queries.deleteTeamTasks()
+        queries.unassignAllTasks()
+        queries.deleteAllMemberAbsences()
+        queries.deleteAllTeamMembers()
+    }
+
+    private fun boundedAvailability(percent: Int): Long =
+        percent.coerceIn(MemberForm.MIN_AVAILABILITY, MemberForm.MAX_AVAILABILITY).toLong()
+
+    private fun boundedHours(hours: Double): Double = hours.coerceIn(MemberForm.MIN_HOURS, MemberForm.MAX_HOURS)
+
     /**
      * Enregistre les réglages. Si l'espace Équipe existe (`team` non nul) sans
      * identité, le dépôt en pose une (UUID, conservé si la base en a déjà une) :
@@ -327,6 +468,7 @@ class KairosRepository(
         queries.deleteAllWorkSessions()
         queries.deleteAllNotes()
         queries.deleteAllTeamMembers()
+        queries.deleteAllMemberAbsences()
         queries.deleteSettings()
         for (t in snapshot.tasks) {
             queries.insertTaskWithId(
@@ -342,6 +484,9 @@ class KairosRepository(
                 m.id, m.uid, m.name, m.role, m.availabilityPercent.toLong(), m.hoursPerDay,
                 if (m.isSelf) 1L else 0L, if (m.archived) 1L else 0L, m.createdAt.store(), m.updatedAt.store(),
             )
+        }
+        for (a in snapshot.absences) {
+            queries.insertMemberAbsenceWithId(a.id, a.memberId, a.start.toString(), a.end.toString(), a.label, a.createdAt.store())
         }
         for (b in snapshot.timeBlocks) {
             queries.insertTimeBlockWithId(
@@ -412,6 +557,7 @@ class KairosRepository(
         workSessions = queries.allWorkSessions().awaitAsList().map { it.toModel() },
         notes = queries.allNotes().awaitAsList().map { it.toModel() },
         members = queries.allTeamMembers().awaitAsList().map { it.toModel() },
+        absences = queries.allMemberAbsences().awaitAsList().map { it.toModel() },
         settings = queries.readSettings().awaitAsOneOrNull()
             ?.let { runCatching { json.decodeFromString(Settings.serializer(), it) }.getOrNull() }
             ?: Settings(),

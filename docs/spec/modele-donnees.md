@@ -94,8 +94,9 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   la lecture).
 - `TeamMember` (`core/team/`) : `id`, `uid`, `name`, `role`,
   `availabilityPercent`, `hoursPerDay`, `isSelf`, `archived`, `createdAt`,
-  `updatedAt` (`equipe.md`).
-- `KairosSnapshot` : toutes les tables (membres d'équipe compris) et les
+  `updatedAt` (`equipe.md`) ; `MemberAbsence` : `id`, `memberId`, `start`,
+  `end` (dates locales incluses), `label`, `createdAt`.
+- `KairosSnapshot` : toutes les tables (membres et absences compris) et les
   réglages. C'est la forme commune de l'export, de l'import, des exemples et
   de la sauvegarde web.
 
@@ -113,7 +114,8 @@ quotidien), une note, les réglages par défaut de la langue. Identifiants
 
 - `Kairos.sq` : tables `task`, `time_block`, `task_dependency` (unique
   `(task_id, blocker_id)`), `work_session`, `note`, `settings` (une ligne
-  `id = 1`, JSON des réglages), `team_member` (`equipe.md`). Clés
+  `id = 1`, JSON des réglages), `team_member`, `member_absence` (index
+  `member_id`) (`equipe.md`). Clés
   `INTEGER PRIMARY KEY AUTOINCREMENT` ; index sur `task.status`,
   `task.parent_id`, `task.space`, `task.assignee_id`, `time_block.start`,
   `task_dependency.task_id` et `.blocker_id`, `work_session.task_id`,
@@ -139,7 +141,8 @@ quotidien), une note, les réglages par défaut de la langue. Identifiants
 
 Schéma 1 : celui de la 3.0.0. Schéma 2 : `1.sqm` (jalon E1 de l'espace
 Équipe) ajoute `task.space`, `task.assignee_id`, leurs index et
-`team_member`. Les schémas de référence de chaque version
+`team_member`. Schéma 3 : `2.sqm` (jalon E2) ajoute `member_absence`. Les
+schémas de référence de chaque version
 (`data/src/commonMain/sqldelight/databases/<n>.db`, générés par
 `generateCommonMainKairosDatabaseSchema` avant la migration) sont
 versionnés, par exception à la règle `*.db` du `.gitignore` : sans eux,
@@ -191,7 +194,11 @@ de SQLDelight.
     `deleteNote` (`notes-capture.md`).
   - `updateSettings` : si `team` existe sans identité, en pose une (UUID
     tiré dans `data`, gardé si la base en a déjà une) ; rien en mode solo.
-  - `replaceAll(snapshot)` : vide toutes les tables (membres compris) et
+  - Membres et absences : `createMember`, `updateMember`, `archiveMember`,
+    `restoreMember`, `deleteMember`, `addAbsence`, `updateAbsence`,
+    `deleteAbsence`, `clearTeamData` (`equipe.md` § Dépôt).
+  - `replaceAll(snapshot)` : vide toutes les tables (membres et absences
+    compris) et
     réinsère tout,
     identifiants compris, en une transaction. Sert à l'import, aux exemples et
     au rechargement web. Les identifiants créés ensuite continuent après le

@@ -102,10 +102,11 @@ JSON UTF-8 indenté :
 - Champs des tâches : ceux du modèle (`modele-donnees.md`), en camelCase ;
   valeurs `null` omises ; codes de statut et de récurrence de la base.
 - **Version 2** (espace Équipe, `equipe.md` § Export) : `members` (membres
-  d'équipe) et, sur les tâches, `space` (`"team"`, écrit seulement pour une
+  d'équipe), `absences` (ajouté au jalon E2 : un lecteur 2 plus ancien
+  l'ignore) et, sur les tâches, `space` (`"team"`, écrit seulement pour une
   tâche d'équipe) et `assigneeId`.
 - **Une base sans donnée d'équipe** (`Workspaces.hasTeamData` faux : ni
-  membre, ni tâche d'équipe, ni tâche assignée) s'exporte en
+  membre, ni absence, ni tâche d'équipe, ni tâche assignée) s'exporte en
   `formatVersion` 1, sans aucun champ d'équipe : c'est l'export de la
   3.0.0, octet pour octet hors `appVersion` et `exportedAt`, prouvé contre un
   fichier de référence produit avant le chantier

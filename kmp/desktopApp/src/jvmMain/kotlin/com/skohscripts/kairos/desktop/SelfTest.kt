@@ -1,7 +1,14 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.ImageComposeScene
 import com.skohscripts.kairos.ui.navigation.NavState
 import com.skohscripts.kairos.ui.notes.NotesScreen
@@ -17,6 +24,14 @@ import com.skohscripts.kairos.core.KairosBuild
 import com.skohscripts.kairos.core.model.TeamSettings
 import com.skohscripts.kairos.ui.KairosApp
 import com.skohscripts.kairos.ui.Platform
+import com.skohscripts.kairos.ui.team.AbsenceEditorContent
+import com.skohscripts.kairos.ui.team.MemberSheetContent
+import com.skohscripts.kairos.ui.team.TeamMembersScreen
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
+import kotlin.time.Clock
 import org.jetbrains.skia.EncodedImageFormat
 import java.io.File
 
@@ -56,6 +71,47 @@ object SelfTest {
                 )
             }
         }
+        // Quatrième base : l'écran Équipe (jalon E2) avec trois membres, dont « moi », un absent bientôt et un archivé.
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val members = runBlocking {
+            DesktopServices.open(dataDir, inMemory = true).also { s ->
+                val repository = s.repository
+                val current = repository.snapshot.value.settings
+                repository.updateSettings(
+                    current.copy(team = TeamSettings(enabled = true, name = "Équipe Plateforme", managerName = "Claire", lastSpace = TeamSettings.SPACE_TEAM)),
+                )
+                repository.createMember("Claire Martin", "Responsable d’équipe", 100, 7.0, true)
+                val alex = repository.createMember("Alex Dupont", "Développeur back-end", 80, 7.0, false)!!
+                val sam = repository.createMember("Sam Bernard", "Designer", 60, 6.5, false)!!
+                val leave = today.plus(10, DateTimeUnit.DAY)
+                repository.addAbsence(alex, leave, leave.plus(4, DateTimeUnit.DAY), "Congés")
+                repository.addAbsence(alex, today.plus(60, DateTimeUnit.DAY), today.plus(60, DateTimeUnit.DAY), "Formation")
+                repository.archiveMember(sam)
+            }
+        }
+        val membersScreen: @Composable () -> Unit = { KairosTheme { Surface { TeamMembersScreen(members, initialFormerExpanded = true) } } }
+        val alexSnapshot = members.repository.snapshot.value
+        val alexMember = alexSnapshot.members.first { it.name == "Alex Dupont" }
+        val alexAbsences = alexSnapshot.absences.filter { it.memberId == alexMember.id }
+        fun sheet(compact: Boolean): @Composable () -> Unit = {
+            KairosTheme {
+                // Fond : l'écran voilé par le rideau du dialogue (32 % de la couleur « scrim »).
+                Box(
+                    Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f).compositeOver(MaterialTheme.colorScheme.surface)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    MemberSheetContent(alexMember, alexAbsences, alexSnapshot.settings, today, openTaskCount = 3, canDelete = true, compact = compact)
+                }
+            }
+        }
+        fun absenceEditor(compact: Boolean): @Composable () -> Unit = {
+            KairosTheme {
+                Box(
+                    Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f).compositeOver(MaterialTheme.colorScheme.surface)),
+                    contentAlignment = Alignment.Center,
+                ) { AbsenceEditorContent(alexAbsences.first(), today, compact) }
+            }
+        }
         val teamApp: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { team } }
         val teamSettings: @Composable () -> Unit = { KairosTheme { Surface { SettingsScreen(team) {} } } }
         val notes: @Composable () -> Unit = { KairosTheme { Surface { NotesScreen(services) {} } } }
@@ -79,6 +135,13 @@ object SelfTest {
             Shot("team", 1200, 1000, teamApp),
             Shot("team-narrow", 360, 800, teamApp),
             Shot("team-settings", 900, 4800, teamSettings),
+            // Écran Équipe du jalon E2 : large, puis 360 dp ; fiche membre (dialogue, plein écran) et éditeur d'absence.
+            Shot("team-members", 1200, 1000, membersScreen),
+            Shot("team-members-narrow", 360, 1000, membersScreen),
+            Shot("team-member-sheet", 900, 1100, sheet(compact = false)),
+            Shot("team-member-sheet-narrow", 360, 1100, sheet(compact = true)),
+            Shot("team-absence", 900, 900, absenceEditor(compact = false)),
+            Shot("team-absence-narrow", 360, 900, absenceEditor(compact = true)),
         )
         for ((name, width, height, content) in shots) {
             val png = render(width, height, content)
