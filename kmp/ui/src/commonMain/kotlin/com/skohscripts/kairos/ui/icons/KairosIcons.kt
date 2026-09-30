@@ -29,6 +29,7 @@ object KairosIcons {
     val Add: ImageVector by lazy { symbol("Add", "M450-450H200v-60h250v-250h60v250h250v60H510v250h-60v-250Z") }
     val Upload: ImageVector by lazy { symbol("Upload", "M450-313v-371L330-564l-43-43 193-193 193 193-43 43-120-120v371h-60ZM220-160q-24 0-42-18t-18-42v-143h60v143h520v-143h60v143q0 24-18 42t-42 18H220Z") }
     val Download: ImageVector by lazy { symbol("Download", "M480-313 287-506l43-43 120 120v-371h60v371l120-120 43 43-193 193ZM220-160q-24 0-42-18t-18-42v-143h60v143h520v-143h60v143q0 24-18 42t-42 18H220Z") }
+    val InstallDesktop: ImageVector by lazy { symbol("InstallDesktop", "M330-120v-80H140q-24 0-42-18t-18-42v-520q0-24 18-42t42-18h360v60H140v520h680v-140h60v140q0 24-18 42t-42 18H630v80H330Zm350-294L494-600l42-42 114 114v-312h60v312l114-114 42 42-186 186Z") }
     val ExpandMore: ImageVector by lazy { symbol("ExpandMore", "M480-344 240-584l43-43 197 197 197-197 43 43-240 240Z") }
     val ExpandLess: ImageVector by lazy { symbol("ExpandLess", "M480-554 283-357l-43-43 240-240 240 240-43 43-197-197Z") }
     val Inbox: ImageVector by lazy { symbol("Inbox", "M180-120q-24 0-42-18t-18-42v-600q0-24 18-42t42-18h600q24 0 42 18t18 42v600q0 24-18 42t-42 18H180Zm0-60h600v-136H634q-26 40-67.5 61.5T480-233q-45 0-86.5-21.5T326-316H180v136Zm374-136.5q33-23.5 56-59.5h170v-404H180v404h170q23 36 56.25 59.5 33.24 23.5 74 23.5Q521-293 554-316.5ZM180-180h600-600Z") }

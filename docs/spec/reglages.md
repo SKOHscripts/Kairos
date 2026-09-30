@@ -36,7 +36,8 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
   (fenêtre en semaines), **Alertes du chrono** (chrono oublié, pause
   suggérée, son de secours), **Jours fériés** (français, dates
   supplémentaires), **Apparence** (couleur du thème, `apparence.md`), puis
-  sur le bureau **Mises à jour**, puis **Données** et
+  sur le bureau **Mises à jour**, sur une copie portable **Raccourci**
+  (`raccourci-portable.md`), puis **Données** et
   « À propos et guide ».
 - Chaque champ a un libellé court et, dessous, une phrase qui dit à quoi il
   sert (les descriptions de Kairos 2) ; un booléen est un interrupteur dont

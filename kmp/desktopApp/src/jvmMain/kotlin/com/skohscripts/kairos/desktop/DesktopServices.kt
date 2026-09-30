@@ -30,7 +30,13 @@ object DesktopServices {
     const val DATABASE_FILE = "kairos.db"
 
     /** Ouvre (ou crée, exemples compris) la base de [dataDir] ; `inMemory` pour l'auto-test. */
-    suspend fun open(dataDir: File, inMemory: Boolean = false, notifier: ChronoNotifier = NoNotifier): AppServices = withContext(Dispatchers.IO) {
+    suspend fun open(
+        dataDir: File,
+        inMemory: Boolean = false,
+        notifier: ChronoNotifier = NoNotifier,
+        /** Copie portable (docs/spec/raccourci-portable.md), `null` pour une version installée. */
+        portable: PortableCopy? = null,
+    ): AppServices = withContext(Dispatchers.IO) {
         dataDir.mkdirs()
         val url = if (inMemory) JdbcSqliteDriver.IN_MEMORY else "jdbc:sqlite:${File(dataDir, DATABASE_FILE).absolutePath}"
         val clock = Clock.System
@@ -52,6 +58,7 @@ object DesktopServices {
             // L'auto-test (base en mémoire) rend l'interface habituelle, sans l'accueil ni réseau.
             firstLaunch = opened.created && !inMemory,
             updates = if (inMemory) null else DesktopUpdates(File(dataDir, "updates.json")),
+            shortcuts = portable?.let { PortableShortcuts(it, File(dataDir, "shortcuts.json")) },
         )
     }
 }

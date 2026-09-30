@@ -33,6 +33,9 @@ import com.skohscripts.kairos.ui.Platform
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.FileService
 import com.skohscripts.kairos.ui.app.LegacyImport
+import com.skohscripts.kairos.ui.app.ShortcutService
+import com.skohscripts.kairos.ui.app.ShortcutStatus
+import com.skohscripts.kairos.ui.app.ShortcutTarget
 import com.skohscripts.kairos.ui.app.UpdateService
 import com.skohscripts.kairos.ui.app.UpdateStatus
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -224,6 +227,52 @@ class M5ScreensUiTest {
         onNodeWithText("Later").performClick()
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Kairos 3.0.1 is available", substring = true).fetchSemanticsNodes().isEmpty() }
         assertEquals("3.0.1", updates.dismissed.value)
+    }
+
+    /** Raccourci d'une copie portable (docs/spec/raccourci-portable.md), sans toucher au système. */
+    private class FakeShortcuts : ShortcutService {
+        override val target = ShortcutTarget.APP_MENU
+        override val status = MutableStateFlow(ShortcutStatus.MISSING)
+        override val declined = MutableStateFlow(false)
+        override suspend fun create() { status.value = ShortcutStatus.CREATED }
+        override suspend fun remove() { status.value = ShortcutStatus.MISSING }
+        override fun decline() { declined.value = true }
+    }
+
+    @Test
+    fun aPortableCopyProposesItsShortcutUntilCreatedOrDeclined() = runComposeUiTest {
+        val shortcuts = FakeShortcuts()
+        val services = services().let { s -> AppServices(s.repository, s.files, s.backups, clock = clock, shortcuts = shortcuts) }
+        setContent { KairosApp(Platform.DESKTOP) { services } }
+        waitText("Add Kairos to the applications menu, with its icon?")
+        // Le bandeau est en tête, avant le « Add » de la capture de la vue Jour.
+        onAllNodesWithText("Add").onFirst().performClick()
+        waitText("Shortcut created.")
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Add Kairos to the applications menu", substring = true).fetchSemanticsNodes().isEmpty() }
+
+        // Réglages → Raccourci : l'état, puis « Retirer » ; le bandeau revient.
+        onAllNodesWithText("Settings").onFirst().performClick()
+        waitText("Shortcut created for this copy.")
+        onNodeWithText("Remove the shortcut").performScrollTo().performClick()
+        waitText("No shortcut.")
+        assertEquals(ShortcutStatus.MISSING, shortcuts.status.value)
+        waitText("Add Kairos to the applications menu, with its icon?")
+
+        // « Non merci » : le bandeau disparaît, la carte reste.
+        onNodeWithText("No thanks").performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Add Kairos to the applications menu", substring = true).fetchSemanticsNodes().isEmpty() }
+        assertEquals(true, shortcuts.declined.value)
+        onNodeWithText("Create the shortcut").performScrollTo().assertExists()
+    }
+
+    @Test
+    fun anInstalledCopyHasNoShortcutCard() = runComposeUiTest {
+        val services = services()
+        setContent { KairosApp(Platform.DESKTOP) { services } }
+        waitText("Settings")
+        onAllNodesWithText("Settings").onFirst().performClick()
+        waitText("Working day")
+        assertEquals(0, onAllNodesWithText("Shortcut").fetchSemanticsNodes().size)
     }
 
     @Test

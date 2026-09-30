@@ -113,7 +113,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `keep`), `TrendingUp` (score, chemin critique), `Description`, `Layers`
   (deep work) ; jalon M3 (chrono) : `PlayArrow`, `Stop`, `Close` (fermer une
   alerte), `NotificationsActive` ; jalon M4 : `ChevronLeft` (semaine
-  précédente) ; issue #45 : `Check` (pastille de couleur choisie).
+  précédente) ; issue #45 : `Check` (pastille de couleur choisie) ; issue
+  #46 : `InstallDesktop` (raccourci d'une copie portable).
   `Construction` (écran « En construction ») est retiré au
   jalon M5, plus rien n'étant en construction.
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`

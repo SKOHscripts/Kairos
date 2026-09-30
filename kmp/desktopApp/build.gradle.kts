@@ -41,6 +41,8 @@ compose.desktop {
     application {
         mainClass = "com.skohscripts.kairos.desktop.MainKt"
         jvmArgs += listOf("-Dkairos.preview=$isPreview")
+        // Classe de fenêtre X11 fixée (WindowClass.kt, docs/spec/raccourci-portable.md).
+        jvmArgs += listOf("--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED")
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Dmg)
             packageName = appName

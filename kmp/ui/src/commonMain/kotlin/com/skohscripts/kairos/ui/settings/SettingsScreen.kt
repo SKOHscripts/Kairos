@@ -3,6 +3,7 @@ package com.skohscripts.kairos.ui.settings
 import com.skohscripts.kairos.ui.app.heading
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.text.intl.Locale
+import com.skohscripts.kairos.ui.app.ShortcutCard
 import com.skohscripts.kairos.ui.app.UpdateService
 import com.skohscripts.kairos.ui.app.UpdateStatus
 import com.skohscripts.kairos.ui.day.Dates
@@ -148,6 +149,7 @@ fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
                 services.updates?.let { updates ->
                     UpdatesCard(updates, values["updateCheckEnabled"].orEmpty()) { values = values + ("updateCheckEnabled" to it) }
                 }
+                services.shortcuts?.let { ShortcutCard(it) }
                 DataCard(services)
                 OutlinedCard(onClick = onOpenAbout, modifier = Modifier.fillMaxWidth()) {
                     ListItem(

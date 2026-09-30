@@ -35,6 +35,7 @@ ICONS = {
     "Add": ("add", False),
     "Upload": ("upload", False),
     "Download": ("download", False),
+    "InstallDesktop": ("install_desktop", False),
     "ExpandMore": ("keyboard_arrow_down", False),
     "ExpandLess": ("keyboard_arrow_up", False),
     "Inbox": ("inbox", False),

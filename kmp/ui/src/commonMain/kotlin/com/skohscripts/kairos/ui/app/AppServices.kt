@@ -29,6 +29,8 @@ class AppServices(
     val migrated: LegacyReport? = null,
     /** Bureau : vérification des nouvelles versions (docs/spec/mises-a-jour.md). */
     val updates: UpdateService? = null,
+    /** Bureau, copie portable seulement : raccourci (docs/spec/raccourci-portable.md). */
+    val shortcuts: ShortcutService? = null,
 )
 
 /** Lecture d'une base Kairos 2 (docs/spec/migration-2x.md) ; la conversion est commune (`Kairos2Import`). */
