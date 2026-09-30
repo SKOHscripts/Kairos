@@ -13,6 +13,7 @@ import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TimeBlock
 import com.skohscripts.kairos.core.model.WorkSession
+import com.skohscripts.kairos.core.team.MemberAbsence
 import com.skohscripts.kairos.core.team.TeamMember
 import com.skohscripts.kairos.core.team.Workspaces
 import kotlinx.datetime.LocalDate
@@ -100,6 +101,7 @@ private data class ExportFile(
     // vide serait écrite ; nulle, elle disparaît (`explicitNulls = false`) et l'export d'une
     // base sans donnée d'équipe reste celui d'avant, octet pour octet.
     val members: List<MemberJson>? = null,
+    val absences: List<AbsenceJson>? = null,
 ) {
     fun toSnapshot() = KairosSnapshot(
         tasks = tasks.map { it.toModel() },
@@ -113,6 +115,7 @@ private data class ExportFile(
         },
         settings = settings,
         members = members.orEmpty().map { it.toModel() },
+        absences = absences.orEmpty().map { it.toModel() },
     )
 
     companion object {
@@ -134,6 +137,7 @@ private data class ExportFile(
                     NoteJson(it.id, it.body, it.status.code, it.convertedTaskId, it.createdAt.toString(), it.updatedAt.toString())
                 },
                 members = if (team) s.members.map { MemberJson.from(it) } else null,
+                absences = if (team) s.absences.map { AbsenceJson.from(it) } else null,
             )
         }
     }
@@ -270,5 +274,21 @@ private data class MemberJson(
             m.id, m.uid, m.name, m.role, m.availabilityPercent, m.hoursPerDay, m.isSelf, m.archived,
             m.createdAt.toString(), m.updatedAt.toString(),
         )
+    }
+}
+
+@Serializable
+private data class AbsenceJson(
+    val id: Long,
+    val memberId: Long,
+    val start: String,
+    val end: String,
+    val label: String = "",
+    val createdAt: String,
+) {
+    fun toModel() = MemberAbsence(id, memberId, LocalDate.parse(start), LocalDate.parse(end), label, Instant.parse(createdAt))
+
+    companion object {
+        fun from(a: MemberAbsence) = AbsenceJson(a.id, a.memberId, a.start.toString(), a.end.toString(), a.label, a.createdAt.toString())
     }
 }

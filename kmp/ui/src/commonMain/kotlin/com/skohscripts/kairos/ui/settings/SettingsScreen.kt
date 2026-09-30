@@ -159,7 +159,7 @@ fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
                     values = values + ("themeColor" to it)
                     errors = errors - "themeColor"
                 }
-                TeamSettingsCard(values, errors, savedEnabled = current.teamModeEnabled) { key, value ->
+                TeamSettingsCard(values, errors, savedEnabled = current.teamModeEnabled, services = services) { key, value ->
                     values = values + (key to value)
                     errors = errors - key
                 }

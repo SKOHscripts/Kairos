@@ -11,10 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.settings.FieldError
+import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.setting_team_enabled_help
 import com.skohscripts.kairos.ui.generated.resources.settings_section_team
+import com.skohscripts.kairos.ui.team.ClearTeamDataButton
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -25,13 +27,16 @@ import org.jetbrains.compose.resources.stringResource
  * [savedEnabled] est la valeur **enregistrée** : le nom de l'équipe et celui
  * du manager ne sont montrés que lorsque le mode est activé et enregistré,
  * pas dès que l'interrupteur est touché. En mode solo, la carte se réduit
- * à l'interrupteur : c'est la seule trace visible de l'espace Équipe.
+ * à l'interrupteur : c'est la seule trace visible de l'espace Équipe. Mode
+ * enregistré activé, « Supprimer les données d'équipe… » ferme la carte
+ * ([ClearTeamDataButton]).
  */
 @Composable
 internal fun TeamSettingsCard(
     values: Map<String, String>,
     errors: Map<String, FieldError>,
     savedEnabled: Boolean,
+    services: AppServices,
     onChange: (String, String) -> Unit,
 ) {
     OutlinedCard(Modifier.fillMaxWidth()) {
@@ -42,6 +47,7 @@ internal fun TeamSettingsCard(
             if (savedEnabled) {
                 SettingInput("team.name", values["team.name"].orEmpty(), errors["team.name"]) { onChange("team.name", it) }
                 SettingInput("team.managerName", values["team.managerName"].orEmpty(), errors["team.managerName"]) { onChange("team.managerName", it) }
+                ClearTeamDataButton(services)
             }
         }
     }

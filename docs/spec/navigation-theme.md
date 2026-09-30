@@ -116,7 +116,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   précédente) ; issue #45 : `Check` (pastille de couleur choisie) ; issue
   #46 : `InstallDesktop` (raccourci d'une copie portable) ; espace Équipe
   (jalon E1, `equipe.md`) : `Groups`, `Person`, `ViewKanban`, `Stacks`,
-  `Monitoring` (et les variantes pleines de `Groups`, `ViewKanban`,
+  `Monitoring`, puis au jalon E2 `PersonAdd`, `EventBusy`, `Archive`,
+  `Unarchive` (et les variantes pleines de `Groups`, `ViewKanban`,
   `Stacks`, `Monitoring`).
   `Construction` (écran « En construction ») est retiré au
   jalon M5, plus rien n'étant en construction.

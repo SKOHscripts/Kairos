@@ -91,6 +91,18 @@ CREATE TABLE team_member (
     updated_at TEXT NOT NULL
 );
 
+-- Absences des membres (jalon E2) : plages de dates incluses, début et fin au format ISO.
+-- Référencent team_member.id (sans FOREIGN KEY).
+CREATE TABLE member_absence (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_id INTEGER NOT NULL,
+    start TEXT NOT NULL,
+    end TEXT NOT NULL,
+    label TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX member_absence_member ON member_absence(member_id);
+
 -- Réglages : une seule ligne (id = 1), JSON de com.skohscripts.kairos.core.model.Settings.
 CREATE TABLE settings (
     id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -216,8 +228,67 @@ SELECT * FROM team_member ORDER BY id;
 insertTeamMemberWithId:
 INSERT INTO team_member VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
+insertTeamMember:
+INSERT INTO team_member (uid, name, role, availability_percent, hours_per_day, is_self, archived, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?);
+
+updateTeamMember:
+UPDATE team_member SET name = ?, role = ?, availability_percent = ?, hours_per_day = ?, is_self = ?, updated_at = ?
+WHERE id = ?;
+
+clearSelfExcept:
+UPDATE team_member SET is_self = 0, updated_at = ? WHERE is_self = 1 AND id <> ?;
+
+-- Archiver retire aussi « C'est moi » (un membre archivé n'est plus « moi »).
+setMemberArchived:
+UPDATE team_member SET archived = :archived, is_self = CASE WHEN :archived = 1 THEN 0 ELSE is_self END, updated_at = :updatedAt WHERE id = :id;
+
+deleteTeamMember:
+DELETE FROM team_member WHERE id = ?;
+
 deleteAllTeamMembers:
 DELETE FROM team_member;
+
+-- Absences ---------------------------------------------------------------------
+
+allMemberAbsences:
+SELECT * FROM member_absence ORDER BY id;
+
+insertMemberAbsenceWithId:
+INSERT INTO member_absence VALUES (?, ?, ?, ?, ?, ?);
+
+insertMemberAbsence:
+INSERT INTO member_absence (member_id, start, end, label, created_at) VALUES (?, ?, ?, ?, ?);
+
+updateMemberAbsence:
+UPDATE member_absence SET start = ?, end = ?, label = ? WHERE id = ?;
+
+deleteMemberAbsence:
+DELETE FROM member_absence WHERE id = ?;
+
+deleteAbsencesOfMember:
+DELETE FROM member_absence WHERE member_id = ?;
+
+deleteAllMemberAbsences:
+DELETE FROM member_absence;
+
+-- Équipe : remises à zéro --------------------------------------------------------
+
+unassignTasksOf:
+UPDATE task SET assignee_id = NULL, updated_at = ? WHERE assignee_id = ? AND space = 1 AND status = 'todo';
+
+unassignAllTasks:
+UPDATE task SET assignee_id = NULL WHERE assignee_id IS NOT NULL;
+
+deleteTeamTasks:
+DELETE FROM task WHERE space = 1;
+
+deleteDependenciesOfTeamTasks:
+DELETE FROM task_dependency
+WHERE task_id IN (SELECT id FROM task WHERE space = 1) OR blocker_id IN (SELECT id FROM task WHERE space = 1);
+
+deleteSessionsOfTeamTasks:
+DELETE FROM work_session WHERE task_id IN (SELECT id FROM task WHERE space = 1);
 
 -- Réglages ---------------------------------------------------------------------
 

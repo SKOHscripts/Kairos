@@ -61,8 +61,8 @@ Tests d'isolation à garder verts à chaque jalon :
 
 - `core/team/` reste **pur** : membres, capacité, effort, plan de charge,
   états, signaux, suggestion, fusion des paquets et rapports. Ni horloge
-  (jour et instant en paramètres), ni hasard (UUID et graines générés par
-  l'interface), ni I/O.
+  (jour et instant en paramètres), ni hasard (UUID tirés par le dépôt
+  dans `data`, graines de simulation tirées par l'interface), ni I/O.
 - **Réutiliser les moteurs**, ne pas les dupliquer : `Scheduling.sortKey` et
   `wsjfScore` (ordre et score), `Dependencies` (blocage, cycles, urgence
   héritée), `Workdays` (jours ouvrés, fériés), `Staleness`, `TimeTracking`,

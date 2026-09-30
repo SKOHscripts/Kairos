@@ -37,14 +37,14 @@ fun DestinationScreen(
 
 /**
  * Contenu d'une destination de l'espace Équipe. Les Réglages sont le même
- * écran que dans l'espace Perso ; les autres sont des états vides (jalon E1).
+ * écran que dans l'espace Perso ; Équipe liste les membres (jalon E2), les autres sont des états vides (jalon E1).
  */
 @Composable
 fun TeamDestinationScreen(destination: TeamDestination, services: AppServices, onOpenAbout: () -> Unit) {
     when (destination) {
         TeamDestination.BOARD -> TeamBoardScreen()
         TeamDestination.BACKLOG -> TeamBacklogScreen()
-        TeamDestination.MEMBERS -> TeamMembersScreen()
+        TeamDestination.MEMBERS -> TeamMembersScreen(services)
         TeamDestination.FORECAST -> ForecastScreen()
         TeamDestination.SETTINGS -> SettingsScreen(services, onOpenAbout)
     }

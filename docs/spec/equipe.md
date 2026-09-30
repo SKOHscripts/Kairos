@@ -20,12 +20,14 @@ Skills Claude Code du chantier : `.claude/skills/kairos-equipe/`,
 `.claude/skills/kairos-monte-carlo/` (et, transverses,
 `.claude/skills/kairos-spec/`, `.claude/skills/kairos-ecran/`)._
 
-État : **jalon E1 implémenté (2026-09-30)** : espaces, filtre
-`personalView`, migration `1.sqm`, export 2, `TeamSettings`, carte Équipe,
-sélecteur d'espace, coquille à deux espaces (écrans d'équipe en état vide).
-**E2 à E6 : spécifiés, non implémentés** ; ce qui les concerne ci-dessous
-et dans les quatre autres specs décrit du code à venir. Les specs
-existantes n'ont reçu que ce que E1 a réellement codé ; chaque spec du
+État : **jalons E1 et E2 implémentés (2026-09-30)** : espaces, filtre
+`personalView`, migrations `1.sqm` et `2.sqm`, export 2, `TeamSettings`,
+carte Équipe, sélecteur d'espace, coquille à deux espaces, membres et
+absences, suppression des données d'équipe (Suivi, Backlog et Prévisions
+encore en état vide). **E3 à E6 : spécifiés, non implémentés** ; ce qui les
+concerne ci-dessous et dans les quatre autres specs décrit du code à
+venir. Les specs existantes n'ont reçu que ce que E1 et E2 ont réellement
+codé ; chaque spec du
 chantier liste en fin de document les « Impacts sur les specs existantes »
 qui restent à reporter aux jalons suivants.
 
@@ -153,6 +155,49 @@ rien changer pour qui ne l'active pas.
   sinon seul l'archivage est proposé (l'historique garde son nom).
 - Les membres sont triés par nom ; « C'est moi » est marqué d'une icône et
   du mot « moi ».
+
+#### Destination Équipe (jalon E2, avant la charge)
+
+- En tête, le bouton **« Ajouter un membre »** (bouton primaire plein,
+  icône `PersonAdd`). Sans aucun membre : un état vide qui explique à quoi
+  servent les membres, avec le même bouton.
+- Une carte par **membre actif** (« moi » d'abord, puis par nom) : nom,
+  rôle, quotité et heures par jour (« 80 % · 7 h/j »), et la **prochaine
+  absence** à venir ou en cours (« Absent du 12 au 16 oct. », icône
+  `EventBusy`). La charge s'y ajoutera au jalon E4 (`equipe-charge.md`).
+- Section repliable **« Anciens membres (n) »** pour les membres archivés.
+- Toucher une carte ouvre la **fiche du membre** (plein écran sur
+  téléphone, dialogue en largeur ≥ 600 dp) : les champs du membre, la
+  liste de ses absences (ajouter, modifier, supprimer ; début et fin par
+  le sélecteur de dates MD3, libellé facultatif), puis « Archiver » (ou
+  « Réactiver ») et « Supprimer » (seulement s'il n'a jamais eu de tâche).
+  Un seul « Enregistrer » pour les champs, comme dans les Réglages ; il
+  ferme la fiche, comme archiver, réactiver et supprimer. Les absences
+  s'enregistrent une à une, aussitôt (suppression d'une absence sans
+  confirmation). Une **nouvelle** fiche n'a ni absences ni archivage : le
+  membre n'existe pas encore ; on les gère en rouvrant sa carte.
+- Une absence se choisit dans un sélecteur de plage MD3 : un seul jour
+  touché donne une absence d'un jour ; « Enregistrer » reste inactif sans
+  date. Libellé de carte : « Absent du 12 au 16 oct. · Congés », l'année
+  seulement si elle n'est pas l'année en cours.
+- Un membre archivé ne peut pas être « C'est moi » : l'archivage retire la
+  marque, la réactivation ne la rend pas.
+- Tri par nom : ordre lexicographique du nom en minuscules, sans
+  collation propre à une langue (`core` pur) ; « Émile » passe donc après
+  « Zoé ». Assumé tant que personne ne s'en plaint.
+- Validation des champs à l'enregistrement, erreur à la place de l'aide :
+  nom vide (« Le nom est obligatoire. »), quotité hors 1-100 ou non
+  entière, heures par jour hors 1-24 ou non numériques (virgule ou point).
+  Une absence dont la fin précède le début est refusée
+  (« La fin doit suivre le début. »).
+- Réglages → carte Équipe, mode activé : **« Supprimer les données
+  d'équipe… »** (bouton texte, couleur d'erreur). Confirmation qui compte
+  ce qui part (« 3 membres et 12 tâches d'équipe seront supprimés. »),
+  sauvegarde automatique préalable (`avant-suppression-equipe-AAAAMMJJ-HHMM.json`,
+  même mécanisme que l'import) ; sans sauvegarde réussie, rien n'est
+  supprimé. Les réglages d'équipe (nom, manager, mode activé) restent. Le
+  bouton est visible dès que le mode est activé et enregistré, même sans
+  donnée (les compteurs disent alors 0).
 
 #### Isolation du mode solo (invariant « sans incidence »)
 
@@ -286,7 +331,8 @@ d'équipe n'entre dans un calcul personnel.
     `CREATE TABLE team_member (id, uid, name, role, availability_percent,
     hours_per_day, is_self, archived, created_at, updated_at)`, index
     `task(space)` et `task(assignee_id)` ;
-  - **E2** : `member_absence` (index `member_id`) ;
+  - **E2, `2.sqm`** (`user_version` 2 → 3) : `member_absence (id, member_id,
+    start, end, label, created_at)`, index `member_id` ;
   - **E3** : `task.progress_percent`, `task.started_on`, `task.team_uid`
     (index), `team_event` (index `task_id`, `member_id`) ;
   - **E5** : `team_scenario` ;
@@ -301,18 +347,33 @@ d'équipe n'entre dans un calcul personnel.
 
 ### Dépôt (`KairosRepository`)
 
-Opérations ajoutées, transactionnelles, chacune journalisée dans la même
-transaction (`equipe-backlog-suivi.md` § Journal) :
+Opérations transactionnelles (jalon E2 ; à partir d'E3, chacune écrira
+aussi son événement de journal dans la même transaction,
+`equipe-backlog-suivi.md` § Journal) :
 
-- membres : `createMember`, `updateMember`, `setSelf`, `archiveMember`
-  (remet les tâches ouvertes au backlog), `restoreMember`, `deleteMember`
-  (refusé si le membre a une tâche ou un événement) ;
-- absences : `addAbsence`, `updateAbsence`, `deleteAbsence` (refusées si
-  `end < start`) ;
-- tâches d'équipe : voir `equipe-backlog-suivi.md` § Dépôt ;
-- `clearTeamData()` : supprime membres, absences, journal, scénarios et
-  tâches `TEAM` (avec leurs dépendances et sessions), après la sauvegarde
-  faite par l'interface.
+- membres :
+  - `createMember(nom, rôle, quotité, heures, moi): Long?` : nom nettoyé,
+    vide → `null` ; `uid` tiré ici (`Uuid.random()`) ; quotité et heures
+    ramenées dans leurs bornes (garde-fou, la fiche valide avant) ;
+  - `updateMember(id, …): Boolean` ; « C'est moi » passe par ces deux
+    opérations (pas de `setSelf` séparé) : le poser sur un membre le
+    retire aux autres dans la même transaction ; ignoré pour un archivé ;
+  - `archiveMember(id)` : ses tâches **à faire** repassent au backlog
+    (`assigneeId = null`, `updatedAt` posé), faites et archivées restent à
+    son nom, « C'est moi » retiré ; `restoreMember(id)` ; les deux rendent
+    `false` si le membre est inconnu ou déjà dans l'état visé ;
+  - `deleteMember(id)` : refusé si une tâche, de tout statut et de tout
+    espace, lui a été assignée (`TeamMembers.hasHadTask` ; à partir d'E3,
+    aussi s'il a un événement de journal) ; supprime ses absences ;
+- absences : `addAbsence(membre, début, fin, libellé): Long?`,
+  `updateAbsence`, `deleteAbsence` ; refusées si `fin < début` ou membre
+  inconnu (un membre archivé en accepte) ;
+- tâches d'équipe : voir `equipe-backlog-suivi.md` § Dépôt (E3) ;
+- `clearTeamData()` : supprime membres, absences et tâches `TEAM`
+  (sous-tâches comprises, avec leurs dépendances et sessions ; à partir
+  d'E3 et E5, journal et scénarios aussi) et remet `assigneeId` à `null`
+  sur les tâches restantes ; garde `settings.team`. La sauvegarde
+  préalable est faite par l'interface (`clearTeamDataWithBackup`).
 
 ### Export (`ExportCodec`)
 
@@ -394,6 +455,27 @@ transaction (`equipe-backlog-suivi.md` § Journal) :
   « moi » et mode activé). Auto-test : captures `desktop-settings-full.png`
   (solo), `desktop-team.png`, `desktop-team-narrow.png` (360 dp),
   `desktop-team-settings.png`.
+- Jalon E2 (`ui/team/`) : `TeamMembersScreen(services)` (bouton, état vide,
+  cartes, « Anciens membres (n) » repliable), `MemberSheet` (branché au
+  dépôt) et `MemberSheetContent` (sans dépôt, rendu par l'auto-test),
+  `AbsenceEditor` / `AbsenceEditorContent` (`DateRangePicker`),
+  `ClearTeamDataButton` (carte Équipe, qui reçoit désormais `services`),
+  `TeamDates` (libellés de dates). `LocalWindowWidth` et `isCompactWidth`
+  (`navigation/WindowWidth.kt`) donnent aux dialogues la largeur de la
+  fenêtre (la même que `NavigationLayout.choose`) : plein écran sous
+  600 dp, dialogue de 640 dp au plus au-delà. `Replace.kt` : `saveBackup`
+  (partagé avec `replaceWithBackup`, comportement inchangé) et
+  `clearTeamDataWithBackup`. Les écrans d'équipe lisent `snapshot` (base
+  complète). Calcul pur : `core/team/MemberForm` (validation par champ,
+  `FieldError` des Réglages réutilisé, heures par jour par défaut),
+  `TeamMembers` (ordre, actifs, archivés, prochaine absence,
+  `hasHadTask`, tâches ouvertes), `MemberAbsence`. Accords au singulier et
+  au pluriel par des clés `_one` / `_many` (le dépôt n'a pas de ressources
+  de pluriel). Icônes : `PersonAdd`, `EventBusy`, `Archive`, `Unarchive`.
+  Tests : `MemberFormTest`, `TeamMembersTest`, `TeamMembersRepositoryTest`
+  (migration 2 → 3 et 1 → 3 comprises), `TeamMembersUiTest`. Auto-test :
+  `desktop-team-members[-narrow].png`, `desktop-team-member-sheet[-narrow].png`,
+  `desktop-team-absence[-narrow].png`.
 - Textes : toutes les chaînes en `values/` **et** `values-en/`, apostrophe
   typographique (`StringsParityTest`).
 
@@ -424,9 +506,11 @@ transaction (`equipe-backlog-suivi.md` § Journal) :
   maintenir ; la liste des types est commune aux deux espaces.
 - **`teamUid` en plus de `id`** : les identifiants entiers ne sont stables
   que dans une base ; les échanges de fichiers ont besoin d'une identité
-  qui survit d'une base à l'autre. Généré par l'interface
-  (`kotlin.uuid.Uuid.random()`) et passé au dépôt, `core` restant sans
-  hasard ni horloge.
+  qui survit d'une base à l'autre. Les UUID (`teamUid`, `TeamMember.uid`,
+  `TeamSettings.identity`) sont tirés par le **dépôt** (`data`,
+  `kotlin.uuid.Uuid.random()`), comme l'identité d'équipe au jalon E1 :
+  `core` reste sans hasard ni horloge, et aucun appelant ne peut oublier
+  d'en fournir un.
 
 ### Jalons du chantier
 
@@ -457,15 +541,13 @@ Tranchées le 2026-09-30 :
 - ~~E6 : partage direct Android~~ → **fichier seulement** : l'usage
   managérial est surtout sur ordinateur (`equipe-echanges.md`).
 
-Ouvertes (relevées en implémentant E1) :
+Relevées en implémentant E1, tranchées le 2026-09-30 (à coder en E3) :
 
-- **E3** : `Recurrence.calendarOccurrences` regroupe les séries « le N du
-  mois » par (titre, jour du mois), sans l'espace : une série Perso et une
-  série d'équipe de même titre se confondraient. Proposition : ajouter
-  l'espace (et l'assigné) à la clé de série.
-- **E3** : les sous-tâches créées en lot par `updateTask` (`newSubtasks`)
-  naissent `PERSONAL`, même sous une mère d'équipe. Proposition : elles
-  prennent l'espace et l'assigné de la mère (règle déjà écrite dans
+- `Recurrence.calendarOccurrences` : la clé d'une série « le N du mois »
+  devient (titre, jour du mois, **espace, assigné**) : une série Perso et
+  une série d'équipe de même titre restent distinctes.
+- Sous-tâches créées en lot par `updateTask` (`newSubtasks`) : elles
+  prennent l'**espace et l'assigné de la mère** (règle de
   `equipe-backlog-suivi.md` § Assignation).
 
 ### Impacts sur les specs existantes
@@ -479,6 +561,12 @@ d'isolation), `recurrence.md` (espace et assigné des occurrences),
 `ui/team/`), `vue-jour.md`, `vue-semaine.md`, `notes-capture.md`,
 `statistiques.md`, `temps-reel-chrono.md` (lecture de `personalSnapshot`),
 index `docs/spec/README.md`.
+
+Reportés au jalon E2 : `modele-donnees.md` (`MemberAbsence`,
+`member_absence`, `2.sqm`, opérations membres et absences),
+`export-import.md` (`absences`), `navigation-theme.md` (icônes),
+`reglages.md` (suppression des données d'équipe), `distribution.md`
+(captures).
 
 Restent à reporter : `modele-donnees.md` (tables et colonnes des jalons
 E2-E6, opérations d'équipe du dépôt), `vue-jour.md` (marque « Équipe » des

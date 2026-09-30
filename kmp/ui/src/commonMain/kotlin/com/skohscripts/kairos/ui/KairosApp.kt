@@ -31,6 +31,7 @@ import com.skohscripts.kairos.ui.generated.resources.loading
 import com.skohscripts.kairos.ui.navigation.AppShell
 import com.skohscripts.kairos.ui.navigation.Destination
 import com.skohscripts.kairos.ui.navigation.NavState
+import com.skohscripts.kairos.ui.navigation.LocalWindowWidth
 import com.skohscripts.kairos.ui.navigation.NavigationLayout
 import com.skohscripts.kairos.ui.navigation.Space
 import com.skohscripts.kairos.ui.navigation.TeamDestination
@@ -124,45 +125,48 @@ private fun KairosShell(platform: Platform, services: AppServices, initialDestin
     }
 
     BoxWithConstraints {
-        AppShell(
-            layout = NavigationLayout.choose(platform, maxWidth),
-            services = services,
-            space = space,
-            destination = destination,
-            teamDestination = teamDestination,
-            teamModeEnabled = teamEnabled,
-            teamName = team?.name.orEmpty(),
-            aboutOpen = aboutOpen,
-            nav = nav,
-            onNavigate = {
-                // La navigation principale ramène à aujourd'hui et à la semaine courante.
-                nav.day = null
-                nav.week = null
-                destination = it
-                aboutOpen = false
-            },
-            onNavigateTeam = {
-                teamDestination = it
-                aboutOpen = false
-            },
-            onSpaceChange = {
-                // Changer d'espace ouvre la première destination de l'autre espace (Jour ou Suivi).
-                nav.day = null
-                nav.week = null
-                destination = Destination.START
-                teamDestination = TeamDestination.START
-                aboutOpen = false
-                chosenSpace = it
-                persistSpace(it)
-            },
-            onOpenDay = { day ->
-                nav.day = day
-                destination = Destination.DAY
-                aboutOpen = false
-            },
-            onOpenAbout = { aboutOpen = true },
-            onCloseAbout = { aboutOpen = false },
-        )
+        // Largeur de la fenêtre pour les écrans qui choisissent plein écran ou dialogue (fiche membre).
+        CompositionLocalProvider(LocalWindowWidth provides maxWidth) {
+            AppShell(
+                layout = NavigationLayout.choose(platform, maxWidth),
+                services = services,
+                space = space,
+                destination = destination,
+                teamDestination = teamDestination,
+                teamModeEnabled = teamEnabled,
+                teamName = team?.name.orEmpty(),
+                aboutOpen = aboutOpen,
+                nav = nav,
+                onNavigate = {
+                    // La navigation principale ramène à aujourd'hui et à la semaine courante.
+                    nav.day = null
+                    nav.week = null
+                    destination = it
+                    aboutOpen = false
+                },
+                onNavigateTeam = {
+                    teamDestination = it
+                    aboutOpen = false
+                },
+                onSpaceChange = {
+                    // Changer d'espace ouvre la première destination de l'autre espace (Jour ou Suivi).
+                    nav.day = null
+                    nav.week = null
+                    destination = Destination.START
+                    teamDestination = TeamDestination.START
+                    aboutOpen = false
+                    chosenSpace = it
+                    persistSpace(it)
+                },
+                onOpenDay = { day ->
+                    nav.day = day
+                    destination = Destination.DAY
+                    aboutOpen = false
+                },
+                onOpenAbout = { aboutOpen = true },
+                onCloseAbout = { aboutOpen = false },
+            )
+        }
     }
 }
 

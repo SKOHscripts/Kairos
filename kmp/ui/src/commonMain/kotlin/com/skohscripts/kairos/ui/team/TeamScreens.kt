@@ -25,17 +25,16 @@ import com.skohscripts.kairos.ui.generated.resources.team_board_empty_body
 import com.skohscripts.kairos.ui.generated.resources.team_board_empty_title
 import com.skohscripts.kairos.ui.generated.resources.team_forecast_empty_body
 import com.skohscripts.kairos.ui.generated.resources.team_forecast_empty_title
-import com.skohscripts.kairos.ui.generated.resources.team_members_empty_body
-import com.skohscripts.kairos.ui.generated.resources.team_members_empty_title
 import com.skohscripts.kairos.ui.generated.resources.team_soon
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /*
- * Écrans de l'espace Équipe au jalon E1 (docs/spec/equipe.md § Jalons) : la
- * coquille à deux espaces est en place, le contenu arrive aux jalons E2 à E5.
- * Chaque écran n'est qu'un état vide ; il sera remplacé sur place.
+ * Écrans de l'espace Équipe (docs/spec/equipe.md § Jalons) : la coquille à deux
+ * espaces est en place depuis le jalon E1 ; le contenu arrive aux jalons E2 à E5.
+ * Les écrans qui ne sont pas encore livrés n'affichent qu'un état vide, remplacé
+ * sur place. L'écran Équipe (membres, jalon E2) est dans `TeamMembersScreen.kt`.
  */
 
 /** Suivi : le tableau de l'équipe, par membre et par état (E3). */
@@ -47,11 +46,6 @@ fun TeamBoardScreen() =
 @Composable
 fun TeamBacklogScreen() =
     TeamEmptyState(KairosIcons.Stacks, Res.string.team_backlog_empty_title, Res.string.team_backlog_empty_body)
-
-/** Équipe : les membres, leur capacité et leur charge (E2, E4). */
-@Composable
-fun TeamMembersScreen() =
-    TeamEmptyState(KairosIcons.Groups, Res.string.team_members_empty_title, Res.string.team_members_empty_body)
 
 /** Prévisions : simulations et scénarios (E5). */
 @Composable

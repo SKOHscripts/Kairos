@@ -11,10 +11,12 @@ import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TimeBlock
 import com.skohscripts.kairos.core.model.WorkSession
+import com.skohscripts.kairos.core.team.MemberAbsence
 import com.skohscripts.kairos.core.team.TeamMember
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlin.time.Instant
+import com.skohscripts.kairos.data.db.Member_absence as AbsenceRow
 import com.skohscripts.kairos.data.db.Note as NoteRow
 import com.skohscripts.kairos.data.db.Task as TaskRow
 import com.skohscripts.kairos.data.db.Team_member as MemberRow
@@ -68,6 +70,15 @@ internal fun MemberRow.toModel() = TeamMember(
     archived = archived != 0L,
     createdAt = created_at.instant(),
     updatedAt = updated_at.instant(),
+)
+
+internal fun AbsenceRow.toModel() = MemberAbsence(
+    id = id,
+    memberId = member_id,
+    start = LocalDate.parse(start),
+    end = LocalDate.parse(end),
+    label = label,
+    createdAt = created_at.instant(),
 )
 
 internal fun BlockRow.toModel() = TimeBlock(
