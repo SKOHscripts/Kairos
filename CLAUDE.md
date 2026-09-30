@@ -38,6 +38,17 @@ quatre étapes ci-dessous, dans cet ordre.
   citée par les specs de domaine plutôt que dupliquée.
 - `docs/plan-v3-kotlin.md` garde l'historique des décisions de la réécriture.
 
+## Skills du dépôt (`.claude/skills/`)
+
+- `kairos-spec` : le workflow ci-dessus, pas à pas (gabarit de spec,
+  checklist de bijectivité).
+- `kairos-ecran` : checklist d'un écran ou composant conforme au design
+  system.
+- `kairos-equipe` : implémentation de l'espace Équipe et isolation du mode
+  solo (`docs/spec/equipe.md`).
+- `kairos-monte-carlo` : simulations probabilistes reproductibles
+  (`docs/spec/equipe-simulation.md`).
+
 ## Règles de traçabilité
 
 - **Bijectivité** : à tout comportement du code correspond une trace de spec, et
