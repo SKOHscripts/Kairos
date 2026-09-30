@@ -167,8 +167,9 @@ Deux formats JSON UTF-8 indentés, distincts de l'export par leur champ
 
 - Identités stables : `teamUid` des tâches, `uid` de l'équipe (réglage
   `TeamSettings.identity`, `equipe.md` § Modèle) et `uid` de chaque membre
-  (nouvelle colonne `team_member.uid`). Générées par l'interface
-  (`kotlin.uuid.Uuid.random()`), jamais par `core`.
+  (colonne `team_member.uid`). Tirées par le dépôt (`data`,
+  `kotlin.uuid.Uuid.random()`), jamais par `core` (`equipe.md`
+  § Décisions).
 - `decode` : même contrat d'erreurs que `ExportCodec` (`NOT_AN_EXPORT`,
   `TOO_NEW`, `CORRUPTED`), champs inconnus ignorés.
 - Aiguillage du bouton « Importer » : lecture de `format` d'abord

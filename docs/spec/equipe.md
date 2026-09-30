@@ -154,6 +154,35 @@ rien changer pour qui ne l'active pas.
 - Les membres sont triés par nom ; « C'est moi » est marqué d'une icône et
   du mot « moi ».
 
+#### Destination Équipe (jalon E2, avant la charge)
+
+- En tête, le bouton **« Ajouter un membre »** (bouton primaire plein,
+  icône `PersonAdd`). Sans aucun membre : un état vide qui explique à quoi
+  servent les membres, avec le même bouton.
+- Une carte par **membre actif** (« moi » d'abord, puis par nom) : nom,
+  rôle, quotité et heures par jour (« 80 % · 7 h/j »), et la **prochaine
+  absence** à venir ou en cours (« Absent du 12 au 16 oct. », icône
+  `EventBusy`). La charge s'y ajoutera au jalon E4 (`equipe-charge.md`).
+- Section repliable **« Anciens membres (n) »** pour les membres archivés.
+- Toucher une carte ouvre la **fiche du membre** (plein écran sur
+  téléphone, dialogue en largeur ≥ 600 dp) : les champs du membre, la
+  liste de ses absences (ajouter, modifier, supprimer ; début et fin par
+  le sélecteur de dates MD3, libellé facultatif), puis « Archiver » (ou
+  « Réactiver ») et « Supprimer » (seulement s'il n'a jamais eu de tâche).
+  Un seul « Enregistrer » pour les champs, comme dans les Réglages ; les
+  absences s'enregistrent une à une.
+- Validation des champs à l'enregistrement, erreur à la place de l'aide :
+  nom vide (« Le nom est obligatoire. »), quotité hors 1-100 ou non
+  entière, heures par jour hors 1-24 ou non numériques (virgule ou point).
+  Une absence dont la fin précède le début est refusée
+  (« La fin doit suivre le début. »).
+- Réglages → carte Équipe, mode activé : **« Supprimer les données
+  d'équipe… »** (bouton texte, couleur d'erreur). Confirmation qui compte
+  ce qui part (« 3 membres et 12 tâches d'équipe seront supprimés. »),
+  sauvegarde automatique préalable (`avant-suppression-equipe-AAAAMMJJ-HHMM.json`,
+  même mécanisme que l'import) ; sans sauvegarde réussie, rien n'est
+  supprimé. Les réglages d'équipe (nom, manager, mode activé) restent.
+
 #### Isolation du mode solo (invariant « sans incidence »)
 
 Tant que l'espace Équipe n'a **jamais été activé** :
@@ -286,7 +315,8 @@ d'équipe n'entre dans un calcul personnel.
     `CREATE TABLE team_member (id, uid, name, role, availability_percent,
     hours_per_day, is_self, archived, created_at, updated_at)`, index
     `task(space)` et `task(assignee_id)` ;
-  - **E2** : `member_absence` (index `member_id`) ;
+  - **E2, `2.sqm`** (`user_version` 2 → 3) : `member_absence (id, member_id,
+    start, end, label, created_at)`, index `member_id` ;
   - **E3** : `task.progress_percent`, `task.started_on`, `task.team_uid`
     (index), `team_event` (index `task_id`, `member_id`) ;
   - **E5** : `team_scenario` ;
@@ -424,9 +454,11 @@ transaction (`equipe-backlog-suivi.md` § Journal) :
   maintenir ; la liste des types est commune aux deux espaces.
 - **`teamUid` en plus de `id`** : les identifiants entiers ne sont stables
   que dans une base ; les échanges de fichiers ont besoin d'une identité
-  qui survit d'une base à l'autre. Généré par l'interface
-  (`kotlin.uuid.Uuid.random()`) et passé au dépôt, `core` restant sans
-  hasard ni horloge.
+  qui survit d'une base à l'autre. Les UUID (`teamUid`, `TeamMember.uid`,
+  `TeamSettings.identity`) sont tirés par le **dépôt** (`data`,
+  `kotlin.uuid.Uuid.random()`), comme l'identité d'équipe au jalon E1 :
+  `core` reste sans hasard ni horloge, et aucun appelant ne peut oublier
+  d'en fournir un.
 
 ### Jalons du chantier
 
@@ -457,15 +489,13 @@ Tranchées le 2026-09-30 :
 - ~~E6 : partage direct Android~~ → **fichier seulement** : l'usage
   managérial est surtout sur ordinateur (`equipe-echanges.md`).
 
-Ouvertes (relevées en implémentant E1) :
+Relevées en implémentant E1, tranchées le 2026-09-30 (à coder en E3) :
 
-- **E3** : `Recurrence.calendarOccurrences` regroupe les séries « le N du
-  mois » par (titre, jour du mois), sans l'espace : une série Perso et une
-  série d'équipe de même titre se confondraient. Proposition : ajouter
-  l'espace (et l'assigné) à la clé de série.
-- **E3** : les sous-tâches créées en lot par `updateTask` (`newSubtasks`)
-  naissent `PERSONAL`, même sous une mère d'équipe. Proposition : elles
-  prennent l'espace et l'assigné de la mère (règle déjà écrite dans
+- `Recurrence.calendarOccurrences` : la clé d'une série « le N du mois »
+  devient (titre, jour du mois, **espace, assigné**) : une série Perso et
+  une série d'équipe de même titre restent distinctes.
+- Sous-tâches créées en lot par `updateTask` (`newSubtasks`) : elles
+  prennent l'**espace et l'assigné de la mère** (règle de
   `equipe-backlog-suivi.md` § Assignation).
 
 ### Impacts sur les specs existantes
