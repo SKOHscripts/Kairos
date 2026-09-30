@@ -414,7 +414,16 @@ Tranchées le 2026-09-30 :
 - ~~E6 : partage direct Android~~ → **fichier seulement** : l'usage
   managérial est surtout sur ordinateur (`equipe-echanges.md`).
 
-Aucune question ouverte à ce jour.
+Ouvertes (relevées en implémentant E1) :
+
+- **E3** : `Recurrence.calendarOccurrences` regroupe les séries « le N du
+  mois » par (titre, jour du mois), sans l'espace : une série Perso et une
+  série d'équipe de même titre se confondraient. Proposition : ajouter
+  l'espace (et l'assigné) à la clé de série.
+- **E3** : les sous-tâches créées en lot par `updateTask` (`newSubtasks`)
+  naissent `PERSONAL`, même sous une mère d'équipe. Proposition : elles
+  prennent l'espace et l'assigné de la mère (règle déjà écrite dans
+  `equipe-backlog-suivi.md` § Assignation).
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 

@@ -59,7 +59,10 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   `recurrence` (`TaskRecurrence` : `""`, `daily`, `weekdays`, `weekly`,
   `monthly`, `monthly_on_day`), `scheduledDate`, `recurrenceDayOfMonth`,
   `recurrenceDayOfWeek` (0 = lundi), `recurrencePeriod`, `taskType`,
-  `fibonacciPoints`, `manualTimeSpentMinutes`, `createdAt`, `updatedAt`.
+  `fibonacciPoints`, `manualTimeSpentMinutes`, `createdAt`, `updatedAt`,
+  puis, pour l'espace Équipe (`equipe.md`), `space` (`TaskSpace` :
+  `PERSONAL` code 0, par défaut, `TEAM` code 1 ; code inconnu →
+  `PERSONAL`) et `assigneeId` (membre assigné, `null` sinon).
   - Dates et heures « métier » **locales naïves** (`LocalDate`,
     `LocalDateTime`) ; horodatages techniques en instants UTC (`Instant`).
     Convention de Kairos 2.
@@ -86,9 +89,15 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   (français : ceux de Kairos 2 moins « Pilotage/dette technique » ; anglais :
   traduction). Bornes, validation et écran : `reglages.md`. Réglages ajoutés
   depuis : `updateCheckEnabled` (`mises-a-jour.md`), `themeColor`
-  (`apparence.md`).
-- `KairosSnapshot` : toutes les tables et les réglages. C'est la forme
-  commune de l'export, de l'import, des exemples et de la sauvegarde web.
+  (`apparence.md`), `team` (`TeamSettings?`, nul tant que l'espace Équipe
+  n'a jamais été activé, `equipe.md` § Modèle ; `teamModeEnabled` en est
+  la lecture).
+- `TeamMember` (`core/team/`) : `id`, `uid`, `name`, `role`,
+  `availabilityPercent`, `hoursPerDay`, `isSelf`, `archived`, `createdAt`,
+  `updatedAt` (`equipe.md`).
+- `KairosSnapshot` : toutes les tables (membres d'équipe compris) et les
+  réglages. C'est la forme commune de l'export, de l'import, des exemples et
+  de la sauvegarde web.
 
 ### Exemples (`ExampleData.snapshot(aujourd'hui, maintenant, langue)`)
 
@@ -104,10 +113,13 @@ quotidien), une note, les réglages par défaut de la langue. Identifiants
 
 - `Kairos.sq` : tables `task`, `time_block`, `task_dependency` (unique
   `(task_id, blocker_id)`), `work_session`, `note`, `settings` (une ligne
-  `id = 1`, JSON des réglages). Clés `INTEGER PRIMARY KEY AUTOINCREMENT` ;
-  index sur `task.status`, `task.parent_id`, `time_block.start`,
+  `id = 1`, JSON des réglages), `team_member` (`equipe.md`). Clés
+  `INTEGER PRIMARY KEY AUTOINCREMENT` ; index sur `task.status`,
+  `task.parent_id`, `task.space`, `task.assignee_id`, `time_block.start`,
   `task_dependency.task_id` et `.blocker_id`, `work_session.task_id`,
-  `note.status`. Références **sans** `FOREIGN KEY` (parti pris de Kairos 2).
+  `note.status`. Les colonnes `task.space` et `task.assignee_id` sont **en
+  fin de table**, dans une base neuve comme dans une base migrée : les
+  insertions avec identifiant sont positionnelles. Références **sans** `FOREIGN KEY` (parti pris de Kairos 2).
 - Types stockés : dates `TEXT` « 2026-09-28 », heures locales `TEXT`
   « 2026-09-28T09:30 », instants `TEXT` ISO UTC (`Mappers.kt`).
 - Code **asynchrone** (`generateAsync`), exigé par le pilote web, utilisé
@@ -124,6 +136,14 @@ quotidien), une note, les réglages par défaut de la langue. Identifiants
    exclue : migrations SQLDelight (fichiers `.sqm`, additives, vérifiées par
    `verifyMigrations`).
 3. `PRAGMA user_version` = version du schéma.
+
+Schéma 1 : celui de la 3.0.0. Schéma 2 : `1.sqm` (jalon E1 de l'espace
+Équipe) ajoute `task.space`, `task.assignee_id`, leurs index et
+`team_member`. Les schémas de référence de chaque version
+(`data/src/commonMain/sqldelight/databases/<n>.db`, générés par
+`generateCommonMainKairosDatabaseSchema` avant la migration) sont
+versionnés, par exception à la règle `*.db` du `.gitignore` : sans eux,
+`verifyMigrations` ne peut rien comparer.
 
 Les deux lectures (version, présence de la table) passent par l'API `Query`
 de SQLDelight.
@@ -169,12 +189,24 @@ de SQLDelight.
     sous-tâches et sessions restent (comme `delete_task` de Kairos 2).
   - Notes : `createNote`, `editNote`, `convertNote`, `archiveNote`,
     `deleteNote` (`notes-capture.md`).
-  - `updateSettings`.
-  - `replaceAll(snapshot)` : vide toutes les tables et réinsère tout,
+  - `updateSettings` : si `team` existe sans identité, en pose une (UUID
+    tiré dans `data`, gardé si la base en a déjà une) ; rien en mode solo.
+  - `replaceAll(snapshot)` : vide toutes les tables (membres compris) et
+    réinsère tout,
     identifiants compris, en une transaction. Sert à l'import, aux exemples et
     au rechargement web. Les identifiants créés ensuite continuent après le
     plus grand importé.
 - Chaque modification met `updatedAt` à l'instant courant (horloge injectée).
+- **Vue Perso** : à chaque rechargement, le dépôt publie aussi
+  `personalSnapshot` = `Workspaces.personalView(snapshot)` (`equipe.md`
+  § Espaces et filtre central) ; sans tâche d'équipe, c'est la même instance
+  que `snapshot`.
+- Un bloqueur d'un autre espace que la tâche est ignoré par `updateTask`
+  (pas de dépendance Perso ↔ Équipe) ; `createTask` crée une tâche
+  `PERSONAL`.
+- JSON des réglages en base : `encodeDefaults = true` et
+  `explicitNulls = false`, pour qu'un `team` nul n'y soit jamais écrit
+  (`"team": null` serait une trace d'équipe dans une base solo).
 
 ### Décisions et pièges tracés
 

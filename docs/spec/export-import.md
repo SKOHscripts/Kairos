@@ -87,7 +87,7 @@ JSON UTF-8 indenté :
 ```json
 {
   "format": "kairos-export",
-  "formatVersion": 1,
+  "formatVersion": 2,
   "appVersion": "3.0.0-alpha.2",
   "exportedAt": "2026-09-28T07:00:00Z",
   "settings": { "...": "réglages (Settings), tous les champs" },
@@ -101,9 +101,23 @@ JSON UTF-8 indenté :
 
 - Champs des tâches : ceux du modèle (`modele-donnees.md`), en camelCase ;
   valeurs `null` omises ; codes de statut et de récurrence de la base.
+- **Version 2** (espace Équipe, `equipe.md` § Export) : `members` (membres
+  d'équipe) et, sur les tâches, `space` (`"team"`, écrit seulement pour une
+  tâche d'équipe) et `assigneeId`.
+- **Une base sans donnée d'équipe** (`Workspaces.hasTeamData` faux : ni
+  membre, ni tâche d'équipe, ni tâche assignée) s'exporte en
+  `formatVersion` 1, sans aucun champ d'équipe : c'est l'export de la
+  3.0.0, octet pour octet hors `appVersion` et `exportedAt`, prouvé contre un
+  fichier de référence produit avant le chantier
+  (`TeamIsolationTest.soloExportIsByteIdentical`). Pour cela, les champs
+  d'équipe du JSON sont nullables à défaut `null` : `encodeDefaults = true`
+  les écrirait sinon. Un `settings.team` non nul (espace activé puis vidé)
+  reste écrit dans les réglages d'un export 1 ; une version antérieure
+  l'ignore (champ inconnu).
 - `decode` :
   - JSON illisible ou `format` différent → `ImportException(NOT_AN_EXPORT)` ;
-  - `formatVersion` supérieure à 1 → `TOO_NEW` ;
+  - `formatVersion` supérieure à 2 → `TOO_NEW` (1 et 2 sont lues ; un
+    export 1 donne une base sans donnée d'équipe) ;
   - valeur invalide (date, instant) → `CORRUPTED` ;
   - champs inconnus ignorés, champs absents à leur valeur par défaut
     (réglages compris).
