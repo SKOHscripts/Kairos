@@ -73,6 +73,9 @@ asynchrone de la base).
   `org.jetbrains.kotlin.plugin.compose`), `material3`, ressources Compose,
   `ui-backhandler` (retour système et Échap).
 - `androidx.activity:activity-compose` 1.13.0.
+- `com.materialkolor:material-color-utilities` 5.0.1 (MIT, module `ui`) :
+  portage Kotlin multiplateforme de l'algorithme de couleur MD3, qui dérive
+  le schéma de la couleur choisie (`apparence.md`).
 - `kotlinx-coroutines` 1.11.0 (`-swing` sur le bureau), `kotlinx-datetime`
   0.8.0, `kotlinx-serialization-json` 1.11.0.
 - SQLDelight 2.4.0 (`android-driver`, `sqlite-driver` pour le bureau et les

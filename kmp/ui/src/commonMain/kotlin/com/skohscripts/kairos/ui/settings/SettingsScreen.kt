@@ -141,6 +141,10 @@ fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
                     values = values + (key to value)
                     errors = errors - key
                 }
+                AppearanceCard(values["themeColor"].orEmpty(), errors["themeColor"]) {
+                    values = values + ("themeColor" to it)
+                    errors = errors - "themeColor"
+                }
                 services.updates?.let { updates ->
                     UpdatesCard(updates, values["updateCheckEnabled"].orEmpty()) { values = values + ("updateCheckEnabled" to it) }
                 }

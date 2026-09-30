@@ -65,4 +65,20 @@ class SettingsFormTest {
         assertEquals(7, result.settings!!.workdayStartHour)
         assertEquals(4, result.settings!!.statsWindowWeeks)
     }
+
+    @Test
+    fun the_theme_color_is_normalised_or_refused() {
+        assertEquals("#C28417", SettingsForm.values(base)["themeColor"])
+        assertEquals("#2F6FED", validate("themeColor" to " 2f6fed ").settings!!.themeColor)
+        assertEquals("#2F6FED", validate("themeColor" to "#2F6FED").settings!!.themeColor)
+        assertEquals(Settings.SYSTEM_THEME, validate("themeColor" to "System").settings!!.themeColor)
+        for (bad in listOf("bleu", "#12345", "#1234567", "", "#GGGGGG")) {
+            val result = validate("themeColor" to bad)
+            assertNull(result.settings, bad)
+            assertEquals(FieldError(FieldErrorKind.INVALID_COLOR, bad.trim()), result.fieldErrors["themeColor"], bad)
+        }
+        assertEquals(0x2F6FED, SettingsForm.parseColor("#2f6fed"))
+        assertNull(SettingsForm.parseColor(Settings.SYSTEM_THEME))
+        assertNull(SettingsForm.parseColor("bleu"))
+    }
 }

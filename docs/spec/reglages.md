@@ -6,7 +6,8 @@ validation par champ. Fichiers couverts :
 validation, pur), `kmp/core/.../model/Settings.kt` (modèle, décrit par
 `modele-donnees.md`), `kmp/ui/.../settings/` (`SettingsScreen.kt`,
 `SettingsFormCards.kt`). La carte Données est décrite par `export-import.md`
-et `migration-2x.md`, la carte Mises à jour par `mises-a-jour.md`. Tests :
+et `migration-2x.md`, la carte Mises à jour par `mises-a-jour.md`, la carte
+Apparence par `apparence.md`. Tests :
 `core/.../settings/SettingsFormTest.kt`,
 `M5ScreensUiTest.anInvalidFieldBlocksSavingThenAValidFormIsSaved`._
 
@@ -34,7 +35,8 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
   sans date, seuil de surcharge P0), **Types de tâches**, **Statistiques**
   (fenêtre en semaines), **Alertes du chrono** (chrono oublié, pause
   suggérée, son de secours), **Jours fériés** (français, dates
-  supplémentaires), puis sur le bureau **Mises à jour**, puis **Données** et
+  supplémentaires), **Apparence** (couleur du thème, `apparence.md`), puis
+  sur le bureau **Mises à jour**, puis **Données** et
   « À propos et guide ».
 - Chaque champ a un libellé court et, dessous, une phrase qui dit à quoi il
   sert (les descriptions de Kairos 2) ; un booléen est un interrupteur dont
@@ -65,7 +67,7 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
 ### Hors périmètre / différé
 
 - Choix de la langue (on suit le système, `i18n.md`), thème sombre
-  (`navigation-theme.md`).
+  (`navigation-theme.md`, `apparence.md`).
 - Réglages retirés avec leurs intégrations (voir l'en-tête).
 
 ## 2. Solution technique
@@ -73,7 +75,7 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
 ### Champs (`SettingsForm`, `core`)
 
 - `FIELDS` : un `SettingField` par réglage éditable, clé = nom du champ de
-  `Settings`, nature (`INT`, `DECIMAL`, `BOOL`, `TEXT`, `DATES`), bornes
+  `Settings`, nature (`INT`, `DECIMAL`, `BOOL`, `TEXT`, `DATES`, `COLOR`), bornes
   incluses, borne basse exclue (`minExclusive`), lecture et écriture.
   Bornes de `app/config.py` : durée par défaut ≥ 1 ; marge, horizon, poids
   de l'urgence, seuils « traîne » et de surcharge, pénalité du creux, seuils
@@ -84,11 +86,12 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
 - `validate(textes, base)` : chaque champ présent est vérifié ; une clé
   absente garde la valeur de `base`. Erreurs (`FieldError`) : `REQUIRED`,
   `NOT_INTEGER`, `NOT_NUMBER`, `TOO_SMALL` / `TOO_LARGE` (avec la borne),
-  `INVALID_DATE` (avec le texte fautif). Puis, seulement sans erreur de
+  `INVALID_DATE`, `INVALID_COLOR` (avec le texte fautif). Puis, seulement sans erreur de
   champ, `GeneralError.WORKDAY_ORDER` (début ≥ fin) ou `DIP_ORDER`. Rend les
   réglages complets, ou `null` à la moindre erreur.
 - Nettoyage à l'écriture : textes sans espaces de bord ; dates
-  supplémentaires sans vides, séparées par « , ».
+  supplémentaires sans vides, séparées par « , » ; couleur normalisée en
+  `#RRGGBB` majuscules (`apparence.md`).
 
 ### Écran (`SettingsScreen`, `ui`)
 

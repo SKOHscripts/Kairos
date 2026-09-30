@@ -27,6 +27,7 @@ import com.skohscripts.kairos.core.settings.SettingsForm
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.settings_chrono_body
 import com.skohscripts.kairos.ui.generated.resources.settings_chrono_title
+import com.skohscripts.kairos.ui.generated.resources.settings_error_color
 import com.skohscripts.kairos.ui.generated.resources.settings_error_date
 import com.skohscripts.kairos.ui.generated.resources.settings_error_integer
 import com.skohscripts.kairos.ui.generated.resources.settings_error_max
@@ -201,4 +202,5 @@ private fun errorMessage(error: FieldError, minExclusive: Boolean): String = whe
         stringResource(if (minExclusive) Res.string.settings_error_min_exclusive else Res.string.settings_error_min, error.bound.orEmpty())
     FieldErrorKind.TOO_LARGE -> stringResource(Res.string.settings_error_max, error.bound.orEmpty())
     FieldErrorKind.INVALID_DATE -> stringResource(Res.string.settings_error_date, error.bound.orEmpty())
+    FieldErrorKind.INVALID_COLOR -> stringResource(Res.string.settings_error_color, error.bound.orEmpty())
 }

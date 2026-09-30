@@ -10,6 +10,8 @@ coroutines = "1.11.0"
 datetime = "0.8.0"
 serialization = "1.11.0"
 sqldelight = "2.4.0"
+# Schéma MD3 dérivé d'une graine (docs/spec/apparence.md) ; MIT, sans dépendance Compose.
+material-color-utilities = "5.0.1"
 
 [libraries]
 compose-ui-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose" }
@@ -24,6 +26,7 @@ sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", ver
 sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 sqldelight-web-worker-driver = { module = "app.cash.sqldelight:web-worker-driver", version.ref = "sqldelight" }
 sqldelight-async-extensions = { module = "app.cash.sqldelight:async-extensions", version.ref = "sqldelight" }
+material-color-utilities = { module = "com.materialkolor:material-color-utilities", version.ref = "material-color-utilities" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

@@ -28,6 +28,7 @@ kotlin {
             api(compose.ui)
             implementation(compose.components.resources)
             implementation(libs.compose.ui.backhandler)
+            implementation(libs.material.color.utilities)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

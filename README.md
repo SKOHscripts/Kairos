@@ -192,6 +192,14 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   Chrome, **liées à un fichier** tenu à jour à chaque modification.
 - Interface en **français** et en **anglais** (langue du système).
 
+### Apparence
+
+- **Couleur du thème** au choix (Réglages → Apparence) : le miel par défaut,
+  sept autres couleurs proposées, ou une couleur libre (`#RRGGBB`). Tout le
+  thème en est dérivé (Material Design 3), contrastes compris.
+- Sur **Android 12 et plus**, « Couleurs du système » suit les couleurs du
+  fond d’écran (Material You).
+
 ## Réglages
 
 Chaque réglage est expliqué sous son champ ; un seul « Enregistrer », et un
@@ -207,6 +215,7 @@ champ invalide dit pourquoi.
 | Statistiques | Fenêtre des indicateurs | 8 semaines |
 | Alertes du chrono | Chrono oublié, pause suggérée, son de secours | 180 min, 50 min, désactivé |
 | Jours fériés | Calendrier français, dates supplémentaires | activé |
+| Apparence | Couleur du thème (proposée, libre, ou du système sur Android 12+) | miel `#C28417` |
 | Mises à jour (bureau) | Vérifier les nouvelles versions | activé |
 
 ## Développement
