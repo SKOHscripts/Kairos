@@ -197,21 +197,9 @@ jobs:
           path: artifacts
           pattern: kairos3-*
           merge-multiple: true
-      # Pont depuis Kairos 2 (docs/spec/migration-2x.md § Pont de mise à jour) :
-      # l'APK Python cherche `kairos-android-arm64.apk` et sa ligne de SHA256SUMS
-      # dans la dernière release stable. Une copie de notre APK sous ce nom lui
-      # fait installer Kairos 3 par-dessus, en un clic (même identifiant, même
-      # clé). Jamais pour une préversion (« Kairos Preview », autre identifiant).
-      - name: Pont de mise à jour Kairos 2
-        if: needs.version.outputs.prerelease != 'true'
-        working-directory: artifacts
-        run: cp Kairos-android.apk kairos-android-arm64.apk
       - name: SHA256SUMS
         working-directory: artifacts
-        run: |
-          shopt -s nullglob
-          sha256sum Kairos-* kairos-* > SHA256SUMS
-          cat SHA256SUMS
+        run: sha256sum Kairos-* > SHA256SUMS && cat SHA256SUMS
       - uses: softprops/action-gh-release@v2
         with:
           name: Kairos ${{ needs.version.outputs.name }}
@@ -219,5 +207,4 @@ jobs:
           generate_release_notes: true
           files: |
             artifacts/Kairos-*
-            artifacts/kairos-android-arm64.apk
             artifacts/SHA256SUMS

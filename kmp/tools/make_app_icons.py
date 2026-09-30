@@ -8,8 +8,8 @@ avec Pillow (pas de dépendance de conversion SVG). Sorties, commitées :
 - desktopApp/icons/kairos.ico  (Windows, 16 à 256 px)
 - desktopApp/icons/kairos.icns (macOS)
 - webApp/src/wasmJsMain/resources/favicon.png, icon-192.png, icon-512.png
-- fastlane/metadata/android/{fr-FR,en-US}/images/icon.png (512 px, fiches F-Droid
-  et IzzyOnDroid) et site/icon.png, site/favicon.png (page de téléchargement)
+- fastlane/metadata/android/{fr-FR,en-US}/images/icon.png (512 px, fiches F-Droid)
+  et site/icon.png, site/favicon.png (page de téléchargement)
 
     pip install Pillow
     python kmp/tools/make_app_icons.py
