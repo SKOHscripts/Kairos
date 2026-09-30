@@ -78,7 +78,7 @@ rien changer pour qui ne l'active pas.
 #### Activation
 
 - Réglages → nouvelle carte **Équipe**, placée après « Apparence ». Elle
-  contient un interrupteur « Espace Équipe » (désactivé par défaut) et la
+  contient un interrupteur « Gestion d'équipe » (désactivé par défaut) et la
   phrase « Gérer une équipe : membres, backlog partagé, charge et
   prévisions. Sans effet sur vos tâches personnelles. ».
 - L'interrupteur suit la règle des Réglages : il fait partie du formulaire
@@ -96,18 +96,23 @@ rien changer pour qui ne l'active pas.
   import (`export-import.md`) ; sans sauvegarde réussie, rien n'est
   supprimé.
 
-#### Deux espaces, un sélecteur dans les Réglages
+#### Deux espaces, un sélecteur en haut une fois le mode activé
 
-- Espace Équipe activé : la carte Équipe des Réglages montre un
-  **sélecteur d'espace** « Espace affiché : Perso | Équipe » (bouton
-  segmenté MD3). Il n'est **nulle part ailleurs** : ni dans le rail, ni
-  dans la barre d'application (décision du 2026-09-30 : la coquille de
-  navigation reste celle du mode solo). Réglages est une destination des
-  deux espaces, le sélecteur est donc toujours à portée.
+- Le mode « gestion d'équipe » s'**active dans les Réglages** (carte
+  Équipe). Tant qu'il ne l'est pas, rien d'autre n'apparaît : un
+  utilisateur solo ne voit jamais le sélecteur.
+- Mode activé (valeur **enregistrée**) : un **sélecteur d'espace**
+  « Perso | Équipe » (bouton segmenté MD3) apparaît **en haut** : en tête
+  du rail, sous le logo, quand il y a un rail ; sinon dans la barre
+  d'application, à droite du titre. En largeur compacte (< 600 dp), les
+  segments ne montrent que leurs icônes (`Person`, `Groups`), avec leur
+  libellé pour le lecteur d'écran, pour tenir à 360 dp à côté du titre.
 - Le sélecteur agit **aussitôt** (c'est de la navigation, pas un réglage) :
-  il ne passe pas par « Enregistrer », et fonctionne même quand le
-  formulaire a des modifications non enregistrées (elles restent en
-  place).
+  il ne passe pas par « Enregistrer ».
+- Décision du 2026-09-30 (révisée le même jour) : un premier choix plaçait
+  le sélecteur dans les Réglages ; il est revenu en haut, **conditionné à
+  l'activation**, ce qui protège aussi l'utilisateur solo tout en gardant
+  la bascule à un toucher pour le manager.
 - L'espace **Perso** garde exactement ses cinq destinations (Notes, Jour,
   Semaine, Stats, Réglages).
 - L'espace **Équipe** a ses cinq destinations :
@@ -331,10 +336,12 @@ transaction (`equipe-backlog-suivi.md` § Journal) :
   (`AppShell`) reçoit la liste de destinations de l'espace courant.
   `NavigationLayout.choose` est inchangé : rail, barre haute ou barre basse
   selon les règles actuelles, cinq entrées au plus dans chaque espace.
-- Sélecteur : `SingleChoiceSegmentedButtonRow` MD3 à deux segments, icônes
-  `Person` et `Groups`, dans `TeamSettingsCard`, affiché seulement si
-  `teamModeEnabled` (valeur **enregistrée**) ; cible 48 dp ; appelle
-  directement `onSpaceChange` de la coquille. Espace désactivé alors qu'on était dans l'espace Équipe : retour à
+- Sélecteur : `SpaceSelector`, `SingleChoiceSegmentedButtonRow` MD3 à deux
+  segments, icônes `Person` et `Groups` (libellés à partir de 600 dp, icônes
+  seules en dessous avec `contentDescription`), affiché par `AppShell`
+  seulement si `teamModeEnabled` (valeur enregistrée) : dans l'en-tête du
+  `NavigationRail` sous le logo, sinon en action de la `TopAppBar` ; cible
+  48 dp ; appelle `onSpaceChange` de `KairosShell`. Espace désactivé alors qu'on était dans l'espace Équipe : retour à
   l'espace Perso, destination Jour.
 - Écrans : `TeamBoardScreen`, `TeamBacklogScreen`, `TeamMembersScreen`
   (+ `MemberSheet` : fiche, absences), `ForecastScreen` ; carte
@@ -383,7 +390,7 @@ transaction (`equipe-backlog-suivi.md` § Journal) :
 | Jalon | Contenu | Specs |
 |---|---|---|
 | **E0** | Specs et skills (cette PR). | toutes |
-| **E1** | Fondations : migration `1.sqm`, `Task.space` et `Task.assigneeId`, `TeamMember` (lu, écrit par `replaceAll` et l'import seulement), `personalView` branché partout, `TeamSettings` et carte Équipe (activation, nom, manager, sélecteur d'espace), coquille à deux espaces (écrans d'équipe en état vide), export 2 et règle d'isolation, tests d'isolation. | `equipe.md` |
+| **E1** | Fondations : migration `1.sqm`, `Task.space` et `Task.assigneeId`, `TeamMember` (lu, écrit par `replaceAll` et l'import seulement), `personalView` branché partout, `TeamSettings` et carte Équipe (activation, nom, manager), sélecteur d'espace en haut (mode activé seulement), coquille à deux espaces (écrans d'équipe en état vide), export 2 et règle d'isolation, tests d'isolation. | `equipe.md` |
 | **E2** | Membres et absences (création, fiche, archivage, « C'est moi »), destination Équipe sans charge, « Supprimer les données d'équipe… ». | `equipe.md` |
 | **E3** | Backlog, assignation, réaffectation, suivi, journal, tâches assignées à moi. | `equipe-backlog-suivi.md` |
 | **E4** | Capacité, charge, plan de charge, suggestion de répartition. | `equipe-charge.md` |
@@ -399,8 +406,9 @@ visible en mode solo : c'est le jalon qui prouve l'isolation.
 
 Tranchées le 2026-09-30 :
 
-- ~~E1 : sélecteur d'espace dans la barre d'application~~ → le sélecteur
-  vit dans la carte Équipe des Réglages (§ Deux espaces).
+- ~~E1 : sélecteur d'espace à 360 dp~~ → en haut (rail ou barre
+  d'application) seulement si le mode est activé ; icônes seules en
+  largeur compacte (§ Deux espaces).
 - ~~E3 : assigné d'une tâche récurrente~~ → l'occurrence suivante **garde
   l'assigné** (`equipe-backlog-suivi.md` § États et avancement).
 - ~~E6 : partage direct Android~~ → **fichier seulement** : l'usage
