@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.ui.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
@@ -74,11 +75,22 @@ private fun kairosTypography(): Typography {
     )
 }
 
-/** Thème Kairos : un seul thème clair (charte « miel », docs/spec/navigation-theme.md). */
+/**
+ * Couleurs du système fournies par la plateforme (Android 12 et plus), `null`
+ * ailleurs : la carte Apparence ne propose « Couleurs du système » que si
+ * elles existent (docs/spec/apparence.md).
+ */
+val LocalSystemColorScheme = staticCompositionLocalOf<ColorScheme?> { null }
+
+/**
+ * Thème Kairos : un seul thème clair (docs/spec/navigation-theme.md), du
+ * schéma de la charte (miel) par défaut ou de celui de la couleur choisie
+ * (`ThemeColors.schemeFor`, docs/spec/apparence.md).
+ */
 @Composable
-fun KairosTheme(content: @Composable () -> Unit) {
+fun KairosTheme(colorScheme: ColorScheme = KairosLightColors, content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = KairosLightColors,
+        colorScheme = colorScheme,
         typography = kairosTypography(),
         shapes = KairosShapes,
     ) {

@@ -50,6 +50,14 @@ l'instant, mais le même outil le génère depuis la même graine). Pour changer
 couleur : changer la graine et regénérer tout le schéma, jamais retoucher un
 rôle isolé.
 
+Le miel est la graine **par défaut** : dans Réglages → Apparence, chacun peut en
+choisir une autre (graines proposées, couleur libre, couleurs du système sur
+Android 12 et plus). Tout le schéma en est alors recalculé par le même
+algorithme, embarqué dans l'application ; les valeurs ci-dessous sont celles du
+miel, les règles d'usage (« Où va la couleur ») valent pour toute graine. Le
+logo, le rouge d'erreur et le vert « ok » ne changent pas
+(`docs/spec/apparence.md`).
+
 | Rôle | `MaterialTheme.colorScheme` | Valeur | Usage principal |
 |---|---|---|---|
 | Primaire | `primary` / `onPrimary` | `#7F5610` / `#FFFFFF` | bouton plein, score WSJF, liens, focus |
@@ -70,7 +78,8 @@ ci-dessus, au-delà du minimum AA (4,5:1) ; voir `docs/spec/accessibilite.md`.
 
 **Jamais de `Color(0x…)` dans un composant** : une couleur vient de
 `MaterialTheme.colorScheme` ou de `LocalKairosExtraColors`. Seules exceptions :
-le logo (couleurs fixes, § Logo) et le schéma généré lui-même.
+le logo (couleurs fixes, § Logo), le schéma généré lui-même et les pastilles de
+la carte Apparence, qui montrent la graine elle-même.
 
 ### Couleur personnalisée « fait / ok »
 

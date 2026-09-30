@@ -4,7 +4,7 @@ import com.skohscripts.kairos.core.model.Settings
 import kotlinx.datetime.LocalDate
 
 /** Nature d'un champ de réglage : ce qu'on y saisit et comment on le valide. */
-enum class FieldKind { INT, DECIMAL, BOOL, TEXT, DATES }
+enum class FieldKind { INT, DECIMAL, BOOL, TEXT, DATES, COLOR }
 
 /**
  * Un réglage éditable (docs/spec/reglages.md) : clé stable (nom du champ
@@ -22,7 +22,7 @@ class SettingField internal constructor(
     internal val write: (Settings, String) -> Settings,
 )
 
-enum class FieldErrorKind { REQUIRED, NOT_INTEGER, NOT_NUMBER, TOO_SMALL, TOO_LARGE, INVALID_DATE }
+enum class FieldErrorKind { REQUIRED, NOT_INTEGER, NOT_NUMBER, TOO_SMALL, TOO_LARGE, INVALID_DATE, INVALID_COLOR }
 
 /** Erreur d'un champ ; [bound] est la borne franchie (« 0 », « 23 ») ou la date illisible. */
 data class FieldError(val kind: FieldErrorKind, val bound: String? = null)
@@ -80,6 +80,11 @@ object SettingsForm {
         bool("holidaysFr", { it.holidaysFr }) { s, v -> s.copy(holidaysFr = v) },
         text("extraHolidays", FieldKind.DATES, { it.extraHolidays }) { s, v -> s.copy(extraHolidays = normalizeDates(v)) },
         bool("updateCheckEnabled", { it.updateCheckEnabled }) { s, v -> s.copy(updateCheckEnabled = v) },
+        SettingField(
+            "themeColor", FieldKind.COLOR,
+            read = { it.themeColor },
+            write = { s, v -> s.copy(themeColor = normalizeColor(v)!!) },
+        ),
     )
 
     private val byKey = FIELDS.associateBy { it.key }
@@ -115,6 +120,7 @@ object SettingsForm {
         val text = raw.trim()
         return when (f.kind) {
             FieldKind.BOOL, FieldKind.TEXT -> null
+            FieldKind.COLOR -> if (normalizeColor(text) == null) FieldError(FieldErrorKind.INVALID_COLOR, text) else null
             FieldKind.DATES -> text.split(',').map { it.trim() }.firstOrNull { it.isNotEmpty() && parseDate(it) == null }
                 ?.let { FieldError(FieldErrorKind.INVALID_DATE, it) }
             FieldKind.INT, FieldKind.DECIMAL -> {
@@ -141,6 +147,23 @@ object SettingsForm {
 
     /** Dates nettoyées : espaces retirés, vides écartés, séparées par « , ». */
     private fun normalizeDates(text: String): String = text.split(',').map { it.trim() }.filter { it.isNotEmpty() }.joinToString(",")
+
+    /**
+     * Couleur du thème (docs/spec/apparence.md) : `system`, ou six chiffres
+     * hexadécimaux avec ou sans `#` ; forme enregistrée `#RRGGBB`, `null` si
+     * illisible.
+     */
+    fun normalizeColor(text: String): String? {
+        val t = text.trim()
+        if (t.equals(Settings.SYSTEM_THEME, ignoreCase = true)) return Settings.SYSTEM_THEME
+        val hex = t.removePrefix("#")
+        if (hex.length != 6 || !hex.all { it in '0'..'9' || it.lowercaseChar() in 'a'..'f' }) return null
+        return "#" + hex.uppercase()
+    }
+
+    /** Couleur `0xRRGGBB` d'une valeur `#RRGGBB`, `null` pour `system` ou une valeur illisible. */
+    fun parseColor(value: String): Int? =
+        normalizeColor(value)?.takeIf { it != Settings.SYSTEM_THEME }?.substring(1)?.toInt(16)
 
     /** « 1,5 » ou « 1.5 » ; `null` si ce n'est pas un nombre fini. */
     internal fun parseDecimal(text: String): Double? = text.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }

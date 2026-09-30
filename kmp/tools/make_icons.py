@@ -53,6 +53,7 @@ ICONS = {
     "Close": ("close", False),
     "NotificationsActive": ("notifications_active", False),
     "ChevronLeft": ("chevron_left", False),
+    "Check": ("check", False),
 }
 
 

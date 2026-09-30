@@ -32,6 +32,7 @@ retiré (TimeTree, import GitLab, base pilotage, service systemd : plan § 2.2).
 | [`reglages.md`](reglages.md) | Écran Réglages : sections, champs, bornes de Kairos 2, validation par champ et entre champs, un seul « Enregistrer ». | M5 |
 | [`migration-2x.md`](migration-2x.md) | Migration d'une base Kairos 2 : conversion (toutes générations de schéma), Android automatique, bureau proposé, import manuel, tests sur de vraies bases, passage de l'APK 2.x à la 3. | M5, M7 |
 | [`accueil.md`](accueil.md) | Accueil au premier lancement : présentation, exemples, bilan ou proposition de migration. | M5 |
+| [`apparence.md`](apparence.md) | Couleur du thème : graines proposées, couleur libre, couleurs du système (Android 12 et plus), schéma MD3 dérivé. | #45 |
 | [`mises-a-jour.md`](mises-a-jour.md) | Vérification des nouvelles versions sur le bureau (GitHub, 6 heures), bandeau, carte des Réglages. | M5 |
 | [`accessibilite.md`](accessibilite.md) | Lecteurs d'écran (boutons, états, titres), cibles de 48 dp, contrastes. | M5 |
 | [`publication.md`](publication.md) | Fiches Fastlane FR/EN et leurs captures, recette et vérification F-Droid (APK reproductible signé par nous), page de téléchargement GitHub Pages. | M6 |

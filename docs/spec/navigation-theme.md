@@ -83,8 +83,12 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   rôles que la charte ne listait pas (`surfaceVariant`, `surfaceDim`,
   `surfaceBright`, `surfaceTint`, `scrim`, `onBackground`…) sortent du même
   calcul. Pour changer de couleur : changer la graine et regénérer, jamais
-  retoucher un rôle isolé.
-- `KairosTheme.kt` : `MaterialTheme(colorScheme, typography, shapes)`.
+  retoucher un rôle isolé. C'est le thème par défaut ; la couleur choisie
+  dans les Réglages en dérive un autre par le même calcul (`ThemeColors`,
+  `apparence.md`).
+- `KairosTheme.kt` : `KairosTheme(colorScheme = KairosLightColors)` pose
+  `MaterialTheme(colorScheme, typography, shapes)` ; `LocalSystemColorScheme`
+  (couleurs du système, `null` hors Android 12 et plus, `apparence.md`).
   - Typographie : échelle MD3 par défaut, police **Roboto** 400/500/700 en
     TTF dans `composeResources/font/` (paquet npm `@expo-google-fonts/roboto`
     0.4.3, licence OFL copiée dans `kmp/licenses/Roboto-OFL.txt`) ;
@@ -109,7 +113,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `keep`), `TrendingUp` (score, chemin critique), `Description`, `Layers`
   (deep work) ; jalon M3 (chrono) : `PlayArrow`, `Stop`, `Close` (fermer une
   alerte), `NotificationsActive` ; jalon M4 : `ChevronLeft` (semaine
-  précédente). `Construction` (écran « En construction ») est retiré au
+  précédente) ; issue #45 : `Check` (pastille de couleur choisie).
+  `Construction` (écran « En construction ») est retiré au
   jalon M5, plus rien n'étant en construction.
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`
   épaisseur 1.6, secteur `#C28417` de 12 h à 2 h, axe `#2B251C` rayon 2.6,
@@ -125,8 +130,10 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   pleine. `START = DAY`.
 - `NavigationLayout.choose(platform, largeur)` : `RAIL` si largeur ≥ 600 dp
   (`COMPACT_WIDTH_LIMIT`), sinon `BOTTOM_BAR` sur Android, `TOP_BAR` ailleurs.
-- `KairosApp(platform, initialDestination = Destination.START, openServices)` :
-  `KairosTheme` ; appelle
+- `KairosApp(platform, initialDestination = Destination.START,
+  systemColorScheme = null, openServices)` : `KairosTheme` par défaut, puis
+  celui de `Settings.themeColor` dès les services prêts (`apparence.md`) ;
+  appelle
   `openServices()` une fois (`LaunchedEffect`) : indicateur de progression
   pendant l'attente, titre d'erreur et détail en cas d'échec. Puis
   `KairosShell` : état `destination` (initialisé à `initialDestination`,
