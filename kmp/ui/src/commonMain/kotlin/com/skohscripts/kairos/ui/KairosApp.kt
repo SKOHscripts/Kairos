@@ -17,11 +17,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.skohscripts.kairos.core.model.TeamSettings
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.error_open_title
@@ -30,9 +32,14 @@ import com.skohscripts.kairos.ui.navigation.AppShell
 import com.skohscripts.kairos.ui.navigation.Destination
 import com.skohscripts.kairos.ui.navigation.NavState
 import com.skohscripts.kairos.ui.navigation.NavigationLayout
+import com.skohscripts.kairos.ui.navigation.Space
+import com.skohscripts.kairos.ui.navigation.TeamDestination
 import com.skohscripts.kairos.ui.theme.KairosTheme
 import com.skohscripts.kairos.ui.theme.LocalSystemColorScheme
 import com.skohscripts.kairos.ui.theme.ThemeColors
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -78,14 +85,53 @@ fun KairosApp(
 
 @Composable
 private fun KairosShell(platform: Platform, services: AppServices, initialDestination: Destination) {
+    val repository = services.repository
+    // Seul le sous-objet d'équipe intéresse la coquille : un changement d'un autre réglage ne la recompose pas.
+    val team by remember { repository.snapshot.map { it.settings.team }.distinctUntilChanged() }
+        .collectAsState(repository.snapshot.value.settings.team)
+    val teamEnabled = team?.enabled == true
+    // Espace d'ouverture : celui où l'on a quitté l'application, si la gestion d'équipe est toujours activée.
+    var chosenSpace by rememberSaveable {
+        mutableStateOf(if (teamEnabled && team?.lastSpace == TeamSettings.SPACE_TEAM) Space.TEAM else Space.PERSONAL)
+    }
     var destination by rememberSaveable { mutableStateOf(initialDestination) }
+    var teamDestination by rememberSaveable { mutableStateOf(TeamDestination.START) }
     var aboutOpen by rememberSaveable { mutableStateOf(false) }
     val nav = remember { NavState() }
+    val scope = rememberCoroutineScope()
+
+    // L'espace Équipe n'existe que tant que la gestion d'équipe est activée (valeur enregistrée).
+    val space = if (teamEnabled) chosenSpace else Space.PERSONAL
+
+    /** Mémorise l'espace pour la prochaine session (réglage technique `lastSpace`, sans effet sur l'export des solos). */
+    fun persistSpace(space: Space) {
+        val current = repository.snapshot.value.settings
+        val base = current.team ?: return
+        val last = if (space == Space.TEAM) TeamSettings.SPACE_TEAM else TeamSettings.SPACE_PERSONAL
+        if (base.lastSpace != last) scope.launch { repository.updateSettings(current.copy(team = base.copy(lastSpace = last))) }
+    }
+
+    // Gestion d'équipe désactivée alors qu'on était dans l'espace Équipe : retour à l'espace Perso, vue Jour.
+    LaunchedEffect(teamEnabled) {
+        if (!teamEnabled && chosenSpace == Space.TEAM) {
+            chosenSpace = Space.PERSONAL
+            nav.day = null
+            nav.week = null
+            destination = Destination.START
+            aboutOpen = false
+            persistSpace(Space.PERSONAL)
+        }
+    }
+
     BoxWithConstraints {
         AppShell(
             layout = NavigationLayout.choose(platform, maxWidth),
             services = services,
+            space = space,
             destination = destination,
+            teamDestination = teamDestination,
+            teamModeEnabled = teamEnabled,
+            teamName = team?.name.orEmpty(),
             aboutOpen = aboutOpen,
             nav = nav,
             onNavigate = {
@@ -94,6 +140,20 @@ private fun KairosShell(platform: Platform, services: AppServices, initialDestin
                 nav.week = null
                 destination = it
                 aboutOpen = false
+            },
+            onNavigateTeam = {
+                teamDestination = it
+                aboutOpen = false
+            },
+            onSpaceChange = {
+                // Changer d'espace ouvre la première destination de l'autre espace (Jour ou Suivi).
+                nav.day = null
+                nav.week = null
+                destination = Destination.START
+                teamDestination = TeamDestination.START
+                aboutOpen = false
+                chosenSpace = it
+                persistSpace(it)
             },
             onOpenDay = { day ->
                 nav.day = day

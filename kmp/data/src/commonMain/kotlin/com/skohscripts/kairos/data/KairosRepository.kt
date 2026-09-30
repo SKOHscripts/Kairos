@@ -16,6 +16,7 @@ import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskRecurrence
 import com.skohscripts.kairos.core.model.TaskStatus
+import com.skohscripts.kairos.core.team.Workspaces
 import com.skohscripts.kairos.data.db.KairosDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +31,8 @@ import kotlinx.datetime.atTime
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Accès à la base (docs/spec/modele-donnees.md § Dépôt).
@@ -50,13 +53,26 @@ class KairosRepository(
     private val queries get() = database.kairosQueries
     private val mutex = Mutex()
     private val state = MutableStateFlow(KairosSnapshot())
+    private val personal = MutableStateFlow(KairosSnapshot())
 
-    /** Dernier état lu de la base. */
+    /** Dernier état lu de la base : la base **complète** (export, sauvegardes, écrans d'équipe). */
     val snapshot: StateFlow<KairosSnapshot> = state.asStateFlow()
+
+    /**
+     * Ce que l'espace Perso a le droit de lire ([Workspaces.personalView] du
+     * dernier état), calculé une fois par rechargement et publié à côté de
+     * [snapshot]. Tout écran ou calcul Perso lit celui-ci, jamais [snapshot].
+     */
+    val personalSnapshot: StateFlow<KairosSnapshot> = personal.asStateFlow()
 
     /** Relit la base et publie l'état (à l'ouverture). */
     suspend fun load(): KairosSnapshot = mutex.withLock {
-        readAll().also { state.value = it }
+        readAll().also(::publish)
+    }
+
+    private fun publish(all: KairosSnapshot) {
+        state.value = all
+        personal.value = Workspaces.personalView(all)
     }
 
     /**
@@ -184,19 +200,23 @@ class KairosRepository(
                 ),
             )
             edit.newSubtasks.lines().map { it.trim() }.filter { it.isNotEmpty() }.forEach { insertNew(newTask(it, taskId)) }
-            setBlockers(taskId, edit.blockerIds)
+            setBlockers(task, edit.blockerIds)
         }
     }
 
     /**
      * Bloqueurs : [target] est l'ensemble **complet** voulu. Les absents sont
      * retirés ; un ajout qui créerait un cycle (ou une tâche inconnue) est
-     * ignoré sans faire échouer le reste.
+     * ignoré sans faire échouer le reste. Un bloqueur d'un autre espace que la
+     * tâche est ignoré aussi : pas de dépendance Perso ↔ Équipe (docs/spec/equipe.md).
      */
-    private suspend fun setBlockers(taskId: Long, target: Set<Long>) {
+    private suspend fun setBlockers(task: Task, target: Set<Long>) {
+        val taskId = task.id
         val deps = state.value.dependencies
         val existing = deps.filter { it.taskId == taskId }.map { it.blockerId }.toSet()
-        val wanted = target - taskId
+        val spaceOf = state.value.tasks.associate { it.id to it.space }
+        // Un identifiant inconnu passe ce filtre : il est écarté plus bas, comme avant.
+        val wanted = (target - taskId).filter { (spaceOf[it] ?: task.space) == task.space }.toSet()
         (existing - wanted).forEach { queries.deleteDependency(taskId, it) }
         val edges = deps.filter { it.taskId != taskId || it.blockerId in wanted }
             .map { Dependencies.Edge(it.taskId, it.blockerId) }.toMutableList()
@@ -278,8 +298,21 @@ class KairosRepository(
     /** Suppression définitive. */
     suspend fun deleteNote(noteId: Long) = write { queries.deleteNote(noteId) }
 
+    /**
+     * Enregistre les réglages. Si l'espace Équipe existe (`team` non nul) sans
+     * identité, le dépôt en pose une (UUID, conservé si la base en a déjà une) :
+     * le hasard reste hors de `core`, et rien n'est posé en mode solo.
+     */
+    @OptIn(ExperimentalUuidApi::class)
     suspend fun updateSettings(settings: Settings) = write {
-        queries.writeSettings(json.encodeToString(Settings.serializer(), settings))
+        val team = settings.team
+        val complete = if (team != null && team.identity.isEmpty()) {
+            val identity = state.value.settings.team?.identity.orEmpty().ifEmpty { Uuid.random().toString() }
+            settings.copy(team = team.copy(identity = identity))
+        } else {
+            settings
+        }
+        queries.writeSettings(json.encodeToString(Settings.serializer(), complete))
     }
 
     /**
@@ -293,6 +326,7 @@ class KairosRepository(
         queries.deleteAllDependencies()
         queries.deleteAllWorkSessions()
         queries.deleteAllNotes()
+        queries.deleteAllTeamMembers()
         queries.deleteSettings()
         for (t in snapshot.tasks) {
             queries.insertTaskWithId(
@@ -300,7 +334,13 @@ class KairosRepository(
                 t.estimatedMinutes?.toLong(), t.pinnedStart.store(), t.parentId, t.recurrence.code,
                 t.scheduledDate.store(), t.recurrenceDayOfMonth?.toLong(), t.recurrenceDayOfWeek?.toLong(),
                 t.recurrencePeriod, t.taskType, t.fibonacciPoints?.toLong(), t.manualTimeSpentMinutes?.toLong(),
-                t.createdAt.store(), t.updatedAt.store(),
+                t.createdAt.store(), t.updatedAt.store(), t.space.code.toLong(), t.assigneeId,
+            )
+        }
+        for (m in snapshot.members) {
+            queries.insertTeamMemberWithId(
+                m.id, m.uid, m.name, m.role, m.availabilityPercent.toLong(), m.hoursPerDay,
+                if (m.isSelf) 1L else 0L, if (m.archived) 1L else 0L, m.createdAt.store(), m.updatedAt.store(),
             )
         }
         for (b in snapshot.timeBlocks) {
@@ -335,7 +375,7 @@ class KairosRepository(
             t.estimatedMinutes?.toLong(), t.pinnedStart.store(), t.parentId, t.recurrence.code,
             t.scheduledDate.store(), t.recurrenceDayOfMonth?.toLong(), t.recurrenceDayOfWeek?.toLong(),
             t.recurrencePeriod, t.taskType, t.fibonacciPoints?.toLong(), t.manualTimeSpentMinutes?.toLong(),
-            now(), now(),
+            now(), now(), t.space.code.toLong(), t.assigneeId,
         )
         return queries.lastInsertedId().awaitAsOneOrNull()
     }
@@ -353,14 +393,14 @@ class KairosRepository(
             t.estimatedMinutes?.toLong(), t.pinnedStart.store(), t.parentId, t.recurrence.code,
             t.scheduledDate.store(), t.recurrenceDayOfMonth?.toLong(), t.recurrenceDayOfWeek?.toLong(),
             t.recurrencePeriod, t.taskType, t.fibonacciPoints?.toLong(), t.manualTimeSpentMinutes?.toLong(),
-            now(), t.id,
+            now(), t.space.code.toLong(), t.assigneeId, t.id,
         )
     }
 
     private suspend fun write(block: suspend () -> Unit) {
         val updated = mutex.withLock {
             database.transaction { block() }
-            readAll().also { state.value = it }
+            readAll().also(::publish)
         }
         onChanged(updated)
     }
@@ -371,6 +411,7 @@ class KairosRepository(
         dependencies = queries.allDependencies().awaitAsList().map { it.toModel() },
         workSessions = queries.allWorkSessions().awaitAsList().map { it.toModel() },
         notes = queries.allNotes().awaitAsList().map { it.toModel() },
+        members = queries.allTeamMembers().awaitAsList().map { it.toModel() },
         settings = queries.readSettings().awaitAsOneOrNull()
             ?.let { runCatching { json.decodeFromString(Settings.serializer(), it) }.getOrNull() }
             ?: Settings(),
@@ -378,7 +419,7 @@ class KairosRepository(
 
     companion object {
         /** Réglages : champs inconnus ignorés, champs absents à leur valeur par défaut. */
-        internal val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+        internal val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; explicitNulls = false }
 
         /** Ouvre la base et, si elle est neuve, y pose [examples] (données d'exemple). */
         suspend fun open(

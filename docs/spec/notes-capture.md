@@ -70,6 +70,8 @@ capture.
 
 ## 2. Solution technique
 
+Depuis le jalon E1 de l'espace Équipe, l'écran Notes lit `repository.personalSnapshot` (la vue Perso, `equipe.md` § Espaces et filtre central) et non la base complète ; sans tâche d'équipe, c'est la même instance.
+
 - `NoteConversion.fields(corps)` : titre = première ligne non blanche sans
   ses espaces de bord, tronquée à `TITLE_MAX` (200) ; description = les
   lignes suivantes, moins les lignes blanches de tête et de queue ; titre

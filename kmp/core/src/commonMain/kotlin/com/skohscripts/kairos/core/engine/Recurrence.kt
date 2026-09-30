@@ -89,6 +89,10 @@ object Recurrence {
             recurrence = task.recurrence,
             recurrenceDayOfWeek = anchor,
             parentId = task.parentId,
+            // L'occurrence suivante reste dans l'espace de sa mère : sinon une tâche
+            // d'équipe récurrente ferait naître une tâche Perso (docs/spec/equipe.md).
+            space = task.space,
+            assigneeId = task.assigneeId,
             createdAt = now,
             updatedAt = now,
         )
@@ -137,6 +141,8 @@ object Recurrence {
                 recurrence = TaskRecurrence.MONTHLY_ON_DAY,
                 recurrenceDayOfMonth = dayOfMonth,
                 recurrencePeriod = currentPeriod,
+                space = rep.space,
+                assigneeId = rep.assigneeId,
                 createdAt = now,
                 updatedAt = now,
             )

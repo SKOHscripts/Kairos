@@ -57,7 +57,7 @@ object ChronoSync {
 
     fun start(context: Context, repository: KairosRepository, scope: CoroutineScope) {
         scope.launch {
-            repository.snapshot.map(::keyOf).distinctUntilChanged().collect { apply(context, it) }
+            repository.personalSnapshot.map(::keyOf).distinctUntilChanged().collect { apply(context, it) }
         }
     }
 

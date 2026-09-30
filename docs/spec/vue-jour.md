@@ -144,6 +144,8 @@ Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt.
 
 ## 2. Solution technique
 
+Depuis le jalon E1 de l'espace Équipe, l'écran de la vue Jour lit `repository.personalSnapshot` (la vue Perso, `equipe.md` § Espaces et filtre central) et non la base complète ; sans tâche d'équipe, c'est la même instance.
+
 ### Modèle (`DayView.build`, `core`)
 
 `DayView.build(snapshot, jour, maintenant, fuseau, filtre)` rend en une fois

@@ -92,7 +92,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun NotesScreen(services: AppServices, onOpenTasks: () -> Unit) {
     val repository = services.repository
-    val snapshot by repository.snapshot.collectAsState()
+    val snapshot by repository.personalSnapshot.collectAsState()
     val scope = rememberCoroutineScope()
     val messages = LocalMessages.current
     val open = snapshot.notes.filter { it.status == NoteStatus.OPEN }.sortedByDescending { it.createdAt }
@@ -121,7 +121,7 @@ fun NotesScreen(services: AppServices, onOpenTasks: () -> Unit) {
                         Button(modifier = Modifier.semantics { contentDescription = convertDescription }, onClick = {
                             scope.launch {
                                 val id = repository.convertNote(note.id) ?: return@launch
-                                val title = repository.snapshot.value.tasks.firstOrNull { it.id == id }?.title.orEmpty()
+                                val title = repository.personalSnapshot.value.tasks.firstOrNull { it.id == id }?.title.orEmpty()
                                 messages(getString(Res.string.notes_converted, title))
                             }
                         }) { Text(stringResource(Res.string.notes_to_task)) }

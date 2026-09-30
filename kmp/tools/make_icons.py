@@ -55,6 +55,11 @@ ICONS = {
     "NotificationsActive": ("notifications_active", False),
     "ChevronLeft": ("chevron_left", False),
     "Check": ("check", False),
+    "Groups": ("groups", True),
+    "Person": ("person", False),
+    "ViewKanban": ("view_kanban", True),
+    "Stacks": ("stacks", True),
+    "Monitoring": ("monitoring", True),
 }
 
 

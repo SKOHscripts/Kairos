@@ -39,6 +39,23 @@ retiré (TimeTree, import GitLab, base pilotage, service systemd : plan § 2.2).
 | [`publication.md`](publication.md) | Fiches Fastlane FR/EN et leurs captures, recette et vérification F-Droid (APK reproductible signé par nous), page de téléchargement GitHub Pages. | M6 |
 | [`export-import.md`](export-import.md) | Export et import JSON, sauvegardes, données de la version web (OPFS, fichier lié). | M1 |
 
+## Chantier « Espace Équipe » (en cours)
+
+Specs écrites le 2026-09-30 (jalon E0). **Jalon E1 implémenté** (fondations :
+espaces, vue Perso, migration, export 2, carte Équipe, sélecteur, coquille) ;
+**E2 à E6 spécifiés, non implémentés** : ce qu'elles en disent décrit du
+code à venir, et chacune liste les impacts à reporter dans les specs
+ci-dessus. Skills Claude Code associées : `.claude/skills/kairos-equipe/` et
+`.claude/skills/kairos-monte-carlo/`.
+
+| Spec | Couvre | Jalon |
+|---|---|---|
+| [`equipe.md`](equipe.md) | Spec chapeau : décisions de cadrage, activation, espaces Perso et Équipe, sélecteur, membres et absences, **isolation du mode solo**, modèle et stockage communs, export 2, jalons E0-E6. | E1, E2 |
+| [`equipe-backlog-suivi.md`](equipe-backlog-suivi.md) | Backlog d'équipe, catégories (types), assignation, réaffectation, états et avancement, tableau de suivi, signaux, journal, tâches assignées à moi. | E3 |
+| [`equipe-charge.md`](equipe-charge.md) | Capacité, effort restant, charge individuelle, globale et par catégorie, plan de charge, suggestion de répartition. | E4 |
+| [`equipe-simulation.md`](equipe-simulation.md) | Prévisions Monte Carlo (effort, débit), percentiles, échéances, criticité, goulot, issue la plus probable, scénarios « Et si… ? ». | E5 |
+| [`equipe-echanges.md`](equipe-echanges.md) | Paquets de tâches (manager → membre), rapports d'avancement (membre → manager), fusion ciblée par fichier. | E6 |
+
 ## Références transverses
 
 - [`docs/DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md) : la charte (rôles de

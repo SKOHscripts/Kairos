@@ -122,7 +122,7 @@ private val COMPACT_ROWS = 600.dp
 @Composable
 fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToToday: () -> Unit = {}) {
     val repository = services.repository
-    val snapshot by repository.snapshot.collectAsState()
+    val snapshot by repository.personalSnapshot.collectAsState()
     val timeZone = remember { TimeZone.currentSystemDefault() }
     // L'heure avance à la minute : le placement part de maintenant (buildDaySchedule).
     val now by produceState(services.clock.now()) {

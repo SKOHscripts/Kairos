@@ -83,7 +83,7 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> Unit) {
-    val snapshot by services.repository.snapshot.collectAsState()
+    val snapshot by services.repository.personalSnapshot.collectAsState()
     val timeZone = remember { TimeZone.currentSystemDefault() }
     val now = services.clock.now()
     val today = now.toLocalDateTime(timeZone).date

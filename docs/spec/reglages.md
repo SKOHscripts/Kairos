@@ -35,7 +35,9 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
   sans date, seuil de surcharge P0), **Types de tâches**, **Statistiques**
   (fenêtre en semaines), **Alertes du chrono** (chrono oublié, pause
   suggérée, son de secours), **Jours fériés** (français, dates
-  supplémentaires), **Apparence** (couleur du thème, `apparence.md`), puis
+  supplémentaires), **Apparence** (couleur du thème, `apparence.md`),
+  **Équipe** (interrupteur « Gestion d'équipe », puis, mode activé, nom de
+  l'équipe et du manager ; désactivation confirmée, `equipe.md`), puis
   sur le bureau **Mises à jour**, sur une copie portable **Raccourci**
   (`raccourci-portable.md`), puis **Données** et
   « À propos et guide ».
@@ -76,7 +78,10 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
 ### Champs (`SettingsForm`, `core`)
 
 - `FIELDS` : un `SettingField` par réglage éditable, clé = nom du champ de
-  `Settings`, nature (`INT`, `DECIMAL`, `BOOL`, `TEXT`, `DATES`, `COLOR`), bornes
+  `Settings` (préfixée `team.` pour ceux de `Settings.team` : `team.enabled`,
+  `team.name`, `team.managerName` ; tant que `team` est nul, y écrire la
+  valeur par défaut le laisse nul, pour qu'enregistrer le formulaire d'un
+  solo ne crée jamais d'objet d'équipe), nature (`INT`, `DECIMAL`, `BOOL`, `TEXT`, `DATES`, `COLOR`), bornes
   incluses, borne basse exclue (`minExclusive`), lecture et écriture.
   Bornes de `app/config.py` : durée par défaut ≥ 1 ; marge, horizon, poids
   de l'urgence, seuils « traîne » et de surcharge, pénalité du creux, seuils

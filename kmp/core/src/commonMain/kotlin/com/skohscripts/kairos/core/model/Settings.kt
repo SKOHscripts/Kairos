@@ -40,7 +40,18 @@ data class Settings(
     val updateCheckEnabled: Boolean = true,
     /** Graine du thème `#RRGGBB`, ou [SYSTEM_THEME] (docs/spec/apparence.md). */
     val themeColor: String = DEFAULT_THEME_COLOR,
+    /**
+     * Réglages de l'espace Équipe (docs/spec/equipe.md). `null` tant que
+     * l'espace n'a jamais été activé : un champ nul n'est pas écrit (export,
+     * JSON en base), alors qu'un réglage d'équipe à plat serait écrit par
+     * `encodeDefaults = true` jusque dans une base solo. Ne jamais ajouter de
+     * réglage d'équipe en dehors de [TeamSettings].
+     */
+    val team: TeamSettings? = null,
 ) {
+    /** L'espace Équipe est activé (valeur enregistrée). */
+    val teamModeEnabled: Boolean get() = team?.enabled == true
+
     /** Types de tâche, dans l'ordre, sans vides. */
     val taskTypeList: List<String> get() = taskTypes.split(',').map { it.trim() }.filter { it.isNotEmpty() }
 
@@ -60,5 +71,25 @@ data class Settings(
         /** Réglages d'une base neuve, types de tâche dans la langue de l'interface. */
         fun defaults(language: String): Settings =
             Settings(taskTypes = if (language.lowercase().startsWith("en")) DEFAULT_TASK_TYPES_EN else DEFAULT_TASK_TYPES_FR)
+    }
+}
+
+/**
+ * Réglages de l'espace Équipe (sous-objet [Settings.team]). Mêmes règles que
+ * [Settings] : champ absent = valeur par défaut, champ inconnu ignoré.
+ */
+@Serializable
+data class TeamSettings(
+    val enabled: Boolean = false,
+    val name: String = "",
+    val managerName: String = "",
+    /** UUID de l'équipe, posé par le dépôt à la première activation ; technique, non affiché. */
+    val identity: String = "",
+    /** Dernier espace affiché ([SPACE_PERSONAL] ou [SPACE_TEAM]) ; technique. */
+    val lastSpace: String = SPACE_PERSONAL,
+) {
+    companion object {
+        const val SPACE_PERSONAL = "personal"
+        const val SPACE_TEAM = "team"
     }
 }

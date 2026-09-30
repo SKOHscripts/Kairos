@@ -62,7 +62,7 @@ private fun minutesSince(start: Instant, now: Instant) = maxOf(0L, (now - start)
  */
 @Composable
 fun ChronoWatcher(services: AppServices, alerts: SnapshotStateList<String>) {
-    val snapshot by services.repository.snapshot.collectAsState()
+    val snapshot by services.repository.personalSnapshot.collectAsState()
     val running = TimeTracking.runningSession(snapshot.workSessions)
     val task = running?.let { r -> snapshot.tasks.firstOrNull { it.id == r.taskId } }
     val base = running?.let { baseMinutes(snapshot, it) } ?: 0

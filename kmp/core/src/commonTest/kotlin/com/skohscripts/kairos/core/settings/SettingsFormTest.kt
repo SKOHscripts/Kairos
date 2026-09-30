@@ -1,9 +1,11 @@
 package com.skohscripts.kairos.core.settings
 
 import com.skohscripts.kairos.core.model.Settings
+import com.skohscripts.kairos.core.model.TeamSettings
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class SettingsFormTest {
     private val base = Settings()
@@ -80,5 +82,29 @@ class SettingsFormTest {
         assertEquals(0x2F6FED, SettingsForm.parseColor("#2f6fed"))
         assertNull(SettingsForm.parseColor(Settings.SYSTEM_THEME))
         assertNull(SettingsForm.parseColor("bleu"))
+    }
+
+    @Test
+    fun saving_the_form_in_solo_mode_never_creates_the_team_object() {
+        assertNull(base.team)
+        assertEquals("false", SettingsForm.values(base)["team.enabled"])
+        assertEquals("", SettingsForm.values(base)["team.name"])
+        assertNull(validate("statsWindowWeeks" to "4").settings!!.team)
+        assertNull(validate("team.enabled" to "false", "team.name" to "  ", "team.managerName" to "").settings!!.team)
+    }
+
+    @Test
+    fun enabling_the_team_space_creates_the_team_settings() {
+        val s = validate("team.enabled" to "true", "team.name" to " Plateforme ", "team.managerName" to "Claire").settings!!
+        assertEquals(TeamSettings(enabled = true, name = "Plateforme", managerName = "Claire"), s.team)
+        assertTrue(s.teamModeEnabled)
+    }
+
+    @Test
+    fun disabling_keeps_the_team_settings_and_their_technical_fields() {
+        val enabled = base.copy(team = TeamSettings(enabled = true, name = "P", identity = "abc", lastSpace = "team"))
+        val s = SettingsForm.validate(SettingsForm.values(enabled) + ("team.enabled" to "false"), enabled).settings!!
+        assertEquals(TeamSettings(enabled = false, name = "P", identity = "abc", lastSpace = "team"), s.team)
+        assertTrue(!s.teamModeEnabled)
     }
 }

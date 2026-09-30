@@ -75,6 +75,11 @@ import com.skohscripts.kairos.ui.generated.resources.setting_stale_untouched_hel
 import com.skohscripts.kairos.ui.generated.resources.setting_stats_window
 import com.skohscripts.kairos.ui.generated.resources.setting_stats_window_help
 import com.skohscripts.kairos.ui.generated.resources.setting_task_types
+import com.skohscripts.kairos.ui.generated.resources.setting_team_enabled
+import com.skohscripts.kairos.ui.generated.resources.setting_team_manager
+import com.skohscripts.kairos.ui.generated.resources.setting_team_manager_help
+import com.skohscripts.kairos.ui.generated.resources.setting_team_name
+import com.skohscripts.kairos.ui.generated.resources.setting_team_name_help
 import com.skohscripts.kairos.ui.generated.resources.setting_task_types_help
 import com.skohscripts.kairos.ui.generated.resources.setting_update_check
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_horizon
@@ -116,6 +121,9 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "holidaysFr" to FieldText(Res.string.setting_holidays_fr),
     "extraHolidays" to FieldText(Res.string.setting_extra_holidays, Res.string.setting_extra_holidays_help),
     "updateCheckEnabled" to FieldText(Res.string.setting_update_check),
+    "team.enabled" to FieldText(Res.string.setting_team_enabled),
+    "team.name" to FieldText(Res.string.setting_team_name, Res.string.setting_team_name_help),
+    "team.managerName" to FieldText(Res.string.setting_team_manager, Res.string.setting_team_manager_help),
 )
 
 /** Sections de l'écran, dans l'ordre de Kairos 2 (moins les intégrations retirées). */

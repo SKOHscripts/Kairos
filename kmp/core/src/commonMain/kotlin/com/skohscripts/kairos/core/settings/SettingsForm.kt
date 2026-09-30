@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.core.settings
 
 import com.skohscripts.kairos.core.model.Settings
+import com.skohscripts.kairos.core.model.TeamSettings
 import kotlinx.datetime.LocalDate
 
 /** Nature d'un champ de réglage : ce qu'on y saisit et comment on le valide. */
@@ -55,6 +56,25 @@ object SettingsForm {
     private fun text(key: String, kind: FieldKind, get: (Settings) -> String, set: (Settings, String) -> Settings) =
         SettingField(key, kind, read = get, write = { s, v -> set(s, v.trim()) })
 
+    /**
+     * Réglage d'équipe : lu sur [TeamSettings] (défauts si `team` est nul), écrit
+     * par [change]. Règle d'isolation du mode solo : tant que `team` est nul et
+     * que la valeur écrite est celle par défaut, `team` **reste nul** (sauver le
+     * formulaire en mode solo ne crée jamais d'objet `team`, donc rien n'entre
+     * dans l'export ni dans la base d'une installation solo).
+     */
+    private fun team(key: String, kind: FieldKind, get: (TeamSettings) -> String, change: (TeamSettings, String) -> TeamSettings) =
+        SettingField(
+            key, kind,
+            read = { get(it.team ?: TeamSettings()) },
+            write = { s, v ->
+                val value = v.trim()
+                val current = s.team ?: TeamSettings()
+                val next = change(current, value)
+                if (s.team == null && next == current) s else s.copy(team = next)
+            },
+        )
+
     val FIELDS: List<SettingField> = listOf(
         int("defaultTaskDurationMinutes", 1, get = { it.defaultTaskDurationMinutes }) { s, v -> s.copy(defaultTaskDurationMinutes = v) },
         int("meetingBufferMinutes", 0, get = { it.meetingBufferMinutes }) { s, v -> s.copy(meetingBufferMinutes = v) },
@@ -85,6 +105,9 @@ object SettingsForm {
             read = { it.themeColor },
             write = { s, v -> s.copy(themeColor = normalizeColor(v)!!) },
         ),
+        team("team.enabled", FieldKind.BOOL, { it.enabled.toString() }) { t, v -> t.copy(enabled = v == "true") },
+        team("team.name", FieldKind.TEXT, { it.name }) { t, v -> t.copy(name = v) },
+        team("team.managerName", FieldKind.TEXT, { it.managerName }) { t, v -> t.copy(managerName = v) },
     )
 
     private val byKey = FIELDS.associateBy { it.key }

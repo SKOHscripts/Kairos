@@ -9,9 +9,12 @@ import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskDependency
 import com.skohscripts.kairos.core.model.TaskRecurrence
+import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TimeBlock
 import com.skohscripts.kairos.core.model.WorkSession
+import com.skohscripts.kairos.core.team.TeamMember
+import com.skohscripts.kairos.core.team.Workspaces
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
@@ -23,10 +26,19 @@ import kotlin.time.Instant
  * fichier JSON UTF-8 lisible, versionné (`formatVersion`), qui contient toutes
  * les tables et les réglages. Les codes (statut, récurrence, type de créneau)
  * sont ceux de la base, identiques à Kairos 2.
+ *
+ * Isolation du mode solo (docs/spec/equipe.md § Export) : une base **sans
+ * donnée d'équipe** s'exporte en `formatVersion` 1, sans aucun champ d'équipe,
+ * donc octet pour octet comme avant l'espace Équipe ; `formatVersion` 2 sinon.
  */
 object ExportCodec {
     const val FORMAT = "kairos-export"
-    const val FORMAT_VERSION = 1
+
+    /** Version la plus récente que ce code sait lire (et écrire, dès qu'il y a des données d'équipe). */
+    const val FORMAT_VERSION = 2
+
+    /** Version écrite pour une base sans donnée d'équipe. */
+    internal const val SOLO_FORMAT_VERSION = 1
 
     private val json = Json {
         prettyPrint = true
@@ -55,6 +67,10 @@ object ExportCodec {
     }
 }
 
+internal fun encodeSpace(space: TaskSpace): String? = if (space == TaskSpace.TEAM) "team" else null
+
+internal fun decodeSpace(code: String?): TaskSpace = if (code == "team") TaskSpace.TEAM else TaskSpace.PERSONAL
+
 class ImportException(val reason: Reason, cause: Throwable? = null) : Exception(reason.name, cause) {
     enum class Reason {
         /** Pas du JSON, ou pas un export Kairos. */
@@ -80,6 +96,10 @@ private data class ExportFile(
     val dependencies: List<DependencyJson> = emptyList(),
     val workSessions: List<SessionJson> = emptyList(),
     val notes: List<NoteJson> = emptyList(),
+    // Nullable à défaut null, et non une liste vide : avec `encodeDefaults = true`, une liste
+    // vide serait écrite ; nulle, elle disparaît (`explicitNulls = false`) et l'export d'une
+    // base sans donnée d'équipe reste celui d'avant, octet pour octet.
+    val members: List<MemberJson>? = null,
 ) {
     fun toSnapshot() = KairosSnapshot(
         tasks = tasks.map { it.toModel() },
@@ -92,25 +112,30 @@ private data class ExportFile(
             Note(it.id, it.body, NoteStatus.fromCode(it.status), it.convertedTaskId, Instant.parse(it.createdAt), Instant.parse(it.updatedAt))
         },
         settings = settings,
+        members = members.orEmpty().map { it.toModel() },
     )
 
     companion object {
-        fun from(s: KairosSnapshot, appVersion: String, exportedAt: Instant) = ExportFile(
-            format = ExportCodec.FORMAT,
-            formatVersion = ExportCodec.FORMAT_VERSION,
-            appVersion = appVersion,
-            exportedAt = exportedAt.toString(),
-            settings = s.settings,
-            tasks = s.tasks.map { TaskJson.from(it) },
-            timeBlocks = s.timeBlocks.map { BlockJson.from(it) },
-            dependencies = s.dependencies.map { DependencyJson(it.id, it.taskId, it.blockerId, it.createdAt.toString()) },
-            workSessions = s.workSessions.map {
-                SessionJson(it.id, it.taskId, it.startedAt.toString(), it.endedAt?.toString(), it.createdAt.toString())
-            },
-            notes = s.notes.map {
-                NoteJson(it.id, it.body, it.status.code, it.convertedTaskId, it.createdAt.toString(), it.updatedAt.toString())
-            },
-        )
+        fun from(s: KairosSnapshot, appVersion: String, exportedAt: Instant): ExportFile {
+            val team = Workspaces.hasTeamData(s)
+            return ExportFile(
+                format = ExportCodec.FORMAT,
+                formatVersion = if (team) ExportCodec.FORMAT_VERSION else ExportCodec.SOLO_FORMAT_VERSION,
+                appVersion = appVersion,
+                exportedAt = exportedAt.toString(),
+                settings = s.settings,
+                tasks = s.tasks.map { TaskJson.from(it) },
+                timeBlocks = s.timeBlocks.map { BlockJson.from(it) },
+                dependencies = s.dependencies.map { DependencyJson(it.id, it.taskId, it.blockerId, it.createdAt.toString()) },
+                workSessions = s.workSessions.map {
+                    SessionJson(it.id, it.taskId, it.startedAt.toString(), it.endedAt?.toString(), it.createdAt.toString())
+                },
+                notes = s.notes.map {
+                    NoteJson(it.id, it.body, it.status.code, it.convertedTaskId, it.createdAt.toString(), it.updatedAt.toString())
+                },
+                members = if (team) s.members.map { MemberJson.from(it) } else null,
+            )
+        }
     }
 }
 
@@ -136,6 +161,11 @@ private data class TaskJson(
     val manualTimeSpentMinutes: Int? = null,
     val createdAt: String,
     val updatedAt: String,
+    // Champs d'équipe (formatVersion 2) : nullables à défaut null pour disparaître en version 1
+    // (`encodeDefaults = true` écrirait sinon « "space": "personal" » sur toute tâche solo).
+    // `space` n'est écrit que pour une tâche d'équipe ; absent = Perso.
+    val space: String? = null,
+    val assigneeId: Long? = null,
 ) {
     fun toModel() = Task(
         id = id,
@@ -158,6 +188,8 @@ private data class TaskJson(
         manualTimeSpentMinutes = manualTimeSpentMinutes,
         createdAt = Instant.parse(createdAt),
         updatedAt = Instant.parse(updatedAt),
+        space = decodeSpace(space),
+        assigneeId = assigneeId,
     )
 
     companion object {
@@ -166,6 +198,7 @@ private data class TaskJson(
             t.estimatedMinutes, t.pinnedStart?.toString(), t.parentId, t.recurrence.code, t.scheduledDate?.toString(),
             t.recurrenceDayOfMonth, t.recurrenceDayOfWeek, t.recurrencePeriod, t.taskType, t.fibonacciPoints,
             t.manualTimeSpentMinutes, t.createdAt.toString(), t.updatedAt.toString(),
+            encodeSpace(t.space), t.assigneeId,
         )
     }
 }
@@ -213,3 +246,29 @@ private data class NoteJson(
     val createdAt: String,
     val updatedAt: String,
 )
+
+@Serializable
+private data class MemberJson(
+    val id: Long,
+    val uid: String,
+    val name: String,
+    val role: String = "",
+    val availabilityPercent: Int = 100,
+    val hoursPerDay: Double,
+    val isSelf: Boolean = false,
+    val archived: Boolean = false,
+    val createdAt: String,
+    val updatedAt: String,
+) {
+    fun toModel() = TeamMember(
+        id, uid, name, role, availabilityPercent, hoursPerDay, isSelf, archived,
+        Instant.parse(createdAt), Instant.parse(updatedAt),
+    )
+
+    companion object {
+        fun from(m: TeamMember) = MemberJson(
+            m.id, m.uid, m.name, m.role, m.availabilityPercent, m.hoursPerDay, m.isSelf, m.archived,
+            m.createdAt.toString(), m.updatedAt.toString(),
+        )
+    }
+}
