@@ -77,14 +77,18 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
   `max(échéance, aujourd'hui)`, ancre hebdomadaire = `recurrenceDayOfWeek`
   sinon jour de l'échéance, reportée sur la copie. La copie garde l'espace
   et l'assigné de la tâche (`equipe.md` : une tâche d'équipe récurrente ne
-  fait jamais naître une tâche Perso).
+  fait jamais naître une tâche Perso) ; pour une tâche d'équipe, le dépôt
+  lui donne un nouveau `teamUid`, un avancement vide et son événement
+  `created` (`equipe-backlog-suivi.md`).
 - `calendarOccurrences(tâches, aujourd'hui, fériés, maintenant)` : séries
   `(titre, jour du mois)` des tâches `MONTHLY_ON_DAY` (tous statuts) ; pour
   chaque série non couverte ce mois (période `AAAA-MM` ou échéance dans le
   mois), une occurrence héritée du membre le plus récent (plus grand id),
   espace et assigné compris, échéance `onOrBeforeBusinessDay`,
-  `recurrencePeriod` posée. Les séries ne sont pas encore distinguées par
-  espace : à trancher au jalon E3 (`equipe.md`).
+  `recurrencePeriod` posée. Clé de série : (titre, jour du mois,
+  **espace**) — une série Perso et une série d'équipe de même titre sont
+  distinctes ; l'assigné n'y entre pas, pour qu'une occurrence réaffectée
+  reste dans sa série (`equipe.md` § Questions ouvertes).
 - `nextSnoozeDate(échéance, aujourd'hui, fériés)` : jour ouvré suivant
   l'échéance si elle est à venir, sinon aujourd'hui.
 - `expandRecurringBlocks(modèles, début, fin)` : pour chaque jour de

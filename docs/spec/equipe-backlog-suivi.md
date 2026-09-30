@@ -10,7 +10,7 @@ opérations du dépôt), `kmp/ui/.../team/` (`TeamBacklogScreen.kt`,
 activation et isolation : `equipe.md`. Charge et suggestion de
 répartition : `equipe-charge.md`._
 
-État : **spécifiée le 2026-09-30, non implémentée** (jalon E3).
+État : **jalon E3 en cours** : socle (`core`, `data`) implémenté le 2026-09-30 ; interface à venir dans la même PR.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -178,58 +178,106 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 ### États et tableau (`core/team/TeamStates.kt`, `TeamBoard.kt`, purs)
 
 - `TeamState` : `BACKLOG`, `TODO`, `IN_PROGRESS`, `DONE` ;
-  `TeamStates.of(task)` selon le tableau ci-dessus ; `blocked` calculé par
+  `TeamStates.of(task): TeamState?` selon le tableau ci-dessus (`null` pour
+  une tâche archivée) ; `TeamStates.blockedIds(snapshot)` par
   `Dependencies.blockedTaskIds` sur les arêtes d'équipe.
-- `TeamBoard.build(team: TeamSnapshot, day, settings, filter)` : les chiffres
-  clés, les lignes de membres (actifs, « moi » d'abord puis par nom), leurs
-  cartes par état (faites : `doneOn` dans les 7 derniers jours), et le
-  backlog (À qualifier, Prêtes triées par `Scheduling.sortKey`). Mêmes
-  archivées ignorées que la vue Jour.
-- `doneOn` d'une tâche faite = date locale de l'événement « fin » le plus
-  récent, à défaut `updatedAt` (règle des statistiques).
+- `TeamBoard.build(snapshot, day, timeZone, filter)` lit la base complète
+  (il n'y a pas de type `TeamSnapshot` séparé : les tâches d'équipe sont
+  filtrées sur `space`). Il rend `keyFigures` (`TeamKeyFigures` : en
+  cours, faites cette semaine du lundi à aujourd'hui, en retard, à
+  surveiller ; les deux derniers comptent aussi le backlog), `lanes`
+  (`MemberLane` pour **chaque** membre actif, même sans tâche, « moi »
+  d'abord puis l'ordre de `TeamMembers` ; `inProgress`, `todo`, `done` ;
+  `inProgressCount` et `wipExceeded` calculés hors filtre), `toQualify`
+  (triées par identifiant) et `ready` (triées par `Scheduling.sortKey`,
+  urgence héritée des dépendances comme la vue Jour). Une carte
+  (`TeamCard`) porte la tâche, son état, `blocked`, ses signaux, son score
+  et `doneOn`. Mêmes archivées ignorées que la vue Jour ; une mère à
+  sous-tâches ouvertes reste dans le backlog (la vue Jour, elle, ne pose que
+  des unités de travail).
+- « Faites » = `doneOn` de `day − 6` à `day` inclus ; `doneOn` = date locale
+  de l'événement `done` le plus récent, à défaut `updatedAt` (règle des
+  statistiques).
+- `TeamBoardFilter(text, category, priority, memberId, onlyWatched,
+  withDeadline)` s'applique aux lignes, au backlog et aux chiffres clés ;
+  un filtre par membre ne garde que sa ligne et vide le backlog.
 
 ### Signaux (`core/team/TeamSignals.kt`, pur)
 
-- `overdue` : `Scheduling.isOverdue` ;
-  `stale` : `Staleness.daysStale` avec les seuils existants ;
-  `noProgress` : dernier événement « avancement » ou « commencement »
-  plus vieux que `teamStaleProgressDays` jours ouvrés ;
-  `churn` : nombre d'événements d'assignation d'un membre à un autre
-  (hors premier assignement et retours au backlog) ≥ `teamChurnThreshold` ;
-  `wipExceeded(member)` : en cours > `teamWipLimit` (si > 0).
+- `TeamSignal` : `OVERDUE` (`Scheduling.isOverdue`), `STALE`
+  (`Staleness.daysStale`, seuils existants), `NO_PROGRESS` (en cours et
+  **strictement plus** de `staleProgressDays` jours ouvrés depuis le
+  dernier événement `started` ou `progress`, à défaut depuis `startedOn` ;
+  `Workdays.businessDaysBetween`, comme `Staleness`), `CHURN` (événements
+  `assigned` d'un membre à un autre, hors premier assignement et hors
+  retours au backlog, ≥ `churnThreshold`). `TeamSignals.of(task, events,
+  day, timeZone, settings, holidays)`, `noProgress`, `churn`,
+  `inProgressCount(tasks, membre)`, `wipExceeded(tasks, membre, settings)`
+  (en cours > `wipLimit` si > 0).
 - Réglages ajoutés (`TeamSettings`, `equipe.md` § Modèle) :
-  `teamStaleProgressDays` (5, ≥ 1), `teamChurnThreshold` (3, ≥ 2),
-  `teamWipLimit` (3, ≥ 0).
+  `staleProgressDays` (5, ≥ 1), `churnThreshold` (3, ≥ 2), `wipLimit` (3,
+  ≥ 0, 0 = sans limite) ; champs `team.staleProgressDays`,
+  `team.churnThreshold`, `team.wipLimit` de `SettingsForm` (nuls en mode
+  solo, comme les autres champs `team.*`).
 
 ### Journal (`TeamEvent`, table `team_event`)
 
 - `TeamEvent` : `id`, `taskId`, `taskTitle` (recopié), `memberId` (assigné
-  au moment de l'événement, `null` au backlog), `kind`, `fromValue`,
-  `toValue` (textes : identifiant de membre, pourcentage, code de priorité,
-  date…), `source` (`manual`, `report`, `scenario`, `self`),
-  `at` (instant UTC).
-- `TeamEventKind` : `created`, `qualified`, `assigned`, `started`,
-  `progress`, `done`, `reopened`, `deleted`, `report`, `scenario`. Code
-  inconnu à la lecture : l'événement est gardé et affiché
-  « Modification » (jamais d'erreur).
+  **après** l'opération, `null` au backlog), `kind`, `fromValue`,
+  `toValue`, `source`, `at` (instant UTC). `TeamEventSource` : `manual`,
+  `self`, `report`, `scenario` (ces deux derniers réservés à E6 et E5 ;
+  code inconnu → `manual`).
+- `TeamEventKind` : `created` (`toValue` = titre), `qualified` (un
+  événement par champ changé, valeurs `priority:1`, `points:5`,
+  `type:Dev`, `deadline:2026-10-03`, vide après le deux-points si le champ
+  est vidé ; `QualifiedField`, `TeamEvents.qualifiedValue`,
+  `parseQualified`), `assigned` (identifiants de membre de → vers),
+  `started` (`toValue` = date ISO), `progress` (pourcentages ; « 0 » si
+  l'avancement était vide), `done` (`fromValue` = avancement d'avant la
+  fin, `toValue` = « 100 »), `reopened` (avancement d'avant → avancement
+  restauré), `deleted`, et `UNKNOWN` : un code inconnu à la lecture est
+  gardé et affiché « Modification », jamais une erreur (réécrit
+  « unknown » à l'export ou au remplacement). `TeamEvents.historyOf(events,
+  tâche)` : plus récent d'abord.
 - **Écrit par le dépôt**, dans la transaction de la modification, jamais
   par l'interface : aucun chemin ne modifie une tâche d'équipe sans son
   événement. Une modification sans changement réel n'écrit rien.
-- Une modification depuis l'espace Perso d'une tâche assignée à « moi » a
-  la source `self`.
+- Source par défaut des opérations de l'espace Perso (`toggleDone`,
+  `startTimer`, `setPriority`, `setPoints`, `updateTask`, `deleteTask`,
+  paramètre `source` facultatif) : `self` si la tâche d'équipe est assignée
+  au membre « moi » actif, `manual` sinon.
 
 ### Dépôt (`KairosRepository`)
 
-- `createTeamTask(titre, uid, parentId?)` : `space = TEAM`, sans assigné,
-  `teamUid = uid` ; sous-tâche : assigné de la mère.
-- `assign(taskIds, memberId?, keepInProgress)` : `null` = retour au
-  backlog ; membre archivé ou inconnu → refusé ; un événement par tâche
-  réellement changée.
+- `createTeamTask(titre, parentId?): Long?` : `space = TEAM`, `teamUid`
+  tiré par le dépôt, sans assigné ; une sous-tâche prend l'assigné de sa
+  mère et n'écrit que `created` (avec ce `memberId`).
+- `assign(taskIds, memberId?, keepInProgress = false, source): Int` (nombre
+  de tâches changées) : seulement des tâches d'équipe à faire (les autres
+  sont ignorées) ; membre archivé ou inconnu → rien ; réaffecter une tâche
+  en cours la remet à « À faire » sauf `keepInProgress` ; le retour au
+  backlog vide toujours `startedOn` (l'avancement est gardé) ; un
+  événement `assigned` par tâche réellement changée.
 - `startTeamTask(id)`, `setProgress(id, pct)` (borné 0-100, arrondi à la
-  dizaine ; > 0 commence).
-- `updateTask`, `toggleDone`, `deleteTask`, `startTimer` : inchangés pour
-  une tâche personnelle ; pour une tâche d'équipe, ils journalisent et
-  `startTimer` pose `startedOn`.
+  dizaine ; > 0 commence, `started` puis `progress`) : tâche d'équipe à
+  faire et **assignée** seulement.
+- `TaskEdit.reassign: Reassignment?` (`memberId`, `keepInProgress`) porte
+  un changement d'assigné dans l'édition complète ; `null` = inchangé.
+- `updateTask`, `setPriority`, `setPoints` (`qualified`), `toggleDone`
+  (`done` met l'avancement à 100 ; `reopened` restaure celui du dernier
+  `done`, ou garde l'actuel s'il n'y en a pas), `deleteTask` (`deleted` ;
+  les événements restent), `startTimer` (pose `startedOn` sur une tâche
+  d'équipe assignée) : inchangés pour une tâche personnelle.
+- Récurrence d'une tâche d'équipe : l'occurrence suivante garde espace et
+  assigné, reçoit un **nouveau** `teamUid`, un avancement et un
+  commencement vides, et son événement `created`. Sous-tâches créées en lot
+  par `updateTask` : espace et assigné de la mère.
+- `archiveMember` (E2) journalise chaque retour au backlog (et vide
+  `startedOn`) ; `deleteMember` est refusé aussi si le membre est le
+  titulaire (`memberId`) d'un événement (pas s'il n'apparaît qu'en
+  `fromValue` : l'archivage l'y écrit toujours) ; `clearTeamData` supprime
+  le journal.
+- Stockage : `3.sqm` (schéma 3 → 4, `equipe.md` § Stockage).
 
 ### Interface (`ui/team/`)
 

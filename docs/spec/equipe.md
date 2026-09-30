@@ -333,8 +333,10 @@ d'équipe n'entre dans un calcul personnel.
     `task(space)` et `task(assignee_id)` ;
   - **E2, `2.sqm`** (`user_version` 2 → 3) : `member_absence (id, member_id,
     start, end, label, created_at)`, index `member_id` ;
-  - **E3** : `task.progress_percent`, `task.started_on`, `task.team_uid`
-    (index), `team_event` (index `task_id`, `member_id`) ;
+  - **E3, `3.sqm`** (`user_version` 3 → 4) : `task.progress_percent`,
+    `task.started_on`, `task.team_uid` (en fin de table, index),
+    `team_event (id, task_id, task_title, member_id, kind, from_value,
+    to_value, source, at)` (index `task_id`, `member_id`) ;
   - **E5** : `team_scenario` ;
   - **E6** : `task.origin`, `task.origin_removed`, `task.reported_minutes`,
     `team_member.last_report_at` (`equipe-echanges.md`).
@@ -541,11 +543,15 @@ Tranchées le 2026-09-30 :
 - ~~E6 : partage direct Android~~ → **fichier seulement** : l'usage
   managérial est surtout sur ordinateur (`equipe-echanges.md`).
 
-Relevées en implémentant E1, tranchées le 2026-09-30 (à coder en E3) :
+Relevées en implémentant E1, tranchées le 2026-09-30, codées en E3 :
 
 - `Recurrence.calendarOccurrences` : la clé d'une série « le N du mois »
-  devient (titre, jour du mois, **espace, assigné**) : une série Perso et
-  une série d'équipe de même titre restent distinctes.
+  devient (titre, jour du mois, **espace**) : une série Perso et une série
+  d'équipe de même titre restent distinctes. L'assigné, d'abord retenu
+  dans la clé, en a été retiré en codant : réaffecter une occurrence
+  aurait changé sa série et fait naître une occurrence de plus chez
+  l'ancien titulaire. L'occurrence créée prend l'assigné du membre le plus
+  récent de la série.
 - Sous-tâches créées en lot par `updateTask` (`newSubtasks`) : elles
   prennent l'**espace et l'assigné de la mère** (règle de
   `equipe-backlog-suivi.md` § Assignation).
