@@ -9,8 +9,7 @@ pure), `kmp/desktopApp/.../` (`LegacyFiles.kt`, `DesktopServices.kt` :
 (`AppServices.kt` : `LegacyImport`, `migrated` ; `Replace.kt` :
 `LegacyImportFlow`, `LegacyImportDialog`, `replaceWithBackup` ;
 `Welcome.kt`), la carte Données (`settings/SettingsScreen.kt`) et
-`kmp/tools/gen_legacy_db.py`, et le pont de mise à jour du job `release` de
-`.github/workflows/kmp-release.yml`. Tests : `desktopApp/.../LegacyMigrationTest.kt`
+`kmp/tools/gen_legacy_db.py`. Tests : `desktopApp/.../LegacyMigrationTest.kt`
 (vraies bases), `M5ScreensUiTest` (accueil, Réglages)._
 
 État : **jalon M7** (bascule 3.0.0), règles du plan § 5.4.
@@ -31,11 +30,10 @@ perte, ni risque pour l'ancienne base.
   est **automatique** ; l'accueil le confirme (« Tes données de Kairos 2 ont
   été reprises : N tâche(s), N note(s), N session(s) de chrono »). L'ancien
   fichier est renommé `tasks.db.migrated-to-v3`, jamais supprimé.
-- **Android, arriver à la 3.0.0** : Kairos 2 propose lui-même la mise à jour
-  (son bandeau « Mettre à jour », comme pour toute version 2.x) ; un toucher
-  télécharge et installe Kairos 3 par-dessus. Installer à la main
-  `Kairos-android.apk` de la release, ou passer par F-Droid ou IzzyOnDroid
-  (même APK signé), revient au même.
+- **Android, arriver à la 3.0.0** : installer `Kairos-android.apk` de la
+  release, ou passer par F-Droid (même APK signé), par-dessus Kairos 2. Kairos 2
+  annonce la version mais ne l'installe pas lui-même (§ Pas de pont de mise à
+  jour) : son bandeau renvoie à la page de la release.
 - **Bureau, arriver à la 3.0.0** : Kairos 2 annonce la version, mais ne peut
   pas l'installer seul (il remplaçait un exécutable unique ; Kairos 3 est un
   installeur ou un dossier portable) : son bandeau n'offre que « Notes de
@@ -165,23 +163,20 @@ la suppression du Python.
   distribue notre APK signé (`publication.md`), si bien que l'APK Python se
   met à jour vers Kairos 3 quelle que soit la source choisie.
 
-### Pont de mise à jour depuis Kairos 2
+### Pas de pont de mise à jour depuis Kairos 2
 
 - Le Kairos 2 Android (`app/updates.py`, tag `v2.6.0`) lit la dernière release
-  **stable** (`/releases/latest`), cherche l'asset `kairos-android-arm64.apk`
-  et sa ligne dans `SHA256SUMS`, vérifie l'empreinte puis ouvre l'installeur.
-- Le job `release` de `kmp-release.yml` copie donc, pour une version finale
-  seulement, `Kairos-android.apk` en `kairos-android-arm64.apk`, publié et
-  listé dans `SHA256SUMS` : Kairos 2 installe Kairos 3 en un clic (même
-  identifiant, même clé, `versionCode` 30000 > 20600), puis la migration
-  automatique reprend ses données. Une préversion n'a pas ce fichier : son
-  identifiant `.preview` ne remplacerait pas Kairos 2.
-- C'est le dernier usage de la mise à jour intégrée : Kairos 3 n'a pas de
-  permission réseau, ses mises à jour passent par F-Droid, IzzyOnDroid ou un
-  nouvel APK (décision du plan, confirmée avant la 3.0.0). La copie est
-  gardée aux versions suivantes, pour qu'un Kairos 2 resté en retard arrive
-  toujours à la dernière version.
-- Le Kairos 2 de bureau cherche `kairos-windows-x86_64.exe` ou
-  `kairos-linux-x86_64`, absents des releases de Kairos 3 : sans eux, il
-  n'offre pas « Mettre à jour », seulement le lien de la release (aucun
-  exécutable unique ne remplacerait proprement une installation Kairos 3).
+  **stable** (`/releases/latest`) et n'installe une version que si elle publie
+  l'asset `kairos-android-arm64.apk` (et sa ligne dans `SHA256SUMS`). Le Kairos
+  2 de bureau cherche de même `kairos-windows-x86_64.exe` ou
+  `kairos-linux-x86_64`.
+- Les releases de Kairos 3 ne publient aucun de ces fichiers : Kairos 2 annonce
+  la nouvelle version, mais n'offre pas « Mettre à jour », seulement « Notes de
+  version » (la page de la release). On installe Kairos 3 à la main, ou par
+  F-Droid ; la migration reprend ensuite les données.
+- **Décision (2026-09-30)** : la release 3.0.0 publiait une copie de l'APK sous
+  le nom `kairos-android-arm64.apk`, pour que Kairos 2 installe Kairos 3 en un
+  clic. Retirée à la demande du propriétaire du dépôt, jugée source de
+  confusion (deux APK identiques par release) : le job `release` ne la produit
+  plus, et le fichier est supprimé de la release 3.0.0. Kairos 3 n'a de toute
+  façon pas de mise à jour intégrée (pas de permission réseau).

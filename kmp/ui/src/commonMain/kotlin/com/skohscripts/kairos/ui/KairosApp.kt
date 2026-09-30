@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +31,8 @@ import com.skohscripts.kairos.ui.navigation.Destination
 import com.skohscripts.kairos.ui.navigation.NavState
 import com.skohscripts.kairos.ui.navigation.NavigationLayout
 import com.skohscripts.kairos.ui.theme.KairosTheme
+import com.skohscripts.kairos.ui.theme.LocalSystemColorScheme
+import com.skohscripts.kairos.ui.theme.ThemeColors
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -46,10 +50,12 @@ fun KairosApp(
     platform: Platform,
     /** Destination d'ouverture ; autre que « Jour » seulement pour les captures des magasins. */
     initialDestination: Destination = Destination.START,
+    /** Couleurs du système (Android 12 et plus), `null` ailleurs (docs/spec/apparence.md). */
+    systemColorScheme: ColorScheme? = null,
     openServices: suspend () -> AppServices,
 ) {
     KairosTheme {
-        CompositionLocalProvider(LocalPlatform provides platform) {
+        CompositionLocalProvider(LocalPlatform provides platform, LocalSystemColorScheme provides systemColorScheme) {
             var services by remember { mutableStateOf<AppServices?>(null) }
             var failure by remember { mutableStateOf<Throwable?>(null) }
             LaunchedEffect(Unit) {
@@ -57,7 +63,12 @@ fun KairosApp(
             }
             val ready = services
             when {
-                ready != null -> KairosShell(platform, ready, initialDestination)
+                ready != null -> {
+                    // Thème des réglages dès qu'ils sont lus ; le miel de la charte pendant le chargement.
+                    val themeColor = ready.repository.snapshot.collectAsState().value.settings.themeColor
+                    val scheme = remember(themeColor, systemColorScheme) { ThemeColors.schemeFor(themeColor, systemColorScheme) }
+                    KairosTheme(scheme) { KairosShell(platform, ready, initialDestination) }
+                }
                 failure != null -> Status(stringResource(Res.string.error_open_title), failure.toString())
                 else -> Status(stringResource(Res.string.loading), null, progress = true)
             }

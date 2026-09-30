@@ -101,9 +101,11 @@ Compose correspondant avant d'en inventer un. Détail complet :
   `#BA1A1A` / `#FFDAD6`, surface `#FFF8F4`, texte `#201B13` / `#4F4539`,
   contours `#817567` / `#D3C4B4`, surface inverse `#362F27`.
 - Couleurs par `MaterialTheme.colorScheme` et `LocalKairosExtraColors`
-  uniquement, **jamais de `Color(0x…)` dans un composant**. Le schéma est
-  **généré** par `kmp/tools/make_theme.py` depuis la graine : pour changer de
-  couleur, regénérer tout le schéma, jamais retoucher un rôle isolé.
+  uniquement, **jamais de `Color(0x…)` dans un composant** (seule exception :
+  les pastilles de la carte Apparence, qui montrent la graine elle-même). Le
+  schéma est **généré** par `kmp/tools/make_theme.py` depuis la graine : pour
+  changer de couleur, regénérer tout le schéma, jamais retoucher un rôle
+  isolé.
 - **Où va la couleur** : un seul bloc teinté par écran (« Maintenant »,
   `primaryContainer`) ; primaire plein pour l'action principale d'une zone ;
   score WSJF en chiffre primaire sans pastille ; rouge seulement pour P0, les
@@ -114,6 +116,10 @@ Compose correspondant avant d'en inventer un. Détail complet :
 - **Pas d'ambre** : indiscernable du miel. Les états « à surveiller » passent
   par la forme (contour + icône) ; le conteneur d'erreur est réservé aux vrais
   échecs.
+- Le miel est la graine **par défaut** : l'utilisateur peut en choisir une
+  autre (Réglages → Apparence, `docs/spec/apparence.md`), dont tout le schéma
+  est recalculé par le même algorithme (`ThemeColors`). Un composant ne
+  suppose donc jamais le miel.
 - Un seul thème clair pour l'instant (le schéma sombre se générerait depuis la
   même graine).
 

@@ -84,7 +84,9 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   champ inconnu est ignoré : ajouter un réglage ne demande pas de migration.
   `Settings.defaults(langue)` : types de tâche dans la langue de l'interface
   (français : ceux de Kairos 2 moins « Pilotage/dette technique » ; anglais :
-  traduction). Bornes, validation et écran : `reglages.md`.
+  traduction). Bornes, validation et écran : `reglages.md`. Réglages ajoutés
+  depuis : `updateCheckEnabled` (`mises-a-jour.md`), `themeColor`
+  (`apparence.md`).
 - `KairosSnapshot` : toutes les tables et les réglages. C'est la forme
   commune de l'export, de l'import, des exemples et de la sauvegarde web.
 

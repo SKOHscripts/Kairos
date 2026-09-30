@@ -2,11 +2,14 @@ package com.skohscripts.kairos.android
 
 import android.Manifest
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.ui.platform.LocalContext
 import com.skohscripts.kairos.ui.KairosApp
 import com.skohscripts.kairos.ui.Platform
 import com.skohscripts.kairos.ui.app.FileService
@@ -37,7 +40,12 @@ class MainActivity : ComponentActivity(), FileService {
         super.onCreate(savedInstanceState)
         KairosProcess.activity = this
         val services = KairosProcess.services(this)
-        setContent { KairosApp(Platform.ANDROID) { services.await() } }
+        setContent {
+            // Couleurs du fond d'écran (Material You), proposées dans Réglages → Apparence
+            // à partir d'Android 12 (docs/spec/apparence.md).
+            val system = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) dynamicLightColorScheme(LocalContext.current) else null
+            KairosApp(Platform.ANDROID, systemColorScheme = system) { services.await() }
+        }
     }
 
     override fun onResume() {

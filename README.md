@@ -58,7 +58,7 @@ bon fichier pour ton système. Tous les fichiers, et leurs sommes de contrôle
 
 | Système | Fichier | Remarque |
 |---|---|---|
-| Android 8 ou plus récent | `Kairos-android.apk` (bientôt F-Droid et IzzyOnDroid) | Le même APK signé partout : on passera d’une source à l’autre sans désinstaller. |
+| Android 8 ou plus récent | `Kairos-android.apk` (bientôt sur F-Droid) | Le même APK signé que sur F-Droid : on passera de l’un à l’autre sans désinstaller. |
 | Windows 10 ou 11 | `Kairos-windows-x64.msi` | Installation pour l’utilisateur courant, sans droit administrateur. |
 | Windows, poste verrouillé | `Kairos-windows-x64-portable.zip` | Dézipper, lancer `Kairos.exe` : rien n’est installé. Kairos propose ses raccourcis (menu Démarrer, Bureau). |
 | Linux (x86-64) | `Kairos-linux-x64.deb`, ou `Kairos-linux-x64-portable.tar.gz` | Version portable : Kairos propose de s’ajouter au menu des applications, avec son icône. |
@@ -72,19 +72,17 @@ bon fichier pour ton système. Tous les fichiers, et leurs sommes de contrôle
 - **Windows** : SmartScreen peut afficher « Windows a protégé votre
   ordinateur » : « Informations complémentaires », puis « Exécuter quand même ».
 - **Android** : autoriser l’installation depuis le navigateur ou le
-  gestionnaire de fichiers quand Android le demande (inutile depuis F-Droid ou
-  IzzyOnDroid).
+  gestionnaire de fichiers quand Android le demande (inutile depuis F-Droid).
 
-**Depuis Kairos 2.** Sur Android, Kairos 2 propose lui-même la mise à jour
-(« Mettre à jour », une dernière fois) : Kairos 3 s’installe par-dessus et
-reprend ses données automatiquement au premier lancement. Sur le bureau, il
+**Depuis Kairos 2.** Sur Android, installe Kairos 3 (APK ou F-Droid) par-dessus
+Kairos 2 : il reprend ses données automatiquement au premier lancement. Sur le bureau, il
 propose au premier lancement d’importer la base Kairos 2 trouvée à son
 emplacement habituel ; on peut aussi l’importer plus tard (Réglages →
 Données → « Importer une base Kairos 2.x »). L’ancienne base n’est jamais
 modifiée. Ne sont pas repris : TimeTree et l’import GitLab, retirés de
 Kairos 3.
 
-**Mises à jour.** Sur Android, par F-Droid, IzzyOnDroid ou un nouvel APK. Sur
+**Mises à jour.** Sur Android, par F-Droid ou un nouvel APK. Sur
 le bureau, Kairos vérifie toutes les 6 heures s’il existe une nouvelle version
 et l’annonce dans un bandeau (« Télécharger » ouvre sa page) ; réglage dans
 Réglages → Mises à jour. La version web est toujours la dernière.
@@ -192,6 +190,14 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   Chrome, **liées à un fichier** tenu à jour à chaque modification.
 - Interface en **français** et en **anglais** (langue du système).
 
+### Apparence
+
+- **Couleur du thème** au choix (Réglages → Apparence) : le miel par défaut,
+  sept autres couleurs proposées, ou une couleur libre (`#RRGGBB`). Tout le
+  thème en est dérivé (Material Design 3), contrastes compris.
+- Sur **Android 12 et plus**, « Couleurs du système » suit les couleurs du
+  fond d’écran (Material You).
+
 ## Réglages
 
 Chaque réglage est expliqué sous son champ ; un seul « Enregistrer », et un
@@ -207,6 +213,7 @@ champ invalide dit pourquoi.
 | Statistiques | Fenêtre des indicateurs | 8 semaines |
 | Alertes du chrono | Chrono oublié, pause suggérée, son de secours | 180 min, 50 min, désactivé |
 | Jours fériés | Calendrier français, dates supplémentaires | activé |
+| Apparence | Couleur du thème (proposée, libre, ou du système sur Android 12+) | miel `#C28417` |
 | Raccourci (bureau, version portable) | Créer, mettre à jour ou retirer le raccourci | proposé au lancement |
 | Mises à jour (bureau) | Vérifier les nouvelles versions | activé |
 
@@ -231,7 +238,7 @@ cd kmp
 - Charte graphique (Material Design 3, thème « miel ») :
   [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 - Versions, releases et paquets : [`docs/spec/distribution.md`](docs/spec/distribution.md) ;
-  F-Droid, IzzyOnDroid et page de téléchargement :
+  F-Droid et page de téléchargement :
   [`docs/spec/publication.md`](docs/spec/publication.md).
 - Règles de contribution : [`CLAUDE.md`](CLAUDE.md).
 

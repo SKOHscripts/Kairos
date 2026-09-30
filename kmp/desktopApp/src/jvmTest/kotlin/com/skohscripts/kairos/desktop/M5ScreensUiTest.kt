@@ -1,6 +1,14 @@
 package com.skohscripts.kairos.desktop
 
 import androidx.compose.ui.test.ComposeUiTest
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onRoot
+import com.skohscripts.kairos.core.model.Settings
+import com.skohscripts.kairos.ui.theme.ThemeColors
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -124,6 +132,44 @@ class M5ScreensUiTest {
         assertEquals(2.5, settings.priorityValueBase)
         assertEquals(false, settings.cognitiveDipEnabled)
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Unsaved changes").fetchSemanticsNodes().isEmpty() }
+    }
+
+    /** Couleurs présentes à l'écran (image de la racine). */
+    private fun ComposeUiTest.screenColors(): Set<Int> {
+        val pixels = onRoot().captureToImage().toPixelMap()
+        return buildSet { for (x in 0 until pixels.width) for (y in 0 until pixels.height) add(pixels[x, y].toArgb()) }
+    }
+
+    @Test
+    fun aChosenColorThemesTheWholeInterfaceOnceSaved() = runComposeUiTest {
+        val services = services()
+        val repository = services.repository
+        setContent { KairosApp(Platform.DESKTOP) { services } }
+        waitText("Settings")
+        onAllNodesWithText("Settings").onFirst().performClick()
+        waitText("Appearance")
+        // Le fond de l'écran est la surface du schéma : celle du miel, puis celle de la graine choisie.
+        val honey = ThemeColors.schemeFor(Settings.DEFAULT_THEME_COLOR, null)
+        val ocean = ThemeColors.seedScheme(0x2F6FED)
+        assert(honey.surface.toArgb() in screenColors())
+
+        // Une pastille ne change rien avant « Enregistrer ».
+        onNodeWithContentDescription("Ocean").performScrollTo().performClick()
+        waitText("Unsaved changes")
+        assertEquals(Settings.DEFAULT_THEME_COLOR, repository.snapshot.value.settings.themeColor)
+
+        onNodeWithText("Save").performClick()
+        waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.settings.themeColor == "#2F6FED" }
+        waitUntil(timeoutMillis = 5_000) { ocean.surface.toArgb() in screenColors() }
+        assert(honey.surface.toArgb() !in screenColors())
+
+        // Couleur illisible : erreur sous le champ, rien d'enregistré.
+        type("Custom colour", "bleu")
+        onNodeWithText("Save").performClick()
+        waitText("Unreadable colour: “bleu” (format #RRGGBB).")
+        assertEquals("#2F6FED", repository.snapshot.value.settings.themeColor)
+        // Pas de « Couleurs du système » sur le bureau.
+        assertEquals(0, onAllNodesWithContentDescription("System colours").fetchSemanticsNodes().size)
     }
 
     @Test

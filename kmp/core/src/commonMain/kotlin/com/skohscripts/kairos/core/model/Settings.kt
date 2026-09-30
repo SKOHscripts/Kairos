@@ -38,11 +38,19 @@ data class Settings(
     val taskTypes: String = DEFAULT_TASK_TYPES_FR,
     /** Vérification des nouvelles versions, bureau seulement (docs/spec/mises-a-jour.md). */
     val updateCheckEnabled: Boolean = true,
+    /** Graine du thème `#RRGGBB`, ou [SYSTEM_THEME] (docs/spec/apparence.md). */
+    val themeColor: String = DEFAULT_THEME_COLOR,
 ) {
     /** Types de tâche, dans l'ordre, sans vides. */
     val taskTypeList: List<String> get() = taskTypes.split(',').map { it.trim() }.filter { it.isNotEmpty() }
 
     companion object {
+        /** Le miel du logo, graine de la charte (docs/DESIGN_SYSTEM.md). */
+        const val DEFAULT_THEME_COLOR = "#C28417"
+
+        /** Couleurs du système (Android 12 et plus), à défaut le miel. */
+        const val SYSTEM_THEME = "system"
+
         /** Types par défaut de Kairos 2, moins « Pilotage/dette technique » (périmètre retiré). */
         const val DEFAULT_TASK_TYPES_FR =
             "Développement,Revue de code,Réunion,Documentation,Administratif,Veille/formation"
