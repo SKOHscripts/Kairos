@@ -242,11 +242,10 @@ Pendant la réécriture, chaque jalon devait produire une version installable
     (`fakeroot` installé sous Linux), **auto-test de l'image empaquetée**, puis
     `Kairos-<id>.{deb,msi,dmg}` et `Kairos-<id>-portable.{tar.gz,zip}` ;
     captures en artefacts `screens-<id>` ;
-  - `release` (tag seulement) : pour une version finale, copie de
-    `Kairos-android.apk` en `kairos-android-arm64.apk` (pont de mise à jour
-    de Kairos 2, `migration-2x.md`) ; `SHA256SUMS` de tous les fichiers
-    publiés ; release GitHub « Kairos <version> » (préversion si suffixe),
-    notes générées.
+  - `release` (tag seulement) : `SHA256SUMS` de tous les `Kairos-*`, release
+    GitHub « Kairos <version> » (préversion si suffixe), notes générées. Un
+    seul APK par release (pas de copie pour la mise à jour intégrée de
+    Kairos 2, `migration-2x.md` § Pas de pont de mise à jour).
 - Kairos 2 (Python) n'est plus dans le dépôt depuis la bascule : son code se
   lit au tag `v2.6.0`, ses releases `v1.*` et `v2.*` restent publiées, et son
   workflow de release (`release.yml`) comme sa CI (`ci.yml`) sont supprimés.

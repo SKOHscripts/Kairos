@@ -74,9 +74,8 @@ bon fichier pour ton système. Tous les fichiers, et leurs sommes de contrôle
 - **Android** : autoriser l’installation depuis le navigateur ou le
   gestionnaire de fichiers quand Android le demande (inutile depuis F-Droid).
 
-**Depuis Kairos 2.** Sur Android, Kairos 2 propose lui-même la mise à jour
-(« Mettre à jour », une dernière fois) : Kairos 3 s’installe par-dessus et
-reprend ses données automatiquement au premier lancement. Sur le bureau, il
+**Depuis Kairos 2.** Sur Android, installe Kairos 3 (APK ou F-Droid) par-dessus
+Kairos 2 : il reprend ses données automatiquement au premier lancement. Sur le bureau, il
 propose au premier lancement d’importer la base Kairos 2 trouvée à son
 emplacement habituel ; on peut aussi l’importer plus tard (Réglages →
 Données → « Importer une base Kairos 2.x »). L’ancienne base n’est jamais

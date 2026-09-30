@@ -363,7 +363,10 @@ l'installation par-dessus fonctionne pour eux. (Jalon M5 : migration faite, voir
 d'inclusion, en raison de la part d'IA dans le développement de Kairos.
 F-Droid (merge request acceptée, en test) et les releases GitHub sont les deux
 canaux Android ; les mentions d'IzzyOnDroid ailleurs dans ce plan décrivent le
-projet initial (`docs/spec/publication.md` § Décisions).
+projet initial (`docs/spec/publication.md` § Décisions). Le même jour, la copie
+`kairos-android-arm64.apk` est retirée (release 3.0.0 comprise) : Kairos 2 ne
+s'installe plus Kairos 3 lui-même, on passe par l'APK ou F-Droid
+(`docs/spec/migration-2x.md` § Pas de pont de mise à jour).
 
 ---
 
