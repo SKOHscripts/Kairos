@@ -1,0 +1,23 @@
+-- Schéma 3 -> 4 (jalon E3 de l'espace Équipe, docs/spec/equipe-backlog-suivi.md) : additive.
+-- Les colonnes naissent vides (NULL) : une tâche existante n'a ni avancement, ni
+-- jour de début, ni identité d'équipe ; la table du journal naît vide. Une base
+-- migrée se comporte donc exactement comme avant. Les colonnes sont ajoutées en
+-- fin de table, dans l'ordre de Kairos.sq (insertTaskWithId est positionnel).
+ALTER TABLE task ADD COLUMN progress_percent INTEGER;
+ALTER TABLE task ADD COLUMN started_on TEXT;
+ALTER TABLE task ADD COLUMN team_uid TEXT;
+CREATE INDEX task_team_uid ON task(team_uid);
+
+CREATE TABLE team_event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INTEGER NOT NULL,
+    task_title TEXT NOT NULL,
+    member_id INTEGER,
+    kind TEXT NOT NULL,
+    from_value TEXT,
+    to_value TEXT,
+    source TEXT NOT NULL,
+    at TEXT NOT NULL
+);
+CREATE INDEX team_event_task ON team_event(task_id);
+CREATE INDEX team_event_member ON team_event(member_id);

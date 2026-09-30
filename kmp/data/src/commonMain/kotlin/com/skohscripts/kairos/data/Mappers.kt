@@ -12,6 +12,9 @@ import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TimeBlock
 import com.skohscripts.kairos.core.model.WorkSession
 import com.skohscripts.kairos.core.team.MemberAbsence
+import com.skohscripts.kairos.core.team.TeamEvent
+import com.skohscripts.kairos.core.team.TeamEventKind
+import com.skohscripts.kairos.core.team.TeamEventSource
 import com.skohscripts.kairos.core.team.TeamMember
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -19,6 +22,7 @@ import kotlin.time.Instant
 import com.skohscripts.kairos.data.db.Member_absence as AbsenceRow
 import com.skohscripts.kairos.data.db.Note as NoteRow
 import com.skohscripts.kairos.data.db.Task as TaskRow
+import com.skohscripts.kairos.data.db.Team_event as EventRow
 import com.skohscripts.kairos.data.db.Team_member as MemberRow
 import com.skohscripts.kairos.data.db.Task_dependency as DependencyRow
 import com.skohscripts.kairos.data.db.Time_block as BlockRow
@@ -57,6 +61,21 @@ internal fun TaskRow.toModel() = Task(
     updatedAt = updated_at.instant(),
     space = TaskSpace.fromCode(space.toInt()),
     assigneeId = assignee_id,
+    progressPercent = progress_percent?.toInt(),
+    startedOn = started_on.localDate(),
+    teamUid = team_uid,
+)
+
+internal fun EventRow.toModel() = TeamEvent(
+    id = id,
+    taskId = task_id,
+    taskTitle = task_title,
+    memberId = member_id,
+    kind = TeamEventKind.fromCode(kind),
+    fromValue = from_value,
+    toValue = to_value,
+    source = TeamEventSource.fromCode(source),
+    at = at.instant(),
 )
 
 internal fun MemberRow.toModel() = TeamMember(

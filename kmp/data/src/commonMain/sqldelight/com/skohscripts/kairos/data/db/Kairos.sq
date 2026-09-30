@@ -29,12 +29,19 @@ CREATE TABLE task (
     -- donne ALTER TABLE ADD COLUMN (migration 1.sqm), et `insertTaskWithId` est
     -- positionnel, donc une base migrée et une base neuve doivent coïncider.
     space INTEGER NOT NULL DEFAULT 0,
-    assignee_id INTEGER
+    assignee_id INTEGER,
+    -- Suivi d'équipe (jalon E3, docs/spec/equipe-backlog-suivi.md) : avancement déclaré (0-100),
+    -- jour de début (date locale) et identité stable d'une tâche d'équipe. Toujours NULL pour une
+    -- tâche Perso. Même ordre que 3.sqm.
+    progress_percent INTEGER,
+    started_on TEXT,
+    team_uid TEXT
 );
 CREATE INDEX task_status ON task(status);
 CREATE INDEX task_parent ON task(parent_id);
 CREATE INDEX task_space ON task(space);
 CREATE INDEX task_assignee ON task(assignee_id);
+CREATE INDEX task_team_uid ON task(team_uid);
 
 CREATE TABLE time_block (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -103,6 +110,23 @@ CREATE TABLE member_absence (
 );
 CREATE INDEX member_absence_member ON member_absence(member_id);
 
+-- Journal des tâches d'équipe (jalon E3) : écrit par le dépôt dans la transaction de chaque
+-- modification. task_title recopie le titre (une tâche supprimée garde ses événements) ;
+-- member_id = assigné au moment de l'événement (NULL au backlog). Références sans FOREIGN KEY.
+CREATE TABLE team_event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INTEGER NOT NULL,
+    task_title TEXT NOT NULL,
+    member_id INTEGER,
+    kind TEXT NOT NULL,
+    from_value TEXT,
+    to_value TEXT,
+    source TEXT NOT NULL,
+    at TEXT NOT NULL
+);
+CREATE INDEX team_event_task ON team_event(task_id);
+CREATE INDEX team_event_member ON team_event(member_id);
+
 -- Réglages : une seule ligne (id = 1), JSON de com.skohscripts.kairos.core.model.Settings.
 CREATE TABLE settings (
     id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -118,11 +142,11 @@ insertTask:
 INSERT INTO task (title, description, priority, deadline, project_tag, status, estimated_minutes,
     pinned_start, parent_id, recurrence, scheduled_date, recurrence_day_of_month,
     recurrence_day_of_week, recurrence_period, task_type, fibonacci_points,
-    manual_time_spent_minutes, created_at, updated_at, space, assignee_id)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    manual_time_spent_minutes, created_at, updated_at, space, assignee_id, progress_percent, started_on, team_uid)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 insertTaskWithId:
-INSERT INTO task VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO task VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 lastInsertedId:
 SELECT last_insert_rowid();
@@ -131,7 +155,8 @@ updateTask:
 UPDATE task SET title = ?, description = ?, priority = ?, deadline = ?, project_tag = ?, status = ?,
     estimated_minutes = ?, pinned_start = ?, parent_id = ?, recurrence = ?, scheduled_date = ?,
     recurrence_day_of_month = ?, recurrence_day_of_week = ?, recurrence_period = ?, task_type = ?,
-    fibonacci_points = ?, manual_time_spent_minutes = ?, updated_at = ?, space = ?, assignee_id = ?
+    fibonacci_points = ?, manual_time_spent_minutes = ?, updated_at = ?, space = ?, assignee_id = ?,
+    progress_percent = ?, started_on = ?, team_uid = ?
 WHERE id = ?;
 
 deleteTask:
@@ -272,10 +297,25 @@ DELETE FROM member_absence WHERE member_id = ?;
 deleteAllMemberAbsences:
 DELETE FROM member_absence;
 
+-- Journal ----------------------------------------------------------------------
+
+allTeamEvents:
+SELECT * FROM team_event ORDER BY id;
+
+insertTeamEventWithId:
+INSERT INTO team_event VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+insertTeamEvent:
+INSERT INTO team_event (task_id, task_title, member_id, kind, from_value, to_value, source, at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteAllTeamEvents:
+DELETE FROM team_event;
+
 -- Équipe : remises à zéro --------------------------------------------------------
 
 unassignTasksOf:
-UPDATE task SET assignee_id = NULL, updated_at = ? WHERE assignee_id = ? AND space = 1 AND status = 'todo';
+UPDATE task SET assignee_id = NULL, started_on = NULL, updated_at = ? WHERE assignee_id = ? AND space = 1 AND status = 'todo';
 
 unassignAllTasks:
 UPDATE task SET assignee_id = NULL WHERE assignee_id IS NOT NULL;

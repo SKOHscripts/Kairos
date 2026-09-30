@@ -236,7 +236,7 @@ internal fun MemberSheet(services: AppServices, memberId: Long?, onDismiss: () -
             settings = snapshot.settings,
             today = today,
             openTaskCount = member?.let { TeamMembers.openTaskCount(snapshot.tasks, it.id) } ?: 0,
-            canDelete = member != null && !TeamMembers.hasHadTask(snapshot.tasks, member.id),
+            canDelete = member != null && !TeamMembers.hasHadTask(snapshot.tasks, member.id, snapshot.teamEvents),
             compact = compact,
             onSave = { valid, isSelf ->
                 scope.launch {

@@ -117,4 +117,18 @@ class TeamMembersTest {
         assertFalse(Workspaces.hasTeamData(KairosSnapshot()))
         assertTrue(Workspaces.hasTeamData(KairosSnapshot(absences = listOf(absence(1, 1, today)))))
     }
+
+    @Test
+    fun a_member_in_the_journal_has_had_a_task_even_after_the_task_is_gone() {
+        fun event(id: Long, member: Long?, kind: TeamEventKind, from: String? = null, to: String? = null) =
+            TeamEvent(id, 9, "Supprimée", member, kind, from, to, TeamEventSource.MANUAL, t0)
+        val held = listOf(event(1, 1, TeamEventKind.ASSIGNED, null, "1"), event(2, 1, TeamEventKind.DELETED))
+        assertTrue(TeamMembers.hasHadTask(emptyList(), 1, held))
+        assertFalse(TeamMembers.hasHadTask(emptyList(), 2, held))
+        assertFalse(TeamMembers.hasHadTask(emptyList(), 1))
+        // Seulement cité comme ancien titulaire par une remise au backlog (archivage) : pas de trace propre.
+        assertFalse(TeamMembers.hasHadTask(emptyList(), 3, listOf(event(3, null, TeamEventKind.ASSIGNED, "3", null))))
+        // Une tâche à son nom suffit toujours.
+        assertTrue(TeamMembers.hasHadTask(listOf(task(1, 4)), 4, held))
+    }
 }

@@ -87,8 +87,18 @@ data class TeamSettings(
     val identity: String = "",
     /** Dernier espace affiché ([SPACE_PERSONAL] ou [SPACE_TEAM]) ; technique. */
     val lastSpace: String = SPACE_PERSONAL,
+    /** Suivi (docs/spec/equipe-backlog-suivi.md § Signaux) : jours ouvrés sans avancement avant le signal « sans avancement » (≥ 1). */
+    val staleProgressDays: Int = DEFAULT_STALE_PROGRESS_DAYS,
+    /** Nombre de réaffectations d'un membre à un autre à partir duquel une tâche est « ballottée » (≥ 2). */
+    val churnThreshold: Int = DEFAULT_CHURN_THRESHOLD,
+    /** Tâches en cours par membre au-delà desquelles le signal « trop d'en-cours » s'allume (≥ 0 ; 0 = sans limite). */
+    val wipLimit: Int = DEFAULT_WIP_LIMIT,
 ) {
     companion object {
+        const val DEFAULT_STALE_PROGRESS_DAYS = 5
+        const val DEFAULT_CHURN_THRESHOLD = 3
+        const val DEFAULT_WIP_LIMIT = 3
+
         const val SPACE_PERSONAL = "personal"
         const val SPACE_TEAM = "team"
     }

@@ -63,9 +63,15 @@ object SettingsForm {
      * formulaire en mode solo ne crée jamais d'objet `team`, donc rien n'entre
      * dans l'export ni dans la base d'une installation solo).
      */
-    private fun team(key: String, kind: FieldKind, get: (TeamSettings) -> String, change: (TeamSettings, String) -> TeamSettings) =
+    private fun team(
+        key: String,
+        kind: FieldKind,
+        min: Int? = null,
+        get: (TeamSettings) -> String,
+        change: (TeamSettings, String) -> TeamSettings,
+    ) =
         SettingField(
-            key, kind,
+            key, kind, min?.toDouble(),
             read = { get(it.team ?: TeamSettings()) },
             write = { s, v ->
                 val value = v.trim()
@@ -105,9 +111,12 @@ object SettingsForm {
             read = { it.themeColor },
             write = { s, v -> s.copy(themeColor = normalizeColor(v)!!) },
         ),
-        team("team.enabled", FieldKind.BOOL, { it.enabled.toString() }) { t, v -> t.copy(enabled = v == "true") },
-        team("team.name", FieldKind.TEXT, { it.name }) { t, v -> t.copy(name = v) },
-        team("team.managerName", FieldKind.TEXT, { it.managerName }) { t, v -> t.copy(managerName = v) },
+        team("team.enabled", FieldKind.BOOL, get = { it.enabled.toString() }) { t, v -> t.copy(enabled = v == "true") },
+        team("team.name", FieldKind.TEXT, get = { it.name }) { t, v -> t.copy(name = v) },
+        team("team.managerName", FieldKind.TEXT, get = { it.managerName }) { t, v -> t.copy(managerName = v) },
+        team("team.staleProgressDays", FieldKind.INT, 1, { it.staleProgressDays.toString() }) { t, v -> t.copy(staleProgressDays = v.toInt()) },
+        team("team.churnThreshold", FieldKind.INT, 2, { it.churnThreshold.toString() }) { t, v -> t.copy(churnThreshold = v.toInt()) },
+        team("team.wipLimit", FieldKind.INT, 0, { it.wipLimit.toString() }) { t, v -> t.copy(wipLimit = v.toInt()) },
     )
 
     private val byKey = FIELDS.associateBy { it.key }

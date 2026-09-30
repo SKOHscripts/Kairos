@@ -43,6 +43,12 @@ data class Task(
     val space: TaskSpace = TaskSpace.PERSONAL,
     /** Membre d'équipe assigné (`TeamMember.id`, référence « molle »). Sans effet sur une tâche [TaskSpace.PERSONAL]. */
     val assigneeId: Long? = null,
+    /** Avancement déclaré d'une tâche d'équipe (0-100, pas de 10) ; `null` = jamais renseigné (docs/spec/equipe-backlog-suivi.md). */
+    val progressPercent: Int? = null,
+    /** Jour où la tâche d'équipe a été commencée (date locale) ; `null` = pas commencée. Sert à dériver l'état « En cours ». */
+    val startedOn: LocalDate? = null,
+    /** Identité stable d'une tâche d'équipe (UUID texte), posée par le dépôt à sa création ; `null` pour une tâche Perso. */
+    val teamUid: String? = null,
 ) {
     /**
      * Pas encore clarifiée (GTD) : il manque la priorité **ou** les points. Elle

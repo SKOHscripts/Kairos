@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.core.model
 
 import com.skohscripts.kairos.core.team.MemberAbsence
+import com.skohscripts.kairos.core.team.TeamEvent
 import com.skohscripts.kairos.core.team.TeamMember
 
 /**
@@ -21,4 +22,6 @@ data class KairosSnapshot(
     val members: List<TeamMember> = emptyList(),
     /** Absences des membres (espace Équipe) ; toujours vide tant que l'espace n'a jamais servi. */
     val absences: List<MemberAbsence> = emptyList(),
+    /** Journal des tâches d'équipe (jalon E3) ; toujours vide tant que l'espace n'a jamais servi. */
+    val teamEvents: List<TeamEvent> = emptyList(),
 )

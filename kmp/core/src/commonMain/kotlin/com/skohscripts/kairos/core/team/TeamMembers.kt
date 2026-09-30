@@ -42,9 +42,21 @@ object TeamMembers {
 
     /**
      * Le membre a déjà eu une tâche : une tâche quelconque, de tout statut, lui
-     * est (ou a été) assignée. Seul cas où la suppression est refusée.
+     * est assignée, ou il est le titulaire d'un événement du journal [events]
+     * (même si la tâche a été supprimée depuis). Seul cas où la suppression est
+     * refusée.
      */
-    fun hasHadTask(tasks: List<Task>, memberId: Long): Boolean = tasks.any { it.assigneeId == memberId }
+    fun hasHadTask(tasks: List<Task>, memberId: Long, events: List<TeamEvent> = emptyList()): Boolean =
+        tasks.any { it.assigneeId == memberId } || appearsInEvents(events, memberId)
+
+    /**
+     * Le membre est le titulaire (`memberId`) d'au moins un événement : pour une
+     * assignation, c'est le **nouveau** titulaire. Un membre seulement cité comme
+     * ancien titulaire (`fromValue`) a forcément un événement antérieur à son nom,
+     * sauf après l'archivage qui remet ses tâches au backlog : cet événement-là
+     * (`memberId` nul) ne l'empêche pas d'être supprimé, comme en E2.
+     */
+    fun appearsInEvents(events: List<TeamEvent>, memberId: Long): Boolean = events.any { it.memberId == memberId }
 
     /**
      * Tâche ouverte d'équipe d'un membre : à faire, dans l'espace Équipe, à son

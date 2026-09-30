@@ -14,6 +14,9 @@ import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TimeBlock
 import com.skohscripts.kairos.core.model.WorkSession
 import com.skohscripts.kairos.core.team.MemberAbsence
+import com.skohscripts.kairos.core.team.TeamEvent
+import com.skohscripts.kairos.core.team.TeamEventKind
+import com.skohscripts.kairos.core.team.TeamEventSource
 import com.skohscripts.kairos.core.team.TeamMember
 import com.skohscripts.kairos.core.team.Workspaces
 import kotlinx.datetime.LocalDate
@@ -102,6 +105,7 @@ private data class ExportFile(
     // base sans donnée d'équipe reste celui d'avant, octet pour octet.
     val members: List<MemberJson>? = null,
     val absences: List<AbsenceJson>? = null,
+    val teamEvents: List<TeamEventJson>? = null,
 ) {
     fun toSnapshot() = KairosSnapshot(
         tasks = tasks.map { it.toModel() },
@@ -116,6 +120,7 @@ private data class ExportFile(
         settings = settings,
         members = members.orEmpty().map { it.toModel() },
         absences = absences.orEmpty().map { it.toModel() },
+        teamEvents = teamEvents.orEmpty().map { it.toModel() },
     )
 
     companion object {
@@ -138,6 +143,7 @@ private data class ExportFile(
                 },
                 members = if (team) s.members.map { MemberJson.from(it) } else null,
                 absences = if (team) s.absences.map { AbsenceJson.from(it) } else null,
+                teamEvents = if (team) s.teamEvents.map { TeamEventJson.from(it) } else null,
             )
         }
     }
@@ -170,6 +176,10 @@ private data class TaskJson(
     // `space` n'est écrit que pour une tâche d'équipe ; absent = Perso.
     val space: String? = null,
     val assigneeId: Long? = null,
+    // Suivi d'équipe (jalon E3) : mêmes règles, nuls donc omis pour toute tâche Perso.
+    val progressPercent: Int? = null,
+    val startedOn: String? = null,
+    val teamUid: String? = null,
 ) {
     fun toModel() = Task(
         id = id,
@@ -194,6 +204,9 @@ private data class TaskJson(
         updatedAt = Instant.parse(updatedAt),
         space = decodeSpace(space),
         assigneeId = assigneeId,
+        progressPercent = progressPercent,
+        startedOn = startedOn?.let(LocalDate::parse),
+        teamUid = teamUid,
     )
 
     companion object {
@@ -202,7 +215,7 @@ private data class TaskJson(
             t.estimatedMinutes, t.pinnedStart?.toString(), t.parentId, t.recurrence.code, t.scheduledDate?.toString(),
             t.recurrenceDayOfMonth, t.recurrenceDayOfWeek, t.recurrencePeriod, t.taskType, t.fibonacciPoints,
             t.manualTimeSpentMinutes, t.createdAt.toString(), t.updatedAt.toString(),
-            encodeSpace(t.space), t.assigneeId,
+            encodeSpace(t.space), t.assigneeId, t.progressPercent, t.startedOn?.toString(), t.teamUid,
         )
     }
 }
@@ -290,5 +303,29 @@ private data class AbsenceJson(
 
     companion object {
         fun from(a: MemberAbsence) = AbsenceJson(a.id, a.memberId, a.start.toString(), a.end.toString(), a.label, a.createdAt.toString())
+    }
+}
+
+@Serializable
+private data class TeamEventJson(
+    val id: Long,
+    val taskId: Long,
+    val taskTitle: String,
+    val memberId: Long? = null,
+    val kind: String,
+    val fromValue: String? = null,
+    val toValue: String? = null,
+    val source: String = "manual",
+    val at: String,
+) {
+    fun toModel() = TeamEvent(
+        id, taskId, taskTitle, memberId, TeamEventKind.fromCode(kind), fromValue, toValue,
+        TeamEventSource.fromCode(source), Instant.parse(at),
+    )
+
+    companion object {
+        fun from(e: TeamEvent) = TeamEventJson(
+            e.id, e.taskId, e.taskTitle, e.memberId, e.kind.code, e.fromValue, e.toValue, e.source.code, e.at.toString(),
+        )
     }
 }

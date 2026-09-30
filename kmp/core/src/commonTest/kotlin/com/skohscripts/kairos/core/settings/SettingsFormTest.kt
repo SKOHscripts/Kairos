@@ -107,4 +107,31 @@ class SettingsFormTest {
         assertEquals(TeamSettings(enabled = false, name = "P", identity = "abc", lastSpace = "team"), s.team)
         assertTrue(!s.teamModeEnabled)
     }
+
+    @Test
+    fun follow_up_settings_have_their_defaults_and_bounds() {
+        val values = SettingsForm.values(base)
+        assertEquals("5", values["team.staleProgressDays"])
+        assertEquals("3", values["team.churnThreshold"])
+        assertEquals("3", values["team.wipLimit"])
+
+        fun team(key: String, value: String) = validate(key to value)
+        assertEquals(1, team("team.staleProgressDays", "1").settings!!.team!!.staleProgressDays)
+        assertEquals(FieldErrorKind.TOO_SMALL, team("team.staleProgressDays", "0").fieldErrors["team.staleProgressDays"]!!.kind)
+        assertEquals(2, team("team.churnThreshold", "2").settings!!.team!!.churnThreshold)
+        assertEquals("2", team("team.churnThreshold", "1").fieldErrors["team.churnThreshold"]!!.bound)
+        assertEquals(0, team("team.wipLimit", "0").settings!!.team!!.wipLimit)
+        assertEquals(FieldErrorKind.TOO_SMALL, team("team.wipLimit", "-1").fieldErrors["team.wipLimit"]!!.kind)
+        assertEquals(FieldErrorKind.NOT_INTEGER, team("team.wipLimit", "beaucoup").fieldErrors["team.wipLimit"]!!.kind)
+        assertEquals(FieldErrorKind.REQUIRED, team("team.churnThreshold", " ").fieldErrors["team.churnThreshold"]!!.kind)
+    }
+
+    @Test
+    fun writing_the_default_follow_up_values_keeps_the_team_object_null() {
+        assertNull(validate("team.staleProgressDays" to "5", "team.churnThreshold" to "3", "team.wipLimit" to "3").settings!!.team)
+        // Une valeur non défaut crée l'objet ; la sauvegarde de toutes les valeurs l'aller-retour.
+        val s = validate("team.wipLimit" to "4").settings!!
+        assertEquals(TeamSettings(wipLimit = 4), s.team)
+        assertEquals(s, SettingsForm.validate(SettingsForm.values(s), s).settings)
+    }
 }
