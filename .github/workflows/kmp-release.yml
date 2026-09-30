@@ -162,12 +162,17 @@ jobs:
           out="$RUNNER_TEMP/out"; mkdir -p "$out"
           bin=desktopApp/build/compose/binaries/main
           id=${{ matrix.id }}
+          # Marqueur des seules archives portables, après les installeurs : la copie
+          # portable propose alors son raccourci (docs/spec/raccourci-portable.md).
+          image=$(ls -d "$bin"/app/*/ | head -1)
           case "$RUNNER_OS" in
             Linux)
               cp "$bin"/deb/*.deb "$out/Kairos-$id.deb"
+              touch "${image}lib/app/kairos-portable"
               (cd "$bin/app" && tar czf "$out/Kairos-$id-portable.tar.gz" *) ;;
             Windows)
               cp "$bin"/msi/*.msi "$out/Kairos-$id.msi"
+              touch "${image}app/kairos-portable"
               (cd "$bin/app" && 7z a -tzip -bso0 "$(cygpath -w "$out")\\Kairos-$id-portable.zip" *) ;;
             macOS)
               cp "$bin"/dmg/*.dmg "$out/Kairos-$id.dmg"

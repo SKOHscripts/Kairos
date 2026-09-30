@@ -33,6 +33,7 @@ retiré (TimeTree, import GitLab, base pilotage, service systemd : plan § 2.2).
 | [`migration-2x.md`](migration-2x.md) | Migration d'une base Kairos 2 : conversion (toutes générations de schéma), Android automatique, bureau proposé, import manuel, tests sur de vraies bases, pont de mise à jour depuis l'APK 2.x. | M5, M7 |
 | [`accueil.md`](accueil.md) | Accueil au premier lancement : présentation, exemples, bilan ou proposition de migration. | M5 |
 | [`mises-a-jour.md`](mises-a-jour.md) | Vérification des nouvelles versions sur le bureau (GitHub, 6 heures), bandeau, carte des Réglages. | M5 |
+| [`raccourci-portable.md`](raccourci-portable.md) | Copies portables du bureau : détection (marqueur de la release), entrée de menu Linux avec icône et classe de fenêtre, raccourcis Windows (menu Démarrer, Bureau), proposés au lancement, carte des Réglages. | #46 |
 | [`accessibilite.md`](accessibilite.md) | Lecteurs d'écran (boutons, états, titres), cibles de 48 dp, contrastes. | M5 |
 | [`publication.md`](publication.md) | Fiches Fastlane FR/EN et leurs captures, recette et vérification F-Droid (APK reproductible signé par nous), IzzyOnDroid, page de téléchargement GitHub Pages. | M6 |
 | [`export-import.md`](export-import.md) | Export et import JSON, sauvegardes, données de la version web (OPFS, fichier lié). | M1 |

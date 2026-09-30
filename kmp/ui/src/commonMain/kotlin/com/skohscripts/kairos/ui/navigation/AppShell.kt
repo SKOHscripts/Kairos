@@ -37,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.LocalMessages
 import com.skohscripts.kairos.ui.app.WelcomeDialog
+import com.skohscripts.kairos.ui.app.ShortcutBanner
 import com.skohscripts.kairos.ui.app.UpdateBanner
 import com.skohscripts.kairos.ui.app.UpdateWatcher
 import kotlinx.coroutines.launch
@@ -127,6 +128,7 @@ fun AppShell(
     val content: @Composable (Modifier) -> Unit = { modifier ->
         Column(modifier.fillMaxSize()) {
             UpdateBanner(services)
+            CompositionLocalProvider(LocalMessages provides showMessage) { ShortcutBanner(services) }
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 CompositionLocalProvider(LocalMessages provides showMessage) {
                     if (aboutOpen) AboutScreen() else DestinationScreen(destination, services, nav, onOpenDay, onNavigate, onOpenAbout)

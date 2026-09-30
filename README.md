@@ -60,8 +60,8 @@ bon fichier pour ton système. Tous les fichiers, et leurs sommes de contrôle
 |---|---|---|
 | Android 8 ou plus récent | `Kairos-android.apk` (bientôt F-Droid et IzzyOnDroid) | Le même APK signé partout : on passera d’une source à l’autre sans désinstaller. |
 | Windows 10 ou 11 | `Kairos-windows-x64.msi` | Installation pour l’utilisateur courant, sans droit administrateur. |
-| Windows, poste verrouillé | `Kairos-windows-x64-portable.zip` | Dézipper, lancer `Kairos.exe` : rien n’est installé. |
-| Linux (x86-64) | `Kairos-linux-x64.deb`, ou `Kairos-linux-x64-portable.tar.gz` | |
+| Windows, poste verrouillé | `Kairos-windows-x64-portable.zip` | Dézipper, lancer `Kairos.exe` : rien n’est installé. Kairos propose ses raccourcis (menu Démarrer, Bureau). |
+| Linux (x86-64) | `Kairos-linux-x64.deb`, ou `Kairos-linux-x64-portable.tar.gz` | Version portable : Kairos propose de s’ajouter au menu des applications, avec son icône. |
 | macOS | `Kairos-macos-arm64.dmg` (Apple Silicon), `Kairos-macos-x64.dmg` (Intel) | |
 | Navigateur | [Kairos en ligne](https://skohscripts.github.io/Kairos/app/) | Edge ou Chrome récents ; rien à installer. |
 
@@ -207,6 +207,7 @@ champ invalide dit pourquoi.
 | Statistiques | Fenêtre des indicateurs | 8 semaines |
 | Alertes du chrono | Chrono oublié, pause suggérée, son de secours | 180 min, 50 min, désactivé |
 | Jours fériés | Calendrier français, dates supplémentaires | activé |
+| Raccourci (bureau, version portable) | Créer, mettre à jour ou retirer le raccourci | proposé au lancement |
 | Mises à jour (bureau) | Vérifier les nouvelles versions | activé |
 
 ## Développement

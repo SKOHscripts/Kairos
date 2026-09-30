@@ -141,9 +141,12 @@ Pendant la réécriture, chaque jalon devait produire une version installable
   2. journal de crash (`CrashLog.install`) ;
   3. `--self-test[=dossier]` : auto-test puis sortie ;
   4. instance unique (`SingleInstance.acquire`), sinon sortie immédiate ;
-  5. fenêtre 1200 × 800 dp (minimum 360 × 480 px), titre `Kairos` ou
+  5. copie portable (`PortableCopy.detect`) et classe de fenêtre X11
+     (`WindowClass.apply`), voir `raccourci-portable.md` ;
+  6. fenêtre 1200 × 800 dp (minimum 360 × 480 px), titre `Kairos` ou
      `Kairos Preview` (propriété JVM `kairos.preview`), icône = logo,
-     contenu `KairosApp(Platform.DESKTOP) { DesktopServices.open(dataDir) }`.
+     contenu `KairosApp(Platform.DESKTOP) { DesktopServices.open(dataDir, …,
+     portable) }`.
 - **Services** (`DesktopServices.open`) : `JdbcSqliteDriver` sur
   `<données>/kairos.db` (ou en mémoire pour l'auto-test), exemples dans la
   langue de la JVM, dossier des données affiché dans la carte Données.
@@ -180,7 +183,11 @@ Pendant la réécriture, chaque jalon devait produire une version installable
   M5, vérification des mises à jour), `java.sql`, `jdk.unsupported` en plus
   des modules détectés) :
   - formats `Msi`, `Deb`, `Dmg` ; `createDistributable` produit l'image
-    portable ;
+    portable ; la release y écrit le marqueur `kairos-portable` (Linux,
+    Windows) juste avant d'en faire l'archive, après les installeurs
+    (`raccourci-portable.md`) ;
+  - options de la JVM : `-Dkairos.preview=…` et `--add-opens
+    java.desktop/sun.awt.X11=ALL-UNNAMED` (classe de fenêtre X11) ;
   - version finale : produit `Kairos`, version `X.Y.Z` ; préversion : produit
     distinct `Kairos Preview` (paquet Linux `kairos-preview`, bundle macOS
     `com.skohscripts.kairos.preview`, autre `upgradeUuid` Windows), version

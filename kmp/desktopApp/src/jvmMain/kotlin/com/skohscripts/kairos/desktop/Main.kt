@@ -34,10 +34,13 @@ fun main(args: Array<String>) {
     // Instance déjà ouverte : elle est ramenée au premier plan, celle-ci s'arrête.
     val instance = SingleInstance.acquire(dataDir) ?: exitProcess(0)
     val preview = System.getProperty("kairos.preview") == "true"
+    val appName = if (preview) "Kairos Preview" else "Kairos"
+    val portable = PortableCopy.detect(appName = appName)
+    // Avant toute fenêtre : la classe X11 que cite l'entrée `.desktop` d'une copie portable.
+    WindowClass.apply()
 
     application {
         val state = rememberWindowState(size = DpSize(1200.dp, 800.dp))
-        val appName = if (preview) "Kairos Preview" else "Kairos"
         val icon = rememberVectorPainter(KairosLogo)
         // Plateau système : voie des notifications du chrono, quand le bureau en a un.
         val tray = if (isTraySupported) rememberTrayState() else null
@@ -67,7 +70,7 @@ fun main(args: Array<String>) {
                     awtWindow.requestFocus()
                 }
             }
-            KairosApp(Platform.DESKTOP) { DesktopServices.open(dataDir, notifier = notifier) }
+            KairosApp(Platform.DESKTOP) { DesktopServices.open(dataDir, notifier = notifier, portable = portable) }
         }
     }
 }
