@@ -8,7 +8,7 @@ publié sur chaque cible. Fichiers couverts : `kmp/gradle.properties`
 `kmp/tools/make_app_icons.py`, `.github/workflows/kmp.yml`,
 `.github/workflows/kmp-release.yml` et `.github/workflows/pages.yml` (sa
 partie version web). Les services de fichiers et de sauvegarde de chaque plateforme
-sont décrits par `export-import.md` ; F-Droid, IzzyOnDroid, fiches Fastlane et
+sont décrits par `export-import.md` ; F-Droid, fiches Fastlane et
 page de téléchargement par `publication.md`._
 
 État : **jalon M7** (`3.0.0`, bascule : Kairos 3 remplace Kairos 2).
@@ -20,7 +20,7 @@ page de téléchargement par `publication.md`._
 Kairos doit s'installer, ou simplement se lancer, partout où ses
 utilisateurs travaillent :
 
-- sur Android, depuis F-Droid, IzzyOnDroid ou l'APK des releases ;
+- sur Android, depuis F-Droid ou l'APK des releases ;
 - sur un poste Windows, Linux ou macOS, par un installeur classique ;
 - sur un **poste professionnel verrouillé**, sans droit d'installation, où
   l'exécutable de Kairos 2 tourne déjà : par un **zip portable** ou par la
@@ -65,7 +65,7 @@ Pendant la réécriture, chaque jalon devait produire une version installable
   (plan § 6.2). Gatekeeper et SmartScreen afficheront un avertissement.
 - Mise à jour intégrée : jamais sur Android ; sur le bureau, simple
   vérification (`mises-a-jour.md`).
-- F-Droid, IzzyOnDroid, fiches et page de téléchargement : `publication.md`.
+- F-Droid, fiches et page de téléchargement : `publication.md`.
 
 ## 2. Solution technique
 

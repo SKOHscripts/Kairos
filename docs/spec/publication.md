@@ -1,4 +1,4 @@
-# Publication : F-Droid, IzzyOnDroid, fiches, page de téléchargement
+# Publication : F-Droid, fiches, page de téléchargement
 
 _Rôle : comment Kairos 3 est présenté et proposé aux utilisateurs hors de
 GitHub. Fichiers couverts : `fastlane/metadata/android/` (fiches FR/EN),
@@ -10,9 +10,10 @@ GitHub. Fichiers couverts : `fastlane/metadata/android/` (fiches FR/EN),
 propriété `kairos.preview` de `kmp/androidApp/build.gradle.kts`. Versions,
 construction et releases : `distribution.md`._
 
-État : **jalon M7** (`3.0.0`) ; mis en place au jalon M6 (`3.0.0-beta.1`). Les soumissions elles-mêmes (merge
-request fdroiddata, demande IzzyOnDroid) sont faites par le propriétaire du
-dépôt après la release `v3.0.0` (`fdroid/README.md`).
+État : **jalon M7** (`3.0.0`) ; mis en place au jalon M6 (`3.0.0-beta.1`). La soumission elle-même (merge
+request fdroiddata) est faite par le propriétaire du dépôt après la release
+`v3.0.0` (`fdroid/README.md`) : acceptée, en test chez F-Droid au
+2026-09-30. IzzyOnDroid a refusé l'application (§ Décisions).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -21,12 +22,12 @@ dépôt après la release `v3.0.0` (`fdroid/README.md`).
 Kairos 2 n'était installable que depuis les releases GitHub : il fallait
 connaître le dépôt, choisir le bon fichier, et revenir vérifier les nouvelles
 versions. Kairos 3 doit se trouver et se mettre à jour là où les utilisateurs
-d'Android libre cherchent leurs applications (**F-Droid**, **IzzyOnDroid**), et
+d'Android libre cherchent leurs applications (**F-Droid**), et
 disposer d'une **page de téléchargement** claire pour toutes les plateformes.
 
 ### Comportement attendu (utilisateur)
 
-- Dans F-Droid et IzzyOnDroid, une fiche en **français et en anglais** : nom,
+- Dans F-Droid, une fiche en **français et en anglais** : nom,
   résumé d'une ligne, description, icône, cinq captures d'un téléphone
   (Jour, Semaine, Statistiques, Notes, Réglages), notes de version.
 - L'APK distribué par F-Droid est **le même** que celui des releases GitHub
@@ -59,17 +60,17 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
 - Google Play (plan § 2.2 : pas de compte, pas de dépendance Google).
 - Captures de tablette ou de bureau dans les fiches ; la page montre celles du
   téléphone.
-- Préversions dans F-Droid ou IzzyOnDroid : elles portent l'identifiant
-  `.preview` et restent sur GitHub.
-- Badges F-Droid et IzzyOnDroid sur la page : au jalon M7, une fois
-  l'application référencée (d'ici là, « Bientôt sur F-Droid et
-  IzzyOnDroid »).
+- Préversions dans F-Droid : elles portent l'identifiant `.preview` et
+  restent sur GitHub.
+- IzzyOnDroid : demande d'inclusion refusée (§ Décisions).
+- Badge F-Droid sur la page et le README : une fois l'application publiée
+  par F-Droid (d'ici là, « Bientôt sur F-Droid »).
 
 ## 2. Solution technique
 
 ### Fiches Fastlane (`fastlane/metadata/android/`)
 
-- Deux langues, `fr-FR` et `en-US`, lues par F-Droid et IzzyOnDroid au commit
+- Deux langues, `fr-FR` et `en-US`, lues par F-Droid au commit
   du tag : `title.txt` (« Kairos »), `short_description.txt` (≤ 80),
   `full_description.txt` (≤ 4000, HTML simple `<b>`, `<ul>`, `<li>`),
   `changelogs/<versionCode>.txt` (≤ 500), `images/icon.png` (512 px,
@@ -204,6 +205,11 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
 
 ### Décisions et pièges tracés
 
+- **Pas d'IzzyOnDroid** : la demande d'inclusion envoyée pour la 3.0.0 a été
+  refusée le 2026-09-30, en raison de la part d'IA dans le développement de
+  Kairos. F-Droid et les releases GitHub restent les deux canaux Android ;
+  IzzyOnDroid n'est plus cité côté utilisateur (README, page de
+  téléchargement, notes de version, dossier `fdroid/README.md`).
 - **Recette sous forme canonique** : `fdroid rewritemeta` trie les catégories,
   replie les lignes longues (`UpdateCheckData` passe à la ligne) et exige une
   fin de ligne finale ; la CI de fdroiddata échoue sinon. Constaté à la

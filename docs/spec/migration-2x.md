@@ -34,8 +34,8 @@ perte, ni risque pour l'ancienne base.
 - **Android, arriver à la 3.0.0** : Kairos 2 propose lui-même la mise à jour
   (son bandeau « Mettre à jour », comme pour toute version 2.x) ; un toucher
   télécharge et installe Kairos 3 par-dessus. Installer à la main
-  `Kairos-android.apk` de la release, ou passer par F-Droid ou IzzyOnDroid
-  (même APK signé), revient au même.
+  `Kairos-android.apk` de la release, ou passer par F-Droid (même APK signé),
+  revient au même.
 - **Bureau, arriver à la 3.0.0** : Kairos 2 annonce la version, mais ne peut
   pas l'installer seul (il remplaçait un exécutable unique ; Kairos 3 est un
   installeur ou un dossier portable) : son bandeau n'offre que « Notes de
@@ -177,8 +177,7 @@ la suppression du Python.
   automatique reprend ses données. Une préversion n'a pas ce fichier : son
   identifiant `.preview` ne remplacerait pas Kairos 2.
 - C'est le dernier usage de la mise à jour intégrée : Kairos 3 n'a pas de
-  permission réseau, ses mises à jour passent par F-Droid, IzzyOnDroid ou un
-  nouvel APK (décision du plan, confirmée avant la 3.0.0). La copie est
+  permission réseau, ses mises à jour passent par F-Droid ou un nouvel APK (décision du plan, confirmée avant la 3.0.0). La copie est
   gardée aux versions suivantes, pour qu'un Kairos 2 resté en retard arrive
   toujours à la dernière version.
 - Le Kairos 2 de bureau cherche `kairos-windows-x86_64.exe` ou

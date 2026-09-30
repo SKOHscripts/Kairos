@@ -359,6 +359,12 @@ l'installation par-dessus fonctionne pour eux. (Jalon M5 : migration faite, voir
   que l'APK Python installe Kairos 3 en un clic
   (`docs/spec/migration-2x.md` § Pont de mise à jour).
 
+**Révisé après la 3.0.0 (2026-09-30)** : IzzyOnDroid a refusé la demande
+d'inclusion, en raison de la part d'IA dans le développement de Kairos.
+F-Droid (merge request acceptée, en test) et les releases GitHub sont les deux
+canaux Android ; les mentions d'IzzyOnDroid ailleurs dans ce plan décrivent le
+projet initial (`docs/spec/publication.md` § Décisions).
+
 ---
 
 ## 6. Plateformes et distribution
@@ -450,9 +456,8 @@ l'installation par-dessus fonctionne pour eux. (Jalon M5 : migration faite, voir
   - présentation en trois points, avec la formule du score ;
   - captures d'écran ;
   - boutons de téléchargement par OS ;
-  - badges IzzyOnDroid, F-Droid et APK GitHub (au jalon M7, une fois
-    l'application référencée ; d'ici là, « Bientôt sur F-Droid et
-    IzzyOnDroid ») ;
+  - badges F-Droid et APK GitHub (une fois l'application publiée par
+    F-Droid ; d'ici là, « Bientôt sur F-Droid ») ;
   - note de première installation (macOS, SmartScreen) ;
   - lien vers le code et la licence.
 - Les liens de téléchargement reposent sur des **noms d'assets fixes**

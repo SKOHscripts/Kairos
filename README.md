@@ -58,7 +58,7 @@ bon fichier pour ton système. Tous les fichiers, et leurs sommes de contrôle
 
 | Système | Fichier | Remarque |
 |---|---|---|
-| Android 8 ou plus récent | `Kairos-android.apk` (bientôt F-Droid et IzzyOnDroid) | Le même APK signé partout : on passera d’une source à l’autre sans désinstaller. |
+| Android 8 ou plus récent | `Kairos-android.apk` (bientôt sur F-Droid) | Le même APK signé que sur F-Droid : on passera de l’un à l’autre sans désinstaller. |
 | Windows 10 ou 11 | `Kairos-windows-x64.msi` | Installation pour l’utilisateur courant, sans droit administrateur. |
 | Windows, poste verrouillé | `Kairos-windows-x64-portable.zip` | Dézipper, lancer `Kairos.exe` : rien n’est installé. |
 | Linux (x86-64) | `Kairos-linux-x64.deb`, ou `Kairos-linux-x64-portable.tar.gz` | |
@@ -72,8 +72,7 @@ bon fichier pour ton système. Tous les fichiers, et leurs sommes de contrôle
 - **Windows** : SmartScreen peut afficher « Windows a protégé votre
   ordinateur » : « Informations complémentaires », puis « Exécuter quand même ».
 - **Android** : autoriser l’installation depuis le navigateur ou le
-  gestionnaire de fichiers quand Android le demande (inutile depuis F-Droid ou
-  IzzyOnDroid).
+  gestionnaire de fichiers quand Android le demande (inutile depuis F-Droid).
 
 **Depuis Kairos 2.** Sur Android, Kairos 2 propose lui-même la mise à jour
 (« Mettre à jour », une dernière fois) : Kairos 3 s’installe par-dessus et
@@ -84,7 +83,7 @@ Données → « Importer une base Kairos 2.x »). L’ancienne base n’est jama
 modifiée. Ne sont pas repris : TimeTree et l’import GitLab, retirés de
 Kairos 3.
 
-**Mises à jour.** Sur Android, par F-Droid, IzzyOnDroid ou un nouvel APK. Sur
+**Mises à jour.** Sur Android, par F-Droid ou un nouvel APK. Sur
 le bureau, Kairos vérifie toutes les 6 heures s’il existe une nouvelle version
 et l’annonce dans un bandeau (« Télécharger » ouvre sa page) ; réglage dans
 Réglages → Mises à jour. La version web est toujours la dernière.
@@ -230,7 +229,7 @@ cd kmp
 - Charte graphique (Material Design 3, thème « miel ») :
   [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 - Versions, releases et paquets : [`docs/spec/distribution.md`](docs/spec/distribution.md) ;
-  F-Droid, IzzyOnDroid et page de téléchargement :
+  F-Droid et page de téléchargement :
   [`docs/spec/publication.md`](docs/spec/publication.md).
 - Règles de contribution : [`CLAUDE.md`](CLAUDE.md).
 
