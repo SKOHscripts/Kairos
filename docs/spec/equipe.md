@@ -20,14 +20,14 @@ Skills Claude Code du chantier : `.claude/skills/kairos-equipe/`,
 `.claude/skills/kairos-monte-carlo/` (et, transverses,
 `.claude/skills/kairos-spec/`, `.claude/skills/kairos-ecran/`)._
 
-État : **spécifiée le 2026-09-30, non implémentée.** Aucune ligne de code ne
-correspond encore à ces cinq specs : elles sont l'étape 1 du workflow
-(`CLAUDE.md`). Les specs existantes (`modele-donnees.md`,
-`navigation-theme.md`, `reglages.md`, `export-import.md`, `vue-jour.md`,
-`statistiques.md`) **ne sont pas modifiées** tant que le code ne l'est pas,
-pour rester bijectives ; chaque spec du chantier liste en fin de document
-les « Impacts sur les specs existantes » à reporter au moment de
-l'implémentation.
+État : **jalon E1 implémenté (2026-09-30)** : espaces, filtre
+`personalView`, migration `1.sqm`, export 2, `TeamSettings`, carte Équipe,
+sélecteur d'espace, coquille à deux espaces (écrans d'équipe en état vide).
+**E2 à E6 : spécifiés, non implémentés** ; ce qui les concerne ci-dessous
+et dans les quatre autres specs décrit du code à venir. Les specs
+existantes n'ont reçu que ce que E1 a réellement codé ; chaque spec du
+chantier liste en fin de document les « Impacts sur les specs existantes »
+qui restent à reporter aux jalons suivants.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -83,9 +83,10 @@ rien changer pour qui ne l'active pas.
   prévisions. Sans effet sur vos tâches personnelles. ».
 - L'interrupteur suit la règle des Réglages : il fait partie du formulaire
   et prend effet à « Enregistrer » (`reglages.md`).
-- Une fois activé, la carte montre aussi les réglages de l'équipe (nom de
-  l'équipe, nom du manager pour les paquets, et les paramètres de charge et
-  de prévision, `equipe-charge.md` et `equipe-simulation.md`).
+- Une fois activé **et enregistré**, la carte montre aussi « Nom de
+  l'équipe » et « Votre nom (dans les paquets) », chacun avec sa phrase
+  d'aide (puis, aux jalons suivants, les paramètres de charge et de
+  prévision, `equipe-charge.md` et `equipe-simulation.md`).
 - **Désactiver** l'espace demande confirmation (« Masquer l'espace Équipe ?
   Ses données sont conservées et reviendront si vous le réactivez. »). Rien
   n'est supprimé ; tout ce qui relève de l'équipe disparaît de l'interface,
@@ -106,7 +107,10 @@ rien changer pour qui ne l'active pas.
   du rail, sous le logo, quand il y a un rail ; sinon dans la barre
   d'application, à droite du titre. En largeur compacte (< 600 dp), les
   segments ne montrent que leurs icônes (`Person`, `Groups`), avec leur
-  libellé pour le lecteur d'écran, pour tenir à 360 dp à côté du titre.
+  libellé pour le lecteur d'écran, **quelle que soit la largeur** : le rail
+  (80 dp) n'a pas la place d'un libellé, et la barre du haut doit tenir à
+  360 dp à côté du titre. Le segment choisi se lit à son conteneur
+  (`secondaryContainer`).
 - Le sélecteur agit **aussitôt** (c'est de la navigation, pas un réglage) :
   il ne passe pas par « Enregistrer ».
 - Décision du 2026-09-30 (révisée le même jour) : un premier choix plaçait
@@ -185,7 +189,8 @@ d'équipe n'entre dans un calcul personnel.
   mis à part (`TeamIsolationTest.soloExportIsByteIdentical`).
 - Activer, créer deux membres et trois tâches d'équipe dont une assignée à
   « moi », désactiver : la vue Jour, la vue Semaine et les stats sont
-  celles d'avant l'activation (`TeamIsolationTest.disabledSpaceIsInvisible`).
+  celles d'avant l'activation (`TeamIsolationTest.personalSnapshotFollowsTheWrites`,
+  `TeamSpaceUiTest.teamTasksReachThePersonalDayOnlyWhenAssignedToMeAndTheModeIsOn`).
 - Réactiver : membres, tâches, journal et scénarios sont revenus
   inchangés.
 - Espace activé : une tâche d'équipe assignée à « moi » apparaît dans la
@@ -329,28 +334,66 @@ transaction (`equipe-backlog-suivi.md` § Journal) :
 
 ### Interface (`ui/team/`, `ui/navigation/`)
 
-- `Space` (enum `PERSONAL`, `TEAM`) et `TeamDestination` (enum `BOARD`,
-  `BACKLOG`, `MEMBERS`, `FORECAST`, `SETTINGS`), à côté de `Destination`,
-  inchangée. `KairosShell` tient `space` (`rememberSaveable`, et retenu
-  entre sessions par le réglage technique `lastSpace`) ; la coquille
-  (`AppShell`) reçoit la liste de destinations de l'espace courant.
-  `NavigationLayout.choose` est inchangé : rail, barre haute ou barre basse
-  selon les règles actuelles, cinq entrées au plus dans chaque espace.
-- Sélecteur : `SpaceSelector`, `SingleChoiceSegmentedButtonRow` MD3 à deux
-  segments, icônes `Person` et `Groups` (libellés à partir de 600 dp, icônes
-  seules en dessous avec `contentDescription`), affiché par `AppShell`
-  seulement si `teamModeEnabled` (valeur enregistrée) : dans l'en-tête du
-  `NavigationRail` sous le logo, sinon en action de la `TopAppBar` ; cible
-  48 dp ; appelle `onSpaceChange` de `KairosShell`. Espace désactivé alors qu'on était dans l'espace Équipe : retour à
-  l'espace Perso, destination Jour.
-- Écrans : `TeamBoardScreen`, `TeamBacklogScreen`, `TeamMembersScreen`
-  (+ `MemberSheet` : fiche, absences), `ForecastScreen` ; carte
-  `TeamSettingsCard` dans `SettingsScreen`.
-- Icônes à ajouter à `tools/make_icons.py` (jamais à la main) : `Groups`,
-  `GroupsFilled`, `Person`, `PersonAdd`, `ViewKanban`, `ViewKanbanFilled`,
-  `Stacks`, `StacksFilled` (backlog), `Monitoring`, `MonitoringFilled`
-  (prévisions), `SwapHoriz` (réaffecter), `EventBusy` (absence), `Casino`
-  (tirage), `Science` (scénario), `History` (journal), `Share` (paquet).
+- `NavEntry` (interface scellée : libellé, titre, icône, icône pleine),
+  implémentée par `Destination` (inchangée, cinq entrées) et par
+  `TeamDestination` (`BOARD`, `BACKLOG`, `MEMBERS`, `FORECAST`, `SETTINGS`,
+  `START = BOARD`) ; `Space` (`PERSONAL`, `TEAM`), `navigation/Space.kt`.
+  `AppShell` affiche les entrées de l'espace courant (paramètres `space`,
+  `teamDestination`, `teamModeEnabled`, `teamName`, `onNavigateTeam`,
+  `onSpaceChange`) ; en espace Perso, son rendu est celui d'avant (captures
+  `--self-test` identiques à l'octet). `NavigationLayout.choose` est
+  inchangé.
+- `KairosShell` suit `settings.team` seul (`distinctUntilChanged`) ; espace
+  initial `TEAM` si le mode est activé et `lastSpace == "team"`, sinon
+  `PERSONAL`. Changer d'espace ouvre `Destination.DAY` ou
+  `TeamDestination.BOARD` et écrit `lastSpace` par `updateSettings`. Mode
+  désactivé alors qu'on est dans l'espace Équipe : l'espace est dérivé
+  aussitôt à `PERSONAL` (aucune image intermédiaire), destination Jour, et
+  `lastSpace` repasse à `"personal"` pour qu'une réactivation ou un
+  redémarrage ne rouvre pas l'espace Équipe.
+- Titre de page en espace Équipe : `title_team_named` = « <nom saisi> ·
+  <titre> » si un nom d'équipe est renseigné (« Équipe Plateforme · Suivi »),
+  sinon le titre seul ; « À propos et guide » n'est jamais préfixé. Avec le
+  sélecteur dans la barre du haut, le titre passe sur deux lignes au plus,
+  avec ellipse.
+- `SpaceSelector` (`ui/team/`) : `SingleChoiceSegmentedButtonRow`, groupe
+  annoncé « Espace », deux segments de 48 × 48 dp, icônes seules
+  (`contentDescription` « Perso » / « Équipe »), sans la coche du
+  composant MD3 (elle élargissait chaque segment à 70 dp). Affiché par
+  `AppShell` seulement si `teamModeEnabled` : sous le logo dans l'en-tête du
+  `NavigationRail` (le rail s'élargit alors d'environ 80 à 103 dp, en mode
+  équipe seulement), sinon en action de la `TopAppBar`.
+- `TeamSettingsCard` (`ui/settings/`), après `AppearanceCard` : titre,
+  phrase, `SwitchRow` du champ `team.enabled`, puis, si le mode enregistré
+  est activé, `SettingInput` de `team.name` et `team.managerName`.
+  Désactivation : `SettingsScreen.save()` valide, puis, si le mode
+  enregistré passe de vrai à faux, ouvre un `AlertDialog` (« Masquer »,
+  « Annuler ») avant d'écrire ; « Annuler » n'écrit rien et laisse le
+  formulaire modifié. Le message « Réglages enregistrés. » est émis avant
+  l'écriture, l'écran quittant la composition dès que le mode tombe.
+- `TeamScreens.kt` (`ui/team/`) : `TeamDestinationScreen` aiguille vers
+  `TeamBoardScreen`, `TeamBacklogScreen`, `TeamMembersScreen`,
+  `ForecastScreen` (jalon E1 : état vide centré, 720 dp au plus : icône,
+  titre, phrase de ce que fera l'écran, « Disponible dans une prochaine
+  version. ») ou `SettingsScreen` (le même qu'en espace Perso).
+- Lecteurs : `DayScreen`, `WeekScreen`, `NotesScreen`, `StatsScreen`,
+  `ChronoWatcher` et `ChronoSync` (Android) lisent `personalSnapshot` ;
+  restent sur `snapshot` le thème (`KairosApp`), `Replace.kt`,
+  `SettingsScreen`, `Updates.kt` (réglages seuls), `WebServices.kt`,
+  `AndroidServices.kt` (bilan de migration) et la coquille.
+- Icônes ajoutées au jalon E1 (`tools/make_icons.py`, `KairosIcons.kt`
+  regénéré) : `Groups`, `GroupsFilled`, `Person`, `ViewKanban`,
+  `ViewKanbanFilled`, `Stacks`, `StacksFilled`, `Monitoring`,
+  `MonitoringFilled`. Prévues aux jalons suivants : `PersonAdd`,
+  `SwapHoriz` (réaffecter), `EventBusy` (absence), `Casino` (tirage),
+  `Science` (scénario), `History` (journal).
+- Tests : `WorkspacesTest`, `SettingsFormTest` (`core`),
+  `TeamIsolationTest` (`data`), `TeamSpaceUiTest` (`desktopApp` : mode solo
+  sans sélecteur ; activation, espace Équipe et retour ; confirmation de la
+  désactivation ; tâches d'équipe dans la vue Jour seulement assignées à
+  « moi » et mode activé). Auto-test : captures `desktop-settings-full.png`
+  (solo), `desktop-team.png`, `desktop-team-narrow.png` (360 dp),
+  `desktop-team-settings.png`.
 - Textes : toutes les chaînes en `values/` **et** `values-en/`, apostrophe
   typographique (`StringsParityTest`).
 
@@ -425,16 +468,19 @@ Ouvertes (relevées en implémentant E1) :
   prennent l'espace et l'assigné de la mère (règle déjà écrite dans
   `equipe-backlog-suivi.md` § Assignation).
 
-### Impacts sur les specs existantes (à reporter à l'implémentation)
+### Impacts sur les specs existantes
 
-- `modele-donnees.md` : champs de `Task`, nouvelles tables, migration
-  `1.sqm`, réglages ajoutés, opérations du dépôt.
-- `navigation-theme.md` : espaces, sélecteur, destinations d'équipe,
-  nouvelles icônes.
-- `reglages.md` : carte Équipe et ses champs.
-- `export-import.md` : `formatVersion` 2 et règle d'isolation.
-- `vue-jour.md`, `vue-semaine.md`, `statistiques.md`,
-  `temps-reel-chrono.md` : lecture de `personalView`, marque « Équipe ».
-- `architecture.md` : paquets `core/team/` et `ui/team/`.
-- `docs/spec/README.md` : lignes de l'index passées d'« à implémenter » à
-  leur jalon.
+Reportés au jalon E1 : `modele-donnees.md` (champs de `Task`,
+`TeamMember`, `Settings.team`, `team_member`, migration `1.sqm`,
+`personalSnapshot`), `export-import.md` (`formatVersion` 2 et règle
+d'isolation), `recurrence.md` (espace et assigné des occurrences),
+`navigation-theme.md` (espaces, icônes), `reglages.md` (carte Équipe),
+`distribution.md` (captures de l'auto-test), `architecture.md` (`core/team/`,
+`ui/team/`), `vue-jour.md`, `vue-semaine.md`, `notes-capture.md`,
+`statistiques.md`, `temps-reel-chrono.md` (lecture de `personalSnapshot`),
+index `docs/spec/README.md`.
+
+Restent à reporter : `modele-donnees.md` (tables et colonnes des jalons
+E2-E6, opérations d'équipe du dépôt), `vue-jour.md` (marque « Équipe » des
+tâches assignées à moi, E3), `reglages.md` (réglages de charge et de
+simulation, E3-E5).

@@ -475,4 +475,39 @@
     <string name="a11y_collapsed">replié</string>
     <string name="stats_percent">%1$d %</string>
     <string name="notes_capture_hint_touch">Rien d’autre à décider maintenant : tu la traiteras plus tard.</string>
+
+    <!-- Espace Équipe (docs/spec/equipe.md) -->
+    <string name="space_selector">Espace</string>
+    <string name="space_personal">Perso</string>
+    <string name="space_team">Équipe</string>
+    <string name="nav_team_board">Suivi</string>
+    <string name="nav_team_backlog">Backlog</string>
+    <string name="nav_team_members">Équipe</string>
+    <string name="nav_team_forecast">Prévisions</string>
+    <string name="nav_team_settings">Réglages</string>
+    <string name="title_team_board">Suivi</string>
+    <string name="title_team_backlog">Backlog</string>
+    <string name="title_team_members">Équipe</string>
+    <string name="title_team_forecast">Prévisions</string>
+    <string name="title_team_settings">Réglages</string>
+    <string name="title_team_named">%1$s · %2$s</string>
+    <string name="team_soon">Disponible dans une prochaine version.</string>
+    <string name="team_board_empty_title">Suivi de l’équipe</string>
+    <string name="team_board_empty_body">Le tableau de l’équipe, par membre et par état, s’affichera ici.</string>
+    <string name="team_backlog_empty_title">Backlog de l’équipe</string>
+    <string name="team_backlog_empty_body">Les tâches d’équipe non assignées, triées par score, attendront ici d’être distribuées.</string>
+    <string name="team_members_empty_title">Membres de l’équipe</string>
+    <string name="team_members_empty_body">Les membres, leur capacité et leur charge s’afficheront ici.</string>
+    <string name="team_forecast_empty_title">Prévisions</string>
+    <string name="team_forecast_empty_body">Simulations et scénarios « Et si… ? » diront ici si les échéances de l’équipe tiennent.</string>
+    <string name="settings_section_team">Équipe</string>
+    <string name="setting_team_enabled">Gestion d’équipe</string>
+    <string name="setting_team_enabled_help">Gérer une équipe : membres, backlog partagé, charge et prévisions. Sans effet sur vos tâches personnelles.</string>
+    <string name="setting_team_name">Nom de l’équipe</string>
+    <string name="setting_team_name_help">Affiché dans le titre des écrans de l’espace Équipe.</string>
+    <string name="setting_team_manager">Votre nom (dans les paquets)</string>
+    <string name="setting_team_manager_help">Signe les paquets que vous échangerez avec votre équipe.</string>
+    <string name="team_disable_title">Masquer l’espace Équipe ?</string>
+    <string name="team_disable_body">Ses données sont conservées et reviendront si vous le réactivez.</string>
+    <string name="team_disable_confirm">Masquer</string>
 </resources>

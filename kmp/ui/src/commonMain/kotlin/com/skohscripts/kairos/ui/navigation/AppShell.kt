@@ -48,6 +48,7 @@ import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_back
@@ -58,6 +59,9 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.icons.KairosLogo
 import com.skohscripts.kairos.ui.screens.AboutScreen
 import com.skohscripts.kairos.ui.screens.DestinationScreen
+import com.skohscripts.kairos.ui.screens.TeamDestinationScreen
+import com.skohscripts.kairos.ui.team.SpaceSelector
+import com.skohscripts.kairos.ui.generated.resources.title_team_named
 import com.skohscripts.kairos.core.stats.TaskStats
 import com.skohscripts.kairos.ui.day.Dates
 import com.skohscripts.kairos.ui.generated.resources.title_day_other
@@ -79,10 +83,19 @@ import org.jetbrains.compose.resources.stringResource
 fun AppShell(
     layout: NavigationLayout,
     services: AppServices,
+    /** Espace courant ; [Space.TEAM] seulement si [teamModeEnabled]. */
+    space: Space,
     destination: Destination,
+    teamDestination: TeamDestination,
+    /** Gestion d'équipe activée (valeur enregistrée) : seul cas où le sélecteur d'espace apparaît. */
+    teamModeEnabled: Boolean,
+    /** Nom de l'équipe (éventuellement vide), préfixe du titre dans l'espace Équipe. */
+    teamName: String,
     aboutOpen: Boolean,
     nav: NavState,
     onNavigate: (Destination) -> Unit,
+    onNavigateTeam: (TeamDestination) -> Unit,
+    onSpaceChange: (Space) -> Unit,
     onOpenDay: (LocalDate?) -> Unit,
     onOpenAbout: () -> Unit,
     onCloseAbout: () -> Unit,
@@ -103,16 +116,35 @@ fun AppShell(
     val language = Locale.current.language
     val today = services.clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     val day = nav.day
+    // Destinations de l'espace courant : la coquille ne connaît que [NavEntry].
+    val team = space == Space.TEAM
+    val entries: List<NavEntry> = if (team) TeamDestination.entries else Destination.entries
+    val current: NavEntry = if (team) teamDestination else destination
+    val selected: NavEntry? = current.takeUnless { aboutOpen }
+    val onSelect: (NavEntry) -> Unit = {
+        when (it) {
+            is Destination -> onNavigate(it)
+            is TeamDestination -> onNavigateTeam(it)
+        }
+    }
+    val selector: (@Composable () -> Unit)? = if (teamModeEnabled) {
+        { SpaceSelector(space, onSpaceChange) }
+    } else {
+        null
+    }
     // Titre fidèle à ce qui est affiché : « Aujourd'hui » seulement si c'est vrai (Kairos 2).
     val title = when {
         aboutOpen -> stringResource(Res.string.title_about)
+        team && teamName.isNotBlank() -> stringResource(Res.string.title_team_named, teamName, stringResource(current.title))
+        team -> stringResource(current.title)
         destination == Destination.DAY && day != null && day != today -> stringResource(Res.string.title_day_other, Dates.long(day, language))
         destination == Destination.WEEK -> stringResource(Res.string.title_week_of, Dates.long(TaskStats.monday(nav.week ?: today), language))
         else -> stringResource(destination.title)
     }
     val topBar: @Composable () -> Unit = {
         TopAppBar(
-            title = { Text(title) },
+            // Avec le sélecteur d'espace à côté, le titre tient sur deux lignes au plus.
+            title = { if (selector != null) Text(title, maxLines = 2, overflow = TextOverflow.Ellipsis) else Text(title) },
             navigationIcon = {
                 if (aboutOpen) {
                     IconButton(onClick = onCloseAbout) {
@@ -123,6 +155,8 @@ fun AppShell(
                     Image(KairosLogo, contentDescription = null, modifier = Modifier.padding(start = 16.dp).size(28.dp))
                 }
             },
+            // Sans rail, le sélecteur d'espace est à droite du titre ; avec un rail, il est dans son en-tête.
+            actions = { if (layout != NavigationLayout.RAIL) selector?.invoke() },
         )
     }
     val content: @Composable (Modifier) -> Unit = { modifier ->
@@ -131,7 +165,11 @@ fun AppShell(
             CompositionLocalProvider(LocalMessages provides showMessage) { ShortcutBanner(services) }
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 CompositionLocalProvider(LocalMessages provides showMessage) {
-                    if (aboutOpen) AboutScreen() else DestinationScreen(destination, services, nav, onOpenDay, onNavigate, onOpenAbout)
+                    when {
+                        aboutOpen -> AboutScreen()
+                        team -> TeamDestinationScreen(teamDestination, services, onOpenAbout)
+                        else -> DestinationScreen(destination, services, nav, onOpenDay, onNavigate, onOpenAbout)
+                    }
                 }
                 AlertBanners(alerts, Modifier.align(Alignment.BottomCenter))
             }
@@ -140,19 +178,19 @@ fun AppShell(
 
     when (layout) {
         NavigationLayout.RAIL -> Row(Modifier.fillMaxSize()) {
-            KairosNavigationRail(destination.takeUnless { aboutOpen }, onNavigate)
+            KairosNavigationRail(entries, selected, onSelect, selector)
             Scaffold(topBar = topBar, snackbarHost = { SnackbarHost(snackbar) }) { padding -> content(Modifier.padding(padding)) }
         }
         NavigationLayout.BOTTOM_BAR -> Scaffold(
             topBar = topBar,
             snackbarHost = { SnackbarHost(snackbar) },
-            bottomBar = { KairosNavigationBar(destination.takeUnless { aboutOpen }, onNavigate) },
+            bottomBar = { KairosNavigationBar(entries, selected, onSelect) },
         ) { padding -> content(Modifier.padding(padding)) }
         NavigationLayout.TOP_BAR -> Scaffold(
             topBar = {
                 Column {
                     topBar()
-                    KairosTopNavigation(destination.takeUnless { aboutOpen }, onNavigate)
+                    KairosTopNavigation(entries, selected, onSelect)
                 }
             },
             snackbarHost = { SnackbarHost(snackbar) },
@@ -161,7 +199,12 @@ fun AppShell(
 }
 
 @Composable
-private fun KairosNavigationRail(selected: Destination?, onNavigate: (Destination) -> Unit) {
+private fun KairosNavigationRail(
+    entries: List<NavEntry>,
+    selected: NavEntry?,
+    onNavigate: (NavEntry) -> Unit,
+    spaceSelector: (@Composable () -> Unit)?,
+) {
     NavigationRail(
         header = {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(vertical = 12.dp)) {
@@ -172,11 +215,16 @@ private fun KairosNavigationRail(selected: Destination?, onNavigate: (Destinatio
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                 )
+                // Mode équipe activé seulement : en mode solo, l'en-tête reste celui d'avant.
+                spaceSelector?.let {
+                    Spacer(Modifier.height(12.dp))
+                    Box(Modifier.padding(horizontal = 4.dp)) { it() }
+                }
             }
         },
     ) {
         Spacer(Modifier.height(8.dp))
-        Destination.entries.forEach { dest ->
+        entries.forEach { dest ->
             val isSelected = dest == selected
             NavigationRailItem(
                 selected = isSelected,
@@ -189,9 +237,9 @@ private fun KairosNavigationRail(selected: Destination?, onNavigate: (Destinatio
 }
 
 @Composable
-private fun KairosNavigationBar(selected: Destination?, onNavigate: (Destination) -> Unit) {
+private fun KairosNavigationBar(entries: List<NavEntry>, selected: NavEntry?, onNavigate: (NavEntry) -> Unit) {
     NavigationBar {
-        Destination.entries.forEach { dest ->
+        entries.forEach { dest ->
             val isSelected = dest == selected
             NavigationBarItem(
                 selected = isSelected,
@@ -205,7 +253,7 @@ private fun KairosNavigationBar(selected: Destination?, onNavigate: (Destination
 
 /** Barre horizontale compacte (bureau/web étroit) : pastilles, l'active en `secondaryContainer`. */
 @Composable
-private fun KairosTopNavigation(selected: Destination?, onNavigate: (Destination) -> Unit) {
+private fun KairosTopNavigation(entries: List<NavEntry>, selected: NavEntry?, onNavigate: (NavEntry) -> Unit) {
     val description = stringResource(Res.string.nav_navigation)
     Surface(color = MaterialTheme.colorScheme.surface) {
         Row(
@@ -215,7 +263,7 @@ private fun KairosTopNavigation(selected: Destination?, onNavigate: (Destination
                 .horizontalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            Destination.entries.forEach { dest ->
+            entries.forEach { dest ->
                 val isSelected = dest == selected
                 FilterChip(
                     selected = isSelected,

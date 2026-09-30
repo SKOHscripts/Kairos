@@ -14,6 +14,7 @@ import com.skohscripts.kairos.ui.theme.KairosTheme
 import androidx.compose.ui.unit.Density
 import com.skohscripts.kairos.core.AppVersion
 import com.skohscripts.kairos.core.KairosBuild
+import com.skohscripts.kairos.core.model.TeamSettings
 import com.skohscripts.kairos.ui.KairosApp
 import com.skohscripts.kairos.ui.Platform
 import org.jetbrains.skia.EncodedImageFormat
@@ -46,6 +47,17 @@ object SelfTest {
             }
         }
         val chrono: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { timed } }
+        // Troisième base : gestion d'équipe activée, ouverte dans l'espace Équipe (docs/spec/equipe.md).
+        val team = runBlocking {
+            DesktopServices.open(dataDir, inMemory = true).also { s ->
+                val settings = s.repository.snapshot.value.settings
+                s.repository.updateSettings(
+                    settings.copy(team = TeamSettings(enabled = true, name = "Équipe Plateforme", managerName = "Claire", lastSpace = TeamSettings.SPACE_TEAM)),
+                )
+            }
+        }
+        val teamApp: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { team } }
+        val teamSettings: @Composable () -> Unit = { KairosTheme { Surface { SettingsScreen(team) {} } } }
         val notes: @Composable () -> Unit = { KairosTheme { Surface { NotesScreen(services) {} } } }
         val week: @Composable () -> Unit = { KairosTheme { Surface { WeekScreen(services, NavState()) {} } } }
         val stats: @Composable () -> Unit = { KairosTheme { Surface { StatsScreen(timed) } } }
@@ -54,6 +66,7 @@ object SelfTest {
             Shot("wide", 1200, 1000, app),
             Shot("narrow", 420, 1000, app),
             Shot("settings", 900, 1000, settings),
+            Shot("settings-full", 900, 4800, settings),
             Shot("about", 900, 1000, about),
             Shot("day-full", 1200, 3000, app),
             Shot("day-full-narrow", 420, 5000, app),
@@ -62,6 +75,10 @@ object SelfTest {
             Shot("week", 1200, 1000, week),
             Shot("week-narrow", 420, 2400, week),
             Shot("stats", 1200, 1600, stats),
+            // Espace Équipe (état vide du jalon E1) : large, puis 360 dp (téléphone) avec le sélecteur dans la barre.
+            Shot("team", 1200, 1000, teamApp),
+            Shot("team-narrow", 360, 800, teamApp),
+            Shot("team-settings", 900, 4800, teamSettings),
         )
         for ((name, width, height, content) in shots) {
             val png = render(width, height, content)

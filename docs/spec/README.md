@@ -39,13 +39,14 @@ retiré (TimeTree, import GitLab, base pilotage, service systemd : plan § 2.2).
 | [`publication.md`](publication.md) | Fiches Fastlane FR/EN et leurs captures, recette et vérification F-Droid (APK reproductible signé par nous), page de téléchargement GitHub Pages. | M6 |
 | [`export-import.md`](export-import.md) | Export et import JSON, sauvegardes, données de la version web (OPFS, fichier lié). | M1 |
 
-## Chantier « Espace Équipe » (spécifié, à implémenter)
+## Chantier « Espace Équipe » (en cours)
 
-Specs écrites le 2026-09-30 (jalon E0), **sans code correspondant** pour
-l'instant : elles sont l'étape « spécifier d'abord » du chantier. Elles ne
-modifient pas les specs ci-dessus ; chacune liste les impacts à y reporter
-au moment de l'implémentation. Skills Claude Code associées :
-`.claude/skills/kairos-equipe/` et `.claude/skills/kairos-monte-carlo/`.
+Specs écrites le 2026-09-30 (jalon E0). **Jalon E1 implémenté** (fondations :
+espaces, vue Perso, migration, export 2, carte Équipe, sélecteur, coquille) ;
+**E2 à E6 spécifiés, non implémentés** : ce qu'elles en disent décrit du
+code à venir, et chacune liste les impacts à reporter dans les specs
+ci-dessus. Skills Claude Code associées : `.claude/skills/kairos-equipe/` et
+`.claude/skills/kairos-monte-carlo/`.
 
 | Spec | Couvre | Jalon |
 |---|---|---|

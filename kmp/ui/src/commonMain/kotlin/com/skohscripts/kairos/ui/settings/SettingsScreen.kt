@@ -64,6 +64,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.KairosBuild
 import com.skohscripts.kairos.core.model.KairosSnapshot
+import com.skohscripts.kairos.core.model.Settings
+import com.skohscripts.kairos.ui.generated.resources.team_disable_body
+import com.skohscripts.kairos.ui.generated.resources.team_disable_confirm
+import com.skohscripts.kairos.ui.generated.resources.team_disable_title
 import com.skohscripts.kairos.data.ExportCodec
 import com.skohscripts.kairos.data.ImportException
 import com.skohscripts.kairos.ui.app.AppServices
@@ -114,18 +118,27 @@ fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
     val scope = rememberCoroutineScope()
     val messages = LocalMessages.current
 
+    // Réglages valides en attente de confirmation : masquer l'espace Équipe demande de confirmer.
+    var confirmHide by remember(current) { mutableStateOf<Settings?>(null) }
+
+    fun write(settings: Settings) {
+        scope.launch {
+            // Le texte d'abord : masquer l'espace Équipe retire cet écran de la composition dès l'écriture faite.
+            val done = getString(Res.string.settings_saved)
+            services.repository.updateSettings(settings)
+            messages(done)
+        }
+    }
+
     fun save() {
         val result = SettingsForm.validate(values, current)
         errors = result.fieldErrors
         general = result.general
         val settings = result.settings
-        scope.launch {
-            if (settings == null) {
-                messages(getString(Res.string.settings_not_saved))
-            } else {
-                services.repository.updateSettings(settings)
-                messages(getString(Res.string.settings_saved))
-            }
+        when {
+            settings == null -> scope.launch { messages(getString(Res.string.settings_not_saved)) }
+            current.teamModeEnabled && !settings.teamModeEnabled -> confirmHide = settings
+            else -> write(settings)
         }
     }
 
@@ -146,6 +159,10 @@ fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
                     values = values + ("themeColor" to it)
                     errors = errors - "themeColor"
                 }
+                TeamSettingsCard(values, errors, savedEnabled = current.teamModeEnabled) { key, value ->
+                    values = values + (key to value)
+                    errors = errors - key
+                }
                 services.updates?.let { updates ->
                     UpdatesCard(updates, values["updateCheckEnabled"].orEmpty()) { values = values + ("updateCheckEnabled" to it) }
                 }
@@ -162,6 +179,21 @@ fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
             }
         }
         SaveBar(dirty, onReset = { values = saved; errors = emptyMap(); general = null }, onSave = ::save)
+    }
+
+    confirmHide?.let { settings ->
+        AlertDialog(
+            onDismissRequest = { confirmHide = null },
+            title = { Text(stringResource(Res.string.team_disable_title)) },
+            text = { Text(stringResource(Res.string.team_disable_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmHide = null
+                    write(settings)
+                }) { Text(stringResource(Res.string.team_disable_confirm)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmHide = null }) { Text(stringResource(Res.string.action_cancel)) } },
+        )
     }
 }
 

@@ -92,7 +92,7 @@ import kotlin.math.round
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun StatsScreen(services: AppServices) {
-    val snapshot by services.repository.snapshot.collectAsState()
+    val snapshot by services.repository.personalSnapshot.collectAsState()
     val timeZone = remember { TimeZone.currentSystemDefault() }
     val now = services.clock.now()
     val today = now.toLocalDateTime(timeZone).date

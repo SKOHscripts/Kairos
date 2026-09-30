@@ -64,6 +64,8 @@ un autre jour.
 
 ## 2. Solution technique
 
+Depuis le jalon E1 de l'espace Équipe, l'écran de la vue Semaine lit `repository.personalSnapshot` (la vue Perso, `equipe.md` § Espaces et filtre central) et non la base complète ; sans tâche d'équipe, c'est la même instance.
+
 - `WeekView.build(snapshot, unJour, maintenant, fuseau, filtre)` : lundi de
   la semaine (`TaskStats.monday`), `days` (`WeekDay` : `tasks` = à faire
   filtrées dont `deadline` est ce jour, triées `(priorité absente,

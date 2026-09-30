@@ -114,7 +114,10 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   (deep work) ; jalon M3 (chrono) : `PlayArrow`, `Stop`, `Close` (fermer une
   alerte), `NotificationsActive` ; jalon M4 : `ChevronLeft` (semaine
   précédente) ; issue #45 : `Check` (pastille de couleur choisie) ; issue
-  #46 : `InstallDesktop` (raccourci d'une copie portable).
+  #46 : `InstallDesktop` (raccourci d'une copie portable) ; espace Équipe
+  (jalon E1, `equipe.md`) : `Groups`, `Person`, `ViewKanban`, `Stacks`,
+  `Monitoring` (et les variantes pleines de `Groups`, `ViewKanban`,
+  `Stacks`, `Monitoring`).
   `Construction` (écran « En construction ») est retiré au
   jalon M5, plus rien n'étant en construction.
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`
@@ -128,7 +131,11 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   dépendent (la vue Jour masque les raccourcis clavier sur Android).
 - `Destination` (enum, dans l'ordre) : `NOTES`, `DAY`, `WEEK`, `STATS`,
   `SETTINGS`, chacune avec libellé court, titre de page, icône et icône
-  pleine. `START = DAY`.
+  pleine (`NavEntry`). `START = DAY`. Mode « gestion d'équipe » activé :
+  un second espace, ses destinations (`TeamDestination`) et le sélecteur
+  d'espace en tête du rail ou dans la barre du haut (`equipe.md`
+  § Interface) ; désactivé, la coquille est celle décrite ici, à l'octet
+  près.
 - `NavigationLayout.choose(platform, largeur)` : `RAIL` si largeur ≥ 600 dp
   (`COMPACT_WIDTH_LIMIT`), sinon `BOTTOM_BAR` sur Android, `TOP_BAR` ailleurs.
 - `KairosApp(platform, initialDestination = Destination.START,

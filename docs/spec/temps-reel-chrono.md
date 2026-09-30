@@ -88,6 +88,8 @@ l'APK était en arrière-plan ; Kairos 3 les confie au système.
 
 ## 2. Solution technique
 
+Depuis le jalon E1 de l'espace Équipe, la veille du chrono (`ChronoWatcher`) et la notification Android (`ChronoSync`) lit `repository.personalSnapshot` (la vue Perso, `equipe.md` § Espaces et filtre central) et non la base complète ; sans tâche d'équipe, c'est la même instance.
+
 ### Calcul (`core`, pur)
 
 - `TimeTracking` (portage de `app/tasks_time.py`) : `sessionMinutes`

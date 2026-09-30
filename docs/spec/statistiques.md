@@ -68,6 +68,8 @@ marqué « peu fiable » (icône d'alerte), mais reste affiché.
 
 ## 2. Solution technique
 
+Depuis le jalon E1 de l'espace Équipe, l'écran Stats lit `repository.personalSnapshot` (la vue Perso, `equipe.md` § Espaces et filtre central) et non la base complète ; sans tâche d'équipe, c'est la même instance.
+
 ### Calcul (`TaskStats`, `core`)
 
 Pur : tâches, sessions, jour, instant, fuseau et réglages en paramètres.

@@ -22,11 +22,11 @@ import org.jetbrains.compose.resources.StringResource
  * accède depuis Réglages (docs/spec/navigation-theme.md).
  */
 enum class Destination(
-    val label: StringResource,
-    val title: StringResource,
-    val icon: () -> ImageVector,
-    val selectedIcon: () -> ImageVector,
-) {
+    override val label: StringResource,
+    override val title: StringResource,
+    override val icon: () -> ImageVector,
+    override val selectedIcon: () -> ImageVector,
+) : NavEntry {
     NOTES(Res.string.nav_notes, Res.string.title_notes, { KairosIcons.Notes }, { KairosIcons.NotesFilled }),
     DAY(Res.string.nav_day, Res.string.title_day, { KairosIcons.Today }, { KairosIcons.TodayFilled }),
     WEEK(Res.string.nav_week, Res.string.title_week, { KairosIcons.DateRange }, { KairosIcons.DateRangeFilled }),
