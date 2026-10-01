@@ -3,14 +3,17 @@ package com.skohscripts.kairos.ui.settings
 import com.skohscripts.kairos.ui.app.heading
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -19,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.settings.FieldError
 import com.skohscripts.kairos.core.settings.FieldErrorKind
@@ -114,6 +118,7 @@ import com.skohscripts.kairos.ui.generated.resources.setting_workday_end
 import com.skohscripts.kairos.ui.generated.resources.setting_workday_end_help
 import com.skohscripts.kairos.ui.generated.resources.setting_workday_start
 import com.skohscripts.kairos.ui.generated.resources.setting_workday_start_help
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -181,19 +186,61 @@ private val SECTIONS = listOf(
 )
 
 /**
+ * Carte de section des Réglages (docs/spec/densite.md § Réglages) : carte
+ * « filled » (`surfaceContainerLow`), sans contour ni ombre, marge intérieure
+ * [KairosSpacing.l]. Les champs, qui portent leur propre contour, s'y
+ * détachent sans empiler un second contour autour d'eux. [spacing] sépare les
+ * éléments de la carte : `l` entre champs, `m` pour une carte de texte et de
+ * boutons.
+ */
+@Composable
+internal fun SettingsCard(
+    modifier: Modifier = Modifier,
+    spacing: Dp = KairosSpacing.l,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(0.dp),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(spacing), content = content)
+    }
+}
+
+/** Carte de section cliquable (« À propos et guide ») : mêmes couleurs, sans marge intérieure (la ligne a la sienne). */
+@Composable
+internal fun SettingsClickableCard(onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    Card(
+        onClick = onClick,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(0.dp),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(content = content)
+    }
+}
+
+/** Titre de carte en `titleMedium` (annoncé comme titre) et, facultatif, sa phrase d'introduction, groupés (`s`). */
+@Composable
+internal fun SettingsCardHeader(title: String, body: String? = null) {
+    Column(verticalArrangement = Arrangement.spacedBy(KairosSpacing.s)) {
+        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
+        body?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+    }
+}
+
+/**
  * Les cartes du formulaire des Réglages (docs/spec/reglages.md) : une
- * carte à contour par section, un champ par réglage, l'erreur du champ à la
+ * carte « filled » par section, un champ par réglage, l'erreur du champ à la
  * place de son aide. L'état (textes, erreurs) appartient à l'écran.
  */
 @Composable
 internal fun SettingsFormCards(values: Map<String, String>, errors: Map<String, FieldError>, onChange: (String, String) -> Unit) {
     SECTIONS.forEach { section ->
-        OutlinedCard(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(section.title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
-                section.body?.let { Text(stringResource(it), style = MaterialTheme.typography.bodyMedium) }
-                section.keys.forEach { key -> SettingInput(key, values[key].orEmpty(), errors[key]) { onChange(key, it) } }
-            }
+        SettingsCard {
+            SettingsCardHeader(stringResource(section.title), section.body?.let { stringResource(it) })
+            section.keys.forEach { key -> SettingInput(key, values[key].orEmpty(), errors[key]) { onChange(key, it) } }
         }
     }
 }
@@ -221,9 +268,21 @@ internal fun SettingInput(key: String, value: String, error: FieldError?, onChan
             FieldKind.DECIMAL -> KeyboardOptions(keyboardType = KeyboardType.Decimal)
             else -> KeyboardOptions.Default
         },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = if (field.kind == FieldKind.INT || field.kind == FieldKind.DECIMAL) {
+            // widthIn AVANT fillMaxWidth : l'ordre inverse laisse la contrainte entrante (pleine largeur) l'emporter sur la borne.
+            Modifier.widthIn(max = NUMBER_FIELD_MAX_WIDTH).fillMaxWidth()
+        } else {
+            Modifier.fillMaxWidth()
+        },
     )
 }
+
+/**
+ * Largeur maximale d'un champ numérique (un nombre à quelques chiffres n'a pas
+ * à s'étirer sur 700 dp) ; son aide, `supportingText`, suit la même largeur. Les
+ * champs de texte libre et les interrupteurs gardent la pleine largeur.
+ */
+internal val NUMBER_FIELD_MAX_WIDTH = 320.dp
 
 /** Interrupteur MD3 dont toute la ligne est cliquable (48 dp, lu comme un seul contrôle). */
 @Composable

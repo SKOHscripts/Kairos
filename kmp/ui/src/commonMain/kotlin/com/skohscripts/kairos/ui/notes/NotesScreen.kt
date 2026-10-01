@@ -79,6 +79,8 @@ import com.skohscripts.kairos.ui.generated.resources.notes_see_task
 import com.skohscripts.kairos.ui.generated.resources.notes_to_task
 import com.skohscripts.kairos.ui.generated.resources.notes_to_task_desc
 import com.skohscripts.kairos.ui.icons.KairosIcons
+import com.skohscripts.kairos.ui.theme.KairosListSectionExtra
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -104,13 +106,14 @@ fun NotesScreen(services: AppServices, onOpenTasks: () -> Unit) {
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(16.dp),
+            // Notes d'une même liste : `s` ; un titre de section ajoute la différence pour totaliser `xl`.
+            verticalArrangement = Arrangement.spacedBy(KairosSpacing.s),
+            contentPadding = PaddingValues(KairosSpacing.l),
             modifier = Modifier.widthIn(max = 840.dp).fillMaxSize(),
         ) {
             item { NoteCapture { body -> scope.launch { repository.createNote(body) } } }
             item {
-                Column(Modifier.padding(top = 8.dp)) {
+                Column(Modifier.padding(top = KairosListSectionExtra)) {
                     Text("${stringResource(Res.string.notes_open_title)} (${open.size})", style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
                     if (open.isEmpty()) Text(stringResource(Res.string.notes_empty), style = MaterialTheme.typography.bodySmall)
                 }
@@ -134,7 +137,7 @@ fun NotesScreen(services: AppServices, onOpenTasks: () -> Unit) {
             }
             if (done.isNotEmpty()) {
                 item {
-                    Column(Modifier.padding(top = 8.dp)) {
+                    Column(Modifier.padding(top = KairosListSectionExtra)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth().disclosure(doneOpen, heading = true) { doneOpen = !doneOpen }.padding(vertical = 6.dp),

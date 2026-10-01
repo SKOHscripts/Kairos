@@ -83,6 +83,7 @@ import com.skohscripts.kairos.ui.generated.resources.stats_types_row
 import com.skohscripts.kairos.ui.generated.resources.stats_types_title
 import com.skohscripts.kairos.ui.generated.resources.stats_unreliable
 import com.skohscripts.kairos.ui.icons.KairosIcons
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
@@ -107,7 +108,7 @@ fun StatsScreen(services: AppServices) {
     val stats = remember(snapshot, today) { TaskStats.dashboard(snapshot.tasks, snapshot.workSessions, today, snapshot.settings, now, timeZone) }
 
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
-        Column(Modifier.widthIn(max = 960.dp).fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(Modifier.widthIn(max = 960.dp).fillMaxWidth().padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.m)) {
             if (!stats.hasAnyData) {
                 Text(stringResource(Res.string.stats_empty), style = MaterialTheme.typography.bodyLarge)
                 return@Column
@@ -177,10 +178,10 @@ fun StatsScreen(services: AppServices) {
             Panel(KairosIcons.Inbox, stringResource(Res.string.stats_flow_title), stringResource(Res.string.stats_flow_hint)) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     val tile = Modifier.weight(1f).widthIn(min = 150.dp)
-                    StatTile(stats.flow.openCount.toString(), stringResource(Res.string.stats_flow_wip), tile)
-                    StatTile(stats.flow.medianAgeDays?.toString() ?: "—", stringResource(Res.string.stats_flow_age), tile)
-                    StatTile(stats.flow.overdueCount.toString(), stringResource(Res.string.stats_flow_overdue), tile, warn = stats.flow.overdueCount > 0)
-                    StatTile(stats.flow.staleCount.toString(), stringResource(Res.string.stats_flow_stale), tile, warn = stats.flow.staleCount > 0)
+                    StatTile(stats.flow.openCount.toString(), stringResource(Res.string.stats_flow_wip), tile, nested = true)
+                    StatTile(stats.flow.medianAgeDays?.toString() ?: "—", stringResource(Res.string.stats_flow_age), tile, nested = true)
+                    StatTile(stats.flow.overdueCount.toString(), stringResource(Res.string.stats_flow_overdue), tile, warn = stats.flow.overdueCount > 0, nested = true)
+                    StatTile(stats.flow.staleCount.toString(), stringResource(Res.string.stats_flow_stale), tile, warn = stats.flow.staleCount > 0, nested = true)
                 }
             }
 
@@ -211,17 +212,20 @@ private fun twoDecimals(x: Double): String {
  * Tuile de chiffre clé : la valeur en grand, son libellé dessous. Un seuil franchi prend un contour, jamais une couleur seule.
  * [note] : une mention secondaire en pastille à contour avec l'icône `Warning` (ce que le chiffre ne compte pas : les
  * tâches non estimées de l'espace Équipe, docs/spec/equipe-charge.md).
+ * [nested] : la tuile est posée dans un [Panel] (carte à contour) ; règle « pas de contour dans un contour »
+ * (docs/spec/densite.md) : un seuil franchi ne prend plus de contour mais le fond `surfaceContainerHigh`, l'icône
+ * `Warning` gardant l'information hors de la couleur.
  */
 @Composable
-internal fun StatTile(value: String, label: String, modifier: Modifier, warn: Boolean = false, note: String? = null) {
+internal fun StatTile(value: String, label: String, modifier: Modifier, warn: Boolean = false, note: String? = null, nested: Boolean = false) {
     val scheme = MaterialTheme.colorScheme
     Surface(
-        color = scheme.surfaceContainerLow,
+        color = if (warn && nested) scheme.surfaceContainerHigh else scheme.surfaceContainerLow,
         shape = MaterialTheme.shapes.medium,
-        border = if (warn) androidx.compose.foundation.BorderStroke(1.dp, scheme.outline) else null,
+        border = if (warn && !nested) androidx.compose.foundation.BorderStroke(1.dp, scheme.outline) else null,
         modifier = modifier,
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier.padding(KairosSpacing.l)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (warn) Icon(KairosIcons.Warning, contentDescription = null, modifier = Modifier.size(18.dp).padding(end = 4.dp))
                 Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Medium)
@@ -247,8 +251,8 @@ internal fun StatTile(value: String, label: String, modifier: Modifier, warn: Bo
 @Composable
 internal fun Panel(icon: ImageVector, title: String, hint: String, content: @Composable () -> Unit) {
     OutlinedCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.s)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(KairosSpacing.s)) {
                 Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
                 Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
             }

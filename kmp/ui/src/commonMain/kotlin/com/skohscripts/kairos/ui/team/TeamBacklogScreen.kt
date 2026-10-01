@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosListBlockExtra
+import com.skohscripts.kairos.ui.theme.KairosListSectionExtra
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosRowIconButton
 import com.skohscripts.kairos.ui.theme.KairosButton
@@ -174,18 +177,21 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = if (selecting) 176.dp else 16.dp),
+            // Rythme (docs/spec/densite.md) : lignes à `s` ; un bloc ajoute KairosListBlockExtra (total `m`), un titre de section KairosListSectionExtra (total `xl`).
+            verticalArrangement = Arrangement.spacedBy(KairosSpacing.s),
+            contentPadding = PaddingValues(start = KairosSpacing.l, end = KairosSpacing.l, top = KairosSpacing.l, bottom = if (selecting) 176.dp else KairosSpacing.l),
             modifier = Modifier.widthIn(max = 840.dp).fillMaxSize(),
         ) {
             item(key = "capture") {
-                Capture(
-                    capture, today, emptyList(), language, showShortcuts = false,
-                    onAddTask = { title -> scope.launch { repository.createTeamTask(title) } },
-                    onAddBlock = {},
-                    onEditBlock = {},
-                    taskOnly = true,
-                )
+                Box(Modifier.padding(top = KairosListBlockExtra)) {
+                    Capture(
+                        capture, today, emptyList(), language, showShortcuts = false,
+                        onAddTask = { title -> scope.launch { repository.createTeamTask(title) } },
+                        onAddBlock = {},
+                        onEditBlock = {},
+                        taskOnly = true,
+                    )
+                }
             }
             if (!selecting && snapshot.tasks.any { it.space == TaskSpace.TEAM && it.status == TaskStatus.TODO && it.assigneeId == null && !it.needsProcessing }) {
                 item(key = "suggest") {
@@ -193,14 +199,16 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
                 }
             }
             item(key = "filters") {
-                BacklogFilters(
-                    text, { text = it }, category, { category = it }, priority, { priority = it }, withDeadline, { withDeadline = it },
-                    categories,
-                )
+                Box(Modifier.padding(top = KairosListBlockExtra)) {
+                    BacklogFilters(
+                        text, { text = it }, category, { category = it }, priority, { priority = it }, withDeadline, { withDeadline = it },
+                        categories,
+                    )
+                }
             }
 
             // --- À qualifier
-            item(key = "toqualify-title") { SectionTitle(stringResource(Res.string.backlog_to_qualify_title), board.toQualify.size, Modifier.padding(top = 8.dp)) }
+            item(key = "toqualify-title") { SectionTitle(stringResource(Res.string.backlog_to_qualify_title), board.toQualify.size, Modifier.padding(top = KairosListSectionExtra)) }
             item(key = "toqualify-help") {
                 Hint(stringResource(if (board.toQualify.isEmpty()) Res.string.backlog_to_qualify_empty else Res.string.backlog_to_qualify_hint))
             }
@@ -216,7 +224,7 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
             }
 
             // --- Prêtes
-            item(key = "ready-title") { SectionTitle(stringResource(Res.string.backlog_ready_title), board.ready.size, Modifier.padding(top = 8.dp)) }
+            item(key = "ready-title") { SectionTitle(stringResource(Res.string.backlog_ready_title), board.ready.size, Modifier.padding(top = KairosListSectionExtra)) }
             item(key = "ready-help") { Hint(stringResource(Res.string.backlog_ready_hint)) }
             items(board.ready, key = { "r-${it.task.id}" }) { card ->
                 BacklogRow(

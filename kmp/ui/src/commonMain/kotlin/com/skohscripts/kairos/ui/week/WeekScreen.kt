@@ -65,6 +65,7 @@ import com.skohscripts.kairos.ui.generated.resources.week_see_day
 import com.skohscripts.kairos.ui.generated.resources.week_spent
 import com.skohscripts.kairos.ui.generated.resources.week_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.navigation.NavState
 import com.skohscripts.kairos.ui.theme.LocalKairosExtraColors
 import kotlinx.datetime.DatePeriod
@@ -97,7 +98,7 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
     val projects = remember(snapshot) { snapshot.tasks.map { it.projectTag }.filter { it.isNotEmpty() }.distinct().sorted() }
 
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
-        Column(Modifier.widthIn(max = 1400.dp).fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.widthIn(max = 1400.dp).fillMaxWidth().padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.m)) {
             // Titre au-dessus des boutons : entre eux, il n'avait plus de place sur un
             // téléphone et s'affichait une lettre par ligne.
             Text(stringResource(Res.string.week_title, Dates.dayMonth(week.monday, language)), style = MaterialTheme.typography.titleMedium)

@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.team.forecast
 
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosButton
 import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
@@ -139,7 +140,7 @@ fun ForecastScreen(services: AppServices) {
     }
 
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
-        Column(Modifier.widthIn(max = 960.dp).fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(Modifier.widthIn(max = 960.dp).fillMaxWidth().padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.m)) {
             Text(stringResource(Res.string.forecast_intro), style = MaterialTheme.typography.bodyMedium)
 
             // --- Périmètre et modèle
@@ -312,7 +313,8 @@ private fun ResultSection(
 ) {
     val result = run.result
     val riskPercent = (snapshot.settings.team ?: TeamSettings()).deadlineRiskPercent
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    // Le titre « Résultat » est un titre de section : `xl` avant lui (l'écran espace ses blocs de `m`), `m` entre les panneaux.
+    Column(Modifier.padding(top = KairosSpacing.xl - KairosSpacing.m), verticalArrangement = Arrangement.spacedBy(KairosSpacing.m)) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(stringResource(Res.string.forecast_result_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.heading())
             Text(

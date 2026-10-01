@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.screens
 
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import androidx.compose.foundation.Image
@@ -60,8 +61,8 @@ const val SOURCE_URL = "https://github.com/SKOHscripts/Kairos"
 fun AboutScreen() {
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
+            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(KairosSpacing.l),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Image(KairosLogo, contentDescription = null, modifier = Modifier.size(56.dp))
@@ -119,7 +120,7 @@ private fun Section(title: StringResource, content: @Composable () -> Unit) {
         elevation = CardDefaults.cardElevation(0.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.s)) {
             Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
             content()
         }

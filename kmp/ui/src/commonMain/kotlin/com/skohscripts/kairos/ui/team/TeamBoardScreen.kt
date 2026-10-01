@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.KairosRowIconButton
 import com.skohscripts.kairos.ui.theme.KairosFilterChip
 import androidx.compose.foundation.layout.Arrangement
@@ -154,8 +155,8 @@ fun TeamBoardScreen(services: AppServices) {
             val columns = maxWidth >= COLUMNS_FROM
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
+                    contentPadding = PaddingValues(KairosSpacing.l),
                     modifier = Modifier.widthIn(max = if (columns) 1200.dp else 720.dp).fillMaxSize(),
                 ) {
                     item(key = "figures") {

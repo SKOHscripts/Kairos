@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosButton
 import com.skohscripts.kairos.ui.theme.KairosSegmentedButton
@@ -149,8 +150,8 @@ fun TeamMembersScreen(
 
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
+            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(KairosSpacing.l),
         ) {
             if (snapshot.members.isEmpty()) {
                 EmptyMembers(onAdd = { open(null) })
@@ -214,7 +215,8 @@ private fun EmptyMembers(onAdd: () -> Unit) {
 private fun FormerHeader(count: Int, expanded: Boolean, onToggle: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().disclosure(expanded, heading = true, onToggle = onToggle),
+        // Titre de section : `xl` avant lui (la colonne espace ses blocs de `m`).
+        modifier = Modifier.fillMaxWidth().padding(top = KairosSpacing.xl - KairosSpacing.m).disclosure(expanded, heading = true, onToggle = onToggle),
     ) {
         Text(
             stringResource(Res.string.team_members_former, count),

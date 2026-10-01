@@ -3,14 +3,12 @@ package com.skohscripts.kairos.ui.app
 import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +20,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.skohscripts.kairos.ui.settings.SettingsCard
+import com.skohscripts.kairos.ui.settings.SettingsCardHeader
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.settings_section_shortcut
@@ -121,32 +122,29 @@ fun ShortcutCard(shortcuts: ShortcutService) {
     val create = rememberShortcutAction(shortcuts)
     val scope = rememberCoroutineScope()
     val message = LocalMessages.current
-    OutlinedCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(Res.string.settings_section_shortcut), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
-            val help = if (shortcuts.target == ShortcutTarget.APP_MENU) Res.string.shortcut_help_menu else Res.string.shortcut_help_windows
-            Text(stringResource(help), style = MaterialTheme.typography.bodyMedium)
-            val line = when (status) {
-                ShortcutStatus.MISSING -> Res.string.shortcut_status_missing
-                ShortcutStatus.CREATED -> Res.string.shortcut_status_created
-                ShortcutStatus.ELSEWHERE -> Res.string.shortcut_status_elsewhere
+    SettingsCard(spacing = KairosSpacing.m) {
+        val help = if (shortcuts.target == ShortcutTarget.APP_MENU) Res.string.shortcut_help_menu else Res.string.shortcut_help_windows
+        SettingsCardHeader(stringResource(Res.string.settings_section_shortcut), stringResource(help))
+        val line = when (status) {
+            ShortcutStatus.MISSING -> Res.string.shortcut_status_missing
+            ShortcutStatus.CREATED -> Res.string.shortcut_status_created
+            ShortcutStatus.ELSEWHERE -> Res.string.shortcut_status_elsewhere
+        }
+        Text(stringResource(line), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        ButtonRow {
+            if (status != ShortcutStatus.CREATED) {
+                KairosOutlinedButton(onClick = create) {
+                    Text(stringResource(if (status == ShortcutStatus.ELSEWHERE) Res.string.shortcut_update_long else Res.string.shortcut_create))
+                }
             }
-            Text(stringResource(line), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            ButtonRow {
-                if (status != ShortcutStatus.CREATED) {
-                    KairosOutlinedButton(onClick = create) {
-                        Text(stringResource(if (status == ShortcutStatus.ELSEWHERE) Res.string.shortcut_update_long else Res.string.shortcut_create))
+            if (status != ShortcutStatus.MISSING) {
+                KairosOutlinedButton(onClick = {
+                    scope.launch {
+                        runCatching { shortcuts.remove() }
+                            .onSuccess { message(getString(Res.string.shortcut_removed)) }
+                            .onFailure { message(getString(Res.string.shortcut_remove_failed, it.message.orEmpty())) }
                     }
-                }
-                if (status != ShortcutStatus.MISSING) {
-                    KairosOutlinedButton(onClick = {
-                        scope.launch {
-                            runCatching { shortcuts.remove() }
-                                .onSuccess { message(getString(Res.string.shortcut_removed)) }
-                                .onFailure { message(getString(Res.string.shortcut_remove_failed, it.message.orEmpty())) }
-                        }
-                    }) { Text(stringResource(Res.string.shortcut_remove)) }
-                }
+                }) { Text(stringResource(Res.string.shortcut_remove)) }
             }
         }
     }
