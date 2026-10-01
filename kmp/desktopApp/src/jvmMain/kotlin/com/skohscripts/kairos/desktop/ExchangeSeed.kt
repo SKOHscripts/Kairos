@@ -74,7 +74,7 @@ suspend fun exchangeSeed(dataDir: File, english: Boolean): ExchangeSeed {
     val billingId = seeded.ids.getValue("billing")
     edit(billingId, if (english) "Rework the billing API (v2)" else "Refonte de l’API de facturation (v2)", today.plus(DatePeriod(days = 4)))
     val sam = repo.snapshot.value.members.first { it.name.startsWith("Sam") }
-    repo.assign(listOf(seeded.ids.getValue("ci")), sam.id)
+    repo.assign(listOf(seeded.ids.getValue("export")), sam.id)
     val added = checkNotNull(repo.createTeamTask(if (english) "Check the invoice PDF layout" else "Vérifier la mise en page des factures PDF"))
     repo.updateTask(
         added,
