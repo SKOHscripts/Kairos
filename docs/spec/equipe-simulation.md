@@ -12,7 +12,7 @@ changerait tel ou tel scénario. Fichiers prévus :
 charge de `equipe-charge.md`. Skill Claude Code associée :
 `.claude/skills/kairos-monte-carlo/`._
 
-État : **spécifiée le 2026-09-30, non implémentée** (jalon E5).
+État : **jalon E5 en cours** : socle (`core`, `data`) implémenté le 2026-10-01 ; interface à venir dans la même PR.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -165,63 +165,87 @@ une ».
 
 ### Données (`ForecastData.kt`, pur)
 
-- **Facteurs d'erreur d'estimation** : pour chaque tâche d'équipe faite
-  ayant un effort de base (`Effort.base`, source `ESTIMATE`, `CALIBRATED`
-  ou `POINTS_RATE`) et un temps passé > 0 : `réel / base`. Temps passé =
-  sessions + temps manuel + temps des rapports. Fenêtre :
-  `teamHistoryWeeks` semaines (12 par défaut, 1-104).
-- **Minimum fiable** : `teamMinSamples` facteurs (8 par défaut, ≥ 3). En
-  dessous, **loi par défaut** : triangulaire (min 0,8, mode 1,0, max 2,0),
-  documentée à l'écran comme « hypothèse : les tâches prennent de 0,8 à
-  2 fois leur estimation, le plus souvent 1 fois » ; les facteurs réels
-  disponibles sont mêlés à la loi par défaut (tirage dans l'historique avec
-  la probabilité n / minimum, dans la loi sinon), pour passer en douceur de
-  l'une à l'autre.
-- Facteurs bornés à [0,2 ; 5] pour qu'une saisie aberrante (une tâche
-  chronométrée une nuit) ne domine pas.
-- **Débits hebdomadaires** : pour chaque semaine (lundi-dimanche) de la
-  fenêtre, nombre de tâches d'équipe finies (de l'équipe ou du membre),
-  semaines à zéro comprises ; minimum : 4 semaines ayant au moins une tâche
-  finie, sinon le modèle par débit est indisponible (bouton désactivé,
-  explication).
-- **Facteurs de capacité** : par membre et par semaine passée, heures
-  réelles faites / capacité prévue (`Capacity`), bornés à [0,3 ; 1,5] ;
-  même minimum que les facteurs d'estimation, sinon facteur 1.
+- `ForecastData.build(snapshot, jour, maintenant, fuseau, calibration?)` →
+  `ForecastData(windowWeeks, minSamples, errorFactors, teamThroughput,
+  memberThroughput, capacityFactors)` (listes triées).
+- **Fenêtre** : les `historyWeeks` semaines **complètes** (lundi-dimanche)
+  avant la semaine courante, zéros compris ; facteurs d'erreur sur les
+  tâches faites entre le début de cette fenêtre et aujourd'hui.
+- **Facteurs d'erreur** : tâches d'équipe faites ayant un effort de base
+  (`Effort.base` : `ESTIMATE`, `CALIBRATED` ou `POINTS_RATE`) et un temps
+  passé > 0 ; `réel / base` borné à [0,2 ; 5]. Temps passé = sessions +
+  temps manuel (le temps des rapports s'y ajoutera au jalon E6).
+- `errorFactor(rng)` : dans l'historique si n ≥ `minSamples` ; sinon dans
+  l'historique avec la probabilité n / minimum, dans la **loi
+  triangulaire** (0,8 ; 1 ; 2) sinon (`triangular(u)`).
+- **Débits** : tâches d'équipe finies par semaine, de l'équipe ou d'un
+  membre (`throughputOf`) ; disponible (`throughputAvailable`) avec au
+  moins 4 semaines actives et au moins min(`minSamples`, `historyWeeks`).
+- **Facteurs de capacité** (`capacityFactor(membre, rng)`) : semaines
+  passées où la capacité prévue **et** les heures chronométrées sont > 0 ;
+  heures réelles / capacité, bornées [0,3 ; 1,5] ; sans historique, 1.
+- `estimationSource`, `throughputSource(membre?)` : `SourceInfo(kind
+  HISTORY / MIXED / DEFAULT, samples, windowWeeks, minimum, activeWeeks)`
+  et `reliable`, pour l'affichage honnête.
 
-### Moteur (`MonteCarlo.kt`, pur)
+### Moteur (`MonteCarlo.kt`, `EffortModel.kt`, `ThroughputModel.kt`, purs)
 
-- Entrées : `TeamSnapshot` (ou celui d'un scénario), périmètre, modèle,
-  options, jour, réglages, données, **graine** (`Long`) et nombre de
-  tirages `teamSimulationRuns` (5 000 par défaut, 500-50 000).
-- Hasard : `kotlin.random.Random(seed)` seulement (même suite sur toutes les
-  cibles) ; `core` ne tire jamais de graine lui-même : l'interface la tire
-  et la passe (pureté de `core`, `architecture.md`).
-- **Tirages communs** : le tirage `i` utilise un générateur dérivé de
-  `(graine, i)`, et, dans un tirage, chaque tâche et chaque semaine-membre
-  un sous-générateur dérivé de son identité stable (`teamUid`, identifiant
-  de membre et numéro de semaine), pas de l'ordre de traitement. La
-  situation réelle et chaque scénario voient donc **les mêmes aléas** pour
-  les mêmes tâches : les écarts entre scénarios viennent des modifications,
-  pas du bruit, et les propriétés de monotonie sont testables tirage par
-  tirage.
-- Modèle par effort, un tirage : pour chaque tâche du périmètre,
-  `effort = Effort.remaining × facteur tiré` ; facteurs de capacité par
-  semaine-membre si l'option est active ; `LoadPlan` rejoué avec ces
-  efforts et capacités ; on relève la fin de chaque tâche, de chaque
-  membre et du périmètre, les retards, le membre le plus tardif.
-- Modèle par débit, un tirage : semaines successives à partir de la semaine
-  courante (au prorata des jours ouvrés restants pour la semaine
-  entamée) ; débit tiré parmi les semaines de la fenêtre ; fin = semaine où
-  le cumul atteint le nombre de tâches ; au-delà de 520 semaines, « hors
-  horizon » (débits tous nuls).
-- Agrégats (`ForecastResult`) : dates de fin triées (percentiles), histogramme
-  par semaine, probabilité de tenir chaque échéance, indice de criticité,
-  fréquence « dernier à finir » par membre, distribution du nombre de
-  retards, ensembles de retards (clé = liste triée des identifiants en
-  retard) et leur fréquence, dont le plus fréquent (ex æquo : le plus
-  petit ensemble, puis ordre des identifiants).
-- **Percentiles** : méthode du rang le plus proche (`ceil(p × n)`-ième
-  valeur triée), sans interpolation (une date n'a pas de moitié).
+- **Hasard** (`ForecastRandom`) : `kotlin.random.Random` seulement ;
+  graine de tirage `drawBase(seed, draw)` ; sous-générateurs
+  `stream(base, domaine, clé, indice)` par mélange SplitMix64 écrit à la
+  main ; clés stables : FNV-1a 64 du `teamUid` (domaine erreur), id du
+  membre et numéro **absolu** de semaine (domaine capacité), domaine
+  débit. Jamais `String.hashCode()` ni l'ordre de traitement ; aucune
+  fonction transcendante (seulement `+ − × ÷` et `sqrt`), pour un résultat
+  identique au bit près sur toutes les cibles.
+- `ForecastRequest(snapshot, maintenant, fuseau, data, seed, scope, model,
+  options, runs, calibration?)` ; `ForecastScope` : `Assigned`,
+  `AssignedAndBacklog`, `Category(nom)`, `Member(id)`, `Tasks(ids)` ;
+  `ForecastModel` : `EFFORT`, `THROUGHPUT` ; `ForecastOptions(includeBacklog,
+  capacityRandomness = true)`.
+- `MonteCarlo.prepare(request)` puis `runBatch(from, count)` et
+  `accumulator()` (ou `run(batchSize = 250)`) ; `MonteCarlo.isAvailable(
+  model, data, scope)`. L'accumulateur range chaque tranche à son numéro de
+  tirage et ne garde que des comptes entiers : une tranche, vingt tranches
+  ou l'ordre inverse donnent le même résultat.
+- **Modèle par effort** : `LoadPlan.prepare` une fois (ordres, capacités de
+  base, graphe en tableaux primitifs), puis `Prepared.run(efforts,
+  capacity)` par tirage — le **même** posage que `LoadPlan.build`
+  (= `prepare().run()`), sans second ordonnanceur. Effort = `Effort.planned`
+  × facteur tiré ; capacité × facteur de la semaine si l'aléa est actif.
+- **Backlog** : pris en compte avec l'option, pour le périmètre
+  `AssignedAndBacklog`, ou pour les ids d'un périmètre `Tasks` ; réparti
+  **une fois** par `AssignmentSuggestion` à `prepare`, pas à chaque tirage
+  (5 000 suggestions seraient hors de prix, et la suggestion ne voit pas
+  les facteurs tirés). Le périmètre `Assigned` avec l'option fait prendre
+  de la capacité au backlog sans le mesurer. Tâches à qualifier exclues et
+  comptées (`toQualify`) ; une tâche sans porteur ou qui attend le backlog
+  est « hors horizon ».
+- **Modèle par débit** : cumul réel des débits tirés, semaine courante au
+  prorata des jours ouvrés restants ; une tâche compte à la fin de sa
+  semaine (dernier jour ouvré) ; garde-fou 520 semaines.
+- **Agrégats** (`ForecastResult`) : `finish` (`FinishOutlook` : P50, P85,
+  P95, histogramme par semaine, hors horizon ; date nulle = hors horizon),
+  `deadlines` (`DeadlineOutlook` : tirages en retard, `criticality`,
+  `onTimeProbability`, `atRisk` sous `deadlineRiskPercent`), `bottleneck`
+  (`MemberShare` ; les ex æquo du dernier jour comptent chacun, la somme
+  peut dépasser le nombre de tirages), `lateDistribution` (0, 1, 2, 3 et
+  plus), `lateSets` (50 au plus, triés par fréquence, puis plus petit
+  ensemble, puis ids) et `mostLikelyLateSet`, `expectedLate`,
+  `allOnTimeProbability`, `finishedBy(date)` (« au moins X tâches » : fins
+  par tâche gardées en `ForecastSamples`, plafonnées à 16 M valeurs, au-delà
+  `null`), `mostCritical(10)`, `reliable`, graine, tirages demandés et faits,
+  `interrupted`, source. Modèle par débit : les agrégats par tâche sont
+  vides (et `expectedLate`, `allOnTimeProbability` neutres, à ne pas
+  afficher).
+- **Percentiles** (`Percentiles`) : `rank(n, p)` en arithmétique entière
+  (évite 0,85 × 20 = 16,999…), `nearestRank`, `atLeast` (la ⌈p × n⌉-ième
+  plus grande valeur).
+- **Performance** : 200 tâches × 10 membres × 5 000 tirages, aléa de
+  capacité, préparation comprise : 0,37 à 0,48 s sur JVM
+  (`MonteCarloPerformanceTest`, exécuté par défaut). Avec 150 tâches au
+  backlog, `prepare` coûte 0,6 s (la suggestion) : toujours hors du fil
+  principal.
 
 ### Exécution (`ui/team/forecast/`)
 
@@ -239,23 +263,36 @@ une ».
 
 ### Scénarios (`Scenario.kt`, table `team_scenario`)
 
-- `TeamScenario` : `id`, `name`, `modifications` (JSON), `createdAt`,
-  `updatedAt`.
-- `ScenarioModification` (scellée, sérialisée avec un discriminant `type`) :
-  `AddMember(tempId, name, availabilityPercent, hoursPerDay)`,
-  `RemoveMember(memberId)`, `AddAbsence(memberId, start, end)`,
-  `SetAvailability(memberId, percent)`, `Reassign(taskUid, memberId?)`,
-  `AddTasks(count, points, category, priority)`,
-  `SetPriority(taskUid, priority)`, `SetDeadline(taskUid, date?)`,
-  `SetFocus(factor)`. Référence aux tâches par `teamUid` (stable).
-  Modification de type inconnu à la lecture : ignorée et signalée.
-- `Scenario.apply(team, modifications): Pair<TeamSnapshot, List<Skipped>>` :
-  pur, sur une copie ; identifiants négatifs pour les membres et tâches
-  hypothétiques (jamais en conflit avec la base).
-- `Scenario.realChanges(modifications)` : ce qu'« Appliquer » exécute
-  (tout sauf `AddMember` et `AddTasks`, et sauf les `Reassign` vers un
-  membre hypothétique), traduit en opérations du dépôt dans **une**
-  transaction, journalisées `source = scenario`.
+- `TeamScenario(id, name, modifications, createdAt, updatedAt, ignored)` ;
+  `KairosSnapshot.teamScenarios` ; table `team_scenario (id, name,
+  modifications, created_at, updated_at)` (`4.sqm`, schéma 4 → 5),
+  modifications en JSON (`ScenarioCodec` : discriminant `type` ; un type
+  inconnu ou illisible est ignoré et signalé dans `ignored`, position −1 si
+  tout le texte est illisible ; il n'est pas réécrit à l'enregistrement).
+- `ScenarioModification` (scellée) : `addMember` (`tempId` **négatif**,
+  sinon invalide), `removeMember`, `addAbsence`, `setAvailability`,
+  `reassign` (par `teamUid`), `addTasks` (500 au plus, `teamUid`
+  déterministes `scenario-task-<i>-<k>` pour les tirages communs),
+  `setPriority`, `setDeadline`, `setFocus`. Appliquées **dans l'ordre** :
+  une référence à un membre hypothétique doit suivre son `addMember`.
+- `Scenario.apply(snapshot, modifications)` : pur, sur une copie, ids
+  négatifs pour l'hypothétique ; rend les `Skipped(index, modification,
+  reason)` (`MEMBER_NOT_FOUND`, `MEMBER_ARCHIVED`, `TASK_NOT_FOUND`,
+  `TASK_NOT_OPEN`, `INVALID_VALUE`).
+- `Scenario.realChanges` : tout sauf `addMember`, `addTasks` et toute
+  modification qui **désigne** une entité hypothétique (absence, quotité,
+  réaffectation vers ou depuis un membre hypothétique, priorité ou échéance
+  d'une tâche hypothétique).
+- Dépôt : `createScenario`, `updateScenario`, `duplicateScenario(id, nom?)`
+  (le libellé « copie » vient de l'interface), `deleteScenario`,
+  `applyScenario(id): ApplyReport(found, applied, skipped, notApplicable,
+  ignored)`. L'application se fait en **une** transaction, par les briques
+  internes du dépôt (une opération publique par changement imbriquerait des
+  verrous) ; `removeMember` vaut un archivage (tâches ouvertes au backlog) ;
+  chaque changement de tâche est journalisé avec la source `scenario` ; une
+  modification déjà en place est rendue `ALREADY_APPLIED`, sans événement.
+  Rien d'hypothétique n'est jamais créé. `clearTeamData` supprime les
+  scénarios ; export 2 : `teamScenarios`.
 
 ### Interface
 

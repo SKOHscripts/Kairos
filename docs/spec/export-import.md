@@ -103,7 +103,7 @@ JSON UTF-8 indenté :
   valeurs `null` omises ; codes de statut et de récurrence de la base.
 - **Version 2** (espace Équipe, `equipe.md` § Export) : `members` (membres
   d'équipe), `absences` (ajouté au jalon E2), `teamEvents` (journal, jalon
-  E3) — un lecteur 2 plus ancien ignore les champs qu'il ne connaît pas —
+  E3), `teamScenarios` (jalon E5) — un lecteur 2 plus ancien ignore les champs qu'il ne connaît pas —
   et, sur les tâches, `progressPercent`, `startedOn`, `teamUid` (E3), `space` (`"team"`, écrit seulement pour une
   tâche d'équipe) et `assigneeId`.
 - **Une base sans donnée d'équipe** (`Workspaces.hasTeamData` faux : ni

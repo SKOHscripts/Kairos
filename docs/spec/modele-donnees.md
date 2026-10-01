@@ -147,7 +147,8 @@ Schéma 1 : celui de la 3.0.0. Schéma 2 : `1.sqm` (jalon E1 de l'espace
 Équipe) ajoute `task.space`, `task.assignee_id`, leurs index et
 `team_member`. Schéma 3 : `2.sqm` (jalon E2) ajoute `member_absence`.
 Schéma 4 : `3.sqm` (jalon E3) ajoute `task.progress_percent`,
-`task.started_on`, `task.team_uid` (en fin de table) et `team_event`. Les
+`task.started_on`, `task.team_uid` (en fin de table) et `team_event`.
+Schéma 5 : `4.sqm` (jalon E5) ajoute `team_scenario`. Les
 schémas de référence de chaque version
 (`data/src/commonMain/sqldelight/databases/<n>.db`, générés par
 `generateCommonMainKairosDatabaseSchema` avant la migration) sont

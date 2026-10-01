@@ -339,7 +339,7 @@ d'équipe n'entre dans un calcul personnel.
     `task.started_on`, `task.team_uid` (en fin de table, index),
     `team_event (id, task_id, task_title, member_id, kind, from_value,
     to_value, source, at)` (index `task_id`, `member_id`) ;
-  - **E5** : `team_scenario` ;
+  - **E5, `4.sqm`** (`user_version` 4 → 5) : `team_scenario` ;
   - **E6** : `task.origin`, `task.origin_removed`, `task.reported_minutes`,
     `team_member.last_report_at` (`equipe-echanges.md`).
   Références sans `FOREIGN KEY` (parti pris existant).
