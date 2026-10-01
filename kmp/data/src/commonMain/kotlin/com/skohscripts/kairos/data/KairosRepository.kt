@@ -662,7 +662,9 @@ class KairosRepository(
             planned = plan
             if (!plan.accepted) return@write
             val idByUid = HashMap<String, Long>()
-            fun known(t: Task) = t.teamUid?.let { idByUid.putIfAbsent(it, t.id) }
+            fun known(t: Task) {
+                t.teamUid?.let { idByUid.getOrPut(it) { t.id } }
+            }
             plan.updated.forEach { known(it.before) }
             plan.unchanged.forEach { known(it) }
             plan.removed.forEach { known(it) }
@@ -692,6 +694,26 @@ class KairosRepository(
      * non retirées (bouton « Renvoyer l'avancement… » de Réglages → Données). Vide pour un Kairos qui n'a jamais reçu de paquet.
      */
     fun origins(): List<TeamOrigin> = ReceivedTasks.origins(state.value)
+
+    /**
+     * Côté membre : avancement déclaré d'une tâche **reçue** à faire ([percent] borné à 0-100 puis arrondi à la
+     * dizaine la plus proche, comme [setProgress]). Au-dessus de 0, la tâche est commencée si elle ne l'était pas
+     * (`startedOn` = aujourd'hui). `false` (rien d'écrit) si la tâche n'est pas une tâche reçue à faire ou si rien ne
+     * change. Aucun événement de journal : le journal est celui du manager, qui reçoit l'avancement par le rapport.
+     */
+    suspend fun setReceivedProgress(id: Long, percent: Int): Boolean {
+        var done = false
+        write {
+            val task = state.value.tasks.firstOrNull { it.id == id }
+                ?.takeIf { ReceivedTasks.isReceived(it) && it.status == TaskStatus.TODO } ?: return@write
+            val target = roundProgress(percent)
+            val starts = target > 0 && task.startedOn == null
+            if (target == (task.progressPercent ?: 0) && !starts) return@write
+            updateRow(task.copy(progressPercent = target, startedOn = if (starts) today() else task.startedOn))
+            done = true
+        }
+        return done
+    }
 
     /**
      * Côté membre : le rapport d'avancement pour l'origine [originKey] (`TeamOrigin.key`), en texte JSON

@@ -763,7 +763,8 @@ class TeamRepositoryTest {
         }
         assertEquals(
             listOf("progress_percent", "started_on", "team_uid"),
-            columns(fresh, "task").takeLast(3),
+            // Les colonnes du jalon E6 (origin, origin_removed, reported_minutes) viennent à leur suite.
+            columns(fresh, "task").dropLast(3).takeLast(3),
         )
         assertEquals(
             listOf("id", "task_id", "task_title", "member_id", "kind", "from_value", "to_value", "source", "at"),

@@ -94,12 +94,12 @@ object PackMerge {
         val encoded = origin.encode()
         val receivedAll = snapshot.tasks.filter { ReceivedTasks.originOf(it)?.teamUid == pack.team.uid }.sortedBy { it.id }
         val received = LinkedHashMap<String, Task>()
-        receivedAll.forEach { t -> t.teamUid?.let { received.putIfAbsent(it, t) } }
+        receivedAll.forEach { t -> t.teamUid?.let { received.getOrPut(it) { t } } }
         // Sous-tâche créée par le membre sous une tâche reçue, déjà remontée au manager (rapport) : elle a un
         // `teamUid` mais pas d'origine. Le paquet suivant la contient : on la rattache au lieu de la dupliquer.
         val adoptable = LinkedHashMap<String, Task>()
         snapshot.tasks.filter { it.origin == null && it.space == TaskSpace.PERSONAL && it.teamUid != null }.sortedBy { it.id }
-            .forEach { adoptable.putIfAbsent(it.teamUid!!, it) }
+            .forEach { adoptable.getOrPut(it.teamUid!!) { it } }
 
         // Tâches du paquet : première occurrence d'un uid, mères avant leurs filles.
         val packTasks = pack.tasks.distinctBy { it.uid }

@@ -118,7 +118,7 @@ object ReportMerge {
         val reportDay = report.reportedAt.toLocalDateTime(timeZone).date
         val teamTasks = snapshot.tasks.filter { it.space == TaskSpace.TEAM && it.teamUid != null }
         val byUid = LinkedHashMap<String, Task>()
-        teamTasks.sortedBy { it.id }.forEach { byUid.putIfAbsent(it.teamUid!!, it) }
+        teamTasks.sortedBy { it.id }.forEach { byUid.getOrPut(it.teamUid!!) { it } }
 
         val updates = ArrayList<ReportTaskUpdate>()
         val unchanged = ArrayList<Task>()
