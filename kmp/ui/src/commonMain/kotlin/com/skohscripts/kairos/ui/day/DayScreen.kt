@@ -102,6 +102,7 @@ import com.skohscripts.kairos.ui.generated.resources.unscheduled_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.team.AssignContext
 import com.skohscripts.kairos.ui.team.TeamTaskSheet
+import com.skohscripts.kairos.core.team.exchange.ReceivedTasks
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -363,6 +364,16 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
                 onDelete = { scope.launch { repository.deleteTask(id) }; editingId = null },
                 // Tâche d'équipe assignée à « moi » : « Assigné à » en lecture seule, le reste comme une tâche perso.
                 team = if (task.space == TaskSpace.TEAM) TeamTaskSheet(AssignContext.of(repository.snapshot.value, day), editable = false, today = day) else null,
+                // Tâche reçue d'un manager : sa marque et l'avancement déclaré par le membre (docs/spec/equipe-echanges.md).
+                received = ReceivedTasks.originOf(task)?.let { origin ->
+                    ReceivedTaskSheet(origin, task.originRemoved) { edit, percent ->
+                        scope.launch {
+                            repository.updateTask(id, edit)
+                            percent?.let { repository.setReceivedProgress(id, it) }
+                        }
+                        editingId = null
+                    }
+                },
             )
         }
     }

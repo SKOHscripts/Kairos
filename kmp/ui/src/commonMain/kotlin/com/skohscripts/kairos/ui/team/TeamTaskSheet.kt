@@ -173,22 +173,7 @@ internal fun TeamTaskFields(
     if (!sheet.editable || !open || assignee == null) return
 
     // Avancement : seulement pour le titulaire actuel, l'avancement appartient à la tâche assignée.
-    val title = stringResource(Res.string.field_progress)
-    val percent = progress.roundToInt()
-    val value = stringResource(Res.string.progress_percent, percent)
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
-            Text(value, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-        }
-        Slider(
-            value = progress,
-            onValueChange = onProgress,
-            valueRange = 0f..100f,
-            steps = 9,
-            modifier = Modifier.fillMaxWidth().semantics { contentDescription = "$title $value" },
-        )
-    }
+    ProgressField(progress, onProgress)
     val started = task.startedOn
     if (assignee == task.assigneeId) {
         if (started == null) {
@@ -203,6 +188,29 @@ internal fun TeamTaskFields(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+/**
+ * « Avancement » : le pourcentage et son curseur (0 à 100 %, pas de 10). Commun aux tâches d'équipe et aux tâches
+ * reçues d'un manager (docs/spec/equipe-echanges.md : l'avancement d'une tâche reçue est celui du membre).
+ */
+@Composable
+internal fun ProgressField(progress: Float, onProgress: (Float) -> Unit) {
+    val title = stringResource(Res.string.field_progress)
+    val value = stringResource(Res.string.progress_percent, progress.roundToInt())
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
+            Text(value, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        }
+        Slider(
+            value = progress,
+            onValueChange = onProgress,
+            valueRange = 0f..100f,
+            steps = 9,
+            modifier = Modifier.fillMaxWidth().semantics { contentDescription = "$title $value" },
+        )
     }
 }
 

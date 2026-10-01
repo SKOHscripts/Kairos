@@ -3,6 +3,7 @@ package com.skohscripts.kairos.ui.day
 import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -58,6 +59,13 @@ import com.skohscripts.kairos.ui.generated.resources.points_badge
 import com.skohscripts.kairos.ui.generated.resources.tag_recurring
 import com.skohscripts.kairos.ui.generated.resources.tag_scheduled
 import com.skohscripts.kairos.ui.generated.resources.tag_stale
+import com.skohscripts.kairos.core.team.exchange.ReceivedTasks
+import com.skohscripts.kairos.core.team.exchange.TeamOrigin
+import com.skohscripts.kairos.ui.generated.resources.received_mark
+import com.skohscripts.kairos.ui.generated.resources.received_mark_description
+import com.skohscripts.kairos.ui.generated.resources.received_removed
+import com.skohscripts.kairos.ui.generated.resources.received_removed_description
+import com.skohscripts.kairos.ui.team.managerLabel
 import com.skohscripts.kairos.ui.generated.resources.team_mark
 import com.skohscripts.kairos.ui.generated.resources.team_mark_description
 import com.skohscripts.kairos.ui.chrono.rememberLiveMinutes
@@ -197,6 +205,8 @@ private fun Title(task: Task, ctx: RowContext, time: LocalDateTime?, done: Boole
 private fun TaskTags(task: Task, ctx: RowContext) {
     // Tâche d'équipe assignée à « moi » (seule façon d'en voir une dans l'espace Perso).
     if (task.space == TaskSpace.TEAM) TeamMark()
+    // Tâche reçue d'un manager par paquet (docs/spec/equipe-echanges.md) : « de Corentin », ou « retirée par Corentin ».
+    ReceivedTasks.originOf(task)?.let { ReceivedMark(it, task.originRemoved) }
     if (task.projectTag.isNotEmpty()) Badge(task.projectTag)
     if (task.taskType.isNotEmpty()) Badge(task.taskType)
     task.estimatedMinutes?.takeIf { it > 0 }?.let { Muted(stringResource(Res.string.minutes_badge, it)) }
@@ -237,6 +247,38 @@ internal fun TeamMark() {
         ) {
             Icon(KairosIcons.Groups, contentDescription = null, modifier = Modifier.size(14.dp))
             Text(stringResource(Res.string.team_mark), style = MaterialTheme.typography.labelMedium)
+        }
+    }
+}
+
+/**
+ * Marque d'une tâche **reçue** d'un manager (docs/spec/equipe-echanges.md § Vue Jour du membre) : badge neutre, icône
+ * `Groups` et « de Corentin ». Une tâche retirée du dernier paquet ([removed]) montre « retirée par Corentin » en
+ * contour et icône d'alerte, jamais en couleur. Le lecteur d'écran lit la phrase complète.
+ */
+@Composable
+internal fun ReceivedMark(origin: TeamOrigin, removed: Boolean) {
+    val manager = managerLabel(origin)
+    val description = stringResource(if (removed) Res.string.received_removed_description else Res.string.received_mark_description, manager)
+    if (removed) {
+        Box(Modifier.semantics(mergeDescendants = true) { contentDescription = description }) {
+            WarnBadge(stringResource(Res.string.received_removed, manager))
+        }
+        return
+    }
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        shape = CircleShape,
+        modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description },
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+        ) {
+            Icon(KairosIcons.Groups, contentDescription = null, modifier = Modifier.size(14.dp))
+            Text(stringResource(Res.string.received_mark, manager), style = MaterialTheme.typography.labelMedium)
         }
     }
 }

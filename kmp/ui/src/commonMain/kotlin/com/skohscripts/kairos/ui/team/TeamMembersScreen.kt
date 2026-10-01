@@ -80,6 +80,7 @@ import com.skohscripts.kairos.core.team.MemberForm
 import com.skohscripts.kairos.core.team.TeamMember
 import com.skohscripts.kairos.core.team.TeamMembers
 import com.skohscripts.kairos.ui.app.AppServices
+import com.skohscripts.kairos.ui.app.LocalMessages
 import com.skohscripts.kairos.ui.app.disclosure
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.generated.resources.Res
@@ -466,6 +467,7 @@ internal fun MemberSheet(services: AppServices, memberId: Long?, load: Computed<
     }
     val repository = services.repository
     val scope = rememberCoroutineScope()
+    val messages = LocalMessages.current
     val today = services.clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     val compact = LocalWindowWidth.current.isCompactWidth
 
@@ -497,6 +499,7 @@ internal fun MemberSheet(services: AppServices, memberId: Long?, load: Computed<
             onDeleteAbsence = { id -> scope.launch { repository.deleteAbsence(id) } },
             activity = member?.let { memberActivity(snapshot.teamEvents, it.id, today, TimeZone.currentSystemDefault()) }.orEmpty(),
             members = snapshot.members,
+            onSendTasks = { member?.let { m -> scope.launch { sendPack(services, m, messages) } } },
             loadView = member?.takeIf { !it.archived }?.let { m ->
                 val memberLoad = load.value?.members?.firstOrNull { it.member.id == m.id }
                 MemberLoadView(

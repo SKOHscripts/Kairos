@@ -41,6 +41,13 @@ fun fileStamp(services: AppServices): String {
 }
 
 /**
+ * Un nom propre pour un nom de fichier : lettres et chiffres en minuscules, le reste devient un tiret
+ * (« Léa Martin » -> « léa-martin »), « membre » si rien ne reste.
+ */
+fun fileSlug(name: String): String =
+    name.lowercase().map { if (it.isLetterOrDigit()) it else '-' }.joinToString("").split('-').filter { it.isNotEmpty() }.joinToString("-").ifEmpty { "membre" }
+
+/**
  * Sauvegarde automatique de toutes les données actuelles, nommée
  * `<prefixe>-<fileStamp>.json` (`avant-import-…`, `avant-suppression-equipe-…`).
  * Sans sauvegarde réussie, le message d'erreur est affiché et le résultat est

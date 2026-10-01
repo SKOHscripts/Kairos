@@ -42,7 +42,11 @@ import com.skohscripts.kairos.core.model.TaskRecurrence
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.data.Reassignment
 import com.skohscripts.kairos.data.TaskEdit
+import com.skohscripts.kairos.core.team.exchange.TeamOrigin
+import com.skohscripts.kairos.ui.generated.resources.received_edit_help
 import com.skohscripts.kairos.ui.team.KeepInProgressDialog
+import com.skohscripts.kairos.ui.team.ProgressField
+import com.skohscripts.kairos.ui.team.managerLabel
 import com.skohscripts.kairos.ui.team.TaskHistory
 import com.skohscripts.kairos.ui.team.TeamTaskFields
 import com.skohscripts.kairos.ui.team.TeamTaskSheet
@@ -99,6 +103,12 @@ import org.jetbrains.compose.resources.stringResource
  * « Enregistrer » pose tout. Dialogue MD3 : coins de 28 dp, seul élément
  * flottant à porter une ombre.
  */
+/**
+ * Ce que la fiche d'une tâche **reçue** ajoute (docs/spec/equipe-echanges.md) : son [origin], [removed] si le dernier paquet
+ * l'a retirée, et l'enregistrement qui écrit l'édition puis l'avancement déclaré (`null` = inchangé, `setReceivedProgress`).
+ */
+internal class ReceivedTaskSheet(val origin: TeamOrigin, val removed: Boolean, val onSave: (TaskEdit, Int?) -> Unit)
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 internal fun EditTaskDialog(
@@ -113,6 +123,8 @@ internal fun EditTaskDialog(
     onDelete: () -> Unit,
     /** Tâche d'équipe : champs et historique de la fiche (docs/spec/equipe-backlog-suivi.md) ; `null` pour une tâche personnelle. */
     team: TeamTaskSheet? = null,
+    /** Tâche reçue d'un manager (docs/spec/equipe-echanges.md) : sa marque, une phrase d'aide et le curseur d'avancement ; `null` sinon. */
+    received: ReceivedTaskSheet? = null,
 ) {
     var title by remember { mutableStateOf(task.title) }
     var description by remember { mutableStateOf(task.description) }
@@ -138,6 +150,7 @@ internal fun EditTaskDialog(
     var progress by remember { mutableStateOf((task.progressPercent ?: 0).toFloat()) }
     var tab by remember { mutableStateOf(if (team?.initialHistory == true) 1 else 0) }
     val teamEditing = team?.editable == true
+    var receivedProgress by remember { mutableStateOf((task.progressPercent ?: 0).toFloat()) }
 
     val parsedDeadline = Dates.parseDate(deadline)
     val deadlineInvalid = deadline.isNotBlank() && parsedDeadline == null
@@ -175,6 +188,15 @@ internal fun EditTaskDialog(
                         minLines = 3,
                         modifier = Modifier.fillMaxWidth(),
                     )
+                    if (received != null) {
+                        ReceivedMark(received.origin, received.removed)
+                        Text(
+                            stringResource(Res.string.received_edit_help, managerLabel(received.origin)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (task.status == TaskStatus.TODO) ProgressField(receivedProgress) { receivedProgress = it }
+                    }
                     if (team != null) {
                         TeamTaskFields(
                             task = task,
@@ -308,6 +330,9 @@ internal fun EditTaskDialog(
                             if (team != null && teamEditing) {
                                 val percent = progress.roundToInt()
                                 team.onSave(edit, percent.takeIf { assignee != null && task.status == TaskStatus.TODO && percent != (task.progressPercent ?: 0) })
+                            } else if (received != null) {
+                                val percent = receivedProgress.roundToInt()
+                                received.onSave(edit, percent.takeIf { task.status == TaskStatus.TODO && percent != (task.progressPercent ?: 0) })
                             } else {
                                 onSave(edit)
                             }

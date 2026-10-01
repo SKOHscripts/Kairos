@@ -86,7 +86,16 @@ import com.skohscripts.kairos.ui.generated.resources.settings_error_number
 import com.skohscripts.kairos.ui.generated.resources.settings_error_required
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.settings.SwitchRow
+import androidx.compose.ui.text.intl.Locale
+import com.skohscripts.kairos.ui.day.Dates
+import com.skohscripts.kairos.ui.generated.resources.exchange_last_report
+import com.skohscripts.kairos.ui.generated.resources.exchange_no_report
+import com.skohscripts.kairos.ui.generated.resources.exchange_section_title
+import com.skohscripts.kairos.ui.generated.resources.exchange_send_action
+import com.skohscripts.kairos.ui.generated.resources.exchange_send_help
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 
 /** Absence en cours d'édition dans la fiche : nouvelle ([existing] nul) ou existante. */
@@ -104,6 +113,8 @@ private class AbsenceTarget(val existing: MemberAbsence?)
  * de tâche ; [openTaskCount] : tâches ouvertes qu'un archivage remet au backlog.
  * [loadView] ajoute, après les champs, la section « Charge » du jalon E4
  * (`equipe-charge.md` : capacité, charge par semaine et par catégorie, tâches du plan).
+ * Un membre autre que « moi » a aussi la section « Échanges » du jalon E6
+ * (`equipe-echanges.md` : « Envoyer ses tâches… », date du dernier rapport intégré).
  */
 @Composable
 fun MemberSheetContent(
@@ -128,6 +139,8 @@ fun MemberSheetContent(
     members: List<TeamMember> = emptyList(),
     /** Charge du membre sur l'horizon (section « Charge », membre actif seulement ; `null` : pas de section). */
     loadView: MemberLoadView? = null,
+    /** « Envoyer ses tâches… » (échanges, jalon E6) : enregistre le paquet du membre (docs/spec/equipe-echanges.md). */
+    onSendTasks: () -> Unit = {},
 ) {
     var input by remember(member?.id) { mutableStateOf(if (member == null) MemberForm.newInput(settings) else MemberForm.inputOf(member)) }
     var isSelf by remember(member?.id) { mutableStateOf(member?.isSelf == true) }
@@ -232,6 +245,10 @@ fun MemberSheetContent(
                         HorizontalDivider()
                         MemberLoadSection(loadView, today)
                     }
+                    if (!member.isSelf && (!archived || member.lastReportAt != null)) {
+                        HorizontalDivider()
+                        ExchangeSection(member, onSendTasks)
+                    }
                     HorizontalDivider()
                     AbsencesSection(absences, today, onAdd = { editing = AbsenceTarget(null) }, onEdit = { editing = AbsenceTarget(it) }, onDelete = onDeleteAbsence)
                     HorizontalDivider()
@@ -321,6 +338,31 @@ fun MemberSheetContent(
                 ) { Text(stringResource(Res.string.member_delete)) }
             },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(Res.string.action_cancel)) } },
+        )
+    }
+}
+
+/**
+ * « Échanges » (docs/spec/equipe-echanges.md § Côté manager) : « Envoyer ses tâches… » (absent pour un membre archivé : son
+ * paquet est impossible), la phrase qui rappelle que le fichier n'est pas chiffré, et la date du dernier rapport intégré.
+ */
+@Composable
+private fun ExchangeSection(member: TeamMember, onSend: () -> Unit) {
+    val language = Locale.current.language
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(Res.string.exchange_section_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
+        if (!member.archived) {
+            Text(stringResource(Res.string.exchange_send_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedButton(onClick = onSend) {
+                Icon(KairosIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.exchange_send_action), modifier = Modifier.padding(start = 6.dp))
+            }
+        }
+        val last = member.lastReportAt?.toLocalDateTime(TimeZone.currentSystemDefault())
+        Text(
+            if (last == null) stringResource(Res.string.exchange_no_report)
+            else stringResource(Res.string.exchange_last_report, "${Dates.short(last.date, language)} ${Dates.time(last, language)}"),
+            style = MaterialTheme.typography.bodyMedium,
         )
     }
 }
