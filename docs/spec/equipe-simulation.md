@@ -174,7 +174,9 @@ une ».
 - **Facteurs d'erreur** : tâches d'équipe faites ayant un effort de base
   (`Effort.base` : `ESTIMATE`, `CALIBRATED` ou `POINTS_RATE`) et un temps
   passé > 0 ; `réel / base` borné à [0,2 ; 5]. Temps passé = sessions +
-  temps manuel (le temps des rapports s'y ajoutera au jalon E6).
+  temps manuel + temps rapporté (`reportedMinutes`, `equipe-echanges.md`) ;
+  ce dernier, un total sans date, n'entre pas dans les facteurs de
+  capacité hebdomadaires.
 - `errorFactor(rng)` : dans l'historique si n ≥ `minSamples` ; sinon dans
   l'historique avec la probabilité n / minimum, dans la **loi
   triangulaire** (0,8 ; 1 ; 2) sinon (`triangular(u)`).

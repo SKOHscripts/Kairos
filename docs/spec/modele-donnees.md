@@ -64,7 +64,11 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   `PERSONAL` code 0, par défaut, `TEAM` code 1 ; code inconnu →
   `PERSONAL`), `assigneeId` (membre assigné, `null` sinon), et, depuis le
   jalon E3, `progressPercent`, `startedOn`, `teamUid`
-  (`equipe-backlog-suivi.md`).
+  (`equipe-backlog-suivi.md`), et depuis le jalon E6 `origin` (origine
+  d'une tâche reçue d'un manager, `TeamOrigin` encodée, `null` sinon),
+  `originRemoved` (retirée par le manager, faux par défaut),
+  `reportedMinutes` (dernier total de temps rapporté par un membre, côté
+  manager) (`equipe-echanges.md`).
   - Dates et heures « métier » **locales naïves** (`LocalDate`,
     `LocalDateTime`) ; horodatages techniques en instants UTC (`Instant`).
     Convention de Kairos 2.
@@ -96,7 +100,8 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   la lecture).
 - `TeamMember` (`core/team/`) : `id`, `uid`, `name`, `role`,
   `availabilityPercent`, `hoursPerDay`, `isSelf`, `archived`, `createdAt`,
-  `updatedAt` (`equipe.md`) ; `MemberAbsence` : `id`, `memberId`, `start`,
+  `updatedAt` (`equipe.md`), `lastReportAt` (dernier rapport intégré, jalon
+  E6, `equipe-echanges.md`) ; `MemberAbsence` : `id`, `memberId`, `start`,
   `end` (dates locales incluses), `label`, `createdAt` ; `TeamEvent`
   (journal des tâches d'équipe, `equipe-backlog-suivi.md` § Journal).
 - `KairosSnapshot` : toutes les tables (membres, absences et journal
@@ -148,7 +153,10 @@ Schéma 1 : celui de la 3.0.0. Schéma 2 : `1.sqm` (jalon E1 de l'espace
 `team_member`. Schéma 3 : `2.sqm` (jalon E2) ajoute `member_absence`.
 Schéma 4 : `3.sqm` (jalon E3) ajoute `task.progress_percent`,
 `task.started_on`, `task.team_uid` (en fin de table) et `team_event`.
-Schéma 5 : `4.sqm` (jalon E5) ajoute `team_scenario`. Les
+Schéma 5 : `4.sqm` (jalon E5) ajoute `team_scenario`. Schéma 6 : `5.sqm`
+(jalon E6) ajoute `task.origin`, `task.origin_removed`,
+`task.reported_minutes` et `team_member.last_report_at` (en fin de table).
+Les
 schémas de référence de chaque version
 (`data/src/commonMain/sqldelight/databases/<n>.db`, générés par
 `generateCommonMainKairosDatabaseSchema` avant la migration) sont

@@ -176,7 +176,8 @@ backlog.
 - `Effort.teamCalibration(snapshot, maintenant)` :
   `TaskStats.fibonacciCalibration` sur les tâches d'**équipe** faites,
   temps passé = sessions (une session ouverte court jusqu'à maintenant) +
-  temps manuel ; le temps des rapports s'y ajoutera au jalon E6. Fiable si
+  temps manuel + temps rapporté par le membre (`reportedMinutes`,
+  `equipe-echanges.md`). Fiable si
   n ≥ 3.
 - Réglages ajoutés (`TeamSettings`) : `horizonWeeks` (4, 1-26),
   `focusFactor` (0.8, > 0 exclu et ≤ 1), `hoursPerPoint` (2.0, > 0 exclu),

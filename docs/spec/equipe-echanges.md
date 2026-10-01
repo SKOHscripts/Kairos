@@ -59,6 +59,8 @@ données.
   ailleurs, supprimée par le manager) n'est jamais supprimée : elle est
   marquée « retirée par Corentin » et le membre choisit de la supprimer ou
   de la garder comme tâche personnelle.
+- Un paquet de **sa propre équipe** (le manager qui s'importe son propre
+  envoi) est refusé : ces tâches sont déjà dans son espace Équipe.
 - Une **sauvegarde automatique** est faite avant la réception, comme pour
   un import ; sans elle, rien n'est reçu.
 
@@ -95,6 +97,7 @@ données.
     refusé en entier (« Ce rapport est plus ancien que celui du 28 sept.
     déjà intégré. ») ;
   - rapport d'un **autre manager** (autre équipe) : refusé ;
+  - rapport d'un membre dont la fiche a été **supprimée** depuis : refusé ;
   - fichier d'un membre **archivé** : intégré (le travail est réel), avec
     avertissement.
 - Sauvegarde automatique avant intégration, comme pour la réception.
@@ -146,7 +149,7 @@ Deux formats JSON UTF-8 indentés, distincts de l'export par leur champ
   "exportedAt": "2026-09-30T07:00:00Z",
   "team": { "uid": "uuid", "name": "Équipe Plateforme", "manager": "Corentin" },
   "member": { "uid": "uuid", "name": "Léa" },
-  "tasks": [ { "uid": "uuid", "parentUid": null, "title": "…", "priority": 1, "fibonacciPoints": 5, "taskType": "Développement", "deadline": "2026-10-10", "estimatedMinutes": 480, "progressPercent": 40 } ],
+  "tasks": [ { "uid": "uuid", "parentUid": null, "title": "…", "priority": 1, "fibonacciPoints": 5, "taskType": "Développement", "deadline": "2026-10-10", "estimatedMinutes": 480, "progressPercent": 40, "description": null } ],
   "dependencies": [ { "taskUid": "uuid", "blockerUid": "uuid" } ],
   "externalBlockers": [ { "taskUid": "uuid", "title": "API v2", "assignee": "Marc" } ]
 }
@@ -171,45 +174,118 @@ Deux formats JSON UTF-8 indentés, distincts de l'export par leur champ
   `kotlin.uuid.Uuid.random()`), jamais par `core` (`equipe.md`
   § Décisions).
 - `decode` : même contrat d'erreurs que `ExportCodec` (`NOT_AN_EXPORT`,
-  `TOO_NEW`, `CORRUPTED`), champs inconnus ignorés.
-- Aiguillage du bouton « Importer » : lecture de `format` d'abord
-  (`kairos-export`, `kairos-team-pack`, `kairos-team-report`), puis le
+  `TOO_NEW`, `CORRUPTED`), champs inconnus ignorés. Les décodages du dépôt
+  lèvent `ImportException`.
+- Aiguillage du bouton « Importer » : `TeamExchangeCodec.detect(text)` lit
+  `format` seul (`kairos-export` → `EXPORT`, `kairos-team-pack` → `PACK`,
+  `kairos-team-report` → `REPORT`, autre → `NOT_AN_EXPORT`), puis le
   décodeur du format.
+- Modèle pur des deux fichiers dans `core/team/exchange/ExchangeModels.kt`
+  (`TeamPack`, `PackTask`, `PackDependency`, `ExternalBlocker`,
+  `TeamReport`, `ReportTask`, `ReportSubtask`) ; `TeamExchangeCodec` ne fait
+  que la traduction JSON.
+
+### Envoi (`PackBuilder`, pur)
+
+- `PackBuilder.build(snapshot, memberId, packId, exportedAt)` : les tâches
+  d'équipe **à faire** du membre, plus leurs sous-tâches à faire à tout
+  niveau (quel que soit leur assigné) ; `null` s'il n'y en a aucune
+  (`KairosRepository.exportPack` renvoie alors `null`). Une sous-tâche
+  faite côté manager sort donc du paquet, et sera marquée retirée chez le
+  membre.
+- Dépendances entre tâches du paquet : `dependencies` ; un bloqueur hors
+  paquet sort en `externalBlockers` (titre, nom de son assigné, sans nom
+  s'il est au backlog).
+- Journal : un événement `sent` par tâche envoyée (valeur : `packId`,
+  membre : destinataire, source `manual`), écrit par `exportPack` avant
+  l'enregistrement du fichier.
 
 ### Réception (`PackMerge`, pur)
 
-- Entrées : l'instantané du membre, le paquet ; sortie : un plan de
-  fusion (`created`, `updated`, `removed`, `unchanged`) appliqué par le
-  dépôt en **une** transaction (`KairosRepository.receivePack`).
+- Entrées : l'instantané du membre, le paquet, l'instant ; sortie : un
+  `PackMergePlan` (`created`, `updated`, `removed`, `unchanged`,
+  `dependencyAdds`, `dependencyRemoves`, `skippedDependencies`,
+  `externalBlockers`, `refusal`) appliqué par le dépôt en **une**
+  transaction (`previewPack` calcule le plan sans écrire, `receivePack`
+  l'applique et renvoie `PackReport(plan, applied)`).
+- Refus `OWN_TEAM` : un paquet de sa propre équipe (même identité que
+  `TeamSettings.identity`) n'est pas reçu.
 - Tâche reçue : `space = PERSONAL` (le membre n'a pas d'espace Équipe),
-  `teamUid` = celui du paquet, `origin` = `teamUid de l'équipe` + nom du
-  manager (pour l'afficher et regrouper les rapports).
+  `teamUid` = celui du paquet, `origin` = `TeamOrigin` encodée : identité
+  et nom de l'équipe, nom du manager, `uid` et nom du membre désigné, cinq
+  champs séparés par U+001F (retiré des noms à l'écriture). L'`uid` du
+  membre sert à adresser le rapport ; les rapports se regroupent par
+  identité d'équipe (`TeamOrigin.key`).
 - Correspondance par `teamUid` **et** équipe d'origine ; champs du manager
-  écrasés, champs du membre gardés (liste du § 1).
+  écrasés, champs du membre gardés (liste du § 1). Les écritures de
+  réception ne touchent pas `updatedAt` (la date de fin des statistiques du
+  membre en dépend).
 - Retirées : `origin` gardée, `originRemoved = true` (colonne
   `task.origin_removed`, 0 par défaut) ; jamais de suppression. Les
   recevoir à nouveau dans un paquet ultérieur remet `originRemoved` à
   faux.
+- Sous-tâches créées par le membre et déjà remontées (elles ont reçu un
+  `teamUid` au premier rapport) : le paquet suivant qui les contient les
+  **adopte** (origine posée) au lieu de les dupliquer ; un champ que le
+  paquet laisse vide garde la valeur du membre.
 - Dépendances : celles du paquet remplacent les précédentes **entre tâches
   reçues** de ce manager ; celles que le membre a posées avec ses propres
-  tâches sont gardées. Bloqueurs externes : affichés en lecture seule, ils
-  ne bloquent pas l'ordonnancement du membre (il ne voit pas leur état).
+  tâches sont gardées. Une dépendance du paquet qui fermerait un cycle avec
+  celles du membre est écartée (`skippedDependencies`). Bloqueurs externes :
+  ni persistés ni bloquants (le membre ne voit pas leur état), ils ne
+  figurent que dans l'aperçu de réception.
+- Le membre règle l'avancement d'une tâche reçue
+  (`KairosRepository.setReceivedProgress`, arrondi à la dizaine comme
+  `setProgress`, `startedOn` posé au-dessus de 0, sans journal : le membre
+  n'a pas d'espace Équipe).
+- `clearTeamData` ne touche pas aux tâches reçues : chez le membre, ce sont
+  des tâches personnelles. `Workspaces.hasTeamData` les compte (export 2).
+
+### Rapport (`ReportBuilder`, pur)
+
+- `ReportBuilder.build(snapshot, originKey, now, timeZone)` : les tâches
+  reçues **non retirées** de cette équipe ; `null` s'il n'y en a aucune
+  (`KairosRepository.buildReport` renvoie alors `null`).
+- Par tâche : état ; `doneOn` = jour local de `updatedAt` d'une tâche
+  faite ; avancement (100 pour une tâche faite) ; `startedOn` = celui de la
+  tâche, sinon le jour de la première session, sinon le jour du rapport si
+  un avancement est déclaré ; temps passé total (sessions et temps manuel).
+- Nouvelles sous-tâches du membre : un `teamUid` leur est posé au premier
+  rapport (écriture technique, `updatedAt` inchangé), stable ensuite.
 
 ### Intégration (`ReportMerge`, pur)
 
-- Entrées : l'instantané d'équipe du manager, le rapport ; refus si
-  l'équipe diffère ou si `reportedAt` ≤ le dernier rapport intégré de ce
-  membre (colonne `team_member.last_report_at`).
+- Entrées : l'instantané d'équipe du manager, le rapport, le fuseau ;
+  sortie : un `ReportMergePlan` (`member`, `memberArchived`, `updates` en
+  `ReportChange` `Status` / `Progress` / `Started` / `Spent` de → vers,
+  `unchanged`, `newSubtasks`, `ignored`, `fromFormerHolder`, `refusal`) ;
+  `previewReport` le calcule sans écrire, `integrateReport` l'applique en
+  une transaction et renvoie `ReportIntegration(plan, applied)`.
+- Refus : `WRONG_TEAM` (identité d'équipe différente), `UNKNOWN_MEMBER`
+  (fiche du membre supprimée depuis l'envoi), `OLDER` (`reportedAt` ≤ le
+  dernier rapport intégré de ce membre, colonne
+  `team_member.last_report_at`, mise à jour à chaque intégration).
+- Avancement intégré sans arrondi (borné à 0-100) ; le `startedOn` du
+  membre l'emporte ; une tâche rouverte sans avancement repasse à 0.
 - Temps passé : le rapport porte un **total** ; le manager stocke le
-  dernier total reçu (colonne `task.reported_minutes`), qui s'ajoute aux
-  sessions et au temps manuel de la tâche chez le manager (et non l'écrase)
-  dans tous les calculs de temps passé (`equipe-charge.md`,
-  `equipe-simulation.md`). Un total reçu remplace le précédent : pas de
-  double comptage d'un rapport à l'autre.
-- `doneOn` du rapport sert de date de fin (événement « fin » daté de ce
-  jour), pour que débit et délais ne dépendent pas du jour d'intégration.
+  dernier total reçu (colonne `task.reported_minutes`), que
+  `TimeTracking.spentMinutesByTask` ajoute aux sessions et au temps manuel
+  (point de passage unique : calibration, facteurs d'erreur des
+  prévisions, statistiques). Un total reçu remplace le précédent : pas de
+  double comptage d'un rapport à l'autre. N'étant pas daté, il n'entre pas
+  dans les facteurs de capacité hebdomadaires de `ForecastData`.
+- `doneOn` du rapport sert de date de fin : l'événement `done` est daté de
+  midi local ce jour-là, sans dépasser l'instant courant (jour du rapport à
+  défaut), pour que débit et délais ne dépendent pas du jour
+  d'intégration. Terminer une tâche ferme son chrono et crée l'occurrence
+  suivante d'une récurrente, comme `toggleDone`.
+- Journal : source `report` ; le temps rapporté a son propre événement
+  `time` (de → vers, en minutes). Le membre d'un événement `report` est
+  celui qui rapporte, pas l'assigné actuel : c'est ce qui signale « reçu de
+  l'ancien titulaire ».
 - Nouvelles sous-tâches : créées comme tâches d'équipe du même assigné,
-  journalisées.
+  journalisées ; une sous-tâche déjà connue (même `uid`) n'est pas recréée,
+  seul son état suit.
 
 ### Interface
 
@@ -243,6 +319,14 @@ Deux formats JSON UTF-8 indentés, distincts de l'export par leur champ
   du membre.
 - **Refus des rapports plus anciens** : intégrer un vieux rapport après un
   récent ferait reculer l'avancement.
+- **Origine à cinq champs dans une colonne texte** plutôt qu'une table
+  d'origines : une tâche reçue porte tout ce qu'il faut pour l'afficher et
+  adresser le rapport, sans jointure ni nettoyage d'orphelins.
+- **Bloqueurs externes non stockés** : le membre ne peut ni les voir
+  évoluer ni les débloquer ; les garder figés induirait en erreur.
+- **Deux nouveaux événements (`sent`, `time`)** plutôt qu'une réutilisation
+  de `report` : le journal du manager distingue l'envoi, l'état et le
+  temps.
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 

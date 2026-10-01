@@ -84,7 +84,8 @@ reçoit **toutes** les tâches, archivées comprises (comme Kairos 2).
 - `throughputByWeek` : `WeekThroughput(lundi, terminées, points)` pour
   chaque semaine de la fenêtre, zéro compris.
 - `fibonacciCalibration` : tâches faites avec points (≠ 0) et temps passé
-  > 0 (sessions + saisie manuelle, `spentMinutesByTask`), médiane par
+  > 0 (sessions + saisie manuelle + temps rapporté,
+  `spentMinutesByTask`), médiane par
   palier. `calibrationByType` : idem par type non vide. `Calibration(clé,
   n, médiane)`, `reliable` = n ≥ `MIN_SAMPLE` (3).
 - `estimationBias` : tâches faites avec estimé (≠ 0) et temps passé > 0 ;

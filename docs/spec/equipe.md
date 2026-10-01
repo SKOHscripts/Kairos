@@ -341,7 +341,8 @@ d'équipe n'entre dans un calcul personnel.
     `team_event (id, task_id, task_title, member_id, kind, from_value,
     to_value, source, at)` (index `task_id`, `member_id`) ;
   - **E5, `4.sqm`** (`user_version` 4 → 5) : `team_scenario` ;
-  - **E6** : `task.origin`, `task.origin_removed`, `task.reported_minutes`,
+  - **E6, `5.sqm`** (`user_version` 5 → 6) : `task.origin`,
+    `task.origin_removed`, `task.reported_minutes`,
     `team_member.last_report_at` (`equipe-echanges.md`).
   Références sans `FOREIGN KEY` (parti pris existant).
 - Une base 2.x importée (`migration-2x.md`) n'a aucune tâche d'équipe :

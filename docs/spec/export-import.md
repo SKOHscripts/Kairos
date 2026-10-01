@@ -105,9 +105,12 @@ JSON UTF-8 indenté :
   d'équipe), `absences` (ajouté au jalon E2), `teamEvents` (journal, jalon
   E3), `teamScenarios` (jalon E5) — un lecteur 2 plus ancien ignore les champs qu'il ne connaît pas —
   et, sur les tâches, `progressPercent`, `startedOn`, `teamUid` (E3), `space` (`"team"`, écrit seulement pour une
-  tâche d'équipe) et `assigneeId`.
+  tâche d'équipe), `assigneeId`, `origin`, `originRemoved` (écrit
+  seulement s'il est vrai) et `reportedMinutes` (E6) ; sur les membres,
+  `lastReportAt` (E6).
 - **Une base sans donnée d'équipe** (`Workspaces.hasTeamData` faux : ni
-  membre, ni absence, ni événement, ni tâche d'équipe, ni tâche assignée) s'exporte en
+  membre, ni absence, ni événement, ni tâche d'équipe, ni tâche assignée,
+  ni tâche reçue d'un manager) s'exporte en
   `formatVersion` 1, sans aucun champ d'équipe : c'est l'export de la
   3.0.0, octet pour octet hors `appVersion` et `exportedAt`, prouvé contre un
   fichier de référence produit avant le chantier
