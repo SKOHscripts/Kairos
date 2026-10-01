@@ -58,6 +58,8 @@ fun KairosApp(
     platform: Platform,
     /** Destination d'ouverture ; autre que « Jour » seulement pour les captures des magasins. */
     initialDestination: Destination = Destination.START,
+    /** Destination d'ouverture de l'espace Équipe (quand il est ouvert) ; autre que « Suivi » seulement pour les captures des magasins. */
+    initialTeamDestination: TeamDestination = TeamDestination.START,
     /** Couleurs du système (Android 12 et plus), `null` ailleurs (docs/spec/apparence.md). */
     systemColorScheme: ColorScheme? = null,
     openServices: suspend () -> AppServices,
@@ -75,7 +77,7 @@ fun KairosApp(
                     // Thème des réglages dès qu'ils sont lus ; le miel de la charte pendant le chargement.
                     val themeColor = ready.repository.snapshot.collectAsState().value.settings.themeColor
                     val scheme = remember(themeColor, systemColorScheme) { ThemeColors.schemeFor(themeColor, systemColorScheme) }
-                    KairosTheme(scheme) { KairosShell(platform, ready, initialDestination) }
+                    KairosTheme(scheme) { KairosShell(platform, ready, initialDestination, initialTeamDestination) }
                 }
                 failure != null -> Status(stringResource(Res.string.error_open_title), failure.toString())
                 else -> Status(stringResource(Res.string.loading), null, progress = true)
@@ -85,7 +87,7 @@ fun KairosApp(
 }
 
 @Composable
-private fun KairosShell(platform: Platform, services: AppServices, initialDestination: Destination) {
+private fun KairosShell(platform: Platform, services: AppServices, initialDestination: Destination, initialTeamDestination: TeamDestination) {
     val repository = services.repository
     // Seul le sous-objet d'équipe intéresse la coquille : un changement d'un autre réglage ne la recompose pas.
     val team by remember { repository.snapshot.map { it.settings.team }.distinctUntilChanged() }
@@ -96,7 +98,7 @@ private fun KairosShell(platform: Platform, services: AppServices, initialDestin
         mutableStateOf(if (teamEnabled && team?.lastSpace == TeamSettings.SPACE_TEAM) Space.TEAM else Space.PERSONAL)
     }
     var destination by rememberSaveable { mutableStateOf(initialDestination) }
-    var teamDestination by rememberSaveable { mutableStateOf(TeamDestination.START) }
+    var teamDestination by rememberSaveable { mutableStateOf(initialTeamDestination) }
     var aboutOpen by rememberSaveable { mutableStateOf(false) }
     val nav = remember { NavState() }
     val scope = rememberCoroutineScope()

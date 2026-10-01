@@ -16,6 +16,15 @@ An idea? A note. A task? A title is enough: it waits in “To process” until y
 <b>Real time</b>
 A timer per task, with an ongoing notification; alerts when you go past the estimate, forget a running timer or need a break, even with the app closed. Statistics compare your estimates with the time actually spent.
 
+<b>Manage a team (optional)</b>
+Off by default, team management adds a second space for the manager, who remains the only user:
+<ul>
+<li>Members and absences, a shared backlog, progress tracking with its log.</li>
+<li>Each person’s load against their capacity, and a suggested split of the tasks.</li>
+<li>Monte Carlo forecasts: finish dates as percentage chances, threatened deadlines, “What if…?” scenarios.</li>
+<li>Everything stays on the device; the personal space never shows anything from the team.</li>
+</ul>
+
 <b>Your data stays with you</b>
 <ul>
 <li>No account, no ads, no trackers, no network permission.</li>

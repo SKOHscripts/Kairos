@@ -92,6 +92,18 @@ internal fun Histogram(
         val width = (maxWidth.value / buckets.size).coerceIn(SLOT_MIN.value, SLOT_MAX.value).dp * buckets.size
         Box(Modifier.horizontalScroll(rememberScrollState())) {
             Box(Modifier.width(width)) {
+                // Traits des percentiles, de leur libellé à l'axe, dessinés **sous** les barres et leurs valeurs :
+                // tracés par-dessus, ils barraient le nombre d'une barre (« 4|1 », vu sur la capture des magasins).
+                drawn.forEachIndexed { index, mark ->
+                    val x = width * HistogramLayout.position(buckets, mark.date!!)!!
+                    val top = MARK_ROW * index
+                    Box(
+                        Modifier.offset(x = x - 1.dp, y = top + MARK_ROW / 2)
+                            .width(2.dp)
+                            .height(marksHeight - top - MARK_ROW / 2 + PLOT_HEIGHT)
+                            .background(scheme.outline),
+                    )
+                }
                 Column {
                     Box(Modifier.height(marksHeight))
                     Row(Modifier.height(PLOT_HEIGHT)) {
@@ -103,7 +115,7 @@ internal fun Histogram(
                                         if (percent == 0) lessThanOne else "$percent",
                                         style = MaterialTheme.typography.labelSmall,
                                         textAlign = TextAlign.Center,
-                                        modifier = Modifier.height(VALUE_HEIGHT),
+                                        modifier = Modifier.height(VALUE_HEIGHT).background(scheme.surface).padding(horizontal = 2.dp),
                                     )
                                 }
                                 Box(
@@ -126,17 +138,11 @@ internal fun Histogram(
                         }
                     }
                 }
-                // Traits des percentiles : de leur libellé (une ligne par repère, pour qu'ils ne se recouvrent pas) à l'axe.
+                // Libellés des percentiles (une ligne par repère, pour qu'ils ne se recouvrent pas), au-dessus de tout.
                 drawn.forEachIndexed { index, mark ->
                     val fraction = HistogramLayout.position(buckets, mark.date!!)!!
                     val x = width * fraction
                     val top = MARK_ROW * index
-                    Box(
-                        Modifier.offset(x = x - 1.dp, y = top + MARK_ROW / 2)
-                            .width(2.dp)
-                            .height(marksHeight - top - MARK_ROW / 2 + PLOT_HEIGHT)
-                            .background(scheme.outline),
-                    )
                     // Libellé à droite du trait, ramené à gauche près du bord pour ne pas sortir du graphique.
                     Text(
                         mark.label,

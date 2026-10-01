@@ -2,6 +2,8 @@ package com.skohscripts.kairos.desktop
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ImageComposeScene
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.unit.Density
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.skohscripts.kairos.core.model.BlockKind
@@ -16,6 +18,7 @@ import com.skohscripts.kairos.core.model.TaskRecurrence
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TimeBlock
 import com.skohscripts.kairos.core.model.WorkSession
+import com.skohscripts.kairos.core.team.forecast.ForecastScope
 import com.skohscripts.kairos.data.KairosRepository
 import com.skohscripts.kairos.data.KairosStore
 import com.skohscripts.kairos.ui.KairosApp
@@ -25,6 +28,9 @@ import com.skohscripts.kairos.ui.app.ChronoNotifier
 import com.skohscripts.kairos.ui.app.FileService
 import com.skohscripts.kairos.ui.app.NotifyState
 import com.skohscripts.kairos.ui.navigation.Destination
+import com.skohscripts.kairos.ui.navigation.TeamDestination
+import com.skohscripts.kairos.ui.team.forecast.ForecastRun
+import com.skohscripts.kairos.ui.team.forecast.ForecastSpec
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.DatePeriod
@@ -48,7 +54,8 @@ import kotlin.time.Instant
  * `--store-screenshots=<dossier fastlane/metadata/android>` rend hors écran,
  * en français et en anglais, l'interface **Android** en largeur téléphone
  * (1080 × 2400 px, densité 2,625) sur un jeu de données réaliste, et écrit
- * `<langue>/images/phoneScreenshots/1.png`… Rien de ce jeu n'est livré dans
+ * `<langue>/images/phoneScreenshots/1.png` à `8.png` (1 à 5 : espace Perso, base solo ; 6 à 8 : espace Équipe,
+ * seconde base de [StoreTeam]). Rien de ce jeu n'est livré dans
  * l'application : c'est une vitrine, pas des exemples.
  */
 object StoreScreenshots {
@@ -57,7 +64,11 @@ object StoreScreenshots {
     private val today = LocalDate(2026, 10, 6) // un mardi
     private val now: Instant = LocalDateTime(today, LocalTime(10, 12)).toInstant(TimeZone.UTC)
 
+    /** Captures 1 à 5 : l'espace Perso, sur la base du mode solo. */
     private val shots = listOf(Destination.DAY, Destination.WEEK, Destination.STATS, Destination.NOTES, Destination.SETTINGS)
+
+    /** Captures 6 à 8 : l'espace Équipe, sur une seconde base (gestion d'équipe activée, [StoreTeam]). */
+    private val teamShots = listOf(TeamDestination.BOARD, TeamDestination.MEMBERS, TeamDestination.FORECAST)
 
     fun run(metadataDir: File): Int = try {
         // Heure et fuseau figés : les captures ne dépendent ni du jour ni de la machine.
@@ -69,6 +80,13 @@ object StoreScreenshots {
                 val services = runBlocking { services(locale.language) }
                 val png = render { KairosApp(Platform.ANDROID, destination) { services } }
                 File(out, "${i + 1}.png").writeBytes(png)
+            }
+            teamShots.forEachIndexed { i, destination ->
+                val services = runBlocking { teamServices(locale.language, destination) }
+                // Les calculs de l'espace Équipe (charge, historique) se font hors composition : on attend la stabilité.
+                val scroll = if (destination == TeamDestination.FORECAST) FORECAST_SCROLL else 0f
+                val png = render(settle = true, wheel = scroll) { KairosApp(Platform.ANDROID, initialTeamDestination = destination) { services } }
+                File(out, "${shots.size + i + 1}.png").writeBytes(png)
             }
         }
         println("Captures des magasins écrites dans $metadataDir")
@@ -98,16 +116,57 @@ object StoreScreenshots {
         return AppServices(repository, files, { _, _ -> }, clock = clock, notifier = notifier)
     }
 
-    private fun render(content: @Composable () -> Unit): ByteArray {
+    /**
+     * Base de l'espace Équipe (docs/spec/publication.md § Captures) et, pour Prévisions, la simulation **déjà calculée** :
+     * modèle par effort, travail assigné, nombre de tirages par défaut, graine fixe, d'un trait avant le rendu. Posée
+     * avec l'empreinte des données qui l'ont produite, elle ne s'affiche pas « périmée ».
+     */
+    private suspend fun teamServices(language: String, destination: TeamDestination): AppServices {
+        val services = StoreTeam.open(language == "en", today, now)
+        if (destination == TeamDestination.FORECAST) {
+            services.teamUi.forecast = ForecastRun.computeNow(
+                services.repository.snapshot.value, now, TimeZone.UTC, ForecastSpec(ForecastScope.Assigned), StoreTeam.FORECAST_SEED,
+            )
+        }
+        return services
+    }
+
+    @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+    private fun render(settle: Boolean = false, wheel: Float = 0f, content: @Composable () -> Unit): ByteArray {
         val scene = ImageComposeScene(WIDTH, HEIGHT, Density(2.625f), content = content)
         try {
             var image = scene.render(0)
             for (frame in 1..12) image = scene.render(frame * 100_000_000L)
-            return requireNotNull(image.encodeToData(EncodedImageFormat.PNG)) { "encodage PNG" }.bytes
+            var png = requireNotNull(image.encodeToData(EncodedImageFormat.PNG)) { "encodage PNG" }.bytes
+            // Espace Équipe : les calculs lourds se font hors composition, en temps réel. On attend que l'image ne change
+            // plus (l'indicateur de progression, animé, la fait changer tant que ça calcule), comme l'auto-test.
+            var stable = 0
+            var frame = 13
+            while (settle && stable < 3 && frame < 13 + MAX_SETTLE_FRAMES) {
+                Thread.sleep(100)
+                val next = requireNotNull(scene.render(frame++ * 100_000_000L).encodeToData(EncodedImageFormat.PNG)) { "encodage PNG" }.bytes
+                stable = if (next.contentEquals(png)) stable + 1 else 0
+                png = next
+            }
+            if (wheel != 0f) {
+                // Défilement à la molette, une fois la mise en page stable : le résultat en haut de l'écran.
+                scene.sendPointerEvent(
+                    PointerEventType.Scroll, Offset(WIDTH / 2f, HEIGHT / 2f), scrollDelta = Offset(0f, wheel), timeMillis = 1_300L,
+                )
+                for (i in 0 until 6) image = scene.render((frame++) * 100_000_000L)
+                png = requireNotNull(image.encodeToData(EncodedImageFormat.PNG)) { "encodage PNG" }.bytes
+            }
+            return png
         } finally {
             scene.close()
         }
     }
+
+    /** Nombre maximal d'images (de 100 ms) attendues après le rendu initial pour que les calculs asynchrones aboutissent. */
+    private const val MAX_SETTLE_FRAMES = 80
+
+    /** Défilement (en crans de molette) de la capture Prévisions, pour que le résultat soit en haut de l'écran. */
+    private const val FORECAST_SCROLL = 24f
 
     /** Textes du jeu de données, par langue. */
     private class Words(

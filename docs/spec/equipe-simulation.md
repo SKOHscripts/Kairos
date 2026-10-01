@@ -320,8 +320,10 @@ une ».
 - Panneaux (`Panel`) : **Date de fin** (P50, P85, P95 en phrase, jamais une
   date seule ; `Histogram` : une barre `Box` primaire par semaine, créneau
   de 40 à 72 dp, défilement dans la carte au-delà, traits P50/P85/P95 en
-  `outline` sur des lignes de libellé distinctes, description complète
-  pour le lecteur d'écran) ; **Combien d'ici…** (`DatePicker`, date par
+  `outline` sur des lignes de libellé distinctes, tracés **sous** les
+  barres et leurs valeurs (qui ont un fond de surface) — par-dessus, un
+  trait barrait le nombre d'une barre, vu sur la capture des magasins —,
+  description complète pour le lecteur d'écran) ; **Combien d'ici…** (`DatePicker`, date par
   défaut = P50, réponse à 95 %, 85 % et 50 %) ; **Échéances** (les 8 plus
   fragiles, puis « voir les autres » ; « en danger » en contour + icône) ;
   **Criticité** (10 plus souvent en retard) ; **Goulot** ; **Issue la plus

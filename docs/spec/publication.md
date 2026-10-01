@@ -111,7 +111,18 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
   (captures 6 à 8) : trois membres dont « moi », une absence, une dizaine de
   tâches d'équipe à divers états, un historique de tâches faites estimées et
   chronométrées sur plusieurs semaines, dates relatives à la même horloge ;
-  la simulation de la capture 8 est calculée avant le rendu, à graine fixe. Ce jeu n'est pas
+  la simulation de la capture 8 est calculée avant le rendu, à graine fixe.
+  Ce jeu de vitrine (`StoreTeam.kt`) n'est pas celui de l'auto-test
+  (`TeamSeed`, qui suit le jour réel). « Moi » (Claire) porte le
+  dépassement de charge : l'espace Équipe la montre en premier, donc dans
+  les 2400 px. Le dépôt tire des `teamUid` aléatoires dont la simulation
+  dérive ses tirages : le jeu les remplace par des identités fixes
+  (`replaceAll`), sans quoi la capture 8 changeait d'une exécution à
+  l'autre malgré la graine fixe. `KairosApp` accepte une destination
+  d'équipe initiale (`initialTeamDestination`, par défaut le Suivi) ; la
+  capture 8 est défilée jusqu'au résultat. Les captures 6 à 8 attendent une
+  image stable (calculs de charge asynchrones) ; 1 à 5 sont rendues comme
+  avant, à l'octet près. Ce jeu n'est pas
   livré dans l'application (ce ne sont pas les exemples).
 - `KairosApp` accepte pour cela une destination initiale
   (`initialDestination`, par défaut l'écran d'accueil habituel).
