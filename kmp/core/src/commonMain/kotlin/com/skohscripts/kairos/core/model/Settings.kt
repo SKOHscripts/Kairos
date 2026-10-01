@@ -93,11 +93,26 @@ data class TeamSettings(
     val churnThreshold: Int = DEFAULT_CHURN_THRESHOLD,
     /** Tâches en cours par membre au-delà desquelles le signal « trop d'en-cours » s'allume (≥ 0 ; 0 = sans limite). */
     val wipLimit: Int = DEFAULT_WIP_LIMIT,
+    /** Charge (docs/spec/equipe-charge.md) : horizon glissant par défaut, en semaines (1-26). */
+    val horizonWeeks: Int = DEFAULT_HORIZON_WEEKS,
+    /** Part du temps réellement disponible pour les tâches (> 0 et ≤ 1) : réunions, support et imprévus en moins. */
+    val focusFactor: Double = DEFAULT_FOCUS_FACTOR,
+    /** Heures par point de Fibonacci quand ni estimation ni calibration ne servent (> 0). */
+    val hoursPerPoint: Double = DEFAULT_HOURS_PER_POINT,
+    /** Taux de charge (en %, 1-100) au-delà duquel un membre est « à surveiller ». */
+    val loadWarnPercent: Int = DEFAULT_LOAD_WARN_PERCENT,
+    /** Écart de fin (en jours ouvrés, ≥ 0) dans lequel la suggestion préfère l'affinité de catégorie. */
+    val affinityDays: Int = DEFAULT_AFFINITY_DAYS,
 ) {
     companion object {
         const val DEFAULT_STALE_PROGRESS_DAYS = 5
         const val DEFAULT_CHURN_THRESHOLD = 3
         const val DEFAULT_WIP_LIMIT = 3
+        const val DEFAULT_HORIZON_WEEKS = 4
+        const val DEFAULT_FOCUS_FACTOR = 0.8
+        const val DEFAULT_HOURS_PER_POINT = 2.0
+        const val DEFAULT_LOAD_WARN_PERCENT = 90
+        const val DEFAULT_AFFINITY_DAYS = 2
 
         const val SPACE_PERSONAL = "personal"
         const val SPACE_TEAM = "team"

@@ -134,4 +134,61 @@ class SettingsFormTest {
         assertEquals(TeamSettings(wipLimit = 4), s.team)
         assertEquals(s, SettingsForm.validate(SettingsForm.values(s), s).settings)
     }
+
+    @Test
+    fun load_settings_have_their_defaults_and_bounds() {
+        val values = SettingsForm.values(base)
+        assertEquals("4", values["team.horizonWeeks"])
+        assertEquals("0.8", values["team.focusFactor"])
+        assertEquals("2", values["team.hoursPerPoint"])
+        assertEquals("90", values["team.loadWarnPercent"])
+        assertEquals("2", values["team.affinityDays"])
+        assertEquals(FieldKind.DECIMAL, SettingsForm.field("team.focusFactor").kind)
+        assertEquals(FieldKind.DECIMAL, SettingsForm.field("team.hoursPerPoint").kind)
+        assertEquals(FieldKind.INT, SettingsForm.field("team.horizonWeeks").kind)
+
+        fun team(key: String, value: String) = validate(key to value)
+        // Horizon : 1 à 26 semaines.
+        assertEquals(1, team("team.horizonWeeks", "1").settings!!.team!!.horizonWeeks)
+        assertEquals(26, team("team.horizonWeeks", "26").settings!!.team!!.horizonWeeks)
+        assertEquals(FieldErrorKind.TOO_SMALL, team("team.horizonWeeks", "0").fieldErrors["team.horizonWeeks"]!!.kind)
+        assertEquals(FieldError(FieldErrorKind.TOO_LARGE, "26"), team("team.horizonWeeks", "27").fieldErrors["team.horizonWeeks"])
+        // Focus : > 0 (borne exclue) et <= 1 ; la virgule est acceptée.
+        assertEquals(1.0, team("team.focusFactor", "1").settings!!.team!!.focusFactor)
+        assertEquals(0.5, team("team.focusFactor", "0,5").settings!!.team!!.focusFactor)
+        assertTrue(SettingsForm.field("team.focusFactor").minExclusive)
+        assertEquals(FieldError(FieldErrorKind.TOO_SMALL, "0"), team("team.focusFactor", "0").fieldErrors["team.focusFactor"])
+        assertEquals(FieldError(FieldErrorKind.TOO_LARGE, "1"), team("team.focusFactor", "1.01").fieldErrors["team.focusFactor"])
+        assertEquals(FieldErrorKind.NOT_NUMBER, team("team.focusFactor", "beaucoup").fieldErrors["team.focusFactor"]!!.kind)
+        // Heures par point : > 0.
+        assertEquals(1.5, team("team.hoursPerPoint", "1,5").settings!!.team!!.hoursPerPoint)
+        assertEquals(FieldErrorKind.TOO_SMALL, team("team.hoursPerPoint", "0").fieldErrors["team.hoursPerPoint"]!!.kind)
+        assertEquals(FieldErrorKind.TOO_SMALL, team("team.hoursPerPoint", "-2").fieldErrors["team.hoursPerPoint"]!!.kind)
+        // Seuil d'alerte : 1 à 100 %.
+        assertEquals(100, team("team.loadWarnPercent", "100").settings!!.team!!.loadWarnPercent)
+        assertEquals(FieldErrorKind.TOO_SMALL, team("team.loadWarnPercent", "0").fieldErrors["team.loadWarnPercent"]!!.kind)
+        assertEquals("100", team("team.loadWarnPercent", "101").fieldErrors["team.loadWarnPercent"]!!.bound)
+        // Affinité : 0 ou plus.
+        assertEquals(0, team("team.affinityDays", "0").settings!!.team!!.affinityDays)
+        assertEquals(FieldErrorKind.TOO_SMALL, team("team.affinityDays", "-1").fieldErrors["team.affinityDays"]!!.kind)
+        assertEquals(FieldErrorKind.NOT_INTEGER, team("team.affinityDays", "1,5").fieldErrors["team.affinityDays"]!!.kind)
+        assertEquals(FieldErrorKind.REQUIRED, team("team.horizonWeeks", " ").fieldErrors["team.horizonWeeks"]!!.kind)
+    }
+
+    @Test
+    fun writing_the_default_load_values_keeps_the_team_object_null() {
+        val defaults = mapOf(
+            "team.horizonWeeks" to "4", "team.focusFactor" to "0.8", "team.hoursPerPoint" to "2",
+            "team.loadWarnPercent" to "90", "team.affinityDays" to "2",
+        )
+        assertNull(SettingsForm.validate(defaults, base).settings!!.team)
+        // La virgule donne la même valeur par défaut : toujours rien d'écrit.
+        assertNull(validate("team.focusFactor" to "0,8", "team.hoursPerPoint" to "2,0").settings!!.team)
+        // Une valeur non défaut crée l'objet, les autres champs gardent leur défaut ; l'aller-retour est stable.
+        val s = validate("team.focusFactor" to "0.7", "team.horizonWeeks" to "8").settings!!
+        assertEquals(TeamSettings(focusFactor = 0.7, horizonWeeks = 8), s.team)
+        assertEquals(s, SettingsForm.validate(SettingsForm.values(s), s).settings)
+        assertEquals("0.7", SettingsForm.values(s)["team.focusFactor"])
+        assertEquals("8", SettingsForm.values(s)["team.horizonWeeks"])
+    }
 }

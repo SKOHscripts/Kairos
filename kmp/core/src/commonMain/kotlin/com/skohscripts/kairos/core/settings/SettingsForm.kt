@@ -66,12 +66,14 @@ object SettingsForm {
     private fun team(
         key: String,
         kind: FieldKind,
-        min: Int? = null,
+        min: Double? = null,
+        max: Double? = null,
+        minExclusive: Boolean = false,
         get: (TeamSettings) -> String,
         change: (TeamSettings, String) -> TeamSettings,
     ) =
         SettingField(
-            key, kind, min?.toDouble(),
+            key, kind, min, max, minExclusive,
             read = { get(it.team ?: TeamSettings()) },
             write = { s, v ->
                 val value = v.trim()
@@ -80,6 +82,19 @@ object SettingsForm {
                 if (s.team == null && next == current) s else s.copy(team = next)
             },
         )
+
+    private fun teamInt(key: String, min: Int, max: Int? = null, get: (TeamSettings) -> Int, change: (TeamSettings, Int) -> TeamSettings) =
+        team(key, FieldKind.INT, min.toDouble(), max?.toDouble(), get = { get(it).toString() }) { t, v -> change(t, v.toInt()) }
+
+    private fun teamDecimal(
+        key: String,
+        min: Double,
+        exclusive: Boolean,
+        max: Double? = null,
+        get: (TeamSettings) -> Double,
+        change: (TeamSettings, Double) -> TeamSettings,
+    ) =
+        team(key, FieldKind.DECIMAL, min, max, exclusive, get = { formatDecimal(get(it)) }) { t, v -> change(t, parseDecimal(v)!!) }
 
     val FIELDS: List<SettingField> = listOf(
         int("defaultTaskDurationMinutes", 1, get = { it.defaultTaskDurationMinutes }) { s, v -> s.copy(defaultTaskDurationMinutes = v) },
@@ -114,9 +129,14 @@ object SettingsForm {
         team("team.enabled", FieldKind.BOOL, get = { it.enabled.toString() }) { t, v -> t.copy(enabled = v == "true") },
         team("team.name", FieldKind.TEXT, get = { it.name }) { t, v -> t.copy(name = v) },
         team("team.managerName", FieldKind.TEXT, get = { it.managerName }) { t, v -> t.copy(managerName = v) },
-        team("team.staleProgressDays", FieldKind.INT, 1, { it.staleProgressDays.toString() }) { t, v -> t.copy(staleProgressDays = v.toInt()) },
-        team("team.churnThreshold", FieldKind.INT, 2, { it.churnThreshold.toString() }) { t, v -> t.copy(churnThreshold = v.toInt()) },
-        team("team.wipLimit", FieldKind.INT, 0, { it.wipLimit.toString() }) { t, v -> t.copy(wipLimit = v.toInt()) },
+        teamInt("team.staleProgressDays", 1, get = { it.staleProgressDays }) { t, v -> t.copy(staleProgressDays = v) },
+        teamInt("team.churnThreshold", 2, get = { it.churnThreshold }) { t, v -> t.copy(churnThreshold = v) },
+        teamInt("team.wipLimit", 0, get = { it.wipLimit }) { t, v -> t.copy(wipLimit = v) },
+        teamInt("team.horizonWeeks", 1, 26, { it.horizonWeeks }) { t, v -> t.copy(horizonWeeks = v) },
+        teamDecimal("team.focusFactor", 0.0, true, 1.0, { it.focusFactor }) { t, v -> t.copy(focusFactor = v) },
+        teamDecimal("team.hoursPerPoint", 0.0, true, null, { it.hoursPerPoint }) { t, v -> t.copy(hoursPerPoint = v) },
+        teamInt("team.loadWarnPercent", 1, 100, { it.loadWarnPercent }) { t, v -> t.copy(loadWarnPercent = v) },
+        teamInt("team.affinityDays", 0, get = { it.affinityDays }) { t, v -> t.copy(affinityDays = v) },
     )
 
     private val byKey = FIELDS.associateBy { it.key }
