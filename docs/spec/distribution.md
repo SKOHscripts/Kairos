@@ -242,7 +242,12 @@ Pendant la réécriture, chaque jalon devait produire une version installable
   (`core` dont les tests différentiels, `data`, `ui`, `desktopApp` dont les
   tests d'interface de la vue Jour), puis APK release, image de bureau Linux
   et version web ; **auto-test** de l'image Linux empaquetée ; captures en
-  artefact `kmp-ci-screens`.
+  artefact `kmp-ci-screens`. Un test en échec affiche son message et sa
+  pile complets (`testLogging` du `build.gradle.kts` racine) : un
+  dépassement de délai d'un test d'interface y nomme l'attente qui a
+  manqué. Les attentes des tests d'interface sont en temps réel : sur un
+  runner à deux cœurs, avec les modules testés en parallèle, 5 s ont manqué
+  par intermittence (`M5ScreensUiTest`), d'où 15 s.
 - `kmp-release.yml` (tag `v3.*`, lancement manuel) :
   - `version` : lit `kairos.versionName` ; échec si le tag diffère ; drapeau
     `prerelease` si la version contient `-` ;
