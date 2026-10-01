@@ -815,6 +815,8 @@
     <string name="event_done">Completed</string>
     <string name="event_reopened">Reopened</string>
     <string name="event_deleted">Deleted</string>
+    <string name="event_sent">Sent in a pack</string>
+    <string name="event_time">Time spent reported: %1$d min</string>
     <string name="event_unknown">Change</string>
     <string name="event_assigned_to">Assigned to %1$s</string>
     <string name="event_assigned_to_from">Assigned to %1$s (was: %2$s)</string>

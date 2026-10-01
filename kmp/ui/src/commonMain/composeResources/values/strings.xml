@@ -819,6 +819,8 @@
     <string name="event_done">Terminée</string>
     <string name="event_reopened">Rouverte</string>
     <string name="event_deleted">Supprimée</string>
+    <string name="event_sent">Envoyée dans un paquet</string>
+    <string name="event_time">Temps passé rapporté : %1$d min</string>
     <string name="event_unknown">Modification</string>
     <string name="event_assigned_to">Assignée à %1$s</string>
     <string name="event_assigned_to_from">Assignée à %1$s (était : %2$s)</string>

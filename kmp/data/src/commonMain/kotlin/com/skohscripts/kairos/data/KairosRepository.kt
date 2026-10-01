@@ -2,6 +2,7 @@ package com.skohscripts.kairos.data
 
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
+import com.skohscripts.kairos.core.KairosBuild
 import com.skohscripts.kairos.core.engine.Dependencies
 import com.skohscripts.kairos.core.engine.Recurrence
 import com.skohscripts.kairos.core.engine.Workdays
@@ -25,6 +26,16 @@ import com.skohscripts.kairos.core.team.TeamEventSource
 import com.skohscripts.kairos.core.team.TeamEvents
 import com.skohscripts.kairos.core.team.TeamMembers
 import com.skohscripts.kairos.core.team.Workspaces
+import com.skohscripts.kairos.core.team.exchange.PackBuilder
+import com.skohscripts.kairos.core.team.exchange.PackMerge
+import com.skohscripts.kairos.core.team.exchange.PackMergePlan
+import com.skohscripts.kairos.core.team.exchange.ReceivedTasks
+import com.skohscripts.kairos.core.team.exchange.ReportBuilder
+import com.skohscripts.kairos.core.team.exchange.ReportChange
+import com.skohscripts.kairos.core.team.exchange.ReportMerge
+import com.skohscripts.kairos.core.team.exchange.ReportMergePlan
+import com.skohscripts.kairos.core.team.exchange.ReportTaskUpdate
+import com.skohscripts.kairos.core.team.exchange.TeamOrigin
 import com.skohscripts.kairos.core.team.forecast.IgnoredModification
 import com.skohscripts.kairos.core.team.forecast.Scenario
 import com.skohscripts.kairos.core.team.forecast.ScenarioCodec
@@ -40,9 +51,11 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -582,6 +595,9 @@ class KairosRepository(
      * `TEAM` avec leurs dépendances, leurs sessions, le journal et les scénarios ; toute tâche restante perd
      * son assigné. Les réglages d'équipe (`settings.team`) sont gardés. La
      * sauvegarde préalable est faite par l'interface (aucun retour en arrière ici).
+     *
+     * Les tâches **reçues** d'un manager (jalon E6, `Task.origin`) ne sont pas touchées : ce sont des tâches
+     * personnelles du membre, pas des données de l'équipe qu'il manage ; elles n'ont ni espace `TEAM` ni assigné.
      */
     suspend fun clearTeamData() = write {
         queries.deleteAllTeamScenarios()
@@ -592,6 +608,176 @@ class KairosRepository(
         queries.unassignAllTasks()
         queries.deleteAllMemberAbsences()
         queries.deleteAllTeamMembers()
+    }
+
+    // --- Équipe : échanges par fichier (docs/spec/equipe-echanges.md) -------------------------------
+
+    /**
+     * Côté manager : le paquet de [memberId] (ses tâches d'équipe à faire et leurs sous-tâches), en texte JSON
+     * (`kairos-team-pack`), ou `null` si l'envoi est impossible (espace Équipe sans identité, membre inconnu ou
+     * archivé). Chaque tâche du paquet reçoit un événement `sent` (toValue = [packId], membre = destinataire,
+     * source `manual`) dans la même transaction : le journal est écrit à l'export, avant que le fichier soit
+     * enregistré. [packId] est tiré ici s'il n'est pas donné (identité du paquet, jamais de hasard dans `core`).
+     */
+    @OptIn(ExperimentalUuidApi::class)
+    suspend fun exportPack(
+        memberId: Long,
+        packId: String = Uuid.random().toString(),
+        now: Instant = clock.now(),
+        appVersion: String = KairosBuild.VERSION_NAME,
+    ): String? {
+        if (PackBuilder.build(state.value, memberId, packId, now) == null) return null
+        var text: String? = null
+        write {
+            // Reconstruit dans la transaction : l'état a pu changer depuis la vérification.
+            val pack = PackBuilder.build(state.value, memberId, packId, now) ?: return@write
+            val sent = pack.tasks.mapTo(HashSet()) { it.uid }
+            state.value.tasks.filter { it.space == TaskSpace.TEAM && it.teamUid in sent }.sortedBy { it.id }
+                .forEach { journal(it, TeamEventKind.SENT, null, packId, TeamEventSource.MANUAL, memberId = memberId) }
+            text = TeamExchangeCodec.encodePack(pack, appVersion)
+        }
+        return text
+    }
+
+    /**
+     * Côté membre : aperçu de la réception d'un paquet, **sans rien écrire** (compteurs et lignes du dialogue
+     * « Recevoir 7 tâches de Corentin ? »). @throws ImportException si le texte n'est pas un paquet lisible.
+     */
+    fun previewPack(text: String): PackMergePlan = PackMerge.plan(state.value, TeamExchangeCodec.decodePack(text), clock.now())
+
+    /**
+     * Côté membre : reçoit un paquet, en **une** transaction (en cas d'erreur la base reste intacte). La sauvegarde
+     * préalable est faite par l'interface. Un paquet refusé ([PackMergePlan.refusal]) n'écrit rien. Les tâches
+     * créées sont personnelles et marquées de leur origine ; les mises à jour n'écrasent que les champs du manager
+     * et ne touchent pas `updatedAt` ; les tâches absentes du paquet sont marquées retirées, jamais supprimées ;
+     * les dépendances du paquet remplacent celles posées entre tâches reçues de ce manager. Aucun événement de
+     * journal : le journal est celui du manager. @throws ImportException si le texte n'est pas un paquet lisible.
+     */
+    suspend fun receivePack(text: String): PackReport {
+        val pack = TeamExchangeCodec.decodePack(text)
+        var planned: PackMergePlan? = null
+        write {
+            // Calculé dans la transaction : c'est ce plan-là qui est appliqué.
+            val plan = PackMerge.plan(state.value, pack, clock.now())
+            planned = plan
+            if (!plan.accepted) return@write
+            val idByUid = HashMap<String, Long>()
+            fun known(t: Task) = t.teamUid?.let { idByUid.putIfAbsent(it, t.id) }
+            plan.updated.forEach { known(it.before) }
+            plan.unchanged.forEach { known(it) }
+            plan.removed.forEach { known(it) }
+            for (n in plan.created) {
+                val id = insertNew(n.task.copy(parentId = n.parentUid?.let(idByUid::get))) ?: continue
+                idByUid[n.task.teamUid!!] = id
+            }
+            for (u in plan.updated) {
+                updateRow(u.after.copy(parentId = u.parentUid?.let(idByUid::get) ?: u.after.parentId), touch = false)
+            }
+            for (t in plan.removed) updateRow(t.copy(originRemoved = true), touch = false)
+            for (d in plan.dependencyRemoves) {
+                val (blocked, blocker) = (idByUid[d.taskUid] ?: continue) to (idByUid[d.blockerUid] ?: continue)
+                queries.deleteDependency(blocked, blocker)
+            }
+            for (d in plan.dependencyAdds) {
+                val (blocked, blocker) = (idByUid[d.taskUid] ?: continue) to (idByUid[d.blockerUid] ?: continue)
+                queries.insertDependency(blocked, blocker, now())
+            }
+        }
+        val plan = checkNotNull(planned)
+        return PackReport(plan, applied = plan.accepted)
+    }
+
+    /**
+     * Origines à qui le membre peut renvoyer son avancement : une par manager (équipe) qui a encore des tâches reçues
+     * non retirées (bouton « Renvoyer l'avancement… » de Réglages → Données). Vide pour un Kairos qui n'a jamais reçu de paquet.
+     */
+    fun origins(): List<TeamOrigin> = ReceivedTasks.origins(state.value)
+
+    /**
+     * Côté membre : le rapport d'avancement pour l'origine [originKey] (`TeamOrigin.key`), en texte JSON
+     * (`kairos-team-report`), ou `null` si cette équipe n'a aucune tâche reçue non retirée. Les nouvelles sous-tâches du
+     * membre sans identité en reçoivent une d'abord (écriture technique, `updatedAt` inchangé) : elle doit rester stable
+     * d'un rapport à l'autre pour que le manager ne les crée pas deux fois.
+     */
+    @OptIn(ExperimentalUuidApi::class)
+    suspend fun buildReport(originKey: String, now: Instant = clock.now(), appVersion: String = KairosBuild.VERSION_NAME): String? {
+        val missing = ReportBuilder.subtasksNeedingUid(state.value, originKey)
+        if (missing.isNotEmpty()) {
+            write { missing.forEach { updateRow(it.copy(teamUid = Uuid.random().toString()), touch = false) } }
+        }
+        val report = ReportBuilder.build(state.value, originKey, now, timeZone) ?: return null
+        return TeamExchangeCodec.encodeReport(report, appVersion)
+    }
+
+    /**
+     * Côté manager : aperçu de l'intégration d'un rapport, **sans rien écrire** (de → vers, lignes ignorées, refus).
+     * @throws ImportException si le texte n'est pas un rapport lisible.
+     */
+    fun previewReport(text: String): ReportMergePlan = ReportMerge.plan(state.value, TeamExchangeCodec.decodeReport(text), timeZone)
+
+    /**
+     * Côté manager : intègre un rapport, en **une** transaction (la sauvegarde préalable est faite par l'interface).
+     * Un rapport refusé ([ReportMergePlan.refusal]) n'écrit rien. Seuls les champs du membre sont écrits (état, avancement,
+     * commencement, temps rapporté) ; chaque changement est journalisé avec la source `report` et le membre qui rapporte
+     * pour `memberId` ; la date de fin d'une tâche faite est celle du rapport (événement `done` daté de ce jour, à midi
+     * local, sans dépasser l'instant courant). Terminer une tâche ferme son chrono et crée l'occurrence suivante d'une
+     * récurrente, comme [toggleDone]. Les nouvelles sous-tâches deviennent des tâches d'équipe du même assigné que leur
+     * mère. Pose enfin `lastReportAt` du membre. @throws ImportException si le texte n'est pas un rapport lisible.
+     */
+    suspend fun integrateReport(text: String): ReportIntegration {
+        val report = TeamExchangeCodec.decodeReport(text)
+        var planned: ReportMergePlan? = null
+        write {
+            val plan = ReportMerge.plan(state.value, report, timeZone)
+            planned = plan
+            if (!plan.accepted) return@write
+            val member = checkNotNull(plan.member)
+            for (u in plan.updates) applyReportUpdate(u, member.id)
+            val idByUid = HashMap<String, Long>()
+            for (n in plan.newSubtasks) {
+                val parentId = n.parentTaskId ?: idByUid[n.parentUid]
+                val done = n.status == TaskStatus.DONE
+                val task = newTask(n.title.trim(), parentId).copy(
+                    space = TaskSpace.TEAM, assigneeId = n.assigneeId, teamUid = n.uid,
+                    status = n.status, progressPercent = if (done) DONE_PROGRESS else null,
+                )
+                val id = insertNew(task, TeamEventSource.REPORT, actor = member.id) ?: continue
+                idByUid[n.uid] = id
+                if (done) journal(task.copy(id = id), TeamEventKind.DONE, null, DONE_PROGRESS.toString(), TeamEventSource.REPORT, memberId = member.id)
+            }
+            queries.setMemberLastReport(plan.reportedAt.store(), member.id)
+        }
+        val plan = checkNotNull(planned)
+        return ReportIntegration(plan, applied = plan.accepted)
+    }
+
+    /** Écrit une mise à jour de rapport et ses événements (source `report`, auteur = membre qui rapporte). */
+    private suspend fun applyReportUpdate(u: ReportTaskUpdate, reporterId: Long) {
+        val before = u.before
+        val after = u.after
+        updateRow(after)
+        val src = TeamEventSource.REPORT
+        val statusChanged = u.changes.any { it is ReportChange.Status }
+        for (change in u.changes) {
+            when (change) {
+                is ReportChange.Started -> journal(after, TeamEventKind.STARTED, null, change.to.toString(), src, memberId = reporterId)
+                // La fin et la réouverture portent leur propre avancement : pas d'événement `progress` en plus.
+                is ReportChange.Progress -> if (!statusChanged) {
+                    journal(after, TeamEventKind.PROGRESS, (change.from ?: 0).toString(), (change.to ?: 0).toString(), src, memberId = reporterId)
+                }
+                is ReportChange.Spent -> journal(after, TeamEventKind.TIME, change.from?.toString(), change.to.toString(), src, memberId = reporterId)
+                is ReportChange.Status -> Unit
+            }
+        }
+        if (!statusChanged) return
+        if (after.status == TaskStatus.DONE) {
+            val doneAt = u.doneOn?.atTime(DONE_HOUR, 0)?.toInstant(timeZone)?.coerceAtMost(clock.now()) ?: clock.now()
+            journal(after, TeamEventKind.DONE, before.progressPercent?.toString(), DONE_PROGRESS.toString(), src, memberId = reporterId, at = doneAt.store())
+            queries.closeOpenSessionsOf(now(), after.id)
+            Recurrence.nextOccurrence(after, today(), state.value.tasks, clock.now())?.let { insertNew(it, src, actor = reporterId) }
+        } else {
+            journal(after, TeamEventKind.REOPENED, before.progressPercent?.toString(), after.progressPercent?.toString(), src, memberId = reporterId)
+        }
     }
 
     // --- Équipe : scénarios « Et si… ? » (docs/spec/equipe-simulation.md § Scénarios) ----------
@@ -849,12 +1035,14 @@ class KairosRepository(
                 t.recurrencePeriod, t.taskType, t.fibonacciPoints?.toLong(), t.manualTimeSpentMinutes?.toLong(),
                 t.createdAt.store(), t.updatedAt.store(), t.space.code.toLong(), t.assigneeId,
                 t.progressPercent?.toLong(), t.startedOn.store(), t.teamUid,
+                t.origin, if (t.originRemoved) 1L else 0L, t.reportedMinutes?.toLong(),
             )
         }
         for (m in snapshot.members) {
             queries.insertTeamMemberWithId(
                 m.id, m.uid, m.name, m.role, m.availabilityPercent.toLong(), m.hoursPerDay,
                 if (m.isSelf) 1L else 0L, if (m.archived) 1L else 0L, m.createdAt.store(), m.updatedAt.store(),
+                m.lastReportAt?.store(),
             )
         }
         for (a in snapshot.absences) {
@@ -898,7 +1086,7 @@ class KairosRepository(
      * de création, donc aucune tâche d'équipe ne naît sans identité ni sans journal.
      */
     @OptIn(ExperimentalUuidApi::class)
-    private suspend fun insertNew(task: Task, source: TeamEventSource? = null): Long? {
+    private suspend fun insertNew(task: Task, source: TeamEventSource? = null, actor: Long? = null): Long? {
         val t = if (task.space == TaskSpace.TEAM && task.teamUid == null) task.copy(teamUid = Uuid.random().toString()) else task
         queries.insertTask(
             t.title, t.description, t.priority?.toLong(), t.deadline.store(), t.projectTag, t.status.code,
@@ -906,10 +1094,11 @@ class KairosRepository(
             t.scheduledDate.store(), t.recurrenceDayOfMonth?.toLong(), t.recurrenceDayOfWeek?.toLong(),
             t.recurrencePeriod, t.taskType, t.fibonacciPoints?.toLong(), t.manualTimeSpentMinutes?.toLong(),
             now(), now(), t.space.code.toLong(), t.assigneeId, t.progressPercent?.toLong(), t.startedOn.store(), t.teamUid,
+            t.origin, if (t.originRemoved) 1L else 0L, t.reportedMinutes?.toLong(),
         )
         val id = queries.lastInsertedId().awaitAsOneOrNull()
         if (t.space == TaskSpace.TEAM && id != null) {
-            journal(t.copy(id = id), TeamEventKind.CREATED, null, t.title, source ?: defaultSource(t))
+            journal(t.copy(id = id), TeamEventKind.CREATED, null, t.title, source ?: defaultSource(t), memberId = actor ?: t.assigneeId)
         }
         return id
     }
@@ -925,13 +1114,15 @@ class KairosRepository(
         }
     }
 
-    private suspend fun updateRow(t: Task) {
+    /** Écrit [t] ; [touch] faux garde son `updatedAt` (écriture qui n'est pas une action du propriétaire de la tâche). */
+    private suspend fun updateRow(t: Task, touch: Boolean = true) {
         queries.updateTask(
             t.title, t.description, t.priority?.toLong(), t.deadline.store(), t.projectTag, t.status.code,
             t.estimatedMinutes?.toLong(), t.pinnedStart.store(), t.parentId, t.recurrence.code,
             t.scheduledDate.store(), t.recurrenceDayOfMonth?.toLong(), t.recurrenceDayOfWeek?.toLong(),
             t.recurrencePeriod, t.taskType, t.fibonacciPoints?.toLong(), t.manualTimeSpentMinutes?.toLong(),
-            now(), t.space.code.toLong(), t.assigneeId, t.progressPercent?.toLong(), t.startedOn.store(), t.teamUid, t.id,
+            if (touch) now() else t.updatedAt.store(), t.space.code.toLong(), t.assigneeId, t.progressPercent?.toLong(),
+            t.startedOn.store(), t.teamUid, t.origin, if (t.originRemoved) 1L else 0L, t.reportedMinutes?.toLong(), t.id,
         )
     }
 
@@ -955,8 +1146,9 @@ class KairosRepository(
         to: String?,
         source: TeamEventSource,
         memberId: Long? = task.assigneeId,
+        at: String = now(),
     ) {
-        queries.insertTeamEvent(task.id, task.title, memberId, kind.code, from, to, source.code, now())
+        queries.insertTeamEvent(task.id, task.title, memberId, kind.code, from, to, source.code, at)
     }
 
     /** Un événement `qualified` par champ de qualification (priorité, points, catégorie, échéance) qui a changé. */
@@ -1020,6 +1212,9 @@ class KairosRepository(
     companion object {
         /** Avancement d'une tâche d'équipe terminée. */
         private const val DONE_PROGRESS = 100
+
+        /** Heure locale de l'événement `done` d'un rapport (le rapport ne donne qu'un jour : midi évite les bascules de jour). */
+        private const val DONE_HOUR = 12
 
         /** Réglages : champs inconnus ignorés, champs absents à leur valeur par défaut. */
         internal val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; explicitNulls = false }
@@ -1092,6 +1287,18 @@ data class ApplyReport(
     val notApplicable: List<ScenarioModification> = emptyList(),
     val ignored: List<IgnoredModification> = emptyList(),
 )
+
+/**
+ * Ce que [KairosRepository.receivePack] a fait : le [plan] (créées, mises à jour, retirées, dépendances) et
+ * [applied], faux si le paquet a été refusé ([PackMergePlan.refusal]) et que rien n'a été écrit.
+ */
+data class PackReport(val plan: PackMergePlan, val applied: Boolean)
+
+/**
+ * Ce que [KairosRepository.integrateReport] a fait : le [plan] (mises à jour de → vers, sous-tâches, lignes ignorées)
+ * et [applied], faux si le rapport a été refusé ([ReportMergePlan.refusal]) et que rien n'a été écrit.
+ */
+data class ReportIntegration(val plan: ReportMergePlan, val applied: Boolean)
 
 /** Contenu du dialogue de créneau : horaires locaux, deep work ou occupé, récurrence. */
 data class BlockEdit(

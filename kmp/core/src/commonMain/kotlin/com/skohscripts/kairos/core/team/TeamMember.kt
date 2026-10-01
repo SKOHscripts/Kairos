@@ -20,4 +20,6 @@ data class TeamMember(
     val archived: Boolean = false,
     val createdAt: Instant,
     val updatedAt: Instant,
+    /** Date du dernier rapport d'avancement intégré pour ce membre (docs/spec/equipe-echanges.md) ; `null` = aucun. */
+    val lastReportAt: Instant? = null,
 )

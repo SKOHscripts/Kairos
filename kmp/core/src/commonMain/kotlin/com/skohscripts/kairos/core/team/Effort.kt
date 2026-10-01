@@ -74,8 +74,8 @@ object Effort {
 
     /**
      * Calibration de l'équipe : `TaskStats.fibonacciCalibration` sur les tâches
-     * d'équipe **faites**, temps passé = sessions + temps saisi à la main
-     * (`TimeTracking.spentMinutesByTask`). Une session ouverte court jusqu'à
+     * d'équipe **faites**, temps passé = sessions + temps saisi à la main + temps rapporté par le membre
+     * (`TimeTracking.spentMinutesByTask`, `Task.reportedMinutes`). Une session ouverte court jusqu'à
      * [now].
      */
     fun teamCalibration(snapshot: KairosSnapshot, now: Instant): List<Calibration> {

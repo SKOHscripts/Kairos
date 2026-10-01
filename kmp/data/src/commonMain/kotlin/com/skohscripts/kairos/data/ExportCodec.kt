@@ -187,6 +187,11 @@ private data class TaskJson(
     val progressPercent: Int? = null,
     val startedOn: String? = null,
     val teamUid: String? = null,
+    // Échanges par fichier (jalon E6) : mêmes règles. `originRemoved` n'est écrit que s'il est vrai
+    // (un booléen par défaut serait écrit sur toute tâche, `encodeDefaults = true`).
+    val origin: String? = null,
+    val originRemoved: Boolean? = null,
+    val reportedMinutes: Int? = null,
 ) {
     fun toModel() = Task(
         id = id,
@@ -214,6 +219,9 @@ private data class TaskJson(
         progressPercent = progressPercent,
         startedOn = startedOn?.let(LocalDate::parse),
         teamUid = teamUid,
+        origin = origin,
+        originRemoved = originRemoved == true,
+        reportedMinutes = reportedMinutes,
     )
 
     companion object {
@@ -223,6 +231,7 @@ private data class TaskJson(
             t.recurrenceDayOfMonth, t.recurrenceDayOfWeek, t.recurrencePeriod, t.taskType, t.fibonacciPoints,
             t.manualTimeSpentMinutes, t.createdAt.toString(), t.updatedAt.toString(),
             encodeSpace(t.space), t.assigneeId, t.progressPercent, t.startedOn?.toString(), t.teamUid,
+            t.origin, if (t.originRemoved) true else null, t.reportedMinutes,
         )
     }
 }
@@ -283,16 +292,18 @@ private data class MemberJson(
     val archived: Boolean = false,
     val createdAt: String,
     val updatedAt: String,
+    // Jalon E6 : nul donc omis tant qu'aucun rapport n'a été intégré.
+    val lastReportAt: String? = null,
 ) {
     fun toModel() = TeamMember(
         id, uid, name, role, availabilityPercent, hoursPerDay, isSelf, archived,
-        Instant.parse(createdAt), Instant.parse(updatedAt),
+        Instant.parse(createdAt), Instant.parse(updatedAt), lastReportAt?.let(Instant::parse),
     )
 
     companion object {
         fun from(m: TeamMember) = MemberJson(
             m.id, m.uid, m.name, m.role, m.availabilityPercent, m.hoursPerDay, m.isSelf, m.archived,
-            m.createdAt.toString(), m.updatedAt.toString(),
+            m.createdAt.toString(), m.updatedAt.toString(), m.lastReportAt?.toString(),
         )
     }
 }

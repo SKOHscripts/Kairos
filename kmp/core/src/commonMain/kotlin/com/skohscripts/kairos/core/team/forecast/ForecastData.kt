@@ -175,12 +175,13 @@ data class ForecastData(
          *
          * Facteurs d'erreur : tâches d'équipe faites (jour de fin : `TeamBoard.doneOn`)
          * ayant un effort de base (`Effort.base`, sources estimation, calibrée ou
-         * points) et un temps passé > 0 (sessions + temps saisi à la main ; le temps
-         * des rapports s'y ajoutera au jalon E6).
+         * points) et un temps passé > 0 (sessions + temps saisi à la main + temps rapporté
+         * par le membre, `Task.reportedMinutes`, via `TimeTracking.spentMinutesByTask`).
          *
          * Facteurs de capacité d'un membre actif : pour chaque semaine passée où sa
          * capacité prévue (`Capacity`, absences et fériés compris) est > 0 et où des
-         * heures ont été chronométrées sur ses tâches (> 0), heures / capacité. Une
+         * heures ont été chronométrées sur ses tâches (> 0), heures / capacité. Le temps rapporté
+         * (un total sans date) n'y entre pas : seules les sessions datent leurs heures. Une
          * semaine sans heure enregistrée n'est pas lue comme « zéro travail » (rien
          * n'oblige à chronométrer) : elle n'est pas un échantillon.
          */

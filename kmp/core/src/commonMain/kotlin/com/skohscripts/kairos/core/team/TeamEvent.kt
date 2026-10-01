@@ -42,7 +42,11 @@ data class TeamEvent(
  * - `done` : `fromValue` = avancement d'avant la fin (restauré à la
  *   réouverture), `toValue` = « 100 » ;
  * - `reopened` : `toValue` = avancement restauré ;
- * - `deleted` : sans valeur.
+ * - `deleted` : sans valeur ;
+ * - `sent` (jalon E6) : tâche envoyée dans un paquet, `toValue` = identifiant du paquet ; `memberId` = destinataire ;
+ * - `time` (jalon E6) : temps passé rapporté par le membre, `fromValue` / `toValue` = total en minutes
+ *   (`fromValue` nul au premier rapport). Pour tout événement de source `report`, `memberId` est le
+ *   membre qui a **rapporté** (et non l'assigné actuel : une tâche réaffectée depuis garde l'auteur du travail).
  */
 enum class TeamEventKind(val code: String) {
     CREATED("created"),
@@ -53,6 +57,8 @@ enum class TeamEventKind(val code: String) {
     DONE("done"),
     REOPENED("reopened"),
     DELETED("deleted"),
+    SENT("sent"),
+    TIME("time"),
     UNKNOWN("unknown"),
     ;
 
@@ -64,7 +70,8 @@ enum class TeamEventKind(val code: String) {
 /**
  * Origine d'une modification ; [code] = valeur stockée. `manual` : faite par le
  * manager dans l'espace Équipe ; `self` : faite depuis l'espace Perso sur une
- * tâche assignée à « moi » ; `report` et `scenario` : jalons E5 et E6. Un code
+ * tâche assignée à « moi » ; `report` : intégration d'un rapport de membre (E6) ; `scenario` : application
+ * d'un scénario (E5). Un code
  * inconnu se lit [MANUAL].
  */
 enum class TeamEventSource(val code: String) {

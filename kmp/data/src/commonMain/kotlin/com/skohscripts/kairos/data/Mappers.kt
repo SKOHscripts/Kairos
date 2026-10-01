@@ -67,6 +67,9 @@ internal fun TaskRow.toModel() = Task(
     progressPercent = progress_percent?.toInt(),
     startedOn = started_on.localDate(),
     teamUid = team_uid,
+    origin = origin,
+    originRemoved = origin_removed != 0L,
+    reportedMinutes = reported_minutes?.toInt(),
 )
 
 internal fun EventRow.toModel() = TeamEvent(
@@ -97,6 +100,7 @@ internal fun MemberRow.toModel() = TeamMember(
     archived = archived != 0L,
     createdAt = created_at.instant(),
     updatedAt = updated_at.instant(),
+    lastReportAt = last_report_at?.instant(),
 )
 
 internal fun AbsenceRow.toModel() = MemberAbsence(

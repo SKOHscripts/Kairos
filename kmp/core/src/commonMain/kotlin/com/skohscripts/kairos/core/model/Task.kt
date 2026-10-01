@@ -49,6 +49,19 @@ data class Task(
     val startedOn: LocalDate? = null,
     /** Identité stable d'une tâche d'équipe (UUID texte), posée par le dépôt à sa création ; `null` pour une tâche Perso. */
     val teamUid: String? = null,
+    /**
+     * Tâche **reçue** d'un manager par paquet (docs/spec/equipe-echanges.md) : origine encodée par
+     * `TeamOrigin` (identité de l'équipe, nom du manager…) ; `null` = tâche qui n'a pas été reçue.
+     * Une tâche reçue reste une tâche [TaskSpace.PERSONAL] ordinaire chez le membre.
+     */
+    val origin: String? = null,
+    /** Tâche reçue absente du dernier paquet du manager : jamais supprimée, signalée « retirée » (jalon E6). */
+    val originRemoved: Boolean = false,
+    /**
+     * Dernier total de temps passé **rapporté** par le membre (minutes), côté manager ; il s'ajoute aux
+     * sessions et au temps saisi à la main dans tous les calculs de temps passé (`TimeTracking.spentMinutesByTask`).
+     */
+    val reportedMinutes: Int? = null,
 ) {
     /**
      * Pas encore clarifiée (GTD) : il manque la priorité **ou** les points. Elle

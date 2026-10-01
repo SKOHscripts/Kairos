@@ -31,7 +31,9 @@ import com.skohscripts.kairos.ui.generated.resources.event_points
 import com.skohscripts.kairos.ui.generated.resources.event_priority
 import com.skohscripts.kairos.ui.generated.resources.event_progress
 import com.skohscripts.kairos.ui.generated.resources.event_reopened
+import com.skohscripts.kairos.ui.generated.resources.event_sent
 import com.skohscripts.kairos.ui.generated.resources.event_started
+import com.skohscripts.kairos.ui.generated.resources.event_time
 import com.skohscripts.kairos.ui.generated.resources.event_unassigned
 import com.skohscripts.kairos.ui.generated.resources.event_unassigned_from
 import com.skohscripts.kairos.ui.generated.resources.event_unknown
@@ -89,6 +91,8 @@ internal fun eventSentence(event: TeamEvent, context: AssignContext, today: Loca
         TeamEventKind.DONE -> stringResource(Res.string.event_done)
         TeamEventKind.REOPENED -> stringResource(Res.string.event_reopened)
         TeamEventKind.DELETED -> stringResource(Res.string.event_deleted)
+        TeamEventKind.SENT -> stringResource(Res.string.event_sent)
+        TeamEventKind.TIME -> stringResource(Res.string.event_time, event.toValue?.toIntOrNull() ?: 0)
         TeamEventKind.UNKNOWN -> stringResource(Res.string.event_unknown)
         TeamEventKind.ASSIGNED -> {
             val to = context.name(event.toValue?.toLongOrNull())
