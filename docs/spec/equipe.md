@@ -20,11 +20,12 @@ Skills Claude Code du chantier : `.claude/skills/kairos-equipe/`,
 `.claude/skills/kairos-monte-carlo/` (et, transverses,
 `.claude/skills/kairos-spec/`, `.claude/skills/kairos-ecran/`)._
 
-État : **jalons E1 et E2 implémentés (2026-09-30)** : espaces, filtre
+État : **jalons E1, E2 et E3 implémentés (2026-10-01)** — E3 :
+backlog, suivi et journal, `equipe-backlog-suivi.md` — : espaces, filtre
 `personalView`, migrations `1.sqm` et `2.sqm`, export 2, `TeamSettings`,
 carte Équipe, sélecteur d'espace, coquille à deux espaces, membres et
-absences, suppression des données d'équipe (Suivi, Backlog et Prévisions
-encore en état vide). **E3 à E6 : spécifiés, non implémentés** ; ce qui les
+absences, suppression des données d'équipe (Prévisions encore en état
+vide). **E4 à E6 : spécifiés, non implémentés** ; ce qui les
 concerne ci-dessous et dans les quatre autres specs décrit du code à
 venir. Les specs existantes n'ont reçu que ce que E1 et E2 ont réellement
 codé ; chaque spec du

@@ -55,6 +55,8 @@ pouvoir le toucher sans viser.
 
 ## 2. Solution technique
 
+Espace Équipe (jalon E3, `equipe-backlog-suivi.md`) : la sélection multiple du Backlog passe par des cases à cocher dès 600 dp de fenêtre (l'appui long n'est qu'un raccourci en dessous) ; les signaux d'une carte du Suivi sont des badges avec texte, jamais une icône ou une couleur seule ; pas de glisser-déposer, le menu « Réaffecter à… » est le seul chemin.
+
 - `Modifier.heading()` : sémantique de titre.
 - `Modifier.expandedState(déplié)` : `stateDescription` « déplié » /
   « replié » (textes traduits), pour un `TextButton` qui ouvre une section.

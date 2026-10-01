@@ -10,7 +10,7 @@ opérations du dépôt), `kmp/ui/.../team/` (`TeamBacklogScreen.kt`,
 activation et isolation : `equipe.md`. Charge et suggestion de
 répartition : `equipe-charge.md`._
 
-État : **jalon E3 en cours** : socle (`core`, `data`) implémenté le 2026-09-30 ; interface à venir dans la même PR.
+État : **jalon E3 implémenté (2026-10-01)**.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -61,12 +61,12 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 
 - « Assigner à… » ouvre un menu des **membres actifs**, triés par nom,
   chacun avec sa charge sur l'horizon (« 82 % ») et un contour d'alerte
-  s'il est surchargé ou absent aujourd'hui (`equipe-charge.md`) ; « moi »
+  s'il est surchargé ou absent aujourd'hui (E3 : nombre d'en-cours et limite
+  d'en-cours ; la charge en % arrive au jalon E4, `equipe-charge.md`) ; « moi »
   en tête s'il existe ; dernière entrée « Remettre au backlog ».
 - Assigner une tâche la fait passer du Backlog au Suivi, état **À faire**.
-- **Réaffecter** : la même action, depuis le Suivi ou la fiche. Sur bureau
-  et web en largeur ≥ 840 dp, glisser une carte d'une ligne de membre à une
-  autre dans le Suivi réaffecte aussi (confort, jamais le seul chemin).
+- **Réaffecter** : la même action (« Réaffecter à… »), depuis le menu d'une
+  carte du Suivi ou depuis la fiche.
 - Une réaffectation garde l'avancement et le temps passé ; elle remet
   l'état à « À faire » si la tâche était « En cours » (le nouveau titulaire
   n'a pas commencé), après avoir demandé : « Garder l'état En cours ? ».
@@ -171,7 +171,7 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 - Sprints ou itérations nommées : l'horizon glissant de `equipe-charge.md`
   en tient lieu.
 - Commentaires en fil sur une tâche (la description sert de notes).
-- Glisser-déposer sur téléphone.
+- Glisser-déposer (toutes plateformes, § Décisions).
 
 ## 2. Solution technique
 
@@ -281,21 +281,59 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 
 ### Interface (`ui/team/`)
 
-- `TeamBacklogScreen` : `Capture` réutilisé (espace `TEAM`), sections
-  réutilisant `TaskRow` avec une variante « équipe » (catégorie au lieu du
-  créneau), sélection multiple par `Checkbox` (bureau) ou appui long
-  (Android) et barre d'actions contextuelle en bas.
-- `TeamBoardScreen` : `LazyColumn` de `MemberLane` (`OutlinedCard`,
-  en-tête `ListItem` repliable) ; au-delà de 840 dp, `Row` de trois
-  colonnes par ligne. Carte : `OutlinedCard` 12 dp, jamais d'ombre ;
-  glisser-déposer par `Modifier.dragAndDropSource/Target` en largeur
-  étendue seulement.
-- `AssignMenu` : `DropdownMenu` ; chaque entrée ≥ 48 dp ; charge en
-  chiffre, alerte par contour + icône `Warning`.
-- `EditTaskDialog` : en espace Équipe, champ « Assigné à » (menu), curseur
-  d'avancement, onglet « Historique » (`TaskHistory`).
-- `TaskRow` (espace Perso) : icône `Groups` + « Équipe » pour une tâche
-  d'équipe ; texte lu par le lecteur d'écran (« tâche d'équipe »).
+- `TeamBacklogScreen(services, initialSelection)` : `Capture` réutilisé en
+  volet « Tâche » seul (`taskOnly`, crée par `createTeamTask`) ; filtres
+  (recherche, catégorie, priorité, « Avec échéance ») ; sections « À
+  qualifier » (mêmes chips que « À traiter », `InboxQualify`) et « Prêtes »
+  (`ScoreBadge`, priorité, points, échéance, catégorie, liseré P0) dans une
+  ligne dédiée : `TaskRow` est lié au modèle de la vue Jour, une « variante
+  équipe » l'aurait alourdi. Menu ⋮ : « Assigner à… », « Supprimer »
+  (confirmé). Sélection multiple : case à cocher si la fenêtre fait au moins
+  600 dp, appui long en dessous ; barre du bas « Assigner à… », « Changer la
+  catégorie » (`KairosRepository.setTaskType`, journalisé `qualified`),
+  « Changer la priorité ».
+- `AssignMenu` (`AssignMenuItems`, `AssignContext`) : membres actifs,
+  « moi » en tête, nombre d'en-cours, contour + `Warning` si la limite
+  d'en-cours est dépassée ou si le membre est absent aujourd'hui (la charge
+  en % arrivera en E4) ; « Remettre au backlog » en dernier ; entrées
+  ≥ 48 dp. `Reassigner` + `KeepInProgressDialog` (« Garder l'état En
+  cours ? », Oui / Non ; fermer annule).
+- `TeamBoardScreen(services)` : quatre `StatTile` (rendu `internal` dans
+  `StatsScreen.kt`), filtres catégorie, membre, « Seulement à surveiller » ;
+  une `OutlinedCard` repliable par membre (nom, badge « moi », quotité,
+  en-cours, signal « Trop d'en-cours (4/3) ») ; états en colonnes à partir
+  de 840 dp de **contenu**, en sections empilées en dessous. Carte de tâche
+  **pleine** (`surfaceContainerLow`) dans la ligne en contour, pour éviter
+  deux contours imbriqués ; barre d'avancement primaire + « 60 % » ;
+  signaux en badge contour + icône + **texte court** (En retard, Traîne,
+  Sans avancement, Ballottée, Bloquée), lisibles sans l'icône et par le
+  lecteur d'écran. Menu de carte : Commencer, curseur d'avancement,
+  Réaffecter à…
+- Fiche : `EditTaskDialog` reçoit `team: TeamTaskSheet?` (`TeamTaskSheet.kt`,
+  `TeamTaskDialog.kt`) : onglets Détails / Historique (`TaskHistory`,
+  phrases du journal), « Assigné à » (menu), « Catégorie », curseur 0-100 %
+  par pas de 10 enregistré avec la fiche, « Commencer » immédiat. Le
+  dialogue se ferme après l'écriture. En espace Perso, une tâche d'équipe
+  assignée à « moi » n'a ni Historique ni avancement : « Assigné à » en
+  lecture seule.
+- Fiche membre : section « Activité » (`TeamActivity.memberActivity`, 30
+  jours) : événements dont il est titulaire, plus les réaffectations qui lui
+  ont retiré une tâche.
+- Vue Jour : `TeamMark` (icône `Groups` + « Équipe », lu « tâche
+  d'équipe ») dans `TaskRow` ; « Pourquoi à cette place ? » ajoute « Tâche
+  d'équipe, assignée à moi » ; « Bloquée par » remplace l'identifiant d'un
+  bloqueur d'équipe hors vue Perso par « Titre (assigné) », lu dans
+  `repository.snapshot` (`DayView` reste inchangé).
+- Réglages : `team.staleProgressDays`, `team.churnThreshold`,
+  `team.wipLimit` dans la carte Équipe (mode activé et enregistré).
+- Icônes : `SwapHoriz`, `MoreVert`, `HourglassEmpty` (sans avancement).
+- Tests : `TeamStatesTest`, `TeamSignalsTest`, `TeamBoardTest`,
+  `TeamEventTest` (`core`), `TeamRepositoryTest`, `TeamTaskTypeTest`
+  (`data`), `TeamActivityTest` (`ui`), `TeamBacklogBoardUiTest`
+  (`desktopApp`). Auto-test : `desktop-team-board[-narrow]`,
+  `desktop-team-backlog[-narrow]`, `desktop-team-backlog-selection`,
+  `desktop-team-task-sheet[-details][-narrow]`,
+  `desktop-team-member-activity[-narrow]` (données `TeamSeed`).
 
 ### Décisions et alternatives écartées
 
@@ -310,19 +348,18 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 - **Journal écrit par le dépôt** : c'est la seule façon de garantir le
   « suivi complet » demandé, y compris pour les modifications faites depuis
   la vue Jour.
-- **Glisser-déposer en complément seulement** : il n'est pas accessible au
-  lecteur d'écran ni praticable à 360 dp ; le menu « Réaffecter à… » reste
-  le chemin garanti.
+- **Pas de glisser-déposer** (prévu en complément, écarté en codant) : il
+  n'est ni accessible au lecteur d'écran ni praticable à 360 dp, et pas
+  assez fiable à la fois sur Android, le bureau et le web ; le menu
+  « Réaffecter à… » est le seul chemin.
 - **Colonnes de membres plutôt que colonnes d'état (kanban classique)** :
   la question du manager est « qui fait quoi » ; l'état se lit dans chaque
   ligne. Un kanban par état reste possible via le filtre par membre.
 
-### Impacts sur les specs existantes (à reporter à l'implémentation)
+### Impacts sur les specs existantes
 
-- `vue-jour.md` : marque « Équipe », « Pourquoi à cette place ? », fiche
-  d'édition (champs d'équipe masqués en espace Perso sauf « Assigné à »
-  en lecture seule).
-- `modele-donnees.md` : table `team_event`, opérations du dépôt.
-- `reglages.md` : `teamStaleProgressDays`, `teamChurnThreshold`,
-  `teamWipLimit` dans la carte Équipe.
-- `accessibilite.md` : sélection multiple et glisser-déposer.
+Reportés au jalon E3 : `vue-jour.md` (marque « Équipe », « Pourquoi »,
+bloqueur d'un collègue, fiche), `modele-donnees.md` (`team_event`, `3.sqm`,
+opérations), `reglages.md` (trois seuils), `export-import.md` (journal),
+`recurrence.md` (clé de série), `navigation-theme.md` (icônes),
+`accessibilite.md` (sélection multiple).

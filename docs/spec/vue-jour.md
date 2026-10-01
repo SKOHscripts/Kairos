@@ -144,7 +144,7 @@ Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt.
 
 ## 2. Solution technique
 
-Depuis le jalon E1 de l'espace Équipe, l'écran de la vue Jour lit `repository.personalSnapshot` (la vue Perso, `equipe.md` § Espaces et filtre central) et non la base complète ; sans tâche d'équipe, c'est la même instance.
+Depuis le jalon E1 de l'espace Équipe, l'écran de la vue Jour lit `repository.personalSnapshot` (la vue Perso, `equipe.md` § Espaces et filtre central) et non la base complète ; sans tâche d'équipe, c'est la même instance. Depuis le jalon E3, une tâche d'équipe assignée à « moi » y porte la marque « Équipe » (`TeamMark`), une ligne de plus dans « Pourquoi à cette place ? », un bloqueur d'un collègue nommé « Titre (assigné) », et sa fiche montre « Assigné à » en lecture seule (`equipe-backlog-suivi.md` § Interface).
 
 ### Modèle (`DayView.build`, `core`)
 

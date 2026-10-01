@@ -41,10 +41,10 @@ retiré (TimeTree, import GitLab, base pilotage, service systemd : plan § 2.2).
 
 ## Chantier « Espace Équipe » (en cours)
 
-Specs écrites le 2026-09-30 (jalon E0). **Jalons E1 et E2 implémentés**
+Specs écrites le 2026-09-30 (jalon E0). **Jalons E1, E2 et E3 implémentés**
 (fondations : espaces, vue Perso, migrations, export 2, carte Équipe,
-sélecteur, coquille ; membres et absences) ; **E3 à E6 spécifiés, non
-implémentés** : ce qu'elles en disent décrit du
+sélecteur, coquille ; membres et absences ; backlog, suivi et journal) ;
+**E4 à E6 spécifiés, non implémentés** : ce qu'elles en disent décrit du
 code à venir, et chacune liste les impacts à reporter dans les specs
 ci-dessus. Skills Claude Code associées : `.claude/skills/kairos-equipe/` et
 `.claude/skills/kairos-monte-carlo/`.
