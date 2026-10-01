@@ -33,6 +33,7 @@ import com.skohscripts.kairos.ui.navigation.Destination
 import com.skohscripts.kairos.ui.navigation.NavState
 import com.skohscripts.kairos.ui.navigation.LocalWindowWidth
 import com.skohscripts.kairos.ui.navigation.NavigationLayout
+import com.skohscripts.kairos.ui.navigation.Secondary
 import com.skohscripts.kairos.ui.navigation.Space
 import com.skohscripts.kairos.ui.navigation.TeamDestination
 import com.skohscripts.kairos.ui.theme.KairosTheme
@@ -48,9 +49,9 @@ import org.jetbrains.compose.resources.stringResource
  * [openServices] ouvre la base (et le reste) une seule fois ; un écran de
  * chargement l'attend, un échec est affiché plutôt qu'un écran vide.
  *
- * Navigation par état (destination courante + écran « À propos » ouvert ou
+ * Navigation par état (destination courante + écran secondaire, Accueil ou « À propos », ouvert ou
  * non) plutôt qu'une bibliothèque de navigation : cinq destinations de premier
- * niveau et un seul écran secondaire n'en justifient pas une
+ * niveau et deux écrans secondaires n'en justifient pas une
  * (docs/spec/navigation-theme.md § Décisions).
  */
 @Composable
@@ -99,7 +100,7 @@ private fun KairosShell(platform: Platform, services: AppServices, initialDestin
     }
     var destination by rememberSaveable { mutableStateOf(initialDestination) }
     var teamDestination by rememberSaveable { mutableStateOf(initialTeamDestination) }
-    var aboutOpen by rememberSaveable { mutableStateOf(false) }
+    var secondary by rememberSaveable { mutableStateOf<Secondary?>(null) }
     val nav = remember { NavState() }
     val scope = rememberCoroutineScope()
 
@@ -121,7 +122,7 @@ private fun KairosShell(platform: Platform, services: AppServices, initialDestin
             nav.day = null
             nav.week = null
             destination = Destination.START
-            aboutOpen = false
+            secondary = null
             persistSpace(Space.PERSONAL)
         }
     }
@@ -137,18 +138,18 @@ private fun KairosShell(platform: Platform, services: AppServices, initialDestin
                 teamDestination = teamDestination,
                 teamModeEnabled = teamEnabled,
                 teamName = team?.name.orEmpty(),
-                aboutOpen = aboutOpen,
+                secondary = secondary,
                 nav = nav,
                 onNavigate = {
                     // La navigation principale ramène à aujourd'hui et à la semaine courante.
                     nav.day = null
                     nav.week = null
                     destination = it
-                    aboutOpen = false
+                    secondary = null
                 },
                 onNavigateTeam = {
                     teamDestination = it
-                    aboutOpen = false
+                    secondary = null
                 },
                 onSpaceChange = {
                     // Changer d'espace ouvre la première destination de l'autre espace (Jour ou Suivi).
@@ -156,17 +157,18 @@ private fun KairosShell(platform: Platform, services: AppServices, initialDestin
                     nav.week = null
                     destination = Destination.START
                     teamDestination = TeamDestination.START
-                    aboutOpen = false
+                    secondary = null
                     chosenSpace = it
                     persistSpace(it)
                 },
                 onOpenDay = { day ->
                     nav.day = day
                     destination = Destination.DAY
-                    aboutOpen = false
+                    secondary = null
                 },
-                onOpenAbout = { aboutOpen = true },
-                onCloseAbout = { aboutOpen = false },
+                onOpenHome = { secondary = Secondary.HOME },
+                onOpenAbout = { secondary = Secondary.ABOUT },
+                onCloseSecondary = { secondary = null },
             )
         }
     }

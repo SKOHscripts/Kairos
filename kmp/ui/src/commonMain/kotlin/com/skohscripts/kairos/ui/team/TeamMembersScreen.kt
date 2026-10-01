@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -57,6 +58,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -87,11 +89,14 @@ import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.member_self_badge
 import com.skohscripts.kairos.ui.generated.resources.member_summary
 import com.skohscripts.kairos.ui.generated.resources.team_members_add
+import com.skohscripts.kairos.ui.generated.resources.team_tab_exchanges
+import com.skohscripts.kairos.ui.generated.resources.team_tab_members
 import com.skohscripts.kairos.ui.generated.resources.team_members_empty_body
 import com.skohscripts.kairos.ui.generated.resources.team_members_empty_title
 import com.skohscripts.kairos.ui.generated.resources.team_members_former
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.navigation.LocalWindowWidth
+import com.skohscripts.kairos.ui.navigation.NavState
 import com.skohscripts.kairos.ui.navigation.isCompactWidth
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -107,7 +112,8 @@ import org.jetbrains.compose.resources.stringResource
  * un membre » (ou, sans aucun membre, un état vide qui l'explique), une carte par
  * membre actif (« moi » d'abord, puis par nom) avec sa barre de charge, les panneaux
  * « Par catégorie » et « Répartition », et la section repliable « Anciens membres (n) ».
- * Toucher une carte ouvre la fiche ([MemberSheet]). Lit la base **complète**
+ * Toucher une carte ouvre la fiche ([MemberSheet]). Dès qu'il y a un membre, l'écran a deux onglets :
+ * « Membres » (tout ce qui précède) et « Échanges » ([ExchangeHub], docs/spec/equipe-echanges.md). Lit la base **complète**
  * (`snapshot`), comme tous les écrans d'équipe.
  *
  * La charge ([TeamLoad]) n'est **jamais** calculée dans la composition : elle l'est dans
@@ -126,6 +132,10 @@ fun TeamMembersScreen(
     initialFormerExpanded: Boolean = false,
     initialSheetMemberId: Long? = null,
     initialHorizonWeeks: Int? = null,
+    /** Onglet courant (`NavState.exchangesTab`) : partagé avec la visite guidée, qui peut ouvrir « Échanges ». */
+    nav: NavState = remember { NavState() },
+    /** Lance la visite de l'espace Équipe (lien de l'onglet « Échanges ») ; sans effet hors de la coquille. */
+    onTour: () -> Unit = {},
 ) {
     val snapshot by services.repository.snapshot.collectAsState()
     val today = services.clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -147,38 +157,56 @@ fun TeamMembersScreen(
         sheetOpen = true
     }
 
-    Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp),
-        ) {
-            if (snapshot.members.isEmpty()) {
-                EmptyMembers(onAdd = { open(null) })
-            } else {
-                if (active.isNotEmpty()) {
-                    HorizonSelector(horizon, settingsHorizon, computed.computing) { horizonChoice = it }
-                    if (load != null) LoadTiles(load)
-                }
-                AddMemberButton(onClick = { open(null) })
-                active.forEach { member ->
-                    MemberCard(
-                        member, TeamMembers.nextAbsence(snapshot.absences, member.id, today), today,
-                        load = load?.members?.firstOrNull { it.member.id == member.id },
-                    ) { open(member.id) }
-                }
-                if (load != null && active.isNotEmpty()) {
-                    CategoriesPanel(load)
-                    SpreadPanel(load)
-                }
-                if (former.isNotEmpty()) {
-                    FormerHeader(former.size, formerExpanded) { formerExpanded = !formerExpanded }
-                    if (formerExpanded) former.forEach { member -> MemberCard(member, null, today, load = null) { open(member.id) } }
+    // Deux onglets dès qu'il y a un membre ; sans membre, l'état vide d'avant (rien à échanger).
+    val tabs = snapshot.members.isNotEmpty()
+    Column(Modifier.fillMaxSize()) {
+        if (tabs) MembersTabs(exchanges = nav.exchangesTab) { nav.exchangesTab = it }
+        if (tabs && nav.exchangesTab) {
+            Box(Modifier.weight(1f).fillMaxWidth()) { ExchangeHub(services, onOpenMember = { open(it) }, onTour = onTour) }
+        } else {
+            Box(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp),
+                ) {
+                    if (snapshot.members.isEmpty()) {
+                        EmptyMembers(onAdd = { open(null) })
+                    } else {
+                        if (active.isNotEmpty()) {
+                            HorizonSelector(horizon, settingsHorizon, computed.computing) { horizonChoice = it }
+                            if (load != null) LoadTiles(load)
+                        }
+                        AddMemberButton(onClick = { open(null) })
+                        active.forEach { member ->
+                            MemberCard(
+                                member, TeamMembers.nextAbsence(snapshot.absences, member.id, today), today,
+                                load = load?.members?.firstOrNull { it.member.id == member.id },
+                            ) { open(member.id) }
+                        }
+                        if (load != null && active.isNotEmpty()) {
+                            CategoriesPanel(load)
+                            SpreadPanel(load)
+                        }
+                        if (former.isNotEmpty()) {
+                            FormerHeader(former.size, formerExpanded) { formerExpanded = !formerExpanded }
+                            if (formerExpanded) former.forEach { member -> MemberCard(member, null, today, load = null) { open(member.id) } }
+                        }
+                    }
                 }
             }
         }
     }
 
     if (sheetOpen) MemberSheet(services, sheetMemberId, computed) { sheetOpen = false }
+}
+
+/** Onglets « Membres » / « Échanges » de l'écran Équipe (`SecondaryTabRow`, comme la fiche d'une tâche). */
+@Composable
+private fun MembersTabs(exchanges: Boolean, onSelect: (Boolean) -> Unit) {
+    SecondaryTabRow(selectedTabIndex = if (exchanges) 1 else 0, containerColor = MaterialTheme.colorScheme.surface) {
+        Tab(selected = !exchanges, onClick = { onSelect(false) }, text = { Text(stringResource(Res.string.team_tab_members)) })
+        Tab(selected = exchanges, onClick = { onSelect(true) }, text = { Text(stringResource(Res.string.team_tab_exchanges)) })
+    }
 }
 
 @Composable

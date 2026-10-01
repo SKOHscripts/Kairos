@@ -104,6 +104,37 @@ données.
     avertissement.
 - Sauvegarde automatique avant intégration, comme pour la réception.
 
+#### Onglet « Échanges » : tout au même endroit (manager)
+
+L'écran Équipe a deux onglets, **« Membres »** (l'écran d'avant) et
+**« Échanges »**, dès qu'il y a au moins un membre. L'onglet « Échanges »
+rassemble ce qui était réparti entre la fiche du membre et les Réglages :
+
+- **« Comment partager l’avancement »** : les quatre étapes en clair
+  (envoyer ses tâches ; le membre les importe, travaille et renvoie son
+  avancement ; recevoir son rapport ici ; le voir dans le Suivi, ou saisir
+  l'avancement à la main pour un membre sans Kairos), et le rappel que les
+  fichiers ne sont pas chiffrés.
+- **« Recevoir un rapport… »** : choisit le fichier reçu du membre et ouvre le
+  même aperçu que « Importer » des Réglages (« Intégrer » / « Annuler »). Un
+  fichier qui n'est pas un échange d'équipe (sauvegarde complète) n'est pas
+  appliqué : un message renvoie vers Réglages → Données → Importer ; un
+  paquet est reçu normalement (aperçu), mais son aperçu dit déjà « de votre
+  propre équipe » et le refuse.
+- **Une ligne par membre actif** (sauf « moi ») : son nom, l'état de
+  l'échange (« Paquet envoyé le 28 sept. » ou « Aucun paquet envoyé » ;
+  « Rapport reçu le 1 oct. » ou « Aucun rapport reçu »), le signal
+  **« En attente de son rapport »** (contour + icône, jamais une teinte) quand
+  un paquet a été envoyé après le dernier rapport intégré, et le bouton
+  **« Envoyer ses tâches… »** (le même que celui de la fiche). Toucher le
+  nom ouvre la fiche du membre.
+- Un lien **« Visite de l’espace Équipe »** vers la visite guidée.
+
+Le membre, lui, n'a pas d'espace Équipe : il garde « Importer » et
+« Renvoyer l'avancement… » dans Réglages → Données. Pour qu'il les trouve,
+l'Accueil, la visite de Kairos (dernière étape) et l'aide des Réglages
+l'expliquent (`accueil.md`).
+
 ### Critères de succès
 
 - Paquet → réception → travail → rapport → intégration : chez le manager,
@@ -121,6 +152,11 @@ données.
   créneau (`TeamExchangeCodecTest.reportLeaksNothingPersonal`).
 - Un export complet (`export-import.md`) n'est jamais pris pour un paquet ou
   un rapport, et inversement.
+- L'onglet « Échanges » donne, par membre, la date du dernier paquet, celle du
+  dernier rapport et « En attente de son rapport » seulement quand un paquet
+  est plus récent que le dernier rapport (`ExchangeStatusTest`) ; « Envoyer ses
+  tâches… » y fonctionne comme dans la fiche, et « Recevoir un rapport… »
+  ouvre l'aperçu d'intégration (`M6GuideUiTest.theExchangesTabListsMembersAndReceivesAReport`).
 
 ### Hors périmètre / différé
 
@@ -313,6 +349,25 @@ Deux formats JSON UTF-8 indentés, distincts de l'export par leur champ
     lui) → le **paquet vide** est enregistré (« il retire les tâches
     envoyées à Léa ») : sans lui, un membre dont tout le travail est
     réaffecté ne l'apprendrait jamais.
+- **Onglet « Échanges »** (`ui/team/ExchangeHub.kt`, `ExchangeHub`) :
+  `TeamMembersScreen` met une `SecondaryTabRow` (« Membres », « Échanges »)
+  au-dessus de son contenu, seulement s'il y a des membres ; l'onglet
+  choisi est `NavState.exchangesTab` (le guide peut ainsi ouvrir
+  l'onglet ; `TeamMembersScreen(…, nav)`, valeur propre par défaut pour les
+  captures). Le contenu d'avant est inchangé sous « Membres ».
+  - **État par membre** : `ExchangeStatus.of(members, events)`
+    (`core/team/exchange/ExchangeStatus.kt`, pur) → `MemberExchange(member,
+    lastPackAt, lastReportAt, awaitingReport)` pour les membres actifs hors
+    « moi », ordre de `TeamMembers.active`. `lastPackAt` = date du plus récent
+    événement `sent` dont `memberId` est le membre ; `lastReportAt` = celui de
+    la fiche ; `awaitingReport` ⇔ `lastPackAt != null` et (`lastReportAt ==
+    null` ou `lastReportAt < lastPackAt`).
+  - « Envoyer ses tâches… » appelle `sendPack` (inchangé) ; « Recevoir un
+    rapport… » lit le fichier (`FileService.openText`), `readImportedFile`
+    puis `ExchangePreviewDialog` / `applyExchange`, comme la carte Données.
+    Un `ImportedFile.Full` n'est pas appliqué (message
+    `exchange_hub_full_file`, jamais un remplacement de toutes les données
+    depuis l'écran Équipe).
 - **Importer** (carte Données, `SettingsScreen`) : `readImportedFile`
   aiguille par `TeamExchangeCodec.detect` ; un export complet garde son
   dialogue « Remplacer toutes les données ? » (`export-import.md`), un
@@ -403,6 +458,33 @@ Deux formats JSON UTF-8 indentés, distincts de l'export par leur champ
   de `report` : le journal du manager distingue l'envoi, l'état et le
   temps.
 
+- **Onglet « Échanges » plutôt que sixième destination ou nouveau
+  réglage** (2026-10-01) : la limite MD3 est de cinq destinations par espace
+  (`navigation-theme.md`), et l'envoi, la réception et l'état par membre se
+  lisent ensemble. Un onglet de l'écran Équipe (`SecondaryTabRow`, comme la
+  fiche d'une tâche) les rassemble sans toucher à la navigation. La fiche du
+  membre garde sa section « Échanges » (envoyer depuis la fiche reste le
+  geste le plus direct), et « Importer » des Réglages reste l'entrée du
+  membre : l'onglet ne remplace rien, il centralise.
+- **« En attente de son rapport » se déduit du journal** (2026-10-01) :
+  dernier événement `sent` du membre contre `lastReportAt`, sans colonne ni
+  réglage de plus (`ExchangeStatus`, pur). Écarté : une colonne
+  `last_pack_at` sur `team_member` (migration, export et bases solo
+  concernés pour une information déjà dans le journal). Limite : le journal
+  porte l'envoi **par tâche** (`sent`) ; un paquet vide (retraits) n'en écrit
+  aucun (`recordPackSent` ne journalise rien sans tâche), il ne déclenche donc pas l'attente.
+- **Signal par la forme, jamais par la teinte** : « En attente » est un
+  `Flag` à contour et icône `Schedule` (pas `Warning` : ce n'est pas un
+  risque), comme les autres états à surveiller de l'espace Équipe.
+- **« Recevoir un rapport… » n'applique jamais un export complet**
+  (2026-10-01) : le remplacement de toutes les données reste dans Réglages →
+  Données, avec sa confirmation, loin d'un écran où l'on ne s'y attend pas.
+  Un paquet reçu par ce bouton est traité comme par « Importer » (aperçu,
+  refus `OWN_TEAM`).
+- **Le membre reste servi par l'Accueil et la visite** : rien n'est ajouté à
+  son espace Perso (pas de nouveau bouton) ; l'Accueil et la dernière étape
+  de la visite de Kairos disent où importer et renvoyer (`accueil.md`).
+
 ### Impacts sur les specs existantes (reportés)
 
 - `export-import.md` : aiguillage de « Importer » par `format`, bouton
@@ -412,3 +494,6 @@ Deux formats JSON UTF-8 indentés, distincts de l'export par leur champ
 - `vue-jour.md` : marque des tâches reçues et retirées.
 - `temps-reel-chrono.md` / `statistiques.md` : temps rapporté compté dans le
   temps passé des tâches d'équipe.
+- `accueil.md` : bouton « ? », page Accueil, visite guidée (onglet « Échanges »
+  de la visite de l'espace Équipe) ; `navigation-theme.md` : « ? » et écran
+  secondaire `Secondary` ; `equipe.md` : écran Équipe à deux onglets.

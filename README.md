@@ -190,6 +190,17 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   Chrome, **liées à un fichier** tenu à jour à chaque modification.
 - Interface en **français** et en **anglais** (langue du système).
 
+### S’y retrouver
+
+- Un bouton **« ? »** en haut de chaque écran : l’aide de l’écran où tu te
+  trouves, l’accès à l’Accueil et à la visite guidée.
+- La page **Accueil** rappelle à quoi sert Kairos et ce qu’il sait faire,
+  avec un accès direct à chaque écran ; elle explique aussi comment
+  travailler avec un manager ou une équipe.
+- Une **visite guidée** pas à pas (six étapes), proposée au premier
+  lancement et à revoir quand on veut ; une seconde visite présente l’espace
+  Équipe quand il est activé.
+
 ### Gestion d'équipe (facultative)
 
 - À activer dans **Réglages → Équipe** ; désactivée, rien ne change dans
@@ -211,11 +222,14 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   chaque échéance, sujets les plus à risque, membre goulot, issue la plus
   probable ; **scénarios « Et si… ? »** (absence, renfort, réaffectation,
   tâches en plus…) comparés côte à côte, puis appliqués si on le souhaite.
-- **Échanges par fichier** avec les membres qui ont Kairos : « Envoyer ses
-  tâches… » produit un paquet que le membre reçoit par **Importer** (ses
-  tâches rejoignent sa journée, marquées « de <manager> ») ; il renvoie son
-  avancement (« Renvoyer l’avancement… »), que le manager intègre après un
-  aperçu. Chacun garde la main sur ses champs ; rien n’est supprimé sans
+- **Échanges par fichier** avec les membres qui ont Kairos, réunis dans
+  l’onglet **Échanges** de l’écran Équipe : « Envoyer ses tâches… » produit un
+  paquet que le membre reçoit par **Importer** (ses tâches rejoignent sa
+  journée, marquées « de <manager> ») ; il renvoie son avancement
+  (« Renvoyer l’avancement… »), que le manager reçoit au même endroit et
+  intègre après un aperçu. Pour chaque membre, l’onglet montre la date du
+  dernier paquet et du dernier rapport, et signale « En attente de son
+  rapport ». Chacun garde la main sur ses champs ; rien n’est supprimé sans
   qu’on le choisisse.
 - Un seul utilisateur, le manager : tout reste sur l’appareil, sans compte
   ni réseau ; les fichiers circulent comme on veut (courriel, clé USB…).

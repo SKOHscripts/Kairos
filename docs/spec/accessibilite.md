@@ -40,6 +40,11 @@ pouvoir le toucher sans viser.
   par la couleur seule (icône et texte avec, `statistiques.md`,
   `navigation-theme.md`).
 - Raccourcis clavier documentés dans l'interface (`vue-jour.md`).
+- Le bouton « ? » de la barre du haut est nommé « Aide » ; les cartes de
+  l'Accueil sont des cartes entières cliquables lues avec leur titre et leur
+  phrase ; la visite guidée annonce « Étape n sur N » ; l'onglet « Échanges » est un
+  onglet MD3 (`SecondaryTabRow`), et son signal « En attente de son rapport »
+  est un texte avec icône (`accueil.md`, `equipe-echanges.md`).
 
 ### Critères de succès
 

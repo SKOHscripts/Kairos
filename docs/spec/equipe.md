@@ -158,6 +158,10 @@ rien changer pour qui ne l'active pas.
 
 #### Destination Équipe (jalon E2, avant la charge)
 
+_Depuis le jalon « ne pas se perdre » (2026-10-01), dès qu'il y a au moins un
+membre, l'écran a deux onglets : « Membres » (ce qui suit) et « Échanges »
+(`equipe-echanges.md` § Onglet « Échanges »)._
+
 - En tête, le bouton **« Ajouter un membre »** (bouton primaire plein,
   icône `PersonAdd`). Sans aucun membre : un état vide qui explique à quoi
   servent les membres, avec le même bouton.
