@@ -92,8 +92,11 @@ class M5ScreensUiTest {
         override suspend fun pick(): LegacyDatabase = readFound()
     }
 
+    // L'attente nomme le texte attendu : un dépassement de délai en CI dit alors quelle étape a manqué.
     private fun ComposeUiTest.waitText(text: String, substring: Boolean = false) =
-        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
+        waitUntil(conditionDescription = "texte « $text »", timeoutMillis = 5_000) {
+            onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty()
+        }
 
     private fun ComposeUiTest.type(label: String, text: String) {
         val field = onNode(hasSetTextAction() and hasText(label)).performScrollTo()
