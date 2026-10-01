@@ -3,6 +3,7 @@ package com.skohscripts.kairos.ui.app
 import com.skohscripts.kairos.core.legacy.LegacyDatabase
 import com.skohscripts.kairos.core.legacy.LegacyReport
 import com.skohscripts.kairos.data.KairosRepository
+import com.skohscripts.kairos.ui.team.forecast.TeamUiState
 import kotlin.time.Clock
 
 /**
@@ -31,6 +32,8 @@ class AppServices(
     val updates: UpdateService? = null,
     /** Bureau, copie portable seulement : raccourci (docs/spec/raccourci-portable.md). */
     val shortcuts: ShortcutService? = null,
+    /** Espace Équipe : sélection du Backlog, choix et résultats des Prévisions, graine injectable (tests). */
+    val teamUi: TeamUiState = TeamUiState(),
 )
 
 /** Lecture d'une base Kairos 2 (docs/spec/migration-2x.md) ; la conversion est commune (`Kairos2Import`). */

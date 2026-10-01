@@ -94,6 +94,14 @@ import com.skohscripts.kairos.ui.generated.resources.setting_team_load_warn
 import com.skohscripts.kairos.ui.generated.resources.setting_team_load_warn_help
 import com.skohscripts.kairos.ui.generated.resources.setting_team_affinity
 import com.skohscripts.kairos.ui.generated.resources.setting_team_affinity_help
+import com.skohscripts.kairos.ui.generated.resources.setting_team_history_weeks
+import com.skohscripts.kairos.ui.generated.resources.setting_team_history_weeks_help
+import com.skohscripts.kairos.ui.generated.resources.setting_team_min_samples
+import com.skohscripts.kairos.ui.generated.resources.setting_team_min_samples_help
+import com.skohscripts.kairos.ui.generated.resources.setting_team_risk
+import com.skohscripts.kairos.ui.generated.resources.setting_team_risk_help
+import com.skohscripts.kairos.ui.generated.resources.setting_team_sim_runs
+import com.skohscripts.kairos.ui.generated.resources.setting_team_sim_runs_help
 import com.skohscripts.kairos.ui.generated.resources.setting_team_wip
 import com.skohscripts.kairos.ui.generated.resources.setting_team_wip_help
 import com.skohscripts.kairos.ui.generated.resources.setting_task_types_help
@@ -148,6 +156,10 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "team.hoursPerPoint" to FieldText(Res.string.setting_team_hours_per_point, Res.string.setting_team_hours_per_point_help),
     "team.loadWarnPercent" to FieldText(Res.string.setting_team_load_warn, Res.string.setting_team_load_warn_help),
     "team.affinityDays" to FieldText(Res.string.setting_team_affinity, Res.string.setting_team_affinity_help),
+    "team.simulationRuns" to FieldText(Res.string.setting_team_sim_runs, Res.string.setting_team_sim_runs_help),
+    "team.historyWeeks" to FieldText(Res.string.setting_team_history_weeks, Res.string.setting_team_history_weeks_help),
+    "team.minSamples" to FieldText(Res.string.setting_team_min_samples, Res.string.setting_team_min_samples_help),
+    "team.deadlineRiskPercent" to FieldText(Res.string.setting_team_risk, Res.string.setting_team_risk_help),
 )
 
 /** Sections de l'écran, dans l'ordre de Kairos 2 (moins les intégrations retirées). */

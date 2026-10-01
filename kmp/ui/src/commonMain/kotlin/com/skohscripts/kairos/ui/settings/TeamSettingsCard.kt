@@ -31,7 +31,9 @@ import org.jetbrains.compose.resources.stringResource
  * enregistré activé, la carte ajoute les trois seuils du suivi (sans
  * avancement, ballottée, limite d'en-cours, docs/spec/equipe-backlog-suivi.md
  * § Signaux), les cinq réglages de la charge (horizon, taux de focus, heures par
- * point, alerte de charge, tolérance d'affinité, docs/spec/equipe-charge.md) et
+ * point, alerte de charge, tolérance d'affinité, docs/spec/equipe-charge.md), les quatre
+ * réglages des prévisions (tirages, historique, échantillon minimum, seuil d'échéance en danger,
+ * docs/spec/equipe-simulation.md) et
  * « Supprimer les données d'équipe… » la ferme ([ClearTeamDataButton]).
  */
 @Composable
@@ -53,6 +55,7 @@ internal fun TeamSettingsCard(
                 listOf(
                     "team.staleProgressDays", "team.churnThreshold", "team.wipLimit",
                     "team.horizonWeeks", "team.focusFactor", "team.hoursPerPoint", "team.loadWarnPercent", "team.affinityDays",
+                    "team.simulationRuns", "team.historyWeeks", "team.minSamples", "team.deadlineRiskPercent",
                 ).forEach { key ->
                     SettingInput(key, values[key].orEmpty(), errors[key]) { onChange(key, it) }
                 }

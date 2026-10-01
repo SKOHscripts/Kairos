@@ -3,6 +3,7 @@ package com.skohscripts.kairos.desktop
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.TeamSettings
+import com.skohscripts.kairos.core.team.forecast.ScenarioModification
 import com.skohscripts.kairos.data.KairosRepository
 import com.skohscripts.kairos.data.KairosStore
 import com.skohscripts.kairos.data.TaskEdit
@@ -24,7 +25,8 @@ import kotlin.time.Instant
  * trois membres (capacités différentes, une absence) et une vingtaine de tâches d'équipe à tous
  * les états et avec tous les signaux (en retard, sans avancement, ballottée, trop d'en-cours,
  * bloquée) ; pour la charge (jalon E4) des estimations en heures, un membre surchargé (Alex), un
- * à surveiller (Sam), des échéances en danger et une tâche non estimée, écrites
+ * à surveiller (Sam), des échéances en danger et une tâche non estimée, et pour les prévisions (jalon E5)
+ * un historique de quatorze tâches faites sur dix semaines (estimations et temps passé), écrites
  * par le dépôt avec une horloge qui remonte dans le temps : le journal de chaque tâche
  * porte des dates différentes. Base en mémoire, langue du système.
  */
@@ -178,6 +180,54 @@ object TeamSeed {
         val workshop = create("workshop", if (english) "User workshop" else "Atelier utilisateurs", 4)
         qualify(workshop, if (english) "User workshop" else "Atelier utilisateurs", 1, 3, meeting, inDays(1), blockers = setOf(mockups))
         repository.assign(listOf(workshop), sam)
+
+        // --- Historique (jalon E5, docs/spec/equipe-simulation.md § Données) : quatorze tâches faites sur dix semaines, avec
+        // estimation (en heures) et temps passé, de quoi donner des facteurs d'erreur d'estimation (de 1 à 1,6 fois) et des
+        // débits hebdomadaires aux prévisions. Sans points : la calibration des points de l'espace Équipe ne bouge pas.
+        val crew = listOf(claire, alex, sam)
+        val history = listOf(
+            // (jours écoulés depuis la fin, estimation en heures, temps passé en heures)
+            Triple(9, 4.0, 5.0), Triple(10, 6.0, 5.0), Triple(12, 3.0, 4.5), Triple(16, 8.0, 9.0), Triple(17, 2.0, 2.0),
+            Triple(19, 5.0, 8.0), Triple(23, 4.0, 4.0), Triple(24, 3.0, 3.5), Triple(30, 6.0, 7.0), Triple(31, 2.0, 3.0),
+            Triple(37, 8.0, 8.0), Triple(44, 5.0, 6.5), Triple(51, 3.0, 3.0), Triple(58, 4.0, 6.0),
+        )
+        history.forEachIndexed { index, (daysAgo, estimate, spent) ->
+            clock.fixed = at(daysAgo + 4)
+            val title = if (english) "Past ticket ${index + 1}" else "Ticket passé ${index + 1}"
+            val id = repository.createTeamTask(title)!!
+            repository.updateTask(
+                id,
+                TaskEdit(
+                    title = title, priority = 1, taskType = listOf(dev, review, docs, meeting)[index % 4], pinDay = today,
+                    estimatedMinutes = (estimate * 60).toInt(), manualTimeSpentMinutes = (spent * 60).toInt(),
+                ),
+            )
+            repository.assign(listOf(id), crew[index % 3])
+            clock.fixed = at(daysAgo, hour = 16)
+            repository.toggleDone(id)
+        }
+
+        // --- Scénarios « Et si… ? » (jalon E5) : un renfort, une absence, une charge en plus.
+        fun uid(key: String): String = repository.snapshot.value.tasks.first { it.id == ids.getValue(key) }.teamUid!!
+        clock.fixed = at(1)
+        ids["scenario-reinforcement"] = repository.createScenario(
+            if (english) "Reinforcement: Jo takes three tasks" else "Renfort : Jo reprend trois tâches",
+            listOf(
+                ScenarioModification.AddMember(-1, "Jo", 100, 7.0),
+                ScenarioModification.Reassign(uid("billing"), -1),
+                ScenarioModification.Reassign(uid("export"), -1),
+                // Faite depuis : le scénario le signale (« tâche déjà faite »).
+                ScenarioModification.Reassign(uid("ci"), -1),
+            ),
+        )!!
+        ids["scenario-absence"] = repository.createScenario(
+            if (english) "Sam away for two weeks" else "Sam absent deux semaines",
+            listOf(ScenarioModification.AddAbsence(sam, inDays(1), inDays(14))),
+        )!!
+        ids["scenario-more-work"] = repository.createScenario(
+            if (english) "Focus at 60% and five more tasks" else "Focus à 60 % et cinq tâches en plus",
+            listOf(ScenarioModification.SetFocus(0.6), ScenarioModification.AddTasks(5, 3, dev, 1)),
+        )!!
 
         clock.fixed = null
         val files = object : com.skohscripts.kairos.ui.app.FileService {

@@ -160,13 +160,13 @@ class TeamSpaceUiTest {
         onNodeWithText("Add members in the Team tab", substring = true).assertExists()
         waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.settings.team!!.lastSpace == TeamSettings.SPACE_TEAM }
 
-        // Backlog (E3) : capture en tête, sections vides ; Prévisions est encore un état vide ; Réglages est le même écran qu'en Perso.
+        // Backlog (E3) : capture en tête, sections vides ; Prévisions (E5) propose de lancer une simulation ; Réglages est le même écran qu'en Perso.
         onAllNodesWithText("Backlog").onFirst().performClick()
         waitText("To qualify (0)")
         onAllNodesWithText("Team").onFirst().performClick()
         waitText("Team members")
         onAllNodesWithText("Forecast").onFirst().performClick()
-        waitText("Simulations and “What if…?” scenarios will tell you here whether the team’s deadlines hold.")
+        waitText("Run the simulation")
         openSettings()
         onNodeWithText("Working day").assertExists()
 

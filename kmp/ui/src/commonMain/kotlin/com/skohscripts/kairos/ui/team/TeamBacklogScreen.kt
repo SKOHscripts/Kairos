@@ -143,7 +143,11 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
     var withDeadline by rememberSaveable { mutableStateOf(false) }
     var openId by rememberSaveable { mutableStateOf<Long?>(null) }
     var deleteId by rememberSaveable { mutableStateOf<Long?>(null) }
-    var selection by remember { mutableStateOf(initialSelection) }
+    // La sélection est partagée avec Prévisions (périmètre « sélection du Backlog », docs/spec/equipe-simulation.md) :
+    // elle vit dans l'état d'interface de l'espace Équipe ; l'ouverture avec une sélection initiale (captures) la pose.
+    val shared = services.teamUi
+    remember(initialSelection) { if (initialSelection.isNotEmpty()) shared.backlogSelection = initialSelection }
+    var selection by shared::backlogSelection
     val capture = remember { CaptureState() }
     // « Suggérer une répartition » : ouverte sur toute la file prête (`null`) ou sur la sélection multiple en cours.
     var suggestOpen by rememberSaveable { mutableStateOf(initialSuggestion) }
