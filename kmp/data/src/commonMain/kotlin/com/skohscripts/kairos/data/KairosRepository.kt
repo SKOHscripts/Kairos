@@ -613,30 +613,51 @@ class KairosRepository(
     // --- Équipe : échanges par fichier (docs/spec/equipe-echanges.md) -------------------------------
 
     /**
-     * Côté manager : le paquet de [memberId] (ses tâches d'équipe à faire et leurs sous-tâches), en texte JSON
-     * (`kairos-team-pack`), ou `null` si l'envoi est impossible (espace Équipe sans identité, membre inconnu ou
-     * archivé). Chaque tâche du paquet reçoit un événement `sent` (toValue = [packId], membre = destinataire,
-     * source `manual`) dans la même transaction : le journal est écrit à l'export, avant que le fichier soit
-     * enregistré. [packId] est tiré ici s'il n'est pas donné (identité du paquet, jamais de hasard dans `core`).
+     * Côté manager : prépare le paquet de [memberId] (ses tâches d'équipe à faire et leurs sous-tâches), en texte JSON
+     * (`kairos-team-pack`), **sans rien écrire** : le journal « envoyée » n'est écrit qu'une fois le fichier réellement
+     * enregistré ([recordPackSent]). `null` si l'envoi est impossible (espace Équipe sans identité, membre inconnu ou
+     * archivé). Un membre sans tâche à faire a un paquet vide ([PreparedPack.taskUids] vide) : il ne vaut d'être
+     * envoyé que si un paquet lui a déjà été remis ([PreparedPack.previouslySent]), pour marquer « retirées » chez lui
+     * les tâches reçues. [packId] est tiré ici s'il n'est pas donné (jamais de hasard dans `core`).
      */
     @OptIn(ExperimentalUuidApi::class)
-    suspend fun exportPack(
+    fun preparePack(
         memberId: Long,
         packId: String = Uuid.random().toString(),
         now: Instant = clock.now(),
         appVersion: String = KairosBuild.VERSION_NAME,
-    ): String? {
-        if (PackBuilder.build(state.value, memberId, packId, now) == null) return null
-        var text: String? = null
+    ): PreparedPack? {
+        val pack = PackBuilder.build(state.value, memberId, packId, now) ?: return null
+        val previouslySent = state.value.teamEvents.any { it.kind == TeamEventKind.SENT && it.memberId == memberId }
+        return PreparedPack(TeamExchangeCodec.encodePack(pack, appVersion), packId, memberId, pack.tasks.mapTo(LinkedHashSet()) { it.uid }, previouslySent)
+    }
+
+    /**
+     * Côté manager : journalise l'envoi de [prepared] une fois son fichier enregistré. Un événement `sent` (toValue =
+     * identifiant du paquet, membre = destinataire, source `manual`) sur chaque tâche d'équipe qui porte encore un des
+     * identifiants envoyés, en une transaction ; une tâche supprimée entre-temps n'en reçoit pas.
+     */
+    suspend fun recordPackSent(prepared: PreparedPack) {
+        if (prepared.taskUids.isEmpty()) return
         write {
-            // Reconstruit dans la transaction : l'état a pu changer depuis la vérification.
-            val pack = PackBuilder.build(state.value, memberId, packId, now) ?: return@write
-            val sent = pack.tasks.mapTo(HashSet()) { it.uid }
-            state.value.tasks.filter { it.space == TaskSpace.TEAM && it.teamUid in sent }.sortedBy { it.id }
-                .forEach { journal(it, TeamEventKind.SENT, null, packId, TeamEventSource.MANUAL, memberId = memberId) }
-            text = TeamExchangeCodec.encodePack(pack, appVersion)
+            state.value.tasks.filter { it.space == TaskSpace.TEAM && it.teamUid in prepared.taskUids }.sortedBy { it.id }
+                .forEach { journal(it, TeamEventKind.SENT, null, prepared.packId, TeamEventSource.MANUAL, memberId = prepared.memberId) }
         }
-        return text
+    }
+
+    /**
+     * Prépare puis journalise tout de suite ([preparePack] + [recordPackSent]) : pour les tests et les jeux de données.
+     * L'interface, elle, ne journalise qu'après l'enregistrement du fichier.
+     */
+    suspend fun exportPack(
+        memberId: Long,
+        packId: String? = null,
+        now: Instant = clock.now(),
+        appVersion: String = KairosBuild.VERSION_NAME,
+    ): String? {
+        val prepared = (if (packId == null) preparePack(memberId, now = now, appVersion = appVersion) else preparePack(memberId, packId, now, appVersion)) ?: return null
+        recordPackSent(prepared)
+        return prepared.text
     }
 
     /**
@@ -710,6 +731,22 @@ class KairosRepository(
             val starts = target > 0 && task.startedOn == null
             if (target == (task.progressPercent ?: 0) && !starts) return@write
             updateRow(task.copy(progressPercent = target, startedOn = if (starts) today() else task.startedOn))
+            done = true
+        }
+        return done
+    }
+
+    /**
+     * Côté membre : « Garder comme tâche personnelle » une tâche **reçue puis retirée** par le manager. Elle perd son
+     * origine, son indicateur « retirée » et son identité d'équipe (`teamUid`) : un paquet ultérieur qui la contiendrait
+     * à nouveau en créerait une autre au lieu de l'écraser. `updatedAt` est inchangé. `false` (rien d'écrit) si la tâche
+     * n'est pas une tâche reçue retirée.
+     */
+    suspend fun detachOrigin(id: Long): Boolean {
+        var done = false
+        write {
+            val task = state.value.tasks.firstOrNull { it.id == id }?.takeIf { ReceivedTasks.isReceived(it) && it.originRemoved } ?: return@write
+            updateRow(task.copy(origin = null, originRemoved = false, teamUid = null), touch = false)
             done = true
         }
         return done
@@ -1309,6 +1346,12 @@ data class ApplyReport(
     val notApplicable: List<ScenarioModification> = emptyList(),
     val ignored: List<IgnoredModification> = emptyList(),
 )
+
+/**
+ * Un paquet prêt à être enregistré ([KairosRepository.preparePack]) : son [text], son [packId], le destinataire [memberId],
+ * les [taskUids] qu'il contient (vide : paquet vide) et [previouslySent] (un paquet lui a déjà été remis).
+ */
+class PreparedPack(val text: String, val packId: String, val memberId: Long, val taskUids: Set<String>, val previouslySent: Boolean)
 
 /**
  * Ce que [KairosRepository.receivePack] a fait : le [plan] (créées, mises à jour, retirées, dépendances) et

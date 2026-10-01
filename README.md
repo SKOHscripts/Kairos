@@ -211,8 +211,14 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   chaque échéance, sujets les plus à risque, membre goulot, issue la plus
   probable ; **scénarios « Et si… ? »** (absence, renfort, réaffectation,
   tâches en plus…) comparés côte à côte, puis appliqués si on le souhaite.
+- **Échanges par fichier** avec les membres qui ont Kairos : « Envoyer ses
+  tâches… » produit un paquet que le membre reçoit par **Importer** (ses
+  tâches rejoignent sa journée, marquées « de <manager> ») ; il renvoie son
+  avancement (« Renvoyer l’avancement… »), que le manager intègre après un
+  aperçu. Chacun garde la main sur ses champs ; rien n’est supprimé sans
+  qu’on le choisisse.
 - Un seul utilisateur, le manager : tout reste sur l’appareil, sans compte
-  ni réseau.
+  ni réseau ; les fichiers circulent comme on veut (courriel, clé USB…).
 
 ### Apparence
 

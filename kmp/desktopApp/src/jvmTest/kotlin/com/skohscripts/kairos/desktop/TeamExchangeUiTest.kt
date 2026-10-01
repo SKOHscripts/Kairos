@@ -65,11 +65,13 @@ class TeamExchangeUiTest {
     fun restore() = Locale.setDefault(saved)
 
     /** Sélecteur de fichier simulé : [toOpen] est ce que « Importer » lit, [written] ce que les enregistrements ont reçu. */
-    private class Files(var toOpen: String? = null) : FileService {
+    private class Files(var toOpen: String? = null, var accept: Boolean = true) : FileService {
         val written = mutableListOf<Pair<String, String>>()
+
+        /** [accept] faux : l'utilisateur annule la boîte d'enregistrement. */
         override suspend fun saveText(suggestedName: String, text: String): Boolean {
-            written += suggestedName to text
-            return true
+            if (accept) written += suggestedName to text
+            return accept
         }
 
         override suspend fun openText(): String? = toOpen
@@ -212,11 +214,11 @@ class TeamExchangeUiTest {
         setContent { KairosApp(Platform.DESKTOP) { services } }
         openSettings()
         pressImport()
-        waitText("This packet was already received: nothing to change.")
+        waitText("Nothing to change: this packet was already received or contains no task.")
         // Rien à confirmer : seul « Fermer » est proposé.
         assertEquals(0, count("Receive"))
         onNodeWithText("Close").performClick()
-        waitGone("This packet was already received: nothing to change.")
+        waitGone("Nothing to change: this packet was already received or contains no task.")
         assertEquals(3, services.repository.snapshot.value.tasks.size)
         assertTrue(backups.isEmpty())
     }
@@ -261,6 +263,27 @@ class TeamExchangeUiTest {
         val tasks = services.repository.snapshot.value.tasks
         assertEquals(3, tasks.size)
         assertTrue(tasks.single { it.title == "Recette" }.originRemoved)
+    }
+
+    @Test
+    fun anEmptyPacketPreviewsTheRemovalsAndAppliesThem() = runComposeUiTest {
+        val manager = manager()
+        val member = memberWith(pack(manager))
+        runBlocking {
+            manager.repo.deleteTask(manager.extra)
+            manager.repo.assign(listOf(manager.migration, manager.recette), manager.marc)
+        }
+        val services = services(member, Files(pack(manager)))
+        setContent { KairosApp(Platform.DESKTOP) { services } }
+        openSettings()
+        pressImport()
+        waitText("Update the tasks received from Corentin (Équipe Plateforme)?")
+        waitText("Removed (3)")
+        assertEquals(0, count("Receive 0 tasks", substring = true))
+        assertEquals(0, count("They join your personal tasks", substring = true))
+        onNodeWithText("Receive").performClick()
+        waitText("Packet received: 0 new, 0 updated, 3 removed.")
+        assertTrue(services.repository.snapshot.value.tasks.all { it.originRemoved })
     }
 
     // --- Côté manager : intégrer un rapport --------------------------------------------------------------------------------
@@ -393,6 +416,47 @@ class TeamExchangeUiTest {
     }
 
     @Test
+    fun cancelingTheSaveDialogLogsNoSentEvent() = runComposeUiTest {
+        val manager = manager()
+        val files = Files(accept = false)
+        val services = services(manager.repo, files)
+        setContent { KairosApp(Platform.DESKTOP) { services } }
+        openMember("Léa")
+        onNodeWithText("Send their tasks…").performScrollTo().performClick()
+        waitUntil(timeoutMillis = 5_000) { true }
+        mainClock.advanceTimeBy(500)
+        assertTrue(files.written.isEmpty())
+        assertEquals(0, count("Packet saved for Léa."))
+        assertEquals(0, manager.snap.teamEvents.count { it.kind.name == "SENT" })
+
+        // Enregistrer pour de bon journalise l'envoi.
+        files.accept = true
+        onNodeWithText("Send their tasks…").performScrollTo().performClick()
+        waitText("Packet saved for Léa.")
+        assertEquals(3, manager.snap.teamEvents.count { it.kind.name == "SENT" })
+    }
+
+    @Test
+    fun aMemberWhoLostAllTasksStillGetsAnEmptyPacketOnceSentBefore() = runComposeUiTest {
+        val manager = manager()
+        runBlocking {
+            manager.repo.exportPack(manager.lea, "pack-1")
+            manager.repo.deleteTask(manager.extra)
+            manager.repo.assign(listOf(manager.migration, manager.recette), manager.marc)
+        }
+        val files = Files()
+        val services = services(manager.repo, files)
+        setContent { KairosApp(Platform.DESKTOP) { services } }
+        openMember("Léa")
+        onNodeWithText("Send their tasks…").performScrollTo().performClick()
+        waitText("Packet saved: it removes the tasks sent to Léa.")
+        val (name, text) = files.written.single()
+        assertTrue(name.startsWith("kairos-paquet-léa-"), name)
+        assertTrue("\"kairos-team-pack\"" in text)
+        assertEquals(0, com.skohscripts.kairos.data.TeamExchangeCodec.decodePack(text).tasks.size)
+    }
+
+    @Test
     fun aMemberWithoutOpenTasksHasNothingToSend() = runComposeUiTest {
         val manager = manager()
         val files = Files()
@@ -444,6 +508,44 @@ class TeamExchangeUiTest {
         }
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithContentDescription("task removed by Corentin").fetchSemanticsNodes().isNotEmpty() }
         waitText("removed by Corentin")
+    }
+
+    @Test
+    fun keepingARemovedTaskAsPersonalDropsTheMark() = runComposeUiTest {
+        val manager = manager()
+        val member = memberWith(pack(manager))
+        runBlocking {
+            manager.repo.deleteTask(manager.extra)
+            member.receivePack(pack(manager))
+            // Il ne reste que la tâche retirée dans la vue : un seul « Modifier ».
+            member.snapshot.value.tasks.filter { !it.originRemoved }.sortedByDescending { it.id }.forEach { member.deleteTask(it.id) }
+        }
+        val services = services(member)
+        setContent { KairosApp(Platform.DESKTOP) { services } }
+        waitText("removed by Corentin")
+        onNodeWithContentDescription("Edit").performClick()
+        waitText("Edit task")
+        // Supprimer ou garder : les deux choix sont proposés dans la fiche.
+        onNodeWithText("Delete").performScrollTo().assertExists()
+        onNodeWithText("Keep as a personal task").performScrollTo().performClick()
+        waitUntil(timeoutMillis = 5_000) { services.repository.snapshot.value.tasks.single().origin == null }
+        waitGone("Edit task")
+        waitGone("removed by Corentin")
+        assertEquals(0, count("from Corentin", substring = true))
+        assertTrue(services.repository.origins().isEmpty())
+    }
+
+    @Test
+    fun aKeepButtonIsOnlyOfferedForRemovedTasks() = runComposeUiTest {
+        val manager = manager()
+        val member = memberWith(pack(manager))
+        runBlocking { member.snapshot.value.tasks.filter { it.title != "Écrire les migrations" }.sortedByDescending { it.id }.forEach { member.deleteTask(it.id) } }
+        val services = services(member)
+        setContent { KairosApp(Platform.DESKTOP) { services } }
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithContentDescription("Edit").fetchSemanticsNodes().size == 1 }
+        onNodeWithContentDescription("Edit").performClick()
+        waitText("Edit task")
+        assertEquals(0, count("Keep as a personal task"))
     }
 
     @Test

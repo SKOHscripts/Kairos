@@ -303,7 +303,10 @@ private fun PackBody(plan: PackMergePlan) {
         return
     }
     val manager = managerLabel(plan.origin)
-    Text(stringResource(Res.string.exchange_pack_intro, manager), style = MaterialTheme.typography.bodyMedium)
+    // Un paquet qui ne fait que retirer des tâches (réaffectation complète) n'a rien à « rejoindre » les tâches du membre.
+    if (plan.created.isNotEmpty() || plan.visibleUpdates.isNotEmpty()) {
+        Text(stringResource(Res.string.exchange_pack_intro, manager), style = MaterialTheme.typography.bodyMedium)
+    }
     if (plan.memberChanged) Flag(stringResource(Res.string.exchange_pack_member_changed, plan.origin.memberName), flagged = true, style = MaterialTheme.typography.bodyMedium)
 
     if (plan.created.isNotEmpty()) {

@@ -954,6 +954,7 @@
     <string name="exchange_send_none">%1$s n’a aucune tâche à faire : rien à envoyer.</string>
     <string name="exchange_send_unavailable">Le paquet n’a pas pu être préparé.</string>
     <string name="exchange_send_done">Paquet enregistré pour %1$s.</string>
+    <string name="exchange_send_done_empty">Paquet enregistré : il retire les tâches envoyées à %1$s.</string>
     <string name="exchange_last_report">Dernier rapport intégré : %1$s</string>
     <string name="exchange_no_report">Aucun rapport intégré pour l’instant.</string>
     <string name="exchange_report_action">Renvoyer l’avancement…</string>
@@ -975,7 +976,7 @@
     <string name="exchange_pack_removed">Retirées (%1$d)</string>
     <string name="exchange_pack_removed_note">Elles ne sont pas supprimées : elles restent dans tes tâches, marquées « retirée par %1$s ».</string>
     <string name="exchange_pack_unchanged">Inchangées : %1$d</string>
-    <string name="exchange_pack_noop">Ce paquet a déjà été reçu : rien à changer.</string>
+    <string name="exchange_pack_noop">Rien à changer : ce paquet a déjà été reçu ou ne contient aucune tâche.</string>
     <string name="exchange_pack_backup">Une sauvegarde des données actuelles est faite juste avant.</string>
     <string name="exchange_pack_deps">Dépendances entre ces tâches : %1$d ajoutées, %2$d retirées.</string>
     <string name="exchange_pack_skipped_one">1 dépendance du paquet est écartée : elle formerait une boucle avec tes propres dépendances.</string>
@@ -1029,5 +1030,6 @@
     <string name="received_mark_description">tâche reçue de %1$s</string>
     <string name="received_removed">retirée par %1$s</string>
     <string name="received_removed_description">tâche retirée par %1$s</string>
+    <string name="received_keep">Garder comme tâche personnelle</string>
     <string name="received_edit_help">Reçue de %1$s. Titre, description, priorité, points, catégorie, échéance et durée sont remplacés à chaque nouveau paquet ; l’avancement est le tien.</string>
 </resources>

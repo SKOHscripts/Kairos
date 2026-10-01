@@ -366,7 +366,7 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
                 team = if (task.space == TaskSpace.TEAM) TeamTaskSheet(AssignContext.of(repository.snapshot.value, day), editable = false, today = day) else null,
                 // Tâche reçue d'un manager : sa marque et l'avancement déclaré par le membre (docs/spec/equipe-echanges.md).
                 received = ReceivedTasks.originOf(task)?.let { origin ->
-                    ReceivedTaskSheet(origin, task.originRemoved) { edit, percent ->
+                    ReceivedTaskSheet(origin, task.originRemoved, onKeep = { scope.launch { repository.detachOrigin(id) }; editingId = null }) { edit, percent ->
                         scope.launch {
                             repository.updateTask(id, edit)
                             percent?.let { repository.setReceivedProgress(id, it) }

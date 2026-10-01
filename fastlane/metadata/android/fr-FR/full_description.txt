@@ -22,6 +22,7 @@ Désactivée par défaut, la gestion d’équipe ajoute un second espace pour le
 <li>Membres et absences, backlog partagé, suivi de l’avancement avec son journal.</li>
 <li>Charge de chacun rapportée à sa capacité, et suggestion de répartition des tâches.</li>
 <li>Prévisions Monte Carlo : dates de fin en pourcentages de chances, échéances menacées, scénarios « Et si… ? ».</li>
+<li>Échanges par fichier avec les membres qui ont Kairos : ils reçoivent leurs tâches et renvoient leur avancement.</li>
 <li>Tout reste sur l’appareil ; l’espace Perso ne montre jamais rien de l’équipe.</li>
 </ul>
 

@@ -22,6 +22,7 @@ Off by default, team management adds a second space for the manager, who remains
 <li>Members and absences, a shared backlog, progress tracking with its log.</li>
 <li>Each person’s load against their capacity, and a suggested split of the tasks.</li>
 <li>Monte Carlo forecasts: finish dates as percentage chances, threatened deadlines, “What if…?” scenarios.</li>
+<li>File exchanges with members who use Kairos: they receive their tasks and send back their progress.</li>
 <li>Everything stays on the device; the personal space never shows anything from the team.</li>
 </ul>
 

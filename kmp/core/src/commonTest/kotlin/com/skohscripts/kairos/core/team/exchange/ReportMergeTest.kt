@@ -57,6 +57,30 @@ class ReportMergeTest {
     }
 
     @Test
+    fun aManagerStartDateIsNeverPushedLaterByTheReport() {
+        val task = teamTask(10, assignee = 1, progress = 40).copy(startedOn = LocalDate(2026, 9, 17))
+        val plan = ReportMerge.plan(snapshot(task), report(listOf(line("t10", progress = 40, started = LocalDate(2026, 10, 1)))), utc)
+        // Rien ne change : 17 sept. reste, aucun changement « Started ».
+        assertTrue(plan.updates.isEmpty())
+        assertEquals(1, plan.unchanged.size)
+        val withProgress = ReportMerge.plan(snapshot(task), report(listOf(line("t10", progress = 70, started = LocalDate(2026, 10, 1)))), utc).updates.single()
+        assertEquals(LocalDate(2026, 9, 17), withProgress.after.startedOn)
+        assertTrue(withProgress.changes.none { it is ReportChange.Started })
+    }
+
+    @Test
+    fun theReportStartDateFillsAnUnknownOneAndAnEarlierOneWins() {
+        val unknown = ReportMerge.plan(snapshot(teamTask(10, assignee = 1, progress = 0)), report(listOf(line("t10", started = LocalDate(2026, 10, 1)))), utc).updates.single()
+        assertEquals(LocalDate(2026, 10, 1), unknown.after.startedOn)
+        assertEquals(listOf(ReportChange.Started(null, LocalDate(2026, 10, 1))), unknown.changes)
+
+        val task = teamTask(10, assignee = 1, progress = 0).copy(startedOn = LocalDate(2026, 10, 1))
+        val earlier = ReportMerge.plan(snapshot(task), report(listOf(line("t10", started = LocalDate(2026, 9, 20)))), utc).updates.single()
+        assertEquals(LocalDate(2026, 9, 20), earlier.after.startedOn)
+        assertEquals(listOf(ReportChange.Started(LocalDate(2026, 10, 1), LocalDate(2026, 9, 20))), earlier.changes)
+    }
+
+    @Test
     fun onlyTheMembersFieldsAreApplied() {
         val task = teamTask(10, assignee = 1, progress = 40).copy(description = "d", deadline = LocalDate(2026, 10, 9), estimatedMinutes = 60, taskType = "Dev")
         val u = ReportMerge.plan(snapshot(task), report(listOf(line("t10", progress = 90, spent = 10))), utc).updates.single()

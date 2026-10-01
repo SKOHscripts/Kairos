@@ -180,7 +180,7 @@ object ReportMerge {
      * - statut : celui du membre (une tâche archivée garde le sien) ; faite -> avancement 100, jour de fin [doneOn] ;
      *   rouverte -> avancement du rapport, à défaut 0 ;
      * - avancement : celui du rapport s'il est donné, sinon celui du manager ; borné à 0-100, sans arrondi ;
-     * - commencement : celui du rapport s'il est donné (la valeur du membre l'emporte), sinon celui du manager ;
+     * - commencement : la plus ancienne des deux dates (celle du manager, celle du rapport) ;
      * - temps : le total du rapport **remplace** le précédent total rapporté (jamais d'addition de deux rapports).
      */
     private fun apply(
@@ -195,9 +195,11 @@ object ReportMerge {
         var after = task
         val changes = ArrayList<ReportChange>()
 
-        if (startedOn != null && startedOn != task.startedOn) {
-            after = after.copy(startedOn = startedOn)
-            changes += ReportChange.Started(task.startedOn, startedOn)
+        // La plus ancienne des deux dates l'emporte : le rapport ne repousse jamais un début déjà connu du manager.
+        val started = listOfNotNull(task.startedOn, startedOn).minOrNull()
+        if (started != null && started != task.startedOn) {
+            after = after.copy(startedOn = started)
+            changes += ReportChange.Started(task.startedOn, started)
         }
 
         val target = if (task.status == TaskStatus.ARCHIVED) task.status else status

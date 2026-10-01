@@ -3,14 +3,16 @@
 _Rôle : faire circuler le travail entre le manager et les membres qui ont
 eux aussi Kairos, sans serveur ni réseau : le manager envoie à un membre un
 **paquet** de ses tâches ; le membre les traite dans son Kairos personnel et
-renvoie un **rapport** d'avancement que le manager intègre. Fichiers
-prévus : `kmp/data/.../TeamExchangeCodec.kt` (formats), `kmp/core/.../core/
-team/exchange/` (`PackMerge.kt`, `ReportMerge.kt`, purs), `kmp/ui/.../team/
-ExchangeDialogs.kt`, et la carte Données (`SettingsScreen.DataCard`).
+renvoie un **rapport** d'avancement que le manager intègre. Fichiers :
+`kmp/data/.../TeamExchangeCodec.kt` (formats), `kmp/core/.../core/
+team/exchange/` (`PackBuilder`, `PackMerge`, `ReportBuilder`,
+`ReportMerge`, `TeamOrigin`, purs), `kmp/ui/.../team/ExchangeDialogs.kt`
+et `ExchangeFiles.kt`, la carte Données (`SettingsScreen`) et la fiche
+membre.
 Formats voisins de l'export (`export-import.md`), mais **fusion ciblée** et
 non remplacement._
 
-État : **spécifiée le 2026-09-30, non implémentée** (jalon E6).
+État : **implémentée (jalon E6, 2026-10-01)**.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -192,13 +194,14 @@ Deux formats JSON UTF-8 indentés, distincts de l'export par leur champ
   niveau (quel que soit leur assigné) ; `null` s'il n'y en a aucune
   (`KairosRepository.exportPack` renvoie alors `null`). Une sous-tâche
   faite côté manager sort donc du paquet, et sera marquée retirée chez le
-  membre.
+  membre. Un paquet **vide** est valide : il marque retirées toutes les
+  tâches reçues auparavant (voir § Interface).
 - Dépendances entre tâches du paquet : `dependencies` ; un bloqueur hors
   paquet sort en `externalBlockers` (titre, nom de son assigné, sans nom
   s'il est au backlog).
 - Journal : un événement `sent` par tâche envoyée (valeur : `packId`,
-  membre : destinataire, source `manual`), écrit par `exportPack` avant
-  l'enregistrement du fichier.
+  membre : destinataire, source `manual`), écrit par `recordPackSent`
+  **après** l'enregistrement du fichier (§ Interface).
 
 ### Réception (`PackMerge`, pur)
 
@@ -265,8 +268,10 @@ Deux formats JSON UTF-8 indentés, distincts de l'export par leur champ
   (fiche du membre supprimée depuis l'envoi), `OLDER` (`reportedAt` ≤ le
   dernier rapport intégré de ce membre, colonne
   `team_member.last_report_at`, mise à jour à chaque intégration).
-- Avancement intégré sans arrondi (borné à 0-100) ; le `startedOn` du
-  membre l'emporte ; une tâche rouverte sans avancement repasse à 0.
+- Avancement intégré sans arrondi (borné à 0-100) ; date de commencement :
+  la **plus ancienne** des deux (celle du membre n'est souvent qu'un
+  repli, le jour du rapport, et ne doit pas effacer un commencement connu
+  du manager) ; une tâche rouverte sans avancement repasse à 0.
 - Temps passé : le rapport porte un **total** ; le manager stocke le
   dernier total reçu (colonne `task.reported_minutes`), que
   `TimeTracking.spentMinutesByTask` ajoute aux sessions et au temps manuel
@@ -289,15 +294,85 @@ Deux formats JSON UTF-8 indentés, distincts de l'export par leur champ
 
 ### Interface
 
-- Carte Données : aiguillage de « Importer » ; bouton « Renvoyer
-  l'avancement… » par origine présente (invisible sans tâche reçue : un
-  Kairos qui n'a jamais reçu de paquet est inchangé, `equipe.md` §
-  Isolation).
-- `ExchangeDialogs` : aperçu de réception et d'intégration en
-  `AlertDialog` à liste défilante (compteurs, puis lignes), « Recevoir » /
-  « Intégrer » en bouton de confirmation, « Annuler ».
-- Vue Jour du membre : icône `Groups` + « de Corentin » sur les tâches
-  reçues ; « retirée par Corentin » en contour + icône.
+- **Envoyer** (`ui/team/ExchangeFiles.kt`, `sendPack`) : section
+  « Échanges » de la fiche d'un membre (`MemberSheetContent`), absente pour
+  « moi » ; bouton « Envoyer ses tâches… » absent pour un membre archivé ;
+  rappel que le fichier n'est pas chiffré ; date du dernier rapport intégré
+  (`lastReportAt`) ou « Aucun rapport intégré pour l'instant ».
+  - `KairosRepository.preparePack` prépare le paquet **sans écrire**
+    (`PreparedPack` : texte, `packId`, membre, `uid` envoyés,
+    `previouslySent`) ; `FileService.saveText` enregistre
+    `kairos-paquet-<membre>-AAAAMMJJ-HHMM.json` (`fileSlug`, `fileStamp`) ;
+    **seulement si le fichier est écrit**, `recordPackSent` journalise
+    l'envoi (événements `sent` sur les tâches d'équipe portant encore ces
+    `uid`). Annuler la boîte d'enregistrement ne laisse aucune trace.
+    `exportPack` (préparer puis journaliser aussitôt) reste pour les tests
+    et le jeu du self-test.
+  - Membre sans tâche à faire : jamais servi → « n'a aucune tâche à faire »,
+    aucun fichier ; déjà servi (`previouslySent` : un événement `sent` pour
+    lui) → le **paquet vide** est enregistré (« il retire les tâches
+    envoyées à Léa ») : sans lui, un membre dont tout le travail est
+    réaffecté ne l'apprendrait jamais.
+- **Importer** (carte Données, `SettingsScreen`) : `readImportedFile`
+  aiguille par `TeamExchangeCodec.detect` ; un export complet garde son
+  dialogue « Remplacer toutes les données ? » (`export-import.md`), un
+  paquet ou un rapport ouvre un **aperçu** (`ExchangePreview`, calculé par
+  `previewPack` / `previewReport`, sans écriture).
+  - Confirmer (`applyExchange`) : sauvegarde `avant-reception-paquet-…json`
+    ou `avant-integration-rapport-…json` (`BackupStore`), puis
+    `receivePack` ou `integrateReport` ; sauvegarde en échec → rien n'est
+    reçu ni intégré. Message de bilan dans la snackbar.
+  - Aperçu de paquet : « Recevoir N tâches de Corentin (Équipe
+    Plateforme) ? » (N = créées + mises à jour + inchangées non retirées),
+    « Mettre à jour les tâches reçues de … ? » quand il n'y a que des
+    retraits ; listes Nouvelles, Mises à jour (champs changés), Retirées
+    (« elles ne sont pas supprimées »), inchangées, dépendances ajoutées /
+    retirées / écartées (boucle), bloqueurs externes « à titre
+    d'information », avertissement si les tâches déjà reçues visaient un
+    autre membre. Un paquet sans changement visible (`isNoop` ou sans
+    `visibleUpdates`) n'offre que « Fermer » : « Rien à changer ».
+  - Aperçu de rapport : « Intégrer le rapport de Léa ? », date du rapport,
+    changements de → vers (statut, avancement, commencement, temps passé),
+    « Avancement reçu de l'ancien titulaire », nouvelles sous-tâches,
+    lignes ignorées et pourquoi, avertissement membre archivé.
+  - Refus (`OWN_TEAM`, `WRONG_TEAM`, `UNKNOWN_MEMBER`, `OLDER`) : titre
+    « Paquet non reçu » / « Rapport non intégré », la raison, « Fermer ».
+  - Dialogue `Dialog` + `Surface` à coins de 28 dp et liste défilante, sur
+    le modèle d'`EditTaskDialog` plutôt qu'`AlertDialog` : celui-ci ne se
+    dessine pas dans la scène hors écran du self-test, qui capture donc
+    `ExchangePreviewCard` (public pour cela, comme `ExchangePreview`,
+    `ImportedFile` et `readImportedFile`).
+- **Renvoyer l'avancement** (carte Données, `sendReport`) : un bouton par
+  origine de `KairosRepository.origins()` (« Renvoyer l'avancement… »
+  s'il n'y en a qu'une, « Renvoyer l'avancement à Corentin (Équipe
+  Plateforme)… » sinon), invisible sans tâche reçue non retirée ;
+  `buildReport` puis `kairos-rapport-<membre>-AAAAMMJJ-HHMM.json`.
+- **Marques** (`ReceivedMark`, `day/TaskRow.kt`) : sur les lignes de la vue
+  Jour et dans la fiche d'édition, badge neutre `Groups` « de Corentin » ;
+  retirée : « retirée par Corentin » en contour avec icône d'alerte (forme,
+  pas couleur : design system § Pas d'ambre). La phrase complète (« tâche
+  reçue de Corentin ») est la description pour les lecteurs d'écran.
+- **Édition d'une tâche reçue** (`EditTaskDialog`, `ReceivedTaskSheet`) :
+  la marque, une aide (« titre, description… sont remplacés à chaque
+  nouveau paquet ; l'avancement est le tien »), le curseur d'avancement
+  (`ProgressField`, extrait de la fiche d'équipe) qui appelle
+  `setReceivedProgress`. Une tâche retirée offre « Garder comme tâche
+  personnelle » (`KairosRepository.detachOrigin` : `origin`, `teamUid` à
+  `null`, `originRemoved` à faux, `updatedAt` inchangé ; un paquet ultérieur
+  qui la contiendrait en recréerait une autre), au-dessus de la rangée
+  Supprimer / Annuler / Enregistrer (quatre boutons débordaient à 360 dp).
+- Journal (`TaskHistory`) : « Envoyée dans un paquet » (`sent`), « Temps
+  passé rapporté : N min » (`time`).
+- Registre : **tutoiement** côté membre (Réglages, aperçu de paquet,
+  fiche d'une tâche reçue), comme le reste de l'espace Perso ;
+  **vouvoiement** côté manager, comme le reste de l'espace Équipe.
+- Self-test : jeu `ExchangeSeed` (manager Claire, membre Alex, deux paquets
+  et un rapport) ; captures `team-exchange-pack`, `team-exchange-report`,
+  `team-exchange-sheet` (et `-narrow` à 360 dp), `exchange-day`,
+  `exchange-day-narrow`, `exchange-settings`.
+- Tests : `TeamExchangeUiTest` (aiguillage, aperçus, sauvegarde préalable
+  et son échec, refus, envoi et annulation, paquet vide, marques, garder,
+  base solo sans marque ni bouton), `FileSlugTest`.
 
 ### Décisions et alternatives écartées
 
@@ -328,7 +403,7 @@ Deux formats JSON UTF-8 indentés, distincts de l'export par leur champ
   de `report` : le journal du manager distingue l'envoi, l'état et le
   temps.
 
-### Impacts sur les specs existantes (à reporter à l'implémentation)
+### Impacts sur les specs existantes (reportés)
 
 - `export-import.md` : aiguillage de « Importer » par `format`, bouton
   « Renvoyer l'avancement… ».

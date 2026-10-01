@@ -22,6 +22,7 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,6 +45,7 @@ import com.skohscripts.kairos.data.Reassignment
 import com.skohscripts.kairos.data.TaskEdit
 import com.skohscripts.kairos.core.team.exchange.TeamOrigin
 import com.skohscripts.kairos.ui.generated.resources.received_edit_help
+import com.skohscripts.kairos.ui.generated.resources.received_keep
 import com.skohscripts.kairos.ui.team.KeepInProgressDialog
 import com.skohscripts.kairos.ui.team.ProgressField
 import com.skohscripts.kairos.ui.team.managerLabel
@@ -105,9 +107,10 @@ import org.jetbrains.compose.resources.stringResource
  */
 /**
  * Ce que la fiche d'une tâche **reçue** ajoute (docs/spec/equipe-echanges.md) : son [origin], [removed] si le dernier paquet
- * l'a retirée, et l'enregistrement qui écrit l'édition puis l'avancement déclaré (`null` = inchangé, `setReceivedProgress`).
+ * l'a retirée, et l'enregistrement qui écrit l'édition puis l'avancement déclaré (`null` = inchangé, `setReceivedProgress`) et, pour une tâche
+ * retirée, [onKeep] : « Garder comme tâche personnelle » (`detachOrigin`).
  */
-internal class ReceivedTaskSheet(val origin: TeamOrigin, val removed: Boolean, val onSave: (TaskEdit, Int?) -> Unit)
+internal class ReceivedTaskSheet(val origin: TeamOrigin, val removed: Boolean, val onKeep: () -> Unit, val onSave: (TaskEdit, Int?) -> Unit)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -297,6 +300,10 @@ internal fun EditTaskDialog(
                             }
                         }
                     }
+                }
+                // Tâche retirée par le manager : la garder (elle devient une tâche personnelle) ou la supprimer, au choix du membre.
+                if (received != null && received.removed && tab == 0) {
+                    OutlinedButton(onClick = received.onKeep) { Text(stringResource(Res.string.received_keep)) }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { confirmDelete = true }) {

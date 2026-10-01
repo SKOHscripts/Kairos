@@ -225,8 +225,8 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 - `TeamEvent` : `id`, `taskId`, `taskTitle` (recopié), `memberId` (assigné
   **après** l'opération, `null` au backlog), `kind`, `fromValue`,
   `toValue`, `source`, `at` (instant UTC). `TeamEventSource` : `manual`,
-  `self`, `report`, `scenario` (ces deux derniers réservés à E6 et E5 ;
-  code inconnu → `manual`).
+  `self`, `report` (rapport d'un membre, E6, `equipe-echanges.md`),
+  `scenario` (E5) ; code inconnu → `manual`.
 - `TeamEventKind` : `created` (`toValue` = titre), `qualified` (un
   événement par champ changé, valeurs `priority:1`, `points:5`,
   `type:Dev`, `deadline:2026-10-03`, vide après le deux-points si le champ
@@ -235,7 +235,9 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   `started` (`toValue` = date ISO), `progress` (pourcentages ; « 0 » si
   l'avancement était vide), `done` (`fromValue` = avancement d'avant la
   fin, `toValue` = « 100 »), `reopened` (avancement d'avant → avancement
-  restauré), `deleted`, et `UNKNOWN` : un code inconnu à la lecture est
+  restauré), `deleted`, `sent` (envoyée dans un paquet, `toValue` =
+  identifiant du paquet, E6), `time` (temps passé rapporté, minutes de →
+  vers, E6), et `UNKNOWN` : un code inconnu à la lecture est
   gardé et affiché « Modification », jamais une erreur (réécrit
   « unknown » à l'export ou au remplacement). `TeamEvents.historyOf(events,
   tâche)` : plus récent d'abord.

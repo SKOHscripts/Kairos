@@ -26,13 +26,10 @@ répartition (`equipe-charge.md`) ; E5 : prévisions et scénarios
 (`equipe-simulation.md`) — : espaces, filtre
 `personalView`, migrations `1.sqm` et `2.sqm`, export 2, `TeamSettings`,
 carte Équipe, sélecteur d'espace, coquille à deux espaces, membres et
-absences, suppression des données d'équipe. **E6 (échanges par fichier) :
-spécifié, non implémenté** ; ce qui les
-concerne ci-dessous et dans les quatre autres specs décrit du code à
-venir. Les specs existantes n'ont reçu que ce que E1 et E2 ont réellement
-codé ; chaque spec du
-chantier liste en fin de document les « Impacts sur les specs existantes »
-qui restent à reporter aux jalons suivants.
+absences, suppression des données d'équipe. **E6 (échanges par fichier)
+implémenté** (`equipe-echanges.md`) : paquets de tâches, rapports
+d'avancement, migration `5.sqm`. Chaque spec du chantier liste en fin de
+document ses « Impacts sur les specs existantes », reportés.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -585,7 +582,10 @@ Reportés au jalon E2 : `modele-donnees.md` (`MemberAbsence`,
 `reglages.md` (suppression des données d'équipe), `distribution.md`
 (captures).
 
-Restent à reporter : `modele-donnees.md` (tables et colonnes des jalons
-E2-E6, opérations d'équipe du dépôt), `vue-jour.md` (marque « Équipe » des
-tâches assignées à moi, E3), `reglages.md` (réglages de charge et de
-simulation, E3-E5).
+Reportés aux jalons E3 à E6 : `modele-donnees.md` (tables et colonnes,
+migrations `3.sqm` à `5.sqm`), `vue-jour.md` (marque « Équipe » des tâches
+assignées à moi, E3 ; marques des tâches reçues et retirées, E6),
+`reglages.md` (réglages de charge et de simulation, E3-E5),
+`export-import.md` (export 2 étendu, aiguillage de « Importer » et
+« Renvoyer l'avancement… », E6), `temps-reel-chrono.md` et
+`statistiques.md` (temps rapporté, E6).

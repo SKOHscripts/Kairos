@@ -359,7 +359,8 @@ class TeamExchangeTest {
         val managerSpent = TimeTracking.spentMinutesByTask(m.snap.workSessions, tick.now(), m.snap.tasks)
         assertEquals(120, memberSpent[la.id]) // 90 de chrono + 30 saisies
         assertEquals(memberSpent[la.id], managerSpent[ma.id])
-        assertEquals(LocalDate(2026, 10, 1), ma.startedOn)
+        // Le manager avait déjà un début (30 sept.) : le rapport (1er oct.) ne le repousse pas.
+        assertEquals(LocalDate(2026, 9, 30), ma.startedOn)
         // Les champs du manager n'ont pas bougé.
         assertEquals("Migration API", ma.title)
         assertEquals(m.lea, ma.assigneeId)
@@ -368,7 +369,7 @@ class TeamExchangeTest {
         val reportEvents = m.snap.teamEvents.filter { it.source == TeamEventSource.REPORT }
         assertTrue(reportEvents.isNotEmpty() && reportEvents.all { it.memberId == m.lea })
         assertEquals(
-            listOf(TeamEventKind.STARTED, TeamEventKind.PROGRESS, TeamEventKind.TIME),
+            listOf(TeamEventKind.PROGRESS, TeamEventKind.TIME),
             m.events(m.a).filter { it.source == TeamEventSource.REPORT }.map { it.kind },
         )
         val done = m.events(m.b).single { it.kind == TeamEventKind.DONE && it.source == TeamEventSource.REPORT }
@@ -602,5 +603,93 @@ class TeamExchangeTest {
         assertTrue(lea.snap.tasks.none { it.space == TaskSpace.TEAM })
         assertTrue(lea.snap.members.none { it.id == mine })
         assertEquals(1, lea.repo.origins().size)
+    }
+
+    // --- Journal de l'envoi seulement après l'enregistrement du fichier ---------------------------------------------------
+
+    @Test
+    fun preparingAPackWritesNothingAndRecordingJournalsTheSentTasks() = runTest {
+        val m = manager()
+        val before = m.snap.teamEvents
+        val prepared = m.repo.preparePack(m.lea, "pack-1")!!
+        assertEquals(before, m.snap.teamEvents)
+        assertEquals(TeamExchangeCodec.Kind.PACK, TeamExchangeCodec.detect(prepared.text))
+        assertEquals(setOf(m.task(m.a).teamUid, m.task(m.a1).teamUid, m.task(m.b).teamUid), prepared.taskUids)
+        assertEquals("pack-1", prepared.packId)
+        assertFalse(prepared.previouslySent)
+
+        m.repo.recordPackSent(prepared)
+        val sent = m.snap.teamEvents.filter { it.kind == TeamEventKind.SENT }
+        assertEquals(setOf(m.a, m.a1, m.b), sent.map { it.taskId }.toSet())
+        assertTrue(sent.all { it.toValue == "pack-1" && it.memberId == m.lea && it.source == TeamEventSource.MANUAL })
+        assertTrue(m.repo.preparePack(m.lea)!!.previouslySent)
+        // Un autre membre n'a rien reçu.
+        assertFalse(m.repo.preparePack(m.marc)!!.previouslySent)
+    }
+
+    @Test
+    fun aTaskDeletedBetweenPreparingAndRecordingGetsNoSentEvent() = runTest {
+        val m = manager()
+        val prepared = m.repo.preparePack(m.lea, "pack-1")!!
+        m.repo.deleteTask(m.b)
+        m.repo.recordPackSent(prepared)
+        assertEquals(setOf(m.a, m.a1), m.snap.teamEvents.filter { it.kind == TeamEventKind.SENT }.map { it.taskId }.toSet())
+    }
+
+    @Test
+    fun anEmptyPackIsPreparedAndMarksEveryReceivedTaskAsRemoved() = runTest {
+        val m = manager()
+        val lea = member()
+        lea.repo.receivePack(m.repo.exportPack(m.lea, "pack-1")!!)
+        // Réaffectation complète : Léa n'a plus aucune tâche à faire.
+        m.repo.assign(listOf(m.a, m.b), m.marc)
+        m.repo.deleteTask(m.a1)
+        val prepared = m.repo.preparePack(m.lea, "pack-2")!!
+        assertTrue(prepared.taskUids.isEmpty())
+        assertTrue(prepared.previouslySent)
+        m.repo.recordPackSent(prepared) // rien à journaliser
+        val result = lea.repo.receivePack(prepared.text)
+        assertTrue(result.applied)
+        assertEquals(3, result.plan.removed.size)
+        assertTrue(lea.snap.tasks.filter { it.origin != null }.all { it.originRemoved })
+    }
+
+    // --- Garder une tâche retirée ----------------------------------------------------------------------------------------
+
+    @Test
+    fun detachingARemovedTaskMakesItPersonalAndKeepsItsDate() = runTest {
+        val m = manager()
+        val lea = member()
+        lea.repo.receivePack(m.repo.exportPack(m.lea, "pack-1")!!)
+        m.repo.assign(listOf(m.b), m.marc)
+        lea.repo.receivePack(m.repo.exportPack(m.lea, "pack-2")!!)
+        val removed = lea.snap.tasks.single { it.originRemoved }
+        tick.at("2026-10-02T09:00:00Z")
+        assertTrue(lea.repo.detachOrigin(removed.id))
+        val kept = lea.snap.tasks.single { it.id == removed.id }
+        assertNull(kept.origin)
+        assertFalse(kept.originRemoved)
+        assertNull(kept.teamUid)
+        assertEquals(removed.updatedAt, kept.updatedAt)
+        assertEquals(removed.title, kept.title)
+        assertFalse(ReceivedTasks.isReceived(kept))
+        // Un nouveau paquet qui la contiendrait de nouveau en crée une autre au lieu de l'écraser.
+        m.repo.assign(listOf(m.b), m.lea)
+        val third = lea.repo.receivePack(m.repo.exportPack(m.lea, "pack-3")!!)
+        assertEquals(1, third.plan.created.size)
+    }
+
+    @Test
+    fun detachingRefusesATaskThatIsNotAReceivedRemovedOne() = runTest {
+        val m = manager()
+        val lea = member()
+        lea.repo.receivePack(m.repo.exportPack(m.lea, "pack-1")!!)
+        val received = lea.snap.tasks.first { it.origin != null }
+        val mine = lea.snap.tasks.first { it.origin == null }
+        val before = lea.snap
+        assertFalse(lea.repo.detachOrigin(received.id)) // reçue, pas retirée
+        assertFalse(lea.repo.detachOrigin(mine.id)) // personnelle
+        assertFalse(lea.repo.detachOrigin(9999))
+        assertEquals(before, lea.snap)
     }
 }

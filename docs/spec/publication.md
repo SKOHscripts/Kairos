@@ -32,7 +32,7 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
   (Jour, Semaine, Statistiques, Notes, Réglages, puis, gestion d'équipe
   activée : Suivi, Équipe avec la charge, Prévisions avec un résultat),
   notes de version. La description présente aussi la gestion d'équipe,
-  facultative.
+  facultative, échanges par fichier compris.
 - L'APK distribué par F-Droid est **le même** que celui des releases GitHub
   (même signature) : on passe de l'un à l'autre, ou on migre depuis Kairos 2,
   sans désinstaller ni perdre ses données.

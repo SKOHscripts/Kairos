@@ -950,6 +950,7 @@
     <string name="exchange_send_none">%1$s has no open task: nothing to send.</string>
     <string name="exchange_send_unavailable">The packet could not be prepared.</string>
     <string name="exchange_send_done">Packet saved for %1$s.</string>
+    <string name="exchange_send_done_empty">Packet saved: it removes the tasks sent to %1$s.</string>
     <string name="exchange_last_report">Last report integrated: %1$s</string>
     <string name="exchange_no_report">No report integrated yet.</string>
     <string name="exchange_report_action">Send back progress…</string>
@@ -971,7 +972,7 @@
     <string name="exchange_pack_removed">Removed (%1$d)</string>
     <string name="exchange_pack_removed_note">They are not deleted: they stay in your tasks, marked “removed by %1$s”.</string>
     <string name="exchange_pack_unchanged">Unchanged: %1$d</string>
-    <string name="exchange_pack_noop">This packet was already received: nothing to change.</string>
+    <string name="exchange_pack_noop">Nothing to change: this packet was already received or contains no task.</string>
     <string name="exchange_pack_backup">A backup of your current data is made just before.</string>
     <string name="exchange_pack_deps">Dependencies between these tasks: %1$d added, %2$d removed.</string>
     <string name="exchange_pack_skipped_one">1 dependency of the packet is set aside: it would form a loop with your own dependencies.</string>
@@ -1025,5 +1026,6 @@
     <string name="received_mark_description">task received from %1$s</string>
     <string name="received_removed">removed by %1$s</string>
     <string name="received_removed_description">task removed by %1$s</string>
+    <string name="received_keep">Keep as a personal task</string>
     <string name="received_edit_help">Received from %1$s. Title, description, priority, points, category, deadline and duration are replaced with every new packet; progress is yours.</string>
 </resources>

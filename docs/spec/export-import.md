@@ -41,6 +41,12 @@ base. Il faut donc pouvoir :
     réglages) ; une **sauvegarde automatique** des données actuelles est
     faite juste avant, et sans elle l'import n'a pas lieu. Un message confirme
     le nombre de tâches importées.
+  - **Importer** reconnaît aussi un **paquet de tâches** ou un **rapport
+    d'avancement** de l'espace Équipe : au lieu de « Remplacer toutes les
+    données ? », un aperçu propose de les recevoir ou de les intégrer, sans
+    rien remplacer (`equipe-echanges.md`).
+  - **Renvoyer l'avancement…** : visible seulement si la base contient des
+    tâches reçues d'un manager (`equipe-echanges.md`).
   - Un fichier qui n'est pas un export Kairos, un export d'une version plus
     récente ou un export abîmé est refusé avec un message clair, sans rien
     changer.
@@ -132,7 +138,10 @@ JSON UTF-8 indenté :
 - Exporter : `ExportCodec.encode(snapshot, version, maintenant)` puis
   `FileService.saveText(nom)` ; message « Export enregistré. » si écrit ;
   erreur de fichier → « Le fichier n'a pas pu être lu ou écrit. ».
-- Importer : `FileService.openText()` → `decode` (message selon la raison
+- Importer : `FileService.openText()` → `readImportedFile`, qui aiguille
+  par `TeamExchangeCodec.detect` : un paquet ou un rapport ouvre son aperçu
+  et sa fusion ciblée (`equipe-echanges.md` § Interface) ; un export suit
+  le chemin ci-dessous. `decode` (message selon la raison
   en cas d'échec) → `AlertDialog` de confirmation → `BackupStore.save(
   "avant-import-AAAAMMJJ-HHMM.json", export actuel)` ; si la sauvegarde
   échoue, message d'erreur et **pas d'import** ; sinon `replaceAll` puis

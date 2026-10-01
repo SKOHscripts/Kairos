@@ -144,7 +144,7 @@ Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt.
 
 ## 2. Solution technique
 
-Depuis le jalon E1 de l'espace Équipe, l'écran de la vue Jour lit `repository.personalSnapshot` (la vue Perso, `equipe.md` § Espaces et filtre central) et non la base complète ; sans tâche d'équipe, c'est la même instance. Depuis le jalon E3, une tâche d'équipe assignée à « moi » y porte la marque « Équipe » (`TeamMark`), une ligne de plus dans « Pourquoi à cette place ? », un bloqueur d'un collègue nommé « Titre (assigné) », et sa fiche montre « Assigné à » en lecture seule (`equipe-backlog-suivi.md` § Interface).
+Depuis le jalon E1 de l'espace Équipe, l'écran de la vue Jour lit `repository.personalSnapshot` (la vue Perso, `equipe.md` § Espaces et filtre central) et non la base complète ; sans tâche d'équipe, c'est la même instance. Depuis le jalon E3, une tâche d'équipe assignée à « moi » y porte la marque « Équipe » (`TeamMark`), une ligne de plus dans « Pourquoi à cette place ? », un bloqueur d'un collègue nommé « Titre (assigné) », et sa fiche montre « Assigné à » en lecture seule (`equipe-backlog-suivi.md` § Interface). Depuis le jalon E6, une tâche **reçue** d'un manager par paquet porte le badge neutre « de Corentin » (`ReceivedMark`), ou « retirée par Corentin » en contour avec icône d'alerte si le manager l'a retirée ; sa fiche d'édition montre la marque, une aide, le curseur d'avancement (`setReceivedProgress`) et, pour une tâche retirée, « Garder comme tâche personnelle » (`equipe-echanges.md` § Interface). Sans tâche reçue, rien ne change.
 
 ### Modèle (`DayView.build`, `core`)
 
