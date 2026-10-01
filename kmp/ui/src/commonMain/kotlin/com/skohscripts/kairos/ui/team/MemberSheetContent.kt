@@ -42,6 +42,7 @@ import com.skohscripts.kairos.core.settings.FieldError
 import com.skohscripts.kairos.core.settings.FieldErrorKind
 import com.skohscripts.kairos.core.team.MemberAbsence
 import com.skohscripts.kairos.core.team.MemberForm
+import com.skohscripts.kairos.core.team.TeamEvent
 import com.skohscripts.kairos.core.team.TeamMember
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.generated.resources.Res
@@ -53,6 +54,9 @@ import com.skohscripts.kairos.ui.generated.resources.member_absence_edit
 import com.skohscripts.kairos.ui.generated.resources.member_absences_empty
 import com.skohscripts.kairos.ui.generated.resources.member_absences_help
 import com.skohscripts.kairos.ui.generated.resources.member_absences_title
+import com.skohscripts.kairos.ui.generated.resources.member_activity_empty
+import com.skohscripts.kairos.ui.generated.resources.member_activity_help
+import com.skohscripts.kairos.ui.generated.resources.member_activity_title
 import com.skohscripts.kairos.ui.generated.resources.member_archive
 import com.skohscripts.kairos.ui.generated.resources.member_archive_body_many
 import com.skohscripts.kairos.ui.generated.resources.member_archive_body_none
@@ -116,6 +120,10 @@ fun MemberSheetContent(
     onAddAbsence: (LocalDate, LocalDate, String) -> Unit = { _, _, _ -> },
     onUpdateAbsence: (Long, LocalDate, LocalDate, String) -> Unit = { _, _, _, _ -> },
     onDeleteAbsence: (Long) -> Unit = {},
+    /** Événements du journal de ses tâches sur 30 jours (section « Activité », membre existant seulement). */
+    activity: List<TeamEvent> = emptyList(),
+    /** Tous les membres, pour nommer les titulaires cités dans l'activité. */
+    members: List<TeamMember> = emptyList(),
 ) {
     var input by remember(member?.id) { mutableStateOf(if (member == null) MemberForm.newInput(settings) else MemberForm.inputOf(member)) }
     var isSelf by remember(member?.id) { mutableStateOf(member?.isSelf == true) }
@@ -219,6 +227,8 @@ fun MemberSheetContent(
                     HorizontalDivider()
                     AbsencesSection(absences, today, onAdd = { editing = AbsenceTarget(null) }, onEdit = { editing = AbsenceTarget(it) }, onDelete = onDeleteAbsence)
                     HorizontalDivider()
+                    ActivitySection(activity, AssignContext(members, emptyList(), emptyList(), settings, today), today)
+                    HorizontalDivider()
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         if (archived) {
                             OutlinedButton(onClick = onRestore) {
@@ -304,6 +314,28 @@ fun MemberSheetContent(
             },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(Res.string.action_cancel)) } },
         )
+    }
+}
+
+/**
+ * « Activité » : les événements des tâches du membre sur 30 jours, du plus récent au
+ * plus ancien, avec le titre de la tâche (« 30 sept. · Refonte API : Assignée à Léa »).
+ */
+@Composable
+private fun ActivitySection(activity: List<TeamEvent>, context: AssignContext, today: LocalDate) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(Res.string.member_activity_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
+        Text(stringResource(Res.string.member_activity_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (activity.isEmpty()) {
+            Text(stringResource(Res.string.member_activity_empty), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 8.dp))
+        }
+        activity.forEach { event ->
+            Text(
+                eventLine(event, context, today, withTitle = true),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 32.dp).padding(vertical = 6.dp),
+            )
+        }
     }
 }
 

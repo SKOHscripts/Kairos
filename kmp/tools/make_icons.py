@@ -64,6 +64,9 @@ ICONS = {
     "EventBusy": ("event_busy", False),
     "Archive": ("archive", False),
     "Unarchive": ("unarchive", False),
+    "SwapHoriz": ("swap_horiz", False),
+    "MoreVert": ("more_vert", False),
+    "HourglassEmpty": ("hourglass_empty", False),
 }
 
 

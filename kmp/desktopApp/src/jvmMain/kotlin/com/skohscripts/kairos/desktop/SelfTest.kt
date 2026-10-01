@@ -26,7 +26,14 @@ import com.skohscripts.kairos.ui.KairosApp
 import com.skohscripts.kairos.ui.Platform
 import com.skohscripts.kairos.ui.team.AbsenceEditorContent
 import com.skohscripts.kairos.ui.team.MemberSheetContent
+import com.skohscripts.kairos.ui.team.TeamBacklogScreen
+import com.skohscripts.kairos.ui.team.TeamBoardScreen
 import com.skohscripts.kairos.ui.team.TeamMembersScreen
+import com.skohscripts.kairos.ui.team.TeamTaskDialog
+import com.skohscripts.kairos.ui.navigation.LocalWindowWidth
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
@@ -112,6 +119,23 @@ object SelfTest {
                 ) { AbsenceEditorContent(alexAbsences.first(), today, compact) }
             }
         }
+        // Cinquième base : l'espace Équipe du jalon E3 (docs/spec/equipe-backlog-suivi.md) avec trois membres et une vingtaine de tâches.
+        val seeded = runBlocking { TeamSeed.open(english = java.util.Locale.getDefault().language == "en") }
+        val board = seeded.services
+        val billing = seeded.ids.getValue("billing")
+        fun atWidth(width: Dp, content: @Composable () -> Unit): @Composable () -> Unit = {
+            CompositionLocalProvider(LocalWindowWidth provides width) { KairosTheme { Surface { content() } } }
+        }
+        fun taskSheet(width: Dp, history: Boolean = true): @Composable () -> Unit = {
+            CompositionLocalProvider(LocalWindowWidth provides width) {
+                KairosTheme {
+                    Box(
+                        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f).compositeOver(MaterialTheme.colorScheme.surface)),
+                        contentAlignment = Alignment.Center,
+                    ) { TeamTaskDialog(board, billing, onDismiss = {}, initialHistory = history) }
+                }
+            }
+        }
         val teamApp: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { team } }
         val teamSettings: @Composable () -> Unit = { KairosTheme { Surface { SettingsScreen(team) {} } } }
         val notes: @Composable () -> Unit = { KairosTheme { Surface { NotesScreen(services) {} } } }
@@ -142,6 +166,18 @@ object SelfTest {
             Shot("team-member-sheet-narrow", 360, 1100, sheet(compact = true)),
             Shot("team-absence", 900, 900, absenceEditor(compact = false)),
             Shot("team-absence-narrow", 360, 900, absenceEditor(compact = true)),
+            // Jalon E3 : Backlog, Suivi (colonnes puis sections empilées), sélection multiple, fiche d'une tâche avec historique.
+            Shot("team-backlog", 1200, 1300, atWidth(1200.dp) { TeamBacklogScreen(board) }),
+            Shot("team-backlog-narrow", 360, 2000, atWidth(360.dp) { TeamBacklogScreen(board) }),
+            Shot("team-backlog-selection", 1200, 900, atWidth(1200.dp) { TeamBacklogScreen(board, initialSelection = setOf(seeded.ids.getValue("vat"), seeded.ids.getValue("demo"))) }),
+            Shot("team-board", 1200, 1700, atWidth(1200.dp) { TeamBoardScreen(board) }),
+            Shot("team-board-narrow", 360, 3000, atWidth(360.dp) { TeamBoardScreen(board) }),
+            Shot("team-member-activity", 900, 1400, atWidth(900.dp) { TeamMembersScreen(board, initialSheetMemberId = board.repository.snapshot.value.members.first { it.name.startsWith("Alex") }.id) }),
+            Shot("team-member-activity-narrow", 360, 1800, atWidth(360.dp) { TeamMembersScreen(board, initialSheetMemberId = board.repository.snapshot.value.members.first { it.name.startsWith("Alex") }.id) }),
+            Shot("team-task-sheet", 900, 1100, taskSheet(900.dp)),
+            Shot("team-task-sheet-narrow", 360, 1100, taskSheet(360.dp)),
+            Shot("team-task-sheet-details", 900, 1500, taskSheet(900.dp, history = false)),
+            Shot("team-task-sheet-details-narrow", 360, 1800, taskSheet(360.dp, history = false)),
         )
         for ((name, width, height, content) in shots) {
             val png = render(width, height, content)

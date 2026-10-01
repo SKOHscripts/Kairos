@@ -66,18 +66,19 @@ import org.jetbrains.compose.resources.stringResource
  * ([MemberSheet]). Lit la base **complète** (`snapshot`), comme tous les écrans
  * d'équipe. La charge s'ajoutera aux cartes au jalon E4.
  *
- * [initialFormerExpanded] ouvre la section des anciens membres au départ (captures).
+ * [initialFormerExpanded] ouvre la section des anciens membres au départ (captures) ;
+ * [initialSheetMemberId] ouvre d'emblée la fiche de ce membre (captures).
  */
 @Composable
-fun TeamMembersScreen(services: AppServices, initialFormerExpanded: Boolean = false) {
+fun TeamMembersScreen(services: AppServices, initialFormerExpanded: Boolean = false, initialSheetMemberId: Long? = null) {
     val snapshot by services.repository.snapshot.collectAsState()
     val today = services.clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     val active = remember(snapshot.members) { TeamMembers.active(snapshot.members) }
     val former = remember(snapshot.members) { TeamMembers.archived(snapshot.members) }
     var formerExpanded by rememberSaveable { mutableStateOf(initialFormerExpanded) }
     // Fiche ouverte : `sheetOpen` avec `sheetMemberId` nul = nouveau membre.
-    var sheetOpen by rememberSaveable { mutableStateOf(false) }
-    var sheetMemberId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var sheetOpen by rememberSaveable { mutableStateOf(initialSheetMemberId != null) }
+    var sheetMemberId by rememberSaveable { mutableStateOf(initialSheetMemberId) }
 
     fun open(id: Long?) {
         sheetMemberId = id
@@ -192,7 +193,7 @@ private fun MemberCard(member: TeamMember, absence: MemberAbsence?, today: Local
 
 /** Marque « moi » : icône `Person` et le mot, en pastille à contour (8 dp), sans couleur de remplissage. */
 @Composable
-private fun SelfBadge() {
+internal fun SelfBadge() {
     Surface(
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surface,
@@ -255,6 +256,8 @@ internal fun MemberSheet(services: AppServices, memberId: Long?, onDismiss: () -
             onAddAbsence = { start, end, label -> member?.let { m -> scope.launch { repository.addAbsence(m.id, start, end, label) } } },
             onUpdateAbsence = { id, start, end, label -> scope.launch { repository.updateAbsence(id, start, end, label) } },
             onDeleteAbsence = { id -> scope.launch { repository.deleteAbsence(id) } },
+            activity = member?.let { memberActivity(snapshot.teamEvents, it.id, today, TimeZone.currentSystemDefault()) }.orEmpty(),
+            members = snapshot.members,
         )
     }
 }

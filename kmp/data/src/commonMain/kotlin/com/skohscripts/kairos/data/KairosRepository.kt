@@ -106,6 +106,13 @@ class KairosRepository(
         modify(taskId, source) { it.copy(fibonacciPoints = points?.takeIf { p -> p in FIBONACCI_SCALE }) }
 
     /**
+     * Catégorie (type) en un geste, pour le changement en lot du Backlog d'équipe ; vide =
+     * « sans catégorie ». Tâche d'équipe : un événement `qualified` (`type`).
+     */
+    suspend fun setTaskType(taskId: Long, taskType: String, source: TeamEventSource? = null) =
+        modify(taskId, source) { it.copy(taskType = taskType.trim()) }
+
+    /**
      * Fait ↔ à faire (Kairos 2 `toggle_task_done`). Terminer ferme le chrono
      * éventuellement ouvert sur la tâche et, pour une récurrente, crée
      * l'occurrence suivante (`Recurrence.nextOccurrence`, garde anti-doublon

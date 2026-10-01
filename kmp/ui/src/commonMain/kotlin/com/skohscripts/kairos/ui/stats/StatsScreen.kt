@@ -202,7 +202,7 @@ private fun twoDecimals(x: Double): String {
 
 /** Tuile de chiffre clé : la valeur en grand, son libellé dessous. Un seuil franchi prend un contour, jamais une couleur seule. */
 @Composable
-private fun StatTile(value: String, label: String, modifier: Modifier, warn: Boolean = false) {
+internal fun StatTile(value: String, label: String, modifier: Modifier, warn: Boolean = false) {
     val scheme = MaterialTheme.colorScheme
     Surface(
         color = scheme.surfaceContainerLow,

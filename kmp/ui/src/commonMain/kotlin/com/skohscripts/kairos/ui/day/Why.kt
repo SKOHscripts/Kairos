@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.engine.Scheduling
 import com.skohscripts.kairos.core.model.Task
+import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.why_deadline_in
 import com.skohscripts.kairos.ui.generated.resources.why_deadline_overdue
@@ -47,6 +48,7 @@ import com.skohscripts.kairos.ui.generated.resources.why_scheduled_overdue
 import com.skohscripts.kairos.ui.generated.resources.why_scheduled_today
 import com.skohscripts.kairos.ui.generated.resources.why_scheduled_tomorrow
 import com.skohscripts.kairos.ui.generated.resources.why_score
+import com.skohscripts.kairos.ui.generated.resources.why_team_task
 import com.skohscripts.kairos.ui.generated.resources.why_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import org.jetbrains.compose.resources.stringResource
@@ -80,6 +82,12 @@ internal fun ScoreBadge(task: Task, why: Scheduling.WsjfBreakdown, language: Str
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             Column(Modifier.width(300.dp).padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(title, style = MaterialTheme.typography.titleSmall)
+                if (task.space == TaskSpace.TEAM) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Icon(KairosIcons.Groups, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Text(stringResource(Res.string.why_team_task), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
                 if (why.overdue) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Icon(KairosIcons.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))

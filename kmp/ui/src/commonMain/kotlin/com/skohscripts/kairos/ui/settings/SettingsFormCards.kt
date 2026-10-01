@@ -80,6 +80,12 @@ import com.skohscripts.kairos.ui.generated.resources.setting_team_manager
 import com.skohscripts.kairos.ui.generated.resources.setting_team_manager_help
 import com.skohscripts.kairos.ui.generated.resources.setting_team_name
 import com.skohscripts.kairos.ui.generated.resources.setting_team_name_help
+import com.skohscripts.kairos.ui.generated.resources.setting_team_churn
+import com.skohscripts.kairos.ui.generated.resources.setting_team_churn_help
+import com.skohscripts.kairos.ui.generated.resources.setting_team_stale_progress
+import com.skohscripts.kairos.ui.generated.resources.setting_team_stale_progress_help
+import com.skohscripts.kairos.ui.generated.resources.setting_team_wip
+import com.skohscripts.kairos.ui.generated.resources.setting_team_wip_help
 import com.skohscripts.kairos.ui.generated.resources.setting_task_types_help
 import com.skohscripts.kairos.ui.generated.resources.setting_update_check
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_horizon
@@ -124,6 +130,9 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "team.enabled" to FieldText(Res.string.setting_team_enabled),
     "team.name" to FieldText(Res.string.setting_team_name, Res.string.setting_team_name_help),
     "team.managerName" to FieldText(Res.string.setting_team_manager, Res.string.setting_team_manager_help),
+    "team.staleProgressDays" to FieldText(Res.string.setting_team_stale_progress, Res.string.setting_team_stale_progress_help),
+    "team.churnThreshold" to FieldText(Res.string.setting_team_churn, Res.string.setting_team_churn_help),
+    "team.wipLimit" to FieldText(Res.string.setting_team_wip, Res.string.setting_team_wip_help),
 )
 
 /** Sections de l'écran, dans l'ordre de Kairos 2 (moins les intégrations retirées). */

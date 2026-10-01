@@ -29,6 +29,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.day.DayView
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskRecurrence
+import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_done
@@ -55,6 +58,8 @@ import com.skohscripts.kairos.ui.generated.resources.points_badge
 import com.skohscripts.kairos.ui.generated.resources.tag_recurring
 import com.skohscripts.kairos.ui.generated.resources.tag_scheduled
 import com.skohscripts.kairos.ui.generated.resources.tag_stale
+import com.skohscripts.kairos.ui.generated.resources.team_mark
+import com.skohscripts.kairos.ui.generated.resources.team_mark_description
 import com.skohscripts.kairos.ui.chrono.rememberLiveMinutes
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.theme.LocalKairosExtraColors
@@ -190,6 +195,8 @@ private fun Title(task: Task, ctx: RowContext, time: LocalDateTime?, done: Boole
 /** Étiquettes de contexte (`task_tags` de Kairos 2) : projet, type, durée, dates, récurrence, ancienneté. */
 @Composable
 private fun TaskTags(task: Task, ctx: RowContext) {
+    // Tâche d'équipe assignée à « moi » (seule façon d'en voir une dans l'espace Perso).
+    if (task.space == TaskSpace.TEAM) TeamMark()
     if (task.projectTag.isNotEmpty()) Badge(task.projectTag)
     if (task.taskType.isNotEmpty()) Badge(task.taskType)
     task.estimatedMinutes?.takeIf { it > 0 }?.let { Muted(stringResource(Res.string.minutes_badge, it)) }
@@ -206,6 +213,31 @@ private fun TaskTags(task: Task, ctx: RowContext) {
     TimeSpent(task, ctx)
     if (task.status == TaskStatus.TODO) {
         ctx.view.staleDays[task.id]?.takeIf { it > 0 }?.let { WarnBadge(stringResource(Res.string.tag_stale, it)) }
+    }
+}
+
+/**
+ * Marque d'une tâche d'équipe dans l'espace Perso (docs/spec/equipe-backlog-suivi.md
+ * § Tâches assignées à moi) : icône `Groups` et le mot « Équipe » ; le lecteur
+ * d'écran lit « tâche d'équipe ». Badge neutre (aucune couleur de marque).
+ */
+@Composable
+internal fun TeamMark() {
+    val description = stringResource(Res.string.team_mark_description)
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        shape = CircleShape,
+        modifier = Modifier.semantics { contentDescription = description },
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+        ) {
+            Icon(KairosIcons.Groups, contentDescription = null, modifier = Modifier.size(14.dp))
+            Text(stringResource(Res.string.team_mark), style = MaterialTheme.typography.labelMedium)
+        }
     }
 }
 

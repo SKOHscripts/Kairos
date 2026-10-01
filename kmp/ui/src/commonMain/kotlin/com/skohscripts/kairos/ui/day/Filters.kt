@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.day.DayFilter
 import com.skohscripts.kairos.core.model.FIBONACCI_SCALE
@@ -106,7 +107,15 @@ internal fun FilterCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun <T> Facet(label: String, value: T?, options: List<T>, show: (T) -> String, all: String, onChange: (T?) -> Unit) {
+internal fun <T> Facet(
+    label: String,
+    value: T?,
+    options: List<T>,
+    show: (T) -> String,
+    all: String,
+    width: Dp = 170.dp,
+    onChange: (T?) -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
@@ -116,7 +125,7 @@ private fun <T> Facet(label: String, value: T?, options: List<T>, show: (T) -> S
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             singleLine = true,
-            modifier = Modifier.width(170.dp).menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier.width(width).menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(text = { Text(all) }, onClick = { onChange(null); expanded = false })

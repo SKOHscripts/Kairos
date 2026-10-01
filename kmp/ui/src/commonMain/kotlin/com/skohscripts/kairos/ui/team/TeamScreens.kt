@@ -19,10 +19,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.generated.resources.Res
-import com.skohscripts.kairos.ui.generated.resources.team_backlog_empty_body
-import com.skohscripts.kairos.ui.generated.resources.team_backlog_empty_title
-import com.skohscripts.kairos.ui.generated.resources.team_board_empty_body
-import com.skohscripts.kairos.ui.generated.resources.team_board_empty_title
 import com.skohscripts.kairos.ui.generated.resources.team_forecast_empty_body
 import com.skohscripts.kairos.ui.generated.resources.team_forecast_empty_title
 import com.skohscripts.kairos.ui.generated.resources.team_soon
@@ -34,18 +30,9 @@ import org.jetbrains.compose.resources.stringResource
  * Écrans de l'espace Équipe (docs/spec/equipe.md § Jalons) : la coquille à deux
  * espaces est en place depuis le jalon E1 ; le contenu arrive aux jalons E2 à E5.
  * Les écrans qui ne sont pas encore livrés n'affichent qu'un état vide, remplacé
- * sur place. L'écran Équipe (membres, jalon E2) est dans `TeamMembersScreen.kt`.
+ * sur place. L'écran Équipe (membres, jalon E2) est dans `TeamMembersScreen.kt`,
+ * le Suivi et le Backlog (jalon E3) dans `TeamBoardScreen.kt` et `TeamBacklogScreen.kt`.
  */
-
-/** Suivi : le tableau de l'équipe, par membre et par état (E3). */
-@Composable
-fun TeamBoardScreen() =
-    TeamEmptyState(KairosIcons.ViewKanban, Res.string.team_board_empty_title, Res.string.team_board_empty_body)
-
-/** Backlog : les tâches d'équipe non assignées, triées par score (E3). */
-@Composable
-fun TeamBacklogScreen() =
-    TeamEmptyState(KairosIcons.Stacks, Res.string.team_backlog_empty_title, Res.string.team_backlog_empty_body)
 
 /** Prévisions : simulations et scénarios (E5). */
 @Composable

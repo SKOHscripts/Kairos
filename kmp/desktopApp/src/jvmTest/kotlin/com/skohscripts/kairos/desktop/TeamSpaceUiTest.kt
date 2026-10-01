@@ -156,13 +156,13 @@ class TeamSpaceUiTest {
         waitText("Team tracking")
         teamDestinations.forEach { assertTrue(count(it) >= 1, it) }
         listOf("Notes", "Week", "Stats").forEach { assertEquals(0, count(it), it) }
-        onNodeWithText("Available in a future version.").assertExists()
+        // Jalon E3 : sans membre, le Suivi explique comment le remplir (plus de « disponible dans une prochaine version »).
+        onNodeWithText("Add members in the Team tab", substring = true).assertExists()
         waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.settings.team!!.lastSpace == TeamSettings.SPACE_TEAM }
 
-        // Chaque destination d'équipe est un état vide ; Réglages est le même écran qu'en Perso.
+        // Backlog (E3) : capture en tête, sections vides ; Prévisions est encore un état vide ; Réglages est le même écran qu'en Perso.
         onAllNodesWithText("Backlog").onFirst().performClick()
-        waitText("Team backlog")
-        onNodeWithText("Available in a future version.").assertExists()
+        waitText("To qualify (0)")
         onAllNodesWithText("Team").onFirst().performClick()
         waitText("Team members")
         onAllNodesWithText("Forecast").onFirst().performClick()

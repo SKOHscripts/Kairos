@@ -66,6 +66,7 @@ internal class CaptureState {
  * Capture, toujours visible en tête (flux GTD) : deux volets, « Tâche »
  * (titre seul, Entrée ajoute et garde le curseur) et « Créneau / deep work »
  * (avec la liste des créneaux du jour, modifiables). Carte « filled ».
+ * [taskOnly] : sans le second volet (Backlog d'équipe).
  */
 @Composable
 internal fun Capture(
@@ -77,6 +78,8 @@ internal fun Capture(
     onAddTask: (String) -> Unit,
     onAddBlock: (BlockEdit) -> Unit,
     onEditBlock: (TimeBlock) -> Unit,
+    /** Volet « Tâche » seul, sans choix « Créneau / deep work » : la capture du Backlog d'équipe (les créneaux sont personnels). */
+    taskOnly: Boolean = false,
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -89,7 +92,7 @@ internal fun Capture(
                 Text(stringResource(Res.string.capture_title), style = MaterialTheme.typography.titleMedium)
                 if (showShortcuts) KeyHint("N")
             }
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            if (!taskOnly) SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 SegmentedButton(
                     selected = !state.blockMode,
                     onClick = { state.blockMode = false },
@@ -101,7 +104,7 @@ internal fun Capture(
                     shape = SegmentedButtonDefaults.itemShape(1, 2),
                 ) { Text(stringResource(Res.string.capture_mode_block)) }
             }
-            if (state.blockMode) {
+            if (state.blockMode && !taskOnly) {
                 val form = remember(day) { BlockFormState.empty(day) }
                 BlockFields(form)
                 val edit = form.edit()
