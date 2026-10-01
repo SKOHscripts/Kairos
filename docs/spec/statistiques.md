@@ -121,6 +121,13 @@ reçoit **toutes** les tâches, archivées comprises (comme Kairos 2).
   relative au maximum ; types et complétude : pourcentage.
 - Ratio du biais à deux décimales ; durées par `duration()`.
 
+- Briques partagées avec l'espace Équipe (jalons E3 et E4,
+  `equipe-charge.md`) : `StatTile` et `Panel` sont `internal` ; `StatTile`
+  accepte une `note` (pastille en contour + icône) ; `BarRow` accepte
+  `overflow` (part au-delà de 100 % en `error`), `mark`, `detail` et
+  `stackedWhenNarrow`, et partage son tracé (`BarTrack`). Sans ces options,
+  le rendu des statistiques est inchangé.
+
 ### Décisions et pièges tracés
 
 - **Tests différentiels en UTC, écran en fuseau local** : le générateur

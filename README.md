@@ -202,6 +202,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 - **Suivi** : une ligne par membre (en cours, à faire, faites), avancement
   par pas de 10 %, signaux « en retard », « sans avancement », « ballottée »,
   limite de tâches en cours ; **historique** complet de chaque tâche.
+- **Charge** : capacité de chacun (quotité, absences, jours fériés, taux de
+  focus), charge et taux par membre, pour l’équipe et par catégorie, date
+  de fin prévue de chaque tâche et échéances en danger ;
+  **suggestion de répartition** du backlog, à accepter ligne à ligne.
 - Un seul utilisateur, le manager : tout reste sur l’appareil, sans compte
   ni réseau.
 

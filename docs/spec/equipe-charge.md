@@ -9,7 +9,7 @@ répartition du backlog. Fichiers prévus : `kmp/core/.../core/team/`
 `LoadBar.kt`, `SuggestionSheet.kt`). Les prévisions probabilistes sont dans
 `equipe-simulation.md`, qui réutilise ces calculs._
 
-État : **jalon E4 en cours** : socle (`core`) implémenté le 2026-10-01 ; interface à venir dans la même PR.
+État : **jalon E4 implémenté (2026-10-01)**.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -265,20 +265,62 @@ backlog.
 
 ### Interface (`ui/team/`)
 
-- `TeamMembersScreen` : `FlowRow` de tuiles clés (même `StatTile` que les
-  statistiques, 150 dp minimum), puis `LazyColumn` de `MemberCard`
-  (`OutlinedCard`), puis panneaux Par catégorie et Répartition
-  (`BarRow` des statistiques, étendu d'une part de dépassement en
-  `error`).
-- `LoadBar` : piste `surfaceContainerHighest`, remplissage `primary`
-  jusqu'à 100 %, puis `error` ; valeur écrite à droite ; contour et icône
-  `Warning` au-delà du seuil d'alerte.
-- `MemberSheet` : dialogue plein écran sur téléphone, feuille latérale en
-  largeur étendue ; absences en `ListItem` + `DatePicker` MD3 pour les
-  plages.
-- `SuggestionSheet` : liste des propositions (case à cocher, assigné
-  modifiable par menu, raison en texte secondaire), « Appliquer » en
-  bouton primaire plein, « Annuler ».
+- Calculs hors composition (`LoadCompute.kt` : `rememberComputed`,
+  `rememberTeamLoad`) : `LaunchedEffect` + `withContext(Dispatchers.Default)`
+  à chaque changement de la base ; l'ancien résultat reste affiché, avec un
+  `LinearProgressIndicator`, jusqu'au nouveau. La suggestion n'est calculée
+  qu'à l'ouverture de sa feuille. Textes d'heures, de taux et de semaines :
+  `LoadFormat.kt` (virgule décimale en français).
+- `TeamMembersScreen` : sélecteur d'horizon (bouton segmenté 1, 2, 4,
+  8 semaines, plus la valeur du réglage si elle n'en fait pas partie ; non
+  retenu entre deux ouvertures) ; quatre `StatTile` (paramètre `note` :
+  pastille « + 3 non estimées » en contour + icône) : capacité (le focus
+  dans le libellé : « Capacité de l'équipe · focus 80 % »), charge
+  assignée, taux, backlog non assigné (« ≈ 1,5 semaine ») ; la phrase
+  « Plan sans aléa : voir Prévisions pour les probabilités » ; cartes de
+  membres avec `LoadBar` ; panneaux (`Panel`, rendu `internal`) « Par
+  catégorie » et « Répartition » (`BarRow`, étendu : `overflow`, `mark`,
+  `detail`, `stackedWhenNarrow` — libellé au-dessus de la barre sous
+  420 dp ; `BarTrack` partagé, identique à l'ancien tracé sans ces options :
+  les statistiques ne changent pas). Dans « Répartition », chaque barre a
+  une seule annonce pour le lecteur d'écran (« Alex 137 % »).
+- `LoadBar` (`LoadBar.kt`, avec `LoadFractions` et `Flag`) : piste
+  `surfaceContainerHighest`, `primary` jusqu'à 100 %, `error` pour la seule
+  part au-delà ; valeur écrite ; `WATCH` et `OVERLOADED` en contour + icône
+  `Warning`. Barres des cartes sur leur propre échelle (au moins 100 %),
+  « Répartition » sur une échelle commune ; une part de catégorie au-delà
+  de 100 % reste `primary` (ce n'est pas un dépassement de membre).
+- Fiche membre (`MemberLoadSection.kt`, `MemberLoadView`, après les champs,
+  avant les absences) : capacité sur l'horizon, une barre par semaine
+  (échelle commune, repère de capacité), charge par catégorie, tâches
+  ouvertes dans l'ordre du plan (« Fin prévue le 30 sept., échéance le
+  29 sept. » en contour + icône si en danger, « hors horizon », « attend le
+  backlog »), heures d'attente.
+- Fiche d'une tâche d'équipe, onglet Détails (`EffortLine`) : « Effort :
+  6 h, médiane des tâches à 3 points, n=8 » / « estimation » / « 3 points ×
+  2 h » / « non estimée », plus « · reste X h » si elle est avancée ; pas en
+  espace Perso.
+- `AssignMenu` : taux de charge de chaque membre (`AssignContext.rates`),
+  contour + icône au niveau `WATCH` ou `OVERLOADED`.
+- Backlog : `OutlinedButton` « Suggérer une répartition » sous la capture,
+  remplacé par un bouton de la barre de sélection quand une sélection est
+  en cours (la suggestion porte alors sur elle). `SuggestionSheet` (plein
+  écran sous 600 dp, dialogue au-delà) : une ligne par proposition, cochée
+  par défaut, assigné modifiable (« choisi par vous »), raison mise en
+  phrase depuis `Reason`, limite d'en-cours en contour + icône ; en bas, ce
+  qui est exclu (à qualifier, impossible à placer, membres archivés) ;
+  « Appliquer » (bouton primaire plein, `assign` groupé par membre),
+  « Annuler ».
+- Réglages, carte Équipe : `team.horizonWeeks`, `team.focusFactor`,
+  `team.hoursPerPoint`, `team.loadWarnPercent`, `team.affinityDays`.
+- Icône `Balance` (panneau « Répartition »).
+- Tests : `CapacityTest`, `EffortTest`, `LoadPlanTest`, `TeamLoadTest`,
+  `AssignmentSuggestionTest` (`core`), `TeamLoadUiTest` (`desktopApp`).
+  Auto-test : `desktop-team-load[-narrow]`, `desktop-team-member-load[-narrow]`,
+  `desktop-team-suggestion[-narrow]` ; `SelfTest.render` attend une image
+  stable (80 images au plus, 100 ms entre deux) pour laisser finir les
+  calculs asynchrones ; les données `TeamSeed` dépendent du jour de
+  l'auto-test.
 
 ### Décisions et alternatives écartées
 
@@ -297,11 +339,16 @@ backlog.
 - **Glouton « fin la plus tôt » plutôt que « charge la plus faible »** :
   il tient compte des absences et des dépendances, qui comptent plus que
   l'équilibre brut.
+- **Piège tracé : juger sur la fin de toute la file du candidat**, pas sur
+  la seule fin de la tâche. Le plan rejoué pose la tâche à son rang de
+  score ; jugée sur sa propre fin, une P0 doublait tout le travail d'un
+  membre surchargé et lui était proposée (vu sur la capture d'auto-test :
+  137 % et au-delà de la limite d'en-cours). La fin de file revient à
+  l'ajouter « en fin de plan » ; la date affichée reste la fin prévue de
+  la tâche (`anUrgentTaskDoesNotGoToAnOverloadedMemberByJumpingHisQueue`).
 
-### Impacts sur les specs existantes (à reporter à l'implémentation)
+### Impacts sur les specs existantes
 
-- `reglages.md` : réglages de charge dans la carte Équipe.
-- `statistiques.md` : `StatTile` et `BarRow` réutilisés (et la part de
-  dépassement de `BarRow`).
-- `ordonnancement.md` : réutilisation de `sortKey` et de l'urgence héritée
-  hors de la vue Jour.
+Reportés au jalon E4 : `reglages.md` (réglages de charge),
+`statistiques.md` (`StatTile.note`, `BarRow` étendu, `BarTrack`, `Panel`
+partagé), `navigation-theme.md` (icône `Balance`).

@@ -38,7 +38,8 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
   supplémentaires), **Apparence** (couleur du thème, `apparence.md`),
   **Équipe** (interrupteur « Gestion d'équipe », puis, mode activé, nom de
   l'équipe et du manager, seuils « sans avancement », « ballottée » et
-  limite d'en-cours, « Supprimer les données d'équipe… » avec sauvegarde
+  limite d'en-cours, horizon, taux de focus, heures par point, seuil
+  d'alerte de charge et tolérance d'affinité (`equipe-charge.md`), « Supprimer les données d'équipe… » avec sauvegarde
   préalable ; désactivation confirmée, `equipe.md`,
   `equipe-backlog-suivi.md`), puis
   sur le bureau **Mises à jour**, sur une copie portable **Raccourci**
