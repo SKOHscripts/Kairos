@@ -206,6 +206,11 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   focus), charge et taux par membre, pour l’équipe et par catégorie, date
   de fin prévue de chaque tâche et échéances en danger ;
   **suggestion de répartition** du backlog, à accepter ligne à ligne.
+- **Prévisions** par simulation (Monte Carlo) sur l’historique réel de
+  l’équipe : date de fin à 50, 85 et 95 % de chances, probabilité de tenir
+  chaque échéance, sujets les plus à risque, membre goulot, issue la plus
+  probable ; **scénarios « Et si… ? »** (absence, renfort, réaffectation,
+  tâches en plus…) comparés côte à côte, puis appliqués si on le souhaite.
 - Un seul utilisateur, le manager : tout reste sur l’appareil, sans compte
   ni réseau.
 

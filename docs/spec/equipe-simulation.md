@@ -12,7 +12,7 @@ changerait tel ou tel scénario. Fichiers prévus :
 charge de `equipe-charge.md`. Skill Claude Code associée :
 `.claude/skills/kairos-monte-carlo/`._
 
-État : **jalon E5 en cours** : socle (`core`, `data`) implémenté le 2026-10-01 ; interface à venir dans la même PR.
+État : **jalon E5 implémenté (2026-10-01)**.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -249,17 +249,28 @@ une ».
 
 ### Exécution (`ui/team/forecast/`)
 
-- Le calcul tourne dans une coroutine de l'écran, par **tranches de 250
-  tirages** entre lesquelles il cède la main (`yield()`), sur
-  `Dispatchers.Default` (JVM, Android) ; sur le web (wasm, un seul fil),
-  les tranches gardent l'interface réactive. Progression mise à jour à
-  chaque tranche ; « Arrêter » annule la coroutine et affiche les
-  résultats partiels marqués « interrompu, n tirages ».
-- Le moteur expose `runBatch(from, count)` et un agrégateur incrémental,
-  pour que le découpage n'altère pas le résultat (même résultat en une
-  tranche ou en vingt : testé).
-- Résultat gardé en mémoire (pas en base) avec son empreinte des données
-  d'entrée ; empreinte différente → « périmé ».
+- `ForecastController` : graine tirée par `TeamUiState.seed`
+  (`Random.nextLong()` par défaut, imposée par les tests), requête et
+  `MonteCarlo.prepare` dans `withContext(Dispatchers.Default)`, puis
+  tranches de `TeamUiState.batchSize` (250) tirages, chacune sur
+  `Dispatchers.Default`, séparées par `yield()` (sur le web, un seul fil :
+  l'interface reste réactive). Progression « 3 200 / 5 000 tirages » à
+  chaque tranche.
+- « Arrêter » lève un drapeau lu **entre deux tranches** (pas d'annulation
+  brutale de la coroutine) : le résultat partiel est marqué « interrompu,
+  n tirages ». Arrêt pendant la préparation : l'ancien résultat est gardé.
+  Arrêt pendant une comparaison : rien n'est affiché (des colonnes
+  inégales seraient incomparables).
+- `TeamUiState.batchGate` (sans effet par défaut) est appelé après chaque
+  tranche : le test d'arrêt y tient le calcul en suspens pour cliquer à coup
+  sûr, quelle que soit la vitesse de la machine (piège tracé : « Stop » est
+  visible dès la préparation, où cliquer ne produit pas de résultat).
+- Résultat et comparaison gardés en mémoire pour la session
+  (`TeamUiState`, dans `AppServices`, jamais en base) avec une
+  **empreinte** (`ForecastFingerprint` : jour, membres, absences, tâches
+  d'équipe, leurs dépendances et sessions, journal, réglages ; ni le thème,
+  ni le dernier espace, ni les tâches Perso ni les notes) ; empreinte
+  différente → « périmé », sans recalcul automatique.
 
 ### Scénarios (`Scenario.kt`, table `team_scenario`)
 
@@ -296,17 +307,61 @@ une ».
 
 ### Interface
 
-- `ForecastScreen` : colonne défilante de 960 dp au plus ; en-tête
-  (périmètre, modèle, et options dans une `OutlinedCard` repliable),
-  puis panneaux `OutlinedCard` (même `Panel` que les statistiques).
-- `Histogram` : barres `Box` (pas de bibliothèque de graphiques, décision
-  de `statistiques.md`), primaire à bouts arrondis 4 dp, valeur écrite ;
-  percentiles en traits `outline` avec libellé ; description textuelle
-  complète pour le lecteur d'écran (« 50 % avant le 9 octobre… »).
-- `ScenarioEditor` : liste de modifications en `ListItem`, ajout par menu,
-  chaque modification éditée dans un petit dialogue ; `ScenarioComparison` :
-  tableau à colonnes (réel + 3), défilant horizontalement dans sa carte
-  sous 600 dp (jamais la page).
+- `ForecastScreen` (`ForecastScreen.kt`, `ForecastPanels.kt`,
+  `ForecastFields.kt`, `ForecastFormat.kt`) : colonne de 960 dp au plus ;
+  périmètre (`ChoiceField`, menu MD3) — « Sélection du Backlog (n) »
+  seulement si une sélection existe : elle vit dans
+  `TeamUiState.backlogSelection`, source de vérité du Backlog, et survit
+  donc au changement de destination ; modèle (bouton segmenté ; « Par
+  débit » désactivé avec les chiffres — semaines actives requises et
+  trouvées — et repli sur « Par effort » si l'historique devient
+  insuffisant) ; options dans une `OutlinedCard` repliable ; bouton
+  primaire plein « Lancer la simulation ».
+- Panneaux (`Panel`) : **Date de fin** (P50, P85, P95 en phrase, jamais une
+  date seule ; `Histogram` : une barre `Box` primaire par semaine, créneau
+  de 40 à 72 dp, défilement dans la carte au-delà, traits P50/P85/P95 en
+  `outline` sur des lignes de libellé distinctes, description complète
+  pour le lecteur d'écran) ; **Combien d'ici…** (`DatePicker`, date par
+  défaut = P50, réponse à 95 %, 85 % et 50 %) ; **Échéances** (les 8 plus
+  fragiles, puis « voir les autres » ; « en danger » en contour + icône) ;
+  **Criticité** (10 plus souvent en retard) ; **Goulot** ; **Issue la plus
+  probable** (distribution 0 / 1 / 2 / 3+, ensemble le plus fréquent).
+  Modèle par débit : ces quatre derniers masqués avec la phrase « le modèle
+  par débit ne connaît pas les tâches une à une ». Sous chaque résultat :
+  tirages, graine, source des données, « peu fiable » (`Notice` : contour +
+  icône) et date du calcul.
+- **Arrondis des probabilités** : « tenir » arrondi vers le bas, « en
+  retard » vers le haut, jamais « 100 % » s'il existe un tirage en retard.
+- Scénarios (`ScenarioSection.kt`) : liste (renommer, dupliquer —
+  libellé « copie » fourni ici —, supprimer avec confirmation), cases pour
+  comparer (trois au plus) ; `ScenarioEditor` / `ScenarioEditorContent`
+  (plein écran sous 600 dp, dialogue au-delà) : modifications en phrase
+  (`ScenarioText.kt`), ajout par un menu des neuf types, chacun édité dans
+  `ModificationDialog` ; ids négatifs des membres hypothétiques attribués
+  par l'éditeur ; chaque modification qui ne s'applique pas (`Scenario.apply`
+  sur les données courantes) porte « Ignorée : raison » en contour + icône.
+- `ScenarioComparison` : réel + scénarios cochés, **toujours au modèle par
+  effort**, avec le périmètre et les options choisis et la **même graine**
+  pour toutes les colonnes ; lignes P50, P85, retards attendus, probabilité
+  de tout tenir (ces deux masquées si aucune échéance), taux de charge
+  (`TeamLoad` sur le snapshot du scénario) ; le meilleur de chaque ligne
+  marqué d'une étoile (`Star`), aucune si toutes les colonnes sont égales ;
+  colonnes de données défilant horizontalement dans la carte, libellés de
+  ligne fixes ; une note rappelle que les tâches ajoutées vont au backlog
+  (« Assigné + backlog » ou l'option backlog pour les compter).
+- `ScenarioApplyDialog` : « Sera appliqué » (réel) et « Ne sera pas
+  appliqué : hypothétique », puis message « Appliqué : n · ignoré : n · non
+  applicable : n ».
+- Icônes : `Casino`, `Science`, `CompareArrows`, `Refresh`, `Star`
+  (+ `StarFilled`), `ContentCopy`.
+- Tests : `ForecastRandomTest`, `PercentilesTest`, `ForecastDataTest`,
+  `MonteCarloTest`, `ScenarioTest`, `ScenarioPropertyTest`,
+  `ReproducibilityTest` (`core`, `commonTest`), `MonteCarloPerformanceTest`
+  (`core`, `jvmTest`), `ScenarioRepositoryTest` (`data`),
+  `ForecastFormatTest` (`ui`), `ForecastUiTest` (`desktopApp`). Auto-test :
+  `desktop-team-forecast[-narrow]`, `desktop-team-scenario-editor[-narrow]`,
+  `desktop-team-comparison[-narrow]` (historique et scénarios semés par
+  `TeamSeed`).
 
 ### Réglages ajoutés (`TeamSettings`)
 
@@ -347,9 +402,9 @@ une ».
   imaginaires ne doivent pas se retrouver en base par un clic ; les créer
   est un geste explicite ailleurs.
 
-### Impacts sur les specs existantes (à reporter à l'implémentation)
+### Impacts sur les specs existantes
 
-- `reglages.md` : réglages de simulation dans la carte Équipe.
-- `statistiques.md` : `Panel` réutilisé.
-- `modele-donnees.md` : table `team_scenario`.
-- `architecture.md` : paquet `core/team/forecast/`.
+Reportés au jalon E5 : `reglages.md` (réglages de simulation),
+`modele-donnees.md` (`team_scenario`, `4.sqm`), `export-import.md`
+(`teamScenarios`), `architecture.md` (`core/team/forecast/`),
+`navigation-theme.md` (icônes).

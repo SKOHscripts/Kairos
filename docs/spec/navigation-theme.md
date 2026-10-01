@@ -118,7 +118,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   (jalon E1, `equipe.md`) : `Groups`, `Person`, `ViewKanban`, `Stacks`,
   `Monitoring`, puis au jalon E2 `PersonAdd`, `EventBusy`, `Archive`,
   `Unarchive`, au jalon E3 `SwapHoriz`, `MoreVert`, `HourglassEmpty`, au jalon E4
-  `Balance` (et les variantes pleines de `Groups`, `ViewKanban`,
+  `Balance`, au jalon E5 `Casino`, `Science`, `CompareArrows`, `Refresh`,
+  `Star` (et `StarFilled`), `ContentCopy` (et les variantes pleines de `Groups`, `ViewKanban`,
   `Stacks`, `Monitoring`).
   `Construction` (écran « En construction ») est retiré au
   jalon M5, plus rien n'étant en construction.
