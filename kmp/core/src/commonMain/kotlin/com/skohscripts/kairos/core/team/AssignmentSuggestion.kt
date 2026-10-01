@@ -64,7 +64,14 @@ object AssignmentSuggestion {
     )
 
     /** Essai d'un candidat : la base avec la tâche à son nom, la fin prévue de la tâche et la charge posée du membre. */
-    private class Trial(val member: TeamMember, val snapshot: KairosSnapshot, val end: LocalDate?, val load: Double)
+    /**
+     * Un essai : [end] = fin prévue de la tâche chez ce membre (affichée) ; [queueEnd] = fin de
+     * **toute** sa file, tâche comprise, qui sert à choisir. Le plan rejoué place la tâche à son
+     * rang de score : juger sur sa seule fin laisserait une P0 doubler tout le travail d'un membre
+     * surchargé et paraître finir tôt ; la fin de file revient à l'ajouter « en fin de plan »
+     * (docs/spec/equipe-charge.md § Suggestion).
+     */
+    private class Trial(val member: TeamMember, val snapshot: KairosSnapshot, val end: LocalDate?, val queueEnd: LocalDate?, val load: Double)
 
     data class Suggestion(val taskId: Long, val memberId: Long, val plannedEnd: LocalDate?, val reason: Reason)
 
@@ -153,12 +160,14 @@ object AssignmentSuggestion {
             val trials = candidates.map { m ->
                 val trial = working.copy(tasks = working.tasks.map { if (it.id == task.id) it.copy(assigneeId = m.id) else it })
                 val plan = LoadPlan.build(trial, day, cal, weeks, fraction)
-                Trial(m, trial, plan.task(task.id)?.end, plan.of(m.id)?.plannedHours ?: 0.0)
+                val end = plan.task(task.id)?.end
+                val queueEnd = end?.let { e -> (plan.of(m.id)?.tasks.orEmpty().mapNotNull { it.end } + e).max() }
+                Trial(m, trial, end, queueEnd, plan.of(m.id)?.plannedHours ?: 0.0)
             }
-            val best = trials.mapNotNull { it.end }.minOrNull()
+            val best = trials.mapNotNull { it.queueEnd }.minOrNull()
             // Sans date pour personne, tous sont ex æquo ; sinon l'écart se mesure en jours ouvrés depuis la meilleure fin.
             val limit = best?.let { Workdays.addBusinessDays(it, team.affinityDays, holidays) }
-            var group = trials.filter { t -> limit == null || (t.end != null && t.end <= limit) }
+            var group = trials.filter { t -> limit == null || (t.queueEnd != null && t.queueEnd <= limit) }
 
             fun affinity(t: Trial) = if (task.taskType.isEmpty()) 0 else doneCount[t.member.id to task.taskType] ?: 0
             fun over(t: Trial) = TeamSignals.wipExceeded(snapshot.tasks, t.member.id, settings)

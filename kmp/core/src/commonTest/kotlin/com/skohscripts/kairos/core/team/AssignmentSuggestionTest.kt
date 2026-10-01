@@ -43,6 +43,17 @@ class AssignmentSuggestionTest {
     }
 
     @Test
+    fun anUrgentTaskDoesNotGoToAnOverloadedMemberByJumpingHisQueue() {
+        // Membre 1 a 80 h de travail ; membre 2 est libre. Une P0 placée à son rang chez 1 finirait
+        // tôt en repoussant tout le reste : on juge la fin de la file entière, elle va à 2.
+        val busy = (10L..19L).map { task(it, 1, hours = 8.0, priority = 2) }
+        val urgent = task(1, null, hours = 8.0, priority = 0)
+        val r = suggest(snapshot(busy + urgent, pair))
+        assertEquals(2L, r.suggestions.single().memberId)
+        assertEquals(monday, r.suggestions.single().plannedEnd)
+    }
+
+    @Test
     fun neverProposesAnArchivedOrFullyAbsentMember() {
         val s = snapshot(
             tasks = (1L..4L).map { task(it, null) },
