@@ -45,10 +45,11 @@ object Workspaces {
         )
     }
 
-    /** La base contient au moins une donnée d'équipe (membre, absence, événement du journal, tâche d'équipe ou tâche assignée). */
+    /** La base contient au moins une donnée d'équipe (membre, absence, événement du journal, scénario, tâche d'équipe ou tâche assignée). */
     fun hasTeamData(snapshot: KairosSnapshot): Boolean =
         snapshot.members.isNotEmpty() ||
             snapshot.absences.isNotEmpty() ||
             snapshot.teamEvents.isNotEmpty() ||
+            snapshot.teamScenarios.isNotEmpty() ||
             snapshot.tasks.any { it.space == TaskSpace.TEAM || it.assigneeId != null }
 }

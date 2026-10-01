@@ -191,4 +191,53 @@ class SettingsFormTest {
         assertEquals("0.7", SettingsForm.values(s)["team.focusFactor"])
         assertEquals("8", SettingsForm.values(s)["team.horizonWeeks"])
     }
+
+    @Test
+    fun forecast_settings_have_their_defaults_and_bounds() {
+        val values = SettingsForm.values(base)
+        assertEquals("5000", values["team.simulationRuns"])
+        assertEquals("12", values["team.historyWeeks"])
+        assertEquals("8", values["team.minSamples"])
+        assertEquals("70", values["team.deadlineRiskPercent"])
+        assertEquals(listOf(5000, 12, 8, 70), TeamSettings().let { listOf(it.simulationRuns, it.historyWeeks, it.minSamples, it.deadlineRiskPercent) })
+        for (key in listOf("team.simulationRuns", "team.historyWeeks", "team.minSamples", "team.deadlineRiskPercent")) {
+            assertEquals(FieldKind.INT, SettingsForm.field(key).kind)
+        }
+        fun team(key: String, value: String) = validate(key to value)
+        // Tirages : 500 à 50 000.
+        assertEquals(500, team("team.simulationRuns", "500").settings!!.team!!.simulationRuns)
+        assertEquals(50_000, team("team.simulationRuns", "50000").settings!!.team!!.simulationRuns)
+        assertEquals(FieldError(FieldErrorKind.TOO_SMALL, "500"), team("team.simulationRuns", "499").fieldErrors["team.simulationRuns"])
+        assertEquals(FieldError(FieldErrorKind.TOO_LARGE, "50000"), team("team.simulationRuns", "50001").fieldErrors["team.simulationRuns"])
+        // Fenêtre d'historique : 1 à 104 semaines.
+        assertEquals(1, team("team.historyWeeks", "1").settings!!.team!!.historyWeeks)
+        assertEquals(104, team("team.historyWeeks", "104").settings!!.team!!.historyWeeks)
+        assertEquals(FieldErrorKind.TOO_SMALL, team("team.historyWeeks", "0").fieldErrors["team.historyWeeks"]!!.kind)
+        assertEquals(FieldError(FieldErrorKind.TOO_LARGE, "104"), team("team.historyWeeks", "105").fieldErrors["team.historyWeeks"])
+        // Minimum d'échantillons : 3 ou plus, sans plafond.
+        assertEquals(3, team("team.minSamples", "3").settings!!.team!!.minSamples)
+        assertEquals(1000, team("team.minSamples", "1000").settings!!.team!!.minSamples)
+        assertEquals(FieldError(FieldErrorKind.TOO_SMALL, "3"), team("team.minSamples", "2").fieldErrors["team.minSamples"])
+        assertEquals(FieldErrorKind.NOT_INTEGER, team("team.minSamples", "huit").fieldErrors["team.minSamples"]!!.kind)
+        // Seuil de risque d'échéance : 1 à 99 %.
+        assertEquals(1, team("team.deadlineRiskPercent", "1").settings!!.team!!.deadlineRiskPercent)
+        assertEquals(99, team("team.deadlineRiskPercent", "99").settings!!.team!!.deadlineRiskPercent)
+        assertEquals(FieldErrorKind.TOO_SMALL, team("team.deadlineRiskPercent", "0").fieldErrors["team.deadlineRiskPercent"]!!.kind)
+        assertEquals(FieldError(FieldErrorKind.TOO_LARGE, "99"), team("team.deadlineRiskPercent", "100").fieldErrors["team.deadlineRiskPercent"])
+        assertEquals(FieldErrorKind.REQUIRED, team("team.simulationRuns", " ").fieldErrors["team.simulationRuns"]!!.kind)
+    }
+
+    @Test
+    fun writing_the_default_forecast_values_keeps_the_team_object_null() {
+        val defaults = mapOf(
+            "team.simulationRuns" to "5000", "team.historyWeeks" to "12", "team.minSamples" to "8", "team.deadlineRiskPercent" to "70",
+        )
+        assertNull(SettingsForm.validate(defaults, base).settings!!.team)
+        // Une valeur non défaut crée l'objet, les autres champs gardent leur défaut ; l'aller-retour est stable.
+        val s = validate("team.simulationRuns" to "10000", "team.deadlineRiskPercent" to "80").settings!!
+        assertEquals(TeamSettings(simulationRuns = 10_000, deadlineRiskPercent = 80), s.team)
+        assertEquals(s, SettingsForm.validate(SettingsForm.values(s), s).settings)
+        assertEquals("10000", SettingsForm.values(s)["team.simulationRuns"])
+        assertEquals("80", SettingsForm.values(s)["team.deadlineRiskPercent"])
+    }
 }

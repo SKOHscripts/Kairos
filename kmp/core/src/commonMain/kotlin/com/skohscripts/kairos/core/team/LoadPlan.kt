@@ -129,7 +129,7 @@ object LoadPlan {
     }
 
     /**
-     * Construit le plan.
+     * Construit le plan : [prepare] puis [Prepared.run].
      *
      * @param snapshot la base complète ; comptent les tâches d'équipe à faire
      * assignées à un membre actif.
@@ -152,16 +152,32 @@ object LoadPlan {
         todayFraction: Double = 1.0,
         efforts: Map<Long, Double>? = null,
         capacity: ((TeamMember, LocalDate) -> Double)? = null,
-    ): Result {
+    ): Result = prepare(snapshot, day, calibration, horizonWeeks, todayFraction).run(efforts, capacity)
+
+    /**
+     * Tout ce qui ne dépend ni des efforts ni de la capacité surchargés : membres,
+     * ordres, dépendances, tâches inatteignables, efforts du plan déterministe.
+     * La simulation (`equipe-simulation.md`) le prépare **une fois** et rejoue
+     * [Prepared.run] à chaque tirage avec des efforts et des capacités tirés : c'est
+     * le même posage que le plan déterministe, sans en payer la préparation 5 000
+     * fois. [build] = `prepare(...).run(efforts, capacity)`.
+     */
+    fun prepare(
+        snapshot: KairosSnapshot,
+        day: LocalDate,
+        calibration: List<Calibration> = emptyList(),
+        horizonWeeks: Int = (snapshot.settings.team ?: TeamSettings()).horizonWeeks,
+        todayFraction: Double = 1.0,
+    ): Prepared {
         val settings = snapshot.settings
         val holidays = Workdays.holidaysFor(day, settings.holidaysFr, settings.extraHolidays)
         val members = TeamMembers.active(snapshot.members)
         val memberIds = members.mapTo(HashSet()) { it.id }
         val horizonEnd = Capacity.horizonEnd(day, horizonWeeks)
 
-        // Capacité d'un membre un jour : la surcharge, sinon le calcul de Capacity (absences du membre pré-filtrées).
+        // Capacité d'un membre un jour : le calcul de Capacity (absences du membre pré-filtrées).
         val absencesOf = members.associate { m -> m.id to snapshot.absences.filter { it.memberId == m.id } }
-        val capacityOf: (TeamMember, LocalDate) -> Double = capacity ?: { m, d ->
+        val defaultCapacity: (TeamMember, LocalDate) -> Double = { m, d ->
             Capacity.dailyHours(m, d, holidays, absencesOf.getValue(m.id), settings, if (m.isSelf && d == day) todayFraction else 1.0)
         }
 
@@ -196,124 +212,244 @@ object LoadPlan {
         } while (changed)
 
         val efforts0 = assigned.associate { it.id to Effort.planned(it, calibration, settings) }
-        fun hoursOf(id: Long): Double = (efforts?.get(id) ?: efforts0.getValue(id).hours).coerceAtLeast(0.0)
 
         // Ordre de chaque membre : clé effective (urgence héritée), tâches posables seulement.
         val order = members.associate { m ->
             m.id to assigned.filter { it.assigneeId == m.id }
                 .sortedBy { effective[it.id] ?: own.getValue(it.id) }
         }
-        val pending = members.associate { m -> m.id to order.getValue(m.id).filter { it.id !in unreachable }.mapTo(ArrayList()) { it.id } }
+        val pending = members.associate { m -> m.id to order.getValue(m.id).filter { it.id !in unreachable }.map { it.id } }
         val owner = assigned.associate { it.id to it.assigneeId!! }
 
-        // État du posage.
-        val startOn = HashMap<Long, LocalDate>()
-        val endOn = HashMap<Long, LocalDate>()
-        val left = HashMap<Long, Double>()
-        val current = HashMap<Long, Long>()
-        val waited = members.associate { it.id to 0.0 }.toMutableMap()
+        return Prepared(
+            day = day, holidays = holidays, members = members, horizonEnd = horizonEnd, defaultCapacity = defaultCapacity,
+            blockersOf = blockersOf, unreachable = unreachable, efforts0 = efforts0, order = order, pending = pending, owner = owner,
+            assigned = assigned,
+        )
+    }
 
-        // Semaines de l'horizon.
-        val monday = day.minus(DatePeriod(days = Workdays.weekday(day)))
-        val weekCount = monday.daysUntil(horizonEnd) / 7 + 1
-        val weekCap = members.associate { it.id to DoubleArray(weekCount) }
-        val weekKnown = members.associate { it.id to DoubleArray(weekCount) }
-        val weekAssumed = members.associate { it.id to DoubleArray(weekCount) }
+    /** Heures d'un membre (rang dans la liste des membres actifs) un jour (décalage depuis le jour du plan), sans boxing. */
+    internal fun interface CapacitySource {
+        fun hours(member: Int, offset: Int): Double
+    }
 
-        fun startable(id: Long, member: Long, d: LocalDate): Boolean = blockersOf[id].orEmpty().all { b ->
-            val e = endOn[b]
-            e != null && (e < d || (e == d && owner[b] == member))
+    /**
+     * Le posage préparé par [prepare] ; [run] le rejoue autant de fois que voulu. Le coeur
+     * (`runCore`) travaille sur des tableaux indexés par un **rang de tâche** et un rang de
+     * membre, sans objet par tâche ni par jour : c'est lui que rejoue la simulation
+     * (5 000 fois), et [run] n'est que son habillage par identifiants.
+     */
+    class Prepared internal constructor(
+        private val day: LocalDate,
+        private val holidays: Set<LocalDate>,
+        internal val members: List<TeamMember>,
+        private val horizonEnd: LocalDate,
+        private val defaultCapacity: (TeamMember, LocalDate) -> Double,
+        blockersOf: Map<Long, List<Long>>,
+        private val unreachable: Set<Long>,
+        private val efforts0: Map<Long, Effort.Planned>,
+        private val order: Map<Long, List<Task>>,
+        pending: Map<Long, List<Long>>,
+        private val owner: Map<Long, Long>,
+        assigned: List<Task>,
+    ) {
+        /** Tâches du plan (portées par un membre actif), dans l'ordre de [assigned] : le rang d'une tâche est sa position ici. */
+        internal val taskIds: LongArray = LongArray(assigned.size) { assigned[it].id }
+        private val taskIndex: Map<Long, Int> = HashMap<Long, Int>().also { m -> taskIds.forEachIndexed { i, id -> m[id] = i } }
+        private val memberIndex: Map<Long, Int> = HashMap<Long, Int>().also { m -> members.forEachIndexed { i, mem -> m[mem.id] = i } }
+
+        /** Effort restant du plan déterministe par rang de tâche. */
+        internal val baseHours: DoubleArray = DoubleArray(taskIds.size) { efforts0.getValue(taskIds[it]).hours.coerceAtLeast(0.0) }
+
+        private val ownerIndex = IntArray(taskIds.size) { memberIndex.getValue(owner.getValue(taskIds[it])) }
+        private val blockers: Array<IntArray> = Array(taskIds.size) { t ->
+            blockersOf[taskIds[t]].orEmpty().mapNotNull { taskIndex[it] }.toIntArray()
+        }
+        private val queueTemplate: Array<IntArray> = Array(members.size) { m ->
+            pending.getValue(members[m].id).map { taskIndex.getValue(it) }.toIntArray()
+        }
+        private val unestimated = BooleanArray(taskIds.size) { efforts0.getValue(taskIds[it]).unestimated }
+        private val weekday = Workdays.weekday(day)
+        private val monday = day.minus(DatePeriod(days = weekday))
+        private val horizonOffset = day.daysUntil(horizonEnd)
+        private val weekCount = monday.daysUntil(horizonEnd) / 7 + 1
+
+        /** Les dates du posage : décalage 0 = [day], jusqu'au garde-fou. */
+        private val dates: Array<LocalDate> = Array(GUARD_DAYS + 1) { day.plus(DatePeriod(days = it)) }
+
+        /** Rang d'une tâche dans le plan, ou `null` (tâche non posée : non assignée, faite…). */
+        internal fun indexOf(taskId: Long): Int? = taskIndex[taskId]
+
+        /**
+         * Pose les tâches. [efforts] : heures restantes par tâche, à la place de celles
+         * du plan déterministe (une tâche absente garde son effort) ; [capacity] : heures
+         * d'un membre un jour donné, à la place de `Capacity.dailyHours`.
+         */
+        fun run(
+            efforts: Map<Long, Double>? = null,
+            capacity: ((TeamMember, LocalDate) -> Double)? = null,
+        ): Result {
+            val hours = DoubleArray(taskIds.size) { (efforts?.get(taskIds[it]) ?: efforts0.getValue(taskIds[it]).hours).coerceAtLeast(0.0) }
+            val source = capacity ?: defaultCapacity
+            return result(runCore(hours) { m, offset -> source(members[m], dates[offset]) })
         }
 
-        var remainingTasks = pending.values.sumOf { it.size }
-        val guardEnd = day.plus(DatePeriod(days = GUARD_DAYS))
-        var d = day
-        while (d <= guardEnd && (remainingTasks > 0 || d <= horizonEnd)) {
-            val week = if (d <= horizonEnd) monday.daysUntil(d) / 7 else -1
-            for (m in members) {
-                var cap = capacityOf(m, d)
-                if (cap <= EPS) continue
-                if (week >= 0) weekCap.getValue(m.id)[week] += cap
-                val queue = pending.getValue(m.id)
-                while (cap > EPS) {
-                    var id = current[m.id]
-                    if (id == null) {
-                        val index = queue.indexOfFirst { startable(it, m.id, d) }
-                        if (index < 0) {
-                            if (queue.isNotEmpty()) waited[m.id] = waited.getValue(m.id) + cap
+        /**
+         * Sortie brute du posage, par rang de tâche : [startOn] et [endOn] en décalage de jour depuis le jour
+         * du plan (-1 : jamais posée dans le garde-fou), [hours] posées. La simulation ne lit que cela.
+         */
+        internal class Outcome(
+            val hours: DoubleArray,
+            val startOn: IntArray,
+            val endOn: IntArray,
+            val waited: DoubleArray,
+            val weekCap: Array<DoubleArray>,
+            val weekKnown: Array<DoubleArray>,
+            val weekAssumed: Array<DoubleArray>,
+        )
+
+        /** Décalage de jour (depuis le jour du plan) d'une date, négatif avant. */
+        internal fun offsetOf(date: LocalDate): Int = day.daysUntil(date)
+
+        /** Le posage lui-même : [hours] par rang de tâche (≥ 0), [capacity] par rang de membre et décalage de jour. */
+        internal fun runCore(hours: DoubleArray, capacity: CapacitySource): Outcome {
+            val memberCount = members.size
+            val queues = Array(memberCount) { queueTemplate[it].copyOf() }
+            val queueSize = IntArray(memberCount) { queueTemplate[it].size }
+
+            // État du posage (décalages de jour ; -1 = pas encore).
+            val startOn = IntArray(taskIds.size) { -1 }
+            val endOn = IntArray(taskIds.size) { -1 }
+            val left = DoubleArray(taskIds.size)
+            val current = IntArray(memberCount) { -1 }
+            val waited = DoubleArray(memberCount)
+
+            // Semaines de l'horizon.
+            val weekCap = Array(memberCount) { DoubleArray(weekCount) }
+            val weekKnown = Array(memberCount) { DoubleArray(weekCount) }
+            val weekAssumed = Array(memberCount) { DoubleArray(weekCount) }
+
+            var remainingTasks = queueSize.sum()
+            var offset = 0
+            while (offset <= GUARD_DAYS && (remainingTasks > 0 || offset <= horizonOffset)) {
+                val week = if (offset <= horizonOffset) (offset + weekday) / 7 else -1
+                for (m in 0 until memberCount) {
+                    var cap = capacity.hours(m, offset)
+                    if (cap <= EPS) continue
+                    if (week >= 0) weekCap[m][week] += cap
+                    val queue = queues[m]
+                    while (cap > EPS) {
+                        var id = current[m]
+                        if (id < 0) {
+                            var index = -1
+                            for (q in 0 until queueSize[m]) {
+                                if (startable(queue[q], m, offset, blockers, endOn)) {
+                                    index = q
+                                    break
+                                }
+                            }
+                            if (index < 0) {
+                                if (queueSize[m] > 0) waited[m] += cap
+                                break
+                            }
+                            id = queue[index]
+                            queue.copyInto(queue, index, index + 1, queueSize[m])
+                            queueSize[m]--
+                            current[m] = id
+                            startOn[id] = offset
+                            left[id] = hours[id]
+                        }
+                        val used = minOf(cap, left[id])
+                        if (used > 0.0 && week >= 0) {
+                            val bucket = if (unestimated[id]) weekAssumed else weekKnown
+                            bucket[m][week] += used
+                        }
+                        cap -= used
+                        val rest = left[id] - used
+                        left[id] = rest
+                        if (rest <= EPS) {
+                            endOn[id] = offset
+                            current[m] = -1
+                            remainingTasks--
+                        } else {
                             break
                         }
-                        id = queue.removeAt(index)
-                        current[m.id] = id
-                        startOn[id] = d
-                        left[id] = hoursOf(id)
-                    }
-                    val used = minOf(cap, left.getValue(id))
-                    if (used > 0.0 && week >= 0) {
-                        val bucket = if (efforts0.getValue(id).unestimated) weekAssumed else weekKnown
-                        bucket.getValue(m.id)[week] += used
-                    }
-                    cap -= used
-                    val rest = left.getValue(id) - used
-                    left[id] = rest
-                    if (rest <= EPS) {
-                        endOn[id] = d
-                        current.remove(m.id)
-                        remainingTasks--
-                    } else {
-                        break
                     }
                 }
+                offset++
             }
-            d = d.plus(DatePeriod(days = 1))
+            return Outcome(hours, startOn, endOn, waited, weekCap, weekKnown, weekAssumed)
         }
 
-        // Sortie.
-        fun planned(task: Task, memberId: Long): PlannedTask {
-            val e = efforts0.getValue(task.id)
-            val end = endOn[task.id]
-            val deadline = task.deadline
-            val placement = when {
-                task.id in unreachable -> Placement.BLOCKED_BY_BACKLOG
-                end == null -> Placement.OUT_OF_HORIZON
-                else -> Placement.PLANNED
-            }
-            val late = if (end != null) deadline != null && end > deadline else deadline != null
-            val lateDays = if (end != null && late) maxOf(1, Workdays.businessDaysBetween(deadline!!, end, holidays)) else 0
-            return PlannedTask(task.id, memberId, startOn[task.id], end, late, lateDays, e.source, e.unestimated, hoursOf(task.id), placement)
-        }
+        private fun result(outcome: Outcome): Result {
+            val hours = outcome.hours
+            val startOn = outcome.startOn
+            val endOn = outcome.endOn
+            val waited = outcome.waited
+            val weekCap = outcome.weekCap
+            val weekKnown = outcome.weekKnown
+            val weekAssumed = outcome.weekAssumed
 
-        val memberPlans = members.map { m ->
-            val tasks = order.getValue(m.id).map { planned(it, m.id) }
-            val byId = order.getValue(m.id).associateBy { it.id }
-            val known = tasks.filter { !it.unestimated }
-            val weeks = (0 until weekCount).map { w ->
-                val start = if (w == 0) day else monday.plus(DatePeriod(days = 7 * w))
-                WeekLoad(
-                    start = start,
-                    end = monday.plus(DatePeriod(days = 7 * w + 6)),
-                    capacityHours = weekCap.getValue(m.id)[w],
-                    hours = weekKnown.getValue(m.id)[w],
-                    assumedHours = weekAssumed.getValue(m.id)[w],
+            fun planned(task: Task, memberId: Long): PlannedTask {
+                val t = taskIndex.getValue(task.id)
+                val e = efforts0.getValue(task.id)
+                val end = if (endOn[t] >= 0) dates[endOn[t]] else null
+                val deadline = task.deadline
+                val placement = when {
+                    task.id in unreachable -> Placement.BLOCKED_BY_BACKLOG
+                    end == null -> Placement.OUT_OF_HORIZON
+                    else -> Placement.PLANNED
+                }
+                val late = if (end != null) deadline != null && end > deadline else deadline != null
+                val lateDays = if (end != null && late) maxOf(1, Workdays.businessDaysBetween(deadline!!, end, holidays)) else 0
+                val start = if (startOn[t] >= 0) dates[startOn[t]] else null
+                return PlannedTask(task.id, memberId, start, end, late, lateDays, e.source, e.unestimated, hours[t], placement)
+            }
+
+            val memberPlans = members.mapIndexed { mi, m ->
+                val tasks = order.getValue(m.id).map { planned(it, m.id) }
+                val byId = order.getValue(m.id).associateBy { it.id }
+                val known = tasks.filter { !it.unestimated }
+                val weeks = (0 until weekCount).map { w ->
+                    val start = if (w == 0) day else monday.plus(DatePeriod(days = 7 * w))
+                    WeekLoad(
+                        start = start,
+                        end = monday.plus(DatePeriod(days = 7 * w + 6)),
+                        capacityHours = weekCap[mi][w],
+                        hours = weekKnown[mi][w],
+                        assumedHours = weekAssumed[mi][w],
+                    )
+                }
+                val byCategory = LinkedHashMap<String, Double>()
+                for (t in known) {
+                    val type = byId.getValue(t.taskId).taskType
+                    byCategory[type] = (byCategory[type] ?: 0.0) + t.hours
+                }
+                MemberPlan(
+                    memberId = m.id,
+                    tasks = tasks,
+                    capacityHours = weeks.sumOf { it.capacityHours },
+                    loadHours = known.sumOf { it.hours },
+                    assumedHours = tasks.filter { it.unestimated }.sumOf { it.hours },
+                    unestimatedCount = tasks.count { it.unestimated },
+                    weeks = weeks,
+                    byCategory = byCategory,
+                    waitHours = waited[mi],
                 )
             }
-            val byCategory = LinkedHashMap<String, Double>()
-            for (t in known) {
-                val type = byId.getValue(t.taskId).taskType
-                byCategory[type] = (byCategory[type] ?: 0.0) + t.hours
-            }
-            MemberPlan(
-                memberId = m.id,
-                tasks = tasks,
-                capacityHours = weeks.sumOf { it.capacityHours },
-                loadHours = known.sumOf { it.hours },
-                assumedHours = tasks.filter { it.unestimated }.sumOf { it.hours },
-                unestimatedCount = tasks.count { it.unestimated },
-                weeks = weeks,
-                byCategory = byCategory,
-                waitHours = waited.getValue(m.id),
-            )
+            return Result(day, horizonEnd, memberPlans, memberPlans.flatMap { it.tasks })
         }
-        return Result(day, horizonEnd, memberPlans, memberPlans.flatMap { it.tasks })
+
+        /**
+         * Une tâche est posable un jour si chaque bloqueur est fini avant ce jour, ou le jour même chez
+         * le même membre (« une tâche bloquée par un autre membre commence le jour ouvré suivant »).
+         */
+        private fun startable(task: Int, member: Int, offset: Int, blockers: Array<IntArray>, endOn: IntArray): Boolean {
+            for (b in blockers[task]) {
+                val e = endOn[b]
+                if (e < 0 || !(e < offset || (e == offset && ownerIndex[b] == member))) return false
+            }
+            return true
+        }
     }
 }

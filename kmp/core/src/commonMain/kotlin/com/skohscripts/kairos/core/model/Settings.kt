@@ -103,6 +103,14 @@ data class TeamSettings(
     val loadWarnPercent: Int = DEFAULT_LOAD_WARN_PERCENT,
     /** Écart de fin (en jours ouvrés, ≥ 0) dans lequel la suggestion préfère l'affinité de catégorie. */
     val affinityDays: Int = DEFAULT_AFFINITY_DAYS,
+    /** Prévisions (docs/spec/equipe-simulation.md) : nombre de tirages d'une simulation (500-50 000). */
+    val simulationRuns: Int = DEFAULT_SIMULATION_RUNS,
+    /** Fenêtre d'historique des facteurs d'erreur, des débits et de la capacité réelle, en semaines (1-104). */
+    val historyWeeks: Int = DEFAULT_HISTORY_WEEKS,
+    /** Nombre minimal d'échantillons pour se fier à l'historique (≥ 3) ; en dessous, « peu fiable » et loi par défaut mêlée. */
+    val minSamples: Int = DEFAULT_MIN_SAMPLES,
+    /** Probabilité de tenir une échéance (en %, 1-99) sous laquelle elle est « en danger ». */
+    val deadlineRiskPercent: Int = DEFAULT_DEADLINE_RISK_PERCENT,
 ) {
     companion object {
         const val DEFAULT_STALE_PROGRESS_DAYS = 5
@@ -113,6 +121,10 @@ data class TeamSettings(
         const val DEFAULT_HOURS_PER_POINT = 2.0
         const val DEFAULT_LOAD_WARN_PERCENT = 90
         const val DEFAULT_AFFINITY_DAYS = 2
+        const val DEFAULT_SIMULATION_RUNS = 5000
+        const val DEFAULT_HISTORY_WEEKS = 12
+        const val DEFAULT_MIN_SAMPLES = 8
+        const val DEFAULT_DEADLINE_RISK_PERCENT = 70
 
         const val SPACE_PERSONAL = "personal"
         const val SPACE_TEAM = "team"

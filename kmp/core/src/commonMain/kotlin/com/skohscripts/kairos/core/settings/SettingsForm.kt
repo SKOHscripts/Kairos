@@ -137,6 +137,10 @@ object SettingsForm {
         teamDecimal("team.hoursPerPoint", 0.0, true, null, { it.hoursPerPoint }) { t, v -> t.copy(hoursPerPoint = v) },
         teamInt("team.loadWarnPercent", 1, 100, { it.loadWarnPercent }) { t, v -> t.copy(loadWarnPercent = v) },
         teamInt("team.affinityDays", 0, get = { it.affinityDays }) { t, v -> t.copy(affinityDays = v) },
+        teamInt("team.simulationRuns", 500, 50_000, { it.simulationRuns }) { t, v -> t.copy(simulationRuns = v) },
+        teamInt("team.historyWeeks", 1, 104, { it.historyWeeks }) { t, v -> t.copy(historyWeeks = v) },
+        teamInt("team.minSamples", 3, get = { it.minSamples }) { t, v -> t.copy(minSamples = v) },
+        teamInt("team.deadlineRiskPercent", 1, 99, { it.deadlineRiskPercent }) { t, v -> t.copy(deadlineRiskPercent = v) },
     )
 
     private val byKey = FIELDS.associateBy { it.key }

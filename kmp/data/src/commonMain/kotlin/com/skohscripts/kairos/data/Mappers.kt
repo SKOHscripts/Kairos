@@ -16,6 +16,8 @@ import com.skohscripts.kairos.core.team.TeamEvent
 import com.skohscripts.kairos.core.team.TeamEventKind
 import com.skohscripts.kairos.core.team.TeamEventSource
 import com.skohscripts.kairos.core.team.TeamMember
+import com.skohscripts.kairos.core.team.forecast.ScenarioCodec
+import com.skohscripts.kairos.core.team.forecast.TeamScenario
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlin.time.Instant
@@ -24,6 +26,7 @@ import com.skohscripts.kairos.data.db.Note as NoteRow
 import com.skohscripts.kairos.data.db.Task as TaskRow
 import com.skohscripts.kairos.data.db.Team_event as EventRow
 import com.skohscripts.kairos.data.db.Team_member as MemberRow
+import com.skohscripts.kairos.data.db.Team_scenario as ScenarioRow
 import com.skohscripts.kairos.data.db.Task_dependency as DependencyRow
 import com.skohscripts.kairos.data.db.Time_block as BlockRow
 import com.skohscripts.kairos.data.db.Work_session as SessionRow
@@ -77,6 +80,11 @@ internal fun EventRow.toModel() = TeamEvent(
     source = TeamEventSource.fromCode(source),
     at = at.instant(),
 )
+
+internal fun ScenarioRow.toModel(): TeamScenario {
+    val decoded = ScenarioCodec.decode(modifications)
+    return TeamScenario(id, name, decoded.modifications, created_at.instant(), updated_at.instant(), decoded.ignored)
+}
 
 internal fun MemberRow.toModel() = TeamMember(
     id = id,

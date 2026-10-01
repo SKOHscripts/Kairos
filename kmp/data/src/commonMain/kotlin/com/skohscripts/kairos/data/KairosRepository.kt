@@ -17,6 +17,7 @@ import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskRecurrence
 import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
+import com.skohscripts.kairos.core.model.TeamSettings
 import com.skohscripts.kairos.core.team.MemberForm
 import com.skohscripts.kairos.core.team.QualifiedField
 import com.skohscripts.kairos.core.team.TeamEventKind
@@ -24,6 +25,10 @@ import com.skohscripts.kairos.core.team.TeamEventSource
 import com.skohscripts.kairos.core.team.TeamEvents
 import com.skohscripts.kairos.core.team.TeamMembers
 import com.skohscripts.kairos.core.team.Workspaces
+import com.skohscripts.kairos.core.team.forecast.IgnoredModification
+import com.skohscripts.kairos.core.team.forecast.Scenario
+import com.skohscripts.kairos.core.team.forecast.ScenarioCodec
+import com.skohscripts.kairos.core.team.forecast.ScenarioModification
 import com.skohscripts.kairos.data.db.KairosDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -574,11 +579,12 @@ class KairosRepository(
 
     /**
      * Supprime définitivement les données d'équipe : membres, absences, tâches
-     * `TEAM` avec leurs dépendances, leurs sessions et le journal ; toute tâche restante perd
+     * `TEAM` avec leurs dépendances, leurs sessions, le journal et les scénarios ; toute tâche restante perd
      * son assigné. Les réglages d'équipe (`settings.team`) sont gardés. La
      * sauvegarde préalable est faite par l'interface (aucun retour en arrière ici).
      */
     suspend fun clearTeamData() = write {
+        queries.deleteAllTeamScenarios()
         queries.deleteAllTeamEvents()
         queries.deleteDependenciesOfTeamTasks()
         queries.deleteSessionsOfTeamTasks()
@@ -586,6 +592,214 @@ class KairosRepository(
         queries.unassignAllTasks()
         queries.deleteAllMemberAbsences()
         queries.deleteAllTeamMembers()
+    }
+
+    // --- Équipe : scénarios « Et si… ? » (docs/spec/equipe-simulation.md § Scénarios) ----------
+
+    /**
+     * Enregistre un scénario : un nom nettoyé (vide : `null`, rien d'écrit) et la liste de ses
+     * modifications (JSON). Rien n'est vérifié contre les données : une modification qui ne s'applique
+     * plus est signalée au calcul et à [applyScenario], pas refusée ici.
+     */
+    suspend fun createScenario(name: String, modifications: List<ScenarioModification>): Long? {
+        val clean = name.trim()
+        if (clean.isEmpty()) return null
+        var id: Long? = null
+        write {
+            queries.insertTeamScenario(clean, ScenarioCodec.encode(modifications), now(), now())
+            id = queries.lastInsertedId().awaitAsOneOrNull()
+        }
+        return id
+    }
+
+    /** Renomme et remplace les modifications d'un scénario ; `false` s'il est inconnu ou si le nom est vide. */
+    suspend fun updateScenario(id: Long, name: String, modifications: List<ScenarioModification>): Boolean {
+        val clean = name.trim()
+        if (clean.isEmpty()) return false
+        var done = false
+        write {
+            if (state.value.teamScenarios.none { it.id == id }) return@write
+            queries.updateTeamScenario(clean, ScenarioCodec.encode(modifications), now(), id)
+            done = true
+        }
+        return done
+    }
+
+    /**
+     * Copie un scénario sous [name] (par défaut son nom : le libellé « copie » est un texte d'interface,
+     * que l'écran fournit) ; `null` s'il est inconnu. Seules les modifications lues sont copiées.
+     */
+    suspend fun duplicateScenario(id: Long, name: String? = null): Long? {
+        val source = state.value.teamScenarios.firstOrNull { it.id == id } ?: return null
+        return createScenario(name?.takeIf { it.isNotBlank() } ?: source.name, source.modifications)
+    }
+
+    suspend fun deleteScenario(id: Long) = write { queries.deleteTeamScenario(id) }
+
+    /**
+     * « Appliquer » un scénario aux données réelles : seulement ses modifications **réelles**
+     * ([Scenario.realChanges] : réaffectations, retraits de membre, absences, quotités, priorités,
+     * échéances, taux de focus), dans l'ordre, en **une seule transaction** : en cas d'erreur, rien n'est
+     * écrit. Les membres et les tâches hypothétiques ne sont **jamais créés**. Chaque changement de
+     * tâche est journalisé avec la source `scenario`. Une modification qui ne s'applique plus (tâche
+     * faite ou supprimée, membre archivé ou disparu, valeur hors bornes) est ignorée et rendue avec sa
+     * raison ; une modification déjà en place aussi ([Scenario.SkipReason.ALREADY_APPLIED]). Chaque
+     * modification voit l'effet des précédentes (la transaction tient son propre état de travail).
+     */
+    suspend fun applyScenario(id: Long): ApplyReport {
+        val scenario = state.value.teamScenarios.firstOrNull { it.id == id } ?: return ApplyReport(found = false)
+        val applied = ArrayList<ScenarioModification>()
+        val skipped = ArrayList<Scenario.Skipped>()
+        val notApplicable = ArrayList<ScenarioModification>()
+        write {
+            applied.clear()
+            skipped.clear()
+            notApplicable.clear()
+            // État de travail : `state` n'est relu qu'à la fin de la transaction.
+            val tasks = LinkedHashMap(state.value.tasks.associateBy { it.id })
+            var members = state.value.members
+            var absences = state.value.absences
+            var settings = state.value.settings
+            scenario.modifications.forEachIndexed { index, mod ->
+                if (!Scenario.isReal(mod)) {
+                    notApplicable += mod
+                    return@forEachIndexed
+                }
+                fun skip(reason: Scenario.SkipReason) {
+                    skipped += Scenario.Skipped(index, mod, reason)
+                }
+
+                /** Membre actif désigné ; sinon la raison est notée et rien n'est appliqué. */
+                fun activeMember(memberId: Long): com.skohscripts.kairos.core.team.TeamMember? {
+                    val m = members.firstOrNull { it.id == memberId }
+                    when {
+                        m == null -> skip(Scenario.SkipReason.MEMBER_NOT_FOUND)
+                        m.archived -> skip(Scenario.SkipReason.MEMBER_ARCHIVED)
+                        else -> return m
+                    }
+                    return null
+                }
+
+                /** Tâche d'équipe à faire désignée par son `teamUid` ; sinon la raison est notée. */
+                fun openTask(uid: String): Task? {
+                    val t = tasks.values.firstOrNull { it.teamUid == uid && it.space == TaskSpace.TEAM }
+                    when {
+                        t == null -> skip(Scenario.SkipReason.TASK_NOT_FOUND)
+                        t.status != TaskStatus.TODO -> skip(Scenario.SkipReason.TASK_NOT_OPEN)
+                        else -> return t
+                    }
+                    return null
+                }
+
+                when (mod) {
+                    is ScenarioModification.Reassign -> {
+                        val task = openTask(mod.taskUid) ?: return@forEachIndexed
+                        val target = mod.memberId
+                        if (target != null && activeMember(target) == null) return@forEachIndexed
+                        if (task.assigneeId == target) {
+                            skip(Scenario.SkipReason.ALREADY_APPLIED)
+                        } else {
+                            val next = task.copy(assigneeId = target, startedOn = null)
+                            updateRow(next)
+                            journalAssignment(task, next, TeamEventSource.SCENARIO)
+                            tasks[next.id] = next
+                            applied += mod
+                        }
+                    }
+
+                    is ScenarioModification.SetPriority -> {
+                        val task = openTask(mod.taskUid) ?: return@forEachIndexed
+                        when {
+                            mod.priority !in PRIORITY_VALUES -> skip(Scenario.SkipReason.INVALID_VALUE)
+                            task.priority == mod.priority -> skip(Scenario.SkipReason.ALREADY_APPLIED)
+                            else -> {
+                                val next = task.copy(priority = mod.priority)
+                                updateRow(next)
+                                journalQualification(task, next, TeamEventSource.SCENARIO)
+                                tasks[next.id] = next
+                                applied += mod
+                            }
+                        }
+                    }
+
+                    is ScenarioModification.SetDeadline -> {
+                        val task = openTask(mod.taskUid) ?: return@forEachIndexed
+                        if (task.deadline == mod.date) {
+                            skip(Scenario.SkipReason.ALREADY_APPLIED)
+                        } else {
+                            val next = task.copy(deadline = mod.date)
+                            updateRow(next)
+                            journalQualification(task, next, TeamEventSource.SCENARIO)
+                            tasks[next.id] = next
+                            applied += mod
+                        }
+                    }
+
+                    is ScenarioModification.AddAbsence -> {
+                        val member = activeMember(mod.memberId) ?: return@forEachIndexed
+                        when {
+                            !MemberForm.isValidAbsence(mod.start, mod.end) -> skip(Scenario.SkipReason.INVALID_VALUE)
+                            absences.any { it.memberId == member.id && it.start == mod.start && it.end == mod.end } ->
+                                skip(Scenario.SkipReason.ALREADY_APPLIED)
+                            else -> {
+                                queries.insertMemberAbsence(member.id, mod.start.toString(), mod.end.toString(), "", now())
+                                absences = absences + com.skohscripts.kairos.core.team.MemberAbsence(
+                                    id = queries.lastInsertedId().awaitAsOneOrNull() ?: 0L, memberId = member.id,
+                                    start = mod.start, end = mod.end, createdAt = clock.now(),
+                                )
+                                applied += mod
+                            }
+                        }
+                    }
+
+                    is ScenarioModification.SetAvailability -> {
+                        val member = activeMember(mod.memberId) ?: return@forEachIndexed
+                        when {
+                            mod.percent !in MemberForm.MIN_AVAILABILITY..MemberForm.MAX_AVAILABILITY -> skip(Scenario.SkipReason.INVALID_VALUE)
+                            member.availabilityPercent == mod.percent -> skip(Scenario.SkipReason.ALREADY_APPLIED)
+                            else -> {
+                                queries.updateTeamMember(
+                                    member.name, member.role, mod.percent.toLong(), member.hoursPerDay,
+                                    if (member.isSelf) 1L else 0L, now(), member.id,
+                                )
+                                members = members.map { if (it.id == member.id) it.copy(availabilityPercent = mod.percent) else it }
+                                applied += mod
+                            }
+                        }
+                    }
+
+                    is ScenarioModification.RemoveMember -> {
+                        val member = activeMember(mod.memberId) ?: return@forEachIndexed
+                        // Comme archiveMember : chaque tâche remise au backlog est journalisée, ici avec la source `scenario`.
+                        tasks.values.filter { TeamMembers.isOpenTeamTaskOf(it, member.id) }.forEach {
+                            journal(it, TeamEventKind.ASSIGNED, member.id.toString(), null, TeamEventSource.SCENARIO, memberId = null)
+                            tasks[it.id] = it.copy(assigneeId = null, startedOn = null)
+                        }
+                        queries.unassignTasksOf(now(), member.id)
+                        queries.setMemberArchived(1L, now(), member.id)
+                        members = members.map { if (it.id == member.id) it.copy(archived = true, isSelf = false) else it }
+                        applied += mod
+                    }
+
+                    is ScenarioModification.SetFocus -> {
+                        val current = (settings.team ?: TeamSettings()).focusFactor
+                        when {
+                            !mod.factor.isFinite() || mod.factor <= 0.0 || mod.factor > 1.0 -> skip(Scenario.SkipReason.INVALID_VALUE)
+                            current == mod.factor && settings.team != null -> skip(Scenario.SkipReason.ALREADY_APPLIED)
+                            else -> {
+                                settings = withTeamIdentity(settings.copy(team = (settings.team ?: TeamSettings()).copy(focusFactor = mod.factor)))
+                                queries.writeSettings(json.encodeToString(Settings.serializer(), settings))
+                                applied += mod
+                            }
+                        }
+                    }
+
+                    // Écartés plus haut par Scenario.isReal.
+                    is ScenarioModification.AddMember, is ScenarioModification.AddTasks -> notApplicable += mod
+                }
+            }
+        }
+        return ApplyReport(found = true, applied = applied, skipped = skipped, notApplicable = notApplicable, ignored = scenario.ignored)
     }
 
     private fun boundedAvailability(percent: Int): Long =
@@ -598,16 +812,17 @@ class KairosRepository(
      * identité, le dépôt en pose une (UUID, conservé si la base en a déjà une) :
      * le hasard reste hors de `core`, et rien n'est posé en mode solo.
      */
-    @OptIn(ExperimentalUuidApi::class)
     suspend fun updateSettings(settings: Settings) = write {
+        queries.writeSettings(json.encodeToString(Settings.serializer(), withTeamIdentity(settings)))
+    }
+
+    /** [settings] avec l'identité de l'équipe posée si elle manque (voir [updateSettings]). */
+    @OptIn(ExperimentalUuidApi::class)
+    private fun withTeamIdentity(settings: Settings): Settings {
         val team = settings.team
-        val complete = if (team != null && team.identity.isEmpty()) {
-            val identity = state.value.settings.team?.identity.orEmpty().ifEmpty { Uuid.random().toString() }
-            settings.copy(team = team.copy(identity = identity))
-        } else {
-            settings
-        }
-        queries.writeSettings(json.encodeToString(Settings.serializer(), complete))
+        if (team == null || team.identity.isNotEmpty()) return settings
+        val identity = state.value.settings.team?.identity.orEmpty().ifEmpty { Uuid.random().toString() }
+        return settings.copy(team = team.copy(identity = identity))
     }
 
     /**
@@ -624,6 +839,7 @@ class KairosRepository(
         queries.deleteAllTeamMembers()
         queries.deleteAllMemberAbsences()
         queries.deleteAllTeamEvents()
+        queries.deleteAllTeamScenarios()
         queries.deleteSettings()
         for (t in snapshot.tasks) {
             queries.insertTaskWithId(
@@ -646,6 +862,9 @@ class KairosRepository(
         }
         for (e in snapshot.teamEvents) {
             queries.insertTeamEventWithId(e.id, e.taskId, e.taskTitle, e.memberId, e.kind.code, e.fromValue, e.toValue, e.source.code, e.at.store())
+        }
+        for (sc in snapshot.teamScenarios) {
+            queries.insertTeamScenarioWithId(sc.id, sc.name, ScenarioCodec.encode(sc.modifications), sc.createdAt.store(), sc.updatedAt.store())
         }
         for (b in snapshot.timeBlocks) {
             queries.insertTimeBlockWithId(
@@ -792,6 +1011,7 @@ class KairosRepository(
         members = queries.allTeamMembers().awaitAsList().map { it.toModel() },
         absences = queries.allMemberAbsences().awaitAsList().map { it.toModel() },
         teamEvents = queries.allTeamEvents().awaitAsList().map { it.toModel() },
+        teamScenarios = queries.allTeamScenarios().awaitAsList().map { it.toModel() },
         settings = queries.readSettings().awaitAsOneOrNull()
             ?.let { runCatching { json.decodeFromString(Settings.serializer(), it) }.getOrNull() }
             ?: Settings(),
@@ -857,6 +1077,21 @@ data class TaskEdit(
 
 /** Nouveau titulaire d'une tâche d'équipe : [memberId] `null` = retour au backlog ; [keepInProgress] garde l'état « En cours ». */
 data class Reassignment(val memberId: Long?, val keepInProgress: Boolean = false)
+
+/**
+ * Ce que [KairosRepository.applyScenario] a fait : [applied] (changements écrits, dans l'ordre),
+ * [skipped] (ne s'appliquent plus, ou déjà en place, avec la raison et la position dans le
+ * scénario), [notApplicable] (membres et tâches hypothétiques, jamais créés, et modifications qui
+ * les désignent) et [ignored] (types inconnus à la lecture). [found] faux : scénario inconnu, rien
+ * n'a été fait.
+ */
+data class ApplyReport(
+    val found: Boolean,
+    val applied: List<ScenarioModification> = emptyList(),
+    val skipped: List<Scenario.Skipped> = emptyList(),
+    val notApplicable: List<ScenarioModification> = emptyList(),
+    val ignored: List<IgnoredModification> = emptyList(),
+)
 
 /** Contenu du dialogue de créneau : horaires locaux, deep work ou occupé, récurrence. */
 data class BlockEdit(

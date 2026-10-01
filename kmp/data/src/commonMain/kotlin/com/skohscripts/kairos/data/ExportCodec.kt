@@ -19,10 +19,13 @@ import com.skohscripts.kairos.core.team.TeamEventKind
 import com.skohscripts.kairos.core.team.TeamEventSource
 import com.skohscripts.kairos.core.team.TeamMember
 import com.skohscripts.kairos.core.team.Workspaces
+import com.skohscripts.kairos.core.team.forecast.ScenarioCodec
+import com.skohscripts.kairos.core.team.forecast.TeamScenario
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlin.time.Instant
 
 /**
@@ -106,6 +109,8 @@ private data class ExportFile(
     val members: List<MemberJson>? = null,
     val absences: List<AbsenceJson>? = null,
     val teamEvents: List<TeamEventJson>? = null,
+    // Scénarios « Et si… ? » (jalon E5) : même règle, nul donc omis en version 1.
+    val teamScenarios: List<ScenarioJson>? = null,
 ) {
     fun toSnapshot() = KairosSnapshot(
         tasks = tasks.map { it.toModel() },
@@ -121,6 +126,7 @@ private data class ExportFile(
         members = members.orEmpty().map { it.toModel() },
         absences = absences.orEmpty().map { it.toModel() },
         teamEvents = teamEvents.orEmpty().map { it.toModel() },
+        teamScenarios = teamScenarios.orEmpty().map { it.toModel() },
     )
 
     companion object {
@@ -144,6 +150,7 @@ private data class ExportFile(
                 members = if (team) s.members.map { MemberJson.from(it) } else null,
                 absences = if (team) s.absences.map { AbsenceJson.from(it) } else null,
                 teamEvents = if (team) s.teamEvents.map { TeamEventJson.from(it) } else null,
+                teamScenarios = if (team) s.teamScenarios.map { ScenarioJson.from(it) } else null,
             )
         }
     }
@@ -326,6 +333,31 @@ private data class TeamEventJson(
     companion object {
         fun from(e: TeamEvent) = TeamEventJson(
             e.id, e.taskId, e.taskTitle, e.memberId, e.kind.code, e.fromValue, e.toValue, e.source.code, e.at.toString(),
+        )
+    }
+}
+
+/**
+ * Scénario exporté : [modifications] est la liste JSON des modifications telle quelle (lisible dans
+ * le fichier), relue par `ScenarioCodec` (un type inconnu y est ignoré et signalé, jamais une erreur).
+ */
+@Serializable
+private data class ScenarioJson(
+    val id: Long,
+    val name: String,
+    val modifications: JsonArray = JsonArray(emptyList()),
+    val createdAt: String,
+    val updatedAt: String,
+) {
+    fun toModel(): TeamScenario {
+        val decoded = ScenarioCodec.decode(modifications.toString())
+        return TeamScenario(id, name, decoded.modifications, Instant.parse(createdAt), Instant.parse(updatedAt), decoded.ignored)
+    }
+
+    companion object {
+        fun from(s: TeamScenario) = ScenarioJson(
+            s.id, s.name, Json.parseToJsonElement(ScenarioCodec.encode(s.modifications)) as JsonArray,
+            s.createdAt.toString(), s.updatedAt.toString(),
         )
     }
 }

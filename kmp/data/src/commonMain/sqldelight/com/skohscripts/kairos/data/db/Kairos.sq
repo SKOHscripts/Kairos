@@ -127,6 +127,16 @@ CREATE TABLE team_event (
 CREATE INDEX team_event_task ON team_event(task_id);
 CREATE INDEX team_event_member ON team_event(member_id);
 
+-- Scénarios « Et si… ? » (jalon E5) : un nom et la liste JSON des modifications (ScenarioModification),
+-- appliquée à une copie des données, jamais aux données réelles.
+CREATE TABLE team_scenario (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    modifications TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
 -- Réglages : une seule ligne (id = 1), JSON de com.skohscripts.kairos.core.model.Settings.
 CREATE TABLE settings (
     id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -311,6 +321,26 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteAllTeamEvents:
 DELETE FROM team_event;
+
+-- Scénarios --------------------------------------------------------------------
+
+allTeamScenarios:
+SELECT * FROM team_scenario ORDER BY id;
+
+insertTeamScenarioWithId:
+INSERT INTO team_scenario VALUES (?, ?, ?, ?, ?);
+
+insertTeamScenario:
+INSERT INTO team_scenario (name, modifications, created_at, updated_at) VALUES (?, ?, ?, ?);
+
+updateTeamScenario:
+UPDATE team_scenario SET name = ?, modifications = ?, updated_at = ? WHERE id = ?;
+
+deleteTeamScenario:
+DELETE FROM team_scenario WHERE id = ?;
+
+deleteAllTeamScenarios:
+DELETE FROM team_scenario;
 
 -- Équipe : remises à zéro --------------------------------------------------------
 
