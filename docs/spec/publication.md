@@ -28,8 +28,11 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
 ### Comportement attendu (utilisateur)
 
 - Dans F-Droid, une fiche en **français et en anglais** : nom,
-  résumé d'une ligne, description, icône, cinq captures d'un téléphone
-  (Jour, Semaine, Statistiques, Notes, Réglages), notes de version.
+  résumé d'une ligne, description, icône, huit captures d'un téléphone
+  (Jour, Semaine, Statistiques, Notes, Réglages, puis, gestion d'équipe
+  activée : Suivi, Équipe avec la charge, Prévisions avec un résultat),
+  notes de version. La description présente aussi la gestion d'équipe,
+  facultative.
 - L'APK distribué par F-Droid est **le même** que celui des releases GitHub
   (même signature) : on passe de l'un à l'autre, ou on migre depuis Kairos 2,
   sans désinstaller ni perdre ses données.
@@ -74,7 +77,7 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
   du tag : `title.txt` (« Kairos »), `short_description.txt` (≤ 80),
   `full_description.txt` (≤ 4000, HTML simple `<b>`, `<ul>`, `<li>`),
   `changelogs/<versionCode>.txt` (≤ 500), `images/icon.png` (512 px,
-  `make_app_icons.py`), `images/phoneScreenshots/1.png` à `5.png`.
+  `make_app_icons.py`), `images/phoneScreenshots/1.png` à `8.png`.
 - La description ne cite aucune fonctionnalité retirée (TimeTree, GitLab…) et
   présente la formule du score, le placement dans la journée, le chrono et
   ses alertes, les statistiques, et l'absence de compte et de réseau.
@@ -92,15 +95,23 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
   rend hors écran (`ImageComposeScene`, comme l'auto-test) l'interface
   **Android** (`KairosApp(Platform.ANDROID, destination)` : barre basse,
   textes tactiles) en 1080 × 2400 px, densité 2,625 (téléphone de 411 dp de
-  large), pour Jour, Semaine, Statistiques, Notes et Réglages, en `fr-FR`
-  (`Locale.FRANCE`) puis `en-US` (`Locale.US`).
+  large), pour Jour, Semaine, Statistiques, Notes et Réglages (1 à 5), puis,
+  sur une base où la gestion d'équipe est activée, Suivi, Équipe (charge) et
+  Prévisions (6 à 8, `equipe.md`), en `fr-FR` (`Locale.FRANCE`) puis `en-US`
+  (`Locale.US`). Les captures 1 à 5 restent celles du mode solo : le jeu de
+  l'équipe vit dans une seconde base, pour que les écrans personnels
+  n'en montrent rien.
 - Données : une base en mémoire remplie d'un jeu réaliste dans la langue de la
   capture (fuite mémoire P0 au chrono en marche, démo, revue, stand-up épinglé
   à 9 h 30, tâche bloquée par la fuite, rapport fait ; six semaines
   d'historique avec échéances ; notes ; créneaux deep work, déjeuner, réunion ;
   aucune tâche « À traiter », qui masquerait « Maintenant » en haut de
   l'écran). Horloge figée au mardi 6 octobre 2026, 10 h 12, fuseau UTC, tirages
-  à graine fixe : deux exécutions donnent les mêmes images. Ce jeu n'est pas
+  à graine fixe : deux exécutions donnent les mêmes images. Jeu d'équipe
+  (captures 6 à 8) : trois membres dont « moi », une absence, une dizaine de
+  tâches d'équipe à divers états, un historique de tâches faites estimées et
+  chronométrées sur plusieurs semaines, dates relatives à la même horloge ;
+  la simulation de la capture 8 est calculée avant le rendu, à graine fixe. Ce jeu n'est pas
   livré dans l'application (ce ne sont pas les exemples).
 - `KairosApp` accepte pour cela une destination initiale
   (`initialDestination`, par défaut l'écran d'accueil habituel).
