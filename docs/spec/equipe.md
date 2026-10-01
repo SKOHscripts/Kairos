@@ -546,6 +546,13 @@ Tranchées le 2026-09-30 :
 - ~~E6 : partage direct Android~~ → **fichier seulement** : l'usage
   managérial est surtout sur ordinateur (`equipe-echanges.md`).
 
+Les décisions prises en codant les jalons E3 et E4 (clé de série sans
+l'assigné, pas de glisser-déposer, cartes du Suivi pleines, suppression
+d'un membre selon le journal, règles du plan de charge, suggestion jugée
+sur la fin de toute la file ; détail dans `equipe-backlog-suivi.md` et
+`equipe-charge.md`) ont été **validées par le propriétaire le
+2026-10-01**.
+
 Relevées en implémentant E1, tranchées le 2026-09-30, codées en E3 :
 
 - `Recurrence.calendarOccurrences` : la clé d'une série « le N du mois »
