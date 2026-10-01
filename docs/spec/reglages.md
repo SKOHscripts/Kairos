@@ -110,8 +110,8 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
 - État : textes du formulaire, erreurs et règle violée, réinitialisés quand
   les réglages enregistrés changent (import, migration) ; `dirty` = textes ≠
   valeurs enregistrées.
-- `SettingsFormCards` : `OutlinedCard` par section (titre marqué
-  `heading`), `SettingInput` : `OutlinedTextField` pleine largeur, clavier
+- `SettingsFormCards` : carte « filled » par section (`SettingsCard`, sans contour, `densite.md` ; titre marqué
+  `heading`), `SettingInput` : `OutlinedTextField` (largeur bornée à 320 dp pour un nombre, pleine largeur pour un texte), clavier
   numérique ou décimal, `supportingText` = erreur sinon aide ; `SwitchRow` :
   `Switch` dans une ligne `toggleable` (rôle interrupteur, 48 dp).
 - Bandeau de règle inter-champs : conteneur d'erreur et icône `Warning`

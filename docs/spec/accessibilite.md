@@ -34,7 +34,10 @@ pouvoir le toucher sans viser.
   des titres : on y saute avec le lecteur d'écran.
 - Cibles tactiles de 48 dp au moins (pastilles, interrupteurs, cases à
   cocher avec leur libellé, en-têtes dépliables), sauf la description
-  dépliable d'une ligne de tâche, dont toute la largeur se touche.
+  dépliable d'une ligne de tâche, dont toute la largeur se touche. C'est
+  l'**aire tactile** qui compte, pas la hauteur dessinée : un bouton de 36 dp,
+  une puce de 32 dp ou un segment de 40 dp restent touchables sur 48 dp
+  (`densite.md`, vérifié par `assertTouchHeightIsEqualTo(48.dp)`).
 - Textes et fonds : rôles MD3 du schéma généré (texte « on-… » sur son
   conteneur), qui garantissent le contraste ; jamais une information portée
   par la couleur seule (icône et texte avec, `statistiques.md`,
