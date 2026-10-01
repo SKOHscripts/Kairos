@@ -2,6 +2,13 @@ package com.skohscripts.kairos.ui.stats
 
 import com.skohscripts.kairos.ui.app.heading
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -200,9 +207,13 @@ private fun twoDecimals(x: Double): String {
     return "$whole.${cents.toString().padStart(2, '0')}"
 }
 
-/** Tuile de chiffre clé : la valeur en grand, son libellé dessous. Un seuil franchi prend un contour, jamais une couleur seule. */
+/**
+ * Tuile de chiffre clé : la valeur en grand, son libellé dessous. Un seuil franchi prend un contour, jamais une couleur seule.
+ * [note] : une mention secondaire en pastille à contour avec l'icône `Warning` (ce que le chiffre ne compte pas : les
+ * tâches non estimées de l'espace Équipe, docs/spec/equipe-charge.md).
+ */
 @Composable
-internal fun StatTile(value: String, label: String, modifier: Modifier, warn: Boolean = false) {
+internal fun StatTile(value: String, label: String, modifier: Modifier, warn: Boolean = false, note: String? = null) {
     val scheme = MaterialTheme.colorScheme
     Surface(
         color = scheme.surfaceContainerLow,
@@ -216,12 +227,25 @@ internal fun StatTile(value: String, label: String, modifier: Modifier, warn: Bo
                 Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Medium)
             }
             Text(label, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+            if (note != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    modifier = Modifier.padding(top = 8.dp)
+                        .border(1.dp, scheme.outline, MaterialTheme.shapes.small)
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                ) {
+                    Icon(KairosIcons.Warning, contentDescription = null, modifier = Modifier.size(12.dp))
+                    Text(note, style = MaterialTheme.typography.labelSmall)
+                }
+            }
         }
     }
 }
 
+/** Panneau à contour : icône et titre, une phrase d'aide, puis le contenu. Aussi utilisé par l'écran Équipe. */
 @Composable
-private fun Panel(icon: ImageVector, title: String, hint: String, content: @Composable () -> Unit) {
+internal fun Panel(icon: ImageVector, title: String, hint: String, content: @Composable () -> Unit) {
     OutlinedCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -234,18 +258,98 @@ private fun Panel(icon: ImageVector, title: String, hint: String, content: @Comp
     }
 }
 
-/** Barre horizontale : libellé, piste neutre remplie au primaire (bouts arrondis de 4 dp), valeur écrite. */
+/**
+ * Piste d'une barre : fond neutre de 12 dp, remplissage au primaire de [fraction] (0 à 1, bouts arrondis de 4 dp).
+ * [overflow] : part supplémentaire, à la suite du remplissage, en `error` (le dépassement d'une charge au-delà de la
+ * capacité, docs/spec/equipe-charge.md) ; [mark] : repère fin à cette fraction de la piste (la capacité). Sans
+ * [overflow] ni [mark], le tracé est celui des statistiques, inchangé.
+ */
 @Composable
-private fun BarRow(label: String, fraction: Float, value: String, warn: Boolean = false) {
+internal fun BarTrack(fraction: Float, modifier: Modifier = Modifier, overflow: Float = 0f, mark: Float? = null) {
     val scheme = MaterialTheme.colorScheme
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-        Text(label, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(96.dp))
-        Box(Modifier.weight(1f).height(12.dp).background(scheme.surfaceContainerHighest, RoundedCornerShape(4.dp))) {
+    if (overflow <= 0f && mark == null) {
+        Box(modifier.height(12.dp).background(scheme.surfaceContainerHighest, RoundedCornerShape(4.dp))) {
             Box(Modifier.fillMaxHeight().fillMaxWidth(fraction.coerceIn(0f, 1f)).background(scheme.primary, RoundedCornerShape(4.dp)))
         }
+        return
+    }
+    val ok = fraction.coerceIn(0f, 1f)
+    val over = overflow.coerceIn(0f, 1f - ok)
+    val rest = 1f - ok - over
+    val markColor = scheme.outline
+    Row(
+        modifier.height(12.dp).clip(RoundedCornerShape(4.dp)).background(scheme.surfaceContainerHighest).drawWithContent {
+            drawContent()
+            if (mark != null) {
+                val width = 2.dp.toPx()
+                drawRect(markColor, Offset((size.width * mark.coerceIn(0f, 1f) - width / 2).coerceIn(0f, size.width - width), 0f), Size(width, size.height))
+            }
+        },
+    ) {
+        if (ok > 0.001f) Box(Modifier.weight(ok).fillMaxHeight().background(scheme.primary))
+        if (over > 0.001f) Box(Modifier.weight(over).fillMaxHeight().background(scheme.error))
+        if (rest > 0.001f) Spacer(Modifier.weight(rest))
+    }
+}
+
+/**
+ * Barre horizontale : libellé, piste neutre remplie au primaire (bouts arrondis de 4 dp), valeur écrite.
+ *
+ * Extensions de l'espace Équipe (docs/spec/equipe-charge.md § Interface) : [overflow] et [mark] (voir [BarTrack]),
+ * [detail] (une ligne secondaire sous la barre) et [stackedWhenNarrow] (sous 420 dp, le libellé passe au-dessus de la
+ * barre pour lui laisser la place). Sans ces paramètres, la barre est celle des statistiques.
+ */
+@Composable
+internal fun BarRow(
+    label: String,
+    fraction: Float,
+    value: String,
+    warn: Boolean = false,
+    overflow: Float = 0f,
+    mark: Float? = null,
+    detail: String? = null,
+    stackedWhenNarrow: Boolean = false,
+) {
+    @Composable
+    fun Value() {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.widthIn(min = 110.dp, max = 200.dp)) {
             if (warn) Icon(KairosIcons.Warning, contentDescription = null, modifier = Modifier.size(14.dp).padding(end = 2.dp))
             Text(value, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+
+    @Composable
+    fun Line(stacked: Boolean) {
+        if (stacked) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
+                Text(label, style = MaterialTheme.typography.bodySmall)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    BarTrack(fraction, Modifier.weight(1f), overflow, mark)
+                    Value()
+                }
+            }
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                Text(label, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(96.dp))
+                BarTrack(fraction, Modifier.weight(1f), overflow, mark)
+                Value()
+            }
+        }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        if (stackedWhenNarrow) {
+            BoxWithConstraints(Modifier.fillMaxWidth()) { Line(stacked = maxWidth < 420.dp) }
+        } else {
+            Line(stacked = false)
+        }
+        if (detail != null) {
+            Text(
+                detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = if (stackedWhenNarrow) 0.dp else 108.dp),
+            )
         }
     }
 }

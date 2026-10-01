@@ -39,11 +39,14 @@ fun TeamTaskDialog(services: AppServices, taskId: Long, onDismiss: () -> Unit, i
     val scope = rememberCoroutineScope()
     val now = services.clock.now()
     val today = now.toLocalDateTime(TimeZone.currentSystemDefault()).date
-    val context = remember(snapshot, today) { AssignContext.of(snapshot, today) }
+    // La charge de chaque membre (menu « Assigner à… ») se calcule hors composition ; le menu s'en passe en attendant.
+    val load = rememberTeamLoad(services, snapshot).value
+    val context = remember(snapshot, today, load) { AssignContext.of(snapshot, today, load) }
     val estimates = remember(snapshot.tasks, snapshot.workSessions) { Estimates.of(snapshot.tasks, snapshot.workSessions, now) }
     val candidates = remember(snapshot.tasks) {
         snapshot.tasks.filter { it.space == TaskSpace.TEAM && it.status == TaskStatus.TODO }.sortedBy { it.title }
     }
+    val effort = remember(task, snapshot.tasks, snapshot.workSessions, snapshot.settings) { EffortInfo.of(task, snapshot, now) }
     EditTaskDialog(
         task = task,
         day = today,
@@ -59,6 +62,7 @@ fun TeamTaskDialog(services: AppServices, taskId: Long, onDismiss: () -> Unit, i
             assign = context,
             editable = true,
             today = today,
+            effort = effort,
             history = TeamEvents.historyOf(snapshot.teamEvents, taskId),
             initialHistory = initialHistory,
             onStart = { scope.launch { repository.startTeamTask(taskId) } },

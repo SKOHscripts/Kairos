@@ -139,7 +139,9 @@ fun TeamBoardScreen(services: AppServices) {
 
     val filter = TeamBoardFilter(category = category, memberId = memberId, onlyWatched = onlyWatched)
     val board = remember(snapshot, today, filter) { TeamBoard.build(snapshot, today, timeZone, filter) }
-    val context = remember(snapshot, today) { AssignContext.of(snapshot, today) }
+    // La charge de chaque membre (menu « Assigner à… ») se calcule hors composition ; le menu s'en passe en attendant.
+    val load = rememberTeamLoad(services, snapshot).value
+    val context = remember(snapshot, today, load) { AssignContext.of(snapshot, today, load) }
     val reassigner = rememberReassigner(repository)
     val wipLimit = (snapshot.settings.team ?: TeamSettings()).wipLimit
     val categories = remember(snapshot.tasks, snapshot.settings) {

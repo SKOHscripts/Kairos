@@ -67,6 +67,7 @@ ICONS = {
     "SwapHoriz": ("swap_horiz", False),
     "MoreVert": ("more_vert", False),
     "HourglassEmpty": ("hourglass_empty", False),
+    "Balance": ("balance", False),
 }
 
 

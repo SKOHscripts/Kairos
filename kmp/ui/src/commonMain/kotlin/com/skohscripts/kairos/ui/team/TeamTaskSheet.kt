@@ -29,12 +29,22 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskStatus
+import com.skohscripts.kairos.core.model.TeamSettings
+import com.skohscripts.kairos.core.team.Effort
+import com.skohscripts.kairos.core.team.EffortSource
 import com.skohscripts.kairos.core.team.TeamEvent
 import com.skohscripts.kairos.data.TaskEdit
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.assign_unassigned
+import com.skohscripts.kairos.ui.generated.resources.effort_calibrated
+import com.skohscripts.kairos.ui.generated.resources.effort_estimate
+import com.skohscripts.kairos.ui.generated.resources.effort_label
+import com.skohscripts.kairos.ui.generated.resources.effort_none
+import com.skohscripts.kairos.ui.generated.resources.effort_points
+import com.skohscripts.kairos.ui.generated.resources.effort_remaining
 import com.skohscripts.kairos.ui.generated.resources.field_assignee
 import com.skohscripts.kairos.ui.generated.resources.field_progress
 import com.skohscripts.kairos.ui.generated.resources.progress_percent
@@ -46,6 +56,39 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
+import kotlin.time.Instant
+
+/**
+ * L'effort d'une tâche d'équipe et d'où il vient (docs/spec/equipe-charge.md § Effort restant d'une tâche) :
+ * [hours] de base (`null` si [source] est `NONE`, tâche non estimée), [remainingHours] après avancement,
+ * [points] de la tâche, [calibratedCount] (n de la médiane réelle quand [source] est `CALIBRATED`) et
+ * [hoursPerPoint] des réglages.
+ */
+internal class EffortInfo(
+    val hours: Double?,
+    val remainingHours: Double?,
+    val source: EffortSource,
+    val points: Int?,
+    val calibratedCount: Int?,
+    val hoursPerPoint: Double,
+) {
+    companion object {
+        /** Lit l'effort de [task] dans [snapshot] : calibration de l'équipe, réglages. Léger : une seule passe sur les tâches faites. */
+        fun of(task: Task, snapshot: KairosSnapshot, now: Instant): EffortInfo {
+            val calibration = Effort.teamCalibration(snapshot, now)
+            val (hours, source) = Effort.base(task, calibration, snapshot.settings)
+            val points = task.fibonacciPoints
+            return EffortInfo(
+                hours = hours,
+                remainingHours = Effort.remaining(task, calibration, snapshot.settings).first,
+                source = source,
+                points = points,
+                calibratedCount = if (source == EffortSource.CALIBRATED) calibration.firstOrNull { it.key == points.toString() }?.count else null,
+                hoursPerPoint = (snapshot.settings.team ?: TeamSettings()).hoursPerPoint,
+            )
+        }
+    }
+}
 
 /**
  * Ce que la fiche d'une tâche ajoute pour une tâche d'équipe (docs/spec/equipe-backlog-suivi.md
@@ -65,6 +108,8 @@ internal class TeamTaskSheet(
     /** Ouvre la fiche sur l'onglet « Historique » (captures). */
     val initialHistory: Boolean = false,
     val onStart: () -> Unit = {},
+    /** Effort et sa source, sous « Assigné à » (espace Équipe seulement ; `null` : pas de ligne). */
+    val effort: EffortInfo? = null,
     /** Enregistrement d'équipe : l'édition, puis l'avancement (`null` = inchangé). */
     val onSave: (TaskEdit, Int?) -> Unit = { _, _ -> },
 )
@@ -124,6 +169,7 @@ internal fun TeamTaskFields(
             }
         }
     }
+    sheet.effort?.let { EffortLine(it) }
     if (!sheet.editable || !open || assignee == null) return
 
     // Avancement : seulement pour le titulaire actuel, l'avancement appartient à la tâche assignée.
@@ -157,5 +203,34 @@ internal fun TeamTaskFields(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+/**
+ * « Effort » : les heures et leur source, « 6 h, médiane des tâches à 3 points, n=8 », « 4 h, estimation »,
+ * « 6 h, 3 points × 2 h » ; « non estimée » (contour + icône `Warning`) pour une tâche sans durée ni points. Une
+ * tâche avancée ajoute ce qu'il reste (« · reste 3 h »).
+ */
+@Composable
+private fun EffortLine(effort: EffortInfo) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(stringResource(Res.string.effort_label), style = MaterialTheme.typography.labelLarge)
+        val hours = effort.hours
+        if (hours == null) {
+            Flag(stringResource(Res.string.effort_none), flagged = true, style = MaterialTheme.typography.bodyMedium)
+            return@Column
+        }
+        val base = hoursText(hours)
+        val text = when (effort.source) {
+            EffortSource.ESTIMATE -> stringResource(Res.string.effort_estimate, base)
+            EffortSource.CALIBRATED -> stringResource(Res.string.effort_calibrated, base, effort.points ?: 0, effort.calibratedCount ?: 0)
+            EffortSource.POINTS_RATE -> stringResource(Res.string.effort_points, base, effort.points ?: 0, decimalText(effort.hoursPerPoint, Locale.current.language))
+            EffortSource.NONE -> stringResource(Res.string.effort_none)
+        }
+        val remaining = effort.remainingHours
+        Text(
+            if (remaining != null && remaining < hours - 1e-9) stringResource(Res.string.effort_remaining, text, hoursText(remaining)) else text,
+            style = MaterialTheme.typography.bodyMedium,
+        )
     }
 }

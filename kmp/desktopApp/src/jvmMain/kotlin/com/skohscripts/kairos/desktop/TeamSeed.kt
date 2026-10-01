@@ -21,8 +21,10 @@ import kotlin.time.Instant
 
 /**
  * Équipe de démonstration de l'auto-test (docs/spec/distribution.md § Auto-test) :
- * trois membres et une vingtaine de tâches d'équipe à tous les états et avec tous
- * les signaux (en retard, sans avancement, ballottée, trop d'en-cours, bloquée), écrites
+ * trois membres (capacités différentes, une absence) et une vingtaine de tâches d'équipe à tous
+ * les états et avec tous les signaux (en retard, sans avancement, ballottée, trop d'en-cours,
+ * bloquée) ; pour la charge (jalon E4) des estimations en heures, un membre surchargé (Alex), un
+ * à surveiller (Sam), des échéances en danger et une tâche non estimée, écrites
  * par le dépôt avec une horloge qui remonte dans le temps : le journal de chaque tâche
  * porte des dates différentes. Base en mémoire, langue du système.
  */
@@ -48,7 +50,11 @@ object TeamSeed {
         val settings = repository.snapshot.value.settings
         repository.updateSettings(
             settings.copy(
-                team = TeamSettings(enabled = true, name = if (english) "Platform team" else "Équipe Plateforme", managerName = "Claire", lastSpace = TeamSettings.SPACE_TEAM),
+                // Horizon de 2 semaines : Alex y est surchargé, Sam à surveiller (jalon E4, docs/spec/equipe-charge.md).
+                team = TeamSettings(
+                    enabled = true, name = if (english) "Platform team" else "Équipe Plateforme", managerName = "Claire",
+                    lastSpace = TeamSettings.SPACE_TEAM, horizonWeeks = 2,
+                ),
             ),
         )
         val types = settings.taskTypeList.let { if (english) listOf("Development", "Code review", "Meeting", "Documentation") else it }
@@ -67,10 +73,16 @@ object TeamSeed {
             clock.fixed = at(daysAgo)
             return repository.createTeamTask(title)!!.also { ids[key] = it }
         }
-        suspend fun qualify(id: Long, title: String, priority: Int, points: Int, type: String, deadline: LocalDate? = null, blockers: Set<Long> = emptySet()) {
+        suspend fun qualify(
+            id: Long, title: String, priority: Int, points: Int, type: String, deadline: LocalDate? = null, blockers: Set<Long> = emptySet(),
+            estimateHours: Int? = null,
+        ) {
             repository.updateTask(
                 id,
-                TaskEdit(title = title, priority = priority, points = points, taskType = type, deadline = deadline, pinDay = today, blockerIds = blockers),
+                TaskEdit(
+                    title = title, priority = priority, points = points, taskType = type, deadline = deadline, pinDay = today,
+                    blockerIds = blockers, estimatedMinutes = estimateHours?.let { it * 60 },
+                ),
             )
         }
 
@@ -105,7 +117,7 @@ object TeamSeed {
         repository.setProgress(export, 30)
 
         val migration = create("migration", if (english) "Migrate the database to SQLite" else "Migration de la base vers SQLite", 14)
-        qualify(migration, if (english) "Migrate the database to SQLite" else "Migration de la base vers SQLite", 1, 8, dev)
+        qualify(migration, if (english) "Migrate the database to SQLite" else "Migration de la base vers SQLite", 1, 8, dev, estimateHours = 24)
         repository.assign(listOf(migration), alex)
         repository.setProgress(migration, 10)
 
@@ -151,9 +163,14 @@ object TeamSeed {
         clock.fixed = at(2)
         repository.toggleDone(budget)
 
+        // Assignée à « moi » sans points : « non estimée » (comptée à part dans la charge)
+        val tender = create("tender", if (english) "Answer the call for tenders" else "Répondre à l’appel d’offres", 1)
+        repository.setPriority(tender, 1)
+        repository.assign(listOf(tender), claire)
+
         // --- Sam : des maquettes en cours, un atelier qui en dépend
         val mockups = create("mockups", if (english) "Mock up the export screen" else "Maquettes de l’écran d’export", 6)
-        qualify(mockups, if (english) "Mock up the export screen" else "Maquettes de l’écran d’export", 1, 5, docs)
+        qualify(mockups, if (english) "Mock up the export screen" else "Maquettes de l’écran d’export", 1, 5, docs, estimateHours = 18)
         clock.fixed = at(5)
         repository.assign(listOf(mockups), sam)
         clock.fixed = at(1)

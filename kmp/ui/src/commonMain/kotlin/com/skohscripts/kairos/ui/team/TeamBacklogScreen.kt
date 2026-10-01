@@ -56,6 +56,7 @@ import com.skohscripts.kairos.core.engine.Scheduling
 import com.skohscripts.kairos.core.model.PRIORITY_VALUES
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskSpace
+import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.team.TeamBoard
 import com.skohscripts.kairos.core.team.TeamBoardFilter
 import com.skohscripts.kairos.core.team.TeamCard
@@ -99,6 +100,7 @@ import com.skohscripts.kairos.ui.generated.resources.filter_all
 import com.skohscripts.kairos.ui.generated.resources.filter_search
 import com.skohscripts.kairos.ui.generated.resources.filter_search_placeholder
 import com.skohscripts.kairos.ui.generated.resources.points_badge
+import com.skohscripts.kairos.ui.generated.resources.suggest_action
 import com.skohscripts.kairos.ui.generated.resources.priority_label
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.navigation.LocalWindowWidth
@@ -119,11 +121,14 @@ private val WIDE_WINDOW = 600.dp
  * Toucher une ligne ouvre la fiche ([TeamTaskDialog]) ; le menu ⋮ d'une ligne
  * assigne ou supprime. Les tâches capturées ici sont des tâches d'équipe : elles
  * n'entrent jamais dans la vue Jour tant qu'elles ne sont pas assignées à « moi ».
- * [initialSelection] ouvre l'écran avec des lignes déjà sélectionnées (captures).
+ * « Suggérer une répartition » ouvre la [SuggestionSheet] (sur la sélection multiple
+ * quand il y en a une, sinon sur tout le backlog prêt).
+ * [initialSelection] ouvre l'écran avec des lignes déjà sélectionnées et
+ * [initialSuggestion] avec la suggestion ouverte (captures).
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = emptySet()) {
+fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = emptySet(), initialSuggestion: Boolean = false) {
     val repository = services.repository
     val snapshot by repository.snapshot.collectAsState()
     val scope = rememberCoroutineScope()
@@ -140,10 +145,15 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
     var deleteId by rememberSaveable { mutableStateOf<Long?>(null) }
     var selection by remember { mutableStateOf(initialSelection) }
     val capture = remember { CaptureState() }
+    // « Suggérer une répartition » : ouverte sur toute la file prête (`null`) ou sur la sélection multiple en cours.
+    var suggestOpen by rememberSaveable { mutableStateOf(initialSuggestion) }
+    var suggestIds by remember { mutableStateOf<Set<Long>?>(null) }
 
     val filter = TeamBoardFilter(text = text, category = category, priority = priority, withDeadline = withDeadline)
     val board = remember(snapshot, today, filter) { TeamBoard.build(snapshot, today, timeZone, filter) }
-    val context = remember(snapshot, today) { AssignContext.of(snapshot, today) }
+    // La charge de chaque membre (menu « Assigner à… ») se calcule hors composition ; le menu s'en passe en attendant.
+    val load = rememberTeamLoad(services, snapshot).value
+    val context = remember(snapshot, today, load) { AssignContext.of(snapshot, today, load) }
     val unfiltered = filter == TeamBoardFilter()
     val visibleIds = remember(board) { (board.toQualify + board.ready).mapTo(HashSet()) { it.task.id } }
     // Une tâche assignée ou supprimée sort de la sélection.
@@ -171,6 +181,11 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
                     onEditBlock = {},
                     taskOnly = true,
                 )
+            }
+            if (!selecting && snapshot.tasks.any { it.space == TaskSpace.TEAM && it.status == TaskStatus.TODO && it.assigneeId == null && !it.needsProcessing }) {
+                item(key = "suggest") {
+                    SuggestButton { suggestIds = null; suggestOpen = true }
+                }
             }
             item(key = "filters") {
                 BacklogFilters(
@@ -224,6 +239,7 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
                 categories = categories,
                 onClear = { selection = emptySet() },
                 onAssign = { member -> scope.launch { repository.assign(selected.toList(), member) }; selection = emptySet() },
+                onSuggest = { suggestIds = selected; suggestOpen = true },
                 onCategory = { type -> scope.launch { selected.forEach { repository.setTaskType(it, type) } }; selection = emptySet() },
                 onPriority = { p -> scope.launch { selected.forEach { repository.setPriority(it, p) } }; selection = emptySet() },
                 modifier = Modifier.align(Alignment.BottomCenter).widthIn(max = 840.dp),
@@ -231,6 +247,12 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
         }
     }
 
+    if (suggestOpen) {
+        SuggestionSheet(services, suggestIds) {
+            suggestOpen = false
+            // Les lignes assignées sortent de la sélection d'elles-mêmes ; le reste de la sélection est gardé.
+        }
+    }
     openId?.let { id -> TeamTaskDialog(services, id, onDismiss = { openId = null }) }
     deleteId?.let { id ->
         val task = snapshot.tasks.firstOrNull { it.id == id }
@@ -413,6 +435,7 @@ private fun SelectionBar(
     categories: List<String>,
     onClear: () -> Unit,
     onAssign: (Long?) -> Unit,
+    onSuggest: () -> Unit,
     onCategory: (String) -> Unit,
     onPriority: (Int?) -> Unit,
     modifier: Modifier = Modifier,
@@ -440,6 +463,10 @@ private fun SelectionBar(
                     }
                     AssignMenu(assign, { assign = false }, context, currentId = null, showBacklog = false, onPick = onAssign)
                 }
+                OutlinedButton(onClick = onSuggest) {
+                    Icon(KairosIcons.Balance, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(stringResource(Res.string.suggest_action), modifier = Modifier.padding(start = 6.dp))
+                }
                 Box {
                     OutlinedButton(onClick = { category = true }) { Text(stringResource(Res.string.backlog_bulk_category)) }
                     DropdownMenu(expanded = category, onDismissRequest = { category = false }) {
@@ -461,6 +488,15 @@ private fun SelectionBar(
                 }
             }
         }
+    }
+}
+
+/** « Suggérer une répartition » : bouton à contour (l'action principale de l'écran reste la capture, au-dessus). */
+@Composable
+private fun SuggestButton(onClick: () -> Unit) {
+    OutlinedButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp)) {
+        Icon(KairosIcons.Balance, contentDescription = null, modifier = Modifier.size(18.dp))
+        Text(stringResource(Res.string.suggest_action), modifier = Modifier.padding(start = 6.dp))
     }
 }
 

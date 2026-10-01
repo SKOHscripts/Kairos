@@ -23,7 +23,9 @@ import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TeamSettings
+import com.skohscripts.kairos.core.team.LoadLevel
 import com.skohscripts.kairos.core.team.MemberAbsence
+import com.skohscripts.kairos.core.team.TeamLoad
 import com.skohscripts.kairos.core.team.TeamMember
 import com.skohscripts.kairos.core.team.TeamMembers
 import com.skohscripts.kairos.core.team.TeamSignals
@@ -31,6 +33,9 @@ import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.assign_absent_today
 import com.skohscripts.kairos.ui.generated.resources.assign_backlog
 import com.skohscripts.kairos.ui.generated.resources.assign_in_progress
+import com.skohscripts.kairos.ui.generated.resources.assign_in_progress_load
+import com.skohscripts.kairos.ui.generated.resources.assign_load_over
+import com.skohscripts.kairos.ui.generated.resources.assign_load_watch
 import com.skohscripts.kairos.ui.generated.resources.assign_over_limit
 import com.skohscripts.kairos.ui.generated.resources.keep_in_progress_body
 import com.skohscripts.kairos.ui.generated.resources.keep_in_progress_no
@@ -42,12 +47,16 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.stringResource
 
+/** Charge d'un membre telle que le menu la montre : taux en % (`null` si sa capacité est nulle) et niveau. */
+internal class MemberRate(val percent: Double?, val level: LoadLevel)
+
 /**
  * Ce que le menu « Assigner à… » sait des membres (docs/spec/equipe-backlog-suivi.md
  * § Assignation et réaffectation) : qui est actif, combien de tâches il a en
  * cours, s'il dépasse la limite d'en-cours des réglages, s'il est absent
- * aujourd'hui. Lit la base **complète** (écrans d'équipe). La charge en % arrive
- * avec le jalon E4 (`equipe-charge.md`).
+ * aujourd'hui, et, une fois calculée hors composition (`rememberTeamLoad`), sa
+ * charge en % ([rates], docs/spec/equipe-charge.md). Sans charge calculée, le
+ * menu n'a que les signaux d'avant. Lit la base **complète** (écrans d'équipe).
  */
 internal class AssignContext(
     val members: List<TeamMember>,
@@ -55,6 +64,7 @@ internal class AssignContext(
     private val absences: List<MemberAbsence>,
     private val settings: Settings,
     private val today: LocalDate,
+    private val rates: Map<Long, MemberRate> = emptyMap(),
 ) {
     /** Membres proposés : actifs, « moi » en tête puis l'ordre de `TeamMembers`. */
     val active: List<TeamMember> = TeamMembers.active(members)
@@ -66,6 +76,9 @@ internal class AssignContext(
 
     fun overLimit(memberId: Long): Boolean = TeamSignals.wipExceeded(tasks, memberId, settings)
 
+    /** Charge du membre sur l'horizon des réglages ; `null` tant qu'elle n'est pas calculée. */
+    fun rate(memberId: Long): MemberRate? = rates[memberId]
+
     fun absentToday(memberId: Long): Boolean =
         TeamMembers.nextAbsence(absences, memberId, today)?.let { it.start <= today } == true
 
@@ -76,16 +89,19 @@ internal class AssignContext(
     fun nameOrNull(id: Long?): String? = id?.let { members.firstOrNull { m -> m.id == it }?.name }
 
     companion object {
-        fun of(snapshot: KairosSnapshot, today: LocalDate) =
-            AssignContext(snapshot.members, snapshot.tasks, snapshot.absences, snapshot.settings, today)
+        fun of(snapshot: KairosSnapshot, today: LocalDate, load: TeamLoad? = null) =
+            AssignContext(
+                snapshot.members, snapshot.tasks, snapshot.absences, snapshot.settings, today,
+                load?.members?.associate { it.member.id to MemberRate(it.ratePercent, it.level) }.orEmpty(),
+            )
     }
 }
 
 /**
  * Menu « Assigner à… » : les membres actifs (« moi » en tête), chacun avec son
- * nombre de tâches en cours ; un membre qui dépasse la limite d'en-cours ou qui
- * est absent aujourd'hui porte un contour et l'icône `Warning` (jamais une
- * couleur seule). [currentId] : titulaire actuel (coché) ; [showBacklog] ajoute
+ * nombre de tâches en cours et sa charge en % ; un membre qui dépasse la limite
+ * d'en-cours, qui est absent aujourd'hui, ou dont la charge est à surveiller ou
+ * dépassée porte un contour et l'icône `Warning` (jamais une couleur seule). [currentId] : titulaire actuel (coché) ; [showBacklog] ajoute
  * « Remettre au backlog » en dernière entrée. Entrées de 48 dp au moins.
  */
 @Composable
@@ -111,12 +127,17 @@ internal fun ColumnScope.AssignMenuItems(context: AssignContext, currentId: Long
     context.active.forEach { member ->
         val over = context.overLimit(member.id)
         val absent = context.absentToday(member.id)
-        val alert = when {
-            over && absent -> "${stringResource(Res.string.assign_over_limit, context.wipLimit)} · ${stringResource(Res.string.assign_absent_today)}"
-            over -> stringResource(Res.string.assign_over_limit, context.wipLimit)
-            absent -> stringResource(Res.string.assign_absent_today)
-            else -> null
-        }
+        val rate = context.rate(member.id)
+        val percent = rate?.let { percentText(it.percent) }
+        val alert = listOfNotNull(
+            if (over) stringResource(Res.string.assign_over_limit, context.wipLimit) else null,
+            if (absent) stringResource(Res.string.assign_absent_today) else null,
+            when (rate?.level) {
+                LoadLevel.WATCH -> stringResource(Res.string.assign_load_watch, percent.orEmpty())
+                LoadLevel.OVERLOADED -> stringResource(Res.string.assign_load_over, percent.orEmpty())
+                else -> null
+            },
+        ).joinToString(" · ").ifEmpty { null }
         DropdownMenuItem(
             text = {
                 Column(
@@ -139,7 +160,11 @@ internal fun ColumnScope.AssignMenuItems(context: AssignContext, currentId: Long
                         }
                     }
                     Text(
-                        stringResource(Res.string.assign_in_progress, context.inProgress(member.id)),
+                        if (percent == null) {
+                            stringResource(Res.string.assign_in_progress, context.inProgress(member.id))
+                        } else {
+                            stringResource(Res.string.assign_in_progress_load, context.inProgress(member.id), percent)
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

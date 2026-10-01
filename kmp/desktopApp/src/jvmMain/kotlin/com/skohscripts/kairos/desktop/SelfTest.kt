@@ -123,6 +123,7 @@ object SelfTest {
         val seeded = runBlocking { TeamSeed.open(english = java.util.Locale.getDefault().language == "en") }
         val board = seeded.services
         val billing = seeded.ids.getValue("billing")
+        val alexId = board.repository.snapshot.value.members.first { it.name.startsWith("Alex") }.id
         fun atWidth(width: Dp, content: @Composable () -> Unit): @Composable () -> Unit = {
             CompositionLocalProvider(LocalWindowWidth provides width) { KairosTheme { Surface { content() } } }
         }
@@ -174,6 +175,13 @@ object SelfTest {
             Shot("team-board-narrow", 360, 3000, atWidth(360.dp) { TeamBoardScreen(board) }),
             Shot("team-member-activity", 900, 1400, atWidth(900.dp) { TeamMembersScreen(board, initialSheetMemberId = board.repository.snapshot.value.members.first { it.name.startsWith("Alex") }.id) }),
             Shot("team-member-activity-narrow", 360, 1800, atWidth(360.dp) { TeamMembersScreen(board, initialSheetMemberId = board.repository.snapshot.value.members.first { it.name.startsWith("Alex") }.id) }),
+            // Jalon E4 : la destination Équipe avec la charge (tuiles, barres, panneaux), la fiche d'un membre avec sa charge, la suggestion.
+            Shot("team-load", 1200, 1350, atWidth(1200.dp) { TeamMembersScreen(board) }),
+            Shot("team-load-narrow", 360, 1900, atWidth(360.dp) { TeamMembersScreen(board) }),
+            Shot("team-member-load", 900, 1950, atWidth(900.dp) { TeamMembersScreen(board, initialSheetMemberId = alexId) }),
+            Shot("team-member-load-narrow", 360, 1950, atWidth(360.dp) { TeamMembersScreen(board, initialSheetMemberId = alexId) }),
+            Shot("team-suggestion", 1200, 1300, atWidth(1200.dp) { TeamBacklogScreen(board, initialSuggestion = true) }),
+            Shot("team-suggestion-narrow", 360, 900, atWidth(360.dp) { TeamBacklogScreen(board, initialSuggestion = true) }),
             Shot("team-task-sheet", 900, 1100, taskSheet(900.dp)),
             Shot("team-task-sheet-narrow", 360, 1100, taskSheet(360.dp)),
             Shot("team-task-sheet-details", 900, 1500, taskSheet(900.dp, history = false)),
@@ -191,6 +199,9 @@ object SelfTest {
         1
     }
 
+    /** Nombre maximal d'images (de 100 ms) attendues après le rendu initial pour que les calculs asynchrones aboutissent. */
+    private const val MAX_SETTLE_FRAMES = 80
+
     private data class Shot(val name: String, val width: Int, val height: Int, val content: @Composable () -> Unit)
 
     private fun render(width: Int, height: Int, content: @Composable () -> Unit): ByteArray {
@@ -199,7 +210,18 @@ object SelfTest {
             // Plusieurs images : laisse le temps aux ressources (polices, chaînes) de se charger.
             var image = scene.render(0)
             for (frame in 1..10) image = scene.render(frame * 100_000_000L)
-            return requireNotNull(image.encodeToData(EncodedImageFormat.PNG)) { "encodage PNG" }.bytes
+            var png = requireNotNull(image.encodeToData(EncodedImageFormat.PNG)) { "encodage PNG" }.bytes
+            // Les calculs lourds de l'espace Équipe (charge, suggestion) se font hors composition, en temps réel :
+            // on attend que l'image ne change plus (l'indicateur de progression, animé, la fait changer tant que ça calcule).
+            var stable = 0
+            var frame = 11
+            while (stable < 2 && frame < 11 + MAX_SETTLE_FRAMES) {
+                Thread.sleep(100)
+                val next = requireNotNull(scene.render(frame++ * 100_000_000L).encodeToData(EncodedImageFormat.PNG)) { "encodage PNG" }.bytes
+                stable = if (next.contentEquals(png)) stable + 1 else 0
+                png = next
+            }
+            return png
         } finally {
             scene.close()
         }

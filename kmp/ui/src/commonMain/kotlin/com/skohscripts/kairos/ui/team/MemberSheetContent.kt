@@ -102,6 +102,8 @@ private class AbsenceTarget(val existing: MemberAbsence?)
  * l'aide ; les absences s'enregistrent une à une ([onAddAbsence],
  * [onUpdateAbsence], [onDeleteAbsence]). [canDelete] : le membre n'a jamais eu
  * de tâche ; [openTaskCount] : tâches ouvertes qu'un archivage remet au backlog.
+ * [loadView] ajoute, après les champs, la section « Charge » du jalon E4
+ * (`equipe-charge.md` : capacité, charge par semaine et par catégorie, tâches du plan).
  */
 @Composable
 fun MemberSheetContent(
@@ -124,6 +126,8 @@ fun MemberSheetContent(
     activity: List<TeamEvent> = emptyList(),
     /** Tous les membres, pour nommer les titulaires cités dans l'activité. */
     members: List<TeamMember> = emptyList(),
+    /** Charge du membre sur l'horizon (section « Charge », membre actif seulement ; `null` : pas de section). */
+    loadView: MemberLoadView? = null,
 ) {
     var input by remember(member?.id) { mutableStateOf(if (member == null) MemberForm.newInput(settings) else MemberForm.inputOf(member)) }
     var isSelf by remember(member?.id) { mutableStateOf(member?.isSelf == true) }
@@ -224,6 +228,10 @@ fun MemberSheetContent(
                 }
 
                 if (member != null) {
+                    if (loadView != null && !archived) {
+                        HorizontalDivider()
+                        MemberLoadSection(loadView, today)
+                    }
                     HorizontalDivider()
                     AbsencesSection(absences, today, onAdd = { editing = AbsenceTarget(null) }, onEdit = { editing = AbsenceTarget(it) }, onDelete = onDeleteAbsence)
                     HorizontalDivider()
