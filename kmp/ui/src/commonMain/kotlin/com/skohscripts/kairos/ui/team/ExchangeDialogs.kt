@@ -120,7 +120,7 @@ import org.jetbrains.compose.resources.stringResource
 // paquet ou un rapport, ouvre l'un de ces dialogues AVANT d'écrire quoi que ce soit.
 
 /** Ce que le bouton « Importer » a reconnu dans le fichier choisi. */
-internal sealed interface ImportedFile {
+sealed interface ImportedFile {
     /** Export complet : il remplace toutes les données, après confirmation (comportement historique). */
     class Full(val snapshot: KairosSnapshot) : ImportedFile
 
@@ -129,7 +129,7 @@ internal sealed interface ImportedFile {
 }
 
 /** Aperçu d'un fichier d'échange : le texte à appliquer et le plan calculé, sans rien écrire. */
-internal sealed interface ExchangePreview {
+sealed interface ExchangePreview {
     /** Paquet reçu (côté membre). */
     class Pack(val text: String, val plan: PackMergePlan) : ExchangePreview
 
@@ -149,7 +149,7 @@ internal sealed interface ExchangePreview {
  * [ImportedFile.Full] ; paquet ou rapport → aperçu, sans écriture.
  * @throws ImportException fichier illisible, trop récent ou d'un autre format.
  */
-internal fun readImportedFile(services: AppServices, text: String): ImportedFile = when (TeamExchangeCodec.detect(text)) {
+fun readImportedFile(services: AppServices, text: String): ImportedFile = when (TeamExchangeCodec.detect(text)) {
     TeamExchangeCodec.Kind.EXPORT -> ImportedFile.Full(ExportCodec.decode(text))
     TeamExchangeCodec.Kind.PACK -> ImportedFile.Exchange(ExchangePreview.Pack(text, services.repository.previewPack(text)))
     TeamExchangeCodec.Kind.REPORT -> {
@@ -207,7 +207,7 @@ internal fun ExchangePreviewDialog(preview: ExchangePreview, onConfirm: () -> Un
  * « Intégrer » (rapport). Un fichier refusé, ou un paquet déjà reçu tel quel, n'a que « Fermer ».
  */
 @Composable
-internal fun ExchangePreviewCard(preview: ExchangePreview, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun ExchangePreviewCard(preview: ExchangePreview, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     val title: String
     val body: @Composable () -> Unit
     when (preview) {

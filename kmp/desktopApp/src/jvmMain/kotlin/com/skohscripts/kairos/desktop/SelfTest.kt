@@ -30,6 +30,8 @@ import com.skohscripts.kairos.ui.team.TeamBacklogScreen
 import com.skohscripts.kairos.ui.team.TeamBoardScreen
 import com.skohscripts.kairos.ui.team.TeamMembersScreen
 import com.skohscripts.kairos.ui.team.TeamTaskDialog
+import com.skohscripts.kairos.ui.team.ExchangePreview
+import com.skohscripts.kairos.ui.team.ExchangePreviewCard
 import com.skohscripts.kairos.ui.team.forecast.ComparisonRun
 import com.skohscripts.kairos.ui.team.forecast.ForecastRun
 import com.skohscripts.kairos.ui.team.forecast.ForecastScreen
@@ -171,6 +173,19 @@ object SelfTest {
                 ) { ScenarioEditorContent(forecastSnapshot, reinforcement, seeded.today, compact) }
             }
         }
+        // Jalon E6 (docs/spec/equipe-echanges.md) : aperçus de réception et d'intégration, fiche membre avec ses échanges, vue Jour
+        // d'un membre qui a reçu des tâches (marque « de Claire », « retirée par Claire »), Réglages avec « Renvoyer l'avancement… ».
+        val exchange = runBlocking { exchangeSeed(dataDir, english = java.util.Locale.getDefault().language == "en") }
+        fun exchangeCard(preview: ExchangePreview): @Composable () -> Unit = {
+            KairosTheme {
+                Box(
+                    Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f).compositeOver(MaterialTheme.colorScheme.surface)),
+                    contentAlignment = Alignment.Center,
+                ) { ExchangePreviewCard(preview, onConfirm = {}, onDismiss = {}) }
+            }
+        }
+        val memberApp: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { exchange.member } }
+        val memberSettings: @Composable () -> Unit = { KairosTheme { Surface { SettingsScreen(exchange.member) {} } } }
         val teamApp: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { team } }
         val teamSettings: @Composable () -> Unit = { KairosTheme { Surface { SettingsScreen(team) {} } } }
         val notes: @Composable () -> Unit = { KairosTheme { Surface { NotesScreen(services) {} } } }
@@ -194,6 +209,16 @@ object SelfTest {
             Shot("team", 1200, 1000, teamApp),
             Shot("team-narrow", 360, 800, teamApp),
             Shot("team-settings", 900, 5600, teamSettings),
+            // Jalon E6 : échanges par fichier (aperçu d'un paquet, d'un rapport ; fiche membre ; vue Jour du membre ; Réglages du membre).
+            Shot("team-exchange-pack", 900, 1100, exchangeCard(exchange.packPreview)),
+            Shot("team-exchange-pack-narrow", 360, 1300, exchangeCard(exchange.packPreview)),
+            Shot("team-exchange-report", 900, 1000, exchangeCard(exchange.reportPreview)),
+            Shot("team-exchange-report-narrow", 360, 1300, exchangeCard(exchange.reportPreview)),
+            Shot("team-exchange-sheet", 900, 1950, atWidth(900.dp) { TeamMembersScreen(exchange.manager, initialSheetMemberId = exchange.alexId) }),
+            Shot("team-exchange-sheet-narrow", 360, 2100, atWidth(360.dp) { TeamMembersScreen(exchange.manager, initialSheetMemberId = exchange.alexId) }),
+            Shot("exchange-day", 1200, 1700, memberApp),
+            Shot("exchange-day-narrow", 420, 2600, memberApp),
+            Shot("exchange-settings", 900, 4900, memberSettings),
             // Écran Équipe du jalon E2 : large, puis 360 dp ; fiche membre (dialogue, plein écran) et éditeur d'absence.
             Shot("team-members", 1200, 1000, membersScreen),
             Shot("team-members-narrow", 360, 1000, membersScreen),
