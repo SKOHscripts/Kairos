@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosSegmentedButton
+import com.skohscripts.kairos.ui.theme.KairosSegmentedRow
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,13 +11,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -52,7 +53,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -183,7 +183,7 @@ fun TeamMembersScreen(
 
 @Composable
 private fun AddMemberButton(onClick: () -> Unit) {
-    Button(onClick = onClick) {
+    KairosButton(onClick = onClick, contentPadding = KairosButtonIconPadding) {
         Icon(KairosIcons.PersonAdd, contentDescription = null, modifier = Modifier.size(18.dp))
         Text(stringResource(Res.string.team_members_add), modifier = Modifier.padding(start = 6.dp))
     }
@@ -297,15 +297,15 @@ private fun HorizonSelector(horizon: Int, settingsHorizon: Int, computing: Boole
     val computingText = stringResource(Res.string.load_computing)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().semantics { contentDescription = title }) {
+        KairosSegmentedRow(Modifier.fillMaxWidth().semantics { contentDescription = title }) {
             options.forEachIndexed { index, weeks ->
                 val description = weeksText(weeks)
-                SegmentedButton(
+                KairosSegmentedButton(
                     selected = weeks == horizon,
                     onClick = { onSelect(weeks) },
                     shape = SegmentedButtonDefaults.itemShape(index, options.size),
                     label = { Text(stringResource(Res.string.load_horizon_option, weeks), maxLines = 1) },
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp).semantics { contentDescription = description },
+                    modifier = Modifier.semantics { contentDescription = description },
                 )
             }
         }

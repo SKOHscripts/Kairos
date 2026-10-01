@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.app
 
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -9,7 +10,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -92,8 +92,8 @@ fun UpdateBanner(services: AppServices, modifier: Modifier = Modifier) {
                 stringResource(Res.string.update_banner, available.version, KairosBuild.VERSION_NAME),
                 style = MaterialTheme.typography.bodyMedium,
             )
-            TextButton(onClick = { runCatching { uri.openUri(available.url) } }) { Text(stringResource(Res.string.update_download)) }
-            TextButton(onClick = { updates.dismiss(available.version) }) { Text(stringResource(Res.string.update_later)) }
+            KairosTextButton(onClick = { runCatching { uri.openUri(available.url) } }) { Text(stringResource(Res.string.update_download)) }
+            KairosTextButton(onClick = { updates.dismiss(available.version) }) { Text(stringResource(Res.string.update_later)) }
         }
     }
 }

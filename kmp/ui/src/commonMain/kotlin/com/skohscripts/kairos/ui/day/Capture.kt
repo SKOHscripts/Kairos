@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosSegmentedButton
+import com.skohscripts.kairos.ui.theme.KairosSegmentedRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,15 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -92,13 +93,13 @@ internal fun Capture(
                 Text(stringResource(Res.string.capture_title), style = MaterialTheme.typography.titleMedium)
                 if (showShortcuts) KeyHint("N")
             }
-            if (!taskOnly) SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                SegmentedButton(
+            if (!taskOnly) KairosSegmentedRow(Modifier.fillMaxWidth()) {
+                KairosSegmentedButton(
                     selected = !state.blockMode,
                     onClick = { state.blockMode = false },
                     shape = SegmentedButtonDefaults.itemShape(0, 2),
                 ) { Text(stringResource(Res.string.capture_mode_task)) }
-                SegmentedButton(
+                KairosSegmentedButton(
                     selected = state.blockMode,
                     onClick = { state.blockMode = true },
                     shape = SegmentedButtonDefaults.itemShape(1, 2),
@@ -108,12 +109,12 @@ internal fun Capture(
                 val form = remember(day) { BlockFormState.empty(day) }
                 BlockFields(form)
                 val edit = form.edit()
-                Button(enabled = edit != null, onClick = {
+                KairosButton(enabled = edit != null, onClick = {
                     edit?.let(onAddBlock)
                     form.title = ""
                     form.start = ""
                     form.end = ""
-                }) {
+                }, contentPadding = KairosButtonIconPadding) {
                     Icon(KairosIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text(stringResource(Res.string.capture_add), modifier = Modifier.padding(start = 6.dp))
                 }
@@ -153,7 +154,7 @@ private fun TaskCapture(focus: FocusRequester, onAdd: (String) -> Unit) {
                 }
             },
         )
-        Button(onClick = { submit() }) {
+        KairosButton(onClick = { submit() }, contentPadding = KairosButtonIconPadding) {
             Icon(KairosIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
             Text(stringResource(Res.string.capture_add), modifier = Modifier.padding(start = 6.dp))
         }

@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.team.forecast
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,10 +21,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -254,7 +255,7 @@ internal fun FinishedByPanel(result: ForecastResult, language: String) {
         var chosen by remember { mutableStateOf<LocalDate?>(null) }
         var picking by remember { mutableStateOf(false) }
         val date = chosen ?: result.finishDate(50) ?: result.day.plus(DatePeriod(days = 28))
-        OutlinedButton(onClick = { picking = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+        KairosOutlinedButton(onClick = { picking = true }, contentPadding = KairosButtonIconPadding) {
             Icon(KairosIcons.DateRange, contentDescription = null, modifier = Modifier.size(18.dp))
             Text(
                 stringResource(Res.string.forecast_by_date, dateLabel(date, result.day, language)),
@@ -290,11 +291,11 @@ internal fun DateChoice(initial: LocalDate, onPick: (LocalDate) -> Unit, onDismi
     DatePickerDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(enabled = state.selectedDateMillis != null, onClick = { state.selectedDateMillis?.let { onPick(it.toPickerDate()) } }) {
+            KairosTextButton(enabled = state.selectedDateMillis != null, onClick = { state.selectedDateMillis?.let { onPick(it.toPickerDate()) } }) {
                 Text(stringResource(Res.string.action_ok))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
+        dismissButton = { KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
     ) {
         DatePicker(state)
     }
@@ -314,7 +315,7 @@ internal fun DeadlinesPanel(result: ForecastResult, names: ForecastNames, riskPe
             shown.forEach { DeadlineRow(it, names.task(it.taskId), result.day, language) }
         }
         if (result.deadlines.size > DEADLINES_SHOWN) {
-            TextButton(onClick = { all = !all }, modifier = Modifier.heightIn(min = 48.dp)) {
+            KairosTextButton(onClick = { all = !all }) {
                 Text(stringResource(if (all) Res.string.forecast_deadlines_less else Res.string.forecast_deadlines_more, result.deadlines.size - DEADLINES_SHOWN))
             }
         }

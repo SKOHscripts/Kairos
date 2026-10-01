@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.ui.notes
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosRowIconButton
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.layout.Arrangement
@@ -17,16 +21,13 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -118,18 +119,16 @@ fun NotesScreen(services: AppServices, onOpenTasks: () -> Unit) {
                 NoteRow(note) {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), itemVerticalAlignment = Alignment.CenterVertically) {
                         val convertDescription = stringResource(Res.string.notes_to_task_desc)
-                        Button(modifier = Modifier.semantics { contentDescription = convertDescription }, onClick = {
+                        KairosButton(modifier = Modifier.semantics { contentDescription = convertDescription }, onClick = {
                             scope.launch {
                                 val id = repository.convertNote(note.id) ?: return@launch
                                 val title = repository.personalSnapshot.value.tasks.firstOrNull { it.id == id }?.title.orEmpty()
                                 messages(getString(Res.string.notes_converted, title))
                             }
                         }) { Text(stringResource(Res.string.notes_to_task)) }
-                        TextButton(onClick = { editing = note }) { Text(stringResource(Res.string.action_edit)) }
-                        TextButton(onClick = { scope.launch { repository.archiveNote(note.id) } }) { Text(stringResource(Res.string.notes_archive)) }
-                        IconButton(onClick = { deleting = note }) {
-                            Icon(KairosIcons.Delete, contentDescription = stringResource(Res.string.action_delete))
-                        }
+                        KairosTextButton(onClick = { editing = note }) { Text(stringResource(Res.string.action_edit)) }
+                        KairosTextButton(onClick = { scope.launch { repository.archiveNote(note.id) } }) { Text(stringResource(Res.string.notes_archive)) }
+                        KairosRowIconButton(KairosIcons.Delete, stringResource(Res.string.action_delete), onClick = { deleting = note })
                     }
                 }
             }
@@ -154,7 +153,7 @@ fun NotesScreen(services: AppServices, onOpenTasks: () -> Unit) {
                     items(done, key = { "done-${it.id}" }) { note ->
                         NoteRow(note, muted = true) {
                             if (note.convertedTaskId != null) {
-                                TextButton(onClick = onOpenTasks) { Text(stringResource(Res.string.notes_see_task)) }
+                                KairosTextButton(onClick = onOpenTasks) { Text(stringResource(Res.string.notes_see_task)) }
                             }
                         }
                     }
@@ -170,12 +169,12 @@ fun NotesScreen(services: AppServices, onOpenTasks: () -> Unit) {
             title = { Text(stringResource(Res.string.notes_edit_title)) },
             text = { OutlinedTextField(body, { body = it }, minLines = 4, modifier = Modifier.fillMaxWidth()) },
             confirmButton = {
-                Button(enabled = body.isNotBlank(), onClick = {
+                KairosButton(enabled = body.isNotBlank(), onClick = {
                     scope.launch { repository.editNote(note.id, body) }
                     editing = null
                 }) { Text(stringResource(Res.string.action_save)) }
             },
-            dismissButton = { TextButton(onClick = { editing = null }) { Text(stringResource(Res.string.action_cancel)) } },
+            dismissButton = { KairosTextButton(onClick = { editing = null }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
     deleting?.let { note ->
@@ -184,12 +183,12 @@ fun NotesScreen(services: AppServices, onOpenTasks: () -> Unit) {
             title = { Text(stringResource(Res.string.notes_delete_title)) },
             text = { Text(stringResource(Res.string.notes_delete_body)) },
             confirmButton = {
-                TextButton(onClick = {
+                KairosTextButton(onClick = {
                     scope.launch { repository.deleteNote(note.id) }
                     deleting = null
                 }) { Text(stringResource(Res.string.action_delete), color = MaterialTheme.colorScheme.error) }
             },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(Res.string.action_cancel)) } },
+            dismissButton = { KairosTextButton(onClick = { deleting = null }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
 }
@@ -228,7 +227,7 @@ private fun NoteCapture(onCapture: (String) -> Unit) {
                 },
             )
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(onClick = { submit() }) {
+                KairosButton(onClick = { submit() }, contentPadding = KairosButtonIconPadding) {
                     Icon(KairosIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text(stringResource(Res.string.notes_capture_action), modifier = Modifier.padding(start = 6.dp))
                 }

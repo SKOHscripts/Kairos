@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.app.expandedState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,11 +25,9 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -234,7 +235,7 @@ internal fun EditTaskDialog(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    TextButton(onClick = { advanced = !advanced }, modifier = Modifier.expandedState(advanced)) {
+                    KairosTextButton(onClick = { advanced = !advanced }, modifier = Modifier.expandedState(advanced), contentPadding = KairosButtonIconPadding) {
                         Icon(if (advanced) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
                         Text(stringResource(Res.string.edit_advanced), modifier = Modifier.padding(start = 4.dp))
                     }
@@ -303,15 +304,15 @@ internal fun EditTaskDialog(
                 }
                 // Tâche retirée par le manager : la garder (elle devient une tâche personnelle) ou la supprimer, au choix du membre.
                 if (received != null && received.removed && tab == 0) {
-                    OutlinedButton(onClick = received.onKeep) { Text(stringResource(Res.string.received_keep)) }
+                    KairosOutlinedButton(onClick = received.onKeep) { Text(stringResource(Res.string.received_keep)) }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = { confirmDelete = true }) {
+                    KairosTextButton(onClick = { confirmDelete = true }) {
                         Text(stringResource(Res.string.action_delete), color = MaterialTheme.colorScheme.error)
                     }
                     Spacer(Modifier.weight(1f))
-                    TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
-                    Button(
+                    KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
+                    KairosButton(
                         enabled = !invalid,
                         onClick = {
                             val edit =
@@ -365,9 +366,9 @@ internal fun EditTaskDialog(
             title = { Text(stringResource(Res.string.delete_confirm_title)) },
             text = { Text(stringResource(Res.string.delete_confirm_body, task.title)) },
             confirmButton = {
-                TextButton(onClick = onDelete) { Text(stringResource(Res.string.action_delete), color = MaterialTheme.colorScheme.error) }
+                KairosTextButton(onClick = onDelete) { Text(stringResource(Res.string.action_delete), color = MaterialTheme.colorScheme.error) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(Res.string.action_cancel)) } },
+            dismissButton = { KairosTextButton(onClick = { confirmDelete = false }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
 }

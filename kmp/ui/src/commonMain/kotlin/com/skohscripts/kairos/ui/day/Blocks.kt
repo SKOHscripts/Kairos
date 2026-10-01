@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.theme.KairosRowIconButton
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -15,20 +18,16 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -232,7 +231,7 @@ internal fun DayBlockList(blocks: List<TimeBlock>, language: String, onEdit: (Ti
                         BlockRecurrence.NONE -> null
                     }?.let { Badge(stringResource(it), icon = KairosIcons.Repeat) }
                 }
-                IconButton(onClick = { onEdit(b) }) { Icon(KairosIcons.Edit, contentDescription = stringResource(Res.string.action_edit)) }
+                KairosRowIconButton(KairosIcons.Edit, stringResource(Res.string.action_edit), onClick = { onEdit(b) })
             }
         }
     }
@@ -255,13 +254,13 @@ internal fun BlockDialog(block: TimeBlock, onDismiss: () -> Unit, onSave: (Block
                 Text(stringResource(Res.string.block_edit_title), style = MaterialTheme.typography.headlineSmall)
                 BlockFields(state)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = { confirmDelete = true }) {
+                    KairosTextButton(onClick = { confirmDelete = true }) {
                         Text(stringResource(Res.string.action_delete), color = MaterialTheme.colorScheme.error)
                     }
                     Spacer(Modifier.weight(1f))
-                    TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
+                    KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
                     val edit = state.edit()
-                    Button(enabled = edit != null, onClick = { edit?.let(onSave) }) { Text(stringResource(Res.string.action_save)) }
+                    KairosButton(enabled = edit != null, onClick = { edit?.let(onSave) }) { Text(stringResource(Res.string.action_save)) }
                 }
             }
         }
@@ -279,8 +278,8 @@ internal fun BlockDialog(block: TimeBlock, onDismiss: () -> Unit, onSave: (Block
                     ),
                 )
             },
-            confirmButton = { TextButton(onClick = onDelete) { Text(stringResource(Res.string.action_delete), color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(Res.string.action_cancel)) } },
+            confirmButton = { KairosTextButton(onClick = onDelete) { Text(stringResource(Res.string.action_delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { KairosTextButton(onClick = { confirmDelete = false }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
 }

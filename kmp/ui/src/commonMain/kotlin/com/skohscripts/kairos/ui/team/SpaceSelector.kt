@@ -1,14 +1,13 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosSegmentedButton
+import com.skohscripts.kairos.ui.theme.KairosSegmentedRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -41,9 +40,9 @@ fun SpaceSelector(space: Space, onSpaceChange: (Space) -> Unit, modifier: Modifi
         Triple(Space.PERSONAL, KairosIcons.Person, stringResource(Res.string.space_personal)),
         Triple(Space.TEAM, KairosIcons.Groups, stringResource(Res.string.space_team)),
     )
-    SingleChoiceSegmentedButtonRow(modifier.semantics { contentDescription = group }) {
+    KairosSegmentedRow(modifier.semantics { contentDescription = group }) {
         options.forEachIndexed { index, (option, icon, label) ->
-            SegmentedButton(
+            KairosSegmentedButton(
                 selected = option == space,
                 onClick = { onSpaceChange(option) },
                 shape = SegmentedButtonDefaults.itemShape(index, options.size),
@@ -54,7 +53,7 @@ fun SpaceSelector(space: Space, onSpaceChange: (Space) -> Unit, modifier: Modifi
                 // Sans marge ni largeur imposée, le composant réserve la place de la coche et chaque segment
                 // dépasse 70 dp : on fixe 48 dp de large (cible tactile) pour ne pas trop élargir le rail.
                 contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.width(48.dp).defaultMinSize(minHeight = 48.dp).semantics { contentDescription = label },
+                modifier = Modifier.width(48.dp).semantics { contentDescription = label },
             )
         }
     }

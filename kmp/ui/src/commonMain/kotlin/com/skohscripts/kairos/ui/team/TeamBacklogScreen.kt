@@ -1,5 +1,11 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosRowIconButton
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosFilterChip
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +18,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -20,21 +25,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -268,11 +269,11 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
                 title = { Text(stringResource(Res.string.delete_confirm_title)) },
                 text = { Text(stringResource(Res.string.delete_confirm_body, task.title)) },
                 confirmButton = {
-                    TextButton(onClick = { deleteId = null; scope.launch { repository.deleteTask(id) } }) {
+                    KairosTextButton(onClick = { deleteId = null; scope.launch { repository.deleteTask(id) } }) {
                         Text(stringResource(Res.string.action_delete), color = MaterialTheme.colorScheme.error)
                     }
                 },
-                dismissButton = { TextButton(onClick = { deleteId = null }) { Text(stringResource(Res.string.action_cancel)) } },
+                dismissButton = { KairosTextButton(onClick = { deleteId = null }) { Text(stringResource(Res.string.action_cancel)) } },
             )
         }
     }
@@ -308,11 +309,10 @@ private fun BacklogFilters(
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
                 Facet(stringResource(Res.string.backlog_filter_category), category, categories + "", { it.ifEmpty { none } }, all, width = 140.dp) { onCategory(it) }
                 Facet(stringResource(Res.string.priority_label), priority, PRIORITY_VALUES, { "P$it" }, all, width = 140.dp) { onPriority(it) }
-                FilterChip(
+                KairosFilterChip(
                     selected = withDeadline,
                     onClick = { onWithDeadline(!withDeadline) },
                     label = { Text(stringResource(Res.string.backlog_filter_deadline)) },
-                    modifier = Modifier.heightIn(min = 48.dp),
                 )
             }
         }
@@ -391,9 +391,7 @@ private fun BacklogRow(
                     }
                     if (!compact) Box(Modifier.padding(top = 10.dp, start = 8.dp)) { RowKeys(card, why, language) }
                     Box {
-                        IconButton(onClick = { menu = true }) {
-                            Icon(KairosIcons.MoreVert, contentDescription = stringResource(Res.string.backlog_actions))
-                        }
+                        KairosRowIconButton(KairosIcons.MoreVert, stringResource(Res.string.backlog_actions), onClick = { menu = true })
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(Res.string.backlog_assign)) },
@@ -461,18 +459,18 @@ private fun SelectionBar(
                 modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
             ) {
                 Box {
-                    Button(onClick = { assign = true }) {
+                    KairosButton(onClick = { assign = true }, contentPadding = KairosButtonIconPadding) {
                         Icon(KairosIcons.Person, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(Res.string.backlog_bulk_assign), modifier = Modifier.padding(start = 6.dp))
                     }
                     AssignMenu(assign, { assign = false }, context, currentId = null, showBacklog = false, onPick = onAssign)
                 }
-                OutlinedButton(onClick = onSuggest) {
+                KairosOutlinedButton(onClick = onSuggest, contentPadding = KairosButtonIconPadding) {
                     Icon(KairosIcons.Balance, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text(stringResource(Res.string.suggest_action), modifier = Modifier.padding(start = 6.dp))
                 }
                 Box {
-                    OutlinedButton(onClick = { category = true }) { Text(stringResource(Res.string.backlog_bulk_category)) }
+                    KairosOutlinedButton(onClick = { category = true }) { Text(stringResource(Res.string.backlog_bulk_category)) }
                     DropdownMenu(expanded = category, onDismissRequest = { category = false }) {
                         val none = stringResource(Res.string.backlog_no_category)
                         (categories + "").forEach { type ->
@@ -481,7 +479,7 @@ private fun SelectionBar(
                     }
                 }
                 Box {
-                    OutlinedButton(onClick = { priority = true }) { Text(stringResource(Res.string.backlog_bulk_priority)) }
+                    KairosOutlinedButton(onClick = { priority = true }) { Text(stringResource(Res.string.backlog_bulk_priority)) }
                     DropdownMenu(expanded = priority, onDismissRequest = { priority = false }) {
                         PRIORITY_VALUES.forEach { p ->
                             DropdownMenuItem(text = { Text("P$p") }, onClick = { priority = false; onPriority(p) })
@@ -498,7 +496,7 @@ private fun SelectionBar(
 /** « Suggérer une répartition » : bouton à contour (l'action principale de l'écran reste la capture, au-dessus). */
 @Composable
 private fun SuggestButton(onClick: () -> Unit) {
-    OutlinedButton(onClick = onClick, modifier = Modifier.heightIn(min = 48.dp)) {
+    KairosOutlinedButton(onClick = onClick, contentPadding = KairosButtonIconPadding) {
         Icon(KairosIcons.Balance, contentDescription = null, modifier = Modifier.size(18.dp))
         Text(stringResource(Res.string.suggest_action), modifier = Modifier.padding(start = 6.dp))
     }

@@ -1,5 +1,10 @@
 package com.skohscripts.kairos.ui.team.forecast
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosRowIconButton
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,18 +17,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -152,7 +153,7 @@ internal fun ScenarioSection(
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = { editor = EditorTarget.New }, modifier = Modifier.heightIn(min = 48.dp)) {
+            KairosOutlinedButton(onClick = { editor = EditorTarget.New }, contentPadding = KairosButtonIconPadding) {
                 Icon(KairosIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.scenario_new), modifier = Modifier.padding(start = 8.dp))
             }
@@ -164,10 +165,10 @@ internal fun ScenarioSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             val realLabel = stringResource(Res.string.forecast_real)
-            Button(
+            KairosButton(
                 onClick = { runner.compare(spec, snapshot, selected, realLabel) },
                 enabled = selected.isNotEmpty() && !runner.busy,
-                modifier = Modifier.heightIn(min = 48.dp),
+                contentPadding = KairosButtonIconPadding,
             ) {
                 Icon(KairosIcons.CompareArrows, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.scenario_compare, selected.size), modifier = Modifier.padding(start = 8.dp))
@@ -203,13 +204,13 @@ internal fun ScenarioSection(
             title = { Text(stringResource(Res.string.scenario_delete_title)) },
             text = { Text(stringResource(Res.string.scenario_delete_body, scenario.name)) },
             confirmButton = {
-                TextButton(onClick = {
+                KairosTextButton(onClick = {
                     deleting = null
                     ui.compared = ui.compared - scenario.id
                     coroutines.launch { repository.deleteScenario(scenario.id) }
                 }) { Text(stringResource(Res.string.action_delete), color = MaterialTheme.colorScheme.error) }
             },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(Res.string.action_cancel)) } },
+            dismissButton = { KairosTextButton(onClick = { deleting = null }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
     applying?.let { scenario ->
@@ -272,7 +273,7 @@ private fun ScenarioRow(
             if (scenario.ignored.isNotEmpty()) Flag(stringResource(Res.string.scenario_unreadable, scenario.ignored.size), flagged = true)
         }
         Box {
-            IconButton(onClick = { menu = true }) { Icon(KairosIcons.MoreVert, contentDescription = stringResource(Res.string.scenario_actions, scenario.name)) }
+            KairosRowIconButton(KairosIcons.MoreVert, stringResource(Res.string.scenario_actions, scenario.name), onClick = { menu = true })
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                 DropdownMenuItem(
                     text = { Text(stringResource(Res.string.action_edit)) },
@@ -316,8 +317,8 @@ private fun RenameDialog(current: String, onConfirm: (String) -> Unit, onDismiss
                 label = { Text(stringResource(Res.string.scenario_editor_name)) },
             )
         },
-        confirmButton = { TextButton(enabled = name.isNotBlank(), onClick = { onConfirm(name.trim()) }) { Text(stringResource(Res.string.action_save)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
+        confirmButton = { KairosTextButton(enabled = name.isNotBlank(), onClick = { onConfirm(name.trim()) }) { Text(stringResource(Res.string.action_save)) } },
+        dismissButton = { KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
     )
 }
 
@@ -358,7 +359,7 @@ internal fun ScenarioApplyDialog(scenario: TeamScenario, snapshot: KairosSnapsho
                 if (effective == 0) Text(stringResource(Res.string.scenario_apply_nothing), style = MaterialTheme.typography.bodyMedium)
             }
         },
-        confirmButton = { TextButton(enabled = effective > 0, onClick = onConfirm) { Text(stringResource(Res.string.scenario_apply_confirm)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
+        confirmButton = { KairosTextButton(enabled = effective > 0, onClick = onConfirm) { Text(stringResource(Res.string.scenario_apply_confirm)) } },
+        dismissButton = { KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
     )
 }

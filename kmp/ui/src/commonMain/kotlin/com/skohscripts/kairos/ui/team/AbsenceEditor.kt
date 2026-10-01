@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,14 +10,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -142,8 +142,8 @@ fun AbsenceEditorContent(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = padding, vertical = 12.dp),
             ) {
-                TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
-                Button(enabled = start != null, onClick = ::confirm) { Text(stringResource(Res.string.action_save)) }
+                KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
+                KairosButton(enabled = start != null, onClick = ::confirm) { Text(stringResource(Res.string.action_save)) }
             }
         }
     }

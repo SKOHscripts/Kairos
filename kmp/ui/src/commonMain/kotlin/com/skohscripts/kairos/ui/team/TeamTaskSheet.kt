@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +14,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Slider
@@ -177,7 +178,7 @@ internal fun TeamTaskFields(
     val started = task.startedOn
     if (assignee == task.assigneeId) {
         if (started == null) {
-            OutlinedButton(onClick = sheet.onStart) {
+            KairosOutlinedButton(onClick = sheet.onStart, contentPadding = KairosButtonIconPadding) {
                 Icon(KairosIcons.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.progress_start), modifier = Modifier.padding(start = 6.dp))
             }

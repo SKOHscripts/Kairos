@@ -1,10 +1,10 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,7 +45,7 @@ internal fun ClearTeamDataButton(services: AppServices) {
     val scope = rememberCoroutineScope()
     var confirm by remember { mutableStateOf(false) }
 
-    TextButton(
+    KairosTextButton(
         onClick = { confirm = true },
         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
     ) { Text(stringResource(Res.string.team_clear_action)) }
@@ -60,7 +60,7 @@ internal fun ClearTeamDataButton(services: AppServices) {
             title = { Text(stringResource(Res.string.team_clear_title)) },
             text = { Text(stringResource(Res.string.team_clear_body, membersText, tasksText)) },
             confirmButton = {
-                TextButton(
+                KairosTextButton(
                     onClick = {
                         confirm = false
                         scope.launch {
@@ -70,7 +70,7 @@ internal fun ClearTeamDataButton(services: AppServices) {
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                 ) { Text(stringResource(Res.string.team_clear_confirm)) }
             },
-            dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(Res.string.action_cancel)) } },
+            dismissButton = { KairosTextButton(onClick = { confirm = false }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
 }

@@ -1,28 +1,27 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -197,8 +196,8 @@ internal fun SuggestionSheet(services: AppServices, taskIds: Set<Long>?, onDismi
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = padding, vertical = if (compact) 8.dp else 16.dp),
                     ) {
-                        TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
-                        Button(onClick = ::apply, enabled = kept.isNotEmpty()) { Text(stringResource(Res.string.suggest_apply)) }
+                        KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
+                        KairosButton(onClick = ::apply, enabled = kept.isNotEmpty()) { Text(stringResource(Res.string.suggest_apply)) }
                     }
                 }
             }
@@ -233,7 +232,7 @@ private fun SuggestionRow(
         Column(Modifier.weight(1f).padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(task.title, style = MaterialTheme.typography.bodyLarge)
             Box {
-                OutlinedButton(onClick = { menu = true }, modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = change }) {
+                KairosOutlinedButton(onClick = { menu = true }, modifier = Modifier.semantics { contentDescription = change }) {
                     Text(name)
                     Icon(KairosIcons.ExpandMore, contentDescription = null, modifier = Modifier.padding(start = 4.dp).size(18.dp))
                 }

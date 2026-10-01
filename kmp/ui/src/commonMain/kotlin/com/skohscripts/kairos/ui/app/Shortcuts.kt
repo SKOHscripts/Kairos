@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.app
 
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -8,11 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -106,10 +106,10 @@ fun ShortcutBanner(services: AppServices, modifier: Modifier = Modifier) {
                 else -> Res.string.shortcut_banner_windows
             }
             Text(stringResource(text), style = MaterialTheme.typography.bodyMedium)
-            TextButton(onClick = create) {
+            KairosTextButton(onClick = create) {
                 Text(stringResource(if (status == ShortcutStatus.ELSEWHERE) Res.string.shortcut_update else Res.string.shortcut_add))
             }
-            TextButton(onClick = shortcuts::decline) { Text(stringResource(Res.string.shortcut_decline)) }
+            KairosTextButton(onClick = shortcuts::decline) { Text(stringResource(Res.string.shortcut_decline)) }
         }
     }
 }
@@ -134,12 +134,12 @@ fun ShortcutCard(shortcuts: ShortcutService) {
             Text(stringResource(line), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             ButtonRow {
                 if (status != ShortcutStatus.CREATED) {
-                    OutlinedButton(onClick = create) {
+                    KairosOutlinedButton(onClick = create) {
                         Text(stringResource(if (status == ShortcutStatus.ELSEWHERE) Res.string.shortcut_update_long else Res.string.shortcut_create))
                     }
                 }
                 if (status != ShortcutStatus.MISSING) {
-                    OutlinedButton(onClick = {
+                    KairosOutlinedButton(onClick = {
                         scope.launch {
                             runCatching { shortcuts.remove() }
                                 .onSuccess { message(getString(Res.string.shortcut_removed)) }

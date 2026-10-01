@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -98,7 +98,7 @@ internal fun FilterCard(
                     Facet(stringResource(Res.string.points_label), filter.points, FIBONACCI_SCALE, { "$it" }, all) { onChange(filter.copy(points = it)) }
                 }
                 if (filter.active) {
-                    TextButton(onClick = { onChange(DayFilter()) }) { Text(stringResource(Res.string.filter_reset)) }
+                    KairosTextButton(onClick = { onChange(DayFilter()) }) { Text(stringResource(Res.string.filter_reset)) }
                 }
             }
         }

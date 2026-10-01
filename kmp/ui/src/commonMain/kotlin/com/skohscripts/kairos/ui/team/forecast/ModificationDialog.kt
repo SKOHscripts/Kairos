@@ -1,9 +1,11 @@
 package com.skohscripts.kairos.ui.team.forecast
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -12,10 +14,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -222,7 +222,7 @@ internal fun ModificationDialog(
                 if (type == ModType.SET_DEADLINE) {
                     DateButton(stringResource(Res.string.mod_field_deadline), deadline, language, choices.today) { picking = "deadline" }
                     if (deadline != null) {
-                        TextButton(onClick = { deadline = null }, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(Res.string.mod_field_deadline_none)) }
+                        KairosTextButton(onClick = { deadline = null }) { Text(stringResource(Res.string.mod_field_deadline_none)) }
                     } else {
                         Text(stringResource(Res.string.mod_field_deadline_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -261,8 +261,8 @@ internal fun ModificationDialog(
                 }
             }
         },
-        confirmButton = { TextButton(enabled = built != null, onClick = { built?.let(onConfirm) }) { Text(stringResource(Res.string.action_ok)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
+        confirmButton = { KairosTextButton(enabled = built != null, onClick = { built?.let(onConfirm) }) { Text(stringResource(Res.string.action_ok)) } },
+        dismissButton = { KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
     )
 
     when (picking) {
@@ -277,7 +277,7 @@ internal fun ModificationDialog(
 private fun DateButton(label: String, value: LocalDate?, language: String, today: LocalDate, onClick: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(label, style = MaterialTheme.typography.labelLarge)
-        OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+        KairosOutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth(), contentPadding = KairosButtonIconPadding) {
             Icon(KairosIcons.DateRange, contentDescription = null, modifier = Modifier.size(18.dp))
             Text(
                 value?.let { dateLabel(it, today, language) } ?: stringResource(Res.string.mod_field_date_pick),

@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.screens
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +18,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -102,7 +103,7 @@ fun AboutScreen() {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             val uriHandler = LocalUriHandler.current
-            OutlinedButton(onClick = { uriHandler.openUri(SOURCE_URL) }) {
+            KairosOutlinedButton(onClick = { uriHandler.openUri(SOURCE_URL) }, contentPadding = KairosButtonIconPadding) {
                 Icon(KairosIcons.OpenInNew, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.about_source), modifier = Modifier.padding(start = 8.dp))
             }

@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.focusable
@@ -23,7 +25,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -237,7 +238,7 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
                 one("storage") { StorageBanner(services, showWhenLinked = false) }
                 if (day != today) {
                     one("back-today") {
-                        OutlinedButton(onClick = onBackToToday) {
+                        KairosOutlinedButton(onClick = onBackToToday, contentPadding = KairosButtonIconPadding) {
                             Icon(KairosIcons.Today, contentDescription = null, modifier = Modifier.size(18.dp))
                             Text(stringResource(Res.string.day_back_today), modifier = Modifier.padding(start = 6.dp))
                         }

@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.app
 
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,16 +61,16 @@ fun WelcomeDialog(services: AppServices, onOpenAbout: () -> Unit) {
         },
         confirmButton = {
             if (found != null) {
-                TextButton(onClick = { open = false; legacy.importFound() }) { Text(stringResource(Res.string.welcome_legacy_import)) }
+                KairosTextButton(onClick = { open = false; legacy.importFound() }) { Text(stringResource(Res.string.welcome_legacy_import)) }
             } else {
-                TextButton(onClick = { open = false }) { Text(stringResource(Res.string.welcome_start)) }
+                KairosTextButton(onClick = { open = false }) { Text(stringResource(Res.string.welcome_start)) }
             }
         },
         dismissButton = {
             if (found != null) {
-                TextButton(onClick = { open = false }) { Text(stringResource(Res.string.welcome_keep_examples)) }
+                KairosTextButton(onClick = { open = false }) { Text(stringResource(Res.string.welcome_keep_examples)) }
             } else if (migrated == null) {
-                TextButton(onClick = { open = false; onOpenAbout() }) { Text(stringResource(Res.string.welcome_about)) }
+                KairosTextButton(onClick = { open = false; onOpenAbout() }) { Text(stringResource(Res.string.welcome_about)) }
             }
         },
     )

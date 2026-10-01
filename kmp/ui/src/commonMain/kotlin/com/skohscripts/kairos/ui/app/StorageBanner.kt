@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.app
 
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -9,13 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -128,7 +128,7 @@ fun StorageBanner(services: AppServices, showWhenLinked: Boolean) {
             if (actions.isNotEmpty()) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(start = 32.dp)) {
                     actions.forEachIndexed { index, (label, action) ->
-                        if (index == 0) Button(onClick = action) { Text(label) } else OutlinedButton(onClick = action) { Text(label) }
+                        if (index == 0) KairosButton(onClick = action) { Text(label) } else KairosOutlinedButton(onClick = action) { Text(label) }
                     }
                 }
             }
@@ -141,7 +141,7 @@ fun StorageBanner(services: AppServices, showWhenLinked: Boolean) {
             title = { Text(stringResource(Res.string.import_confirm_title)) },
             text = { Text(stringResource(Res.string.web_link_open_confirm_body, file.name)) },
             confirmButton = {
-                TextButton(onClick = {
+                KairosTextButton(onClick = {
                     opened = null
                     scope.launch {
                         if (storage.adoptOpened()) {
@@ -151,7 +151,7 @@ fun StorageBanner(services: AppServices, showWhenLinked: Boolean) {
                     }
                 }) { Text(stringResource(Res.string.import_confirm_action)) }
             },
-            dismissButton = { TextButton(onClick = { opened = null }) { Text(stringResource(Res.string.action_cancel)) } },
+            dismissButton = { KairosTextButton(onClick = { opened = null }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
 }
