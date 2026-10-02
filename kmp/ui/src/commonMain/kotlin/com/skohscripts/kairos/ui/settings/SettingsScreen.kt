@@ -68,6 +68,17 @@ import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.ui.generated.resources.team_disable_body
 import com.skohscripts.kairos.ui.generated.resources.team_disable_confirm
 import com.skohscripts.kairos.ui.generated.resources.team_disable_title
+import com.skohscripts.kairos.core.team.exchange.ReceivedTasks
+import com.skohscripts.kairos.ui.team.ExchangePreview
+import com.skohscripts.kairos.ui.team.ExchangePreviewDialog
+import com.skohscripts.kairos.ui.team.ImportedFile
+import com.skohscripts.kairos.ui.team.applyExchange
+import com.skohscripts.kairos.ui.team.readImportedFile
+import com.skohscripts.kairos.ui.team.sendReport
+import com.skohscripts.kairos.ui.team.whoText
+import com.skohscripts.kairos.ui.generated.resources.exchange_report_action
+import com.skohscripts.kairos.ui.generated.resources.exchange_report_action_to
+import com.skohscripts.kairos.ui.generated.resources.exchange_report_help
 import com.skohscripts.kairos.data.ExportCodec
 import com.skohscripts.kairos.data.ImportException
 import com.skohscripts.kairos.ui.app.AppServices
@@ -278,7 +289,12 @@ private fun DataCard(services: AppServices) {
     val scope = rememberCoroutineScope()
     val messages = LocalMessages.current
     var pending by remember { mutableStateOf<KairosSnapshot?>(null) }
+    // Paquet ou rapport d'équipe reconnu par « Importer » : aperçu avant toute écriture (docs/spec/equipe-echanges.md).
+    var exchange by remember { mutableStateOf<ExchangePreview?>(null) }
     val legacy = rememberLegacyImport(services)
+    // Origines des tâches reçues : « Renvoyer l'avancement… » n'apparaît qu'avec elles (sinon rien ne change en mode solo).
+    val stored by services.repository.snapshot.collectAsState()
+    val origins = remember(stored) { ReceivedTasks.origins(stored) }
 
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -311,7 +327,10 @@ private fun DataCard(services: AppServices) {
                             return@launch
                         } ?: return@launch
                         try {
-                            pending = ExportCodec.decode(text)
+                            when (val file = readImportedFile(services, text)) {
+                                is ImportedFile.Full -> pending = file.snapshot
+                                is ImportedFile.Exchange -> exchange = file.preview
+                            }
                         } catch (e: ImportException) {
                             messages(importErrorMessage(e))
                         }
@@ -319,6 +338,20 @@ private fun DataCard(services: AppServices) {
                 }) {
                     Icon(KairosIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text(stringResource(Res.string.data_import), modifier = Modifier.padding(start = 6.dp))
+                }
+            }
+            if (origins.isNotEmpty()) {
+                Text(stringResource(Res.string.exchange_report_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    origins.forEach { origin ->
+                        OutlinedButton(onClick = { scope.launch { sendReport(services, origin, messages) } }) {
+                            Icon(KairosIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Text(
+                                stringResource(if (origins.size == 1) Res.string.exchange_report_action else Res.string.exchange_report_action_to, whoText(origin)),
+                                modifier = Modifier.padding(start = 6.dp),
+                            )
+                        }
+                    }
                 }
             }
             if (services.legacy != null) {
@@ -347,6 +380,16 @@ private fun DataCard(services: AppServices) {
                 }) { Text(stringResource(Res.string.import_confirm_action)) }
             },
             dismissButton = { TextButton(onClick = { pending = null }) { Text(stringResource(Res.string.action_cancel)) } },
+        )
+    }
+    exchange?.let { preview ->
+        ExchangePreviewDialog(
+            preview,
+            onConfirm = {
+                exchange = null
+                scope.launch { applyExchange(services, preview, messages) }
+            },
+            onDismiss = { exchange = null },
         )
     }
     LegacyImportDialog(legacy)

@@ -9,10 +9,10 @@ import com.skohscripts.kairos.ui.navigation.TeamDestination
 import com.skohscripts.kairos.ui.notes.NotesScreen
 import com.skohscripts.kairos.ui.settings.SettingsScreen
 import com.skohscripts.kairos.ui.stats.StatsScreen
-import com.skohscripts.kairos.ui.team.ForecastScreen
 import com.skohscripts.kairos.ui.team.TeamBacklogScreen
 import com.skohscripts.kairos.ui.team.TeamBoardScreen
 import com.skohscripts.kairos.ui.team.TeamMembersScreen
+import com.skohscripts.kairos.ui.team.forecast.ForecastScreen
 import com.skohscripts.kairos.ui.week.WeekScreen
 import kotlinx.datetime.LocalDate
 
@@ -37,15 +37,16 @@ fun DestinationScreen(
 
 /**
  * Contenu d'une destination de l'espace Équipe. Les Réglages sont le même
- * écran que dans l'espace Perso ; Équipe liste les membres (jalon E2), les autres sont des états vides (jalon E1).
+ * écran que dans l'espace Perso ; Équipe liste les membres (jalon E2), Suivi et
+ * Backlog sont ceux du jalon E3, Prévisions (simulations et scénarios) celui du jalon E5.
  */
 @Composable
 fun TeamDestinationScreen(destination: TeamDestination, services: AppServices, onOpenAbout: () -> Unit) {
     when (destination) {
-        TeamDestination.BOARD -> TeamBoardScreen()
-        TeamDestination.BACKLOG -> TeamBacklogScreen()
+        TeamDestination.BOARD -> TeamBoardScreen(services)
+        TeamDestination.BACKLOG -> TeamBacklogScreen(services)
         TeamDestination.MEMBERS -> TeamMembersScreen(services)
-        TeamDestination.FORECAST -> ForecastScreen()
+        TeamDestination.FORECAST -> ForecastScreen(services)
         TeamDestination.SETTINGS -> SettingsScreen(services, onOpenAbout)
     }
 }

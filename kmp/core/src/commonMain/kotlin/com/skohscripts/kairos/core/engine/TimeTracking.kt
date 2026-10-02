@@ -23,15 +23,17 @@ object TimeTracking {
 
     /**
      * Total par tâche : sessions (ouvertes comprises) **plus** le temps saisi à
-     * la main (`manualTimeSpentMinutes`) : l'un complète l'autre, jamais ne le
-     * remplace.
+     * la main (`manualTimeSpentMinutes`) **plus** le temps rapporté par un membre
+     * (`reportedMinutes`, côté manager, docs/spec/equipe-echanges.md) : chacun complète les
+     * autres, jamais ne les remplace. Seules les [tasks] données comptent pour les
+     * deux derniers termes.
      */
     fun spentMinutesByTask(sessions: List<WorkSession>, now: Instant, tasks: List<Task> = emptyList()): Map<Long, Int> {
         val totals = LinkedHashMap<Long, Int>()
         for (s in sessions) totals[s.taskId] = (totals[s.taskId] ?: 0) + sessionMinutes(s, now)
         for (t in tasks) {
-            val manual = t.manualTimeSpentMinutes ?: continue
-            if (manual != 0) totals[t.id] = (totals[t.id] ?: 0) + manual
+            val extra = (t.manualTimeSpentMinutes ?: 0) + (t.reportedMinutes ?: 0)
+            if (extra != 0) totals[t.id] = (totals[t.id] ?: 0) + extra
         }
         return totals
     }

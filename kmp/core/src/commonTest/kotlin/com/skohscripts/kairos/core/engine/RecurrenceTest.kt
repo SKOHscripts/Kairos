@@ -2,6 +2,7 @@ package com.skohscripts.kairos.core.engine
 
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskRecurrence
+import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
@@ -155,5 +156,39 @@ class RecurrenceTest {
         assertEquals(2, occ.fibonacciPoints)
         assertEquals(90, occ.estimatedMinutes)
         assertEquals(LocalDate(2026, 7, 3), occ.deadline)
+    }
+
+    @Test
+    fun calendar_series_key_includes_space_but_not_assignee() {
+        // Une série Perso et une série d'équipe de même titre et de même jour restent distinctes
+        // (docs/spec/equipe.md § Questions ouvertes) : chacune reçoit son occurrence, dans son espace.
+        val personal = task(id = 1, title = "Point mensuel", dayOfMonth = 5, deadline = LocalDate(2026, 6, 5))
+        val team = task(id = 2, title = "Point mensuel", dayOfMonth = 5, deadline = LocalDate(2026, 6, 5))
+            .copy(space = TaskSpace.TEAM, assigneeId = 7)
+        // L'occurrence de juin a été réaffectée à 8 : même série, pas d'occurrence en plus pour 7.
+        val reassigned = team.copy(id = 3, assigneeId = 8)
+        val created = Recurrence.calendarOccurrences(series(personal, team, reassigned), LocalDate(2026, 7, 1), emptySet(), now)
+        assertEquals(2, created.size)
+        assertEquals(
+            setOf(TaskSpace.PERSONAL to null, TaskSpace.TEAM to 8L),
+            created.map { it.space to it.assigneeId }.toSet(),
+        )
+        // La couverture du mois se juge série par série : une occurrence d'équipe ne couvre pas la série Perso.
+        val covered = team.copy(id = 4, recurrencePeriod = "2026-07")
+        val rest = Recurrence.calendarOccurrences(series(personal, team, reassigned, covered), LocalDate(2026, 7, 1), emptySet(), now)
+        assertEquals(listOf(TaskSpace.PERSONAL to null), rest.map { it.space to it.assigneeId })
+    }
+
+    @Test
+    fun next_occurrence_of_a_team_task_starts_clean() {
+        val done = task(priority = 1, points = 3).copy(
+            space = TaskSpace.TEAM, assigneeId = 4, progressPercent = 100, startedOn = today, teamUid = "uid-1",
+        )
+        val next = assertNotNull(Recurrence.nextOccurrence(done, today, emptyList(), now))
+        assertEquals(TaskSpace.TEAM, next.space)
+        assertEquals(4L, next.assigneeId)
+        assertNull(next.progressPercent)
+        assertNull(next.startedOn)
+        assertNull(next.teamUid)
     }
 }

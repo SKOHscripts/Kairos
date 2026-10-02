@@ -1,0 +1,10 @@
+-- Schéma 4 -> 5 (jalon E5 de l'espace Équipe, docs/spec/equipe-simulation.md) : additive.
+-- Scénarios « Et si… ? » : la table naît vide, donc une base migrée se comporte exactement
+-- comme avant (aucune donnée d'équipe). `modifications` : JSON de la liste de modifications.
+CREATE TABLE team_scenario (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    modifications TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);

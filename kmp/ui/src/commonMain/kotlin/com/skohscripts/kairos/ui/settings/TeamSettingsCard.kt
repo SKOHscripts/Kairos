@@ -28,8 +28,13 @@ import org.jetbrains.compose.resources.stringResource
  * du manager ne sont montrés que lorsque le mode est activé et enregistré,
  * pas dès que l'interrupteur est touché. En mode solo, la carte se réduit
  * à l'interrupteur : c'est la seule trace visible de l'espace Équipe. Mode
- * enregistré activé, « Supprimer les données d'équipe… » ferme la carte
- * ([ClearTeamDataButton]).
+ * enregistré activé, la carte ajoute les trois seuils du suivi (sans
+ * avancement, ballottée, limite d'en-cours, docs/spec/equipe-backlog-suivi.md
+ * § Signaux), les cinq réglages de la charge (horizon, taux de focus, heures par
+ * point, alerte de charge, tolérance d'affinité, docs/spec/equipe-charge.md), les quatre
+ * réglages des prévisions (tirages, historique, échantillon minimum, seuil d'échéance en danger,
+ * docs/spec/equipe-simulation.md) et
+ * « Supprimer les données d'équipe… » la ferme ([ClearTeamDataButton]).
  */
 @Composable
 internal fun TeamSettingsCard(
@@ -47,6 +52,13 @@ internal fun TeamSettingsCard(
             if (savedEnabled) {
                 SettingInput("team.name", values["team.name"].orEmpty(), errors["team.name"]) { onChange("team.name", it) }
                 SettingInput("team.managerName", values["team.managerName"].orEmpty(), errors["team.managerName"]) { onChange("team.managerName", it) }
+                listOf(
+                    "team.staleProgressDays", "team.churnThreshold", "team.wipLimit",
+                    "team.horizonWeeks", "team.focusFactor", "team.hoursPerPoint", "team.loadWarnPercent", "team.affinityDays",
+                    "team.simulationRuns", "team.historyWeeks", "team.minSamples", "team.deadlineRiskPercent",
+                ).forEach { key ->
+                    SettingInput(key, values[key].orEmpty(), errors[key]) { onChange(key, it) }
+                }
                 ClearTeamDataButton(services)
             }
         }

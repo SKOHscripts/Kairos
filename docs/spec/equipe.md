@@ -20,16 +20,16 @@ Skills Claude Code du chantier : `.claude/skills/kairos-equipe/`,
 `.claude/skills/kairos-monte-carlo/` (et, transverses,
 `.claude/skills/kairos-spec/`, `.claude/skills/kairos-ecran/`)._
 
-État : **jalons E1 et E2 implémentés (2026-09-30)** : espaces, filtre
+État : **jalons E1 à E5 implémentés (2026-10-01)** — E3 : backlog,
+suivi et journal (`equipe-backlog-suivi.md`) ; E4 : capacité, charge et
+répartition (`equipe-charge.md`) ; E5 : prévisions et scénarios
+(`equipe-simulation.md`) — : espaces, filtre
 `personalView`, migrations `1.sqm` et `2.sqm`, export 2, `TeamSettings`,
 carte Équipe, sélecteur d'espace, coquille à deux espaces, membres et
-absences, suppression des données d'équipe (Suivi, Backlog et Prévisions
-encore en état vide). **E3 à E6 : spécifiés, non implémentés** ; ce qui les
-concerne ci-dessous et dans les quatre autres specs décrit du code à
-venir. Les specs existantes n'ont reçu que ce que E1 et E2 ont réellement
-codé ; chaque spec du
-chantier liste en fin de document les « Impacts sur les specs existantes »
-qui restent à reporter aux jalons suivants.
+absences, suppression des données d'équipe. **E6 (échanges par fichier)
+implémenté** (`equipe-echanges.md`) : paquets de tâches, rapports
+d'avancement, migration `5.sqm`. Chaque spec du chantier liste en fin de
+document ses « Impacts sur les specs existantes », reportés.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -333,10 +333,13 @@ d'équipe n'entre dans un calcul personnel.
     `task(space)` et `task(assignee_id)` ;
   - **E2, `2.sqm`** (`user_version` 2 → 3) : `member_absence (id, member_id,
     start, end, label, created_at)`, index `member_id` ;
-  - **E3** : `task.progress_percent`, `task.started_on`, `task.team_uid`
-    (index), `team_event` (index `task_id`, `member_id`) ;
-  - **E5** : `team_scenario` ;
-  - **E6** : `task.origin`, `task.origin_removed`, `task.reported_minutes`,
+  - **E3, `3.sqm`** (`user_version` 3 → 4) : `task.progress_percent`,
+    `task.started_on`, `task.team_uid` (en fin de table, index),
+    `team_event (id, task_id, task_title, member_id, kind, from_value,
+    to_value, source, at)` (index `task_id`, `member_id`) ;
+  - **E5, `4.sqm`** (`user_version` 4 → 5) : `team_scenario` ;
+  - **E6, `5.sqm`** (`user_version` 5 → 6) : `task.origin`,
+    `task.origin_removed`, `task.reported_minutes`,
     `team_member.last_report_at` (`equipe-echanges.md`).
   Références sans `FOREIGN KEY` (parti pris existant).
 - Une base 2.x importée (`migration-2x.md`) n'a aucune tâche d'équipe :
@@ -541,11 +544,22 @@ Tranchées le 2026-09-30 :
 - ~~E6 : partage direct Android~~ → **fichier seulement** : l'usage
   managérial est surtout sur ordinateur (`equipe-echanges.md`).
 
-Relevées en implémentant E1, tranchées le 2026-09-30 (à coder en E3) :
+Les décisions prises en codant les jalons E3 et E4 (clé de série sans
+l'assigné, pas de glisser-déposer, cartes du Suivi pleines, suppression
+d'un membre selon le journal, règles du plan de charge, suggestion jugée
+sur la fin de toute la file ; détail dans `equipe-backlog-suivi.md` et
+`equipe-charge.md`) ont été **validées par le propriétaire le
+2026-10-01**.
+
+Relevées en implémentant E1, tranchées le 2026-09-30, codées en E3 :
 
 - `Recurrence.calendarOccurrences` : la clé d'une série « le N du mois »
-  devient (titre, jour du mois, **espace, assigné**) : une série Perso et
-  une série d'équipe de même titre restent distinctes.
+  devient (titre, jour du mois, **espace**) : une série Perso et une série
+  d'équipe de même titre restent distinctes. L'assigné, d'abord retenu
+  dans la clé, en a été retiré en codant : réaffecter une occurrence
+  aurait changé sa série et fait naître une occurrence de plus chez
+  l'ancien titulaire. L'occurrence créée prend l'assigné du membre le plus
+  récent de la série.
 - Sous-tâches créées en lot par `updateTask` (`newSubtasks`) : elles
   prennent l'**espace et l'assigné de la mère** (règle de
   `equipe-backlog-suivi.md` § Assignation).
@@ -568,7 +582,10 @@ Reportés au jalon E2 : `modele-donnees.md` (`MemberAbsence`,
 `reglages.md` (suppression des données d'équipe), `distribution.md`
 (captures).
 
-Restent à reporter : `modele-donnees.md` (tables et colonnes des jalons
-E2-E6, opérations d'équipe du dépôt), `vue-jour.md` (marque « Équipe » des
-tâches assignées à moi, E3), `reglages.md` (réglages de charge et de
-simulation, E3-E5).
+Reportés aux jalons E3 à E6 : `modele-donnees.md` (tables et colonnes,
+migrations `3.sqm` à `5.sqm`), `vue-jour.md` (marque « Équipe » des tâches
+assignées à moi, E3 ; marques des tâches reçues et retirées, E6),
+`reglages.md` (réglages de charge et de simulation, E3-E5),
+`export-import.md` (export 2 étendu, aiguillage de « Importer » et
+« Renvoyer l'avancement… », E6), `temps-reel-chrono.md` et
+`statistiques.md` (temps rapporté, E6).

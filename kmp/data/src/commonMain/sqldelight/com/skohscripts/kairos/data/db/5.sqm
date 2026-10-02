@@ -1,0 +1,10 @@
+-- Schéma 5 -> 6 (jalon E6 de l'espace Équipe, docs/spec/equipe-echanges.md) : additive.
+-- Échanges par fichier : origine d'une tâche reçue d'un manager (NULL pour toute tâche existante),
+-- marque « retirée par le manager » (0 par défaut), dernier total de temps passé rapporté par un membre
+-- (NULL), et date du dernier rapport intégré pour un membre (NULL). Une base migrée se comporte donc
+-- exactement comme avant. Colonnes ajoutées en fin de table, dans l'ordre de Kairos.sq
+-- (insertTaskWithId et insertTeamMemberWithId sont positionnels).
+ALTER TABLE task ADD COLUMN origin TEXT;
+ALTER TABLE task ADD COLUMN origin_removed INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE task ADD COLUMN reported_minutes INTEGER;
+ALTER TABLE team_member ADD COLUMN last_report_at TEXT;

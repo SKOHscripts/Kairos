@@ -3,6 +3,7 @@ package com.skohscripts.kairos.core.engine
 import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskRecurrence
+import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TimeBlock
 import kotlinx.datetime.DatePeriod
@@ -104,24 +105,35 @@ object Recurrence {
         return Workdays.addBusinessDays(base, 1, holidays)
     }
 
+    /**
+     * Clé d'une série « le N du mois » : titre, jour du mois et espace. L'assigné n'en fait
+     * pas partie : réaffecter une occurrence d'équipe changerait sinon de série, et l'ancien
+     * titulaire recevrait une occurrence de plus ; l'occurrence créée hérite de l'assigné du
+     * membre le plus récent (docs/spec/equipe.md § Questions ouvertes).
+     */
+    private data class SeriesKey(val title: String, val dayOfMonth: Int, val space: TaskSpace)
+
     fun period(day: LocalDate): String = "${day.year.toString().padStart(4, '0')}-${(day.month.ordinal + 1).toString().padStart(2, '0')}"
 
     /**
      * Occurrences du mois de [today] des séries « le N du mois »
-     * (`ensure_calendar_occurrences`) : une par série `(titre, jour)` pas encore
-     * couverte ce mois-ci, échéance reculée au jour ouvré précédent si besoin,
+     * (`ensure_calendar_occurrences`) : une par série `(titre, jour, espace)` pas
+     * encore couverte ce mois-ci (l'espace distingue une série Perso d'une série
+     * d'équipe de même titre, docs/spec/equipe.md), échéance reculée au jour ouvré
+     * précédent si besoin,
      * champs hérités du membre le plus récent. Identifiants à 0. Jamais de
      * rattrapage des mois passés.
      */
     fun calendarOccurrences(tasks: List<Task>, today: LocalDate, holidays: Set<LocalDate>, now: Instant): List<Task> {
         val currentPeriod = period(today)
-        val series = LinkedHashMap<Pair<String, Int>, MutableList<Task>>()
+        val series = LinkedHashMap<SeriesKey, MutableList<Task>>()
         tasks.filter { it.recurrence == TaskRecurrence.MONTHLY_ON_DAY && it.recurrenceDayOfMonth != null }
-            .forEach { series.getOrPut(it.title to it.recurrenceDayOfMonth!!) { mutableListOf() } += it }
+            .forEach { series.getOrPut(SeriesKey(it.title, it.recurrenceDayOfMonth!!, it.space)) { mutableListOf() } += it }
         return series.mapNotNull { (key, members) ->
             val covered = members.any { m -> m.recurrencePeriod == currentPeriod || (m.deadline != null && period(m.deadline) == currentPeriod) }
             if (covered) return@mapNotNull null
-            val (title, dayOfMonth) = key
+            val title = key.title
+            val dayOfMonth = key.dayOfMonth
             val rep = members.maxBy { it.id }
             val month = today.month.ordinal + 1
             val target = LocalDate(today.year, month, minOf(dayOfMonth, daysInMonth(today.year, month)))

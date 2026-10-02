@@ -190,6 +190,36 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   Chrome, **liées à un fichier** tenu à jour à chaque modification.
 - Interface en **français** et en **anglais** (langue du système).
 
+### Gestion d'équipe (facultative)
+
+- À activer dans **Réglages → Équipe** ; désactivée, rien ne change dans
+  Kairos. Activée, un sélecteur **Perso | Équipe** apparaît en haut.
+- **Membres** : quotité, heures par jour, absences ; « C’est moi » fait
+  apparaître dans votre vue Jour les tâches d’équipe qui vous sont
+  assignées.
+- **Backlog** d’équipe trié par le même score WSJF, catégories = types de
+  tâche, **assignation** et **réaffectation** (une à une ou en lot).
+- **Suivi** : une ligne par membre (en cours, à faire, faites), avancement
+  par pas de 10 %, signaux « en retard », « sans avancement », « ballottée »,
+  limite de tâches en cours ; **historique** complet de chaque tâche.
+- **Charge** : capacité de chacun (quotité, absences, jours fériés, taux de
+  focus), charge et taux par membre, pour l’équipe et par catégorie, date
+  de fin prévue de chaque tâche et échéances en danger ;
+  **suggestion de répartition** du backlog, à accepter ligne à ligne.
+- **Prévisions** par simulation (Monte Carlo) sur l’historique réel de
+  l’équipe : date de fin à 50, 85 et 95 % de chances, probabilité de tenir
+  chaque échéance, sujets les plus à risque, membre goulot, issue la plus
+  probable ; **scénarios « Et si… ? »** (absence, renfort, réaffectation,
+  tâches en plus…) comparés côte à côte, puis appliqués si on le souhaite.
+- **Échanges par fichier** avec les membres qui ont Kairos : « Envoyer ses
+  tâches… » produit un paquet que le membre reçoit par **Importer** (ses
+  tâches rejoignent sa journée, marquées « de <manager> ») ; il renvoie son
+  avancement (« Renvoyer l’avancement… »), que le manager intègre après un
+  aperçu. Chacun garde la main sur ses champs ; rien n’est supprimé sans
+  qu’on le choisisse.
+- Un seul utilisateur, le manager : tout reste sur l’appareil, sans compte
+  ni réseau ; les fichiers circulent comme on veut (courriel, clé USB…).
+
 ### Apparence
 
 - **Couleur du thème** au choix (Réglages → Apparence) : le miel par défaut,

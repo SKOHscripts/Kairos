@@ -54,11 +54,14 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.day.DayFilter
 import com.skohscripts.kairos.core.day.DayView
 import com.skohscripts.kairos.core.engine.Scheduling
+import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Task
+import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TimeBlock
 import com.skohscripts.kairos.ui.LocalPlatform
 import com.skohscripts.kairos.ui.Platform
@@ -73,6 +76,8 @@ import com.skohscripts.kairos.ui.generated.resources.backlog_title
 import com.skohscripts.kairos.ui.generated.resources.blocked_by
 import com.skohscripts.kairos.ui.generated.resources.blocked_hint
 import com.skohscripts.kairos.ui.generated.resources.blocked_title
+import com.skohscripts.kairos.ui.generated.resources.blocker_team
+import com.skohscripts.kairos.ui.generated.resources.blocker_unassigned
 import com.skohscripts.kairos.ui.generated.resources.day_back_today
 import com.skohscripts.kairos.ui.generated.resources.done_hint
 import com.skohscripts.kairos.ui.generated.resources.done_title
@@ -95,6 +100,9 @@ import com.skohscripts.kairos.ui.generated.resources.tag_pinned
 import com.skohscripts.kairos.ui.generated.resources.unscheduled_hint
 import com.skohscripts.kairos.ui.generated.resources.unscheduled_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
+import com.skohscripts.kairos.ui.team.AssignContext
+import com.skohscripts.kairos.ui.team.TeamTaskSheet
+import com.skohscripts.kairos.core.team.exchange.ReceivedTasks
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -299,7 +307,7 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
                 }
                 section("blocked", Res.string.blocked_title, Res.string.blocked_hint, view.blocked.size) {
                     rows("blocked", view.blocked.map { it.task }) { task ->
-                        val reasons = view.blocked.first { it.task.id == task.id }.blockers
+                        val reasons = teamBlockerLabels(view.blocked.first { it.task.id == task.id }.blockers, task, snapshot, repository.snapshot.value)
                         TaskRow(task, ctx, blocked = true, before = {
                             WarnBadge(stringResource(Res.string.blocked_by, reasons.joinToString(", ")), KairosIcons.Block)
                         })
@@ -354,6 +362,18 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
                 onDismiss = { editingId = null },
                 onSave = { edit -> scope.launch { repository.updateTask(id, edit) }; editingId = null },
                 onDelete = { scope.launch { repository.deleteTask(id) }; editingId = null },
+                // Tâche d'équipe assignée à « moi » : « Assigné à » en lecture seule, le reste comme une tâche perso.
+                team = if (task.space == TaskSpace.TEAM) TeamTaskSheet(AssignContext.of(repository.snapshot.value, day), editable = false, today = day) else null,
+                // Tâche reçue d'un manager : sa marque et l'avancement déclaré par le membre (docs/spec/equipe-echanges.md).
+                received = ReceivedTasks.originOf(task)?.let { origin ->
+                    ReceivedTaskSheet(origin, task.originRemoved, onKeep = { scope.launch { repository.detachOrigin(id) }; editingId = null }) { edit, percent ->
+                        scope.launch {
+                            repository.updateTask(id, edit)
+                            percent?.let { repository.setReceivedProgress(id, it) }
+                        }
+                        editingId = null
+                    }
+                },
             )
         }
     }
@@ -365,6 +385,27 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
             onDelete = { scope.launch { repository.deleteBlock(block.id) }; editingBlock = null },
         )
     }
+}
+
+/**
+ * Libellés de « Bloquée par » : la vue Jour nomme un bloqueur hors de la vue Perso
+ * (la tâche d'un collègue) par « #id » ; on y met son titre et son assigné, lus dans
+ * la base complète ([full]). Sans bloqueur de ce genre (toujours le cas en mode solo),
+ * la liste est rendue telle quelle.
+ */
+@Composable
+private fun teamBlockerLabels(reasons: List<String>, task: Task, personal: KairosSnapshot, full: KairosSnapshot): List<String> {
+    val known = personal.tasks.mapTo(HashSet()) { it.id }
+    val outside = personal.dependencies.filter { it.taskId == task.id && it.blockerId !in known }.map { it.blockerId }
+    if (outside.isEmpty()) return reasons
+    val labels = reasons.toMutableList()
+    for (id in outside) {
+        val blocker = full.tasks.firstOrNull { it.id == id && it.space == TaskSpace.TEAM } ?: continue
+        val who = full.members.firstOrNull { it.id == blocker.assigneeId }?.name ?: stringResource(Res.string.blocker_unassigned)
+        val at = labels.indexOf("#$id")
+        if (at >= 0) labels[at] = stringResource(Res.string.blocker_team, blocker.title, who)
+    }
+    return labels
 }
 
 /** Attend que la liste défilée et la section ouverte soient composées (deux images). */
@@ -459,8 +500,8 @@ private fun OverloadBanner(count: Int) {
 
 /** Qualification en ligne d'une tâche de la boîte de réception : ce qui manque, puis les pastilles. */
 @Composable
-private fun InboxQualify(task: Task, onPriority: (Int?) -> Unit, onPoints: (Int?) -> Unit) {
-    Column(Modifier.padding(start = 48.dp, end = 16.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+internal fun InboxQualify(task: Task, onPriority: (Int?) -> Unit, onPoints: (Int?) -> Unit, start: Dp = 48.dp) {
+    Column(Modifier.padding(start = start, end = 16.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         task.missingQualification?.let { missing ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(KairosIcons.Warning, contentDescription = null, modifier = Modifier.size(16.dp))

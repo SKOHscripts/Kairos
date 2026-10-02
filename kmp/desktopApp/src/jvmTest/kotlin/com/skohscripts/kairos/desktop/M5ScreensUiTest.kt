@@ -92,8 +92,13 @@ class M5ScreensUiTest {
         override suspend fun pick(): LegacyDatabase = readFound()
     }
 
+    // L'attente nomme le texte attendu : un dépassement de délai en CI dit alors quelle étape a manqué.
+    // 15 s comme les tests de l'espace Équipe : le délai est en temps réel, et sur un runner de CI à
+    // deux cœurs où les modules se testent en parallèle, 5 s ont manqué par intermittence.
     private fun ComposeUiTest.waitText(text: String, substring: Boolean = false) =
-        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
+        waitUntil(conditionDescription = "texte « $text »", timeoutMillis = 15_000) {
+            onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty()
+        }
 
     private fun ComposeUiTest.type(label: String, text: String) {
         val field = onNode(hasSetTextAction() and hasText(label)).performScrollTo()
@@ -248,7 +253,7 @@ class M5ScreensUiTest {
         // Le bandeau est en tête, avant le « Add » de la capture de la vue Jour.
         onAllNodesWithText("Add").onFirst().performClick()
         waitText("Shortcut created.")
-        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Add Kairos to the applications menu", substring = true).fetchSemanticsNodes().isEmpty() }
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Add Kairos to the applications menu", substring = true).fetchSemanticsNodes().isEmpty() }
 
         // Réglages → Raccourci : l'état, puis « Retirer » ; le bandeau revient.
         onAllNodesWithText("Settings").onFirst().performClick()
@@ -260,7 +265,7 @@ class M5ScreensUiTest {
 
         // « Non merci » : le bandeau disparaît, la carte reste.
         onNodeWithText("No thanks").performClick()
-        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Add Kairos to the applications menu", substring = true).fetchSemanticsNodes().isEmpty() }
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Add Kairos to the applications menu", substring = true).fetchSemanticsNodes().isEmpty() }
         assertEquals(true, shortcuts.declined.value)
         onNodeWithText("Create the shortcut").performScrollTo().assertExists()
     }

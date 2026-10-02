@@ -84,7 +84,8 @@ reçoit **toutes** les tâches, archivées comprises (comme Kairos 2).
 - `throughputByWeek` : `WeekThroughput(lundi, terminées, points)` pour
   chaque semaine de la fenêtre, zéro compris.
 - `fibonacciCalibration` : tâches faites avec points (≠ 0) et temps passé
-  > 0 (sessions + saisie manuelle, `spentMinutesByTask`), médiane par
+  > 0 (sessions + saisie manuelle + temps rapporté,
+  `spentMinutesByTask`), médiane par
   palier. `calibrationByType` : idem par type non vide. `Calibration(clé,
   n, médiane)`, `reliable` = n ≥ `MIN_SAMPLE` (3).
 - `estimationBias` : tâches faites avec estimé (≠ 0) et temps passé > 0 ;
@@ -120,6 +121,13 @@ reçoit **toutes** les tâches, archivées comprises (comme Kairos 2).
   garde de la place sur un téléphone. Débit et calibration : longueur
   relative au maximum ; types et complétude : pourcentage.
 - Ratio du biais à deux décimales ; durées par `duration()`.
+
+- Briques partagées avec l'espace Équipe (jalons E3 et E4,
+  `equipe-charge.md`) : `StatTile` et `Panel` sont `internal` ; `StatTile`
+  accepte une `note` (pastille en contour + icône) ; `BarRow` accepte
+  `overflow` (part au-delà de 100 % en `error`), `mark`, `detail` et
+  `stackedWhenNarrow`, et partage son tracé (`BarTrack`). Sans ces options,
+  le rendu des statistiques est inchangé.
 
 ### Décisions et pièges tracés
 

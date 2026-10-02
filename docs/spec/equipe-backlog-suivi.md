@@ -10,7 +10,7 @@ opérations du dépôt), `kmp/ui/.../team/` (`TeamBacklogScreen.kt`,
 activation et isolation : `equipe.md`. Charge et suggestion de
 répartition : `equipe-charge.md`._
 
-État : **spécifiée le 2026-09-30, non implémentée** (jalon E3).
+État : **jalon E3 implémenté (2026-10-01)**.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -61,12 +61,12 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 
 - « Assigner à… » ouvre un menu des **membres actifs**, triés par nom,
   chacun avec sa charge sur l'horizon (« 82 % ») et un contour d'alerte
-  s'il est surchargé ou absent aujourd'hui (`equipe-charge.md`) ; « moi »
+  s'il est surchargé ou absent aujourd'hui (E3 : nombre d'en-cours et limite
+  d'en-cours ; la charge en % arrive au jalon E4, `equipe-charge.md`) ; « moi »
   en tête s'il existe ; dernière entrée « Remettre au backlog ».
 - Assigner une tâche la fait passer du Backlog au Suivi, état **À faire**.
-- **Réaffecter** : la même action, depuis le Suivi ou la fiche. Sur bureau
-  et web en largeur ≥ 840 dp, glisser une carte d'une ligne de membre à une
-  autre dans le Suivi réaffecte aussi (confort, jamais le seul chemin).
+- **Réaffecter** : la même action (« Réaffecter à… »), depuis le menu d'une
+  carte du Suivi ou depuis la fiche.
 - Une réaffectation garde l'avancement et le temps passé ; elle remet
   l'état à « À faire » si la tâche était « En cours » (le nouveau titulaire
   n'a pas commencé), après avoir demandé : « Garder l'état En cours ? ».
@@ -171,83 +171,171 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 - Sprints ou itérations nommées : l'horizon glissant de `equipe-charge.md`
   en tient lieu.
 - Commentaires en fil sur une tâche (la description sert de notes).
-- Glisser-déposer sur téléphone.
+- Glisser-déposer (toutes plateformes, § Décisions).
 
 ## 2. Solution technique
 
 ### États et tableau (`core/team/TeamStates.kt`, `TeamBoard.kt`, purs)
 
 - `TeamState` : `BACKLOG`, `TODO`, `IN_PROGRESS`, `DONE` ;
-  `TeamStates.of(task)` selon le tableau ci-dessus ; `blocked` calculé par
+  `TeamStates.of(task): TeamState?` selon le tableau ci-dessus (`null` pour
+  une tâche archivée) ; `TeamStates.blockedIds(snapshot)` par
   `Dependencies.blockedTaskIds` sur les arêtes d'équipe.
-- `TeamBoard.build(team: TeamSnapshot, day, settings, filter)` : les chiffres
-  clés, les lignes de membres (actifs, « moi » d'abord puis par nom), leurs
-  cartes par état (faites : `doneOn` dans les 7 derniers jours), et le
-  backlog (À qualifier, Prêtes triées par `Scheduling.sortKey`). Mêmes
-  archivées ignorées que la vue Jour.
-- `doneOn` d'une tâche faite = date locale de l'événement « fin » le plus
-  récent, à défaut `updatedAt` (règle des statistiques).
+- `TeamBoard.build(snapshot, day, timeZone, filter)` lit la base complète
+  (il n'y a pas de type `TeamSnapshot` séparé : les tâches d'équipe sont
+  filtrées sur `space`). Il rend `keyFigures` (`TeamKeyFigures` : en
+  cours, faites cette semaine du lundi à aujourd'hui, en retard, à
+  surveiller ; les deux derniers comptent aussi le backlog), `lanes`
+  (`MemberLane` pour **chaque** membre actif, même sans tâche, « moi »
+  d'abord puis l'ordre de `TeamMembers` ; `inProgress`, `todo`, `done` ;
+  `inProgressCount` et `wipExceeded` calculés hors filtre), `toQualify`
+  (triées par identifiant) et `ready` (triées par `Scheduling.sortKey`,
+  urgence héritée des dépendances comme la vue Jour). Une carte
+  (`TeamCard`) porte la tâche, son état, `blocked`, ses signaux, son score
+  et `doneOn`. Mêmes archivées ignorées que la vue Jour ; une mère à
+  sous-tâches ouvertes reste dans le backlog (la vue Jour, elle, ne pose que
+  des unités de travail).
+- « Faites » = `doneOn` de `day − 6` à `day` inclus ; `doneOn` = date locale
+  de l'événement `done` le plus récent, à défaut `updatedAt` (règle des
+  statistiques).
+- `TeamBoardFilter(text, category, priority, memberId, onlyWatched,
+  withDeadline)` s'applique aux lignes, au backlog et aux chiffres clés ;
+  un filtre par membre ne garde que sa ligne et vide le backlog.
 
 ### Signaux (`core/team/TeamSignals.kt`, pur)
 
-- `overdue` : `Scheduling.isOverdue` ;
-  `stale` : `Staleness.daysStale` avec les seuils existants ;
-  `noProgress` : dernier événement « avancement » ou « commencement »
-  plus vieux que `teamStaleProgressDays` jours ouvrés ;
-  `churn` : nombre d'événements d'assignation d'un membre à un autre
-  (hors premier assignement et retours au backlog) ≥ `teamChurnThreshold` ;
-  `wipExceeded(member)` : en cours > `teamWipLimit` (si > 0).
+- `TeamSignal` : `OVERDUE` (`Scheduling.isOverdue`), `STALE`
+  (`Staleness.daysStale`, seuils existants), `NO_PROGRESS` (en cours et
+  **strictement plus** de `staleProgressDays` jours ouvrés depuis le
+  dernier événement `started` ou `progress`, à défaut depuis `startedOn` ;
+  `Workdays.businessDaysBetween`, comme `Staleness`), `CHURN` (événements
+  `assigned` d'un membre à un autre, hors premier assignement et hors
+  retours au backlog, ≥ `churnThreshold`). `TeamSignals.of(task, events,
+  day, timeZone, settings, holidays)`, `noProgress`, `churn`,
+  `inProgressCount(tasks, membre)`, `wipExceeded(tasks, membre, settings)`
+  (en cours > `wipLimit` si > 0).
 - Réglages ajoutés (`TeamSettings`, `equipe.md` § Modèle) :
-  `teamStaleProgressDays` (5, ≥ 1), `teamChurnThreshold` (3, ≥ 2),
-  `teamWipLimit` (3, ≥ 0).
+  `staleProgressDays` (5, ≥ 1), `churnThreshold` (3, ≥ 2), `wipLimit` (3,
+  ≥ 0, 0 = sans limite) ; champs `team.staleProgressDays`,
+  `team.churnThreshold`, `team.wipLimit` de `SettingsForm` (nuls en mode
+  solo, comme les autres champs `team.*`).
 
 ### Journal (`TeamEvent`, table `team_event`)
 
 - `TeamEvent` : `id`, `taskId`, `taskTitle` (recopié), `memberId` (assigné
-  au moment de l'événement, `null` au backlog), `kind`, `fromValue`,
-  `toValue` (textes : identifiant de membre, pourcentage, code de priorité,
-  date…), `source` (`manual`, `report`, `scenario`, `self`),
-  `at` (instant UTC).
-- `TeamEventKind` : `created`, `qualified`, `assigned`, `started`,
-  `progress`, `done`, `reopened`, `deleted`, `report`, `scenario`. Code
-  inconnu à la lecture : l'événement est gardé et affiché
-  « Modification » (jamais d'erreur).
+  **après** l'opération, `null` au backlog), `kind`, `fromValue`,
+  `toValue`, `source`, `at` (instant UTC). `TeamEventSource` : `manual`,
+  `self`, `report` (rapport d'un membre, E6, `equipe-echanges.md`),
+  `scenario` (E5) ; code inconnu → `manual`.
+- `TeamEventKind` : `created` (`toValue` = titre), `qualified` (un
+  événement par champ changé, valeurs `priority:1`, `points:5`,
+  `type:Dev`, `deadline:2026-10-03`, vide après le deux-points si le champ
+  est vidé ; `QualifiedField`, `TeamEvents.qualifiedValue`,
+  `parseQualified`), `assigned` (identifiants de membre de → vers),
+  `started` (`toValue` = date ISO), `progress` (pourcentages ; « 0 » si
+  l'avancement était vide), `done` (`fromValue` = avancement d'avant la
+  fin, `toValue` = « 100 »), `reopened` (avancement d'avant → avancement
+  restauré), `deleted`, `sent` (envoyée dans un paquet, `toValue` =
+  identifiant du paquet, E6), `time` (temps passé rapporté, minutes de →
+  vers, E6), et `UNKNOWN` : un code inconnu à la lecture est
+  gardé et affiché « Modification », jamais une erreur (réécrit
+  « unknown » à l'export ou au remplacement). `TeamEvents.historyOf(events,
+  tâche)` : plus récent d'abord.
 - **Écrit par le dépôt**, dans la transaction de la modification, jamais
   par l'interface : aucun chemin ne modifie une tâche d'équipe sans son
   événement. Une modification sans changement réel n'écrit rien.
-- Une modification depuis l'espace Perso d'une tâche assignée à « moi » a
-  la source `self`.
+- Source par défaut des opérations de l'espace Perso (`toggleDone`,
+  `startTimer`, `setPriority`, `setPoints`, `updateTask`, `deleteTask`,
+  paramètre `source` facultatif) : `self` si la tâche d'équipe est assignée
+  au membre « moi » actif, `manual` sinon.
 
 ### Dépôt (`KairosRepository`)
 
-- `createTeamTask(titre, uid, parentId?)` : `space = TEAM`, sans assigné,
-  `teamUid = uid` ; sous-tâche : assigné de la mère.
-- `assign(taskIds, memberId?, keepInProgress)` : `null` = retour au
-  backlog ; membre archivé ou inconnu → refusé ; un événement par tâche
-  réellement changée.
+- `createTeamTask(titre, parentId?): Long?` : `space = TEAM`, `teamUid`
+  tiré par le dépôt, sans assigné ; une sous-tâche prend l'assigné de sa
+  mère et n'écrit que `created` (avec ce `memberId`).
+- `assign(taskIds, memberId?, keepInProgress = false, source): Int` (nombre
+  de tâches changées) : seulement des tâches d'équipe à faire (les autres
+  sont ignorées) ; membre archivé ou inconnu → rien ; réaffecter une tâche
+  en cours la remet à « À faire » sauf `keepInProgress` ; le retour au
+  backlog vide toujours `startedOn` (l'avancement est gardé) ; un
+  événement `assigned` par tâche réellement changée.
 - `startTeamTask(id)`, `setProgress(id, pct)` (borné 0-100, arrondi à la
-  dizaine ; > 0 commence).
-- `updateTask`, `toggleDone`, `deleteTask`, `startTimer` : inchangés pour
-  une tâche personnelle ; pour une tâche d'équipe, ils journalisent et
-  `startTimer` pose `startedOn`.
+  dizaine ; > 0 commence, `started` puis `progress`) : tâche d'équipe à
+  faire et **assignée** seulement.
+- `TaskEdit.reassign: Reassignment?` (`memberId`, `keepInProgress`) porte
+  un changement d'assigné dans l'édition complète ; `null` = inchangé.
+- `updateTask`, `setPriority`, `setPoints` (`qualified`), `toggleDone`
+  (`done` met l'avancement à 100 ; `reopened` restaure celui du dernier
+  `done`, ou garde l'actuel s'il n'y en a pas), `deleteTask` (`deleted` ;
+  les événements restent), `startTimer` (pose `startedOn` sur une tâche
+  d'équipe assignée) : inchangés pour une tâche personnelle.
+- Récurrence d'une tâche d'équipe : l'occurrence suivante garde espace et
+  assigné, reçoit un **nouveau** `teamUid`, un avancement et un
+  commencement vides, et son événement `created`. Sous-tâches créées en lot
+  par `updateTask` : espace et assigné de la mère.
+- `archiveMember` (E2) journalise chaque retour au backlog (et vide
+  `startedOn`) ; `deleteMember` est refusé aussi si le membre est le
+  titulaire (`memberId`) d'un événement (pas s'il n'apparaît qu'en
+  `fromValue` : l'archivage l'y écrit toujours) ; `clearTeamData` supprime
+  le journal.
+- Stockage : `3.sqm` (schéma 3 → 4, `equipe.md` § Stockage).
 
 ### Interface (`ui/team/`)
 
-- `TeamBacklogScreen` : `Capture` réutilisé (espace `TEAM`), sections
-  réutilisant `TaskRow` avec une variante « équipe » (catégorie au lieu du
-  créneau), sélection multiple par `Checkbox` (bureau) ou appui long
-  (Android) et barre d'actions contextuelle en bas.
-- `TeamBoardScreen` : `LazyColumn` de `MemberLane` (`OutlinedCard`,
-  en-tête `ListItem` repliable) ; au-delà de 840 dp, `Row` de trois
-  colonnes par ligne. Carte : `OutlinedCard` 12 dp, jamais d'ombre ;
-  glisser-déposer par `Modifier.dragAndDropSource/Target` en largeur
-  étendue seulement.
-- `AssignMenu` : `DropdownMenu` ; chaque entrée ≥ 48 dp ; charge en
-  chiffre, alerte par contour + icône `Warning`.
-- `EditTaskDialog` : en espace Équipe, champ « Assigné à » (menu), curseur
-  d'avancement, onglet « Historique » (`TaskHistory`).
-- `TaskRow` (espace Perso) : icône `Groups` + « Équipe » pour une tâche
-  d'équipe ; texte lu par le lecteur d'écran (« tâche d'équipe »).
+- `TeamBacklogScreen(services, initialSelection)` : `Capture` réutilisé en
+  volet « Tâche » seul (`taskOnly`, crée par `createTeamTask`) ; filtres
+  (recherche, catégorie, priorité, « Avec échéance ») ; sections « À
+  qualifier » (mêmes chips que « À traiter », `InboxQualify`) et « Prêtes »
+  (`ScoreBadge`, priorité, points, échéance, catégorie, liseré P0) dans une
+  ligne dédiée : `TaskRow` est lié au modèle de la vue Jour, une « variante
+  équipe » l'aurait alourdi. Menu ⋮ : « Assigner à… », « Supprimer »
+  (confirmé). Sélection multiple : case à cocher si la fenêtre fait au moins
+  600 dp, appui long en dessous ; barre du bas « Assigner à… », « Changer la
+  catégorie » (`KairosRepository.setTaskType`, journalisé `qualified`),
+  « Changer la priorité ».
+- `AssignMenu` (`AssignMenuItems`, `AssignContext`) : membres actifs,
+  « moi » en tête, nombre d'en-cours, contour + `Warning` si la limite
+  d'en-cours est dépassée ou si le membre est absent aujourd'hui (la charge
+  en % arrivera en E4) ; « Remettre au backlog » en dernier ; entrées
+  ≥ 48 dp. `Reassigner` + `KeepInProgressDialog` (« Garder l'état En
+  cours ? », Oui / Non ; fermer annule).
+- `TeamBoardScreen(services)` : quatre `StatTile` (rendu `internal` dans
+  `StatsScreen.kt`), filtres catégorie, membre, « Seulement à surveiller » ;
+  une `OutlinedCard` repliable par membre (nom, badge « moi », quotité,
+  en-cours, signal « Trop d'en-cours (4/3) ») ; états en colonnes à partir
+  de 840 dp de **contenu**, en sections empilées en dessous. Carte de tâche
+  **pleine** (`surfaceContainerLow`) dans la ligne en contour, pour éviter
+  deux contours imbriqués ; barre d'avancement primaire + « 60 % » ;
+  signaux en badge contour + icône + **texte court** (En retard, Traîne,
+  Sans avancement, Ballottée, Bloquée), lisibles sans l'icône et par le
+  lecteur d'écran. Menu de carte : Commencer, curseur d'avancement,
+  Réaffecter à…
+- Fiche : `EditTaskDialog` reçoit `team: TeamTaskSheet?` (`TeamTaskSheet.kt`,
+  `TeamTaskDialog.kt`) : onglets Détails / Historique (`TaskHistory`,
+  phrases du journal), « Assigné à » (menu), « Catégorie », curseur 0-100 %
+  par pas de 10 enregistré avec la fiche, « Commencer » immédiat. Le
+  dialogue se ferme après l'écriture. En espace Perso, une tâche d'équipe
+  assignée à « moi » n'a ni Historique ni avancement : « Assigné à » en
+  lecture seule.
+- Fiche membre : section « Activité » (`TeamActivity.memberActivity`, 30
+  jours) : événements dont il est titulaire, plus les réaffectations qui lui
+  ont retiré une tâche.
+- Vue Jour : `TeamMark` (icône `Groups` + « Équipe », lu « tâche
+  d'équipe ») dans `TaskRow` ; « Pourquoi à cette place ? » ajoute « Tâche
+  d'équipe, assignée à moi » ; « Bloquée par » remplace l'identifiant d'un
+  bloqueur d'équipe hors vue Perso par « Titre (assigné) », lu dans
+  `repository.snapshot` (`DayView` reste inchangé).
+- Réglages : `team.staleProgressDays`, `team.churnThreshold`,
+  `team.wipLimit` dans la carte Équipe (mode activé et enregistré).
+- Icônes : `SwapHoriz`, `MoreVert`, `HourglassEmpty` (sans avancement).
+- Tests : `TeamStatesTest`, `TeamSignalsTest`, `TeamBoardTest`,
+  `TeamEventTest` (`core`), `TeamRepositoryTest`, `TeamTaskTypeTest`
+  (`data`), `TeamActivityTest` (`ui`), `TeamBacklogBoardUiTest`
+  (`desktopApp`). Auto-test : `desktop-team-board[-narrow]`,
+  `desktop-team-backlog[-narrow]`, `desktop-team-backlog-selection`,
+  `desktop-team-task-sheet[-details][-narrow]`,
+  `desktop-team-member-activity[-narrow]` (données `TeamSeed`).
 
 ### Décisions et alternatives écartées
 
@@ -262,19 +350,18 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 - **Journal écrit par le dépôt** : c'est la seule façon de garantir le
   « suivi complet » demandé, y compris pour les modifications faites depuis
   la vue Jour.
-- **Glisser-déposer en complément seulement** : il n'est pas accessible au
-  lecteur d'écran ni praticable à 360 dp ; le menu « Réaffecter à… » reste
-  le chemin garanti.
+- **Pas de glisser-déposer** (prévu en complément, écarté en codant) : il
+  n'est ni accessible au lecteur d'écran ni praticable à 360 dp, et pas
+  assez fiable à la fois sur Android, le bureau et le web ; le menu
+  « Réaffecter à… » est le seul chemin.
 - **Colonnes de membres plutôt que colonnes d'état (kanban classique)** :
   la question du manager est « qui fait quoi » ; l'état se lit dans chaque
   ligne. Un kanban par état reste possible via le filtre par membre.
 
-### Impacts sur les specs existantes (à reporter à l'implémentation)
+### Impacts sur les specs existantes
 
-- `vue-jour.md` : marque « Équipe », « Pourquoi à cette place ? », fiche
-  d'édition (champs d'équipe masqués en espace Perso sauf « Assigné à »
-  en lecture seule).
-- `modele-donnees.md` : table `team_event`, opérations du dépôt.
-- `reglages.md` : `teamStaleProgressDays`, `teamChurnThreshold`,
-  `teamWipLimit` dans la carte Équipe.
-- `accessibilite.md` : sélection multiple et glisser-déposer.
+Reportés au jalon E3 : `vue-jour.md` (marque « Équipe », « Pourquoi »,
+bloqueur d'un collègue, fiche), `modele-donnees.md` (`team_event`, `3.sqm`,
+opérations), `reglages.md` (trois seuils), `export-import.md` (journal),
+`recurrence.md` (clé de série), `navigation-theme.md` (icônes),
+`accessibilite.md` (sélection multiple).

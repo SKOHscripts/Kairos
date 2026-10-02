@@ -62,7 +62,13 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   `fibonacciPoints`, `manualTimeSpentMinutes`, `createdAt`, `updatedAt`,
   puis, pour l'espace Équipe (`equipe.md`), `space` (`TaskSpace` :
   `PERSONAL` code 0, par défaut, `TEAM` code 1 ; code inconnu →
-  `PERSONAL`) et `assigneeId` (membre assigné, `null` sinon).
+  `PERSONAL`), `assigneeId` (membre assigné, `null` sinon), et, depuis le
+  jalon E3, `progressPercent`, `startedOn`, `teamUid`
+  (`equipe-backlog-suivi.md`), et depuis le jalon E6 `origin` (origine
+  d'une tâche reçue d'un manager, `TeamOrigin` encodée, `null` sinon),
+  `originRemoved` (retirée par le manager, faux par défaut),
+  `reportedMinutes` (dernier total de temps rapporté par un membre, côté
+  manager) (`equipe-echanges.md`).
   - Dates et heures « métier » **locales naïves** (`LocalDate`,
     `LocalDateTime`) ; horodatages techniques en instants UTC (`Instant`).
     Convention de Kairos 2.
@@ -94,9 +100,12 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   la lecture).
 - `TeamMember` (`core/team/`) : `id`, `uid`, `name`, `role`,
   `availabilityPercent`, `hoursPerDay`, `isSelf`, `archived`, `createdAt`,
-  `updatedAt` (`equipe.md`) ; `MemberAbsence` : `id`, `memberId`, `start`,
-  `end` (dates locales incluses), `label`, `createdAt`.
-- `KairosSnapshot` : toutes les tables (membres et absences compris) et les
+  `updatedAt` (`equipe.md`), `lastReportAt` (dernier rapport intégré, jalon
+  E6, `equipe-echanges.md`) ; `MemberAbsence` : `id`, `memberId`, `start`,
+  `end` (dates locales incluses), `label`, `createdAt` ; `TeamEvent`
+  (journal des tâches d'équipe, `equipe-backlog-suivi.md` § Journal).
+- `KairosSnapshot` : toutes les tables (membres, absences et journal
+  compris) et les
   réglages. C'est la forme commune de l'export, de l'import, des exemples et
   de la sauvegarde web.
 
@@ -115,7 +124,7 @@ quotidien), une note, les réglages par défaut de la langue. Identifiants
 - `Kairos.sq` : tables `task`, `time_block`, `task_dependency` (unique
   `(task_id, blocker_id)`), `work_session`, `note`, `settings` (une ligne
   `id = 1`, JSON des réglages), `team_member`, `member_absence` (index
-  `member_id`) (`equipe.md`). Clés
+  `member_id`), `team_event` (index `task_id`, `member_id`) (`equipe.md`). Clés
   `INTEGER PRIMARY KEY AUTOINCREMENT` ; index sur `task.status`,
   `task.parent_id`, `task.space`, `task.assignee_id`, `time_block.start`,
   `task_dependency.task_id` et `.blocker_id`, `work_session.task_id`,
@@ -141,7 +150,13 @@ quotidien), une note, les réglages par défaut de la langue. Identifiants
 
 Schéma 1 : celui de la 3.0.0. Schéma 2 : `1.sqm` (jalon E1 de l'espace
 Équipe) ajoute `task.space`, `task.assignee_id`, leurs index et
-`team_member`. Schéma 3 : `2.sqm` (jalon E2) ajoute `member_absence`. Les
+`team_member`. Schéma 3 : `2.sqm` (jalon E2) ajoute `member_absence`.
+Schéma 4 : `3.sqm` (jalon E3) ajoute `task.progress_percent`,
+`task.started_on`, `task.team_uid` (en fin de table) et `team_event`.
+Schéma 5 : `4.sqm` (jalon E5) ajoute `team_scenario`. Schéma 6 : `5.sqm`
+(jalon E6) ajoute `task.origin`, `task.origin_removed`,
+`task.reported_minutes` et `team_member.last_report_at` (en fin de table).
+Les
 schémas de référence de chaque version
 (`data/src/commonMain/sqldelight/databases/<n>.db`, générés par
 `generateCommonMainKairosDatabaseSchema` avant la migration) sont
@@ -196,7 +211,10 @@ de SQLDelight.
     tiré dans `data`, gardé si la base en a déjà une) ; rien en mode solo.
   - Membres et absences : `createMember`, `updateMember`, `archiveMember`,
     `restoreMember`, `deleteMember`, `addAbsence`, `updateAbsence`,
-    `deleteAbsence`, `clearTeamData` (`equipe.md` § Dépôt).
+    `deleteAbsence`, `clearTeamData` (`equipe.md` § Dépôt) ; tâches
+    d'équipe : `createTeamTask`, `assign`, `startTeamTask`, `setProgress`,
+    `TaskEdit.reassign`, et journal écrit dans la transaction de chaque
+    modification d'une tâche d'équipe (`equipe-backlog-suivi.md` § Dépôt).
   - `replaceAll(snapshot)` : vide toutes les tables (membres et absences
     compris) et
     réinsère tout,

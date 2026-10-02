@@ -87,8 +87,45 @@ data class TeamSettings(
     val identity: String = "",
     /** Dernier espace affiché ([SPACE_PERSONAL] ou [SPACE_TEAM]) ; technique. */
     val lastSpace: String = SPACE_PERSONAL,
+    /** Suivi (docs/spec/equipe-backlog-suivi.md § Signaux) : jours ouvrés sans avancement avant le signal « sans avancement » (≥ 1). */
+    val staleProgressDays: Int = DEFAULT_STALE_PROGRESS_DAYS,
+    /** Nombre de réaffectations d'un membre à un autre à partir duquel une tâche est « ballottée » (≥ 2). */
+    val churnThreshold: Int = DEFAULT_CHURN_THRESHOLD,
+    /** Tâches en cours par membre au-delà desquelles le signal « trop d'en-cours » s'allume (≥ 0 ; 0 = sans limite). */
+    val wipLimit: Int = DEFAULT_WIP_LIMIT,
+    /** Charge (docs/spec/equipe-charge.md) : horizon glissant par défaut, en semaines (1-26). */
+    val horizonWeeks: Int = DEFAULT_HORIZON_WEEKS,
+    /** Part du temps réellement disponible pour les tâches (> 0 et ≤ 1) : réunions, support et imprévus en moins. */
+    val focusFactor: Double = DEFAULT_FOCUS_FACTOR,
+    /** Heures par point de Fibonacci quand ni estimation ni calibration ne servent (> 0). */
+    val hoursPerPoint: Double = DEFAULT_HOURS_PER_POINT,
+    /** Taux de charge (en %, 1-100) au-delà duquel un membre est « à surveiller ». */
+    val loadWarnPercent: Int = DEFAULT_LOAD_WARN_PERCENT,
+    /** Écart de fin (en jours ouvrés, ≥ 0) dans lequel la suggestion préfère l'affinité de catégorie. */
+    val affinityDays: Int = DEFAULT_AFFINITY_DAYS,
+    /** Prévisions (docs/spec/equipe-simulation.md) : nombre de tirages d'une simulation (500-50 000). */
+    val simulationRuns: Int = DEFAULT_SIMULATION_RUNS,
+    /** Fenêtre d'historique des facteurs d'erreur, des débits et de la capacité réelle, en semaines (1-104). */
+    val historyWeeks: Int = DEFAULT_HISTORY_WEEKS,
+    /** Nombre minimal d'échantillons pour se fier à l'historique (≥ 3) ; en dessous, « peu fiable » et loi par défaut mêlée. */
+    val minSamples: Int = DEFAULT_MIN_SAMPLES,
+    /** Probabilité de tenir une échéance (en %, 1-99) sous laquelle elle est « en danger ». */
+    val deadlineRiskPercent: Int = DEFAULT_DEADLINE_RISK_PERCENT,
 ) {
     companion object {
+        const val DEFAULT_STALE_PROGRESS_DAYS = 5
+        const val DEFAULT_CHURN_THRESHOLD = 3
+        const val DEFAULT_WIP_LIMIT = 3
+        const val DEFAULT_HORIZON_WEEKS = 4
+        const val DEFAULT_FOCUS_FACTOR = 0.8
+        const val DEFAULT_HOURS_PER_POINT = 2.0
+        const val DEFAULT_LOAD_WARN_PERCENT = 90
+        const val DEFAULT_AFFINITY_DAYS = 2
+        const val DEFAULT_SIMULATION_RUNS = 5000
+        const val DEFAULT_HISTORY_WEEKS = 12
+        const val DEFAULT_MIN_SAMPLES = 8
+        const val DEFAULT_DEADLINE_RISK_PERCENT = 70
+
         const val SPACE_PERSONAL = "personal"
         const val SPACE_TEAM = "team"
     }

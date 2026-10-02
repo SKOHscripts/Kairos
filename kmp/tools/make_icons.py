@@ -64,6 +64,17 @@ ICONS = {
     "EventBusy": ("event_busy", False),
     "Archive": ("archive", False),
     "Unarchive": ("unarchive", False),
+    "SwapHoriz": ("swap_horiz", False),
+    "MoreVert": ("more_vert", False),
+    "HourglassEmpty": ("hourglass_empty", False),
+    "Balance": ("balance", False),
+    # Prévisions (jalon E5) : tirage, scénario, comparaison, recalcul, meilleur de la ligne, copie.
+    "Casino": ("casino", False),
+    "Science": ("science", False),
+    "CompareArrows": ("compare_arrows", False),
+    "Refresh": ("refresh", False),
+    "Star": ("star", True),
+    "ContentCopy": ("content_copy", False),
 }
 
 

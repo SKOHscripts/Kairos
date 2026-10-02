@@ -14,12 +14,18 @@ import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TimeBlock
 import com.skohscripts.kairos.core.model.WorkSession
 import com.skohscripts.kairos.core.team.MemberAbsence
+import com.skohscripts.kairos.core.team.TeamEvent
+import com.skohscripts.kairos.core.team.TeamEventKind
+import com.skohscripts.kairos.core.team.TeamEventSource
 import com.skohscripts.kairos.core.team.TeamMember
 import com.skohscripts.kairos.core.team.Workspaces
+import com.skohscripts.kairos.core.team.forecast.ScenarioCodec
+import com.skohscripts.kairos.core.team.forecast.TeamScenario
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlin.time.Instant
 
 /**
@@ -102,6 +108,9 @@ private data class ExportFile(
     // base sans donnée d'équipe reste celui d'avant, octet pour octet.
     val members: List<MemberJson>? = null,
     val absences: List<AbsenceJson>? = null,
+    val teamEvents: List<TeamEventJson>? = null,
+    // Scénarios « Et si… ? » (jalon E5) : même règle, nul donc omis en version 1.
+    val teamScenarios: List<ScenarioJson>? = null,
 ) {
     fun toSnapshot() = KairosSnapshot(
         tasks = tasks.map { it.toModel() },
@@ -116,6 +125,8 @@ private data class ExportFile(
         settings = settings,
         members = members.orEmpty().map { it.toModel() },
         absences = absences.orEmpty().map { it.toModel() },
+        teamEvents = teamEvents.orEmpty().map { it.toModel() },
+        teamScenarios = teamScenarios.orEmpty().map { it.toModel() },
     )
 
     companion object {
@@ -138,6 +149,8 @@ private data class ExportFile(
                 },
                 members = if (team) s.members.map { MemberJson.from(it) } else null,
                 absences = if (team) s.absences.map { AbsenceJson.from(it) } else null,
+                teamEvents = if (team) s.teamEvents.map { TeamEventJson.from(it) } else null,
+                teamScenarios = if (team) s.teamScenarios.map { ScenarioJson.from(it) } else null,
             )
         }
     }
@@ -170,6 +183,15 @@ private data class TaskJson(
     // `space` n'est écrit que pour une tâche d'équipe ; absent = Perso.
     val space: String? = null,
     val assigneeId: Long? = null,
+    // Suivi d'équipe (jalon E3) : mêmes règles, nuls donc omis pour toute tâche Perso.
+    val progressPercent: Int? = null,
+    val startedOn: String? = null,
+    val teamUid: String? = null,
+    // Échanges par fichier (jalon E6) : mêmes règles. `originRemoved` n'est écrit que s'il est vrai
+    // (un booléen par défaut serait écrit sur toute tâche, `encodeDefaults = true`).
+    val origin: String? = null,
+    val originRemoved: Boolean? = null,
+    val reportedMinutes: Int? = null,
 ) {
     fun toModel() = Task(
         id = id,
@@ -194,6 +216,12 @@ private data class TaskJson(
         updatedAt = Instant.parse(updatedAt),
         space = decodeSpace(space),
         assigneeId = assigneeId,
+        progressPercent = progressPercent,
+        startedOn = startedOn?.let(LocalDate::parse),
+        teamUid = teamUid,
+        origin = origin,
+        originRemoved = originRemoved == true,
+        reportedMinutes = reportedMinutes,
     )
 
     companion object {
@@ -202,7 +230,8 @@ private data class TaskJson(
             t.estimatedMinutes, t.pinnedStart?.toString(), t.parentId, t.recurrence.code, t.scheduledDate?.toString(),
             t.recurrenceDayOfMonth, t.recurrenceDayOfWeek, t.recurrencePeriod, t.taskType, t.fibonacciPoints,
             t.manualTimeSpentMinutes, t.createdAt.toString(), t.updatedAt.toString(),
-            encodeSpace(t.space), t.assigneeId,
+            encodeSpace(t.space), t.assigneeId, t.progressPercent, t.startedOn?.toString(), t.teamUid,
+            t.origin, if (t.originRemoved) true else null, t.reportedMinutes,
         )
     }
 }
@@ -263,16 +292,18 @@ private data class MemberJson(
     val archived: Boolean = false,
     val createdAt: String,
     val updatedAt: String,
+    // Jalon E6 : nul donc omis tant qu'aucun rapport n'a été intégré.
+    val lastReportAt: String? = null,
 ) {
     fun toModel() = TeamMember(
         id, uid, name, role, availabilityPercent, hoursPerDay, isSelf, archived,
-        Instant.parse(createdAt), Instant.parse(updatedAt),
+        Instant.parse(createdAt), Instant.parse(updatedAt), lastReportAt?.let(Instant::parse),
     )
 
     companion object {
         fun from(m: TeamMember) = MemberJson(
             m.id, m.uid, m.name, m.role, m.availabilityPercent, m.hoursPerDay, m.isSelf, m.archived,
-            m.createdAt.toString(), m.updatedAt.toString(),
+            m.createdAt.toString(), m.updatedAt.toString(), m.lastReportAt?.toString(),
         )
     }
 }
@@ -290,5 +321,54 @@ private data class AbsenceJson(
 
     companion object {
         fun from(a: MemberAbsence) = AbsenceJson(a.id, a.memberId, a.start.toString(), a.end.toString(), a.label, a.createdAt.toString())
+    }
+}
+
+@Serializable
+private data class TeamEventJson(
+    val id: Long,
+    val taskId: Long,
+    val taskTitle: String,
+    val memberId: Long? = null,
+    val kind: String,
+    val fromValue: String? = null,
+    val toValue: String? = null,
+    val source: String = "manual",
+    val at: String,
+) {
+    fun toModel() = TeamEvent(
+        id, taskId, taskTitle, memberId, TeamEventKind.fromCode(kind), fromValue, toValue,
+        TeamEventSource.fromCode(source), Instant.parse(at),
+    )
+
+    companion object {
+        fun from(e: TeamEvent) = TeamEventJson(
+            e.id, e.taskId, e.taskTitle, e.memberId, e.kind.code, e.fromValue, e.toValue, e.source.code, e.at.toString(),
+        )
+    }
+}
+
+/**
+ * Scénario exporté : [modifications] est la liste JSON des modifications telle quelle (lisible dans
+ * le fichier), relue par `ScenarioCodec` (un type inconnu y est ignoré et signalé, jamais une erreur).
+ */
+@Serializable
+private data class ScenarioJson(
+    val id: Long,
+    val name: String,
+    val modifications: JsonArray = JsonArray(emptyList()),
+    val createdAt: String,
+    val updatedAt: String,
+) {
+    fun toModel(): TeamScenario {
+        val decoded = ScenarioCodec.decode(modifications.toString())
+        return TeamScenario(id, name, decoded.modifications, Instant.parse(createdAt), Instant.parse(updatedAt), decoded.ignored)
+    }
+
+    companion object {
+        fun from(s: TeamScenario) = ScenarioJson(
+            s.id, s.name, Json.parseToJsonElement(ScenarioCodec.encode(s.modifications)) as JsonArray,
+            s.createdAt.toString(), s.updatedAt.toString(),
+        )
     }
 }

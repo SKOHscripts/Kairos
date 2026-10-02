@@ -94,7 +94,8 @@ Depuis le jalon E1 de l'espace Équipe, la veille du chrono (`ChronoWatcher`) et
 
 - `TimeTracking` (portage de `app/tasks_time.py`) : `sessionMinutes`
   (minutes entières, jamais négatives, une session ouverte court jusqu'à
-  maintenant), `spentMinutesByTask` (sessions **plus** saisie manuelle),
+  maintenant), `spentMinutesByTask` (sessions **plus** saisie manuelle **plus** temps
+  rapporté par un membre, `reportedMinutes`, `equipe-echanges.md`),
   `runningSession` (la plus récente des ouvertes), `totalMinutes`,
   `sessionsInRange` / `sessionsOnDay` (date **locale** du début, fuseau
   passé), `spentMinutesByType` (clé `""` sans type), `sessionTimeline` (rail :

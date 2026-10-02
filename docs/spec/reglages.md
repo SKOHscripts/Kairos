@@ -37,8 +37,13 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
   suggérée, son de secours), **Jours fériés** (français, dates
   supplémentaires), **Apparence** (couleur du thème, `apparence.md`),
   **Équipe** (interrupteur « Gestion d'équipe », puis, mode activé, nom de
-  l'équipe et du manager, « Supprimer les données d'équipe… » avec
-  sauvegarde préalable ; désactivation confirmée, `equipe.md`), puis
+  l'équipe et du manager, seuils « sans avancement », « ballottée » et
+  limite d'en-cours, horizon, taux de focus, heures par point, seuil
+  d'alerte de charge et tolérance d'affinité (`equipe-charge.md`),
+  tirages par simulation, historique, échantillon minimum et seuil
+  d'échéance en danger (`equipe-simulation.md`), « Supprimer les données d'équipe… » avec sauvegarde
+  préalable ; désactivation confirmée, `equipe.md`,
+  `equipe-backlog-suivi.md`), puis
   sur le bureau **Mises à jour**, sur une copie portable **Raccourci**
   (`raccourci-portable.md`), puis **Données** et
   « À propos et guide ».

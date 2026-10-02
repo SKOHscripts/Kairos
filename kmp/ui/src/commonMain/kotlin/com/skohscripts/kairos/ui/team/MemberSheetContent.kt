@@ -42,6 +42,7 @@ import com.skohscripts.kairos.core.settings.FieldError
 import com.skohscripts.kairos.core.settings.FieldErrorKind
 import com.skohscripts.kairos.core.team.MemberAbsence
 import com.skohscripts.kairos.core.team.MemberForm
+import com.skohscripts.kairos.core.team.TeamEvent
 import com.skohscripts.kairos.core.team.TeamMember
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.generated.resources.Res
@@ -53,6 +54,9 @@ import com.skohscripts.kairos.ui.generated.resources.member_absence_edit
 import com.skohscripts.kairos.ui.generated.resources.member_absences_empty
 import com.skohscripts.kairos.ui.generated.resources.member_absences_help
 import com.skohscripts.kairos.ui.generated.resources.member_absences_title
+import com.skohscripts.kairos.ui.generated.resources.member_activity_empty
+import com.skohscripts.kairos.ui.generated.resources.member_activity_help
+import com.skohscripts.kairos.ui.generated.resources.member_activity_title
 import com.skohscripts.kairos.ui.generated.resources.member_archive
 import com.skohscripts.kairos.ui.generated.resources.member_archive_body_many
 import com.skohscripts.kairos.ui.generated.resources.member_archive_body_none
@@ -82,7 +86,16 @@ import com.skohscripts.kairos.ui.generated.resources.settings_error_number
 import com.skohscripts.kairos.ui.generated.resources.settings_error_required
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.settings.SwitchRow
+import androidx.compose.ui.text.intl.Locale
+import com.skohscripts.kairos.ui.day.Dates
+import com.skohscripts.kairos.ui.generated.resources.exchange_last_report
+import com.skohscripts.kairos.ui.generated.resources.exchange_no_report
+import com.skohscripts.kairos.ui.generated.resources.exchange_section_title
+import com.skohscripts.kairos.ui.generated.resources.exchange_send_action
+import com.skohscripts.kairos.ui.generated.resources.exchange_send_help
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 
 /** Absence en cours d'édition dans la fiche : nouvelle ([existing] nul) ou existante. */
@@ -98,6 +111,10 @@ private class AbsenceTarget(val existing: MemberAbsence?)
  * l'aide ; les absences s'enregistrent une à une ([onAddAbsence],
  * [onUpdateAbsence], [onDeleteAbsence]). [canDelete] : le membre n'a jamais eu
  * de tâche ; [openTaskCount] : tâches ouvertes qu'un archivage remet au backlog.
+ * [loadView] ajoute, après les champs, la section « Charge » du jalon E4
+ * (`equipe-charge.md` : capacité, charge par semaine et par catégorie, tâches du plan).
+ * Un membre autre que « moi » a aussi la section « Échanges » du jalon E6
+ * (`equipe-echanges.md` : « Envoyer ses tâches… », date du dernier rapport intégré).
  */
 @Composable
 fun MemberSheetContent(
@@ -116,6 +133,14 @@ fun MemberSheetContent(
     onAddAbsence: (LocalDate, LocalDate, String) -> Unit = { _, _, _ -> },
     onUpdateAbsence: (Long, LocalDate, LocalDate, String) -> Unit = { _, _, _, _ -> },
     onDeleteAbsence: (Long) -> Unit = {},
+    /** Événements du journal de ses tâches sur 30 jours (section « Activité », membre existant seulement). */
+    activity: List<TeamEvent> = emptyList(),
+    /** Tous les membres, pour nommer les titulaires cités dans l'activité. */
+    members: List<TeamMember> = emptyList(),
+    /** Charge du membre sur l'horizon (section « Charge », membre actif seulement ; `null` : pas de section). */
+    loadView: MemberLoadView? = null,
+    /** « Envoyer ses tâches… » (échanges, jalon E6) : enregistre le paquet du membre (docs/spec/equipe-echanges.md). */
+    onSendTasks: () -> Unit = {},
 ) {
     var input by remember(member?.id) { mutableStateOf(if (member == null) MemberForm.newInput(settings) else MemberForm.inputOf(member)) }
     var isSelf by remember(member?.id) { mutableStateOf(member?.isSelf == true) }
@@ -216,8 +241,18 @@ fun MemberSheetContent(
                 }
 
                 if (member != null) {
+                    if (loadView != null && !archived) {
+                        HorizontalDivider()
+                        MemberLoadSection(loadView, today)
+                    }
+                    if (!member.isSelf && (!archived || member.lastReportAt != null)) {
+                        HorizontalDivider()
+                        ExchangeSection(member, onSendTasks)
+                    }
                     HorizontalDivider()
                     AbsencesSection(absences, today, onAdd = { editing = AbsenceTarget(null) }, onEdit = { editing = AbsenceTarget(it) }, onDelete = onDeleteAbsence)
+                    HorizontalDivider()
+                    ActivitySection(activity, AssignContext(members, emptyList(), emptyList(), settings, today), today)
                     HorizontalDivider()
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         if (archived) {
@@ -304,6 +339,53 @@ fun MemberSheetContent(
             },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(Res.string.action_cancel)) } },
         )
+    }
+}
+
+/**
+ * « Échanges » (docs/spec/equipe-echanges.md § Côté manager) : « Envoyer ses tâches… » (absent pour un membre archivé : son
+ * paquet est impossible), la phrase qui rappelle que le fichier n'est pas chiffré, et la date du dernier rapport intégré.
+ */
+@Composable
+private fun ExchangeSection(member: TeamMember, onSend: () -> Unit) {
+    val language = Locale.current.language
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(Res.string.exchange_section_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
+        if (!member.archived) {
+            Text(stringResource(Res.string.exchange_send_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedButton(onClick = onSend) {
+                Icon(KairosIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.exchange_send_action), modifier = Modifier.padding(start = 6.dp))
+            }
+        }
+        val last = member.lastReportAt?.toLocalDateTime(TimeZone.currentSystemDefault())
+        Text(
+            if (last == null) stringResource(Res.string.exchange_no_report)
+            else stringResource(Res.string.exchange_last_report, "${Dates.short(last.date, language)} ${Dates.time(last, language)}"),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
+/**
+ * « Activité » : les événements des tâches du membre sur 30 jours, du plus récent au
+ * plus ancien, avec le titre de la tâche (« 30 sept. · Refonte API : Assignée à Léa »).
+ */
+@Composable
+private fun ActivitySection(activity: List<TeamEvent>, context: AssignContext, today: LocalDate) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(Res.string.member_activity_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
+        Text(stringResource(Res.string.member_activity_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (activity.isEmpty()) {
+            Text(stringResource(Res.string.member_activity_empty), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 8.dp))
+        }
+        activity.forEach { event ->
+            Text(
+                eventLine(event, context, today, withTitle = true),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 32.dp).padding(vertical = 6.dp),
+            )
+        }
     }
 }
 
