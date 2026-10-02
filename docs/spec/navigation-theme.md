@@ -38,7 +38,13 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
     dans une fenêtre rétrécie (règle reprise de Kairos 2).
 - Une **barre d'application** en haut affiche le titre de l'écran (« Aujourd'hui »
   pour Jour). Sans rail, le logo y porte l'identité.
-- **« À propos et guide »** : accessible depuis Réglages. Présente Kairos (ce
+- **Aide et Accueil** (`accueil.md`) : un bouton « ? » (`KairosIcons.Help`,
+  « Aide ») à droite de la barre d'application, sur toutes les destinations
+  des deux espaces, ouvre l'aide de l'écran courant, l'Accueil de Kairos
+  (écran secondaire `Secondary.HOME`, titre « Accueil ») et la visite guidée.
+  Il disparaît quand un écran secondaire est ouvert.
+- **« À propos et guide »** : accessible depuis Réglages et depuis l'Accueil
+  (écran secondaire `Secondary.ABOUT`). Présente Kairos (ce
   qu'il fait en quatre points, la formule du score de priorité, l'origine du
   nom), la version, la licence (MIT, données locales) et un lien vers le code
   source. Un bouton retour, le retour système Android ou Échap le ferment.
@@ -123,7 +129,7 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `Unarchive`, au jalon E3 `SwapHoriz`, `MoreVert`, `HourglassEmpty`, au jalon E4
   `Balance`, au jalon E5 `Casino`, `Science`, `CompareArrows`, `Refresh`,
   `Star` (et `StarFilled`), `ContentCopy` (et les variantes pleines de `Groups`, `ViewKanban`,
-  `Stacks`, `Monitoring`).
+  `Stacks`, `Monitoring`) ; aide, Accueil et visite guidée (`accueil.md`) : `Help`.
   `Construction` (écran « En construction ») est retiré au
   jalon M5, plus rien n'étant en construction.
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`
@@ -152,33 +158,34 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   pendant l'attente, titre d'erreur et détail en cas d'échec. Puis
   `KairosShell` : état `destination` (initialisé à `initialDestination`,
   que seules les captures des magasins changent, `publication.md`) et
-  `aboutOpen` (`rememberSaveable`),
+  `secondary: Secondary?` (`rememberSaveable` ; `HOME` ou `ABOUT`),
   `NavState` (jour et semaine regardés, `vue-semaine.md`) ;
   `BoxWithConstraints` fournit la largeur à `choose`. Naviguer vers une
-  destination ferme « À propos » et ramène à aujourd'hui et à la semaine
-  courante ; `onOpenDay(jour)` ouvre la vue Jour d'un jour donné.
+  destination ferme l'écran secondaire (Accueil ou « À propos ») et ramène à
+  aujourd'hui et à la semaine courante ; `onOpenDay(jour)` ouvre la vue Jour d'un jour donné.
 - `AppShell` :
   - `TopAppBar` avec le titre, fidèle à ce qui est affiché (Kairos 2) :
-    « À propos et guide », « Jour · mercredi 30 septembre 2026 » pour un
+    « Accueil », « À propos et guide », « Jour · mercredi 30 septembre 2026 » pour un
     autre jour qu'aujourd'hui, « Semaine · du lundi 28 septembre 2026 »,
-    sinon celui de la destination ; flèche retour quand « À propos » est ouvert ; sinon, sans rail,
-    le logo en 28 dp.
+    sinon celui de la destination ; flèche retour quand un écran secondaire est ouvert ; sinon, sans rail,
+    le logo en 28 dp. Actions : le sélecteur d'espace (sans rail, gestion
+    d'équipe activée), puis le « ? » (aucun écran secondaire ouvert).
   - `RAIL` : `NavigationRail` (en-tête : logo 34 dp + « Kairos ») à gauche
     d'un `Scaffold`.
   - `BOTTOM_BAR` : `Scaffold` avec `NavigationBar`.
   - `TOP_BAR` : barre d'application puis une rangée défilante de `FilterChip`
     (icône + libellé ; sélection en `secondaryContainer`, rôle MD3 par défaut
     des puces sélectionnées).
-  - Quand « À propos » est ouvert, aucune destination n'est marquée active.
+  - Quand un écran secondaire est ouvert, aucune destination n'est marquée active.
   - `SnackbarHost` dans chaque `Scaffold` ; `LocalMessages` fournit aux
     écrans une fonction qui y affiche un message.
   - Au-dessus du contenu de chaque destination : `UpdateBanner`
     (`mises-a-jour.md`) ; hors des branches de mise en page :
-    `WelcomeDialog` (`accueil.md`) ; veilles de toute l'application :
+    `WelcomeDialog`, `HelpDialog` et `GuideDialog` (`accueil.md`) ; veilles de toute l'application :
     `ChronoWatcher` (`temps-reel-chrono.md`) et `UpdateWatcher`.
-  - `BackHandler(enabled = aboutOpen)` (`ui-backhandler`) : retour système
+  - `BackHandler(enabled = secondary != null)` (`ui-backhandler`) : retour système
     Android (y compris le geste prédictif, `enableOnBackInvokedCallback`) et
-    Échap sur le bureau et le web ferment « À propos ».
+    Échap sur le bureau et le web ferment l'écran secondaire.
 
 ### Écrans (`screens/`)
 
@@ -190,6 +197,9 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `SETTINGS` → `SettingsScreen` (`reglages.md` : formulaire complet, carte
   Données, carte « À propos et guide » en `OutlinedCard` + `ListItem`,
   icône `Info`, chevron).
+- `HomeScreen` : la page « Accueil » (`accueil.md`) ; son appel
+  `TeamDestinationScreen(destination, services, nav, onOpenAbout, onTour)`
+  transmet `nav` (onglet « Échanges ») et le lancement de la visite d'équipe.
 - `AboutScreen` : colonne défilante de 720 dp au plus, centrée. Logo 56 dp +
   nom + devise ; phrase d'introduction ; trois cartes « filled »
   (`surfaceContainerLow`, élévation 0 : jamais d'ombre sur une carte) : « En
@@ -212,7 +222,7 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   raison, la règle Kairos 2 « aucune détection de plateforme côté serveur »
   n'a plus d'objet.
 - **Navigation par état plutôt que par bibliothèque** : cinq destinations de
-  premier niveau et un seul écran secondaire. À réévaluer si des écrans
+  premier niveau et deux écrans secondaires (Accueil, « À propos »). À réévaluer si des écrans
   imbriqués apparaissent (détail d'une tâche en plein écran, par exemple).
 - **Retour** : `org.jetbrains.compose.ui:ui-backhandler` doit être déclaré
   explicitement (absent des dépendances transitives de `compose.ui` en 1.12).

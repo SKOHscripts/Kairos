@@ -75,6 +75,8 @@ ICONS = {
     "Refresh": ("refresh", False),
     "Star": ("star", True),
     "ContentCopy": ("content_copy", False),
+    # Aide, accueil et visite guidée : le « ? » de la barre du haut.
+    "Help": ("help", False),
 }
 
 

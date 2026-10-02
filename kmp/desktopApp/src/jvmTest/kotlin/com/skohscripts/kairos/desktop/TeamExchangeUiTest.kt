@@ -390,7 +390,8 @@ class TeamExchangeUiTest {
         waitText("Tracking")
         onAllNodesWithText("Team").onFirst().performClick()
         waitText("Add a member")
-        onNodeWithText(name).performClick()
+        // Les onglets « Membres » / « Échanges » réduisent la zone visible : le dernier membre peut être sous la ligne de flottaison.
+        onNodeWithText(name).performScrollTo().performClick()
         waitText("Member")
     }
 
@@ -485,7 +486,8 @@ class TeamExchangeUiTest {
         waitGone("Member")
         onNodeWithText("Claire").performClick()
         waitText("Member")
-        assertEquals(0, count("Exchanges"))
+        // Le seul « Exchanges » est l'onglet de l'écran Équipe : la fiche de « moi » n'a pas de section « Exchanges ».
+        assertEquals(1, count("Exchanges"))
         assertEquals(0, count("Send their tasks…"))
     }
 

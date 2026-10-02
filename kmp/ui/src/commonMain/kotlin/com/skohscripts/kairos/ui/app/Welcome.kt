@@ -16,7 +16,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.generated.resources.Res
-import com.skohscripts.kairos.ui.generated.resources.welcome_about
 import com.skohscripts.kairos.ui.generated.resources.welcome_body
 import com.skohscripts.kairos.ui.generated.resources.welcome_examples
 import com.skohscripts.kairos.ui.generated.resources.welcome_keep_examples
@@ -25,17 +24,18 @@ import com.skohscripts.kairos.ui.generated.resources.welcome_legacy_import
 import com.skohscripts.kairos.ui.generated.resources.welcome_migrated
 import com.skohscripts.kairos.ui.generated.resources.welcome_start
 import com.skohscripts.kairos.ui.generated.resources.welcome_title
+import com.skohscripts.kairos.ui.generated.resources.welcome_tour
 import com.skohscripts.kairos.ui.icons.KairosLogo
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * Accueil du premier lancement (docs/spec/accueil.md), une seule fois :
- * ce que fait Kairos et les exemples ; sur Android, le bilan de la migration
+ * ce que fait Kairos et les exemples (avec « Visite guidée », [onStartGuide]) ; sur Android, le bilan de la migration
  * automatique de Kairos 2 ; sur le bureau, la proposition d'importer la base
  * Kairos 2 trouvée à son emplacement habituel.
  */
 @Composable
-fun WelcomeDialog(services: AppServices, onOpenAbout: () -> Unit) {
+fun WelcomeDialog(services: AppServices, onStartGuide: () -> Unit) {
     var open by rememberSaveable { mutableStateOf(services.firstLaunch) }
     val legacy = rememberLegacyImport(services)
     LegacyImportDialog(legacy)
@@ -70,7 +70,7 @@ fun WelcomeDialog(services: AppServices, onOpenAbout: () -> Unit) {
             if (found != null) {
                 KairosTextButton(onClick = { open = false }) { Text(stringResource(Res.string.welcome_keep_examples)) }
             } else if (migrated == null) {
-                KairosTextButton(onClick = { open = false; onOpenAbout() }) { Text(stringResource(Res.string.welcome_about)) }
+                KairosTextButton(onClick = { open = false; onStartGuide() }) { Text(stringResource(Res.string.welcome_tour)) }
             }
         },
     )

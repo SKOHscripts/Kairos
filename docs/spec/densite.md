@@ -116,6 +116,11 @@ champs à contour).
   scénarios, suppression d'une note ou d'une modification). Restent en
   `IconButton` de 24 dp : la coche « fait » d'une ligne de tâche et les
   boutons de fermeture (feuilles, dialogues, À propos, chrono).
+- Les écrans ajoutés entre-temps par la passe « Accueil, visite guidée, aide »
+  (`accueil.md` : Accueil, dialogue de visite, aide « ? », onglet « Échanges »
+  de l'espace Équipe) passent par les mêmes enveloppes et la même échelle
+  d'espacement ; le test d'architecture est ce qui l'a rendu visible à la
+  fusion.
 - `ComponentDensityTest` (ui) lit `src/commonMain/kotlin` depuis le
   répertoire du module, comme `StringsParityTest`, ignore commentaires et
   KDoc, et refuse les appels et imports directs des sept composants Material

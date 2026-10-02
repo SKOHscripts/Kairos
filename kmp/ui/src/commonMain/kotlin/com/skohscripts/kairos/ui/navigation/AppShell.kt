@@ -33,7 +33,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.LocalMessages
 import com.skohscripts.kairos.ui.app.WelcomeDialog
@@ -53,11 +57,19 @@ import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_back
 import com.skohscripts.kairos.ui.generated.resources.app_name
+import com.skohscripts.kairos.ui.generated.resources.help_action
 import com.skohscripts.kairos.ui.generated.resources.nav_navigation
+import com.skohscripts.kairos.ui.generated.resources.title_home
 import com.skohscripts.kairos.ui.generated.resources.title_about
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.icons.KairosLogo
+import com.skohscripts.kairos.ui.guide.GuideDialog
+import com.skohscripts.kairos.ui.guide.GuideKind
+import com.skohscripts.kairos.ui.guide.GuideTarget
+import com.skohscripts.kairos.ui.guide.HelpDialog
+import com.skohscripts.kairos.ui.guide.HelpTopic
 import com.skohscripts.kairos.ui.screens.AboutScreen
+import com.skohscripts.kairos.ui.screens.HomeScreen
 import com.skohscripts.kairos.ui.screens.DestinationScreen
 import com.skohscripts.kairos.ui.screens.TeamDestinationScreen
 import com.skohscripts.kairos.ui.team.SpaceSelector
@@ -91,17 +103,22 @@ fun AppShell(
     teamModeEnabled: Boolean,
     /** Nom de l'équipe (éventuellement vide), préfixe du titre dans l'espace Équipe. */
     teamName: String,
-    aboutOpen: Boolean,
+    /** Écran secondaire ouvert (Accueil ou « À propos et guide »), `null` = une destination. */
+    secondary: Secondary?,
     nav: NavState,
     onNavigate: (Destination) -> Unit,
     onNavigateTeam: (TeamDestination) -> Unit,
     onSpaceChange: (Space) -> Unit,
     onOpenDay: (LocalDate?) -> Unit,
+    onOpenHome: () -> Unit,
     onOpenAbout: () -> Unit,
-    onCloseAbout: () -> Unit,
+    onCloseSecondary: () -> Unit,
 ) {
-    // Retour système (Android) ou Échap (bureau, web) : ferme « À propos ».
-    BackHandler(enabled = aboutOpen) { onCloseAbout() }
+    // Retour système (Android) ou Échap (bureau, web) : ferme l'écran secondaire (Accueil ou « À propos »).
+    BackHandler(enabled = secondary != null) { onCloseSecondary() }
+    // Aide de l'écran courant (« ? ») et visite guidée en cours : états de la coquille, rien n'est mémorisé au-delà.
+    var helpOpen by rememberSaveable { mutableStateOf(false) }
+    var guide by rememberSaveable { mutableStateOf<GuideKind?>(null) }
 
     val snackbar = remember { SnackbarHostState() }
     // Veille du chrono pour toute l'application : les alertes jouent quel que soit l'écran.
@@ -111,7 +128,7 @@ fun AppShell(
     val scope = rememberCoroutineScope()
     val showMessage: (String) -> Unit = { message -> scope.launch { snackbar.showSnackbar(message) } }
     // Hors des branches de mise en page : un redimensionnement ne rouvre pas l'accueil.
-    CompositionLocalProvider(LocalMessages provides showMessage) { WelcomeDialog(services, onOpenAbout) }
+    CompositionLocalProvider(LocalMessages provides showMessage) { WelcomeDialog(services, onStartGuide = { guide = GuideKind.PERSONAL }) }
 
     val language = Locale.current.language
     val today = services.clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -120,11 +137,26 @@ fun AppShell(
     val team = space == Space.TEAM
     val entries: List<NavEntry> = if (team) TeamDestination.entries else Destination.entries
     val current: NavEntry = if (team) teamDestination else destination
-    val selected: NavEntry? = current.takeUnless { aboutOpen }
+    val selected: NavEntry? = current.takeUnless { secondary != null }
     val onSelect: (NavEntry) -> Unit = {
         when (it) {
             is Destination -> onNavigate(it)
             is TeamDestination -> onNavigateTeam(it)
+        }
+    }
+    // Où mène une cible de la visite ou de l'Accueil : l'espace change au besoin, puis la destination
+    // (changer d'espace ouvre sa première destination, d'où l'ordre) ; une cible d'équipe sans gestion d'équipe est sans effet.
+    val openTarget: (GuideTarget) -> Unit = { target ->
+        when (target) {
+            is GuideTarget.Personal -> {
+                if (team) onSpaceChange(Space.PERSONAL)
+                onNavigate(target.destination)
+            }
+            is GuideTarget.Team -> if (teamModeEnabled) {
+                if (!team) onSpaceChange(Space.TEAM)
+                nav.exchangesTab = target.exchanges
+                onNavigateTeam(target.destination)
+            }
         }
     }
     val selector: (@Composable () -> Unit)? = if (teamModeEnabled) {
@@ -134,7 +166,8 @@ fun AppShell(
     }
     // Titre fidèle à ce qui est affiché : « Aujourd'hui » seulement si c'est vrai (Kairos 2).
     val title = when {
-        aboutOpen -> stringResource(Res.string.title_about)
+        secondary == Secondary.HOME -> stringResource(Res.string.title_home)
+        secondary == Secondary.ABOUT -> stringResource(Res.string.title_about)
         team && teamName.isNotBlank() -> stringResource(Res.string.title_team_named, teamName, stringResource(current.title))
         team -> stringResource(current.title)
         destination == Destination.DAY && day != null && day != today -> stringResource(Res.string.title_day_other, Dates.long(day, language))
@@ -146,8 +179,8 @@ fun AppShell(
             // Avec le sélecteur d'espace à côté, le titre tient sur deux lignes au plus.
             title = { if (selector != null) Text(title, maxLines = 2, overflow = TextOverflow.Ellipsis) else Text(title) },
             navigationIcon = {
-                if (aboutOpen) {
-                    IconButton(onClick = onCloseAbout) {
+                if (secondary != null) {
+                    IconButton(onClick = onCloseSecondary) {
                         Icon(KairosIcons.ArrowBack, contentDescription = stringResource(Res.string.action_back))
                     }
                 } else if (layout != NavigationLayout.RAIL) {
@@ -156,7 +189,15 @@ fun AppShell(
                 }
             },
             // Sans rail, le sélecteur d'espace est à droite du titre ; avec un rail, il est dans son en-tête.
-            actions = { if (layout != NavigationLayout.RAIL) selector?.invoke() },
+            actions = {
+                if (layout != NavigationLayout.RAIL) selector?.invoke()
+                // Sur l'Accueil et « À propos », l'aide est déjà la page elle-même.
+                if (secondary == null) {
+                    IconButton(onClick = { helpOpen = true }) {
+                        Icon(KairosIcons.Help, contentDescription = stringResource(Res.string.help_action))
+                    }
+                }
+            },
         )
     }
     val content: @Composable (Modifier) -> Unit = { modifier ->
@@ -166,14 +207,29 @@ fun AppShell(
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 CompositionLocalProvider(LocalMessages provides showMessage) {
                     when {
-                        aboutOpen -> AboutScreen()
-                        team -> TeamDestinationScreen(teamDestination, services, onOpenAbout)
+                        secondary == Secondary.HOME -> HomeScreen(teamModeEnabled, openTarget, { guide = it }, onOpenAbout)
+                        secondary == Secondary.ABOUT -> AboutScreen()
+                        team -> TeamDestinationScreen(teamDestination, services, nav, onOpenAbout, onTour = { guide = GuideKind.TEAM })
                         else -> DestinationScreen(destination, services, nav, onOpenDay, onNavigate, onOpenAbout)
                     }
                 }
                 AlertBanners(alerts, Modifier.align(Alignment.BottomCenter))
             }
         }
+    }
+
+    if (helpOpen) {
+        HelpDialog(
+            screen = current,
+            topic = HelpTopic.of(current, nav.exchangesTab),
+            team = team,
+            onOpenHome = { helpOpen = false; onOpenHome() },
+            onStartTour = { helpOpen = false; guide = if (team) GuideKind.TEAM else GuideKind.PERSONAL },
+            onDismiss = { helpOpen = false },
+        )
+    }
+    guide?.let { kind ->
+        GuideDialog(kind, onOpen = { target -> guide = null; openTarget(target) }, onDismiss = { guide = null })
     }
 
     when (layout) {
