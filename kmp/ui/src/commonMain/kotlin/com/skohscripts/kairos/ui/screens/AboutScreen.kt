@@ -42,6 +42,7 @@ import com.skohscripts.kairos.ui.generated.resources.about_score_formula
 import com.skohscripts.kairos.ui.generated.resources.about_score_title
 import com.skohscripts.kairos.ui.generated.resources.about_source
 import com.skohscripts.kairos.ui.generated.resources.about_version
+import com.skohscripts.kairos.ui.generated.resources.donate_action
 import com.skohscripts.kairos.ui.generated.resources.app_name
 import com.skohscripts.kairos.ui.generated.resources.app_tagline
 import com.skohscripts.kairos.ui.icons.KairosIcons
@@ -51,6 +52,9 @@ import org.jetbrains.compose.resources.stringResource
 
 /** Dépôt du code source, affiché et ouvert depuis « À propos ». */
 const val SOURCE_URL = "https://github.com/SKOHscripts/Kairos"
+
+/** Page de don (GitHub Pages), ouverte dans le navigateur depuis le cœur de la barre et « À propos ». */
+const val DONATE_URL = "https://skohscripts.github.io/donate.github.io/"
 
 /**
  * « À propos et guide » : remplace la page d'accueil de Kairos 2 (qui rendait
@@ -107,6 +111,10 @@ fun AboutScreen() {
             KairosOutlinedButton(onClick = { uriHandler.openUri(SOURCE_URL) }, contentPadding = KairosButtonIconPadding) {
                 Icon(KairosIcons.OpenInNew, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.about_source), modifier = Modifier.padding(start = 8.dp))
+            }
+            KairosOutlinedButton(onClick = { runCatching { uriHandler.openUri(DONATE_URL) } }, contentPadding = KairosButtonIconPadding) {
+                Icon(KairosIcons.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.donate_action), modifier = Modifier.padding(start = 8.dp))
             }
         }
     }

@@ -234,6 +234,12 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 - Un seul utilisateur, le manager : tout reste sur l’appareil, sans compte
   ni réseau ; les fichiers circulent comme on veut (courriel, clé USB…).
 
+### Soutenir
+
+- Un **cœur** dans la barre du haut (et un bouton dans « À propos et guide »)
+  ouvre la [page de don](https://skohscripts.github.io/donate.github.io/) de
+  l’auteur. Kairos reste gratuit et identique pour tous.
+
 ### Apparence
 
 - **Couleur du thème** au choix (Réglages → Apparence) : le miel par défaut,

@@ -52,11 +52,13 @@ import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_back
 import com.skohscripts.kairos.ui.generated.resources.app_name
+import com.skohscripts.kairos.ui.generated.resources.donate_action
 import com.skohscripts.kairos.ui.generated.resources.help_action
 import com.skohscripts.kairos.ui.generated.resources.nav_navigation
 import com.skohscripts.kairos.ui.generated.resources.title_home
@@ -69,6 +71,7 @@ import com.skohscripts.kairos.ui.guide.GuideTarget
 import com.skohscripts.kairos.ui.guide.HelpDialog
 import com.skohscripts.kairos.ui.guide.HelpTopic
 import com.skohscripts.kairos.ui.screens.AboutScreen
+import com.skohscripts.kairos.ui.screens.DONATE_URL
 import com.skohscripts.kairos.ui.screens.HomeScreen
 import com.skohscripts.kairos.ui.screens.DestinationScreen
 import com.skohscripts.kairos.ui.screens.TeamDestinationScreen
@@ -118,6 +121,7 @@ fun AppShell(
     BackHandler(enabled = secondary != null) { onCloseSecondary() }
     // Aide de l'écran courant (« ? ») et visite guidée en cours : états de la coquille, rien n'est mémorisé au-delà.
     var helpOpen by rememberSaveable { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
     var guide by rememberSaveable { mutableStateOf<GuideKind?>(null) }
 
     val snackbar = remember { SnackbarHostState() }
@@ -192,6 +196,9 @@ fun AppShell(
             actions = {
                 if (layout != NavigationLayout.RAIL) selector?.invoke()
                 // Sur l'Accueil et « À propos », l'aide est déjà la page elle-même.
+                IconButton(onClick = { runCatching { uriHandler.openUri(DONATE_URL) } }) {
+                    Icon(KairosIcons.Favorite, contentDescription = stringResource(Res.string.donate_action))
+                }
                 if (secondary == null) {
                     IconButton(onClick = { helpOpen = true }) {
                         Icon(KairosIcons.Help, contentDescription = stringResource(Res.string.help_action))

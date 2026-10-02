@@ -1032,6 +1032,7 @@
     <string name="title_home">Home</string>
     <string name="welcome_tour">Guided tour</string>
     <string name="help_action">Help</string>
+    <string name="donate_action">Support Kairos</string>
     <string name="help_title">Help: %1$s</string>
     <string name="help_close">Close</string>
     <string name="help_open_home">Kairos home</string>
