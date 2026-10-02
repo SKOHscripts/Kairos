@@ -42,6 +42,7 @@ import com.skohscripts.kairos.ui.generated.resources.about_score_formula
 import com.skohscripts.kairos.ui.generated.resources.about_score_title
 import com.skohscripts.kairos.ui.generated.resources.about_source
 import com.skohscripts.kairos.ui.generated.resources.about_version
+import com.skohscripts.kairos.ui.generated.resources.donate_action
 import com.skohscripts.kairos.ui.generated.resources.app_name
 import com.skohscripts.kairos.ui.generated.resources.app_tagline
 import com.skohscripts.kairos.ui.icons.KairosIcons

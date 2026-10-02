@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_back
 import com.skohscripts.kairos.ui.generated.resources.app_name
+import com.skohscripts.kairos.ui.generated.resources.donate_action
 import com.skohscripts.kairos.ui.generated.resources.help_action
 import com.skohscripts.kairos.ui.generated.resources.nav_navigation
 import com.skohscripts.kairos.ui.generated.resources.title_home
