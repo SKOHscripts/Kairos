@@ -71,7 +71,8 @@ internal fun LoadBar(
 
 /**
  * Un texte d'état. [flagged] : contour `outline` et icône `Warning` (la forme dit « à surveiller », jamais une
- * teinte ni de l'ambre) ; sinon le texte seul. [description] : lecture de l'icône par un lecteur d'écran.
+ * teinte ni de l'ambre) ; sinon le texte seul. [description] : lecture de l'icône par un lecteur d'écran ;
+ * [icon] : une autre icône que `Warning` pour un état qui n'est pas un risque (« en attente »).
  */
 @Composable
 internal fun Flag(
@@ -80,6 +81,7 @@ internal fun Flag(
     modifier: Modifier = Modifier,
     style: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodySmall,
     description: String? = null,
+    icon: androidx.compose.ui.graphics.vector.ImageVector = KairosIcons.Warning,
 ) {
     if (!flagged) {
         Text(text, style = style, modifier = modifier)
@@ -90,7 +92,7 @@ internal fun Flag(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier.border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small).padding(horizontal = 8.dp, vertical = 2.dp),
     ) {
-        Icon(KairosIcons.Warning, contentDescription = description, modifier = Modifier.size(16.dp))
+        Icon(icon, contentDescription = description, modifier = Modifier.size(16.dp))
         Text(text, style = style)
     }
 }

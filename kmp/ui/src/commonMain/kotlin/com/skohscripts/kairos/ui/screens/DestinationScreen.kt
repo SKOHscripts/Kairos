@@ -41,11 +41,11 @@ fun DestinationScreen(
  * Backlog sont ceux du jalon E3, Prévisions (simulations et scénarios) celui du jalon E5.
  */
 @Composable
-fun TeamDestinationScreen(destination: TeamDestination, services: AppServices, onOpenAbout: () -> Unit) {
+fun TeamDestinationScreen(destination: TeamDestination, services: AppServices, nav: NavState, onOpenAbout: () -> Unit, onTour: () -> Unit) {
     when (destination) {
         TeamDestination.BOARD -> TeamBoardScreen(services)
         TeamDestination.BACKLOG -> TeamBacklogScreen(services)
-        TeamDestination.MEMBERS -> TeamMembersScreen(services)
+        TeamDestination.MEMBERS -> TeamMembersScreen(services, nav = nav, onTour = onTour)
         TeamDestination.FORECAST -> ForecastScreen(services)
         TeamDestination.SETTINGS -> SettingsScreen(services, onOpenAbout)
     }

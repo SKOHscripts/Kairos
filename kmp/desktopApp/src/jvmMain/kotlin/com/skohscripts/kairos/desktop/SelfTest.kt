@@ -10,6 +10,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.ImageComposeScene
+import com.skohscripts.kairos.ui.guide.GuideDialog
+import com.skohscripts.kairos.ui.navigation.Destination
+import com.skohscripts.kairos.ui.guide.GuideKind
+import com.skohscripts.kairos.ui.guide.HelpDialog
+import com.skohscripts.kairos.ui.guide.HelpTopic
+import com.skohscripts.kairos.ui.screens.HomeScreen
 import com.skohscripts.kairos.ui.navigation.NavState
 import com.skohscripts.kairos.ui.notes.NotesScreen
 import com.skohscripts.kairos.ui.screens.AboutScreen
@@ -184,6 +190,16 @@ object SelfTest {
                 ) { ExchangePreviewCard(preview, onConfirm = {}, onDismiss = {}) }
             }
         }
+        // Accueil, visite guidée, aide (docs/spec/accueil.md) et onglet « Échanges » de l'écran Équipe (docs/spec/equipe-echanges.md).
+        fun overScrim(content: @Composable () -> Unit): @Composable () -> Unit = {
+            KairosTheme {
+                Box(
+                    Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f).compositeOver(MaterialTheme.colorScheme.surface)),
+                    contentAlignment = Alignment.Center,
+                ) { content() }
+            }
+        }
+        val exchangesTab = NavState().apply { exchangesTab = true }
         val memberApp: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { exchange.member } }
         val memberSettings: @Composable () -> Unit = { KairosTheme { Surface { SettingsScreen(exchange.member) {} } } }
         val teamApp: @Composable () -> Unit = { KairosApp(Platform.DESKTOP) { team } }
@@ -220,6 +236,14 @@ object SelfTest {
             Shot("exchange-day-narrow", 420, 2600, memberApp),
             Shot("exchange-settings", 900, 4900, memberSettings),
             // Écran Équipe du jalon E2 : large, puis 360 dp ; fiche membre (dialogue, plein écran) et éditeur d'absence.
+            Shot("home", 900, 1500, atWidth(900.dp) { HomeScreen(teamEnabled = false, onOpen = {}, onTour = {}, onAbout = {}) }),
+            Shot("home-narrow", 360, 2300, atWidth(360.dp) { HomeScreen(teamEnabled = false, onOpen = {}, onTour = {}, onAbout = {}) }),
+            Shot("home-team", 900, 1500, atWidth(900.dp) { HomeScreen(teamEnabled = true, onOpen = {}, onTour = {}, onAbout = {}) }),
+            Shot("guide-step", 900, 700, overScrim { GuideDialog(GuideKind.PERSONAL, onOpen = {}, onDismiss = {}) }),
+            Shot("guide-step-narrow", 360, 800, overScrim { GuideDialog(GuideKind.TEAM, onOpen = {}, onDismiss = {}) }),
+            Shot("help", 900, 700, overScrim { HelpDialog(Destination.DAY, HelpTopic.DAY, team = false, onOpenHome = {}, onStartTour = {}, onDismiss = {}) }),
+            Shot("team-exchanges", 900, 1500, atWidth(900.dp) { TeamMembersScreen(exchange.manager, nav = exchangesTab) }),
+            Shot("team-exchanges-narrow", 360, 2300, atWidth(360.dp) { TeamMembersScreen(exchange.manager, nav = exchangesTab) }),
             Shot("team-members", 1200, 1000, membersScreen),
             Shot("team-members-narrow", 360, 1000, membersScreen),
             Shot("team-member-sheet", 900, 1100, sheet(compact = false)),
