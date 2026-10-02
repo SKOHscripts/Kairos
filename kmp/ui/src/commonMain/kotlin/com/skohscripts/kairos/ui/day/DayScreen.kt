@@ -1,9 +1,15 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosListBlockExtra
+import com.skohscripts.kairos.ui.theme.KairosListSectionExtra
+import com.skohscripts.kairos.ui.theme.KairosSpacing
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,7 +29,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -224,12 +229,14 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxHeight()) {
             LazyColumn(
                 state = listState,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(16.dp),
+                // Rythme (docs/spec/densite.md) : lignes d'une même liste à `s` ; un bloc ajoute KairosListBlockExtra (total `m`), un titre de section KairosListSectionExtra (total `xl`).
+                verticalArrangement = Arrangement.spacedBy(KairosSpacing.s),
+                contentPadding = PaddingValues(KairosSpacing.l),
                 modifier = Modifier.width(mainWidth).fillMaxHeight(),
             ) {
                 val list = ListBuilder(this, positions)
                 fun one(key: String, content: @Composable () -> Unit) = list.one(key, content)
+                fun block(key: String, content: @Composable () -> Unit) = list.one(key) { Box(Modifier.padding(top = KairosListBlockExtra)) { content() } }
                 fun rows(key: String, tasks: List<Task>, row: @Composable (Task) -> Unit) = list.rows(key, tasks, row)
                 fun section(key: String, title: StringResource, hint: StringResource, count: Int, showEmpty: Boolean = false, content: () -> Unit) =
                     list.section(key, title, hint, count, sectionOpen, showEmpty, content)
@@ -237,13 +244,13 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
                 one("storage") { StorageBanner(services, showWhenLinked = false) }
                 if (day != today) {
                     one("back-today") {
-                        OutlinedButton(onClick = onBackToToday) {
+                        KairosOutlinedButton(onClick = onBackToToday, contentPadding = KairosButtonIconPadding) {
                             Icon(KairosIcons.Today, contentDescription = null, modifier = Modifier.size(18.dp))
                             Text(stringResource(Res.string.day_back_today), modifier = Modifier.padding(start = 6.dp))
                         }
                     }
                 }
-                one("capture") {
+                block("capture") {
                     Capture(
                         capture, day, view.editableBlocks, language, showShortcuts,
                         onAddTask = { title -> scope.launch { repository.createTask(title) } },
@@ -253,7 +260,7 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
                 }
 
                 // --- À traiter
-                one("inbox-title") { SectionTitle(stringResource(Res.string.inbox_title), view.inbox.size, Modifier.padding(top = 8.dp)) }
+                one("inbox-title") { SectionTitle(stringResource(Res.string.inbox_title), view.inbox.size, Modifier.padding(top = KairosListSectionExtra)) }
                 one("inbox-help") {
                     Column {
                         Hint(stringResource(if (view.inbox.isEmpty()) Res.string.inbox_empty else Res.string.inbox_help))
@@ -271,7 +278,7 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
                 }
 
                 // --- Maintenant, puis bandeau de surcharge (un avertissement, jamais en tête)
-                one("now") {
+                block("now") {
                     NowCard(
                         view, language, notifyState,
                         onDone = { t -> scope.launch { repository.toggleDone(t.id) } },
@@ -280,7 +287,7 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
                         onEnableAlerts = { scope.launch { services.notifier.requestPermission() } },
                     )
                 }
-                if (view.priorityOverload) one("overload") { OverloadBanner(view.priorityOverloadCount) }
+                if (view.priorityOverload) block("overload") { OverloadBanner(view.priorityOverloadCount) }
 
                 // Un filtre actif remonte au-dessus des listes qu'il réduit.
                 val filters: @Composable () -> Unit = {
@@ -289,11 +296,11 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
                         view.projects, snapshot.settings.taskTypeList, searchFocus, showShortcuts,
                     )
                 }
-                if (filter.active) one("filters", filters)
+                if (filter.active) block("filters", filters)
 
                 // --- Aujourd'hui, dans l'ordre
                 one("agenda-title") {
-                    Column(Modifier.padding(top = 8.dp)) {
+                    Column(Modifier.padding(top = KairosListSectionExtra)) {
                         Text(stringResource(Res.string.agenda_title), style = MaterialTheme.typography.titleMedium)
                         Hint(stringResource(if (view.agenda.isEmpty()) Res.string.agenda_empty else Res.string.agenda_hint))
                     }
@@ -326,19 +333,19 @@ fun DayScreen(services: AppServices, selectedDay: LocalDate? = null, onBackToTod
                     rows("done", view.doneToday) { TaskRow(it, ctx, editable = false, showDescription = false) }
                 }
 
-                if (!filter.active) one("filters", filters)
+                if (!filter.active) block("filters", filters)
                 section("backlog", Res.string.backlog_title, Res.string.backlog_hint, view.backlog.size, showEmpty = true) {
                     rows("backlog", view.backlog) { TaskRow(it, ctx) }
                 }
                 if (!twoColumns) {
-                    one("running") { RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } }) }
-                    one("timeline") { TimelineCard(view, snapshot.settings, language) }
+                    block("running") { RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } }) }
+                    block("timeline") { TimelineCard(view, snapshot.settings, language) }
                 }
             }
             if (twoColumns) {
                 Column(
-                    Modifier.width(320.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    Modifier.width(320.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = KairosSpacing.l),
+                    verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
                 ) {
                     RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } })
                     TimelineCard(view, snapshot.settings, language)
@@ -448,7 +455,7 @@ private class ListBuilder(private val scope: LazyListScope, private val position
         if (count == 0 && !showEmpty) return
         val isOpen = open[key] ?: false
         one("section-$key") {
-            Column(Modifier.padding(top = 8.dp)) {
+            Column(Modifier.padding(top = KairosListSectionExtra)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().disclosure(isOpen, heading = true) { open[key] = !isOpen }.padding(vertical = 6.dp),

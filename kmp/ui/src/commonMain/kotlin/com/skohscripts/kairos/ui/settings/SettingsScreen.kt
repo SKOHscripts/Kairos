@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.ui.settings
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.app.heading
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.text.intl.Locale
@@ -20,7 +24,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Instant
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import com.skohscripts.kairos.core.settings.FieldError
@@ -49,10 +52,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +62,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.KairosBuild
 import com.skohscripts.kairos.core.model.KairosSnapshot
@@ -156,9 +159,9 @@ fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp),
+                modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(KairosSpacing.l),
             ) {
                 Text(stringResource(Res.string.settings_intro), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth())
                 general?.let { GeneralErrorBanner(it) }
@@ -179,8 +182,10 @@ fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
                 }
                 services.shortcuts?.let { ShortcutCard(it) }
                 DataCard(services)
-                OutlinedCard(onClick = onOpenAbout, modifier = Modifier.fillMaxWidth()) {
+                SettingsClickableCard(onClick = onOpenAbout) {
                     ListItem(
+                        // Le fond de la ligne est celui de la carte « filled », pas la surface par défaut du ListItem.
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         leadingContent = { Icon(KairosIcons.Info, contentDescription = null) },
                         headlineContent = { Text(stringResource(Res.string.settings_about_entry)) },
                         supportingContent = { Text(stringResource(Res.string.settings_about_entry_hint)) },
@@ -198,12 +203,12 @@ fun SettingsScreen(services: AppServices, onOpenAbout: () -> Unit) {
             title = { Text(stringResource(Res.string.team_disable_title)) },
             text = { Text(stringResource(Res.string.team_disable_body)) },
             confirmButton = {
-                TextButton(onClick = {
+                KairosTextButton(onClick = {
                     confirmHide = null
                     write(settings)
                 }) { Text(stringResource(Res.string.team_disable_confirm)) }
             },
-            dismissButton = { TextButton(onClick = { confirmHide = null }) { Text(stringResource(Res.string.action_cancel)) } },
+            dismissButton = { KairosTextButton(onClick = { confirmHide = null }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
 }
@@ -223,23 +228,20 @@ private fun UpdatesCard(updates: UpdateService, enabled: String, onEnabled: (Str
         val t = instant.toLocalDateTime(TimeZone.currentSystemDefault())
         return "${Dates.dayMonth(t.date, language)} ${Dates.time(t, language)}"
     }
-    OutlinedCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(Res.string.settings_section_updates), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
-            Text(stringResource(Res.string.update_help), style = MaterialTheme.typography.bodyMedium)
-            SettingInput("updateCheckEnabled", enabled, null, onEnabled)
-            Text(stringResource(Res.string.update_installed, KairosBuild.VERSION_NAME), style = MaterialTheme.typography.bodyMedium)
-            val line = when (val s = status) {
-                UpdateStatus.Never -> stringResource(Res.string.update_never)
-                UpdateStatus.Checking -> stringResource(Res.string.update_checking)
-                is UpdateStatus.UpToDate -> stringResource(Res.string.update_up_to_date, at(s.at))
-                is UpdateStatus.Available -> stringResource(Res.string.update_available, s.version, at(s.at))
-                is UpdateStatus.Failed -> stringResource(Res.string.update_failed, at(s.at))
-            }
-            Text(line, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            OutlinedButton(enabled = status != UpdateStatus.Checking, onClick = { scope.launch { runCatching { updates.check(force = true) } } }) {
-                Text(stringResource(Res.string.update_check_now))
-            }
+    SettingsCard(spacing = KairosSpacing.m) {
+        SettingsCardHeader(stringResource(Res.string.settings_section_updates), stringResource(Res.string.update_help))
+        SettingInput("updateCheckEnabled", enabled, null, onEnabled)
+        Text(stringResource(Res.string.update_installed, KairosBuild.VERSION_NAME), style = MaterialTheme.typography.bodyMedium)
+        val line = when (val s = status) {
+            UpdateStatus.Never -> stringResource(Res.string.update_never)
+            UpdateStatus.Checking -> stringResource(Res.string.update_checking)
+            is UpdateStatus.UpToDate -> stringResource(Res.string.update_up_to_date, at(s.at))
+            is UpdateStatus.Available -> stringResource(Res.string.update_available, s.version, at(s.at))
+            is UpdateStatus.Failed -> stringResource(Res.string.update_failed, at(s.at))
+        }
+        Text(line, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        KairosOutlinedButton(enabled = status != UpdateStatus.Checking, onClick = { scope.launch { runCatching { updates.check(force = true) } } }) {
+            Text(stringResource(Res.string.update_check_now))
         }
     }
 }
@@ -271,9 +273,9 @@ private fun SaveBar(dirty: Boolean, onReset: () -> Unit, onSave: () -> Unit) {
         ) {
             if (dirty) {
                 Text(stringResource(Res.string.settings_unsaved), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(end = 8.dp))
-                TextButton(onClick = onReset) { Text(stringResource(Res.string.settings_reset)) }
+                KairosTextButton(onClick = onReset) { Text(stringResource(Res.string.settings_reset)) }
             }
-            Button(enabled = dirty, onClick = onSave) { Text(stringResource(Res.string.action_save)) }
+            KairosButton(enabled = dirty, onClick = onSave) { Text(stringResource(Res.string.action_save)) }
         }
     }
 }
@@ -296,70 +298,67 @@ private fun DataCard(services: AppServices) {
     val stored by services.repository.snapshot.collectAsState()
     val origins = remember(stored) { ReceivedTasks.origins(stored) }
 
-    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(Res.string.data_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
-            Text(stringResource(Res.string.data_body), style = MaterialTheme.typography.bodyMedium)
-            services.dataLocation?.let {
-                Text(
-                    stringResource(Res.string.data_location, it),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+    SettingsCard(spacing = KairosSpacing.m) {
+        SettingsCardHeader(stringResource(Res.string.data_title), stringResource(Res.string.data_body))
+        services.dataLocation?.let {
+            Text(
+                stringResource(Res.string.data_location, it),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        StorageBanner(services, showWhenLinked = true)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            KairosOutlinedButton(onClick = {
+                scope.launch {
+                    val text = ExportCodec.encode(services.repository.snapshot.value, KairosBuild.VERSION_NAME, services.clock.now())
+                    val saved = runCatching { services.files.saveText("kairos-export-${fileStamp(services)}.json", text) }
+                    saved.onSuccess { if (it) messages(getString(Res.string.export_done)) }
+                        .onFailure { messages(getString(Res.string.file_error)) }
+                }
+            }, contentPadding = KairosButtonIconPadding) {
+                Icon(KairosIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.data_export), modifier = Modifier.padding(start = 6.dp))
             }
-            StorageBanner(services, showWhenLinked = true)
+            KairosOutlinedButton(onClick = {
+                scope.launch {
+                    val text = runCatching { services.files.openText() }.getOrElse {
+                        messages(getString(Res.string.file_error))
+                        return@launch
+                    } ?: return@launch
+                    try {
+                        when (val file = readImportedFile(services, text)) {
+                            is ImportedFile.Full -> pending = file.snapshot
+                            is ImportedFile.Exchange -> exchange = file.preview
+                        }
+                    } catch (e: ImportException) {
+                        messages(importErrorMessage(e))
+                    }
+                }
+            }, contentPadding = KairosButtonIconPadding) {
+                Icon(KairosIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.data_import), modifier = Modifier.padding(start = 6.dp))
+            }
+        }
+        if (origins.isNotEmpty()) {
+            Text(stringResource(Res.string.exchange_report_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = {
-                    scope.launch {
-                        val text = ExportCodec.encode(services.repository.snapshot.value, KairosBuild.VERSION_NAME, services.clock.now())
-                        val saved = runCatching { services.files.saveText("kairos-export-${fileStamp(services)}.json", text) }
-                        saved.onSuccess { if (it) messages(getString(Res.string.export_done)) }
-                            .onFailure { messages(getString(Res.string.file_error)) }
-                    }
-                }) {
-                    Icon(KairosIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text(stringResource(Res.string.data_export), modifier = Modifier.padding(start = 6.dp))
-                }
-                OutlinedButton(onClick = {
-                    scope.launch {
-                        val text = runCatching { services.files.openText() }.getOrElse {
-                            messages(getString(Res.string.file_error))
-                            return@launch
-                        } ?: return@launch
-                        try {
-                            when (val file = readImportedFile(services, text)) {
-                                is ImportedFile.Full -> pending = file.snapshot
-                                is ImportedFile.Exchange -> exchange = file.preview
-                            }
-                        } catch (e: ImportException) {
-                            messages(importErrorMessage(e))
-                        }
-                    }
-                }) {
-                    Icon(KairosIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text(stringResource(Res.string.data_import), modifier = Modifier.padding(start = 6.dp))
-                }
-            }
-            if (origins.isNotEmpty()) {
-                Text(stringResource(Res.string.exchange_report_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    origins.forEach { origin ->
-                        OutlinedButton(onClick = { scope.launch { sendReport(services, origin, messages) } }) {
-                            Icon(KairosIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Text(
-                                stringResource(if (origins.size == 1) Res.string.exchange_report_action else Res.string.exchange_report_action_to, whoText(origin)),
-                                modifier = Modifier.padding(start = 6.dp),
-                            )
-                        }
+                origins.forEach { origin ->
+                    KairosOutlinedButton(onClick = { scope.launch { sendReport(services, origin, messages) } }, contentPadding = KairosButtonIconPadding) {
+                        Icon(KairosIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text(
+                            stringResource(if (origins.size == 1) Res.string.exchange_report_action else Res.string.exchange_report_action_to, whoText(origin)),
+                            modifier = Modifier.padding(start = 6.dp),
+                        )
                     }
                 }
             }
-            if (services.legacy != null) {
-                Text(stringResource(Res.string.legacy_import_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                OutlinedButton(onClick = legacy::pick) {
-                    Icon(KairosIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text(stringResource(Res.string.legacy_import_action), modifier = Modifier.padding(start = 6.dp))
-                }
+        }
+        if (services.legacy != null) {
+            Text(stringResource(Res.string.legacy_import_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            KairosOutlinedButton(onClick = legacy::pick, contentPadding = KairosButtonIconPadding) {
+                Icon(KairosIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.legacy_import_action), modifier = Modifier.padding(start = 6.dp))
             }
         }
     }
@@ -370,7 +369,7 @@ private fun DataCard(services: AppServices) {
             title = { Text(stringResource(Res.string.import_confirm_title)) },
             text = { Text(stringResource(Res.string.import_confirm_body)) },
             confirmButton = {
-                TextButton(onClick = {
+                KairosTextButton(onClick = {
                     pending = null
                     scope.launch {
                         if (replaceWithBackup(services, snapshot, messages)) {
@@ -379,7 +378,7 @@ private fun DataCard(services: AppServices) {
                     }
                 }) { Text(stringResource(Res.string.import_confirm_action)) }
             },
-            dismissButton = { TextButton(onClick = { pending = null }) { Text(stringResource(Res.string.action_cancel)) } },
+            dismissButton = { KairosTextButton(onClick = { pending = null }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
     exchange?.let { preview ->

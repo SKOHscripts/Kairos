@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosSpacing
+import com.skohscripts.kairos.ui.theme.KairosRowIconButton
+import com.skohscripts.kairos.ui.theme.KairosFilterChip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -11,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -21,10 +23,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -155,8 +155,8 @@ fun TeamBoardScreen(services: AppServices) {
             val columns = maxWidth >= COLUMNS_FROM
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
+                    contentPadding = PaddingValues(KairosSpacing.l),
                     modifier = Modifier.widthIn(max = if (columns) 1200.dp else 720.dp).fillMaxSize(),
                 ) {
                     item(key = "figures") {
@@ -182,12 +182,11 @@ fun TeamBoardScreen(services: AppServices) {
                                 stringResource(Res.string.board_filter_member), memberId, context.active.map { it.id },
                                 { id -> context.nameOrNull(id).orEmpty() }, all, width = 150.dp,
                             ) { memberId = it }
-                            FilterChip(
+                            KairosFilterChip(
                                 selected = onlyWatched,
                                 onClick = { onlyWatched = !onlyWatched },
                                 label = { Text(stringResource(Res.string.board_filter_watched)) },
                                 leadingIcon = { Icon(KairosIcons.Warning, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                                modifier = Modifier.heightIn(min = 48.dp),
                             )
                         }
                     }
@@ -368,9 +367,7 @@ private fun TaskCard(
                 )
                 if (open) {
                     Box {
-                        IconButton(onClick = { menu = true }) {
-                            Icon(KairosIcons.MoreVert, contentDescription = stringResource(Res.string.board_card_actions, task.title))
-                        }
+                        KairosRowIconButton(KairosIcons.MoreVert, stringResource(Res.string.board_card_actions, task.title), onClick = { menu = true })
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                             if (card.state == TeamState.TODO) {
                                 DropdownMenuItem(

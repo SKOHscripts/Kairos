@@ -170,7 +170,9 @@ réseau. **Ajouter une icône dans le script, jamais à la main.** Variante plei
   navigation en pilule.
 - Cartes : `OutlinedCard` (surface + contour `outlineVariant`) ou `Card`
   « filled » (`surfaceContainerLow`, élévation 0) pour la capture, les lignes
-  de tâche et de note, les tuiles de statistiques.
+  de tâche et de note, les tuiles de statistiques et les **cartes de
+  section des Réglages**. Pas de contour dans un contour : un bloc à
+  contour ne contient pas d'autre bloc à contour (ses champs exceptés).
 - **Élévation** : une carte ne porte **jamais d'ombre**, son plan se lit par la
   surface tonale. Seuls les éléments qui flottent au-dessus du contenu en ont
   une, celle que Material 3 leur donne : dialogues, snackbar, menus.
@@ -186,13 +188,23 @@ réseau. **Ajouter une icône dans le script, jamais à la main.** Variante plei
 
 ## Boutons & champs
 
-- Hiérarchie MD3 : `Button` (plein, action principale), `OutlinedButton`,
-  `TextButton` (action tertiaire, « Décaler », « Plus tard »), `IconButton`
-  pour les actions de ligne (chrono, décaler, modifier) ; destruction en
-  couleur d'erreur, avec confirmation.
+- Hiérarchie MD3 : bouton plein (action principale), à contour, tonal, de
+  texte (action tertiaire, « Décaler », « Plus tard »), bouton-icône pour
+  les actions de ligne (chrono, décaler, modifier) ; destruction en couleur
+  d'erreur, avec confirmation.
+- **Densité** (`docs/spec/densite.md`) : tout passe par les enveloppes
+  `Kairos*` de `theme/KairosComponents.kt`, jamais par les composants
+  Material 3 directement (test `ComponentDensityTest`). Hauteurs
+  **dessinées** : bouton 36 dp (marges latérales 16 dp, 12 dp côté icône),
+  puce 32 dp, segment 40 dp, bouton-icône de ligne 40 dp avec icône de
+  20 dp ; **aire tactile 48 dp** pour tous (Material 3 l'agrandit autour du
+  dessin). Espacement : `KairosSpacing` 4 / 8 / 12 / 16 / 24 dp (liés /
+  groupe / bloc / marge / section).
 - Champs `OutlinedTextField` (rayon 4 dp) ; menus déroulants
-  `ExposedDropdownMenuBox` ; choix exclusifs en `SingleChoiceSegmentedButtonRow`
-  ou en puces (`FilterChip`) ; interrupteurs dont toute la ligne se touche.
+  `ExposedDropdownMenuBox` ; choix exclusifs en rangée segmentée
+  (`KairosSegmentedRow`) ou en puces (`KairosFilterChip`) ; interrupteurs
+  dont toute la ligne se touche. Dans les Réglages, un champ numérique
+  s'arrête à 320 dp.
 
 ## Logo
 

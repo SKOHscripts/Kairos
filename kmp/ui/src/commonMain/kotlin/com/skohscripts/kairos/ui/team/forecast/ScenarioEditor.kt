@@ -1,5 +1,10 @@
 package com.skohscripts.kairos.ui.team.forecast
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosRowIconButton
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,13 +12,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -22,11 +25,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -169,9 +170,10 @@ fun ScenarioEditorContent(
                             { Flag(stringResource(Res.string.mod_ignored, skipReasonText(reason)), flagged = true, modifier = Modifier.padding(top = 4.dp)) }
                         },
                         trailingContent = {
-                            IconButton(onClick = { mods = mods.filterIndexed { i, _ -> i != index } }) {
-                                Icon(KairosIcons.Delete, contentDescription = stringResource(Res.string.scenario_editor_remove))
-                            }
+                            KairosRowIconButton(
+                                KairosIcons.Delete, stringResource(Res.string.scenario_editor_remove),
+                                onClick = { mods = mods.filterIndexed { i, _ -> i != index } },
+                            )
                         },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = Modifier.clickable(role = Role.Button) { editing = index },
@@ -182,7 +184,7 @@ fun ScenarioEditorContent(
                     Flag(stringResource(Res.string.scenario_unreadable, unreadable.size), flagged = true)
                 }
                 Box {
-                    OutlinedButton(onClick = { menu = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                    KairosOutlinedButton(onClick = { menu = true }, contentPadding = KairosButtonIconPadding) {
                         Icon(KairosIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(Res.string.scenario_editor_add), modifier = Modifier.padding(start = 8.dp))
                     }
@@ -199,8 +201,8 @@ fun ScenarioEditorContent(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = padding, vertical = if (compact) 8.dp else 16.dp),
                 ) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
-                    Button(onClick = { onSave(name.trim(), mods) }, enabled = name.isNotBlank()) { Text(stringResource(Res.string.action_save)) }
+                    KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
+                    KairosButton(onClick = { onSave(name.trim(), mods) }, enabled = name.isNotBlank()) { Text(stringResource(Res.string.action_save)) }
                 }
             }
         }

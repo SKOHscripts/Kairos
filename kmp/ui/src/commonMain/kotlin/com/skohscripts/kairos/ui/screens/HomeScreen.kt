@@ -14,23 +14,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.skohscripts.kairos.ui.theme.KairosSpacing
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.app_name
@@ -90,8 +91,8 @@ private val FEATURES = listOf(
 fun HomeScreen(teamEnabled: Boolean, onOpen: (GuideTarget) -> Unit, onTour: (GuideKind) -> Unit, onAbout: () -> Unit) {
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
+            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(KairosSpacing.l),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Image(KairosLogo, contentDescription = null, modifier = Modifier.size(56.dp))
@@ -130,7 +131,7 @@ fun HomeScreen(teamEnabled: Boolean, onOpen: (GuideTarget) -> Unit, onTour: (Gui
                     }
                     Text(stringResource(Res.string.home_team_manager), style = MaterialTheme.typography.bodyMedium)
                     Text(stringResource(Res.string.home_team_member), style = MaterialTheme.typography.bodyMedium)
-                    OutlinedButton(onClick = {
+                    KairosOutlinedButton(onClick = {
                         onOpen(if (teamEnabled) GuideTarget.Team(TeamDestination.START) else GuideTarget.Personal(Destination.SETTINGS))
                     }) {
                         Text(stringResource(if (teamEnabled) Res.string.home_team_open_team else Res.string.home_team_open_settings))
@@ -138,9 +139,9 @@ fun HomeScreen(teamEnabled: Boolean, onOpen: (GuideTarget) -> Unit, onTour: (Gui
                 }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Button(onClick = { onTour(GuideKind.PERSONAL) }) { Text(stringResource(Res.string.home_tour)) }
-                if (teamEnabled) OutlinedButton(onClick = { onTour(GuideKind.TEAM) }) { Text(stringResource(Res.string.home_team_tour)) }
-                TextButton(onClick = onAbout) { Text(stringResource(Res.string.home_about)) }
+                KairosButton(onClick = { onTour(GuideKind.PERSONAL) }) { Text(stringResource(Res.string.home_tour)) }
+                if (teamEnabled) KairosOutlinedButton(onClick = { onTour(GuideKind.TEAM) }) { Text(stringResource(Res.string.home_team_tour)) }
+                KairosTextButton(onClick = onAbout) { Text(stringResource(Res.string.home_about)) }
             }
         }
     }

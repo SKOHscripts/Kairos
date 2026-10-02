@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.week
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.app.expandedState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -23,10 +26,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -64,6 +65,7 @@ import com.skohscripts.kairos.ui.generated.resources.week_see_day
 import com.skohscripts.kairos.ui.generated.resources.week_spent
 import com.skohscripts.kairos.ui.generated.resources.week_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.navigation.NavState
 import com.skohscripts.kairos.ui.theme.LocalKairosExtraColors
 import kotlinx.datetime.DatePeriod
@@ -96,17 +98,17 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
     val projects = remember(snapshot) { snapshot.tasks.map { it.projectTag }.filter { it.isNotEmpty() }.distinct().sorted() }
 
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
-        Column(Modifier.widthIn(max = 1400.dp).fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.widthIn(max = 1400.dp).fillMaxWidth().padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.m)) {
             // Titre au-dessus des boutons : entre eux, il n'avait plus de place sur un
             // téléphone et s'affichait une lettre par ligne.
             Text(stringResource(Res.string.week_title, Dates.dayMonth(week.monday, language)), style = MaterialTheme.typography.titleMedium)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(onClick = { nav.week = week.monday.minus(DatePeriod(days = 7)) }) {
+                KairosOutlinedButton(onClick = { nav.week = week.monday.minus(DatePeriod(days = 7)) }, contentPadding = KairosButtonIconPadding) {
                     Icon(KairosIcons.ChevronLeft, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text(stringResource(Res.string.week_prev), modifier = Modifier.padding(start = 4.dp))
                 }
                 Spacer(Modifier.weight(1f))
-                OutlinedButton(onClick = { nav.week = week.monday.plus(DatePeriod(days = 7)) }) {
+                KairosOutlinedButton(onClick = { nav.week = week.monday.plus(DatePeriod(days = 7)) }) {
                     Text(stringResource(Res.string.week_next), modifier = Modifier.padding(end = 4.dp))
                     Icon(KairosIcons.ChevronRight, contentDescription = null, modifier = Modifier.size(18.dp))
                 }
@@ -145,7 +147,7 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
 @Composable
 private fun BacklogList(titles: List<String>, open: Boolean, onToggle: () -> Unit) {
     Column {
-        TextButton(onClick = onToggle, modifier = Modifier.expandedState(open)) {
+        KairosTextButton(onClick = onToggle, modifier = Modifier.expandedState(open), contentPadding = KairosButtonIconPadding) {
             Icon(if (open) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
             Text("${stringResource(Res.string.backlog_title)} (${titles.size})", modifier = Modifier.padding(start = 4.dp))
         }
@@ -198,7 +200,7 @@ private fun DayCard(day: WeekDay, isToday: Boolean, language: String, modifier: 
                 }
             }
             Spacer(Modifier.size(2.dp))
-            TextButton(onClick = onOpen) { Text(stringResource(Res.string.week_see_day)) }
+            KairosTextButton(onClick = onOpen) { Text(stringResource(Res.string.week_see_day)) }
         }
     }
 }

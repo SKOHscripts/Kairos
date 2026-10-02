@@ -1,5 +1,10 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosRowIconButton
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,17 +20,14 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -256,20 +258,21 @@ fun MemberSheetContent(
                     HorizontalDivider()
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         if (archived) {
-                            OutlinedButton(onClick = onRestore) {
+                            KairosOutlinedButton(onClick = onRestore, contentPadding = KairosButtonIconPadding) {
                                 Icon(KairosIcons.Unarchive, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Text(stringResource(Res.string.member_restore), modifier = Modifier.padding(start = 6.dp))
                             }
                         } else {
-                            OutlinedButton(onClick = { confirmArchive = true }) {
+                            KairosOutlinedButton(onClick = { confirmArchive = true }, contentPadding = KairosButtonIconPadding) {
                                 Icon(KairosIcons.Archive, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Text(stringResource(Res.string.member_archive), modifier = Modifier.padding(start = 6.dp))
                             }
                         }
                         if (canDelete) {
-                            TextButton(
+                            KairosTextButton(
                                 onClick = { confirmDelete = true },
                                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                                contentPadding = KairosButtonIconPadding,
                             ) {
                                 Icon(KairosIcons.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Text(stringResource(Res.string.member_delete), modifier = Modifier.padding(start = 6.dp))
@@ -286,8 +289,8 @@ fun MemberSheetContent(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = padding, vertical = if (compact) 8.dp else 16.dp),
                 ) {
-                    TextButton(onClick = onClose) { Text(stringResource(Res.string.action_cancel)) }
-                    Button(onClick = ::save) { Text(stringResource(Res.string.action_save)) }
+                    KairosTextButton(onClick = onClose) { Text(stringResource(Res.string.action_cancel)) }
+                    KairosButton(onClick = ::save) { Text(stringResource(Res.string.action_save)) }
                 }
             }
         }
@@ -320,9 +323,9 @@ fun MemberSheetContent(
                 )
             },
             confirmButton = {
-                TextButton(onClick = { confirmArchive = false; onArchive() }) { Text(stringResource(Res.string.member_archive)) }
+                KairosTextButton(onClick = { confirmArchive = false; onArchive() }) { Text(stringResource(Res.string.member_archive)) }
             },
-            dismissButton = { TextButton(onClick = { confirmArchive = false }) { Text(stringResource(Res.string.action_cancel)) } },
+            dismissButton = { KairosTextButton(onClick = { confirmArchive = false }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
 
@@ -332,12 +335,12 @@ fun MemberSheetContent(
             title = { Text(stringResource(Res.string.member_delete_title, member.name)) },
             text = { Text(stringResource(Res.string.member_delete_body)) },
             confirmButton = {
-                TextButton(
+                KairosTextButton(
                     onClick = { confirmDelete = false; onDelete() },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                 ) { Text(stringResource(Res.string.member_delete)) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(Res.string.action_cancel)) } },
+            dismissButton = { KairosTextButton(onClick = { confirmDelete = false }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
 }
@@ -353,7 +356,7 @@ private fun ExchangeSection(member: TeamMember, onSend: () -> Unit) {
         Text(stringResource(Res.string.exchange_section_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
         if (!member.archived) {
             Text(stringResource(Res.string.exchange_send_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            OutlinedButton(onClick = onSend) {
+            KairosOutlinedButton(onClick = onSend, contentPadding = KairosButtonIconPadding) {
                 Icon(KairosIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.exchange_send_action), modifier = Modifier.padding(start = 6.dp))
             }
@@ -423,15 +426,11 @@ private fun AbsencesSection(
                         }
                     }
                 }
-                IconButton(onClick = { onEdit(absence) }) {
-                    Icon(KairosIcons.Edit, contentDescription = stringResource(Res.string.member_absence_edit))
-                }
-                IconButton(onClick = { onDelete(absence.id) }) {
-                    Icon(KairosIcons.Delete, contentDescription = stringResource(Res.string.member_absence_delete))
-                }
+                KairosRowIconButton(KairosIcons.Edit, stringResource(Res.string.member_absence_edit), onClick = { onEdit(absence) })
+                KairosRowIconButton(KairosIcons.Delete, stringResource(Res.string.member_absence_delete), onClick = { onDelete(absence.id) })
             }
         }
-        OutlinedButton(onClick = onAdd) {
+        KairosOutlinedButton(onClick = onAdd, contentPadding = KairosButtonIconPadding) {
             Icon(KairosIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
             Text(stringResource(Res.string.member_absence_add), modifier = Modifier.padding(start = 6.dp))
         }

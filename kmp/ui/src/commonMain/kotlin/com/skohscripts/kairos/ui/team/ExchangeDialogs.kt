@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,11 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -241,12 +241,12 @@ fun ExchangePreviewCard(preview: ExchangePreview, onConfirm: () -> Unit, onDismi
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 24.dp),
             ) {
                 if (preview.accepted) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
-                    Button(onClick = onConfirm) {
+                    KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
+                    KairosButton(onClick = onConfirm) {
                         Text(stringResource(if (preview is ExchangePreview.Pack) Res.string.exchange_receive else Res.string.exchange_integrate))
                     }
                 } else {
-                    Button(onClick = onDismiss) { Text(stringResource(Res.string.exchange_close)) }
+                    KairosButton(onClick = onDismiss) { Text(stringResource(Res.string.exchange_close)) }
                 }
             }
         }

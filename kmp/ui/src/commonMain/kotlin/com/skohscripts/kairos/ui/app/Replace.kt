@@ -1,8 +1,8 @@
 package com.skohscripts.kairos.ui.app
 
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -143,7 +143,7 @@ fun LegacyImportDialog(flow: LegacyImportFlow) {
         onDismissRequest = { flow.pending = null },
         title = { Text(stringResource(Res.string.legacy_confirm_title)) },
         text = { Text(stringResource(Res.string.legacy_confirm_body, report.tasks, report.notes, report.sessions, report.timeBlocks)) },
-        confirmButton = { TextButton(onClick = flow::confirm) { Text(stringResource(Res.string.legacy_confirm_action)) } },
-        dismissButton = { TextButton(onClick = { flow.pending = null }) { Text(stringResource(Res.string.action_cancel)) } },
+        confirmButton = { KairosTextButton(onClick = flow::confirm) { Text(stringResource(Res.string.legacy_confirm_action)) } },
+        dismissButton = { KairosTextButton(onClick = { flow.pending = null }) { Text(stringResource(Res.string.action_cancel)) } },
     )
 }

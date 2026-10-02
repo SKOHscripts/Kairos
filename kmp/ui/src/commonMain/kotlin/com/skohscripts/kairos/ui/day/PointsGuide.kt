@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.app.expandedState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,7 +69,7 @@ internal fun InboxHelp(refs: Map<Int, TaskStats.FiboReference>) {
 private fun Collapsible(title: StringResource, content: @Composable () -> Unit) {
     var open by rememberSaveable { mutableStateOf(false) }
     Column {
-        TextButton(onClick = { open = !open }, modifier = Modifier.expandedState(open)) {
+        KairosTextButton(onClick = { open = !open }, modifier = Modifier.expandedState(open), contentPadding = KairosButtonIconPadding) {
             Icon(if (open) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
             Text(stringResource(title), modifier = Modifier.padding(start = 4.dp))
         }

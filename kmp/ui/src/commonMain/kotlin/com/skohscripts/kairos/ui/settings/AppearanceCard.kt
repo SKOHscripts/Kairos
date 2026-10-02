@@ -14,7 +14,6 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.settings.FieldError
 import com.skohscripts.kairos.core.settings.SettingsForm
-import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.settings_error_color
 import com.skohscripts.kairos.ui.generated.resources.settings_section_appearance
@@ -38,6 +36,7 @@ import com.skohscripts.kairos.ui.generated.resources.theme_custom_help
 import com.skohscripts.kairos.ui.generated.resources.theme_help
 import com.skohscripts.kairos.ui.generated.resources.theme_system
 import com.skohscripts.kairos.ui.icons.KairosIcons
+import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.LocalSystemColorScheme
 import com.skohscripts.kairos.ui.theme.ThemeColors
 import org.jetbrains.compose.resources.stringResource
@@ -53,34 +52,31 @@ import org.jetbrains.compose.resources.stringResource
 internal fun AppearanceCard(value: String, error: FieldError?, onChange: (String) -> Unit) {
     val system = LocalSystemColorScheme.current
     val chosen = SettingsForm.normalizeColor(value)
-    OutlinedCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(Res.string.settings_section_appearance), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
-            Text(stringResource(Res.string.theme_help), style = MaterialTheme.typography.bodyMedium)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (system != null) {
-                    Swatch(system.primary, stringResource(Res.string.theme_system), chosen == Settings.SYSTEM_THEME) { onChange(Settings.SYSTEM_THEME) }
-                }
-                ThemeColors.PRESETS.forEach { preset ->
-                    Swatch(seedColor(preset.color), stringResource(preset.name), chosen == preset.color) { onChange(preset.color) }
-                }
-                // Une couleur libre valide a sa propre pastille, cochée.
-                if (chosen != null && chosen != Settings.SYSTEM_THEME && ThemeColors.PRESETS.none { it.color == chosen }) {
-                    Swatch(seedColor(chosen), chosen, selected = true) { onChange(chosen) }
-                }
+    SettingsCard(spacing = KairosSpacing.m) {
+        SettingsCardHeader(stringResource(Res.string.settings_section_appearance), stringResource(Res.string.theme_help))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (system != null) {
+                Swatch(system.primary, stringResource(Res.string.theme_system), chosen == Settings.SYSTEM_THEME) { onChange(Settings.SYSTEM_THEME) }
             }
-            OutlinedTextField(
-                value = if (chosen == Settings.SYSTEM_THEME) "" else value,
-                onValueChange = onChange,
-                label = { Text(stringResource(Res.string.theme_custom)) },
-                isError = error != null,
-                supportingText = {
-                    Text(if (error != null) stringResource(Res.string.settings_error_color, error.bound.orEmpty()) else stringResource(Res.string.theme_custom_help))
-                },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            ThemeColors.PRESETS.forEach { preset ->
+                Swatch(seedColor(preset.color), stringResource(preset.name), chosen == preset.color) { onChange(preset.color) }
+            }
+            // Une couleur libre valide a sa propre pastille, cochée.
+            if (chosen != null && chosen != Settings.SYSTEM_THEME && ThemeColors.PRESETS.none { it.color == chosen }) {
+                Swatch(seedColor(chosen), chosen, selected = true) { onChange(chosen) }
+            }
         }
+        OutlinedTextField(
+            value = if (chosen == Settings.SYSTEM_THEME) "" else value,
+            onValueChange = onChange,
+            label = { Text(stringResource(Res.string.theme_custom)) },
+            isError = error != null,
+            supportingText = {
+                Text(if (error != null) stringResource(Res.string.settings_error_color, error.bound.orEmpty()) else stringResource(Res.string.theme_custom_help))
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

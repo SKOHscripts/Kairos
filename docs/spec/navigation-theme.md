@@ -92,6 +92,9 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   retoucher un rôle isolé. C'est le thème par défaut ; la couleur choisie
   dans les Réglages en dérive un autre par le même calcul (`ThemeColors`,
   `apparence.md`).
+- `KairosComponents.kt` (boutons de 36 dp, puces de 32 dp, segmentés de
+  40 dp, bouton-icône de ligne) et `KairosSpacing.kt` (échelle 4 / 8 / 12 /
+  16 / 24 dp) : densité des composants, `densite.md`.
 - `KairosTheme.kt` : `KairosTheme(colorScheme = KairosLightColors)` pose
   `MaterialTheme(colorScheme, typography, shapes)` ; `LocalSystemColorScheme`
   (couleurs du système, `null` hors Android 12 et plus, `apparence.md`).

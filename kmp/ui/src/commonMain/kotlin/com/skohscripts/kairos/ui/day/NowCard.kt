@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -7,15 +11,12 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -60,7 +61,7 @@ import kotlin.time.Clock
 @Composable
 private fun AlertsOptIn(state: NotifyState, onEnable: () -> Unit) {
     if (state == NotifyState.CAN_REQUEST) {
-        TextButton(onClick = onEnable) {
+        KairosTextButton(onClick = onEnable, contentPadding = KairosButtonIconPadding) {
             Icon(KairosIcons.NotificationsActive, contentDescription = null, modifier = Modifier.size(18.dp))
             Text(stringResource(Res.string.alerts_enable), modifier = Modifier.padding(start = 6.dp))
         }
@@ -101,9 +102,10 @@ internal fun RunningCard(view: DayView, clock: Clock, onStop: () -> Unit, modifi
             task.estimatedMinutes?.takeIf { it > 0 }?.let {
                 Text(stringResource(Res.string.now_running_estimate, duration(it)), style = MaterialTheme.typography.bodySmall)
             }
-            Button(
+            KairosButton(
                 onClick = onStop,
                 colors = ButtonDefaults.buttonColors(containerColor = scheme.inversePrimary, contentColor = scheme.onPrimaryContainer),
+                contentPadding = KairosButtonIconPadding,
             ) {
                 Icon(KairosIcons.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.action_timer_stop), modifier = Modifier.padding(start = 6.dp))
@@ -153,19 +155,19 @@ internal fun NowCard(
                     style = MaterialTheme.typography.titleLarge,
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
-                    Button(onClick = { onDone(next) }) {
+                    KairosButton(onClick = { onDone(next) }, contentPadding = KairosButtonIconPadding) {
                         Icon(KairosIcons.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(Res.string.action_done_labelled), modifier = Modifier.padding(start = 6.dp))
                     }
                     val running = view.running?.taskId == next.id
-                    OutlinedButton(onClick = { onToggleTimer(next) }) {
+                    KairosOutlinedButton(onClick = { onToggleTimer(next) }, contentPadding = KairosButtonIconPadding) {
                         Icon(if (running) KairosIcons.Stop else KairosIcons.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(
                             stringResource(if (running) Res.string.action_timer_stop else Res.string.action_timer_start),
                             modifier = Modifier.padding(start = 6.dp),
                         )
                     }
-                    TextButton(onClick = { onSnooze(next) }) {
+                    KairosTextButton(onClick = { onSnooze(next) }, contentPadding = KairosButtonIconPadding) {
                         Icon(KairosIcons.Redo, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(Res.string.action_snooze_labelled), modifier = Modifier.padding(start = 6.dp))
                     }

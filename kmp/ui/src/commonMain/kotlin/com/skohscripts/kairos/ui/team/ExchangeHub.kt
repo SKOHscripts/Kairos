@@ -13,13 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,6 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosSpacing
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.core.team.exchange.ExchangeStatus
 import com.skohscripts.kairos.core.team.exchange.MemberExchange
 import com.skohscripts.kairos.data.ImportException
@@ -85,8 +87,8 @@ fun ExchangeHub(services: AppServices, onOpenMember: (Long) -> Unit, onTour: () 
 
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
+            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(KairosSpacing.l),
         ) {
             OutlinedCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -98,7 +100,7 @@ fun ExchangeHub(services: AppServices, onOpenMember: (Long) -> Unit, onTour: () 
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Button(onClick = {
+                KairosButton(onClick = {
                     scope.launch {
                         val text = runCatching { services.files.openText() }.getOrElse {
                             messages(getString(Res.string.file_error))
@@ -114,7 +116,7 @@ fun ExchangeHub(services: AppServices, onOpenMember: (Long) -> Unit, onTour: () 
                             messages(importErrorMessage(e))
                         }
                     }
-                }) {
+                }, contentPadding = KairosButtonIconPadding) {
                     Icon(KairosIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text(stringResource(Res.string.hub_receive), modifier = Modifier.padding(start = 6.dp))
                 }
@@ -122,7 +124,7 @@ fun ExchangeHub(services: AppServices, onOpenMember: (Long) -> Unit, onTour: () 
             }
             Text(stringResource(Res.string.hub_members_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
             rows.forEach { row -> MemberExchangeCard(row, onOpen = { onOpenMember(row.member.id) }, onSend = { scope.launch { sendPack(services, row.member, messages) } }) }
-            TextButton(onClick = onTour, contentPadding = NoStartPadding) { Text(stringResource(Res.string.hub_tour)) }
+            KairosTextButton(onClick = onTour, contentPadding = NoStartPadding) { Text(stringResource(Res.string.hub_tour)) }
         }
     }
 
@@ -147,7 +149,7 @@ private val NoStartPadding = PaddingValues(start = 0.dp, end = 12.dp)
 private fun MemberExchangeCard(row: MemberExchange, onOpen: () -> Unit, onSend: () -> Unit) {
     OutlinedCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            TextButton(onClick = onOpen, contentPadding = NoStartPadding) {
+            KairosTextButton(onClick = onOpen, contentPadding = NoStartPadding) {
                 Text(row.member.name, style = MaterialTheme.typography.titleMedium)
                 Icon(KairosIcons.ChevronRight, contentDescription = null, modifier = Modifier.padding(start = 4.dp).size(18.dp))
             }
@@ -160,7 +162,7 @@ private fun MemberExchangeCard(row: MemberExchange, onOpen: () -> Unit, onSend: 
                 style = MaterialTheme.typography.bodyMedium,
             )
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(onClick = onSend) {
+                KairosOutlinedButton(onClick = onSend, contentPadding = KairosButtonIconPadding) {
                     Icon(KairosIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text(stringResource(Res.string.exchange_send_action), modifier = Modifier.padding(start = 6.dp))
                 }

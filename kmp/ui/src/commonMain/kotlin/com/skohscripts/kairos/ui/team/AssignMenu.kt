@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,7 +15,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -201,7 +201,7 @@ internal fun KeepInProgressDialog(taskTitle: String, toName: String, onAnswer: (
         onDismissRequest = onCancel,
         title = { Text(stringResource(Res.string.keep_in_progress_title)) },
         text = { Text(stringResource(Res.string.keep_in_progress_body, taskTitle, toName)) },
-        confirmButton = { TextButton(onClick = { onAnswer(true) }) { Text(stringResource(Res.string.keep_in_progress_yes)) } },
-        dismissButton = { TextButton(onClick = { onAnswer(false) }) { Text(stringResource(Res.string.keep_in_progress_no)) } },
+        confirmButton = { KairosTextButton(onClick = { onAnswer(true) }) { Text(stringResource(Res.string.keep_in_progress_yes)) } },
+        dismissButton = { KairosTextButton(onClick = { onAnswer(false) }) { Text(stringResource(Res.string.keep_in_progress_no)) } },
     )
 }

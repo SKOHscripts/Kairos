@@ -1,5 +1,11 @@
 package com.skohscripts.kairos.ui.team.forecast
 
+import com.skohscripts.kairos.ui.theme.KairosSpacing
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.theme.KairosSegmentedButton
+import com.skohscripts.kairos.ui.theme.KairosSegmentedRow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,15 +19,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -138,7 +140,7 @@ fun ForecastScreen(services: AppServices) {
     }
 
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
-        Column(Modifier.widthIn(max = 960.dp).fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(Modifier.widthIn(max = 960.dp).fillMaxWidth().padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.m)) {
             Text(stringResource(Res.string.forecast_intro), style = MaterialTheme.typography.bodyMedium)
 
             // --- Périmètre et modèle
@@ -170,9 +172,9 @@ fun ForecastScreen(services: AppServices) {
             if (runner.busy) {
                 Progress(runner, language)
             } else {
-                Button(
+                KairosButton(
                     onClick = { runner.run(spec, snapshot) },
-                    modifier = Modifier.heightIn(min = 48.dp),
+                    contentPadding = KairosButtonIconPadding,
                 ) {
                     Icon(KairosIcons.Casino, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text(stringResource(Res.string.forecast_run), modifier = Modifier.padding(start = 8.dp))
@@ -197,19 +199,17 @@ fun ForecastScreen(services: AppServices) {
 private fun ModelChoice(model: ForecastModel, throughputAvailable: Boolean, explanation: String?, onPick: (ForecastModel) -> Unit) {
     Column(Modifier.widthIn(max = 480.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(stringResource(Res.string.forecast_model), style = MaterialTheme.typography.labelLarge)
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            SegmentedButton(
+        KairosSegmentedRow(Modifier.fillMaxWidth()) {
+            KairosSegmentedButton(
                 selected = model == ForecastModel.EFFORT,
                 onClick = { onPick(ForecastModel.EFFORT) },
                 shape = SegmentedButtonDefaults.itemShape(0, 2),
-                modifier = Modifier.heightIn(min = 48.dp),
             ) { Text(stringResource(Res.string.forecast_model_effort)) }
-            SegmentedButton(
+            KairosSegmentedButton(
                 selected = model == ForecastModel.THROUGHPUT,
                 onClick = { onPick(ForecastModel.THROUGHPUT) },
                 enabled = throughputAvailable,
                 shape = SegmentedButtonDefaults.itemShape(1, 2),
-                modifier = Modifier.heightIn(min = 48.dp),
             ) { Text(stringResource(Res.string.forecast_model_throughput)) }
         }
         if (explanation != null) {
@@ -293,7 +293,7 @@ internal fun Progress(runner: ForecastController, language: String) {
                     Text(text, style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            OutlinedButton(onClick = runner::stop, modifier = Modifier.heightIn(min = 48.dp)) {
+            KairosOutlinedButton(onClick = runner::stop, contentPadding = KairosButtonIconPadding) {
                 Icon(KairosIcons.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.forecast_stop), modifier = Modifier.padding(start = 8.dp))
             }
@@ -313,7 +313,8 @@ private fun ResultSection(
 ) {
     val result = run.result
     val riskPercent = (snapshot.settings.team ?: TeamSettings()).deadlineRiskPercent
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    // Le titre « Résultat » est un titre de section : `xl` avant lui (l'écran espace ses blocs de `m`), `m` entre les panneaux.
+    Column(Modifier.padding(top = KairosSpacing.xl - KairosSpacing.m), verticalArrangement = Arrangement.spacedBy(KairosSpacing.m)) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(stringResource(Res.string.forecast_result_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.heading())
             Text(

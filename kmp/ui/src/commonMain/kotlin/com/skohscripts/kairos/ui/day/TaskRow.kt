@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.theme.KairosRowIconButton
 import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -158,21 +159,16 @@ internal fun TaskRow(
                 }
                 if (task.status == TaskStatus.TODO) {
                     val running = ctx.view.running?.taskId == task.id
-                    IconButton(onClick = { ctx.onToggleTimer(task) }) {
-                        Icon(
-                            if (running) KairosIcons.Stop else KairosIcons.PlayArrow,
-                            contentDescription = stringResource(if (running) Res.string.action_timer_stop else Res.string.action_timer_start),
-                            tint = if (running) MaterialTheme.colorScheme.primary else LocalContentColor.current,
-                        )
-                    }
-                    IconButton(onClick = { ctx.onSnooze(task) }) {
-                        Icon(KairosIcons.Redo, contentDescription = stringResource(Res.string.action_snooze))
-                    }
+                    KairosRowIconButton(
+                        if (running) KairosIcons.Stop else KairosIcons.PlayArrow,
+                        stringResource(if (running) Res.string.action_timer_stop else Res.string.action_timer_start),
+                        onClick = { ctx.onToggleTimer(task) },
+                        tint = if (running) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+                    )
+                    KairosRowIconButton(KairosIcons.Redo, stringResource(Res.string.action_snooze), onClick = { ctx.onSnooze(task) })
                 }
                 if (editable) {
-                    IconButton(onClick = { ctx.onEdit(task) }) {
-                        Icon(KairosIcons.Edit, contentDescription = stringResource(Res.string.action_edit))
-                    }
+                    KairosRowIconButton(KairosIcons.Edit, stringResource(Res.string.action_edit), onClick = { ctx.onEdit(task) })
                 }
             }
             extra()

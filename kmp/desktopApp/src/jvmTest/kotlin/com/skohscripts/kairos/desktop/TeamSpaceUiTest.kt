@@ -2,7 +2,8 @@ package com.skohscripts.kairos.desktop
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.test.assertTouchHeightIsEqualTo
 import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -148,8 +149,8 @@ class TeamSpaceUiTest {
         onNodeWithText("Your name (in packets)").performScrollTo().assertExists()
         assertTrue(repository.snapshot.value.settings.team!!.identity.isNotEmpty())
 
-        // Cible tactile du sélecteur : 48 dp au moins.
-        onNodeWithContentDescription("Team").assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp)
+        // Segment dessiné sur 40 dp, cible tactile de 48 dp au moins (docs/spec/densite.md).
+        onNodeWithContentDescription("Team").assertWidthIsAtLeast(48.dp).assertHeightIsEqualTo(40.dp).assertTouchHeightIsEqualTo(48.dp)
 
         // L'espace Équipe s'ouvre sur Suivi, avec ses cinq destinations et un état vide.
         onNodeWithContentDescription("Team").performClick()

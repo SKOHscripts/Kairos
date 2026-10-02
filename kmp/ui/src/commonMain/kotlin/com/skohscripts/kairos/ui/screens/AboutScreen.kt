@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.screens
 
+import com.skohscripts.kairos.ui.theme.KairosSpacing
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +19,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -59,8 +61,8 @@ const val SOURCE_URL = "https://github.com/SKOHscripts/Kairos"
 fun AboutScreen() {
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
+            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(KairosSpacing.l),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Image(KairosLogo, contentDescription = null, modifier = Modifier.size(56.dp))
@@ -102,7 +104,7 @@ fun AboutScreen() {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             val uriHandler = LocalUriHandler.current
-            OutlinedButton(onClick = { uriHandler.openUri(SOURCE_URL) }) {
+            KairosOutlinedButton(onClick = { uriHandler.openUri(SOURCE_URL) }, contentPadding = KairosButtonIconPadding) {
                 Icon(KairosIcons.OpenInNew, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.about_source), modifier = Modifier.padding(start = 8.dp))
             }
@@ -118,7 +120,7 @@ private fun Section(title: StringResource, content: @Composable () -> Unit) {
         elevation = CardDefaults.cardElevation(0.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.s)) {
             Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
             content()
         }

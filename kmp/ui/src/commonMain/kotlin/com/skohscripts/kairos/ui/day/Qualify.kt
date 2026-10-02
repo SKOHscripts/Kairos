@@ -1,11 +1,10 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.theme.KairosFilterChip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,14 +29,13 @@ internal fun PriorityPills(selected: Int?, onSelect: (Int?) -> Unit, showMeaning
         Text(stringResource(Res.string.priority_label), style = MaterialTheme.typography.labelMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             PRIORITY_VALUES.forEach { p ->
-                FilterChip(
+                KairosFilterChip(
                     selected = selected == p,
                     onClick = { onSelect(if (selected == p) null else p) },
                     label = {
                         val name = "P$p ${stringResource(Levels.priorityName(p))}"
                         Text(if (showMeaning) "$name · ${stringResource(Levels.priorityMeaning(p))}" else name)
                     },
-                    modifier = Modifier.heightIn(min = 48.dp),
                 )
             }
         }
@@ -52,11 +50,10 @@ internal fun PointsPills(selected: Int?, onSelect: (Int?) -> Unit) {
         Text(stringResource(Res.string.points_label), style = MaterialTheme.typography.labelMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FIBONACCI_SCALE.forEach { points ->
-                FilterChip(
+                KairosFilterChip(
                     selected = selected == points,
                     onClick = { onSelect(if (selected == points) null else points) },
                     label = { Text("$points ${stringResource(Levels.pointsName(points))}") },
-                    modifier = Modifier.heightIn(min = 48.dp),
                 )
             }
         }
