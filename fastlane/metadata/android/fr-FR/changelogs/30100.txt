@@ -1,0 +1,1 @@
+Kairos 3.1.0: ajout d’un panneau de gestion managériale qui permet de gérer les tâches d’une équipe, voir des statistiques, créer des scénarios. Ce panneau peut être activé dans les paramètres.
