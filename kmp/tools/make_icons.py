@@ -77,6 +77,8 @@ ICONS = {
     "ContentCopy": ("content_copy", False),
     # Aide, accueil et visite guidée : le « ? » de la barre du haut.
     "Help": ("help", False),
+    # Soutien : le cœur de la barre du haut et de « À propos » (docs/spec/soutien.md).
+    "Favorite": ("favorite", False),
 }
 
 

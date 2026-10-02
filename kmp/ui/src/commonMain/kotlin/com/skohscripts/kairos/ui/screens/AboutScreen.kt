@@ -52,6 +52,9 @@ import org.jetbrains.compose.resources.stringResource
 /** Dépôt du code source, affiché et ouvert depuis « À propos ». */
 const val SOURCE_URL = "https://github.com/SKOHscripts/Kairos"
 
+/** Page de don (GitHub Pages), ouverte dans le navigateur depuis le cœur de la barre et « À propos ». */
+const val DONATE_URL = "https://skohscripts.github.io/donate.github.io/"
+
 /**
  * « À propos et guide » : remplace la page d'accueil de Kairos 2 (qui rendait
  * le README). Contenu natif et traduit : ce que fait Kairos, le score, le nom,
@@ -107,6 +110,10 @@ fun AboutScreen() {
             KairosOutlinedButton(onClick = { uriHandler.openUri(SOURCE_URL) }, contentPadding = KairosButtonIconPadding) {
                 Icon(KairosIcons.OpenInNew, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.about_source), modifier = Modifier.padding(start = 8.dp))
+            }
+            KairosOutlinedButton(onClick = { runCatching { uriHandler.openUri(DONATE_URL) } }, contentPadding = KairosButtonIconPadding) {
+                Icon(KairosIcons.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.donate_action), modifier = Modifier.padding(start = 8.dp))
             }
         }
     }

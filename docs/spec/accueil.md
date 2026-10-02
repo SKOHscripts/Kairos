@@ -51,7 +51,8 @@ le travail en cours.
 #### Le bouton « ? » (aide)
 
 - Une icône « ? » (« Aide ») à droite de la barre du haut, sur tous les écrans
-  des deux espaces, sauf quand l'Accueil ou « À propos et guide » est ouvert.
+  des deux espaces, sauf quand l'Accueil ou « À propos et guide » est ouvert (le cœur de
+  `soutien.md`, lui, reste affiché).
 - Elle ouvre un dialogue **« Aide : <écran> »** : un court texte sur l'écran
   courant (à quoi il sert, le geste à connaître), puis trois entrées :
   **« Accueil de Kairos »**, **« Visite guidée »** (espace Perso) ou

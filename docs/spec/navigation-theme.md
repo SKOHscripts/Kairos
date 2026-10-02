@@ -43,6 +43,9 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   des deux espaces, ouvre l'aide de l'écran courant, l'Accueil de Kairos
   (écran secondaire `Secondary.HOME`, titre « Accueil ») et la visite guidée.
   Il disparaît quand un écran secondaire est ouvert.
+- **Soutien** (`soutien.md`) : un cœur (`KairosIcons.Favorite`, « Soutenir Kairos »)
+  juste avant le « ? », sur tous les écrans y compris les écrans secondaires ;
+  il ouvre la page de don dans le navigateur.
 - **« À propos et guide »** : accessible depuis Réglages et depuis l'Accueil
   (écran secondaire `Secondary.ABOUT`). Présente Kairos (ce
   qu'il fait en quatre points, la formule du score de priorité, l'origine du
@@ -129,7 +132,7 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `Unarchive`, au jalon E3 `SwapHoriz`, `MoreVert`, `HourglassEmpty`, au jalon E4
   `Balance`, au jalon E5 `Casino`, `Science`, `CompareArrows`, `Refresh`,
   `Star` (et `StarFilled`), `ContentCopy` (et les variantes pleines de `Groups`, `ViewKanban`,
-  `Stacks`, `Monitoring`) ; aide, Accueil et visite guidée (`accueil.md`) : `Help`.
+  `Stacks`, `Monitoring`) ; aide, Accueil et visite guidée (`accueil.md`) : `Help` ; soutien (`soutien.md`) : `Favorite`.
   `Construction` (écran « En construction ») est retiré au
   jalon M5, plus rien n'étant en construction.
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`
@@ -206,7 +209,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   bref » (quatre points), « Le score de priorité (WSJF) » (formule en
   primaire gras + explication), « Pourquoi Kairos ? » ; version
   (`KairosBuild.VERSION_NAME`) ; licence ; bouton « Code source » qui ouvre
-  `SOURCE_URL` (`https://github.com/SKOHscripts/Kairos`) par `LocalUriHandler`.
+  `SOURCE_URL` (`https://github.com/SKOHscripts/Kairos`) par `LocalUriHandler`,
+  puis un bouton « Soutenir Kairos » qui ouvre `DONATE_URL` (`soutien.md`).
 
 ### Décisions et pièges tracés
 
