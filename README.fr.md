@@ -198,6 +198,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 - **Statistiques** : débit hebdomadaire, calibration des estimations (temps
   réel médian par palier, biais), temps par type, flux, complétude. L’effectif
   est affiché ; un petit échantillon est marqué « peu fiable ».
+- **Quand tu travailles chaque type** (Statistiques) : pour chaque type de
+  tâche, les tranches de 2 h où tu travailles vraiment (d’après tes sessions de
+  chrono), comparées à ton rythme habituel. Observation seulement : rien ne
+  change dans ton planning.
 
 ### Données
 

@@ -187,6 +187,9 @@ order (critical path). Cycles are refused.
 - **Statistics**: weekly throughput, estimation calibration (median real time
   per level, bias), time by type, flow, completeness. The sample size is
   shown; a small sample is marked "not reliable".
+- **When you work on each type** (Statistics): for each task type, the 2-hour
+  slots where you really work (from your timer sessions), compared with your
+  usual rhythm. It only observes: it changes nothing in your plan.
 
 ### Data
 

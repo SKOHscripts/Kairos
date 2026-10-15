@@ -38,8 +38,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.skohscripts.kairos.core.stats.BestHours
 import com.skohscripts.kairos.core.stats.TaskStats
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.uiLanguage
@@ -60,6 +62,14 @@ import com.skohscripts.kairos.ui.generated.resources.stats_completeness_row
 import com.skohscripts.kairos.ui.generated.resources.stats_completeness_title
 import com.skohscripts.kairos.ui.generated.resources.stats_completeness_type
 import com.skohscripts.kairos.ui.generated.resources.stats_empty
+import com.skohscripts.kairos.ui.generated.resources.stats_hours_empty
+import com.skohscripts.kairos.ui.generated.resources.stats_hours_hint
+import com.skohscripts.kairos.ui.generated.resources.stats_hours_peak
+import com.skohscripts.kairos.ui.generated.resources.stats_hours_share
+import com.skohscripts.kairos.ui.generated.resources.stats_hours_slot
+import com.skohscripts.kairos.ui.generated.resources.stats_hours_spread
+import com.skohscripts.kairos.ui.generated.resources.stats_hours_title
+import com.skohscripts.kairos.ui.generated.resources.stats_hours_top
 import com.skohscripts.kairos.ui.generated.resources.stats_flow_age
 import com.skohscripts.kairos.ui.generated.resources.stats_flow_hint
 import com.skohscripts.kairos.ui.generated.resources.stats_flow_overdue
@@ -106,6 +116,8 @@ fun StatsScreen(services: AppServices) {
     val today = now.toLocalDateTime(timeZone).date
     val language = uiLanguage()
     val stats = remember(snapshot, today) { TaskStats.dashboard(snapshot.tasks, snapshot.workSessions, today, snapshot.settings, now, timeZone) }
+    // Quand on travaille chaque type (docs/spec/planning-personnalise.md § Lot C, étape C1) : observation seule.
+    val hours = remember(snapshot, today) { BestHours.measure(snapshot.tasks, snapshot.workSessions, now, snapshot.settings, timeZone) }
 
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.widthIn(max = 960.dp).fillMaxWidth().padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.m)) {
@@ -175,6 +187,15 @@ fun StatsScreen(services: AppServices) {
                 }
             }
 
+            Panel(KairosIcons.Schedule, stringResource(Res.string.stats_hours_title), stringResource(Res.string.stats_hours_hint, stats.windowWeeks)) {
+                if (!hours.hasData) {
+                    Muted(stringResource(Res.string.stats_hours_empty))
+                } else {
+                    val noType = stringResource(Res.string.stats_no_type)
+                    hours.profiles.forEach { profile -> HoursProfile(profile, profile.type.ifEmpty { noType }, language) }
+                }
+            }
+
             Panel(KairosIcons.Inbox, stringResource(Res.string.stats_flow_title), stringResource(Res.string.stats_flow_hint)) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     val tile = Modifier.weight(1f).widthIn(min = 150.dp).fillMaxRowHeight()
@@ -197,6 +218,57 @@ fun StatsScreen(services: AppServices) {
             }
         }
     }
+}
+
+/**
+ * Le profil horaire d'un type : son nom et ses effectifs (« peu fiable » sous le seuil, avec l'icône d'alerte), la tranche de pointe écrite
+ * (part de son temps et lift), les trois plus grandes parts écrites, puis une frise de douze barres d'une seule teinte (une par tranche de
+ * 2 h, de minuit à minuit). Aucune barre sans sa valeur écrite : la frise illustre le texte, elle ne le remplace pas.
+ */
+@Composable
+private fun HoursProfile(profile: BestHours.Profile, name: String, language: String) {
+    @Composable
+    fun slot(bucket: Int) = stringResource(Res.string.stats_hours_slot, Dates.hour(BestHours.startHour(bucket), language), Dates.hour(BestHours.startHour(bucket) + BestHours.BUCKET_HOURS, language))
+    val sample = stringResource(if (profile.reliable) Res.string.stats_sample else Res.string.stats_unreliable, profile.sessions) + " · " + duration(profile.minutes)
+    val maxShare = profile.share.max().coerceAtLeast(0.0001)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(name, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f, fill = false))
+            if (!profile.reliable) Icon(KairosIcons.Warning, contentDescription = null, modifier = Modifier.size(14.dp))
+            Text(sample, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        val peak = profile.peak
+        Text(
+            if (peak != null) {
+                stringResource(Res.string.stats_hours_peak, slot(peak), round(profile.share[peak] * 100).toInt(), oneDecimal(profile.lift[peak]))
+            } else {
+                stringResource(Res.string.stats_hours_spread)
+            },
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Row(
+            Modifier.fillMaxWidth().height(36.dp).clearAndSetSemantics { },
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            profile.share.forEach { share ->
+                Box(Modifier.weight(1f).height((36 * (share / maxShare)).coerceAtLeast(2.0).dp).background(MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp)))
+            }
+        }
+        // Les barres portent leur valeur écrite : les trois plus grandes parts.
+        val top = profile.share.indices.sortedByDescending { profile.share[it] }.take(3).filter { profile.share[it] > 0 }
+        val topShares = top.map { stringResource(Res.string.stats_hours_share, slot(it), round(profile.share[it] * 100).toInt()) }
+        Text(
+            stringResource(Res.string.stats_hours_top, topShares.joinToString(" · ")),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+private fun oneDecimal(x: Double): String {
+    val tenths = round(x * 10).toLong()
+    return "${tenths / 10}.${tenths % 10}"
 }
 
 private fun fraction(value: Int, max: Int): Float = if (max <= 0) 0f else value.toFloat() / max

@@ -12,8 +12,8 @@ couverts (à venir) : `kmp/core/.../model/Settings.kt` (`schedule`),
 décrit en détail dans `vue-jour.md` (§ Dates, déplacer, blocage), `vue-semaine.md`,
 `recurrence.md` et `reglages.md`, où ses décisions sont tracées. **Lot B1 (fenêtre par jour
 de la semaine) : implémenté en 3.4.0** (voir « Lot B1 (implémenté) »). **B2 (plusieurs plages et
-contextes) : implémenté en 3.5.0** (voir « Lot B2 (implémenté) »). **Lot C (meilleures heures) : spécifié le
-2026-10-13, non implémenté** (voir « Impacts sur les specs existantes »).
+contextes) : implémenté en 3.5.0** (voir « Lot B2 (implémenté) »). **Lot C : étape C1 (observer) implémentée en 3.5.0** (voir « Lot C », ci-dessous), **étape C2 (appliquer) spécifiée le
+2026-10-13, non implémentée** (voir « Impacts sur les specs existantes »).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -215,7 +215,7 @@ unique ⇒ mêmes sorties, export et fichier d'or inchangés
 - **Contextes vides gardés pendant l'écriture des champs** : le formulaire est positionnel ; `SettingsForm.validate` retire les emplacements vides à la fin,
   de sorte qu'aucun objet `schedule` n'apparaît tant que rien n'est rempli.
 
-### Lot C
+### Lot C (C1 implémenté en 3.5.0, C2 non implémenté)
 
 - **Mesure** (fonction pure dans `core/stats`, fuseau en paramètre comme
   `DayView`) : par type et par tranche de 2 h, part du temps chronométré sur
@@ -226,7 +226,10 @@ unique ⇒ mêmes sorties, export et fichier d'or inchangés
   « je travaille à 10 h » et « les documents, c'est à 10 h ». Seuil de
   fiabilité comme le « peu fiable » des stats (minimum de sessions et
   d'heures par type), sinon rien n'est proposé.
-- **C1 observer** : carte Statistiques, aucune écriture, aucun effet.
+- **C1 observer** (implémenté en 3.5.0) : carte Statistiques, aucune écriture, aucun effet. `core/stats/BestHours.kt` (`BestHours.measure`, détail et
+  constantes dans `statistiques.md` § Meilleures heures) et `StatsScreen` (`HoursProfile`). Écarts avec la rédaction initiale : la fiabilité est un
+  minimum de **5 sessions et 120 minutes** par type (constantes du code, non réglables) ; le « lift » désigne une **tranche de pointe** parmi celles qui
+  portent au moins 20 % du temps du type ; la pondération récente va de 1 à 1/2 sur la fenêtre. Pas de réglage : la carte s'affiche toujours (observation).
 - **C2 appliquer** : réglage `Settings.schedule.bestHours` (force bornée,
   0 = neutre, désactivé par défaut) ; au créneau,
   `effort' = effort ÷ (1 + force × boost(type, heure))`, même patron que
@@ -245,7 +248,7 @@ unique ⇒ mêmes sorties, export et fichier d'or inchangés
 
 - **3.4.0** : lot A + B1 (avec les chantiers `retrait-kairos2.md`,
   `durees-apprises.md`, `visite-guidee.md` et `premiere-tache.md`).
-- **3.5.0** : B2 (livré) + C1.
+- **3.5.0** : B2 (livré) + C1 (livré).
 - **3.6.0** : C2. Échelles libres réévaluées après retours.
 
 ### Décisions et pièges tracés
@@ -266,4 +269,4 @@ unique ⇒ mêmes sorties, export et fichier d'or inchangés
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 
-Lot C seulement (les lots A, B1 et B2 sont reportés) : `ordonnancement.md` (boost), `statistiques.md` (carte meilleures heures).
+Étape C2 seulement (les lots A, B1, B2 et l'étape C1 sont reportés) : `ordonnancement.md` (boost).

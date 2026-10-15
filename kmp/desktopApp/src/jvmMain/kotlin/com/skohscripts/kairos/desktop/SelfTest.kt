@@ -61,6 +61,8 @@ import com.skohscripts.kairos.data.TaskEdit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import org.jetbrains.skia.EncodedImageFormat
 import java.io.File
@@ -112,6 +114,28 @@ object SelfTest {
         }
         val plannedSettings: @Composable () -> Unit = { KairosTheme { Surface { SettingsScreen(planned) {} } } }
         val plannedDay: @Composable () -> Unit = { KairosApp(Platform.DESKTOP, Destination.DAY) { planned } }
+        // Cinquième base : des sessions chronométrées à des heures variées sur trois types, pour la carte « Quand tu travailles chaque type ».
+        val hoursServices = runBlocking {
+            DesktopServices.open(dataDir, inMemory = true).also { s ->
+                val snap = s.repository.snapshot.value
+                val types = snap.tasks.filter { it.taskType.isNotBlank() }.groupBy { it.taskType }.entries.take(3).map { it.value.first() }
+                val base = kotlin.time.Clock.System.now()
+                val hoursByType = listOf(listOf(9, 10, 10, 11, 9, 10), listOf(14, 15, 14, 16, 15), listOf(10, 14, 18))
+                var id = 1000L
+                val sessions = types.zip(hoursByType).flatMap { (task, hours) ->
+                    hours.mapIndexed { day, hour ->
+                        val start = base.minus(kotlin.time.Duration.parse("${day + 1}d")).let { instant ->
+                            val tz = kotlinx.datetime.TimeZone.currentSystemDefault()
+                            val local = instant.toLocalDateTime(tz)
+                            kotlinx.datetime.LocalDateTime(local.year, local.month, local.day, hour, 0).toInstant(tz)
+                        }
+                        com.skohscripts.kairos.core.model.WorkSession(id++, task.id, start, start.plus(kotlin.time.Duration.parse("1h")), start)
+                    }
+                }
+                s.repository.replaceAll(snap.copy(workSessions = sessions))
+            }
+        }
+        val hoursStats: @Composable () -> Unit = { KairosApp(Platform.DESKTOP, Destination.STATS) { hoursServices } }
         // Troisième base : gestion d'équipe activée, ouverte dans l'espace Équipe (docs/spec/equipe.md).
         val team = runBlocking {
             DesktopServices.open(dataDir, inMemory = true).also { s ->
@@ -267,6 +291,8 @@ object SelfTest {
             Shot("week", 1200, 1000, week),
             Shot("week-narrow", 420, 2400, week),
             Shot("stats", 1200, 1600, stats),
+            Shot("stats-hours", 1200, 2600, hoursStats),
+            Shot("stats-hours-narrow", 360, 4200, hoursStats),
             // Espace Équipe (état vide du jalon E1) : large, puis 360 dp (téléphone) avec le sélecteur dans la barre.
             Shot("team", 1200, 1000, teamApp),
             Shot("team-narrow", 360, 800, teamApp),

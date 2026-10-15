@@ -48,6 +48,11 @@ qui explique comment les chiffres se construisent. Sinon, de haut en bas :
   retard, qui traînent (ces deux-là en alerte s'il y en a).
 - **Complétude des métadonnées** : part des tâches à faire ayant des
   points, une durée estimée, un type (« 90 % · 9/10 »).
+- **Quand tu travailles chaque type** (3.5, étape C1 de `planning-personnalise.md`) : pour chaque type (« Sans type » compris), du plus au
+  moins chronométré, ses effectifs (« n=5 · 5 h », « peu fiable » avec l'icône d'alerte sous le seuil), la **tranche de 2 h qui le
+  distingue** (« Se distingue à 14:00–16:00 : 80 % de son temps (×2.2 ton rythme habituel) », ou « Réparti dans la journée, sans plage
+  marquée »), les trois plus grandes parts écrites et douze barres (une par tranche, de minuit à minuit) qui les illustrent. Observation
+  seulement : rien ne change dans le planning.
 
 Honnêteté statistique : chaque agrégat montre son effectif ; sous 3, il est
 marqué « peu fiable » (icône d'alerte), mais reste affiché.
@@ -105,6 +110,20 @@ reçoit **toutes** les tâches, archivées comprises.
   Kairos, figé par les fichiers d'or), médiane d'un effectif pair = moyenne des deux
   valeurs centrales.
 
+### Meilleures heures (`BestHours`, `core`, 3.5)
+
+Pur : tâches, sessions, instant, fuseau et réglages en paramètres (`BestHours.measure`). Sessions de la même fenêtre que le tableau de bord
+(`statsWindowWeeks`) ; **sessions de moins de 5 minutes ignorées** (démarrage-arrêt accidentel) ; une session ouverte court jusqu'à
+maintenant. Les minutes d'une session sont **réparties entre les tranches de 2 h** qu'elle traverse, sur l'**heure locale** du fuseau passé
+(minuit compris). **Pondération récente** : de 1 (aujourd'hui) à 1/2 (premier jour de la fenêtre). Par type (clé `""` = sans type ; une tâche
+disparue y tombe) : `Profile(type, sessions, minutes, share, lift, peak, reliable)`.
+
+- `share` : part du temps pondéré du type par tranche (somme 1). `lift` : cette part ÷ la part de **toutes** les tâches dans la même tranche
+  (« je travaille à 10 h » n'est pas « les documents, c'est à 10 h »).
+- `peak` : la tranche au plus fort lift parmi celles qui portent au moins 20 % du temps du type ; `null` quand le type se répartit sans pointe.
+- `reliable` : au moins 5 sessions retenues **et** 120 minutes réelles ; sinon le profil reste affiché, marqué « peu fiable ».
+- Tri par temps réel décroissant, puis par nom. Tests : `BestHoursTest` (déterministe sur une base de sessions fixée), `BestHoursUiTest`.
+
 ### Écran (`StatsScreen`, `ui`)
 
 - Recalculé quand la base ou le jour changent ; colonne défilante de
@@ -124,6 +143,10 @@ reçoit **toutes** les tâches, archivées comprises.
   garde de la place sur un téléphone. Débit et calibration : longueur
   relative au maximum ; types et complétude : pourcentage.
 - Ratio du biais à deux décimales ; durées par `duration()`.
+
+- Carte « Quand tu travailles chaque type » (`HoursProfile`, 3.5) : par type, nom et effectifs, phrase de pointe, douze barres d'une seule teinte
+  (`primary`, hauteur relative à la plus grande part du type, jamais sans valeur écrite : les trois plus grandes parts sont écrites dessous), la
+  frise est masquée aux lecteurs d'écran (le texte porte l'information).
 
 - Briques partagées avec l'espace Équipe (jalons E3 et E4,
   `equipe-charge.md`) : `StatTile` et `Panel` sont `internal` ; `StatTile`

@@ -1293,4 +1293,14 @@
     <string name="day_no_window">No %1$s window today</string>
     <string name="card_contexts_title">Several windows and contexts</string>
     <string name="card_contexts_body">In Settings, give a day several working windows (morning, evening…) and reserve a window for a context such as Work or Home, which groups task types. A task only goes in a window of its context.</string>
+    <string name="stats_hours_title">When you work on each type</string>
+    <string name="stats_hours_hint">Timed work by 2-hour slot over the last %1$d week(s), compared with your usual rhythm. This only observes: it changes nothing in your plan.</string>
+    <string name="stats_hours_empty">No timed session of 5 minutes or more yet.</string>
+    <string name="stats_hours_slot">%1$s–%2$s</string>
+    <string name="stats_hours_peak">Stands out at %1$s: %2$d% of its time (×%3$s your usual rhythm)</string>
+    <string name="stats_hours_spread">Spread through the day, no clear slot</string>
+    <string name="stats_hours_top">Largest shares: %1$s</string>
+    <string name="stats_hours_share">%1$s %2$d%</string>
+    <string name="card_besthours_title">When you work on each type</string>
+    <string name="card_besthours_body">Statistics now show, for each type of task, the 2-hour slots where you really work, compared with your usual rhythm. It only observes: nothing changes in your plan.</string>
 </resources>

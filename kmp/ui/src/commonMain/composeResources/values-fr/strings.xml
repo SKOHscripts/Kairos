@@ -1295,4 +1295,14 @@
     <string name="day_no_window">Pas de plage %1$s aujourd’hui</string>
     <string name="card_contexts_title">Plusieurs plages et contextes</string>
     <string name="card_contexts_body">Dans les Réglages, donne plusieurs plages de travail à un jour (matin, soir…) et réserve une plage à un contexte comme Travail ou Maison, qui regroupe des types de tâche. Une tâche ne va que dans une plage de son contexte.</string>
+    <string name="stats_hours_title">Quand tu travailles chaque type</string>
+    <string name="stats_hours_hint">Temps chronométré par tranche de 2 h sur les %1$d dernières semaines, comparé à ton rythme habituel. Observation seulement : rien ne change dans ton planning.</string>
+    <string name="stats_hours_empty">Pas encore de session chronométrée de 5 minutes ou plus.</string>
+    <string name="stats_hours_slot">%1$s–%2$s</string>
+    <string name="stats_hours_peak">Se distingue à %1$s : %2$d % de son temps (×%3$s ton rythme habituel)</string>
+    <string name="stats_hours_spread">Réparti dans la journée, sans plage marquée</string>
+    <string name="stats_hours_top">Plus grandes parts : %1$s</string>
+    <string name="stats_hours_share">%1$s %2$d %</string>
+    <string name="card_besthours_title">Quand tu travailles chaque type</string>
+    <string name="card_besthours_body">Les Statistiques montrent maintenant, pour chaque type de tâche, les tranches de 2 h où tu travailles vraiment, comparées à ton rythme habituel. Observation seulement : rien ne change dans ton planning.</string>
 </resources>
