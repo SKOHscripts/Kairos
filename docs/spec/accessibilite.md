@@ -52,6 +52,11 @@ pouvoir le toucher sans viser.
   phrase ; la visite guidée annonce « Étape n sur N » ; l'accompagnement de la première tâche (`premiere-tache.md`) annonce chaque étape par une région vivante polie, cerne le champ expliqué sans se limiter à la couleur et laisse le focus dans la fiche ; l'onglet « Échanges » est un
   onglet MD3 (`SecondaryTabRow`), et son signal « En attente de son rapport »
   est un texte avec icône (`accueil.md`, `equipe-echanges.md`).
+- **Aucune action ne dépend d'un geste au pointeur seul** (glisser, déposer, pincer, appui long sans équivalent) :
+  chaque manipulation a un chemin par bouton ou menu, nommé, atteignable au clavier, au lecteur d'écran et au toucher.
+  Déplacer une tâche : « Déplacer… » (« Déplacer vers un autre jour… ») de la vue Jour et de la vue Semaine ; la poser à une
+  heure : le champ « Heure fixe » de la fiche (`vue-jour.md`) ; l'attribuer dans l'espace Équipe : « Réaffecter à… ».
+  **Glisser-déposer : confirmé le 2026-10-26 (issue #102), il n'y en aura pas** (§ Décisions).
 
 ### Critères de succès
 
@@ -64,6 +69,9 @@ pouvoir le toucher sans viser.
 - Audit sur appareil avec TalkBack : à faire par le propriétaire du dépôt
   (pas d'émulateur dans l'environnement de développement).
 - Thème à contraste élevé.
+- **Glisser-déposer** sur la frise, dans les listes, entre jours ou entre membres : exclu, décision confirmée le
+  2026-10-26 (issue #102, fermée « not planned » par le propriétaire). Pas de glisser « en plus » du menu non plus. Raisons,
+  alternatives écartées et condition pour rouvrir : § Décisions.
 
 ## 2. Solution technique
 
