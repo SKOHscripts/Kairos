@@ -67,7 +67,9 @@ rien changer pour qui ne l'active pas.
    tâches d'équipe qui lui sont assignées apparaissent alors dans sa vue
    Jour personnelle, et une seule ligne en base porte les deux usages.
 4. **Une seule équipe** par base. Plusieurs équipes : hors périmètre
-   (§ Hors périmètre).
+   (§ Hors périmètre). **Confirmée le 2026-10-26** (issue #118 « Plusieurs équipes dans une base », décision du
+   propriétaire ; l'issue est fermée « not planned ») : raisons, contournement et condition pour rouvrir dans
+   § Décisions et alternatives écartées.
 5. **Les catégories sont les types de tâche** existants (Réglages → Types de
    tâches) : pas de nouveau concept. Filtres, charge et prévisions « par
    catégorie » se lisent sur `Task.taskType`
@@ -271,7 +273,8 @@ d'équipe, sans changer d'espace (`equipe-moi.md`).
 - **Multi-utilisateur synchronisé** (serveur, pair à pair, comptes) :
   écarté (décision 1). Toute évolution rouvre explicitement la décision du
   2026-09-28 et la contrainte « sans permission réseau ».
-- **Plusieurs équipes** dans une base, sous-équipes, organigramme.
+- **Plusieurs équipes** dans une base, sous-équipes, organigramme (confirmé le 2026-10-26, issue #118 : une équipe par
+  base ; contournement documenté dans § Décisions et alternatives écartées).
 - Droits et rôles d'accès (il n'y a qu'un utilisateur).
 - Notifications aux membres, messagerie, commentaires en fil.
 - Intégrations (Jira, GitLab, calendriers) : hors périmètre.
@@ -540,6 +543,34 @@ aussi son événement de journal dans la même transaction,
   `kotlin.uuid.Uuid.random()`), comme l'identité d'équipe au jalon E1 :
   `core` reste sans hasard ni horloge, et aucun appelant ne peut oublier
   d'en fournir un.
+- **Une seule équipe par base : décision 4 confirmée** (2026-10-26, issue #118 « Plusieurs équipes dans une base »,
+  décision du propriétaire ; l'issue est fermée « not planned »). Elle valide le cadrage du 2026-09-30 sans le modifier.
+  - *Pourquoi* : (1) **l'isolation du mode solo** repose sur une dimension binaire (`Task.space` : `PERSONAL` ou `TEAM`)
+    et un objet de réglages unique (`Settings.team`, nul tant que l'espace n'a jamais été activé) : une seconde équipe
+    obligerait à partitionner chaque lecture d'équipe, là où `personalView` et `teamView` sont aujourd'hui de simples
+    filtres ; (2) **la simplicité du modèle `team_*`** : `team_member`, `member_absence`, `team_event`, `team_scenario`
+    n'ont pas de `team_id`, et `TeamSettings.identity` est l'identité **de la base** ; la charge, les prévisions, le
+    journal et le Suivi lisent « l'équipe » sans paramètre ; (3) **les échanges par fichier** : un paquet et un rapport
+    portent l'identité de l'équipe (`TeamSettings.identity`, `equipe-echanges.md`) que le dépôt compare à celle de la
+    base (refus `OWN_TEAM` d'un paquet de sa propre équipe) ; à plusieurs équipes, chaque import et chaque export devrait
+    d'abord choisir laquelle. Le manager de plusieurs équipes est un cas
+    réel mais minoritaire, et le coût (modèle, migration, écrans) toucherait tous les utilisateurs de l'espace Équipe.
+  - *Contournement documenté* : **une base par équipe**. Sur le bureau, un dossier de données par équipe, choisi par
+    « Changer de dossier… » (Réglages → Données, effet au prochain démarrage, rien n'est supprimé, `bureau-avance.md`).
+    Partout (Android, web, ou sans changer de dossier), l'aller-retour par fichier : exporter la base courante, puis
+    importer l'export de l'autre équipe (« Importer » **remplace toutes les données**, sauvegarde automatique préalable,
+    `export-import.md`) ; l'import remplaçant aussi l'espace Perso, qui voyage dans chaque export. C'est lourd à
+    l'usage fréquent : assumé, aucune alternative peu coûteuse n'a été trouvée.
+  - *Écarté* : un `team_id` posé seul sur les tables (un champ de plus qui ne protégerait rien tant que le filtre
+    d'isolation, la charge, les prévisions et les échanges ne le suivent pas) ; un sélecteur d'équipe sans `team_id` (un
+    réglage qui changerait de jeu de données : une base par équipe, déguisée) ; fusionner les équipes en une et filtrer par
+    catégorie (les types de tâche sont communs, décision 5, et la charge se mélangerait).
+  - *Pour rouvrir* (explicitement, en citant cette décision, avec le propriétaire, et vraisemblablement dans une version
+    majeure puisque cela change le modèle de données et le format d'échange) : un `team_id` sur les membres, les tâches
+    d'équipe, les événements du journal et les scénarios (migration additive, comme `1.sqm`) ; un sélecteur d'équipe
+    (à côté ou dans le sélecteur d'espace) ; l'identité d'équipe de chaque paquet et rapport choisie à l'export ;
+    `personalView`/`teamView` paramétrés par équipe ; un export `formatVersion` 3 ; et les tests d'isolation étendus
+    (`TeamIsolationTest`, les 480 scénarios différentiels). La skill `kairos-equipe` serait à rouvrir en même temps.
 
 ### Jalons du chantier
 

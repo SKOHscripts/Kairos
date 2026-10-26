@@ -94,3 +94,27 @@ Espace Équipe (jalon E3, `equipe-backlog-suivi.md`) : la sélection multiple du
 - **Pas de 48 dp pour la description d'une tâche** : la charte fixe la
   densité des lignes (corps 14 px) ; la description se touche sur toute sa
   largeur.
+- **Pas de glisser-déposer : décision confirmée** (2026-10-26, issue #102 « Glisser-déposer sur la frise », décision du
+  propriétaire ; l'issue est fermée « not planned »). Elle reprend et étend celle prise en codant le jalon E3 pour l'espace
+  Équipe (`equipe-backlog-suivi.md` § Décisions, validée le 2026-10-01) et les « hors périmètre » de `ordonnancement.md`,
+  `vue-semaine.md` et `planning-personnalise.md`. Le chemin « Déplacer… » (vue Jour et vue Semaine, `vue-jour.md`,
+  `vue-semaine.md`) et le champ « Heure fixe » de la fiche reste le **seul** chemin, sur toutes les plateformes.
+  - *Pourquoi* : (1) un glisser est un geste au pointeur seul : il n'existe pas au clavier, ni en navigation par balayage du
+    lecteur d'écran (TalkBack, VoiceOver), ni au contacteur ; le rendre accessible reviendrait à reconstruire le menu qui
+    existe déjà (actions personnalisées de sémantique) ; (2) à 360 dp, la frise passe en fin de liste (`vue-jour.md`) : la tâche
+    qu'on saisit et l'heure où la poser ne tiennent pas à l'écran, il faudrait défiler pendant le geste, et ce défilement
+    diffère entre toucher (Android), souris (bureau) et navigateur (Wasm) : trois comportements à tenir et à tester pour un
+    gain faible ; (3) la sémantique serait
+    ambiguë : la frise est un résultat **calculé**, déposer une tâche à 14 h voudrait dire « épingler » (une heure fixe, qui
+    change le calcul du jour) alors que déplacer vers un autre jour programme sans épingler ; un menu nomme l'effet, un
+    glisser le cache ; (4) la charte garde une seule interface commune aux trois plateformes, sans geste propre à l'une.
+  - *Envisagé et écarté* : **le glisser comme raccourci en plus du chemin accessible** (la tentation naturelle : « le menu
+    reste, le glisser accélère »). Écarté : deux chemins à garder d'accord et à tester sur trois plateformes, un geste de
+    plus à enseigner (aide, catalogue, captures), un risque de les voir diverger ; et le gain (aller plus vite à la souris)
+    est déjà couvert par le menu en deux touches (« Déplacer… », « Demain »). Écarté aussi : un glisser réservé au bureau
+    (une plateforme à part, contre le point 4).
+  - *Condition pour rouvrir* (explicitement, en citant cette décision et avec le propriétaire) : **toutes** les conditions
+    suivantes. Un besoin établi par plusieurs retours d'utilisateurs, pas un seul, que le menu ne couvre pas ; un
+    prototype qui offre le même effet **sans pointeur** (actions personnalisées de sémantique TalkBack, clavier) et dont
+    chaque geste a son équivalent nommé ; la preuve qu'il tient à 360 dp, sur Android, bureau et web, avec les tests
+    d'interface correspondants ; et une réponse écrite au point 3 (ce que signifie déposer sur une frise calculée).

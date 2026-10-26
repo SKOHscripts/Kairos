@@ -89,7 +89,8 @@ traiter ».
   poids restent des réglages.
 - Événements de calendrier externes : par le réseau, hors périmètre ; importés d'un fichier `.ics` depuis la 3.10.0
   (issue #136), ils deviennent des créneaux occupés comme les autres (`connexions-externes.md`).
-- Glisser-déposer dans la frise.
+- Glisser-déposer dans la frise : exclu, décision confirmée le 2026-10-26 (issue #102) ; « Déplacer… » et « Heure fixe »
+  restent le seul chemin (`accessibilite.md` § Décisions).
 
 ## 2. Solution technique
 
