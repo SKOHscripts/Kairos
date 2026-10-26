@@ -129,7 +129,7 @@ base. Il faut donc pouvoir :
 ### Hors périmètre
 
 - Recharger tout seul le fichier quand un autre appareil l'a changé, résoudre
-  un conflit, fusionner : synchronisation (#88, 4.0.0).
+  un conflit, fusionner : synchronisation (#88, 4.0.0). Décidée le 2026-10-26, à implémenter : `synchronisation.md`.
 - Fusion de deux bases (sans synchronisation, une fusion créerait des
   doublons indétectables) : l'import remplace.
 - Chiffrement des exports.
