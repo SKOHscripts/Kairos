@@ -22,7 +22,8 @@ dans `docs/spec-v3/`, est le seul.
 | [`ordonnancement.md`](ordonnancement.md) | Moteur : score WSJF, placement dans la journée, creux, deep work, jours ouvrés et fériés, ancienneté ; tests sur fichiers d'or figés. | M2 |
 | [`dependances.md`](dependances.md) | Blocage, cycles, urgence héritée (chemin critique), bloqueurs dans l'édition. | M2 |
 | [`recurrence.md`](recurrence.md) | Tâches récurrentes (à la complétion, « le N du mois »), créneaux récurrents, « Décaler ». | M2 |
-| [`rappels.md`](rappels.md) | Rappels (désactivés par défaut) : avant une tâche à heure fixe, à la tâche suivante du plan ; notifications Android (alarmes inexactes), bureau et web tant que Kairos est ouvert. | 3.8.0 (#103) |
+| [`widgets-android.md`](widgets-android.md) | Widgets Android « Maintenant » et « Journée » : plan du jour sur l'écran d'accueil, terminer une tâche (double toucher), chrono, capture ; `RemoteViews`, sans permission ni dépendance. | 3.12.0 (#150) |
+| [`rappels.md`](rappels.md) | Rappels (désactivés par défaut) : avant une tâche à heure fixe, à la tâche suivante du plan, récapitulatif du jour (3.12.0, #151) ; notifications Android (alarmes inexactes), bureau et web tant que Kairos est ouvert. | 3.8.0 (#103) |
 | [`temps-reel-chrono.md`](temps-reel-chrono.md) | Chrono (une session à la fois), temps passé et temps du jour, trois alertes, notifications Android (permanente, alarmes, redémarrage), bureau (plateau) et web. | M3 |
 | [`notes-capture.md`](notes-capture.md) | Notes : capture libre, conversion en tâche (titre et description), modification, archivage, suppression. | M4 |
 | [`vue-semaine.md`](vue-semaine.md) | Vue Semaine : sept jours (échéances, fait, créneaux), temps réel de la semaine, navigation vers un autre jour. | M4 |
