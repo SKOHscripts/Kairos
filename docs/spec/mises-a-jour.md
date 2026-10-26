@@ -38,7 +38,10 @@ savoir.
   3.0.1 est disponible (…) », « Vérification impossible le … (hors
   ligne ?). ») et « Vérifier maintenant », qui marche même réglage coupé.
 - Une vérification qui échoue ne gêne jamais l'application.
-- Android : **aucune vérification** (aucune permission réseau ; les mises à jour passent par le magasin ou l'APK).
+- Android : **aucune vérification** jusqu'à la 3.x (aucune permission réseau ; les mises à jour passent par le magasin ou l'APK).
+  **Rouvert le 2026-10-26 par `connexions-en-ligne.md`** (4.0.0, issue #144, à implémenter) : un APK installé à la main peut vérifier, par un
+  interrupteur **désactivé par défaut** (état propre à Android, distinct de `updateCheckEnabled`), seulement application ouverte ; la
+  vérification remplace alors « Voir la dernière version » ; installé par un magasin, rien ne change.
   Pour un APK **installé à la main** (3.9.0, issue #143), Réglages → Général montre une carte « Mises à jour » :
   « Version installée : 3.9.0 », l'aide « Kairos n'utilise pas Internet sur Android : la page de téléchargement
   dit quelle est la dernière version. » et « Voir la dernière version », qui ouvre la page de téléchargement dans le
@@ -70,7 +73,8 @@ savoir.
 - Notification système d'une nouvelle version : le bandeau suffit.
 - Source ou jeton configurables : Kairos est publié sur GitHub seulement.
 - Vérification automatique sur Android : il faudrait la permission `INTERNET` (issue #144, 4.0.0, rouvre « sans
-  permission réseau »).
+  permission réseau »). **Décidée le 2026-10-26** : voir `connexions-en-ligne.md` § Nouvelles versions sur Android (jamais application
+  fermée, jamais de notification).
 
 ## 2. Solution technique
 
@@ -105,7 +109,9 @@ savoir.
 - **Android : un lien, pas une vérification** (2026-10-24, issue #143, choix du propriétaire) : garder « sans
   permission réseau » (`connexions-externes.md`) ; la page de téléchargement (GitHub Pages) plutôt que la page des
   releases : elle choisit le bon fichier et dit la version. La vérification réseau, facultative et désactivée par
-  défaut (étiquette F-Droid « Tracking » sinon), est l'issue #144 (4.0.0).
+  défaut (étiquette F-Droid « Tracking » sinon), est l'issue #144 (4.0.0). **Rouvert le 2026-10-26** : « sans permission réseau »
+  vaut jusqu'à la 3.x ; la 4.0.0 ajoute `INTERNET` et cette vérification, désactivée par défaut, remplaçant la page « Voir la dernière
+  version » quand elle est active (`connexions-en-ligne.md`).
 - **« À la main » défini par l'installateur du système** plutôt que par une liste de magasins : un magasin inconnu
   cache la carte (sans dommage), alors qu'une liste de magasins à tenir l'aurait montrée à tort dans F-Droid.
 

@@ -90,6 +90,10 @@ asynchrone de la base).
   système, ni réseau, ni fichier. L'heure courante et les réglages sont
   toujours passés en paramètre. C'est ce qui rend possibles les tests
   déterministes du moteur, dont ceux sur fichiers d'or figés.
+- **Réseau** (décidé le 2026-10-26, 4.0.0, à implémenter, `connexions-en-ligne.md`) : jamais dans `core` ni `data`. Une interface
+  `HttpFetcher` de `ui/app` en est l'unique accès, fournie par chaque application (`HttpURLConnection` sur Android, `java.net.http` sur le bureau,
+  `fetch` sur le web) et enveloppée par une porte (`OnlineGate`) qui refuse toute requête hors d'une connexion activée ; un test d'analyse des
+  sources garde les imports réseau dans ces fichiers. Jusqu'à la 3.x, l'application Android n'avait pas la permission `INTERNET`.
 - **Version en source unique** : `kmp/gradle.properties`
   (`kairos.versionName`, `kairos.versionCode`). `core` en génère
   `KairosBuild` (tâche `generateKairosBuild`, dossier `build/generated`),
@@ -98,7 +102,8 @@ asynchrone de la base).
   `distribution.md` § Versionnage.
 - **Dépendances** : uniquement des bibliothèques libres publiées sur Maven
   Central ou le dépôt Google. Aucune bibliothèque Google Play Services,
-  Firebase, analytics ou rapport de crash distant. Les ajouts se font dans
+  Firebase, analytics ou rapport de crash distant (**rouvert le 2026-10-26** pour le réseau, pas pour les bibliothèques : les connexions
+  en ligne de la 4.0.0, `connexions-en-ligne.md`, n'ajoutent aucune dépendance et aucun SDK de fournisseur). Les ajouts se font dans
   le catalogue de versions, avec une version figée (builds reproductibles).
   Les tests d'interface du bureau utilisent `compose.desktop.uiTestJUnit4`
   (bibliothèque de test de Compose Multiplatform, même version que

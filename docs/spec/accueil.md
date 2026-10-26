@@ -141,7 +141,8 @@ au lieu d'être réparti entre la fiche du membre et les Réglages.
 
 - Visite avec **pastilles qui pointent les éléments** de l'écran (coach marks) :
   écartée (§ Décisions) ; la visite est une suite de fenêtres qui ouvrent les
-  écrans.
+  écrans. Précisé le 2026-10-26 (issue #96) : une visite interactive sur une démonstration jetable cerne des éléments de
+  l'écran sans pastille ancrée, voir `visite-guidee.md` § Visite interactive (spécifiée, non implémentée).
 - Mémoriser « visite terminée », ou la relancer d'office à une mise à jour :
   non, pas de nouvel indicateur à stocker (et aucune incidence sur l'export).
 - Aide en ligne, vidéos, liens vers un site : non, l'application reste
@@ -262,7 +263,10 @@ au lieu d'être réparti entre la fiche du membre et les Réglages.
   (2026-10-01) : des *coach marks* demanderaient d'ancrer chaque pastille à un
   élément de Compose Multiplatform qui change avec la taille de fenêtre, le
   rail ou la barre basse, et casseraient au premier remaniement d'écran.
-  « Voir l’écran » ouvre le vrai écran ; la visite se relance de là.
+  « Voir l’écran » ouvre le vrai écran ; la visite se relance de là. **Rouverte en partie le 2026-10-26** (issue #96) :
+  la visite interactive sur une démonstration respecte la raison de cette décision (aucune pastille posée par
+  coordonnées : le repère est un contour appliqué à l'élément lui-même) et ajoute deux choses, cerner des éléments et
+  agir sur un dépôt jetable ; ces dialogues-ci ne changent pas (`visite-guidee.md` § Décisions et § Visite interactive).
 - **Rien n'est mémorisé** (2026-10-01) : ni « visite faite », ni écran vu.
   Un indicateur de plus ferait entrer un réglage dans l'export (`encodeDefaults`)
   et dans les bases solo (`equipe.md` § Isolation). Le premier lancement

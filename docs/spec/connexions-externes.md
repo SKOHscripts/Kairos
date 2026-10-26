@@ -37,6 +37,11 @@ une journée entière devient un **badge** sans bloquer de temps, un créneau
 importé se **supprime** seul (il ne se modifie pas), les fuseaux passent par
 les `VTIMEZONE` du fichier **sans table** Windows → IANA.
 
+**Rouvert le 2026-10-26 par `connexions-en-ligne.md`** (4.0.0, décidée, à implémenter) : toute affirmation « sans permission réseau » de
+cette spec vaut **jusqu'à la 3.x**. La 4.0.0 ajoute la permission `INTERNET` (un seul APK, fonctions en ligne désactivées par défaut :
+lien ICS, CalDAV, Microsoft 365 et Google par OAuth, nouvelles versions d'Android). Les étapes 1 (fichier) et 2 (téléphone) ne changent pas
+et restent sans réseau.
+
 ## 1. Besoin métier (cahier des charges)
 
 ### Objectif / problème
@@ -60,7 +65,7 @@ par le calendrier du téléphone, jamais par le réseau.
 | Fichier | Importer un fichier `.ics` exporté de son calendrier, sur bureau, Android et web | aucune | ici, étape 1 (#136) |
 | Calendriers du téléphone | Les événements des calendriers du téléphone, lus en direct (Outlook, Google, DAVx⁵, ICSx⁵…) | lecture du calendrier, demandée à l'activation | ici, étape 2 (#138) |
 | Fichier lié | Un fichier Kairos tenu à jour dans un dossier synchronisé | aucune | `export-import.md` (#137) |
-| Réseau | Connexion en ligne à un compte ou à un lien de calendrier | réseau | écarté pour l'instant (§ Hors périmètre, #139) |
+| Réseau | Connexion en ligne à un compte ou à un lien de calendrier | réseau | écarté jusqu'à la 3.x ; rouvert le 2026-10-26 pour la 4.0.0 : `connexions-en-ligne.md` (#139) |
 
 ### Comportement attendu (utilisateur)
 
@@ -165,7 +170,8 @@ par le calendrier du téléphone, jamais par le réseau.
 ### Contraintes
 
 - **Aucune permission réseau sur Android, aucun compte, aucun secret
-  stocké.** C'est un choix de Kairos, pas une règle de F-Droid (§ 2,
+  stocké** (jusqu'à la 3.x ; rouvert pour la 4.0.0 par `connexions-en-ligne.md`).
+  C'est un choix de Kairos, pas une règle de F-Droid (§ 2,
   Décisions) : il garde l'application sans anti-fonctionnalité F-Droid.
 - `core` reste pur : le fuseau de l'appareil et la date du jour sont des
   paramètres.
@@ -242,7 +248,8 @@ par le calendrier du téléphone, jamais par le réseau.
 ### Hors périmètre / différé
 
 - **Connexion réseau** (abonnement à un lien ICS, CalDAV, Microsoft 365) :
-  pas de permission réseau sur Android, aucune connexion à un compte.
+  hors périmètre jusqu'à la 3.x, **rouvert le 2026-10-26 par `connexions-en-ligne.md`** (4.0.0). Jusque-là : pas de permission
+  réseau sur Android, aucune connexion à un compte.
   L'abonnement à un lien ICS **sur le bureau seulement** est une piste
   différée, à rouvrir sur demande (#139). Sur Android, ICSx⁵ s'abonne à ce
   lien et l'étape 2 en lit le résultat.
@@ -487,7 +494,7 @@ par le calendrier du téléphone, jamais par le réseau.
   - L'absence de `INTERNET` est un **choix de Kairos**, pour n'avoir aucune
     anti-fonctionnalité (`plan-v3-kotlin.md` § Android, `fdroid/README.md`).
 - **Décision du 2026-10-24 : pas de permission réseau sur Android, aucune
-  connexion à un compte** (#139). Microsoft Graph demanderait une
+  connexion à un compte** (#139) ; **rouverte le 2026-10-26** (voir la décision suivante). Microsoft Graph demanderait une
   application Entra tenue par le projet ; beaucoup d'organisations
   bloquent le consentement des utilisateurs (« Need admin approval »), et
   le connecteur serait vraisemblablement étiqueté `NonFreeNet`. Le
@@ -495,6 +502,11 @@ par le calendrier du téléphone, jamais par le réseau.
   dans l'application de calendrier (Outlook, DAVx⁵, ICSx⁵). L'abonnement
   à un lien ICS sur le bureau seul, qui fait déjà un appel réseau
   (`mises-a-jour.md`), est différé.
+- **Rouvert le 2026-10-26 par `connexions-en-ligne.md`** (propriétaire, 4.0.0) : un seul APK avec `INTERNET`, toutes les
+  connexions en ligne désactivées par défaut, lecture seule, rien dans l'export. Ce qui précède reste l'historique de la 3.x. Ce qui change
+  pour F-Droid : `NonFreeNet` est déclaré dès que l'APK embarque un connecteur dédié à Microsoft ou Google ; jamais d'anti-fonctionnalité
+  non déclarée. L'abonnement à un lien ICS, différé « sur le bureau seulement » ci-dessus, devient une connexion de toutes les plateformes
+  (sur le web au mieux).
 - **Occurrences déployées plutôt que récurrences Kairos** : Kairos n'a que
   quotidien, jours ouvrés et hebdomadaire, sans exception (#108, #110),
   alors que les exports Outlook sont pleins d'exceptions. Coût : un créneau

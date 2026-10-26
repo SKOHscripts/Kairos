@@ -217,6 +217,8 @@ jamais touché. Carte « Durées apprises » dans Réglages, catégorie « Plani
 
 ### Évolution : modèle d'apprentissage automatique (version majeure)
 
+Cette évolution est spécifiée (non implémentée) dans [`estimateur-modele.md`](estimateur-modele.md) (issue #99, 4.0.0) : modèle local et explicable calculé de l'historique, sans poids pré-entraînés, qui précise ou remplace les contraintes ci-dessous à l'implémentation.
+
 Un `ModelEstimator(params)` se branche derrière le **même point d'entrée**
 (`DurationEstimator.estimate`, extrait en interface à ce moment-là) et renvoie
 `Source.MODEL` avec un intervalle `low`/`high` qui alimente le modèle d'effort

@@ -25,8 +25,15 @@ Fiche d’identité de l’application :
   `RECEIVE_BOOT_COMPLETED` (reprogrammer les alertes au redémarrage),
   `READ_CALENDAR` (facultative : demandée seulement si l’utilisateur active
   les calendriers du téléphone, depuis la 3.10.0) ;
-  **pas** d’accès réseau ;
-- anti-fonctionnalités : aucune.
+  **pas** d’accès réseau (jusqu’à la 3.x) ;
+- anti-fonctionnalités : aucune (jusqu’à la 3.x).
+
+**Rouvert le 2026-10-26** (décision du propriétaire, `docs/spec/connexions-en-ligne.md`, 4.0.0, spécifiée et non encore implémentée) : un
+seul APK, celui de F-Droid et des releases GitHub, déclarera aussi `INTERNET`, avec toutes les fonctions en ligne désactivées par défaut
+(lien ICS, CalDAV, Microsoft 365 et Google par OAuth sans SDK propriétaire, vérification des nouvelles versions pour un APK installé à la
+main). Pour la fiche F-Droid : `INTERNET` n’est pas une anti-fonctionnalité ; `NonFreeNet` sera déclarée dans la version qui embarque un
+connecteur Microsoft ou Google (service non libre) ; aucune étiquette n’est jamais omise. Le jour de la 4.0.0, ces deux lignes de la fiche
+d’identité et la recette (`AntiFeatures`) changent ensemble.
 
 ## F-Droid (fdroiddata)
 

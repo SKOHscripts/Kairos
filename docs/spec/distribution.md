@@ -35,7 +35,8 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   (`vX.Y.Z`) en release GitHub, avec tous les fichiers.
 - **Android** : un APK. Tant que la version est une préversion, l'application
   s'appelle « Kairos Preview » et s'installe à côté de la version stable. Aucune
-  permission réseau ; deux permissions pour le chrono (notifier, reprendre
+  permission réseau jusqu'à la 3.x (rouvert pour la 4.0.0 : un seul APK avec `INTERNET`, fonctions en ligne désactivées par défaut,
+  `connexions-en-ligne.md`) ; deux permissions pour le chrono (notifier, reprendre
   après un redémarrage), voir `temps-reel-chrono.md`.
 - **Bureau** : un installeur par OS (`.msi`, `.deb`, `.dmg`), qui n'exige pas
   de droits administrateur sous Windows, et un **zip portable** par OS : on
@@ -110,7 +111,8 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   (`DeferredSchema` : version du schéma, création et migration vides), la
   création réelle étant faite par `KairosStore.open` (`modele-donnees.md`).
   Exemples dans la langue du système (`Locale.getDefault()`).
-- Manifeste : **aucune permission réseau** (pas de `INTERNET`) ;
+- Manifeste : **aucune permission réseau** (pas de `INTERNET`) jusqu'à la 3.x ; **rouvert le 2026-10-26 par
+  `connexions-en-ligne.md`** : la 4.0.0 déclare `INTERNET`, un seul APK, sans variante ni drapeau de construction (à implémenter) ;
   `POST_NOTIFICATIONS` (demandée à l'opt-in des alertes) et
   `RECEIVE_BOOT_COMPLETED` pour le chrono (`temps-reel-chrono.md`), avec
   ses deux récepteurs (`ChronoReceiver` non exporté, `BootReceiver`) ;

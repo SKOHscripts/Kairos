@@ -10,6 +10,8 @@ tâche suivante. Fichiers couverts : `kmp/core/.../core/reminders/Reminders.kt` 
 
 État : 3.8.0 (issue #103), spécifiée et implémentée le 2026-10-24.
 
+3.12.0 (issue #151) : **récapitulatif du jour**, spécifié le 2026-10-26, **à implémenter** (sections « Récapitulatif du jour » ci-dessous).
+
 ## 1. Besoin métier (cahier des charges)
 
 ### Objectif / problème
@@ -62,6 +64,31 @@ un rappel discret avant une tâche à heure fixe et, s'il le souhaite, quand le 
 - Rappels de date (« échéance demain »), rappels d'une tâche d'équipe chez un collègue, rappels répétés ou reportables
   (« dans 5 min »), son propre aux rappels, alarmes exactes.
 - Sur le bureau et le web, rappels Kairos fermé (il faudrait un service en arrière-plan).
+
+### Récapitulatif du jour (3.12.0, issue #151)
+
+- **Une notification « Ta journée »** à l'heure choisie, qui dit ce que le plan prévoit aujourd'hui, en complément des widgets
+  (`widgets-android.md`). **Désactivée par défaut**, indépendante des rappels ci-dessus (on peut avoir l'une sans l'autre).
+- Réglages → catégorie « Chrono et statistiques » → section « Rappels » : un interrupteur **« Récapitulatif du jour »** (désactivé) et,
+  quand il est actif, **« À quelle heure »** (« 08:30 » par défaut, champ d'heure `HH:MM`).
+- **Envoyé seulement les jours où quelque chose est prévu** : au moins une tâche placée par le plan du jour ou un créneau occupé
+  (réunion importée comprise). Un jour vide, un week-end ou un férié sans rien, aucune notification.
+- **Contenu** : titre « Ta journée » ; texte « 5 tâches · 2 créneaux » ; puis, dans la notification dépliée, les **trois premières
+  tâches** du plan avec leur heure (« 09:30 Point d'équipe », « 10:00 Rédiger la documentation »…) et « … » s'il y en a plus.
+  Un toucher ouvre la vue Jour.
+- **Même vue que le reste** : l'espace Perso (les tâches d'équipe d'un collègue n'y sont jamais). Rien n'est rattrapé : si l'heure
+  choisie est déjà passée quand on active l'interrupteur, le récapitulatif de ce jour n'est pas envoyé.
+- Où il arrive : comme les rappels, notification du système sur **Android** (même Kairos fermé, alarme inexacte, quelques minutes de
+  retard possibles) ; sur le **bureau et le web**, tant que Kairos est ouvert (notification du système si autorisée, sinon le bandeau
+  des alertes dans l'application).
+
+**Critères de succès (récapitulatif)** : désactivé ou absent des réglages : rien ; activé à 08:30 : une notification à 08:30 un jour
+qui a une tâche ou un créneau, aucune un jour vide ; trois premières tâches par ordre de début, une tâche faite, bloquée ou
+programmée un autre jour n'y figure pas ; changer l'heure ou désactiver déplace ou annule l'alarme ; bornes `HH:MM` valides, une
+valeur illisible est refusée par le formulaire (`DailySummaryTest`, `SettingsFormTest`, `ReminderUiTest`). Aucune permission ajoutée.
+
+**Hors périmètre (récapitulatif)** : un récapitulatif du lendemain le soir, le contenu des échéances ou des retards, une notification
+répétée dans la journée, un son propre, des jours de la semaine au choix.
 
 ## 2. Solution technique
 
@@ -121,3 +148,26 @@ un rappel discret avant une tâche à heure fixe et, s'il le souhaite, quand le 
   qu'un message éphémère : un rappel manqué serait perdu.
 - **Section du guide** : `GuideSection.SETTINGS_REMINDERS` (catégorie « Chrono et statistiques ») ; la carte `reminders`
   du catalogue y mène.
+
+### Récapitulatif du jour (3.12.0, issue #151)
+
+- **Réglages (`core`)** : `ReminderSettings` gagne `dailySummary: Boolean = false` et `dailySummaryTime: String = "08:30"` (« HH:MM »,
+  `@Serializable`, absents du JSON quand ils valent les défauts : l'export d'une base qui ne s'en sert pas ne change pas, règle du
+  sous-objet nul). `SettingsForm` : `reminders.dailySummary` (booléen) et `reminders.dailySummaryTime` (nouveau `FieldKind.TIME`,
+  texte « HH:MM » validé de 00:00 à 23:59, refusé sinon). Le sous-objet `reminders` reste nul tant qu'on n'y touche pas.
+- **Calcul pur (`core/reminders/DailySummary.kt`)** : `DailySummary.plan(snapshot, jour, maintenant, fuseau): DailySummary?` rend `null` si
+  l'option est désactivée, si l'heure du jour est déjà passée (`maintenant` ≥ heure choisie : rien n'est rattrapé) ou si le plan du jour
+  n'a ni tâche placée ni créneau ; sinon `DailySummary(at, tasks, slots, first)` où `first` = les trois premières entrées de
+  `DayView.build(...).schedule.scheduled` (titre, début). C'est le même `DayView` que `Reminders.plan` : une tâche faite, bloquée ou
+  décalée n'y est pas.
+- **Veille (`ReminderWatcher`, `ui`)** : l'option est lue en plus de `reminders.enabled` (la veille ne rend plus la main quand seuls les
+  rappels sont éteints) ; le récapitulatif a sa propre clé (`summary-<jour>`) et n'est montré qu'une fois par session et par jour.
+- **Android (`ReminderSync`)** : `apply` pose en plus **une alarme `setAndAllowWhileIdle` pour aujourd'hui (si l'heure n'est pas passée) et une
+  pour demain**, sur leurs propres codes de requête (`SUMMARY_REQUEST_BASE = 2_000`, 2 codes, annulés avec les autres), titre et corps déjà
+  rédigés (`ReminderTexts.summary`) ; `ChronoReceiver` (`ACTION_SUMMARY`) poste la notification sur le canal `reminders`, style `BigTextStyle`,
+  `setContentIntent` vers `MainActivity` avec l'extra `destination = DAY` (destination externe, `widgets-android.md` § Actions). Aucune permission.
+- **Textes** : `ReminderTexts.summary(...)` lit des clés `reminder_summary_*` des six langues (titre, « %1$d tâches · %2$d créneaux » avec
+  la forme au singulier, ligne de tâche, « … »).
+- **Décisions** : l'option **ne dépend pas** de « Rappeler les tâches à heure fixe » (deux usages, deux interrupteurs) ; **un jour vide
+  n'envoie rien** (une notification vide apprend à l'ignorer) ; **le lendemain est programmé à l'avance** comme les rappels (au plus un
+  jour d'avance, le plan de demain dépend de l'heure d'aujourd'hui).
