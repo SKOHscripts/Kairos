@@ -22,6 +22,7 @@ dans `docs/spec-v3/`, est le seul.
 | [`ordonnancement.md`](ordonnancement.md) | Moteur : score WSJF, placement dans la journée, creux, deep work, jours ouvrés et fériés, ancienneté ; tests sur fichiers d'or figés. | M2 |
 | [`dependances.md`](dependances.md) | Blocage, cycles, urgence héritée (chemin critique), bloqueurs dans l'édition. | M2 |
 | [`recurrence.md`](recurrence.md) | Tâches récurrentes (à la complétion, « le N du mois »), créneaux récurrents, « Décaler ». | M2 |
+| [`liste-fonctionnalites.md`](liste-fonctionnalites.md) | Liste complète des fonctionnalités : bouton sur l'Accueil, écran secondaire avec recherche et filtre « depuis… », une carte par fonctionnalité du README, tableau récapitulatif du README vérifié par test. | 3.13.0 (#153) |
 | [`connexions-en-ligne.md`](connexions-en-ligne.md) | Connexions en ligne facultatives (décidées le 2026-10-26, 4.0.0) : lien ICS, CalDAV, Microsoft 365 et Google par OAuth, vérification des versions Android ; un seul APK avec `INTERNET`, tout désactivé par défaut, secrets hors base et hors export. | 4.0.0 (#139, #144) |
 | [`synchronisation.md`](synchronisation.md) | Synchronisation par fichier lié : fusion automatique à la lecture (dernier écrivain par champ, sans pierres tombales), « À revoir », durées apprises partagées. | 4.0.0 (#88, #100) |
 | [`estimateur-modele.md`](estimateur-modele.md) | Estimateur de durées par modèle local et explicable (voisins par ressemblance de titre, intervalle bas–haut), garde par rétro-test, alimentation des prévisions d'équipe. | 4.0.0 (#99) |
