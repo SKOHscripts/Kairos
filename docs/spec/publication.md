@@ -4,7 +4,8 @@ _Rôle : comment Kairos 3 est présenté et proposé aux utilisateurs hors de
 GitHub. Fichiers couverts : `fastlane/metadata/android/` (fiches FR/EN),
 `kmp/desktopApp/.../StoreScreenshots.kt` et l'option `--store-screenshots` de
 `Main.kt`, `kmp/tools/validate_fastlane.py`, `kmp/tools/fdroid_check.sh`,
-`kmp/tools/make_app_icons.py` (icônes des fiches et de la page),
+`kmp/tools/make_app_icons.py` (icônes des fiches et de la page), `kmp/tools/make_badges.py` et `validate_badges.py`
+(boutons de téléchargement, `site/badges/`),
 `fdroid/com.skohscripts.kairos.yml`, `fdroid/README.md`, `site/`,
 `.github/workflows/fdroid-check.yml`, `.github/workflows/pages.yml`, et la
 propriété `kairos.preview` de `kmp/androidApp/build.gradle.kts`. Versions,
@@ -46,6 +47,28 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
   visiteur venu de F-Droid ou de l'étranger arrive sur de l'anglais.
 - Tant que Kairos 3 n'est pas sorti, la page le dit et renvoie vers la
   dernière préversion ; ensuite, vers la dernière version stable.
+
+### Boutons de téléchargement (3.12.0)
+
+- **Un jeu de boutons** (badges SVG aux couleurs du thème « miel », primaire plein, texte blanc, forme de pilule) aux deux
+  endroits où l'utilisateur vient télécharger : **la page GitHub Pages** (les six langues, sous l'accroche) et **le README**
+  (`README.md` en anglais, `README.fr.md` en français : en tête, à la place du lien « Download », et dans « Install »).
+- Sept boutons, dans cet ordre : **F-Droid** (« Get it on F-Droid », le paquet est publié), **Obtainium** (ajoute Kairos à
+  Obtainium, qui suit les releases GitHub), **APK** (le fichier `Kairos-android.apk` de la dernière version), **Windows**
+  (`.msi`), **Linux** (`.deb`), **macOS** (`.dmg` Apple Silicon ; l'Intel reste dans le tableau d'installation et sur la page) et
+  **Navigateur** (la version web).
+- Chaque bouton est écrit **dans la langue de la page** (anglais, français, espagnol, allemand, russe, italien) et porte un texte
+  alternatif ; il fonctionne sans JavaScript.
+- « Bientôt sur F-Droid » disparaît partout où il figurait dans un point d'entrée de téléchargement (README, six pages).
+- Pas de bouton dans l'application : elle reste hors ligne et ne propose pas de téléchargement (« Voir la dernière version », 3.9.0,
+  mène à la page).
+
+**Critères de succès** : les sept boutons sont présents et pointent vers la bonne cible sur la page (six langues) et dans les deux
+README ; aucune mention « bientôt sur F-Droid » ne reste ; le test de CI `pages` échoue si un marqueur reste ; la page garde 390 px
+sans débordement (les boutons passent à la ligne) ; les images se lisent sur fond clair et sombre de GitHub.
+
+**Hors périmètre** : badge « Latest release » (déjà en tête du README), logos de marque des systèmes (Windows, Apple, Linux) et des
+magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bouton dans l'application.
 
 ### Critères de succès
 
@@ -237,6 +260,32 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
 - Déclenchement : push sur `main` touchant `kmp/**`, `site/**`, `fastlane/**`
   ou `pages.yml` ; release publiée à la main ; **fin du workflow « Kairos 3
   release »** ; lancement manuel.
+
+### Boutons de téléchargement (`make_badges.py`, `site/badges/`)
+
+- **Source** : `kmp/tools/make_badges.py` génère `site/badges/<langue>/<id>.svg` (`id` : `fdroid`, `obtainium`, `apk`, `windows`,
+  `linux`, `macos`, `web` ; `langue` : `en`, `fr`, `es`, `de`, `ru`, `it`), 42 fichiers **versionnés** (un seul jeu : la page les sert, le
+  README les référence en chemin relatif `site/badges/<langue>/<id>.svg`, que GitHub affiche).
+- **Dessin** : 56 px de haut, largeur selon le texte, `rx` = 28 (pilule), fond `#7F5610` (primaire du thème clair, lisible sur fond clair et
+  sombre), texte `#FFFFFF` ; à gauche une icône **Material Symbols** (Outlined 400, Apache 2.0, comme `make_icons.py`) générique par
+  bouton (`download`, `update`, `android`, `desktop_windows`, `terminal`, `laptop_mac`, `language`), jamais un logo de marque ; deux lignes
+  de texte (petite : « Get it on », « Download for »… ; grande : « F-Droid », « Windows »…). **Le texte est converti en tracés** avec les polices
+  Roboto Regular et Medium du dépôt (`composeResources/font/`) : le rendu ne dépend d'aucune police du visiteur et n'embarque rien. Un
+  `<title>` porte le texte alternatif.
+- **Textes** (petite ligne / grande ligne) : tableau `TEXTS` du script, les six langues ; les noms propres (F-Droid, Obtainium, GitHub,
+  Windows, Linux, macOS) ne se traduisent pas.
+- **Régénération** : le script (`fontTools` pour les tracés, le paquet `@material-symbols/svg-400` comme `make_icons.py`) est lancé à la
+  main quand un texte, une icône ou la couleur du thème change ; la CI ne le relance pas. Un test de CI (`kmp/tools/validate_badges.py`,
+  job `metadata` de `fdroid-check.yml`, qui se déclenche aussi sur `site/**` et les README) vérifie que les 42 fichiers existent, que chaque page porte une rangée des sept boutons dans sa langue et chaque README deux (en tête, puis dans « Install »), qu'aucun badge référencé n'est absent, et qu'aucun « bientôt sur F-Droid » ne reste.
+- **Cibles** : F-Droid `https://f-droid.org/packages/com.skohscripts.kairos/` ; Obtainium `obtainium://add/https://github.com/SKOHscripts/Kairos`
+  sur la page, `https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/SKOHscripts/Kairos` dans le README (GitHub retire
+  les liens aux schémas inconnus) ; APK, Windows, Linux, macOS : `@@DL@@/<fichier>` sur la page (release stable, ou dernière préversion), `…/releases/latest/download/<fichier>`
+  dans le README ; navigateur : `@@WEB@@` sur la page, `https://skohscripts.github.io/Kairos/app/` dans le README.
+- **Page** : une rangée `<p class="badges">` sous l'accroche de chaque `index.html` ; `style.css` : `.badges` en flex qui passe à la ligne, `img`
+  de 56 px, anneau de focus visible ; textes alternatifs dans la langue de la page. Les cartes de téléchargement par système restent.
+- **Décisions** : badges dessinés par nous plutôt que les badges officiels (licences à vérifier, pas d'équivalent pour le bureau, un style
+  unique et la langue de la page) ; pas de logos de marque (marques déposées) ; tracés plutôt que texte SVG (rendu stable dans une balise `img`) ;
+  Obtainium par le redirecteur du projet dans le README seulement, parce que GitHub filtre les schémas personnalisés.
 
 ### Décisions et pièges tracés
 

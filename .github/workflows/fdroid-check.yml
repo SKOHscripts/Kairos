@@ -1,7 +1,7 @@
 # Vérification F-Droid et magasins (docs/spec/publication.md § Vérification continue).
 #
-# - metadata : fiches Fastlane FR/EN (longueurs, changelog du versionCode courant,
-#   icône, captures) ;
+# - metadata : fiches Fastlane (longueurs, changelog du versionCode courant,
+#   icône, captures) et boutons de téléchargement (`validate_badges.py`) ;
 # - build : la recette fdroid/com.skohscripts.kairos.yml passe `fdroid lint` et se
 #   construit dans l'image des serveurs de F-Droid, au commit testé ;
 # - reproducible : l'APK du runner, construit comme la release, est identique à
@@ -13,10 +13,10 @@ name: F-Droid
 
 on:
   pull_request:
-    paths: ["fdroid/**", "fastlane/**", "kmp/**", ".github/workflows/fdroid-check.yml"]
+    paths: ["fdroid/**", "fastlane/**", "kmp/**", "site/**", "README.md", "README.fr.md", ".github/workflows/fdroid-check.yml"]
   push:
     branches: [main]
-    paths: ["fdroid/**", "fastlane/**", "kmp/**", ".github/workflows/fdroid-check.yml"]
+    paths: ["fdroid/**", "fastlane/**", "kmp/**", "site/**", "README.md", "README.fr.md", ".github/workflows/fdroid-check.yml"]
   # Une release créée par un workflow (jeton GITHUB_TOKEN) ne déclenche pas
   # l'événement `release` : on suit donc la fin du workflow de release.
   workflow_run:
@@ -34,6 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 kmp/tools/validate_fastlane.py
+      - run: python3 kmp/tools/validate_badges.py
 
   build:
     # Après une release : seulement une version finale taguée (vX.Y.Z, sans suffixe).

@@ -16,7 +16,18 @@ journée. Sans compte, sans publicité, sans réseau : tes données restent sur
 ton appareil.
 
 **Android, Windows, Linux, macOS, et dans le navigateur.**
-[**⬇ Télécharger**](https://skohscripts.github.io/Kairos/)
+
+<p>
+  <a href="https://f-droid.org/packages/com.skohscripts.kairos/"><img src="site/badges/fr/fdroid.svg" alt="Disponible sur F-Droid" height="56"></a>
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/SKOHscripts/Kairos"><img src="site/badges/fr/obtainium.svg" alt="Disponible sur Obtainium" height="56"></a>
+  <a href="https://github.com/SKOHscripts/Kairos/releases/latest/download/Kairos-android.apk"><img src="site/badges/fr/apk.svg" alt="Télécharger l’APK (GitHub)" height="56"></a>
+  <a href="https://github.com/SKOHscripts/Kairos/releases/latest/download/Kairos-windows-x64.msi"><img src="site/badges/fr/windows.svg" alt="Télécharger pour Windows" height="56"></a>
+  <a href="https://github.com/SKOHscripts/Kairos/releases/latest/download/Kairos-linux-x64.deb"><img src="site/badges/fr/linux.svg" alt="Télécharger pour Linux" height="56"></a>
+  <a href="https://github.com/SKOHscripts/Kairos/releases/latest/download/Kairos-macos-arm64.dmg"><img src="site/badges/fr/macos.svg" alt="Télécharger pour macOS" height="56"></a>
+  <a href="https://skohscripts.github.io/Kairos/app/"><img src="site/badges/fr/web.svg" alt="Utiliser dans le Navigateur" height="56"></a>
+</p>
+
+[Plus d’options sur la page de téléchargement](https://skohscripts.github.io/Kairos/)
 
 ## En bref
 
@@ -58,9 +69,19 @@ bon fichier pour ton système. Tous les fichiers, et leurs sommes de contrôle
 (`SHA256SUMS`), sont aussi dans les
 [releases GitHub](https://github.com/SKOHscripts/Kairos/releases).
 
+<p>
+  <a href="https://f-droid.org/packages/com.skohscripts.kairos/"><img src="site/badges/fr/fdroid.svg" alt="Disponible sur F-Droid" height="56"></a>
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/SKOHscripts/Kairos"><img src="site/badges/fr/obtainium.svg" alt="Disponible sur Obtainium" height="56"></a>
+  <a href="https://github.com/SKOHscripts/Kairos/releases/latest/download/Kairos-android.apk"><img src="site/badges/fr/apk.svg" alt="Télécharger l’APK (GitHub)" height="56"></a>
+  <a href="https://github.com/SKOHscripts/Kairos/releases/latest/download/Kairos-windows-x64.msi"><img src="site/badges/fr/windows.svg" alt="Télécharger pour Windows" height="56"></a>
+  <a href="https://github.com/SKOHscripts/Kairos/releases/latest/download/Kairos-linux-x64.deb"><img src="site/badges/fr/linux.svg" alt="Télécharger pour Linux" height="56"></a>
+  <a href="https://github.com/SKOHscripts/Kairos/releases/latest/download/Kairos-macos-arm64.dmg"><img src="site/badges/fr/macos.svg" alt="Télécharger pour macOS" height="56"></a>
+  <a href="https://skohscripts.github.io/Kairos/app/"><img src="site/badges/fr/web.svg" alt="Utiliser dans le Navigateur" height="56"></a>
+</p>
+
 | Système | Fichier | Remarque |
 |---|---|---|
-| Android 8 ou plus récent | `Kairos-android.apk` (bientôt sur F-Droid) | Le même APK signé que sur F-Droid : on passera de l’un à l’autre sans désinstaller. |
+| Android 8 ou plus récent | `Kairos-android.apk`, ou [F-Droid](https://f-droid.org/packages/com.skohscripts.kairos/) | Le même APK signé que sur F-Droid : on passera de l’un à l’autre sans désinstaller. |
 | Windows 10 ou 11 | `Kairos-windows-x64.msi` | Installation pour l’utilisateur courant, sans droit administrateur. |
 | Windows, poste verrouillé | `Kairos-windows-x64-portable.zip` | Dézipper, lancer `Kairos.exe` : rien n’est installé. Kairos propose ses raccourcis (menu Démarrer, Bureau). |
 | Linux (x86-64) | `Kairos-linux-x64.deb`, ou `Kairos-linux-x64-portable.tar.gz` | Version portable : Kairos propose de s’ajouter au menu des applications, avec son icône. |
