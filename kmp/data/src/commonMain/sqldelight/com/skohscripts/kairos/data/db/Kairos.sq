@@ -207,6 +207,11 @@ CREATE TABLE settings (
     json TEXT NOT NULL
 );
 
+-- Migrations de données déjà passées (11.sqm) : le marqueur structurel du schéma 12, jamais lu ni exporté.
+CREATE TABLE migration_mark (
+    name TEXT NOT NULL PRIMARY KEY
+);
+
 -- Tâches ---------------------------------------------------------------------
 
 allTasks:

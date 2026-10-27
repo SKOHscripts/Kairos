@@ -112,7 +112,7 @@ bureau Windows/Linux/macOS (JVM), web (Kotlin/Wasm).
 
 ---
 
-# Design system Kairos — Material Design 3, thème « miel »
+# Design system Kairos — Material Design 3, thème « océan »
 
 Toute nouvelle vue ou composant Kairos doit s'y conformer et suivre **Material
 Design 3** (https://m3.material.io) : chercher le composant Material 3 de
@@ -121,12 +121,14 @@ Compose correspondant avant d'en inventer un. Détail complet :
 `docs/spec/navigation-theme.md`.
 
 ## Palette
-- Rôles MD3 générés (schéma *Tonal spot*) depuis **une seule graine, le miel
-  `#C28417`**, la couleur du logo : primaire `#7F5610`, conteneur primaire
-  `#FFDDB3`, conteneur secondaire `#FADEBC`, tertiaire (sauge) `#D4EABC`, erreur
-  `#BA1A1A` / `#FFDAD6`, surface `#FFF8F4`, texte `#201B13` / `#4F4539`,
-  contours `#817567` / `#D3C4B4`, surface inverse `#362F27` (valeurs du thème
-  clair ; le sombre en est généré, surface `#18120B`).
+- Rôles MD3 générés (schéma *Tonal spot*) depuis **une seule graine, l'océan
+  `#2F6FED`** (changé le 2026-10-27 : l'océan remplace le miel `#C28417` comme
+  graine par défaut ; le miel, couleur du logo, reste une graine au choix) :
+  primaire `#485D92`, conteneur primaire `#DAE2FF`, conteneur secondaire
+  `#DCE2F9`, tertiaire (mauve rosé) `#FED7F9`, erreur `#BA1A1A` / `#FFDAD6`,
+  surface `#FAF8FF`, texte `#1A1B21` / `#44464F`, contours `#757780` /
+  `#C5C6D0`, surface inverse `#2F3036` (valeurs du thème clair ; le sombre en
+  est généré, surface `#121318`).
 - Couleurs par `MaterialTheme.colorScheme` et `LocalKairosExtraColors`
   uniquement, **jamais de `Color(0x…)` dans un composant** (seule exception :
   les pastilles de la carte Apparence, qui montrent la graine elle-même). Le
@@ -141,13 +143,14 @@ Compose correspondant avant d'en inventer un. Détail complet :
   `secondaryContainer` ; surface inverse (sombre en thème clair, claire en
   thème sombre) seulement pour la carte « En ce moment » et la snackbar
   d'alerte. Tout le reste est neutre.
-- **Pas d'ambre** : indiscernable du miel. Les états « à surveiller » passent
+- **Pas d'ambre** : indiscernable du miel (couleur du logo et graine au choix,
+  que le primaire prend alors). Les états « à surveiller » passent
   par la forme (contour + icône) ; le conteneur d'erreur est réservé aux vrais
   échecs.
-- Le miel est la graine **par défaut** : l'utilisateur peut en choisir une
-  autre (Réglages → Apparence, `docs/spec/apparence.md`), dont tout le schéma
-  est recalculé par le même algorithme (`ThemeColors`). Un composant ne
-  suppose donc jamais le miel.
+- L'océan est la graine **par défaut** : l'utilisateur peut en choisir une
+  autre (Réglages → Apparence, `docs/spec/apparence.md`), le miel compris, dont
+  tout le schéma est recalculé par le même algorithme (`ThemeColors`). Un
+  composant ne suppose donc jamais l'océan.
 - Thème **clair et sombre**, générés de la même graine par le même algorithme
   (`make_theme.py` : `KairosLightColors`, `KairosDarkColors`) ; Kairos suit le
   système, un interrupteur à deux états choisit l'autre (`docs/spec/apparence.md`).
@@ -177,10 +180,13 @@ Compose correspondant avant d'en inventer un. Détail complet :
   remplissage.
 
 ## Identité
-- Logo (mire/cadran solaire) : couleurs tirées de la graine (cadran `#FFEEDC`,
-  anneau `#FFCC85`, secteur `#C28417`, axe `#2B251C`). Toute évolution passe
-  par `kmp/tools/make_app_icons.py` (icônes bureau, web, fiches Fastlane,
-  page) et les ressources Android (`docs/DESIGN_SYSTEM.md` § Logo).
+- Logo (mire/cadran solaire) : il **garde son miel**, qui n'est plus la graine
+  du thème par défaut et contraste avec l'océan (cadran `#FFEEDC`, anneau
+  `#FFCC85`, secteur `#C28417`, axe `#2B251C`, couleurs fixes de
+  `KairosLogo.kt`). Les icônes d'installation le posent sur un fond uni océan
+  profond `#1C2F59`. Toute évolution passe par `kmp/tools/make_app_icons.py`
+  (icônes bureau, web, fiches Fastlane, page) et les ressources Android
+  (`docs/DESIGN_SYSTEM.md` § Logo).
 
 ## Navigation & mobile
 - **Rail de navigation** MD3 si la fenêtre fait 600 dp ou plus ; en dessous,

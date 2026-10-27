@@ -2,7 +2,7 @@
 
 Tous les rôles viennent de l'algorithme officiel (material-color-utilities,
 portage Python `materialyoucolor`, schéma *Tonal spot*, spec 2021, contraste
-standard) depuis UNE graine, le miel `#C28417` du logo ; le sombre (issue #72) vient
+standard) depuis UNE graine, l’océan `#2F6FED` (le miel du logo, `#C28417`, reste une graine au choix) ; le sombre (issue #72) vient
 de la même graine, du même algorithme (`isDark`). Pour changer de
 couleur : changer `SEED` et regénérer, jamais retoucher un rôle isolé
 (CLAUDE.md, docs/spec/navigation-theme.md § Thème).
@@ -16,7 +16,7 @@ from materialyoucolor.dynamiccolor.material_dynamic_colors import MaterialDynami
 from materialyoucolor.hct import Hct
 from materialyoucolor.scheme.scheme_tonal_spot import SchemeTonalSpot
 
-SEED = 0xFFC28417
+SEED = 0xFF2F6FED
 OUT = (pathlib.Path(__file__).resolve().parent.parent
        / "ui/src/commonMain/kotlin/com/skohscripts/kairos/ui/theme/KairosColors.kt")
 ROLES = [

@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kairos</title>
   <meta name="description" content="Kairos : le bon moment pour chaque tâche. Version web, sans installation.">
-  <meta name="theme-color" content="#FFF8F4" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#18120B" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#FAF8FF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121318" media="(prefers-color-scheme: dark)">
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
-    html, body { height: 100%; margin: 0; background: #FFF8F4; color: #201B13; }
+    html, body { height: 100%; margin: 0; background: #FAF8FF; color: #1A1B21; }
     body { font: 14px/20px system-ui, sans-serif; overflow: hidden; }
     /* Relais de la page de démarrage (docs/spec/demarrage.md) : le cadran vide exactement centré, à la
        taille du cadran de StartupSplash (184,32 px = dp dans Compose web), le texte dessous. */
@@ -17,11 +17,11 @@
     #kairos-loading svg { position: absolute; left: 50%; top: 50%; width: 184.32px; height: 184.32px;
       transform: translate(-50%, -50%); }
     #kairos-loading p { position: absolute; left: 16px; right: 16px; top: calc(50% + 92.16px + 32px);
-      max-width: 420px; margin: 0 auto; color: #4F4539; text-align: center; }
+      max-width: 420px; margin: 0 auto; color: #44464F; text-align: center; }
     /* Système en sombre (docs/spec/apparence.md § Thème sombre) : surface et textes de KairosDarkColors. */
     @media (prefers-color-scheme: dark) {
-      html, body { background: #18120B; color: #EDE0D4; }
-      #kairos-loading p { color: #D3C4B4; }
+      html, body { background: #121318; color: #E2E2E9; }
+      #kairos-loading p { color: #C5C6D0; }
     }
   </style>
 </head>

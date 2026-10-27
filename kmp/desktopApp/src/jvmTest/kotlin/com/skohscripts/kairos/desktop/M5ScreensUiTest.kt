@@ -196,20 +196,20 @@ class M5ScreensUiTest {
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         openSettings(SettingsCategory.GENERAL)
         waitText("Appearance")
-        // Le fond de l'écran est la surface du schéma : celle du miel, puis celle de la graine choisie.
-        val honey = ThemeColors.schemeFor(Settings.DEFAULT_THEME_COLOR, null)
-        val ocean = ThemeColors.seedScheme(0x2F6FED)
-        assert(honey.surface.toArgb() in screenColors())
+        // Le fond de l'écran est la surface du schéma : celle de la graine par défaut (l'océan), puis celle de la graine choisie.
+        val ocean = ThemeColors.schemeFor(Settings.DEFAULT_THEME_COLOR, null)
+        val honey = ThemeColors.seedScheme(0xC28417)
+        assert(ocean.surface.toArgb() in screenColors())
 
         // Une pastille ne change rien avant « Enregistrer ».
-        onNodeWithContentDescription("Ocean").performScrollTo().performClick()
+        onNodeWithContentDescription("Honey").performScrollTo().performClick()
         waitText("Unsaved changes")
         assertEquals(Settings.DEFAULT_THEME_COLOR, repository.snapshot.value.settings.themeColor)
 
         onNodeWithText("Save").performClick()
-        waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.settings.themeColor == "#2F6FED" }
-        waitUntil(timeoutMillis = 5_000) { ocean.surface.toArgb() in screenColors() }
-        assert(honey.surface.toArgb() !in screenColors())
+        waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.settings.themeColor == "#C28417" }
+        waitUntil(timeoutMillis = 5_000) { honey.surface.toArgb() in screenColors() }
+        assert(ocean.surface.toArgb() !in screenColors())
 
         // Couleur illisible : erreur sous le champ, rien d'enregistré.
         type("Custom color", "bleu")

@@ -44,7 +44,7 @@ class BlockExceptionMigrationTest {
         open(file, withExamples = true)
         val before = open(file).snapshot.value
         // Base de la 3.7.0 : pas de table d'exceptions, étiquetée en schéma 8.
-        sql(file, "DROP TABLE day_mark", "DROP TABLE calendar_source", "DROP INDEX time_block_source", "ALTER TABLE time_block DROP COLUMN source_uid", "ALTER TABLE time_block DROP COLUMN source_id", "ALTER TABLE team_member DROP COLUMN week_hours", "ALTER TABLE task DROP COLUMN note_out", "ALTER TABLE task DROP COLUMN note_in", "ALTER TABLE task DROP COLUMN proposed_to", "DROP TABLE time_block_exception", "PRAGMA user_version = 8")
+        sql(file, "DROP TABLE migration_mark", "DROP TABLE day_mark", "DROP TABLE calendar_source", "DROP INDEX time_block_source", "ALTER TABLE time_block DROP COLUMN source_uid", "ALTER TABLE time_block DROP COLUMN source_id", "ALTER TABLE team_member DROP COLUMN week_hours", "ALTER TABLE task DROP COLUMN note_out", "ALTER TABLE task DROP COLUMN note_in", "ALTER TABLE task DROP COLUMN proposed_to", "DROP TABLE time_block_exception", "PRAGMA user_version = 8")
         val repo = open(file)
         assertEquals(KairosDatabase.Schema.version.toInt(), userVersion(file))
         assertEquals(before.tasks, repo.snapshot.value.tasks)

@@ -87,10 +87,13 @@ data class Settings(
     val taskTypeList: List<String> get() = taskTypes.split(',').map { it.trim() }.filter { it.isNotEmpty() }
 
     companion object {
-        /** Le miel du logo, graine de la charte (docs/DESIGN_SYSTEM.md). */
-        const val DEFAULT_THEME_COLOR = "#C28417"
+        /** L'océan, graine de la charte (docs/DESIGN_SYSTEM.md, docs/spec/apparence.md) ; avant, le miel. */
+        const val DEFAULT_THEME_COLOR = "#2F6FED"
 
-        /** Couleurs du système (Android 12 et plus), à défaut le miel. */
+        /** Le miel du logo : l'ancienne graine par défaut, une couleur au choix dans Réglages → Apparence. */
+        const val HONEY_THEME_COLOR = "#C28417"
+
+        /** Couleurs du système (Android 12 et plus), à défaut la graine par défaut. */
         const val SYSTEM_THEME = "system"
 
         /** Thème : celui du système (sombre si le système l'est), ou choisi. */
