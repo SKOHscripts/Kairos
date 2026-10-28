@@ -348,6 +348,12 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   dates, type, options avancées), puis te montre où elle se place dans la
   journée et te félicite une fois qu’elle est réellement créée. Rien n’est
   écrit si tu renonces.
+- **Démonstration interactive** : « Essayer en démonstration » dans
+  « Découvrir Kairos » ouvre les vrais écrans sur des exemples jetables, en
+  mémoire, et te guide pour capturer, qualifier, chronométrer et déplacer une
+  tâche. Chaque étape propose « Faire pour moi » ou « À moi de jouer » ;
+  un bandeau et « Quitter » restent visibles, et tes données ne sont jamais
+  touchées.
 - **Découvrir Kairos** : des chapitres sur chaque fonctionnalité (Réglages,
   aide ou Accueil), à rouvrir quand tu veux, et une section **« Nouveau dans
   cette version »** sur l’Accueil.
@@ -451,6 +457,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Premiers pas | Faire dans l’ordre | 3.0.0 | Toutes |
 | Premiers pas | Découvrir Kairos | 3.4.0 | Toutes |
 | Premiers pas | Créer ta première tâche | 3.4.0 | Toutes |
+| Premiers pas | Démonstration interactive | 3.13.0 | Toutes |
 | Premiers pas | Le guide retient et montre l’endroit | 3.7.0 | Toutes |
 | Premiers pas | Récurrente et Réglages pas à pas | 3.9.0 | Toutes |
 | Planifier | Priorité, points et estimation | 3.0.0 | Toutes |

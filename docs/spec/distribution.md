@@ -197,7 +197,9 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   `desktop-team-settings.png`, et, depuis le jalon E2, l'écran Équipe, la
   fiche d'un membre et l'éditeur d'absence, chacun en 1200 et 360 px :
   `desktop-team-members[-narrow].png`, `desktop-team-member-sheet[-narrow].png`,
-  `desktop-team-absence[-narrow].png`, `equipe.md`). L'auto-test n'affiche pas l'accueil du premier
+  `desktop-team-absence[-narrow].png`, `equipe.md` ; une démonstration interactive à l'étape de la priorité,
+  `desktop-demo.png` et `desktop-demo-narrow.png` en 360 px, `visite-guidee.md` § Visite interactive). L'auto-test
+  n'affiche pas l'accueil du premier
   lancement et ne vérifie pas les mises à jour (aucun réseau). Code de
   sortie 0 ou 1.
 - **Empaquetage** (plugin Compose Desktop, jpackage, runtime Java réduit

@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.desktop
 
+import com.skohscripts.kairos.ui.app.DemoSource
+import com.skohscripts.kairos.ui.app.openDemo
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineScope
 import com.skohscripts.kairos.ui.app.LinkedFileSync
@@ -79,6 +81,13 @@ object DesktopServices {
             diagnostics = diagnostics,
             // L'auto-test (base en mémoire) n'écrit jamais dans un fichier de l'utilisateur.
             linkedStorage = if (inMemory) null else linked,
+            // Démonstration jetable (docs/spec/visite-guidee.md § Visite interactive) : une base SQLite en mémoire neuve.
+            demo = DemoSource { lang ->
+                withContext(Dispatchers.IO) {
+                    val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+                    openDemo(KairosStore.open(driver), lang, close = { driver.close() }, clock = clock)
+                }
+            },
         )
     }
 

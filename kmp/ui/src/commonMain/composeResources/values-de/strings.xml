@@ -1716,4 +1716,32 @@
     <string name="skipped_ignored">Hinweis ignoriert: %1$s</string>
     <string name="card_skipped_months_title">Übersprungene Monate</string>
     <string name="card_skipped_months_body">Wurde Kairos einen ganzen Monat nicht geöffnet, zeigt eine Aufgabe „am N. des Monats“ in der heutigen Tagesansicht, welche Monate übersprungen wurden: neu anlegen oder ignorieren.</string>
+    <!-- Démonstration interactive (docs/spec/visite-guidee.md § Visite interactive, issue #96) -->
+    <string name="demo_hub_title">In einer Demo ausprobieren</string>
+    <string name="demo_hub_hint">Vier Handgriffe an Wegwerf-Beispielen: Deine Daten bleiben unberührt.</string>
+    <string name="demo_hub_busy">Stoppe zuerst den laufenden Timer.</string>
+    <string name="demo_banner">Demo: Deine Daten bleiben unberührt</string>
+    <string name="demo_exit">Beenden</string>
+    <string name="demo_do_it">Für mich erledigen</string>
+    <string name="demo_my_turn">Ich bin dran</string>
+    <string name="demo_skip">Schritt überspringen</string>
+    <string name="demo_capture_title">Erfassen</string>
+    <string name="demo_capture_body">Gib einen Titel in „Neue Aufgabe“ ein und bestätige: Die Aufgabe landet in „Zu bearbeiten“, sonst nichts auszufüllen.</string>
+    <string name="demo_priority_title">Einordnen: die Priorität</string>
+    <string name="demo_priority_body">Wähle in ihrer Zeile eine Priorität: wie wichtig sie ist. Die Frist zählt getrennt, über das Fälligkeitsdatum.</string>
+    <string name="demo_points_title">Einordnen: die Punkte</string>
+    <string name="demo_points_body">Wähle Punkte: ihre Größe. Sie erhält einen Score und nimmt ihren Platz im Tag ein.</string>
+    <string name="demo_timer_start_title">Timer starten</string>
+    <string name="demo_timer_start_body">Starte den Timer in ihrer Zeile: „Gerade jetzt“ zeigt, woran du arbeitest.</string>
+    <string name="demo_timer_stop_title">Timer stoppen</string>
+    <string name="demo_timer_stop_body">Stoppe ihn: Die aufgewendete Zeit bleibt erhalten und fließt in deine Statistiken ein.</string>
+    <string name="demo_move_title">Verschieben</string>
+    <string name="demo_move_body">„Auf einen anderen Tag verschieben…“, dann „Morgen“: Die Aufgabe verlässt heute bis dahin, ihre Frist bleibt.</string>
+    <string name="demo_done_title">Du hast alles gesehen</string>
+    <string name="demo_done_body">Deine Daten wurden nicht berührt.</string>
+    <string name="demo_done_exit">Demo beenden</string>
+    <string name="demo_done_restart">Neu beginnen</string>
+    <string name="demo_task_title">Montagsbesprechung vorbereiten</string>
+    <string name="card_demo_title">Interaktive Demo</string>
+    <string name="card_demo_body">Eine Aufgabe an Wegwerf-Beispielen erfassen, einordnen, stoppen und verschieben, Schritt für Schritt geführt: Deine Daten bleiben unberührt.</string>
 </resources>

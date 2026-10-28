@@ -1716,4 +1716,32 @@
     <string name="skipped_ignored">Avviso ignorato: %1$s</string>
     <string name="card_skipped_months_title">Mesi saltati</string>
     <string name="card_skipped_months_body">Se Kairos non è stato aperto per un mese intero, un’attività «il giorno N del mese» indica nella vista Giorno di oggi quali mesi sono stati saltati: ricreali o ignorali.</string>
+    <!-- Démonstration interactive (docs/spec/visite-guidee.md § Visite interactive, issue #96) -->
+    <string name="demo_hub_title">Prova in una demo</string>
+    <string name="demo_hub_hint">Quattro gesti su esempi usa e getta: i tuoi dati non vengono toccati.</string>
+    <string name="demo_hub_busy">Ferma prima il timer in corso.</string>
+    <string name="demo_banner">Demo: i tuoi dati non vengono toccati</string>
+    <string name="demo_exit">Esci</string>
+    <string name="demo_do_it">Fallo per me</string>
+    <string name="demo_my_turn">Tocca a me</string>
+    <string name="demo_skip">Salta il passo</string>
+    <string name="demo_capture_title">Annotare</string>
+    <string name="demo_capture_body">Scrivi un titolo in «Nuova attività» e conferma: l’attività arriva in «Da elaborare», nient’altro da compilare.</string>
+    <string name="demo_priority_title">Qualificare: la priorità</string>
+    <string name="demo_priority_body">Scegli una priorità sulla sua riga: quanto è importante. La scadenza conta a parte.</string>
+    <string name="demo_points_title">Qualificare: i punti</string>
+    <string name="demo_points_body">Scegli i punti: la sua dimensione. Riceve un punteggio e prende il suo posto nella giornata.</string>
+    <string name="demo_timer_start_title">Avviare il timer</string>
+    <string name="demo_timer_start_body">Avvia il timer sulla sua riga: «In questo momento» mostra su cosa stai lavorando.</string>
+    <string name="demo_timer_stop_title">Fermare il timer</string>
+    <string name="demo_timer_stop_body">Fermalo: il tempo impiegato viene conservato e alimenta le tue statistiche.</string>
+    <string name="demo_move_title">Spostare</string>
+    <string name="demo_move_body">«Sposta a un altro giorno…», poi «Domani»: l’attività lascia oggi fino ad allora, la sua scadenza non cambia.</string>
+    <string name="demo_done_title">Hai fatto il giro</string>
+    <string name="demo_done_body">I tuoi dati non sono stati toccati.</string>
+    <string name="demo_done_exit">Esci dalla demo</string>
+    <string name="demo_done_restart">Ricomincia</string>
+    <string name="demo_task_title">Preparare la riunione di lunedì</string>
+    <string name="card_demo_title">Demo interattiva</string>
+    <string name="card_demo_body">Annotare, qualificare, cronometrare e spostare un’attività su esempi usa e getta, passo dopo passo: i tuoi dati non vengono toccati.</string>
 </resources>

@@ -1719,4 +1719,32 @@
     <string name="skipped_ignored">Avis ignoré : %1$s</string>
     <string name="card_skipped_months_title">Mois sautés</string>
     <string name="card_skipped_months_body">Si Kairos n’a pas été ouvert pendant un mois entier, une tâche « le N du mois » dit quels mois ont été sautés, sur la vue Jour d’aujourd’hui : recrée-les ou ignore-les.</string>
+    <!-- Démonstration interactive (docs/spec/visite-guidee.md § Visite interactive, issue #96) -->
+    <string name="demo_hub_title">Essayer en démonstration</string>
+    <string name="demo_hub_hint">Quatre gestes sur des exemples jetables : tes données ne sont pas touchées.</string>
+    <string name="demo_hub_busy">Arrête d’abord le chrono en cours.</string>
+    <string name="demo_banner">Démonstration : tes données ne sont pas touchées</string>
+    <string name="demo_exit">Quitter</string>
+    <string name="demo_do_it">Faire pour moi</string>
+    <string name="demo_my_turn">À moi de jouer</string>
+    <string name="demo_skip">Passer l’étape</string>
+    <string name="demo_capture_title">Capturer</string>
+    <string name="demo_capture_body">Écris un titre dans « Nouvelle tâche » et valide : la tâche arrive dans « À traiter », rien d’autre à remplir.</string>
+    <string name="demo_priority_title">Qualifier : la priorité</string>
+    <string name="demo_priority_body">Choisis une priorité sur sa ligne : son importance. Le délai compte à part, par l’échéance.</string>
+    <string name="demo_points_title">Qualifier : les points</string>
+    <string name="demo_points_body">Choisis des points : sa taille. Elle reçoit un score et prend sa place dans la journée.</string>
+    <string name="demo_timer_start_title">Lancer le chrono</string>
+    <string name="demo_timer_start_body">Démarre le chrono sur sa ligne : « En ce moment » montre ce sur quoi tu travailles.</string>
+    <string name="demo_timer_stop_title">Arrêter le chrono</string>
+    <string name="demo_timer_stop_body">Arrête-le : le temps passé est gardé et nourrit tes statistiques.</string>
+    <string name="demo_move_title">Déplacer</string>
+    <string name="demo_move_body">« Déplacer vers un autre jour… », puis « Demain » : la tâche quitte aujourd’hui jusque-là, son échéance ne change pas.</string>
+    <string name="demo_done_title">Tu as fait le tour</string>
+    <string name="demo_done_body">Tes données n’ont pas été touchées.</string>
+    <string name="demo_done_exit">Quitter la démonstration</string>
+    <string name="demo_done_restart">Recommencer</string>
+    <string name="demo_task_title">Préparer la réunion de lundi</string>
+    <string name="card_demo_title">Démonstration interactive</string>
+    <string name="card_demo_body">Capturer, qualifier, chronométrer et déplacer une tâche sur des exemples jetables, guidé pas à pas : tes données ne sont pas touchées.</string>
 </resources>

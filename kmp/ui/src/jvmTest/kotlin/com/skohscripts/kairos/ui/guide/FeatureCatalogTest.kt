@@ -74,7 +74,7 @@ class FeatureCatalogTest {
         assertEquals(setOf("calendar_import", "phone_calendars", "linked_file"), FeatureCatalog.newIn("3.10.0").map { it.id }.toSet())
         assertEquals(setOf("languages"), FeatureCatalog.newIn("3.11.0").map { it.id }.toSet())
         assertEquals(setOf("widgets", "daily_summary"), FeatureCatalog.newIn("3.12.0").map { it.id }.toSet())
-        assertEquals(setOf("skipped_months"), FeatureCatalog.newIn("3.13.0").map { it.id }.toSet())
+        assertEquals(setOf("skipped_months", "demo"), FeatureCatalog.newIn("3.13.0").map { it.id }.toSet())
         assertEquals(setOf("subtasks_edit", "team_my_work"), FeatureCatalog.newIn("3.3.0").map { it.id }.toSet())
         assertEquals(
             setOf("team_members", "team_backlog", "team_assign", "team_board", "team_load", "team_forecast", "team_exchanges", "theme_color"),

@@ -1717,4 +1717,32 @@
     <string name="skipped_ignored">Notice ignored: %1$s</string>
     <string name="card_skipped_months_title">Skipped months</string>
     <string name="card_skipped_months_body">If Kairos was not opened for a whole month, a “day N of the month” task says which months were skipped, on today’s Day view: recreate them or ignore them.</string>
+    <!-- Démonstration interactive (docs/spec/visite-guidee.md § Visite interactive, issue #96) -->
+    <string name="demo_hub_title">Try it in a demo</string>
+    <string name="demo_hub_hint">Four gestures on throwaway examples: your data is not touched.</string>
+    <string name="demo_hub_busy">Stop the running timer first.</string>
+    <string name="demo_banner">Demo: your data is not touched</string>
+    <string name="demo_exit">Exit</string>
+    <string name="demo_do_it">Do it for me</string>
+    <string name="demo_my_turn">My turn</string>
+    <string name="demo_skip">Skip the step</string>
+    <string name="demo_capture_title">Capture</string>
+    <string name="demo_capture_body">Type a title in “New task” and press Enter: the task lands in “To process”, nothing else to fill in.</string>
+    <string name="demo_priority_title">Qualify: priority</string>
+    <string name="demo_priority_body">Pick a priority on its line: how important it is. The deadline counts separately.</string>
+    <string name="demo_points_title">Qualify: points</string>
+    <string name="demo_points_body">Pick points: its size. It now has a score and takes its place in the day.</string>
+    <string name="demo_timer_start_title">Start the timer</string>
+    <string name="demo_timer_start_body">Start the timer on its line: “Right now” shows what you are working on.</string>
+    <string name="demo_timer_stop_title">Stop the timer</string>
+    <string name="demo_timer_stop_body">Stop it: the time spent is kept and feeds your statistics.</string>
+    <string name="demo_move_title">Move</string>
+    <string name="demo_move_body">“Move to another day…”, then “Tomorrow”: the task leaves today until then, its deadline does not change.</string>
+    <string name="demo_done_title">You have seen it all</string>
+    <string name="demo_done_body">Your data has not been touched.</string>
+    <string name="demo_done_exit">Exit the demo</string>
+    <string name="demo_done_restart">Start again</string>
+    <string name="demo_task_title">Prepare Monday’s meeting</string>
+    <string name="card_demo_title">Interactive demo</string>
+    <string name="card_demo_body">Capture, qualify, time and move a task on throwaway examples, guided step by step: your data is not touched.</string>
 </resources>

@@ -1,6 +1,14 @@
 package com.skohscripts.kairos.ui.navigation
 
 import com.skohscripts.kairos.ui.reminders.ReminderWatcher
+import com.skohscripts.kairos.core.engine.TimeTracking
+import com.skohscripts.kairos.ui.generated.resources.demo_hub_busy
+import com.skohscripts.kairos.ui.generated.resources.demo_task_title
+import com.skohscripts.kairos.ui.guide.demo.DemoBanner
+import com.skohscripts.kairos.ui.guide.demo.DemoDoneDialog
+import com.skohscripts.kairos.ui.guide.demo.DemoPanel
+import com.skohscripts.kairos.ui.guide.demo.DemoTour
+import com.skohscripts.kairos.ui.guide.demo.LocalDemoTour
 import com.skohscripts.kairos.ui.team.TeamTaskCreateDialog
 import com.skohscripts.kairos.ui.team.TeamTaskCreatedDialog
 import androidx.compose.runtime.collectAsState
@@ -141,12 +149,23 @@ fun AppShell(
     onCloseSecondary: () -> Unit,
     /** Ouvre la liste des fonctionnalités (bouton de l'Accueil, docs/spec/liste-fonctionnalites.md). */
     onOpenFeatures: () -> Unit = {},
+    /**
+     * Démonstration montrée par cette coquille (docs/spec/visite-guidee.md § Visite interactive) ; `null` : la coquille réelle,
+     * rendu et comportement inchangés.
+     */
+    demo: DemoTour? = null,
+    /** Lance une démonstration (entrée du hub, carte du catalogue) ; sans effet si la plateforme n'en fournit pas. */
+    onStartDemo: () -> Unit = {},
+    onExitDemo: () -> Unit = {},
+    onRestartDemo: () -> Unit = {},
 ) {
     // Une catégorie des Réglages ouverte seule à l'écran (téléphone) : le retour ramène d'abord à la liste.
     val inSettingsCategory = secondary == Secondary.SETTINGS && nav.settings.inCategory
     val back: () -> Unit = { if (inSettingsCategory) nav.settings.category = null else onCloseSecondary() }
     // Retour système (Android) ou Échap (bureau, web) : ferme l'écran secondaire (Réglages ou « À propos »).
     BackHandler(enabled = secondary != null) { back() }
+    // Démonstration : le retour système (ou Échap) la quitte, une fois les dialogues refermés.
+    BackHandler(enabled = demo != null && secondary == null) { onExitDemo() }
     // Aide de l'écran courant (« ? ») et visite guidée en cours : états de la coquille, rien n'est mémorisé au-delà.
     var helpOpen by rememberSaveable { mutableStateOf(false) }
     val uriHandler = LocalUriHandler.current
@@ -185,8 +204,19 @@ fun AppShell(
         nav.firstTaskRequest = true
     }
     val startFirstTask: () -> Unit = { startTask(false) }
-    CompositionLocalProvider(LocalMessages provides showMessage) {
-        WelcomeDialog(services, onStartGuide = { guide = GuideKind.PERSONAL }, onFirstTask = startFirstTask)
+    if (demo == null) {
+        CompositionLocalProvider(LocalMessages provides showMessage) {
+            WelcomeDialog(services, onStartGuide = { guide = GuideKind.PERSONAL }, onFirstTask = startFirstTask)
+        }
+    }
+    // Démonstration (docs/spec/visite-guidee.md § Visite interactive) : refusée pendant un chrono réel, la coquille réelle
+    // quittant la composition (sa veille du chrono avec elle).
+    val demoBusy = TimeTracking.runningSession(stored.workSessions) != null
+    val demoBusyText = stringResource(Res.string.demo_hub_busy)
+    val startDemo: () -> Unit = { if (demoBusy) showMessage(demoBusyText) else onStartDemo() }
+    if (demo != null) {
+        // L'étape avance quand son effet apparaît dans les données de la démonstration.
+        LaunchedEffect(demo) { services.repository.snapshot.collect { demo.observe(it) } }
     }
 
     val language = uiLanguage()
@@ -194,7 +224,12 @@ fun AppShell(
     val day = nav.day
     // Destinations de l'espace courant : la coquille ne connaît que [NavEntry].
     val team = space == Space.TEAM
-    val entries: List<NavEntry> = if (team) TeamDestination.entries else Destination.entries
+    // Démonstration : ni Accueil, ni réglages, ni « ? » : rien n'y est enregistrable, l'aide reste dans l'application réelle.
+    val entries: List<NavEntry> = when {
+        team -> TeamDestination.entries
+        demo != null -> Destination.entries - Destination.HOME
+        else -> Destination.entries
+    }
     val current: NavEntry = if (team) teamDestination else destination
     val selected: NavEntry? = current.takeUnless { secondary != null }
     val onSelect: (NavEntry) -> Unit = {
@@ -227,6 +262,7 @@ fun AppShell(
                 }
             }
             GuideTarget.FirstTask -> startFirstTask()
+            GuideTarget.Demo -> if (services.demo != null) startDemo()
         }
     }
     // L'Accueil de l'espace courant (destination de tête, la même page dans les deux espaces).
@@ -279,7 +315,8 @@ fun AppShell(
                 }
             },
             // Sans rail, le sélecteur d'espace est à droite du titre ; avec un rail, il est dans son en-tête.
-            actions = {
+            actions = actions@{
+                if (demo != null) return@actions
                 val selectorInBar = layout != NavigationLayout.RAIL && selector != null
                 if (selectorInBar) selector?.invoke()
                 // Sélecteur d'espace dans la barre : le cœur lui laisse la place (titre illisible sinon à 360 dp) ;
@@ -306,10 +343,14 @@ fun AppShell(
     }
     val content: @Composable (Modifier) -> Unit = { modifier ->
         Column(modifier.fillMaxSize()) {
+            if (demo != null) DemoBanner(onExitDemo)
             CompositionLocalProvider(LocalMessages provides showMessage) { UpdateBanner(services) }
             CompositionLocalProvider(LocalMessages provides showMessage) { ShortcutBanner(services) }
             Box(Modifier.weight(1f).fillMaxWidth()) {
-                CompositionLocalProvider(LocalMessages provides showMessage, LocalUndoMessages provides showUndo, LocalGuideSpot provides nav.guideSpot) {
+                CompositionLocalProvider(
+                    LocalMessages provides showMessage, LocalUndoMessages provides showUndo, LocalGuideSpot provides nav.guideSpot,
+                    LocalDemoTour provides demo,
+                ) {
                     val home: @Composable () -> Unit = {
                         HomeScreen(
                             teamModeEnabled, openTarget, { guide = it }, onOpenAbout, onDiscover = { discover = true },
@@ -342,7 +383,7 @@ fun AppShell(
             onDiscover = { helpOpen = false; discover = true },
         )
     }
-    if (discover) {
+    if (discover && demo == null) {
         DiscoverDialog(
             teamEnabled = teamModeEnabled,
             onFirstTask = { discover = false; startFirstTask() },
@@ -363,6 +404,8 @@ fun AppShell(
                 onOpenSettings()
                 nav.settings.tourStep = 0
             },
+            onDemo = services.demo?.let { { discover = false; startDemo() } },
+            demoBusy = demoBusy,
         )
     }
     teamCoachStep?.let { step ->
@@ -388,6 +431,21 @@ fun AppShell(
     guide?.let { kind ->
         GuideDialog(kind, onOpen = { target -> guide = null; openTarget(target) }, onDismiss = { guide = null })
     }
+    if (demo?.finished == true) DemoDoneDialog(onExit = onExitDemo, onRestart = onRestartDemo)
+    // « Faire pour moi » : les mêmes méthodes du dépôt que l'interface ; « À moi de jouer » : la vue Jour, où sont les repères.
+    val demoTitle = stringResource(Res.string.demo_task_title)
+    val demoPanel: @Composable () -> Unit = {
+        if (demo != null && !demo.finished) {
+            DemoPanel(
+                demo,
+                onDoIt = { scope.launch { demo.step.act(demo.context(demoTitle)) } },
+                onMyTurn = {
+                    if (destination != Destination.DAY || secondary != null) onNavigate(Destination.DAY)
+                    demo.askFocus()
+                },
+            )
+        }
+    }
 
     // Une seule arborescence pour les trois mises en page : le contenu garde sa place dans la composition quand la
     // fenêtre franchit 600 dp, donc l'état des écrans (dialogue d'édition ouvert, saisie en cours, défilement) survit
@@ -402,7 +460,14 @@ fun AppShell(
                 }
             },
             snackbarHost = { SnackbarHost(snackbar) },
-            bottomBar = { if (layout == NavigationLayout.BOTTOM_BAR) KairosNavigationBar(entries, selected, onSelect) },
+            // Le panneau de la démonstration passe au-dessus de la barre basse : le contenu se réduit d'autant, le repère
+            // n'est jamais caché.
+            bottomBar = {
+                Column {
+                    demoPanel()
+                    if (layout == NavigationLayout.BOTTOM_BAR) KairosNavigationBar(entries, selected, onSelect)
+                }
+            },
         ) { padding -> content(Modifier.padding(padding)) }
     }
 }

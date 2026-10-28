@@ -31,6 +31,9 @@ import com.skohscripts.kairos.ui.generated.resources.discover_first_task_hint
 import com.skohscripts.kairos.ui.generated.resources.discover_first_team_task
 import com.skohscripts.kairos.ui.generated.resources.discover_first_team_task_hint
 import com.skohscripts.kairos.ui.generated.resources.discover_title
+import com.skohscripts.kairos.ui.generated.resources.demo_hub_busy
+import com.skohscripts.kairos.ui.generated.resources.demo_hub_hint
+import com.skohscripts.kairos.ui.generated.resources.demo_hub_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import org.jetbrains.compose.resources.stringResource
@@ -54,6 +57,10 @@ fun DiscoverDialog(
     onFirstRecurring: () -> Unit = {},
     /** « Régler Kairos pas à pas » (issue #98), sous le chapitre « Réglages ». */
     onSettingsTour: () -> Unit = {},
+    /** « Essayer en démonstration » (issue #96), sous la première tâche ; `null` : la plateforme n'en fournit pas. */
+    onDemo: (() -> Unit)? = null,
+    /** Un chrono tourne sur les vraies données : l'entrée est grisée et dit pourquoi. */
+    demoBusy: Boolean = false,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -63,6 +70,10 @@ fun DiscoverDialog(
             // Défile : sur un écran bas, toutes les entrées restent atteignables.
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Entry(KairosIcons.Add, stringResource(Res.string.discover_first_task), stringResource(Res.string.discover_first_task_hint), onClick = onFirstTask)
+                onDemo?.let {
+                    val hint = stringResource(if (demoBusy) Res.string.demo_hub_busy else Res.string.demo_hub_hint)
+                    Entry(KairosIcons.Science, stringResource(Res.string.demo_hub_title), hint, enabled = !demoBusy, onClick = it)
+                }
                 FeatureCatalog.chapters(teamEnabled).forEach { chapter ->
                     val count = stringResource(Res.string.discover_chapter_count, FeatureCatalog.chapter(chapter).size)
                     // Lu : la coche en vert « ok » et « · lu » dans le texte, jamais la couleur seule.
@@ -88,7 +99,9 @@ fun DiscoverDialog(
 
 /** Ligne cliquable (≥ 48 dp : `ListItem` à deux lignes), fond transparent pour garder celui du dialogue. */
 @Composable
-private fun Entry(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, hint: String, read: Boolean = false, onClick: () -> Unit) {
+private fun Entry(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, hint: String, read: Boolean = false, enabled: Boolean = true, onClick: () -> Unit) {
+    // Désactivée : les couleurs « désactivé » de Material 3 (38 %), et la phrase dit pourquoi (jamais la couleur seule).
+    val disabled = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     ListItem(
         leadingContent = { Icon(icon, contentDescription = null) },
         headlineContent = { Text(title) },
@@ -98,7 +111,11 @@ private fun Entry(icon: androidx.compose.ui.graphics.vector.ImageVector, title: 
         } else {
             null
         },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        modifier = Modifier.clickable(role = Role.Button, onClick = onClick),
+        colors = if (enabled) {
+            ListItemDefaults.colors(containerColor = Color.Transparent)
+        } else {
+            ListItemDefaults.colors(containerColor = Color.Transparent, headlineColor = disabled, supportingColor = disabled, leadingIconColor = disabled)
+        },
+        modifier = Modifier.clickable(enabled = enabled, role = Role.Button, onClick = onClick),
     )
 }

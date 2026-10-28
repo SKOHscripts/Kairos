@@ -50,6 +50,11 @@ class AppServices(
      * locale par défaut de la JVM (bureau, Android) ou du navigateur (web). Sans effet par défaut (tests).
      */
     val applyLanguage: (String) -> Unit = {},
+    /**
+     * Démonstration jetable (docs/spec/visite-guidee.md § Visite interactive) : la plateforme fournit seulement une base en
+     * mémoire. `null` (tests, captures) : pas d'entrée « Essayer en démonstration ».
+     */
+    val demo: DemoSource? = null,
 )
 
 /** Choix d'un fichier par l'utilisateur (boîtes de dialogue du système). */

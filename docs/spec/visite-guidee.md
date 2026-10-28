@@ -18,12 +18,11 @@ et `values-fr/`. Tests : `FeatureCatalogTest`, `GuideStepsTest`, `M6GuideUiTest`
 listes de 6 étapes écrites en dur, aucune persistance) ; le reste de `accueil.md`
 est inchangé.
 
-**Visite interactive sur une démonstration** (issue #96) : décidée par le propriétaire et **spécifiée le 2026-10-26, non
-implémentée** (version à fixer par le propriétaire). Elle est décrite au point 8 du comportement attendu, dans la
-section « Visite interactive » de la solution technique et dans les décisions ; elle **rouvre en partie** deux décisions
-(« pas de pastilles sur l'interface » d'`accueil.md`, « visite interactive » ci-dessous en hors périmètre), les
-précise sans les contredire, et liste ses impacts sur les autres specs en fin de document. Tout ce qui s'y rapporte est
-marqué « non implémenté » : le reste de cette spec décrit du code existant.
+**Visite interactive sur une démonstration** (issue #96) : décidée par le propriétaire, spécifiée le 2026-10-26,
+**implémentée le 2026-10-28** (3.13.0). Elle est décrite au point 8 du comportement attendu, dans la section « Visite
+interactive » de la solution technique et dans les décisions ; elle **rouvre en partie** deux décisions (« pas de
+pastilles sur l'interface » d'`accueil.md`, « visite interactive » ci-dessous en hors périmètre), les précise sans les
+contredire ; ses impacts sur les autres specs, listés en fin de document, sont reportés.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -74,8 +73,8 @@ découvrir sans que l'utilisateur ait à lire une documentation.
 7. **Repartir de zéro** (3.7.0, issue #94) : Réglages → « À propos » → **« Revoir le guide depuis le début »** efface
    aussitôt ce que le guide a retenu (chapitres lus, « Nouveau » masqué, accompagnement fait), avec « Annuler » ;
    « Restaurer les valeurs par défaut » l'efface aussi, à l'enregistrement (`reglages.md`).
-8. **Visite interactive sur une démonstration** (spécifiée le 2026-10-26, issue #96, décision du propriétaire ; **non
-   implémentée**). Le guide décrit mais ne fait pas faire : on lit « Qualifier » sans jamais voir un score bouger. Le
+8. **Visite interactive sur une démonstration** (spécifiée le 2026-10-26, issue #96, décision du propriétaire ;
+   implémentée en 3.13.0). Le guide décrit mais ne fait pas faire : on lit « Qualifier » sans jamais voir un score bouger. Le
    risque d'une visite qui manipule l'écran est d'agir sur les **vraies** données (tâche parasite, mélange du réel et de
    l'exemple). D'où ce principe, qui fait toute la conception :
    - **Une démonstration jetable en mémoire, jamais la vraie base.** La visite tourne sur un dépôt **neuf à chaque fois**,
@@ -83,15 +82,16 @@ découvrir sans que l'utilisateur ait à lire une documentation.
      tâches, ni ses réglages, ni son export, ni ses sauvegardes, ni son fichier lié, et disparaît quand on quitte.
    - **Entrée** : « Essayer en démonstration » (« Quatre gestes sur des exemples jetables : tes données ne sont pas
      touchées. ») dans « Découvrir Kairos », sous « Créer ma première tâche » : une entrée du hub (comme « Créer ma première
-     tâche récurrente », `premiere-tache.md`), présentée aussi par une carte du catalogue. Grisée tant qu'un chrono tourne sur les vraies données
-     (« Arrête d’abord le chrono en cours. »).
+     tâche récurrente », `premiere-tache.md`), présentée aussi par une carte du catalogue (« Démonstration interactive »,
+     chapitre « Premiers pas »). Grisée tant qu'un chrono tourne sur les vraies données (« Arrête d’abord le chrono en
+     cours. ») ; toucher la carte pendant ce temps affiche la même phrase en message.
    - **Un bandeau permanent et un bouton « Quitter » toujours visibles** sous la barre du haut, sur chaque écran :
      « Démonstration : tes données ne sont pas touchées » et « Quitter ». « Quitter » (ou le retour système / Échap quand
      rien d'autre n'est ouvert) rend l'application **exactement où elle était** (destination, jour affiché), sans
      confirmation : il n'y a rien à perdre. Rien n'est retenu d'une démonstration à l'autre.
-   - **Les vrais écrans**, pas une maquette : Notes, Jour, Semaine et Stats, avec leurs composants. L'Accueil, la roue
-     crantée (Réglages), le « ? » et le sélecteur d'espace n'y sont pas : il n'y a rien à enregistrer ni d'équipe dans
-     une démonstration.
+   - **Les vrais écrans**, pas une maquette : Notes, Jour, Semaine et Stats, avec leurs composants ; elle s'ouvre sur la vue Jour. L'Accueil, la roue
+     crantée (Réglages), le « ? », le cœur « Soutenir Kairos » et le sélecteur d'espace n'y sont pas : il n'y a rien à
+     enregistrer ni d'équipe dans une démonstration.
    - **Quatre scénarios courts et scriptés**, enchaînés sur la **même tâche** : (1) **Capturer** : écrire un titre dans
      la capture de la vue Jour, la tâche arrive dans « À traiter » ; (2) **Qualifier** : choisir une priorité puis des
      points sur sa ligne, elle reçoit un score et prend sa place ; (3) **Lancer le chrono** : le démarrer puis l’arrêter,
@@ -141,29 +141,35 @@ découvrir sans que l'utilisateur ait à lire une documentation.
   carte « Jours fériés » (`GuideSpotUiTest`).
 - La 3.7.0 liste ses six cartes dans « Nouveau dans cette version » (`FeatureCatalogTest`) ; « Premiers pas » en a six,
   comme le chapitre de l'équipe (`M6GuideUiTest`).
-- **Visite interactive** (issue #96 ; tests **à écrire** avec l'implémentation, aucun n'existe encore) :
-  - Le script : six étapes dans l'ordre (capturer, priorité, points, démarrer, arrêter, déplacer) ; pour chacune,
-    `done` faux avant, `act` (« Faire pour moi ») sur un dépôt en mémoire neuf le rend vrai, dans l'ordre, sans interface ;
-    la tâche qui disparaît ramène à la première étape (`DemoStepsTest`).
-  - **Isolation** : les services de la démonstration ne reprennent rien de la plateforme (fichier lié, mises à jour,
-    dossier, diagnostic, calendriers, raccourcis, notifications) même construits depuis des services réels entièrement
-    garnis (`DemoServicesTest.demoServicesCarryNothingFromTheRealOnes`) ; après les six étapes jouées sur une démonstration,
-    la base réelle, son export (octet pour octet) et son `onChanged` sont intacts, la démonstration n'a rien écrit
-    d'autre part (`DemoIsolationTest`).
-  - Interface (`DemoUiTest`, `desktopApp`, avec une source de démonstration en mémoire) : bandeau et « Quitter » visibles sur
-    Notes, Jour, Semaine et Stats, sans Accueil, roue crantée ni « ? » ; « Faire pour moi » mène de la première étape au
-    dialogue de fin sans aucun autre geste ; « À moi de jouer » suivi des vrais gestes (frapper dans la capture, toucher
-    les puces) avance de lui-même ; « Quitter » rend la destination et le jour d'avant ; l'entrée du hub est grisée
-    pendant un chrono réel ; le panneau est une région vivante polie, le repère se lit « Ici », les cibles font 48 dp.
-  - `StringsParityTest` sur les six langues ; captures `desktop-demo.png` et `desktop-demo-narrow.png` (360 dp) de
-    l'auto-test regardées ; captures `--self-test` et des magasins inchangées hors démonstration.
+- **Visite interactive** (issue #96, 3.13.0 ; tests du module `desktopApp`, qui a SQLite en mémoire) :
+  - Le script (`DemoStepsTest`) : six étapes dans l'ordre (capturer, priorité, points, démarrer, arrêter, déplacer) ; pour
+    chacune, `done` faux avant, `act` (« Faire pour moi ») sur une démonstration neuve le rend vrai, sans interface
+    (`sixStepsInOrderEachDoneByItsActOnAFreshDemo`) ; la tâche qui disparaît ramène à la première étape
+    (`theTrackedTaskThatDisappearsBringsTheTourBackToTheFirstStep`) ; des étapes sautées n'empêchent pas « Faire pour moi »
+    d'obtenir l'effet de la suivante (`skippedStepsStillLeadToTheirEffect`).
+  - **Isolation** (`DemoStepsTest`) : construits depuis les vrais services du bureau (fichier lié, mises à jour,
+    diagnostic, démonstration), ceux de la démonstration ne reprennent que le dépôt de la session, l'horloge et la langue ;
+    chaque champ d'`AppServices` est décidé dans `forDemo`, un champ nouveau fait échouer le test
+    (`demoServicesCarryNothingFromTheRealOnes`) ; après une démonstration jouée jusqu'au bout, la base réelle, son export
+    (octet pour octet) et son `onChanged` sont intacts (`aWholeDemoLeavesTheRealBaseAndItsExportUntouched`).
+  - Interface (`DemoUiTest`, avec une source de démonstration en mémoire) : bandeau, « Quitter » et Notes, Jour, Semaine,
+    Stats, sans Accueil, roue crantée ni « ? » ; panneau en région vivante polie, repère « Ici », cibles de 48 dp ;
+    « Faire pour moi » mène de la première étape au dialogue de fin, et « Quitter la démonstration » laisse la vraie base
+    vide (`doItForMeLeadsFromTheFirstStepToTheEndAndExitLeavesTheRealDataAlone`) ; « À moi de jouer » donne le focus au
+    champ de capture, puis frapper un titre et toucher les puces de la ligne font avancer la visite, « Précédent » revient
+    d'une étape (`myTurnFocusesTheMarkedElementAndRealGesturesMoveTheTourOn`) ; « Quitter » rend l'écran d'où la
+    démonstration a été ouverte (`exitBringsBackTheScreenTheDemoWasOpenedFrom`) ; l'entrée du hub est grisée et dit
+    pourquoi pendant un chrono réel (`theHubEntryIsGreyedWhileARealTimerRuns`).
+  - `StringsParityTest` sur les six langues ; captures `desktop-demo.png` (rail) et `desktop-demo-narrow.png` (360 dp,
+    barre basse) de l'auto-test regardées ; les autres captures ne changent pas (rien de la démonstration n'est composé
+    hors démonstration).
 
 ### Hors périmètre / différé
 
 - Mémoriser chaque carte vue (seuls les chapitres terminés le sont) et « Pas maintenant » de l'invitation à la première
   tâche (valable pour la session, `premiere-tache.md`).
 - Visite interactive qui manipule l'écran à la place de l'utilisateur **sur ses vraies données** : jamais. Sur une
-  démonstration jetable, elle est **rouverte le 2026-10-26** (issue #96, point 8, spécifiée, non implémentée).
+  démonstration jetable, elle est **rouverte le 2026-10-26** (issue #96, point 8, implémentée en 3.13.0).
 - Vidéos ou animations (la démonstration n'en a pas non plus : repères fixes, défilement instantané).
 - **Réseau** : aucun, la démonstration est locale et le reste de l'application garde « sans permission réseau ».
 - Démonstration de l'espace Équipe (manager, membres, backlog) : la première version est solo ; à demander si besoin.
@@ -176,7 +182,7 @@ découvrir sans que l'utilisateur ait à lire une documentation.
 
 `FeatureCatalog.cards` (`ui/guide/FeatureCatalog.kt`) : une liste de `FeatureCard(id, chapter, icon, title, body, target,
 since, tour, platforms)`, **dans l'ordre de la visite** ; **une carte par fonctionnalité du README** depuis l'inventaire du
-2026-10-28 (61 cartes à l'inventaire, 62 avec `skipped_months`, `liste-fonctionnalites.md` § Inventaire), `platforms` (toutes par défaut) disant celles qui n'existent pas
+2026-10-28 (61 cartes à l'inventaire, 63 avec `skipped_months` et `demo`, `liste-fonctionnalites.md` § Inventaire), `platforms` (toutes par défaut) disant celles qui n'existent pas
 partout. La liste complète des fonctionnalités lit le même catalogue.
 
 - **Chapitres** (`GuideChapter`) : `FIRST_STEPS` (capture, raccourcis clavier, qualification, « faire dans l'ordre », « Découvrir
@@ -284,86 +290,101 @@ partout. La liste complète des fonctionnalités lit le même catalogue.
   guide ne remet pas à zéro des modifications non enregistrées), et `validate(values, current)` garde le `guide`
   courant.
 
-### Visite interactive (spécifiée le 2026-10-26, issue #96 ; **non implémentée**)
+### Visite interactive (spécifiée le 2026-10-26, issue #96 ; implémentée en 3.13.0)
 
-Rien de ce bloc n'existe encore dans le code. Fichiers prévus : `ui/app/AppServices.kt` (`DemoSource`, `DemoSession`,
-`forDemo`), `ui/KairosApp.kt`, `ui/navigation/AppShell.kt`, `ui/guide/demo/` (`DemoSteps.kt`, `DemoTour.kt`, `DemoPanel.kt`,
-`DemoMark.kt`, `DemoBanner.kt`), `ui/guide/DiscoverDialog.kt`, un fournisseur de dépôt par plateforme (`DesktopServices.kt`,
-`AndroidServices.kt`, `WebServices.kt`).
+Fichiers : `ui/app/Demo.kt` (`DemoSource`, `DemoSession`, `openDemo`, `forDemo`), `ui/app/AppServices.kt` (`demo`),
+`ui/KairosApp.kt` (`RealOrDemoShell`), `ui/navigation/AppShell.kt`, `ui/guide/demo/` (`DemoSteps.kt`, `DemoTour.kt` avec
+`DemoMark`, `DemoPanel.kt` avec `DemoBanner` et `DemoDoneDialog`), `ui/guide/DiscoverDialog.kt`, les repères dans
+`ui/day/` (`Capture.kt`, `DayScreen.kt`, `TaskRow.kt`, `NowCard.kt`) et un fournisseur par plateforme
+(`DesktopServices.kt`, `AndroidServices.kt`, `WebServices.kt`).
 
 - **Dépôt de démonstration** :
-  - `AppServices.demo: DemoSource?` (nouveau paramètre, **nul par défaut** : les tests et les points d'entrée existants
-    sont inchangés). `fun interface DemoSource { suspend fun open(): DemoSession }` et
-    `class DemoSession(val repository: KairosRepository, val close: suspend () -> Unit)`.
-  - Chaque plateforme fournit seulement le **pilote en mémoire** (le reste est commun) : bureau
-    `KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY))` (comme l'auto-test), Android
-    `AndroidSqliteDriver(DeferredSchema, context, null)` (un nom nul : base en mémoire), web un `WebWorkerDriver` **neuf**
-    (sa base sql.js est en mémoire, distincte de celle que l'OPFS conserve). Puis
-    `KairosRepository.open(opened, examples = { ExampleData.snapshot(aujourd'hui, maintenant, langue) }, clock)` **sans
-    `onChanged`** : ni OPFS, ni fichier lié, ni sauvegarde. `close` ferme le pilote (web : termine le worker).
+  - `AppServices.demo: DemoSource?` (**nul par défaut** : les tests et les captures n'ont pas d'entrée).
+    `fun interface DemoSource { suspend fun open(language: String): DemoSession }` (la langue de l'interface, pour le jeu
+    d'exemples) et `class DemoSession(val repository: KairosRepository, val close: suspend () -> Unit)`.
+  - Chaque plateforme fournit seulement le **pilote en mémoire** ; le reste est commun (`openDemo`) : bureau
+    `JdbcSqliteDriver(IN_MEMORY)` (y compris pour l'auto-test), Android `AndroidSqliteDriver(DeferredSchema, context, null)`
+    (un nom nul : base en mémoire), web un `WebWorkerDriver` **neuf** (sa base sql.js est en mémoire, distincte de celle
+    que l'OPFS conserve). `openDemo(opened, langue, close, clock)` appelle `KairosRepository.open(opened, examples =
+    { ExampleData.snapshot(aujourd'hui, maintenant, langue) }, clock)` **sans `onChanged`** : ni OPFS, ni fichier lié, ni
+    sauvegarde. `close` ferme le pilote (web : termine le worker).
   - `AppServices.forDemo(session)` (commun) construit les services **champ par champ** : `repository` de la session,
-    `files = NoFiles` (`saveText` rend `false`, `openText` `null`), `backups` sans effet, `clock` réelle, `notifier =
-    NoNotifier` (ni notification, ni titre de fenêtre clignotant, ni son), `firstLaunch = false`, `teamUi` neuf,
-    `systemLanguage` et `applyLanguage` repris (même langue) ; **rien d'autre** : ni `linkedStorage`, `updates`,
-    `downloadPage`, `dataFolder`, `diagnostics`, `calendars`, `shortcuts`, ni `demo`. Un champ de plus dans `AppServices`
-    doit être décidé là (c'est ce que `DemoServicesTest` garde).
-  - Réglages de la démonstration : ceux de `ExampleData` (`Settings.defaults(langue)`), donc des scénarios identiques pour
-    tous ; rappels et équipe désactivés. L'**apparence** (couleur, thème, langue, noms des niveaux) reste celle de
-    l'utilisateur : `KairosApp` la lit sur les **vrais** réglages.
-- **`KairosApp`** : `demo: DemoRun?` (`remember`, **pas** `rememberSaveable` : une rotation ou la mort du processus met fin
-  à la démonstration, qui est jetable ; l'application réelle revient à son état sauvegardé). `DemoRun(services, session)`.
-  `onStartDemo` (de la coquille réelle) : `ready.demo!!.open()` puis `DemoRun(ready.forDemo(session), session)` ;
-  `onExitDemo` : `demo = null` et `session.close()` ; `onRestartDemo` : sortie puis entrée. `KairosShell` reçoit
-  `demo?.services ?: ready` ; thème, langue et `LocalLevelNames` restent calculés sur `ready`. Les deux coquilles vivent
-  sous un `SaveableStateHolder` (clés `"app"` et `"demo"`) : la coquille réelle qui quitte la composition garde ses
-  `rememberSaveable` (destination, espace, écran secondaire) et les retrouve au retour ; sa `NavState` (jour et semaine
-  affichés, qui n'est pas sauvegardable) est gardée à part au niveau de `KairosApp`. `removeState("demo")` à la sortie.
-- **Coquille en démonstration** : `AppShell(…, demo: DemoTour? = null)`. `null` : rendu et comportement **inchangés**
-  (captures de l'auto-test et des magasins identiques à l'octet). Sinon : `DemoBanner` sous la barre du haut, hors de la zone
-  défilante, toujours visible (surface neutre `surfaceContainerHighest`, filet `outlineVariant`, icône + texte + `TextButton`
-  « Quitter » : jamais un second bloc teinté) ; destinations `Destination.entries − HOME`, ouverture sur
-  `Destination.WORK` ; ni « ? », ni roue crantée, ni sélecteur d'espace (`teamModeEnabled = false`), ni
-  `WelcomeDialog`, `FirstTaskInvite` ou hub ; `BackHandler` qui quitte une fois les dialogues refermés ; `DemoPanel` en bas,
-  au-dessus de la barre basse.
-- **Le script** (`DemoSteps.kt`, données pures, testable sans interface) : `DemoStep(id, spot: DemoSpot, title, body, act:
-  suspend (DemoContext) -> Unit, done: (KairosSnapshot, DemoContext) -> Boolean)` et `DemoContext(repository, today,
-  taskId)`. `DemoSteps.ALL` :
+    `files` qui refuse tout (`saveText` rend `false`, `openText` `null`), `backups` sans effet, `clock` reprise,
+    `notifier = NoNotifier` (ni notification, ni titre de fenêtre clignotant, ni son), `firstLaunch = false`, `teamUi`
+    neuf, `systemLanguage` et `applyLanguage` repris (même langue) ; tous les autres champs vides : ni `dataLocation`,
+    `linkedStorage`, `updates`, `downloadPage`, `dataFolder`, `diagnostics`, `calendars`, `shortcuts`, ni `demo`. Un champ
+    de plus dans `AppServices` doit être décidé là : `DemoStepsTest.demoServicesCarryNothingFromTheRealOnes` compare la
+    liste des champs.
+  - Réglages de la démonstration : ceux d'`ExampleData`, donc des scénarios identiques pour tous ; rappels et équipe
+    absents. L'**apparence** (couleur, thème, langue, noms des niveaux) reste celle de l'utilisateur : `KairosApp` la lit
+    sur les **vrais** réglages, au-dessus des deux coquilles.
+- **`KairosApp`** : `RealOrDemoShell` tient `demo: DemoRun?` (`remember`, **pas** `rememberSaveable` : une rotation ou la mort
+  du processus met fin à la démonstration, qui est jetable). `DemoRun(services, session, tour, nav)`. Lancer :
+  `ready.demo.open(langue)` puis `DemoRun(ready.forDemo(session), session, DemoTour(session.repository))`. Quitter :
+  `demo = null`, `removeState("demo")`, puis `session.close()`. « Recommencer » : quitter puis lancer. Les deux coquilles
+  vivent sous un `SaveableStateHolder` (clés `"app"` et `"demo"`) : la coquille réelle qui quitte la composition garde ses
+  `rememberSaveable` (destination, espace, écran secondaire) et les retrouve au retour ; sa `NavState` (jour, semaine et
+  mois affichés, qui n'est pas sauvegardable) est créée par `RealOrDemoShell` et passée à `KairosShell`. La coquille de la
+  démonstration s'ouvre sur `Destination.WORK` (la vue Jour). Un widget touché pendant une démonstration la quitte : la
+  coquille réelle revient et ouvre la destination demandée.
+- **Coquille en démonstration** : `AppShell(…, demo: DemoTour? = null, onStartDemo, onExitDemo, onRestartDemo)`. `null` :
+  rendu et comportement **inchangés**. Sinon : `DemoBanner` en tête du contenu, sous la barre du haut, hors de la zone
+  défilante, toujours visible (surface neutre `surfaceContainerHighest`, filet `outlineVariant`, icône `Science`, texte et
+  `TextButton` « Quitter » : jamais un second bloc teinté) ; destinations `Destination.entries − HOME` ; barre du haut sans
+  actions (ni cœur, ni « ? », ni roue crantée) ; pas de sélecteur d'espace (la base de démonstration n'a pas d'équipe) ;
+  ni `WelcomeDialog`, ni hub ; la vue Jour masque `FirstTaskInvite` (`LocalDemoTour` non nul) ; `BackHandler` qui quitte
+  une fois l'écran secondaire refermé (les dialogues gèrent leur propre retour) ; `DemoPanel` dans la `bottomBar` du
+  `Scaffold`, au-dessus de la barre basse. `LocalDemoTour` fournit le déroulé aux écrans.
+- **Le script** (`DemoSteps.kt`, données pures) : `DemoStep(id, spot: DemoSpot, title, body, act: suspend (DemoContext) ->
+  Unit, done: (KairosSnapshot, DemoContext) -> Boolean)` et `DemoContext(repository, today, taskId, taskTitle)` (le titre de
+  « Faire pour moi », `demo_task_title`, résolu par la coquille). `DemoSteps.ALL` :
 
   | # | Scénario | Repère (`DemoSpot`) | `done` (effet constaté dans l'instantané de la démo) | « Faire pour moi » (`act`) |
   |---|---|---|---|---|
-  | 1 | Capturer | `CAPTURE` : champ « Tâche » de la capture | une tâche qui n'est pas un exemple (`ExampleData.isExample`) existe ; son id devient `taskId` | `createTask(demo_task_title)` |
+  | 1 | Capturer | `CAPTURE` : champ « Nouvelle tâche » de la capture | une tâche qui n'est pas un exemple (`ExampleData.isExample`) existe | `createTask(demo_task_title)` |
   | 2 | Qualifier | `PRIORITY` : puces de priorité de sa ligne « À traiter » | sa `priority` n'est plus nulle | `setPriority(taskId, 1)` |
   | 3 | Qualifier | `POINTS` : puces de points | ses `fibonacciPoints` ne sont plus nuls | `setPoints(taskId, 3)` |
   | 4 | Chrono | `TIMER_START` : bouton chrono de sa ligne | une séance est ouverte sur elle | `startTimer(taskId)` |
-  | 5 | Chrono | `TIMER_STOP` : arrêt dans « En ce moment » | plus de séance ouverte, une séance close sur elle | `stopTimer()` |
+  | 5 | Chrono | `TIMER_STOP` : « Arrêter le chrono » de « En ce moment » | plus de séance ouverte, une séance close sur elle | `startTimer` si rien ne tourne sur elle, puis `stopTimer()` |
   | 6 | Déplacer | `MOVE` : bouton « Déplacer… » de sa ligne | sa `scheduledDate` est après aujourd'hui | `schedule(taskId, demain)` |
 
-  `done` lit l'**effet dans les données**, jamais le geste ni la place dans la frise (qui dépend de l'heure) : l'étape se
-  valide quelle que soit la façon de faire. Si la tâche suivie disparaît (supprimée), la visite revient à l'étape 1.
-  L'étape courante est un état de `DemoTour` ; l'avancée est immédiate quand `done` devient vrai, annoncée par le
-  panneau.
-- **Panneau** (`DemoPanel`) : réutilise `CoachPanel` (`OutlinedCard` sans ombre, non bloquant, région vivante polie,
-  « Étape n sur N ») avec « Faire pour moi » (`Button`), « À moi de jouer » (`OutlinedButton`), « Précédent » et
-  « Passer l’étape » (`TextButton`) dans un `FlowRow` (360 dp sans débordement) ; marge basse constante (hauteur mesurée du
-  panneau) pour que la liste défile sans que le panneau cache le repère.
-  - « Faire pour moi » exécute `act` dans la portée de la visite, par les **mêmes méthodes du dépôt** que l'interface
-    (`createTask`, `setPriority`, `setPoints`, `startTimer`, `stopTimer`, `schedule`) : même effet, aucun curseur
-    simulé, aucun texte tapé en animation.
-  - « À moi de jouer » : défile jusqu'à l'élément du repère (sans animation) et lui donne le focus (`FocusRequester`) ;
-    le panneau ne prend jamais le focus.
-- **Repères** (`DemoMark(spot)`) : même rendu que `GuideMark` (contour `BorderStroke(2.dp, primary)` aux coins de l'élément,
-  étiquette « Ici » avec icône `Spot`), **tenu** tant que l'étape dure (comme `GuideSpotState.held`), sans animation ; posé
-  par un modificateur sur l'élément (la ligne de la tâche passe par `RowContext`, qui porte déjà `highlight` pour la
-  première tâche) et non par des coordonnées : il suit le rail, la barre basse et 360 dp. Pas de région vivante sur le
-  repère (le panneau annonce déjà l'étape).
+  La tâche suivie est la plus récente qui n'est pas un exemple (`DemoSteps.trackedTask`) ; une étape dont la tâche manque
+  (étapes précédentes sautées) la crée d'abord (`ensureTask`). `done` lit l'**effet dans les données**, jamais le geste ni
+  la place dans la frise (qui dépend de l'heure) : l'étape se valide quelle que soit la façon de faire.
+- **Déroulé** (`DemoTour`) : `index`, `taskId`, `finished`, demandes de focus. `observe(instantané)` est appelé à **chaque
+  changement de données** de la démonstration (la coquille collecte `repository.snapshot`) : la tâche suivie apparaît, ou
+  disparaît (retour à l'étape 1), puis l'étape avance tant que son effet est là. Changer d'étape n'appelle pas `observe` :
+  « Précédent » reste donc sur l'étape d'avant jusqu'au prochain changement de données. « Passer l’étape » avance d'une
+  étape ; passer la dernière termine.
+- **Panneau** (`DemoPanel`) : `OutlinedCard` sans ombre, non bloquante, qui ne prend jamais le focus ; « Étape n sur N »
+  (`guide_step_counter`), titre et texte de l'étape forment une région vivante polie ; « Faire pour moi » (`Button`),
+  « À moi de jouer » (`OutlinedButton`), « Précédent » (dès la deuxième étape, `guide_previous`) et « Passer l’étape »
+  (`TextButton`) dans un `FlowRow` (360 dp sans débordement).
+  - « Faire pour moi » exécute `act` dans la portée de la coquille, par les **mêmes méthodes du dépôt** que l'interface :
+    même effet, aucun curseur simulé, aucun texte tapé en animation.
+  - « À moi de jouer » ouvre la vue Jour si besoin, puis demande le focus (`DemoTour.askFocus`) : la vue Jour défile
+    jusqu'à l'entrée du repère (sans animation : `capture`, la ligne de la tâche, ou `running` en largeur étroite) et donne
+    le focus à l'élément cerné (`FocusRequester` posé par son `DemoMark`, qui le passe au premier élément focalisable).
+    Une demande n'est servie qu'une fois (`handledFocus`) : revenir sur la vue Jour ne la rejoue pas.
+- **Repères** (`DemoMark(spot, taskId)`) : contour `BorderStroke(2.dp, primary)` aux coins de l'élément et étiquette « Ici »
+  (`guide_spot_here`, icône `Spot`) qui chevauche le bord haut (posée dedans, elle cacherait un bouton de 48 dp), **tenus**
+  tant que l'étape dure, sans animation, sans région vivante (le panneau annonce déjà l'étape). Posés en enveloppant
+  l'élément lui-même (champ de capture, `PriorityPills`, `PointsPills`, boutons chrono et « Déplacer… » de la ligne de la
+  tâche suivie, bouton d'arrêt de `RunningCard`) et non par coordonnées : ils suivent le rail, la barre basse et 360 dp.
+  Hors démonstration, ou pour une autre étape, l'élément est rendu tel quel, sans conteneur. Balise de test
+  `DEMO_MARK_TAG`.
 - **Fin** : `DemoDoneDialog` (`AlertDialog`, « Quitter la démonstration » et « Recommencer »).
-- **Hub** : `DiscoverDialog(onDemo)` ajoute l'entrée (`demo_hub_title`, `demo_hub_hint`) seulement si `services.demo != null` ;
-  grisée, avec `demo_hub_busy`, si `TimeTracking.runningSession` trouve une séance dans `personalSnapshot`. `AppShell`
-  relaie `onStartDemo` à `KairosApp`. Carte du catalogue (`since` = version de livraison, chapitre « Premiers pas ») de
-  cible `GuideTarget.Demo`, grisée de la même façon ; `FeatureCatalog.README_FEATURES` la relie au README.
-- **Textes** : préfixe `demo_`, six langues, parité (`StringsParityTest`). `demo_task_title` est le titre suggéré par
-  « Faire pour moi » (sans préfixe d'exemple : `done` de l'étape 1 le compte comme tâche de l'utilisateur).
+- **Entrées** : `DiscoverDialog(onDemo, demoBusy)` ajoute « Essayer en démonstration » (`demo_hub_title`, `demo_hub_hint`,
+  icône `Science`) sous « Créer ma première tâche », seulement si `services.demo != null` ; grisée (couleurs « désactivé »
+  de Material 3), avec `demo_hub_busy` à la place de l'explication, si `TimeTracking.runningSession` trouve une séance
+  ouverte dans les vraies données. La carte `demo` du catalogue (chapitre « Premiers pas », `since` 3.13.0, icône `Science`)
+  a pour cible `GuideTarget.Demo`, qui lance la démonstration sans changer d'écran ; pendant un chrono réel, elle affiche
+  `demo_hub_busy` en message. `FeatureCatalog.README_FEATURES` la relie au README (« Interactive demo »).
+- **Textes** : préfixe `demo_` et `card_demo_*`, six langues, parité (`StringsParityTest`). `demo_task_title` est le titre
+  donné par « Faire pour moi » (sans préfixe d'exemple : `done` de l'étape 1 le compte comme tâche de l'utilisateur).
 - **Pas de persistance** : rien dans `Settings.guide`, rien dans l'export, pas de schéma. L'entrée reste à rejouer.
+- **Auto-test** : captures `demo` (rail, 1 200 px) et `demo-narrow` (barre basse, 360 px) d'une démonstration à l'étape de
+  la priorité.
 
 ### Règle de livraison
 
@@ -399,7 +420,7 @@ met à jour une carte dans le même changement ; `FeatureCatalogTest` casse sino
   long texte pour que les boutons ne sautent pas ; le catalogue conserve ce
   comportement (`GuideDialog`).
 - **Visite interactive : une démonstration jetable en mémoire, jamais la vraie base** (2026-10-26, issue #96, décision du
-  propriétaire ; spécifié, non implémenté). Écartés : agir sur les vraies données en les « marquant » puis les nettoyant
+  propriétaire ; implémenté en 3.13.0). Écartés : agir sur les vraies données en les « marquant » puis les nettoyant
   (un abandon, un plantage ou une erreur de nettoyage laissent une tâche parasite ; le réel et l'exemple se mélangent
   dans l'export et le fichier lié) ; une base de démonstration conservée (un fichier de plus à tenir, à vider, à
   exporter) ; une copie de la vraie base (les données de l'utilisateur dans une démonstration, durée et mémoire). La
@@ -457,8 +478,28 @@ met à jour une carte dans le même changement ; `FeatureCatalogTest` casse sino
   décrit les fonctionnalités, pas le mode d'emploi de chaque écran : les deux ne se recouvrent pas, donc rien n'est écrit
   deux fois.
 - **Chapitres de six cartes ou moins** : « Premiers pas » en compte cinq (dont « Découvrir Kairos » et la première tâche).
+  L'inventaire du 2026-10-28 (une carte par fonctionnalité du README) a levé cette limite : « Premiers pas » en compte neuf
+  avec la démonstration.
+- **Démonstration, décidé à l'implémentation (2026-10-28, issue #96)** :
+  - `DemoSource.open(langue)` reçoit la langue de l'interface : le jeu d'exemples est écrit dans la langue affichée, que la
+    plateforme ne connaît pas au moment où elle construit ses services (la langue choisie dans Kairos peut différer de
+    celle du système).
+  - Le panneau est dans la `bottomBar` du `Scaffold`, pas superposé avec une marge basse mesurée : le contenu se réduit
+    de sa hauteur, donc il ne cache jamais le repère, sans mesure à tenir. Prix : la liste change de hauteur d'une étape
+    à l'autre.
+  - `DemoPanel` est un composant à part, au même rendu que `CoachPanel` (carte à contour, région vivante, compteur
+    d'étape) : leurs boutons diffèrent (« Faire pour moi », « À moi de jouer », « Passer l’étape ») et `CoachPanel` est
+    lié à `CoachStep`.
+  - La carte du catalogue n'est pas grisée pendant un chrono réel (le catalogue ne connaît pas l'état du chrono) : la
+    toucher affiche la phrase de l'entrée grisée du hub.
+  - Le cœur « Soutenir Kairos » est aussi retiré de la barre en démonstration : une barre sans aucune action, le bandeau
+    et « Quitter » restent les seuls repères.
+  - L'entrée grisée lit toute séance ouverte (`TimeTracking.runningSession` sur l'instantané complet), pas seulement celles
+    de l'espace Perso : un chrono d'équipe tourne aussi sous la veille de la coquille réelle.
+  - Tous les tests de la démonstration sont dans `DemoStepsTest` et `DemoUiTest` (module `desktopApp`, le seul à avoir
+    SQLite en mémoire) plutôt que dans trois classes.
 
-### Impacts sur les specs existantes (à reporter à l'implémentation de la visite interactive)
+### Impacts sur les specs existantes (reportés en 3.13.0)
 
 - `accueil.md` : renvoi (sa décision « pas de pastilles » est précisée par `visite-guidee.md` § Visite interactive) ;
   l'entrée du hub n'ajoute rien à l'Accueil lui-même.
@@ -473,5 +514,6 @@ met à jour une carte dans le même changement ; `FeatureCatalogTest` casse sino
 - README (`README.md` et `README.fr.md`, section Features), carte du catalogue (`FeatureCatalog` : `since` = version de
   livraison, `README_FEATURES`, `FeatureCatalogTest.readmeFeaturesAreCovered`) et notes de version Fastlane dans les six
   langues : une fonctionnalité visible par l'utilisateur.
-- Cette spec : l'« État » passe à « implémentée en X.Y.Z », le hors-périmètre « visite interactive » est mis à jour, le
-  marquage « non implémentée » retiré, et le tableau des étapes aligné sur `DemoSteps.ALL`.
+- Cette spec : l'« État » passe à « implémentée en 3.13.0 », le hors-périmètre « visite interactive » est mis à jour, le
+  marquage « non implémentée » retiré, et le tableau des étapes aligné sur `DemoSteps.ALL`. Les notes de version Fastlane
+  viennent avec le passage en 3.13.0, en dernière PR du cycle.

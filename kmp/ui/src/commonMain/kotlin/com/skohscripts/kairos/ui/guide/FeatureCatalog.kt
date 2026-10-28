@@ -78,6 +78,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_contexts_title
 import com.skohscripts.kairos.ui.generated.resources.card_dependencies_body
 import com.skohscripts.kairos.ui.generated.resources.card_dependencies_title
 import com.skohscripts.kairos.ui.generated.resources.card_discover_body
+import com.skohscripts.kairos.ui.generated.resources.card_demo_title
+import com.skohscripts.kairos.ui.generated.resources.card_demo_body
 import com.skohscripts.kairos.ui.generated.resources.card_discover_title
 import com.skohscripts.kairos.ui.generated.resources.card_first_task_body
 import com.skohscripts.kairos.ui.generated.resources.card_first_task_title
@@ -187,6 +189,7 @@ object FeatureCatalog {
         FeatureCard("do", GuideChapter.FIRST_STEPS, { KairosIcons.Today }, Res.string.guide_you_do_title, Res.string.guide_you_do_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_AGENDA), tour = true),
         FeatureCard("discover", GuideChapter.FIRST_STEPS, { KairosIcons.Layers }, Res.string.card_discover_title, Res.string.card_discover_body, GuideTarget.Personal(Destination.HOME), since = "3.4.0"),
         FeatureCard("first_task", GuideChapter.FIRST_STEPS, { KairosIcons.Add }, Res.string.card_first_task_title, Res.string.card_first_task_body, GuideTarget.FirstTask, since = "3.4.0"),
+        FeatureCard("demo", GuideChapter.FIRST_STEPS, { KairosIcons.Science }, Res.string.card_demo_title, Res.string.card_demo_body, GuideTarget.Demo, since = "3.13.0"),
         FeatureCard("guide_memory", GuideChapter.FIRST_STEPS, { KairosIcons.Spot }, Res.string.card_guide_memory_title, Res.string.card_guide_memory_body, GuideTarget.Personal(Destination.HOME), since = "3.7.0"),
         FeatureCard("guided_walks", GuideChapter.FIRST_STEPS, { KairosIcons.Repeat }, Res.string.card_guided_walks_title, Res.string.card_guided_walks_body, GuideTarget.Personal(Destination.HOME), since = "3.9.0"),
         // --- Planifier
@@ -345,6 +348,7 @@ object FeatureCatalog {
         "Settings" to "settings",
         "Settings by category" to "settings_categories",
         "Guided first task" to "first_task",
+        "Interactive demo" to "demo",
         "Discover Kairos" to "discover",
         "The guide remembers" to "guide_memory",
         "Recurring task and Settings, step by step" to "guided_walks",
