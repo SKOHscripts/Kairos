@@ -109,7 +109,7 @@ fun KairosApp(
                 CompositionLocalProvider(LocalStartupSplash provides !splashDone) {
                     when {
                         ready != null -> {
-                            // Thème et langue des réglages dès qu'ils sont lus ; le miel de la charte et la langue du système
+                            // Thème et langue des réglages dès qu’ils sont lus ; l’océan de la charte et la langue du système
                             // pendant le chargement.
                             val stored = ready.repository.snapshot.collectAsState().value
                             val settings = stored.settings
