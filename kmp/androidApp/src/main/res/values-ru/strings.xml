@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_now_name">Kairos: Сейчас</string>
+    <string name="widget_now_description">Задача на сейчас: готово, таймер, запись.</string>
+    <string name="widget_day_name">Kairos: День</string>
+    <string name="widget_day_description">План дня по часам.</string>
+</resources>

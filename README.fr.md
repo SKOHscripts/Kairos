@@ -248,6 +248,11 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   « Bloquées », « Programmées plus tard », filtres, backlog, frise ; badge
   « traîne depuis N j » et bandeau de surcharge de P0. On peut regarder un
   autre jour.
+- **Widgets de l’écran d’accueil** (Android) : « Maintenant » montre la tâche du
+  moment, ses heures et la suivante, avec « Fait » (deux touchers pour
+  confirmer), le chrono et la capture ; « Journée » liste la journée heure par
+  heure, les échéances en tête et les tâches faites barrées. Aux couleurs de
+  l’application, sans permission de plus ; un toucher ouvre la vue Jour.
 - **Semaine** : sept jours (échéances, tâches programmées, tâches faites, créneaux), temps réel de
   la semaine par type ; toucher une tâche la déplace vers un autre jour (fériés et jours libres
   signalés), avec « Annuler ».

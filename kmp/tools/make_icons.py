@@ -16,6 +16,15 @@ import sys
 
 OUT = (pathlib.Path(__file__).resolve().parent.parent
        / "ui/src/commonMain/kotlin/com/skohscripts/kairos/ui/icons/KairosIcons.kt")
+# Icônes des widgets Android (docs/spec/widgets-android.md) : `RemoteViews` n'affiche pas d'`ImageVector`, il lui faut des
+# ressources `drawable` ; mêmes tracés, en blanc (teintés par le widget avec `setColorFilter`).
+DRAWABLES = (pathlib.Path(__file__).resolve().parent.parent / "androidApp/src/main/res/drawable")
+WIDGET_ICONS = {
+    "ic_widget_check": "check",
+    "ic_widget_play": "play_arrow",
+    "ic_widget_stop": "stop",
+    "ic_widget_add": "add",
+}
 # Nom Kotlin -> (nom Material Symbols, variante pleine générée aussi ?)
 # La variante pleine sert à la destination active de la navigation (convention MD3).
 ICONS = {
@@ -144,6 +153,24 @@ def main() -> None:
     out += ["}", ""]
     OUT.write_text("\n".join(out), encoding="utf-8")
     print(f"Écrit : {OUT} ({len(ICONS)} icônes)")
+    for res_name, ms_name in WIDGET_ICONS.items():
+        # Boîte 960 × 960 d'origine en bas à gauche (y négatif) : décalée de 960 vers le bas.
+        (DRAWABLES / f"{res_name}.xml").write_text(
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            "<!-- GÉNÉRÉ par kmp/tools/make_icons.py depuis @material-symbols/svg-400 0.47.5 (Apache 2.0, Google) :\n"
+            "     ne pas éditer, ajouter l'icône dans le script. -->\n"
+            '<vector xmlns:android="http://schemas.android.com/apk/res/android"\n'
+            '    android:width="24dp"\n'
+            '    android:height="24dp"\n'
+            '    android:viewportWidth="960"\n'
+            '    android:viewportHeight="960">\n'
+            '    <group android:translateY="960">\n'
+            f'        <path android:fillColor="#FFFFFFFF" android:pathData="{path_of(src, ms_name, False)}" />\n'
+            "    </group>\n"
+            "</vector>\n",
+            encoding="utf-8",
+        )
+    print(f"Écrit : {len(WIDGET_ICONS)} icônes de widget dans {DRAWABLES}")
 
 
 if __name__ == "__main__":

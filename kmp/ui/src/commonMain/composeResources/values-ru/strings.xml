@@ -1630,4 +1630,18 @@
     <string name="day_mark_all_day">Весь день</string>
     <string name="day_marks_description">Весь день: %1$s</string>
     <string name="hub_calendar_file">Этот файл — календарь, а не обмен командой. Чтобы импортировать его: Настройки → Данные → Импорт.</string>
+    <!-- Widgets Android (docs/spec/widgets-android.md) -->
+    <string name="card_widgets_title">Твой день на главном экране</string>
+    <string name="card_widgets_body">На Android два виджета показывают твой день, не открывая Kairos: «Сейчас» (завершить задачу двойным касанием, запустить таймер, записать) и «День» (план по часам). Добавь их из списка виджетов телефона.</string>
+    <string name="widget_nothing_planned">На сегодня ничего не запланировано</string>
+    <string name="widget_all_done">На сегодня всё сделано</string>
+    <string name="widget_confirm">Подтвердить?</string>
+    <string name="widget_next">Далее %1$s · %2$s</string>
+    <string name="widget_inbox">К обработке: %1$d</string>
+    <string name="widget_done_count">%1$d / %2$d сделано</string>
+    <string name="widget_no_slot">без интервала</string>
+    <string name="widget_deadline">срок</string>
+    <string name="widget_open_app">Открыть Kairos</string>
+    <string name="widget_estimate">/ %1$s</string>
+    <string name="widget_time_span">%1$s–%2$s</string>
 </resources>

@@ -8,7 +8,9 @@
      SCHEDULE_EXACT_ALARM. Une troisième, facultative (3.10.0,
      docs/spec/connexions-externes.md § Android) : lire les calendriers du
      téléphone, demandée seulement quand l'utilisateur l'active ; ce n'est pas
-     une permission réseau. -->
+     une permission réseau. Les widgets de l'écran d'accueil (3.12.0, docs/spec/widgets-android.md) n'en ajoutent
+     aucune : deux fournisseurs, un récepteur d'actions privé et le service de la liste « Journée » (réservé au système
+     par BIND_REMOTEVIEWS, un attribut et non une permission demandée). -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -42,5 +44,34 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".widgets.NowWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_now_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_now_info" />
+        </receiver>
+        <receiver
+            android:name=".widgets.DayWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_day_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_day_info" />
+        </receiver>
+        <receiver
+            android:name=".widgets.WidgetActionReceiver"
+            android:exported="false" />
+        <service
+            android:name=".widgets.DayWidgetService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
 </manifest>

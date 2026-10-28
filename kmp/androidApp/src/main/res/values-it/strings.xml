@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_now_name">Kairos: Adesso</string>
+    <string name="widget_now_description">L’attività del momento: fatto, timer, cattura.</string>
+    <string name="widget_day_name">Kairos: Giornata</string>
+    <string name="widget_day_description">Il piano del giorno, ora per ora.</string>
+</resources>

@@ -17,7 +17,7 @@ Couleur par défaut (océan) : `kmp/data/.../db/11.sqm` et `Kairos.sq` (table `m
 `drawable/ic_launcher_foreground.xml`), `site/style.css` ; test `data/.../ThemeColorMigrationTest.kt`._
 
 État : couleur, issue #45 (après la 3.0.0) ; thème sombre, issue #72 (3.7.0) ; couleur par défaut passée du miel à l'océan
-le 2026-10-27 (version à fixer, `docs/ROADMAP.md`).
+le 2026-10-27 (livré en 3.12.0, `docs/ROADMAP.md`).
 
 ## 1. Besoin métier (cahier des charges)
 

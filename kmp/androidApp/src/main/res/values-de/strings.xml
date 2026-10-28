@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_now_name">Kairos: Jetzt</string>
+    <string name="widget_now_description">Die Aufgabe für jetzt: erledigt, Timer, erfassen.</string>
+    <string name="widget_day_name">Kairos: Tag</string>
+    <string name="widget_day_description">Der Tagesplan, Stunde für Stunde.</string>
+</resources>

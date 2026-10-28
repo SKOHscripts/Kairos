@@ -234,6 +234,11 @@ order (critical path). Cycles are refused.
 - **Day**: "Up next", the ordered agenda, sections "To process", "Blocked",
   "Scheduled later", filters, backlog, timeline; "lingering for N d" badge and
   P0 overload banner. You can look at another day.
+- **Home screen widgets** (Android): "Now" shows the task to do now, its times
+  and the next one, with "Done" (tap twice to confirm), the timer and capture;
+  "Day" lists the day hour by hour, deadlines first and finished tasks struck
+  through. In the app's colours, with no extra permission; a tap opens the Day
+  view.
 - **Week**: seven days (deadlines, scheduled tasks, finished tasks, slots), the
   week's real time by type; tap a task to move it to another day (public
   holidays and days off are flagged), with "Undo".

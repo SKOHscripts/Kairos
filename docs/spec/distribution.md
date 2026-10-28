@@ -119,7 +119,10 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   `READ_CALENDAR`, **facultative**, demandée seulement quand l'utilisateur
   active « Utiliser les calendriers du téléphone » (3.10.0,
   `connexions-externes.md`) : ce n'est pas une permission réseau ;
-  activité `singleTop` (la notification du chrono la rouvre) ;
+  les widgets de l'écran d'accueil (3.12.0, `widgets-android.md`), sans permission : `NowWidgetProvider` et
+  `DayWidgetProvider` (exportés, `APPWIDGET_UPDATE`), `WidgetActionReceiver` (non exporté) et `DayWidgetService`
+  (réservé au système par `BIND_REMOTEVIEWS`) ;
+  activité `singleTop` (la notification du chrono et les widgets la rouvrent) ;
   `enableOnBackInvokedCallback="true"` (geste retour prédictif) ;
   `windowSoftInputMode="adjustResize"`. Base et suivi du chrono ouverts une
   fois par processus (`KairosProcess`), quel que soit le point d'entrée
