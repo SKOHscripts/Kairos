@@ -400,8 +400,8 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 
 ### Apparence
 
-- **Couleur du thème** au choix (Réglages → Général → Apparence) : le miel par défaut,
-  sept autres couleurs proposées, ou une couleur libre (`#RRGGBB`). Tout le
+- **Couleur du thème** au choix (Réglages → Général → Apparence) : l’océan par défaut,
+  sept autres couleurs proposées (dont le miel, couleur du logo), ou une couleur libre (`#RRGGBB`). Tout le
   thème en est dérivé (Material Design 3), contrastes compris.
 - Sur **Android 12 et plus**, « Couleurs du système » suit les couleurs du
   fond d’écran (Material You).
@@ -429,7 +429,7 @@ touché ; rien n’est enregistré avant « Enregistrer »).
 | Catégorie | Section | Réglages | Défaut |
 |---|---|---|---|
 | Général | Langue | Langue de l’interface (Système, Français, English, Español, Deutsch, Русский, Italiano) | Système |
-| | Apparence | Couleur du thème (proposée, libre, ou du système sur Android 12+) | miel `#C28417` |
+| | Apparence | Couleur du thème (proposée, libre, ou du système sur Android 12+) | océan `#2F6FED` |
 | | Apparence | Thème sombre (interrupteur à deux états) | suit le système |
 | | Mises à jour (bureau) | Vérifier les nouvelles versions | activé |
 | | Mises à jour (Android, APK installé à la main) | Version installée, « Voir la dernière version » | |
@@ -496,7 +496,7 @@ cd kmp
 
 - Architecture, modules et décisions : [`docs/spec/architecture.md`](docs/spec/architecture.md) ;
   une spécification par domaine dans [`docs/spec/`](docs/spec/README.md).
-- Charte graphique (Material Design 3, thème « miel ») :
+- Charte graphique (Material Design 3, thème « océan ») :
   [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 - Versions, releases et paquets : [`docs/spec/distribution.md`](docs/spec/distribution.md) ;
   F-Droid et page de téléchargement :

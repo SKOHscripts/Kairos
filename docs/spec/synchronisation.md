@@ -4,7 +4,7 @@ _Rôle : faire de la copie tenue à jour dans un fichier lié (3.10.0) le point 
 lecture, Kairos **fusionne** le fichier avec ses données, sans compte, sans serveur, sans permission réseau, et sans jamais
 perdre en silence ce qu'un appareil a fait. Fichiers couverts (à créer ou à modifier à l'implémentation) :
 `kmp/core/.../core/sync/` (`Hlc.kt`, `SyncScope.kt`, `SyncRecords.kt`, `SyncData.kt`, `SyncReconcile.kt`, `SnapshotMerge.kt`,
-`SyncRepair.kt`, `SyncSummary.kt`), `kmp/data/` (`11.sqm`, `Kairos.sq`, `KairosStore.kt`, `ExportCodec.kt`,
+`SyncRepair.kt`, `SyncSummary.kt`), `kmp/data/` (`12.sqm`, `Kairos.sq`, `KairosStore.kt`, `ExportCodec.kt`,
 `KairosRepository.kt`), `kmp/ui/.../app/` (`LinkedFileSync.kt`, `LinkedStorage.kt`, `StorageBanner.kt`, `Replace.kt`),
 `kmp/ui/.../settings/SettingsScreen.kt` (carte « Données »), `kmp/ui/.../sync/` (aperçu et « À revoir »),
 `kmp/desktopApp/.../DesktopLinkedFile.kt`, `kmp/androidApp/.../AndroidLinkedFile.kt`, `kmp/webApp/.../WebServices.kt`
@@ -411,9 +411,9 @@ tour suivant les valeurs sont égales, donc sans conflit.
 - Une version 3.x lit un format 3 comme `TOO_NEW` (« version plus récente ») : elle refuse au lieu d'enlever en silence `uid`
   et marques puis de réécrire un fichier qui les aurait perdus. Sa garde de 3.10.0 voit le fichier changé et n'y écrit pas.
 
-### Stockage (`data`, schéma 12)
+### Stockage (`data`, schéma 13)
 
-Additif (`11.sqm`, marqueur `sync_state` de `KairosStore.MARKERS`, test `ExchangeMigrationTest.everyMigrationHasAMarker`), vide
+Additif (`12.sqm`, marqueur `sync_state` de `KairosStore.MARKERS`, test `ExchangeMigrationTest.everyMigrationHasAMarker`; Numérotation : `11.sqm` (schéma 12) est déjà pris par la migration de la couleur par défaut (`apparence.md`) ; `connexions-en-ligne.md` et `synchronisation.md` visent toutes deux `12.sqm` (schéma 13) : celle qui est implémentée en second prend le numéro suivant.), vide
 pour qui ne synchronise pas, **sans toucher à aucune table existante** (donc sans changer l'ordre positionnel des insertions) :
 
 - `sync_state(key TEXT PRIMARY KEY, value TEXT NOT NULL)` : `device`, `label`, `clock`, `seen` (JSON), `lastMerge` (JSON : heure,
@@ -639,7 +639,7 @@ Dans `ui` et `desktopApp` : `LinkedFileSyncTest` (étendu : minuterie, premier r
   `Changed` et « L'importer » remplacées par la fusion (états `NeedsConfirmation` et `Unreadable`, minuterie, `mergeNow`,
   `mergeFile`), « Ouvrir un fichier Kairos » propose « Fusionner » ; « Hors périmètre » (fusion, 4.0.0) ; carte Données.
   (La seule modification faite maintenant : une phrase de renvoi vers cette spec.)
-- `modele-donnees.md` : schéma 12 et ses tables `sync_*`, marqueur, `replaceAll(snapshot, uids)`, entonnoir de réconciliation ;
+- `modele-donnees.md` : schéma 13 et ses tables `sync_*`, marqueur, `replaceAll(snapshot, uids)`, entonnoir de réconciliation ;
   « Hors périmètre » : la synchronisation n'en est plus.
 - `connexions-externes.md` : `uid` déterministes des calendriers, créneaux, journées ; « réimporter » vu comme une suppression
   et une réinsertion de mêmes `uid` (sans effet de synchronisation si rien n'a changé) ; synchronisation hors périmètre → ici.

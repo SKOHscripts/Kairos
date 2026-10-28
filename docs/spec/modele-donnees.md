@@ -192,7 +192,10 @@ table, sans rétro-remplissage, `durees-apprises.md`). Schéma 9 : `8.sqm` (3.8.
 `team_member.week_hours` (nulle, en fin de table, `equipe-charge.md` § Capacité, `WeekHoursMigrationTest`). Schéma 11 :
 `10.sqm` (3.10.0) ajoute `time_block.source_id` et `time_block.source_uid` (nulles, en fin de table), l'index
 `time_block_source`, les tables `calendar_source` et `day_mark`, vides (`connexions-externes.md` § Stockage,
-`CalendarImportRepositoryTest`).
+`CalendarImportRepositoryTest`). Schéma 12 : `11.sqm` est une **migration de données** (couleur par défaut du thème : le
+miel resté par défaut passe à l'océan, `apparence.md` § Couleur par défaut) ; elle crée la table `migration_mark` (une colonne
+`name`, jamais lue ni exportée) comme marqueur structurel : sans marqueur, une migration de données seule serait rejouée à
+chaque ouverture (`ThemeColorMigrationTest`).
 Les
 schémas de référence de chaque version
 (`data/src/commonMain/sqldelight/databases/<n>.db`, générés par

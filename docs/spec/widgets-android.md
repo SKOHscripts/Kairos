@@ -26,7 +26,7 @@ tâche, lancer ou arrêter le chrono, capturer une idée. Android seulement (le 
   peut placer chacun autant de fois qu'on veut, **redimensionner** librement, et qui s'adaptent à leur taille.
 - **Les mêmes tâches que la vue Jour de l'espace Perso** : les tâches perso et, si l'espace Équipe est activé, les tâches
   d'équipe qui me sont assignées (`Workspaces.personalView`). Les tâches d'un collègue n'y sont jamais.
-- **Les mêmes couleurs que l'application** : la couleur du thème choisie (le miel par défaut), claire ou sombre comme
+- **Les mêmes couleurs que l'application** : la couleur du thème choisie (l’océan par défaut), claire ou sombre comme
   l'application la montre (réglage « Thème sombre » compris). Les titres s'affichent toujours, sans réglage de masquage (choix du
   propriétaire : comme les notifications du chrono).
 - **Un toucher sur le corps d'un widget ouvre la vue Jour** de Kairos (application déjà ouverte comprise : elle passe à la

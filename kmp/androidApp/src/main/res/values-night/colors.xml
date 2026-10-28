@@ -2,5 +2,5 @@
 <resources>
     <!-- Système en sombre (docs/spec/apparence.md § Thème sombre) : rôle MD3 « surface » sombre
          (KairosDarkColors, KairosColors.kt), fond des fenêtres de démarrage. -->
-    <color name="kairos_bg">#18120B</color>
+    <color name="kairos_bg">#121318</color>
 </resources>

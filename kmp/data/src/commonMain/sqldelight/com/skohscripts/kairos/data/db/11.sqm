@@ -1,0 +1,10 @@
+-- Schéma 11 -> 12 : migration de données, la couleur par défaut du thème (docs/spec/apparence.md § Couleur par défaut).
+-- Un thème resté sur l'ancienne valeur par défaut (le miel) passe à la nouvelle (l'océan) ; toute autre valeur (couleur
+-- choisie, « system ») est gardée. Le réglage est un JSON compact (`encodeDefaults`) : `replace` suffit, sans extension JSON.
+-- La table `migration_mark` est le marqueur structurel du schéma 12 (`KairosStore.MARKERS`) : sans elle, une migration de
+-- données seule serait rejouée à chaque ouverture et défairait le choix du miel fait ensuite.
+CREATE TABLE migration_mark (
+    name TEXT NOT NULL PRIMARY KEY
+);
+INSERT INTO migration_mark (name) VALUES ('default_theme_ocean');
+UPDATE settings SET json = replace(json, '"themeColor":"#C28417"', '"themeColor":"#2F6FED"') WHERE id = 1;

@@ -99,10 +99,11 @@ l'application : plantage immédiat, sans aucune information exploitable.
 ### Composant (`ui/app/StartupSplash.kt`)
 
 - `StartupSplash(ready, onFinished)` : `Box` plein écran, fond
-  `colorScheme.surface` du thème **miel par défaut**, clair ou sombre comme le système (il est composé dans le
+  `colorScheme.surface` du thème **océan par défaut**, clair ou sombre comme le système (il est composé dans le
   `KairosDefaultTheme` extérieur de `KairosApp`, pas dans celui des réglages : le
-  fond égale `#FFF8F4`, ou `#18120B` en sombre, celui des relais natifs, quelle que soit la graine
-  choisie). Le fondu révèle ensuite l'application dans la couleur de
+  fond égale `#FAF8FF`, ou `#121318` en sombre, celui des relais natifs (`kairos_bg`, `index.html`), quelle que soit la graine
+  choisie ; changé le 2026-10-27 : l'océan remplace le miel, `#FFF8F4` et `#18120B` avant, `apparence.md` § Couleur par
+  défaut). Le cadran, lui, garde les couleurs fixes du logo (miel). Le fondu révèle ensuite l'application dans la couleur de
   l'utilisateur.
 - Cadran dessiné sur un `Canvas` de **184,32 dp** (viewport 40 du logo ×
   4,608) : disque `LogoColors.Dial`, anneau `LogoColors.Ring` (trait 1,6),
@@ -169,7 +170,7 @@ l'application : plantage immédiat, sans aucune information exploitable.
 ### Rapport de plantage (Android)
 
 - `ui/app/CrashReport.kt` : `CrashReportScreen(report, onShare, onContinue)`. Sans dépendance aux
-  réglages ni aux services (le thème miel par défaut, `KairosTheme`) ; le rapport est une
+  réglages ni aux services (le thème par défaut, l'océan, `KairosTheme`) ; le rapport est une
   `SelectionContainer` en chasse fixe qui défile seule, les boutons restent en bas. Textes
   `crash_title`, `crash_body`, `crash_share`, `crash_continue` (FR + EN).
 - `androidApp/.../KairosCrash.kt` : `install` pose un `Thread.setDefaultUncaughtExceptionHandler`

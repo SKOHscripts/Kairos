@@ -1,6 +1,6 @@
 # Thème, navigation et écrans communs
 
-_Rôle : l'identité visuelle (thème MD3 « miel », typographie, icônes, logo)
+_Rôle : l'identité visuelle (thème MD3 « océan », typographie, icônes, logo)
 et la coquille commune à tous les écrans (navigation principale, barre
 d'application, retour), plus l'écran « À propos et guide ». Fichiers couverts :
 `kmp/ui/src/commonMain/kotlin/com/skohscripts/kairos/ui/` (`KairosApp.kt`,
@@ -95,7 +95,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
 
 - `KairosColors.kt` (**généré** par `tools/make_theme.py`) : `lightColorScheme`
   des 36 rôles MD3, schéma *Tonal spot*, spec 2021, contraste standard, graine
-  `#C28417`. Les valeurs coïncident avec la table de `DESIGN_SYSTEM.md` ; les
+  `#2F6FED` (l'océan ; le miel `#C28417` jusqu'au 2026-10-27, changé le 2026-10-27 : l'océan remplace le miel comme graine
+  par défaut, `apparence.md` § Couleur par défaut). Les valeurs coïncident avec la table de `DESIGN_SYSTEM.md` ; les
   rôles que la charte ne listait pas (`surfaceVariant`, `surfaceDim`,
   `surfaceBright`, `surfaceTint`, `scrim`, `onBackground`…) sortent du même
   calcul. Pour changer de couleur : changer la graine et regénérer, jamais
@@ -152,7 +153,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   jalon M5, plus rien n'étant en construction.
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`
   épaisseur 1.6, secteur `#C28417` de 12 h à 2 h, axe `#2B251C` rayon 2.6,
-  viewport 40), couleurs fixes, affiché par `Image` (jamais teinté).
+  viewport 40), couleurs fixes, affiché par `Image` (jamais teinté). Ces couleurs sont celles du miel, qui n'est plus la
+  graine du thème par défaut : le logo les garde et contraste avec l'océan (`apparence.md` § Icônes et supports fixes).
 
 ### Navigation (`navigation/`, `KairosApp.kt`)
 

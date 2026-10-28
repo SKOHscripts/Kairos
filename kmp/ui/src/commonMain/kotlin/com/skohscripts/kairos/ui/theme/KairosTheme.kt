@@ -101,7 +101,7 @@ val LocalSystemDark = staticCompositionLocalOf { false }
 val LocalLightColorScheme = staticCompositionLocalOf { KairosLightColors }
 
 /**
- * Thème Kairos, clair ou sombre ([dark], docs/spec/apparence.md § Thème sombre), du schéma de la charte (miel) par
+ * Thème Kairos, clair ou sombre ([dark], docs/spec/apparence.md § Thème sombre), du schéma de la charte (océan) par
  * défaut ou de celui de la couleur choisie (`ThemeColors.schemeFor`) ; [light] : le schéma clair de la même graine,
  * exposé par [LocalLightColorScheme].
  */
@@ -125,7 +125,7 @@ fun KairosTheme(
     }
 }
 
-/** Le thème par défaut (miel), clair ou sombre comme le système : avant que les réglages soient lus. */
+/** Le thème par défaut (océan), clair ou sombre comme le système : avant que les réglages soient lus. */
 @Composable
 fun KairosDefaultTheme(dark: Boolean, content: @Composable () -> Unit) =
     KairosTheme(if (dark) KairosDarkColors else KairosLightColors, dark, KairosLightColors, content)

@@ -1,23 +1,23 @@
 /* Page de téléchargement de Kairos (docs/spec/publication.md § Page).
-   Charte « miel » (docs/DESIGN_SYSTEM.md) : rôles MD3, Roboto servie ici,
+   Charte « océan » (docs/DESIGN_SYSTEM.md) : rôles MD3, Roboto servie ici,
    cartes sans ombre, un seul bloc teinté (l'appel principal). */
 @font-face { font-family: Roboto; font-weight: 400; src: url("fonts/roboto_regular.ttf") format("truetype"); font-display: swap; }
 @font-face { font-family: Roboto; font-weight: 500; src: url("fonts/roboto_medium.ttf") format("truetype"); font-display: swap; }
 @font-face { font-family: Roboto; font-weight: 700; src: url("fonts/roboto_bold.ttf") format("truetype"); font-display: swap; }
 
 :root {
-  --md-primary: #7F5610;
+  --md-primary: #485D92;
   --md-on-primary: #FFFFFF;
-  --md-primary-container: #FFDDB3;
-  --md-on-primary-container: #624000;
-  --md-secondary-container: #FADEBC;
-  --md-surface: #FFF8F4;
-  --md-surface-container-low: #FEF1E5;
-  --md-surface-container-high: #F3E6DA;
-  --md-on-surface: #201B13;
-  --md-on-surface-variant: #4F4539;
-  --md-outline: #817567;
-  --md-outline-variant: #D3C4B4;
+  --md-primary-container: #DAE2FF;
+  --md-on-primary-container: #304578;
+  --md-secondary-container: #DCE2F9;
+  --md-surface: #FAF8FF;
+  --md-surface-container-low: #F4F3FA;
+  --md-surface-container-high: #E8E7EF;
+  --md-on-surface: #1A1B21;
+  --md-on-surface-variant: #44464F;
+  --md-outline: #757780;
+  --md-outline-variant: #C5C6D0;
 }
 
 * { box-sizing: border-box; }
@@ -83,9 +83,10 @@ h2 { font-size: 22px; line-height: 28px; font-weight: 500; margin: 40px 0 16px; 
   font-weight: 500; font-size: 14px; text-decoration: none; text-align: center;
 }
 .button.filled { background: var(--md-primary); border-color: var(--md-primary); color: var(--md-on-primary); }
-.button:hover { background: rgba(127, 86, 16, 0.08); }
-.button.filled:hover { background: #6d4a0e; }
+.button:hover { background: rgba(72, 93, 146, 0.08); }
+.button.filled:hover { background: #3E5283; }
 .small { font-size: 12px; line-height: 16px; color: var(--md-on-surface-variant); }
+.nowrap { white-space: nowrap; }
 
 .shots { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
 .shots img {

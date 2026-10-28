@@ -35,21 +35,21 @@ class ThemeColorsTest {
     ).mapValues { it.value.toArgb() }
 
     @Test
-    fun the_embedded_algorithm_gives_the_charter_colors_for_honey() {
-        val computed = roles(ThemeColors.seedScheme(0xC28417))
+    fun the_embedded_algorithm_gives_the_charter_colors_for_the_default_seed() {
+        val computed = roles(ThemeColors.seedScheme(0x2F6FED))
         assertEquals(36, computed.size)
         assertEquals(roles(KairosLightColors), computed)
     }
 
     @Test
-    fun the_embedded_algorithm_gives_the_generated_dark_colors_for_honey() {
-        assertEquals(roles(KairosDarkColors), roles(ThemeColors.seedScheme(0xC28417, dark = true)))
+    fun the_embedded_algorithm_gives_the_generated_dark_colors_for_the_default_seed() {
+        assertEquals(roles(KairosDarkColors), roles(ThemeColors.seedScheme(0x2F6FED, dark = true)))
         assertSame(KairosDarkColors, ThemeColors.schemeFor(Settings.DEFAULT_THEME_COLOR, null, dark = true))
         assertSame(KairosDarkColors, ThemeColors.schemeFor("illisible", null, dark = true))
         // Une autre graine en sombre : même algorithme, fond sombre, rouge d'erreur sombre fixe.
-        val ocean = ThemeColors.schemeFor("#2F6FED", null, dark = true)
-        assertTrue(ocean.surface.luminance() < 0.05f)
-        assertEquals(KairosDarkColors.error, ocean.error)
+        val honey = ThemeColors.schemeFor(Settings.HONEY_THEME_COLOR, null, dark = true)
+        assertTrue(honey.surface.luminance() < 0.05f)
+        assertEquals(KairosDarkColors.error, honey.error)
     }
 
     @Test
@@ -65,14 +65,15 @@ class ThemeColorsTest {
     }
 
     @Test
-    fun honey_is_served_from_the_generated_scheme_and_other_seeds_are_computed() {
+    fun the_default_seed_is_served_from_the_generated_scheme_and_other_seeds_are_computed() {
         assertSame(KairosLightColors, ThemeColors.schemeFor(Settings.DEFAULT_THEME_COLOR, null))
-        assertSame(KairosLightColors, ThemeColors.schemeFor("#c28417", null))
+        assertSame(KairosLightColors, ThemeColors.schemeFor("#2f6fed", null))
         assertSame(KairosLightColors, ThemeColors.schemeFor("illisible", null))
-        val ocean = ThemeColors.schemeFor("#2F6FED", null)
-        assertNotEquals(KairosLightColors.primary, ocean.primary)
+        // Le miel, ancienne graine par défaut, est une couleur au choix : calculée comme les autres.
+        val honey = ThemeColors.schemeFor(Settings.HONEY_THEME_COLOR, null)
+        assertNotEquals(KairosLightColors.primary, honey.primary)
         // Le rouge d'erreur ne dépend pas de la graine.
-        assertEquals(KairosLightColors.error, ocean.error)
+        assertEquals(KairosLightColors.error, honey.error)
     }
 
     @Test

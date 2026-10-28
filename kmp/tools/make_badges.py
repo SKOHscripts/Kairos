@@ -1,7 +1,8 @@
 """Génère les boutons de téléchargement : `site/badges/<langue>/<id>.svg` (docs/spec/publication.md
 § Boutons de téléchargement).
 
-Badges aux couleurs du thème « miel » (primaire plein, texte blanc, pilule de 56 px). Le texte est converti en **tracés**
+Badges aux couleurs du thème « océan » en **tonal clair** (conteneur primaire, texte ocean profond, pilule de 56 px) :
+leur fond est discret, ils se lisent sur fond clair comme sur le fond sombre de GitHub. Le texte est converti en **tracés**
 avec Roboto du dépôt (rendu identique partout, rien d'embarqué) ; les icônes sont des Material Symbols (Outlined 400,
 Apache 2.0, comme `make_icons.py`), génériques : jamais un logo de marque.
 
@@ -23,8 +24,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 FONTS = ROOT / "kmp/ui/src/commonMain/composeResources/font"
 OUT = ROOT / "site/badges"
 
-PRIMARY = "#7F5610"  # primaire du thème « miel » (clair), lisible sur fond clair et sombre
-ON_PRIMARY = "#FFFFFF"
+FILL = "#DAE2FF"  # conteneur primaire (ton 90) de la graine océan
+INK = "#1C2F59"  # ton 20 : texte et icône
 HEIGHT = 56
 LANGUAGES = ("en", "fr", "es", "de", "ru", "it")
 
@@ -102,8 +103,8 @@ def badge(regular: Face, medium: Face, icon: str, small: str, big: str, title: s
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{HEIGHT}" viewBox="0 0 {width} {HEIGHT}" role="img">'
         f"<title>{title}</title>"
-        f'<rect width="{width}" height="{HEIGHT}" rx="{HEIGHT // 2}" fill="{PRIMARY}"/>'
-        f'<g fill="{ON_PRIMARY}">'
+        f'<rect width="{width}" height="{HEIGHT}" rx="{HEIGHT // 2}" fill="{FILL}"/>'
+        f'<g fill="{INK}">'
         f'<path transform="translate(16 14) scale({scale:.5f}) translate(0 960)" d="{icon}"/>'
         f'<path d="{small_path}"/><path d="{big_path}"/></g></svg>\n'
     )

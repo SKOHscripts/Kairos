@@ -29,10 +29,10 @@ class ThemePreset(val name: StringResource, val color: String)
  * (Tonal spot, spec 2021 ; `kmp/tools/make_theme.py`).
  */
 object ThemeColors {
-    /** Miel en tête (la charte) ; ni rouge (urgences, erreurs) ni vert (« fait »). */
+    /** L'océan en tête (la charte), puis le miel du logo ; ni rouge (urgences, erreurs) ni vert (« fait »). */
     val PRESETS: List<ThemePreset> = listOf(
-        ThemePreset(Res.string.theme_preset_honey, Settings.DEFAULT_THEME_COLOR),
-        ThemePreset(Res.string.theme_preset_ocean, "#2F6FED"),
+        ThemePreset(Res.string.theme_preset_ocean, Settings.DEFAULT_THEME_COLOR),
+        ThemePreset(Res.string.theme_preset_honey, Settings.HONEY_THEME_COLOR),
         ThemePreset(Res.string.theme_preset_teal, "#1B8A8A"),
         ThemePreset(Res.string.theme_preset_indigo, "#5B5FC7"),
         ThemePreset(Res.string.theme_preset_lavender, "#8A5CC2"),
@@ -43,14 +43,14 @@ object ThemeColors {
 
     /**
      * Schéma de [themeColor], clair ou sombre ([dark], docs/spec/apparence.md § Thème sombre) : les couleurs du système si
-     * demandé et fournies ([system]), les valeurs générées de la charte pour le miel, le schéma calculé sinon ; le miel
-     * pour une valeur illisible.
+     * demandé et fournies ([system]), les valeurs générées de la charte pour la graine par défaut (l'océan), le schéma calculé
+     * sinon (le miel compris) ; la graine par défaut pour une valeur illisible.
      */
     fun schemeFor(themeColor: String, system: ((dark: Boolean) -> ColorScheme)?, dark: Boolean = false): ColorScheme {
         if (themeColor == Settings.SYSTEM_THEME && system != null) return system(dark)
-        val honey = if (dark) KairosDarkColors else KairosLightColors
-        val rgb = SettingsForm.parseColor(themeColor) ?: return honey
-        if (rgb == SettingsForm.parseColor(Settings.DEFAULT_THEME_COLOR)) return honey
+        val brand = if (dark) KairosDarkColors else KairosLightColors
+        val rgb = SettingsForm.parseColor(themeColor) ?: return brand
+        if (rgb == SettingsForm.parseColor(Settings.DEFAULT_THEME_COLOR)) return brand
         return seedScheme(rgb, dark)
     }
 

@@ -375,8 +375,8 @@ order (critical path). Cycles are refused.
 
 ### Appearance
 
-- **Theme color** of your choice (Settings → General → Appearance): honey by default,
-  seven other suggested colors, or a free color (`#RRGGBB`). The whole theme is
+- **Theme color** of your choice (Settings → General → Appearance): ocean by default,
+  seven other suggested colors (honey, the color of the logo, among them), or a free color (`#RRGGBB`). The whole theme is
   derived from it (Material Design 3), contrast included.
 - On **Android 12 and later**, "System colors" follows the wallpaper colors
   (Material You).
@@ -402,7 +402,7 @@ you press "Save").
 | Category | Section | Settings | Default |
 |---|---|---|---|
 | General | Language | Interface language (System, Français, English, Español, Deutsch, Русский, Italiano) | System |
-| | Appearance | Theme color (suggested, free, or system on Android 12+) | honey `#C28417` |
+| | Appearance | Theme color (suggested, free, or system on Android 12+) | ocean `#2F6FED` |
 | | Appearance | Dark theme (two-state switch) | follows the system |
 | | Updates (desktop) | Check for new versions | on |
 | | Updates (Android, APK installed by hand) | Installed version, "See the latest version" | |
@@ -470,7 +470,7 @@ The design and contribution documents are written in French.
 
 - Architecture, modules and decisions: [`docs/spec/architecture.md`](docs/spec/architecture.md);
   one specification per domain in [`docs/spec/`](docs/spec/README.md).
-- Visual identity (Material Design 3, "honey" theme):
+- Visual identity (Material Design 3, "ocean" theme):
   [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 - Versions, releases and packages: [`docs/spec/distribution.md`](docs/spec/distribution.md);
   F-Droid and the download page:

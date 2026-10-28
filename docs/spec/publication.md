@@ -50,7 +50,8 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
 
 ### Boutons de téléchargement (3.12.0)
 
-- **Un jeu de boutons** (badges SVG aux couleurs du thème « miel », primaire plein, texte blanc, forme de pilule) aux deux
+- **Un jeu de boutons** (badges SVG aux couleurs du thème « océan » en tonal clair, fond `#DAE2FF`, texte et icône `#1C2F59`, forme de pilule ; changé le
+  2026-10-27 : primaire plein miel, texte blanc, avant) aux deux
   endroits où l'utilisateur vient télécharger : **la page GitHub Pages** (les six langues, sous l'accroche) et **le README**
   (`README.md` en anglais, `README.fr.md` en français : en tête, à la place du lien « Download », et dans « Install »).
 - Sept boutons, dans cet ordre : **F-Droid** (« Get it on F-Droid », le paquet est publié), **Obtainium** (ajoute Kairos à
@@ -104,8 +105,8 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   du tag. Les images (icône, captures) ne sont que dans `fr-FR` et `en-US` : F-Droid replie les autres langues sur `en-US`
   (`validate_fastlane.py` ne les exige que pour ces deux dossiers). Dans chaque dossier : `title.txt` (« Kairos »), `short_description.txt` (≤ 80),
   `full_description.txt` (≤ 4000, HTML simple `<b>`, `<ul>`, `<li>`),
-  `changelogs/<versionCode>.txt` (≤ 500), `images/icon.png` (512 px,
-  `make_app_icons.py`), `images/phoneScreenshots/1.png` à `8.png`.
+  `changelogs/<versionCode>.txt` (≤ 500), `images/icon.png` (512 px, carré plein : le logo
+  sur un fond uni océan profond `#1C2F59`, `make_app_icons.py`, `apparence.md` § Icônes et supports fixes), `images/phoneScreenshots/1.png` à `8.png`.
 - La description présente la formule du score, le placement dans la journée, le chrono et
   ses alertes, les statistiques, et l'absence de compte et de réseau (jusqu'à la 3.x : la 4.0.0 devra dire les connexions en ligne facultatives,
   désactivées par défaut, et la permission réseau, `connexions-en-ligne.md`) ; depuis la 3.10.0, le fichier lié et les
@@ -157,6 +158,9 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   livré dans l'application (ce ne sont pas les exemples).
 - `KairosApp` accepte pour cela une destination initiale
   (`initialDestination`, par défaut l'écran d'accueil habituel).
+- **Couleur** (changé le 2026-10-27) : les captures montrent le thème par défaut, donc l'océan ; elles ont été régénérées
+  (fiches `fr-FR` et `en-US`, qui sont aussi celles de la page). Toute modification du thème par défaut ou d'un écran capturé les
+  régénère (`CLAUDE.md`).
 - Les captures ont servi de revue d'interface en largeur téléphone et ont
   corrigé trois défauts (voir `statistiques.md`, `vue-semaine.md`,
   `notes-capture.md`) : tuiles de statistiques à largeur fixe (une par ligne),
@@ -235,8 +239,11 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   versionnés ; chaque page relie les cinq autres (`<nav>`, `hreflang`) et affiche les captures de `screens/en/`,
   en HTML et CSS seuls (`style.css`) ; `os.js` (facultatif) ajoute `current`
   à la carte du système du visiteur, seul bloc teinté (`primary-container`).
-  Charte « miel » : rôles MD3 en variables, Roboto servie par la page
-  (`fonts/`), cartes sans ombre, boutons en pilule, cibles de 40 px.
+  Charte « océan » (changé le 2026-10-27, « miel » avant) : rôles MD3 en variables (`--md-*` = rôles du schéma clair généré,
+  `KairosLightColors`), Roboto servie par la page
+  (`fonts/`), cartes sans ombre, boutons en pilule, cibles de 40 px ; icône et favicon de la page : le logo sur le fond
+  océan profond à coins arrondis (`make_app_icons.py`). « F-Droid » dans la petite ligne de la carte Android est dans
+  un `<span class="nowrap">` : sans cela, la carte étroite le coupait au trait d'union (« F- / Droid »).
 - Contenu : accroche, trois points (ordre expliqué par la formule, journée
   réaliste, temps réel), cartes de téléchargement (Android : APK ; Windows :
   MSI et zip portable ; Linux : `.deb` et `.tar.gz` ; macOS : DMG Apple
@@ -266,8 +273,9 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
 - **Source** : `kmp/tools/make_badges.py` génère `site/badges/<langue>/<id>.svg` (`id` : `fdroid`, `obtainium`, `apk`, `windows`,
   `linux`, `macos`, `web` ; `langue` : `en`, `fr`, `es`, `de`, `ru`, `it`), 42 fichiers **versionnés** (un seul jeu : la page les sert, le
   README les référence en chemin relatif `site/badges/<langue>/<id>.svg`, que GitHub affiche).
-- **Dessin** : 56 px de haut, largeur selon le texte, `rx` = 28 (pilule), fond `#7F5610` (primaire du thème clair, lisible sur fond clair et
-  sombre), texte `#FFFFFF` ; à gauche une icône **Material Symbols** (Outlined 400, Apache 2.0, comme `make_icons.py`) générique par
+- **Dessin** : 56 px de haut, largeur selon le texte, `rx` = 28 (pilule), fond `#DAE2FF` (conteneur primaire de l'océan, **tonal clair** : un fond discret, lisible sur fond clair comme sur le fond sombre
+  de GitHub), texte et icône `#1C2F59` (ton 20 de la palette primaire océan) ; constantes `FILL` et `INK` du script ; avant le
+  2026-10-27 : primaire plein du miel `#7F5610`, texte blanc ; à gauche une icône **Material Symbols** (Outlined 400, Apache 2.0, comme `make_icons.py`) générique par
   bouton (`download`, `update`, `android`, `desktop_windows`, `terminal`, `laptop_mac`, `language`), jamais un logo de marque ; deux lignes
   de texte (petite : « Get it on », « Download for »… ; grande : « F-Droid », « Windows »…). **Le texte est converti en tracés** avec les polices
   Roboto Regular et Medium du dépôt (`composeResources/font/`) : le rendu ne dépend d'aucune police du visiteur et n'embarque rien. Un

@@ -6,7 +6,7 @@ Android n'a aucune permission réseau » (`connexions-externes.md`, décision du
 utilisable hors ligne et sans aucune activité réseau tant que rien n'est activé. Fichiers couverts (prévus, aucun n'existe
 encore) : `kmp/core/.../core/connections/` (`ConnectionKind.kt`, `SyncSchedule.kt`, `HttpPolicy.kt`, `CalDavXml.kt`,
 `CalDavQueries.kt`, `GraphEvents.kt`, `GoogleEvents.kt`, `OAuthPkce.kt`, `Sha256.kt`, `Providers.kt`), `core/calendar/CalendarImport.kt`
-(`SkipReason.DECLINED`), `core/updates/UpdateCheck.kt` (réutilisé) ; `kmp/data/` (`Kairos.sq`, `11.sqm`, `KairosStore.kt`,
+(`SkipReason.DECLINED`), `core/updates/UpdateCheck.kt` (réutilisé) ; `kmp/data/` (`Kairos.sq`, `12.sqm`, `KairosStore.kt`,
 `Mappers.kt`, `KairosRepository.syncCalendar` / `recordSyncFailure` / `disconnectCalendar`) ; `kmp/ui/.../ui/app/`
 (`HttpFetcher.kt`, `SecretStore.kt`, `OnlineGate.kt`, `ConnectionSync.kt`, `ConnectionWatcher.kt`, `OAuthFlow.kt`, `Updates.kt`),
 `ui/settings/OnlineConnections.kt` (carte « Connexions en ligne »), `ui/settings/SettingsScreen.kt` (carte « Mises à jour » d'Android) ;
@@ -187,7 +187,7 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
   reconnecter, aucune boucle (`OAuthPkceTest`, `Sha256Test`, `OAuthFlowTest`).
 - **Échéancier** : « À l'ouverture » au plus tous les 15 minutes ; intervalles réguliers ; espacement après échecs et `Retry-After` ;
   connexion en pause ou « À la main » jamais due sans demande (`SyncScheduleTest`).
-- **Données** : migration vers le schéma 12 sans créneau modifié ; **export d'une base sans connexion identique à l'octet près** ;
+- **Données** : migration vers le schéma 13 sans créneau modifié ; **export d'une base sans connexion identique à l'octet près** ;
   un calendrier connecté s'exporte comme un calendrier importé (sans type, adresse, identifiant, jeton, ETag) et se réimporte comme tel ;
   aucune table ni colonne de connexion dans l'export ; secrets orphelins purgés au lancement ; connexion sans secret → état
   « identifiants absents », aucune requête (`ConnectionRepositoryTest`, `SecretStoreTest`).
@@ -296,8 +296,9 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
 
 ### Stockage (`data`)
 
-- Schéma 12 (`11.sqm`, additif ; marqueur de `KairosStore`) : les colonnes ci-dessus sur `calendar_source`, toutes `NULL` ou avec
+- Schéma 13 (`12.sqm`, additif ; marqueur de `KairosStore`) : les colonnes ci-dessus sur `calendar_source`, toutes `NULL` ou avec
   défaut. Les bases existantes : tous les calendriers restent `FILE`.
+  Numérotation : `11.sqm` (schéma 12) est déjà pris par la migration de la couleur par défaut (`apparence.md`) ; `connexions-en-ligne.md` et `synchronisation.md` visent toutes deux `12.sqm` (schéma 13) : celle qui est implémentée en second prend le numéro suivant.
 - `KairosRepository.syncCalendar(sourceId, plan, today, etag, now)` : **une transaction** qui remplace les créneaux de début
   ≥ `today 00:00` et les journées de fin ≥ `today` **de cette source seulement** (la même règle que `importCalendar`), insère le plan
   (titres vides si `hideTitles`), met `imported_at`, `last_sync_at`, `last_attempt_at`, `etag`, `planned_on`, `failures = 0`,
@@ -514,7 +515,7 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
     entraîne un refus ») s'applique à chaque version.
   `fdroid_check.sh` fait passer `fdroid lint` et `rewritemeta` sur la recette canonique avec l'étiquette ; la fiche Fastlane et la page
   de téléchargement cessent de dire « aucune permission réseau » (§ Impacts).
-- **Jalons** (dans la 4.0.0) : O1 socle (permission, `OnlineGate`, secrets, schéma 12) + lien ICS + nouvelles versions d'Android ; O2 CalDAV ;
+- **Jalons** (dans la 4.0.0) : O1 socle (permission, `OnlineGate`, secrets, schéma 13) + lien ICS + nouvelles versions d'Android ; O2 CalDAV ;
   O3 Microsoft ; O4 Google. O3 et O4 attendent l'inscription du fournisseur (ci-dessus) : si elle n'est pas prête, la 4.0.0 sort avec O1 et O2
   (sans `NonFreeNet`) et O3/O4 suivent en 4.1.0 ; la permission, elle, ne reviendra jamais en arrière dans une version mineure.
 - **Version** : prévue `4.0.0` (`kairos.versionCode` 40000, formule de `distribution.md`) : elle change une décision fondatrice. Note de version
@@ -603,7 +604,7 @@ Restent à reporter **à l'implémentation**, hors du périmètre de la rédacti
   reste vrai de l'envoi), `rappels.md` (« sans permission réseau » : formulation à préciser), `ordonnancement.md` (« événements de calendrier
   externes : par le réseau, hors périmètre »), `demarrage.md` (rapport de plantage : « aucun réseau » reste vrai, la phrase n'a plus pour
   raison l'absence de `INTERNET`), `export-import.md` (les connexions ne sont pas exportées), `reglages.md` (carte « Connexions en ligne » de la
-  catégorie Données, interrupteur d'Android dans « Mises à jour »), `modele-donnees.md` (schéma 12), `i18n.md` (nouveaux textes),
+  catégorie Données, interrupteur d'Android dans « Mises à jour »), `modele-donnees.md` (schéma 13), `i18n.md` (nouveaux textes),
   `accessibilite.md` (cibles et libellés de la carte), `visite-guidee.md` (carte du guide) ;
 - `docs/plan-v3-kotlin.md` : **historique**, conservé tel quel (il dit « pas de `INTERNET` » au jalon M0) ; une phrase renvoie à cette spec ;
 - `fdroid/com.skohscripts.kairos.yml` (`AntiFeatures: NonFreeNet`, dans la version qui embarque Microsoft ou Google), `fastlane/metadata/android/*/full_description.txt`

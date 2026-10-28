@@ -128,14 +128,16 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   plantage (toujours sans réseau ni permission).
 - Thème de fenêtre `Theme.Kairos` :
   `forceDarkAllowed=false` ; avant l'API 31, `windowBackground` =
-  `kairos_launch_background` (fond `#FFF8F4` + cadran vide
+  `kairos_launch_background` (fond `kairos_bg` = `#FAF8FF` + cadran vide
   `kairos_splash_dial` centré 288 dp) ; API 31+ (`values-v31`), écran de
   démarrage système avec ce même cadran, statique. Ce ne sont que les relais
   de la page de démarrage Compose (`demarrage.md`), qui anime l'aiguille.
-  Système en sombre : `values-night/` et `values-night-v31/` (fond `#18120B`,
+  Système en sombre : `values-night/` et `values-night-v31/` (fond `kairos_bg` = `#121318`,
   icônes des barres claires, `apparence.md` § Thème sombre).
-- Icône adaptative `mipmap-anydpi/ic_launcher.xml` (fond `#FFEEDC`, premier
-  plan `ic_launcher_foreground`).
+- Icône adaptative `mipmap-anydpi/ic_launcher.xml` (fond uni océan profond `#1C2F59` = `ic_launcher_background`, premier
+  plan `ic_launcher_foreground` : le logo complet, cadran crème compris ; changé le 2026-10-27, le fond était le cadran
+  `#FFEEDC` ; `apparence.md` § Icônes et supports fixes). Les fonds de démarrage (`#FAF8FF` clair, `#121318` sombre) sont les
+  `surface` du thème océan par défaut, au lieu de `#FFF8F4` et `#18120B` du miel.
 - Release : R8 (`isMinifyEnabled`, `isShrinkResources`) ; signature par les
   variables `KAIROS_KEYSTORE_FILE`, `KAIROS_KEYSTORE_PASSWORD`,
   `KAIROS_KEY_ALIAS`, `KAIROS_KEY_PASSWORD` si présentes, APK non signé
@@ -227,7 +229,7 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   `globalThis.KairosWeb`) **avant** `kairos.js`. La distribution contient
   aussi `kairos-sqljs.worker.js`, `sql-wasm.js` et `sql-wasm.wasm` (copiés par
   `webpack.config.d/sqljs.js`).
-- `index.html` : fond `#FFF8F4`, favicon, bloc `#kairos-loading` (cadran
+- `index.html` : fond `#FAF8FF` (`#121318` en sombre ; `#FFF8F4` et `#18120B` avant le 2026-10-27), favicon, bloc `#kairos-loading` (cadran
   vide en SVG, relais de la page de démarrage, `demarrage.md`, +
   « Chargement de Kairos… ») retiré par `main()` au démarrage. Un test
   `WebAssembly.validate` d'un module WasmGC minimal remplace le texte par

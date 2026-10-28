@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Premier plan de l'icône adaptative : le cadran plus sombre, le quartier « bon
-     moment » et l'axe du cadran, repris du logo (docs/DESIGN_SYSTEM.md § Logo ; coordonnées d'origine
-     40×40, recentrées dans la zone sûre du canevas adaptatif 108×108). Le remplissage
-     fond clair du cadran est porté par le calque de fond (@color/ic_launcher_background),
-     mais son cadre plus foncé fait partie de l'illustration au même titre que le
-     secteur et le point : sans lui ici, il disparaît purement et simplement, le fond
-     étant un aplat uni sans distinction avec le masque du lanceur. -->
+<!-- Premier plan de l'icône adaptative : le logo complet (cadran crème, anneau, quartier « bon moment », axe), inchangé,
+     repris de docs/DESIGN_SYSTEM.md § Logo (coordonnées d'origine 40×40, recentrées dans la zone sûre du canevas
+     adaptatif 108×108, cadran d'environ 63 dp pour 72 dp de zone sûre). Le fond est un aplat océan profond
+     (@color/ic_launcher_background) : le cadran, qui était porté par le fond quand celui-ci était crème, est donc
+     dessiné ici. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     <group
-        android:scaleX="1.35"
-        android:scaleY="1.35"
-        android:translateX="27"
-        android:translateY="27">
+        android:scaleX="1.7"
+        android:scaleY="1.7"
+        android:translateX="20"
+        android:translateY="20">
+        <path
+            android:fillColor="#FFEEDC"
+            android:pathData="M1.5,20 A18.5,18.5 0 1 1 38.5,20 A18.5,18.5 0 1 1 1.5,20 Z" />
         <path
             android:strokeColor="#FFCC85"
             android:strokeWidth="1.6"

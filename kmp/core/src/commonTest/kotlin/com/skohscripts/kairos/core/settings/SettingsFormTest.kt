@@ -146,7 +146,8 @@ class SettingsFormTest {
 
     @Test
     fun the_theme_color_is_normalised_or_refused() {
-        assertEquals("#C28417", SettingsForm.values(base)["themeColor"])
+        assertEquals("#2F6FED", SettingsForm.values(base)["themeColor"])
+        assertEquals("#C28417", validate("themeColor" to "c28417").settings!!.themeColor)
         assertEquals("#2F6FED", validate("themeColor" to " 2f6fed ").settings!!.themeColor)
         assertEquals("#2F6FED", validate("themeColor" to "#2F6FED").settings!!.themeColor)
         assertEquals(Settings.SYSTEM_THEME, validate("themeColor" to "System").settings!!.themeColor)

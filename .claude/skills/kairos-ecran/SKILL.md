@@ -1,6 +1,6 @@
 ---
 name: kairos-ecran
-description: Checklist pour ajouter ou modifier un écran, une carte ou un composant Compose de Kairos (kmp/ui) conforme au design system « miel » Material 3 - couleurs par rôles, formes, icônes générées, textes FR/EN, accessibilité 48 dp, 360 dp sans débordement, navigation, captures hors écran et captures des magasins. À utiliser pour toute interface nouvelle ou modifiée, y compris les écrans de l'espace Équipe.
+description: Checklist pour ajouter ou modifier un écran, une carte ou un composant Compose de Kairos (kmp/ui) conforme au design system « océan » Material 3 - couleurs par rôles, formes, icônes générées, textes FR/EN, accessibilité 48 dp, 360 dp sans débordement, navigation, captures hors écran et captures des magasins. À utiliser pour toute interface nouvelle ou modifiée, y compris les écrans de l'espace Équipe.
 ---
 
 # Ajouter ou modifier un écran Kairos
@@ -23,7 +23,7 @@ d'en écrire : `StatTile`, `Panel`, `BarRow` (`ui/stats/StatsScreen.kt`),
 ## 2. Couleur
 
 - Uniquement `MaterialTheme.colorScheme.*` et `LocalKairosExtraColors` ;
-  **jamais** `Color(0x…)` dans un composant. Ne jamais supposer le miel :
+  **jamais** `Color(0x…)` dans un composant. Ne jamais supposer l'océan (graine par défaut) ni le miel (couleur du logo) :
   l'utilisateur peut changer la graine.
 - Un seul bloc teinté (`primaryContainer`) par écran ; primaire plein pour
   l'action principale d'une zone ; rouge seulement pour P0, erreurs et

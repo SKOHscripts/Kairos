@@ -141,7 +141,7 @@ fun KairosApp(
                         else -> Status(stringResource(Res.string.loading), null, progress = true)
                     }
                 }
-                // Dans le thème miel par défaut, clair ou sombre comme le système, pas celui des réglages : même fond que les
+                // Dans le thème océan par défaut, clair ou sombre comme le système, pas celui des réglages : même fond que les
                 // relais natifs.
                 if (!splashDone) StartupSplash(ready = ready != null || failure != null, onFinished = { splashDone = true })
             }
