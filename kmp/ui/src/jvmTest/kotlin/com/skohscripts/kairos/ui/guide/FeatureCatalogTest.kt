@@ -62,6 +62,7 @@ class FeatureCatalogTest {
         assertEquals(setOf("level_names", "besthours_efficiency", "guided_walks"), FeatureCatalog.newIn("3.9.0").map { it.id }.toSet())
         assertEquals(setOf("calendar_import", "linked_file"), FeatureCatalog.newIn("3.10.0").map { it.id }.toSet())
         assertEquals(setOf("languages"), FeatureCatalog.newIn("3.11.0").map { it.id }.toSet())
+        assertEquals(setOf("widgets", "daily_summary"), FeatureCatalog.newIn("3.12.0").map { it.id }.toSet())
         // Les versions qui n'ajoutent rien (ou illisibles) n'affichent rien.
         assertEquals(emptyList(), FeatureCatalog.newIn("3.3.0"))
         assertEquals(emptyList(), FeatureCatalog.newIn("garbage"))

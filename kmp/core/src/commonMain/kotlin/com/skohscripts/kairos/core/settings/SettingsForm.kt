@@ -13,9 +13,10 @@ import com.skohscripts.kairos.core.model.WorkContext
 import com.skohscripts.kairos.core.model.WorkWindow
 import com.skohscripts.kairos.core.model.TeamSettings
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 
 /** Nature d'un champ de réglage : ce qu'on y saisit et comment on le valide. */
-enum class FieldKind { INT, DECIMAL, BOOL, TEXT, DATES, COLOR }
+enum class FieldKind { INT, DECIMAL, BOOL, TEXT, DATES, COLOR, TIME }
 
 /**
  * Un réglage éditable (docs/spec/reglages.md) : clé stable (nom du champ
@@ -35,7 +36,7 @@ class SettingField internal constructor(
     internal val validate: ((String) -> FieldError?)? = null,
 )
 
-enum class FieldErrorKind { REQUIRED, NOT_INTEGER, NOT_NUMBER, TOO_SMALL, TOO_LARGE, INVALID_DATE, INVALID_COLOR, DUPLICATE, UNKNOWN_CONTEXT }
+enum class FieldErrorKind { REQUIRED, NOT_INTEGER, NOT_NUMBER, TOO_SMALL, TOO_LARGE, INVALID_DATE, INVALID_COLOR, INVALID_TIME, DUPLICATE, UNKNOWN_CONTEXT }
 
 /** Erreur d'un champ ; [bound] est la borne franchie (« 0 », « 23 ») ou la date illisible. */
 data class FieldError(val kind: FieldErrorKind, val bound: String? = null)
@@ -346,6 +347,9 @@ object SettingsForm {
         reminders("reminders.enabled", FieldKind.BOOL, get = { it.enabled.toString() }) { r, v -> r.copy(enabled = v == "true") },
         reminders("reminders.leadMinutes", FieldKind.INT, 0.0, ReminderSettings.MAX_LEAD.toDouble(), get = { it.leadMinutes.toString() }) { r, v -> r.copy(leadMinutes = v.toInt()) },
         reminders("reminders.nextTask", FieldKind.BOOL, get = { it.nextTask.toString() }) { r, v -> r.copy(nextTask = v == "true") },
+        // Récapitulatif du jour (docs/spec/rappels.md § Récapitulatif du jour) : indépendant de « reminders.enabled ».
+        reminders("reminders.dailySummary", FieldKind.BOOL, get = { it.dailySummary.toString() }) { r, v -> r.copy(dailySummary = v == "true") },
+        reminders("reminders.dailySummaryTime", FieldKind.TIME, get = { it.dailySummaryTime }) { r, v -> r.copy(dailySummaryTime = normalizeTime(v)!!) },
     )
 
     /** Clé du champ du nom de la priorité [p] (`levelNames.p0`). */
@@ -549,6 +553,7 @@ object SettingsForm {
             FieldKind.BOOL -> null
             FieldKind.TEXT -> f.validate?.invoke(text)
             FieldKind.COLOR -> if (normalizeColor(text) == null) FieldError(FieldErrorKind.INVALID_COLOR, text) else null
+            FieldKind.TIME -> if (normalizeTime(text) == null) FieldError(FieldErrorKind.INVALID_TIME, text) else null
             FieldKind.DATES -> text.split(',').map { it.trim() }.firstOrNull { it.isNotEmpty() && parseDate(it) == null }
                 ?.let { FieldError(FieldErrorKind.INVALID_DATE, it) }
             FieldKind.INT, FieldKind.DECIMAL -> {
@@ -593,6 +598,17 @@ object SettingsForm {
         val hex = t.removePrefix("#")
         if (hex.length != 6 || !hex.all { it in '0'..'9' || it.lowercaseChar() in 'a'..'f' }) return null
         return "#" + hex.uppercase()
+    }
+
+    /** Heure « HH:MM » de 00:00 à 23:59 (« 8:30 » accepté, enregistré « 08:30 ») ; `null` si illisible. */
+    fun normalizeTime(text: String): String? = parseTime(text)?.let { "${it.hour.toString().padStart(2, '0')}:${it.minute.toString().padStart(2, '0')}" }
+
+    /** [LocalTime] d'une heure « H:MM » ou « HH:MM » valide, `null` sinon. */
+    fun parseTime(text: String): LocalTime? {
+        val match = Regex("""(\d{1,2}):(\d{2})""").matchEntire(text.trim()) ?: return null
+        val hour = match.groupValues[1].toInt()
+        val minute = match.groupValues[2].toInt()
+        return if (hour in 0..23 && minute in 0..59) LocalTime(hour, minute) else null
     }
 
     /** Couleur `0xRRGGBB` d'une valeur `#RRGGBB`, `null` pour `system` ou une valeur illisible. */

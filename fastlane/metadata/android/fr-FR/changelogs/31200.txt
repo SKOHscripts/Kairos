@@ -1,0 +1,1 @@
+Kairos 3.12.0 : deux widgets pour l’écran d’accueil Android, « Maintenant » (terminer la tâche d’un double toucher, chrono, capture) et « Journée » (le plan heure par heure). Un récapitulatif du jour en notification, à l’heure choisie (Réglages, désactivé par défaut). La couleur par défaut devient l’océan ; le miel reste au choix dans Réglages → Apparence.

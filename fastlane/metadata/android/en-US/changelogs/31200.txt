@@ -1,0 +1,1 @@
+Kairos 3.12.0: two Android home screen widgets, “Now” (finish the task with a double tap, timer, capture) and “Day” (the plan hour by hour). A daily summary notification at the time you choose (Settings, off by default). The default colour becomes ocean; honey is still available in Settings → Appearance.

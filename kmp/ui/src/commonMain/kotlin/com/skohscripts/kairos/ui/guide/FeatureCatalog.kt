@@ -35,6 +35,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_slots_month_title
 import com.skohscripts.kairos.ui.generated.resources.card_settings_categories_title
 import com.skohscripts.kairos.ui.generated.resources.card_settings_categories_body
 import com.skohscripts.kairos.ui.generated.resources.card_darktheme_title
+import com.skohscripts.kairos.ui.generated.resources.card_daily_summary_body
+import com.skohscripts.kairos.ui.generated.resources.card_daily_summary_title
 import com.skohscripts.kairos.ui.generated.resources.card_darktheme_body
 import com.skohscripts.kairos.ui.generated.resources.card_besthours_apply_body
 import com.skohscripts.kairos.ui.generated.resources.card_besthours_apply_title
@@ -184,6 +186,7 @@ object FeatureCatalog {
         FeatureCard("settings", GuideChapter.SETTINGS, { KairosIcons.Settings }, Res.string.card_settings_title, Res.string.card_settings_body, GuideTarget.Settings(), since = "3.4.0"),
         FeatureCard("settings_categories", GuideChapter.SETTINGS, { KairosIcons.Tune }, Res.string.card_settings_categories_title, Res.string.card_settings_categories_body, GuideTarget.Settings(), since = "3.7.0"),
         FeatureCard("reminders", GuideChapter.SETTINGS, { KairosIcons.Alarm }, Res.string.card_reminders_title, Res.string.card_reminders_body, GuideTarget.Settings(GuideSection.SETTINGS_REMINDERS), since = "3.8.0"),
+        FeatureCard("daily_summary", GuideChapter.SETTINGS, { KairosIcons.Alarm }, Res.string.card_daily_summary_title, Res.string.card_daily_summary_body, GuideTarget.Settings(GuideSection.SETTINGS_REMINDERS), since = "3.12.0"),
         FeatureCard("darktheme", GuideChapter.SETTINGS, { KairosIcons.DarkMode }, Res.string.card_darktheme_title, Res.string.card_darktheme_body, GuideTarget.Settings(GuideSection.SETTINGS_APPEARANCE), since = "3.7.0"),
         FeatureCard("languages", GuideChapter.SETTINGS, { KairosIcons.Translate }, Res.string.card_languages_title, Res.string.card_languages_body, GuideTarget.Settings(), since = "3.11.0"),
         FeatureCard("data", GuideChapter.SETTINGS, { KairosIcons.Description }, Res.string.guide_you_data_title, Res.string.guide_you_data_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), tour = true),
@@ -270,6 +273,7 @@ object FeatureCatalog {
         "Languages" to "languages",
         "Reminders" to "reminders",
         "Home screen widgets" to "widgets",
+        "Daily summary" to "daily_summary",
         "Guided first task" to "first_task",
         "Guided first team task" to "team_backlog",
         "Discover Kairos" to "discover",

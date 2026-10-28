@@ -1644,4 +1644,18 @@
     <string name="widget_open_app">Apri Kairos</string>
     <string name="widget_estimate">/ %1$s</string>
     <string name="widget_time_span">%1$s–%2$s</string>
+    <!-- Récapitulatif du jour (docs/spec/rappels.md § Récapitulatif du jour) -->
+    <string name="card_daily_summary_title">La tua giornata in una notifica</string>
+    <string name="card_daily_summary_body">In Impostazioni → Timer e statistiche, il riepilogo del giorno invia «La tua giornata» all’ora scelta: quante attività e fasce prevede il piano, e le prime attività con il loro orario. Solo nei giorni con qualcosa in programma; disattivato per impostazione predefinita.</string>
+    <string name="setting_reminders_summary">Riepilogo del giorno</string>
+    <string name="setting_reminders_summary_time">A che ora</string>
+    <string name="setting_reminders_summary_time_help">HH:MM, per esempio 08:30. Una notifica «La tua giornata» con ciò che il piano prevede oggi, inviata solo nei giorni in cui c’è qualcosa in programma.</string>
+    <string name="settings_error_time">Ora illeggibile: «%1$s» (formato HH:MM, da 00:00 a 23:59).</string>
+    <string name="reminder_summary_title">La tua giornata</string>
+    <string name="reminder_summary_tasks_one">1 attività</string>
+    <string name="reminder_summary_tasks_many">%1$d attività</string>
+    <string name="reminder_summary_slots_one">1 fascia</string>
+    <string name="reminder_summary_slots_many">%1$d fasce</string>
+    <string name="reminder_summary_line">%1$s %2$s</string>
+    <string name="reminder_summary_more">…</string>
 </resources>

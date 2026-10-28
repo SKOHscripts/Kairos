@@ -476,4 +476,19 @@ class SettingsFormTest {
         val back = SettingsForm.validate(SettingsForm.values(on) + ("reminders.enabled" to "false") + ("reminders.leadMinutes" to "10") + ("reminders.nextTask" to "false"), on).settings!!
         assertNull(back.reminders)
     }
+
+    @Test
+    fun theDailySummaryHasItsOwnSwitchAndATimeField() {
+        // Récapitulatif du jour (docs/spec/rappels.md) : désactivé, 08:30 ; indépendant des rappels.
+        assertEquals("false", SettingsForm.values(base)["reminders.dailySummary"])
+        assertEquals("08:30", SettingsForm.values(base)["reminders.dailySummaryTime"])
+        val on = validate("reminders.dailySummary" to "true", "reminders.dailySummaryTime" to " 7:05 ").settings!!
+        assertEquals(com.skohscripts.kairos.core.model.ReminderSettings(dailySummary = true, dailySummaryTime = "07:05"), on.reminders)
+        assertEquals(false, on.reminders!!.enabled)
+        for (bad in listOf("", "24:00", "12:60", "8h30", "830", "-1:00")) {
+            assertEquals(FieldErrorKind.INVALID_TIME, validate("reminders.dailySummaryTime" to bad).fieldErrors["reminders.dailySummaryTime"]?.kind, bad)
+        }
+        assertEquals("23:59", SettingsForm.normalizeTime("23:59"))
+        assertEquals("00:00", SettingsForm.normalizeTime("0:00"))
+    }
 }

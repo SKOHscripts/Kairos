@@ -111,8 +111,9 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   `history` 5, `minSamples` 3 ; nul = valeurs par défaut, non écrit dans l'export tant qu'il est nul, `durees-apprises.md`),
   `guide` (`GuideSettings?`, 3.7.0 : `newsHidden` (version majeure.mineure), `readChapters`, `firstTaskDone` ; nul tant
   que le guide n'a rien retenu, donc absent de l'export, `visite-guidee.md` § Persistance), `reminders`
-  (`ReminderSettings?`, 3.8.0 : `enabled` faux, `leadMinutes` 10 (0-120), `nextTask` faux ; nul tant qu'il vaut ses
-  défauts, donc absent de l'export, `rappels.md`), `levelNames` (`LevelNames?`, 3.9.0 : `priority` et `points`,
+  (`ReminderSettings?`, 3.8.0 : `enabled` faux, `leadMinutes` 10 (0-120), `nextTask` faux ; 3.12.0 : `dailySummary`
+  faux et `dailySummaryTime` « 08:30 », absents du JSON à ces valeurs ; nul tant qu'il vaut ses défauts, donc absent de
+  l'export, `rappels.md`), `levelNames` (`LevelNames?`, 3.9.0 : `priority` et `points`,
   valeur → nom choisi (16 caractères au plus), une valeur sans nom absente ; nul tant qu'aucun nom n'est choisi, donc
   absent de l'export ; affichage seulement, jamais dans un paquet d'échange, `planning-personnalise.md` § Lot D) ;
   `Task.seriesId` (identifiant de la première tâche d'une série récurrente, nul par défaut).

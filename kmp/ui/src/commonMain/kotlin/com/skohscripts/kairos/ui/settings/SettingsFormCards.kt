@@ -57,6 +57,9 @@ import com.skohscripts.kairos.core.settings.FieldKind
 import com.skohscripts.kairos.core.settings.SettingsForm
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.setting_reminders_next
+import com.skohscripts.kairos.ui.generated.resources.setting_reminders_summary
+import com.skohscripts.kairos.ui.generated.resources.setting_reminders_summary_time
+import com.skohscripts.kairos.ui.generated.resources.setting_reminders_summary_time_help
 import com.skohscripts.kairos.ui.generated.resources.setting_reminders_lead_help
 import com.skohscripts.kairos.ui.generated.resources.setting_reminders_lead
 import com.skohscripts.kairos.ui.generated.resources.setting_reminders_enabled
@@ -65,6 +68,7 @@ import com.skohscripts.kairos.ui.generated.resources.settings_reminders_title
 import com.skohscripts.kairos.ui.generated.resources.settings_chrono_body
 import com.skohscripts.kairos.ui.generated.resources.settings_chrono_title
 import com.skohscripts.kairos.ui.generated.resources.settings_error_color
+import com.skohscripts.kairos.ui.generated.resources.settings_error_time
 import com.skohscripts.kairos.ui.generated.resources.settings_error_date
 import com.skohscripts.kairos.ui.generated.resources.settings_error_integer
 import com.skohscripts.kairos.ui.generated.resources.settings_error_max
@@ -188,6 +192,8 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "reminders.enabled" to FieldText(Res.string.setting_reminders_enabled),
     "reminders.leadMinutes" to FieldText(Res.string.setting_reminders_lead, Res.string.setting_reminders_lead_help),
     "reminders.nextTask" to FieldText(Res.string.setting_reminders_next),
+    "reminders.dailySummary" to FieldText(Res.string.setting_reminders_summary),
+    "reminders.dailySummaryTime" to FieldText(Res.string.setting_reminders_summary_time, Res.string.setting_reminders_summary_time_help),
     "holidaysFr" to FieldText(Res.string.setting_holidays_fr),
     "extraHolidays" to FieldText(Res.string.setting_extra_holidays, Res.string.setting_extra_holidays_help),
     "updateCheckEnabled" to FieldText(Res.string.setting_update_check),
@@ -236,7 +242,7 @@ private val CHRONO = Section(
 )
 private val REMINDERS = Section(
     Res.string.settings_reminders_title, Res.string.settings_reminders_body, KairosIcons.Alarm,
-    listOf("reminders.enabled", "reminders.leadMinutes", "reminders.nextTask"),
+    listOf("reminders.enabled", "reminders.leadMinutes", "reminders.nextTask", "reminders.dailySummary", "reminders.dailySummaryTime"),
 )
 private val STATS = Section(Res.string.settings_section_stats, null, KairosIcons.BarChart, listOf("statsWindowWeeks"))
 
@@ -350,9 +356,15 @@ internal fun SettingsFormCards(
 private fun SectionCard(section: Section, values: Map<String, String>, errors: Map<String, FieldError>, onChange: (String, String) -> Unit) {
     SettingsCard {
         SettingsCardHeader(section.icon, stringResource(section.title), section.body?.let { stringResource(it) })
-        section.keys.forEach { key -> SettingInput(key, values[key].orEmpty(), errors[key]) { onChange(key, it) } }
+        section.keys
+            // Un champ qui ne sert qu'avec son interrupteur n'apparaît qu'avec lui (sauf s'il est en erreur).
+            .filter { key -> SHOWN_WITH[key]?.let { values[it] == "true" } != false || key in errors }
+            .forEach { key -> SettingInput(key, values[key].orEmpty(), errors[key]) { onChange(key, it) } }
     }
 }
+
+/** Champ → interrupteur dont il dépend : « À quelle heure » du récapitulatif n'apparaît que s'il est activé (docs/spec/rappels.md). */
+private val SHOWN_WITH = mapOf("reminders.dailySummaryTime" to "reminders.dailySummary")
 
 /**
  * « Avancé : comment les tâches sont ordonnées » : le score de priorité et le creux de l'après-midi, repliés. Ils
@@ -460,6 +472,7 @@ internal fun errorMessage(error: FieldError, minExclusive: Boolean): String = wh
     FieldErrorKind.TOO_LARGE -> stringResource(Res.string.settings_error_max, error.bound.orEmpty())
     FieldErrorKind.INVALID_DATE -> stringResource(Res.string.settings_error_date, error.bound.orEmpty())
     FieldErrorKind.INVALID_COLOR -> stringResource(Res.string.settings_error_color, error.bound.orEmpty())
+    FieldErrorKind.INVALID_TIME -> stringResource(Res.string.settings_error_time, error.bound.orEmpty())
     FieldErrorKind.DUPLICATE -> stringResource(Res.string.settings_error_duplicate, error.bound.orEmpty())
     FieldErrorKind.UNKNOWN_CONTEXT -> stringResource(Res.string.settings_error_context, error.bound.orEmpty())
 }

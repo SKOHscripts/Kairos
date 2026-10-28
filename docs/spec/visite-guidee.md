@@ -236,6 +236,9 @@ since, tour)`, **dans l'ordre de la visite**.
   Android, #137 ; section `SETTINGS_DATA`, chapitre « Réglages », icône `Description`).
 - **Carte de la 3.11.0** : `languages` (les six langues et leur choix, #75 ; cible `GuideTarget.Settings()` sans section,
   chapitre « Réglages », icône `Translate`).
+- **Cartes de la 3.12.0** : `widgets` (widgets Android, #150 ; vue Jour, section `DAY_NOW`, chapitre « Suivre », icône `Today` ;
+  la carte se lit sur toutes les plateformes, son texte dit « Sur Android »), `daily_summary` (récapitulatif du jour, #151 ;
+  section `SETTINGS_REMINDERS`, chapitre « Réglages », icône `Alarm`).
 - **Comptes de cartes dans les tests** : `M6GuideUiTest` tire les nombres de cartes par chapitre de `FeatureCatalog`
   (une carte ajoutée à une version ne casse plus le test du hub).
 - **Lien avec le README** : `FeatureCatalog.README_FEATURES` associe chaque fonctionnalité en gras de la section
