@@ -1644,4 +1644,18 @@
     <string name="widget_open_app">Открыть Kairos</string>
     <string name="widget_estimate">/ %1$s</string>
     <string name="widget_time_span">%1$s–%2$s</string>
+    <!-- Récapitulatif du jour (docs/spec/rappels.md § Récapitulatif du jour) -->
+    <string name="card_daily_summary_title">Твой день в одном уведомлении</string>
+    <string name="card_daily_summary_body">В Настройках → Таймер и статистика сводка дня присылает «Твой день» в выбранное время: сколько задач и интервалов в плане и первые задачи с их временем. Только в дни, когда что-то запланировано; по умолчанию выключена.</string>
+    <string name="setting_reminders_summary">Сводка дня</string>
+    <string name="setting_reminders_summary_time">Во сколько</string>
+    <string name="setting_reminders_summary_time_help">ЧЧ:ММ, например 08:30. Уведомление «Твой день» с тем, что план предусматривает на сегодня, только в дни, когда что-то запланировано.</string>
+    <string name="settings_error_time">Не удалось прочитать время: «%1$s» (формат ЧЧ:ММ, от 00:00 до 23:59).</string>
+    <string name="reminder_summary_title">Твой день</string>
+    <string name="reminder_summary_tasks_one">1 задача</string>
+    <string name="reminder_summary_tasks_many">задач: %1$d</string>
+    <string name="reminder_summary_slots_one">1 интервал</string>
+    <string name="reminder_summary_slots_many">интервалов: %1$d</string>
+    <string name="reminder_summary_line">%1$s %2$s</string>
+    <string name="reminder_summary_more">…</string>
 </resources>

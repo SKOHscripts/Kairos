@@ -19,16 +19,16 @@ utilisateurs) ; ce document est en français comme le reste de `docs/`.
 | `3.9.0` | Version préparée (`30900`, notes de version FR/EN ; tag `v3.9.0` posé par le propriétaire) : noms des niveaux (#93), meilleures heures mesurées par l'efficacité (#105), accompagnement des récurrences et des Réglages (#98), jours et heures par membre (#104), notes dans les échanges (#120), propositions d'un membre (#121), dossier des données, diagnostic et proxy du bureau (#115, spec `bureau-avance.md`), lien « Voir la dernière version » sur Android (#143). #75 en sort (choix du propriétaire, 2026-10-24), rangé en `3.11.0`. |
 | `3.10.0` | Version préparée (`31000`, notes de version FR/EN ; tag `v3.10.0` posé par le propriétaire) : connexions externes **sans réseau ni compte** (suivi : #140) : import d'un calendrier `.ics` en créneaux occupés, journées entières en badge (#136, spec `connexions-externes.md`), fichier lié sur le bureau et Android avec garde contre une modification faite ailleurs (#137, la moitié « écriture » de #88), calendriers du téléphone lus en direct (#138, `READ_CALENDAR` facultative). |
 | `3.11.0` | Version préparée (`31100`, notes de version dans les six langues ; tag `v3.11.0` posé par le propriétaire) : espagnol, allemand, russe et italien en plus du français et de l'anglais, suivant la langue du système (#75, spec `i18n.md`) ; fiches du magasin et page web dans ces langues. Les langues que la police ne couvre pas ou qui s'écrivent de droite à gauche : #147 (Backlog). |
-| `3.12.0` | Prochaine version : widgets Android « Maintenant » et « Journée » (#150, spec `widgets-android.md`) et récapitulatif du jour en notification (#151, `rappels.md`). Spécifiée le 2026-10-26 ; widgets implémentés, récapitulatif à implémenter (deux PR, le passage de version dans la seconde). Sans issue, livrée dans la même version (choix du propriétaire du 2026-10-28) : la couleur par défaut passe du miel à l'océan (thème, icônes d'installation, boutons de téléchargement, site, captures ; `apparence.md` § Couleur par défaut). |
+| `3.12.0` | Version préparée (`31200`, notes de version dans les six langues ; tag `v3.12.0` posé par le propriétaire) : widgets Android « Maintenant » et « Journée » (#150, spec `widgets-android.md`), récapitulatif du jour en notification (#151, `rappels.md`), en deux PR (le passage de version dans la seconde) ; sans issue, livrée dans la même version (choix du propriétaire du 2026-10-28) : la couleur par défaut passe du miel à l'océan (thème, icônes d'installation, boutons de téléchargement, site, captures ; `apparence.md` § Couleur par défaut). |
 | `4.0.0` | **Version majeure** : ce qui change le modèle de données, le format d'échange ou une décision fondatrice de `docs/spec/`, donc ne peut pas entrer dans une version mineure. Spécifiée le 2026-10-26 : synchronisation par fichier avec fusion à la lecture (#88) et durées apprises partagées (#100) (`synchronisation.md`) ; connexions en ligne facultatives (#139, #144 ; lien ICS, CalDAV, Microsoft 365, Google, vérification des versions Android) qui **rouvrent « sans permission réseau »** (`connexions-en-ligne.md`, un seul APK avec `INTERNET`, fonctions désactivées par défaut) ; estimateur par modèle (#99, `estimateur-modele.md`). Décision du même jour : **plusieurs équipes par base (#118) : non**, une équipe par base (`equipe.md`). |
-| `3.13.0` | Proposée : liste complète des fonctionnalités sur l'Accueil et tableau du README (#153, `liste-fonctionnalites.md`, spécifiée le 2026-10-26) ; avis des mois sautés d'une tâche mensuelle (#111, `recurrence.md`). Visite guidée interactive spécifiée (#96, `visite-guidee.md`), version à fixer. Glisser-déposer (#102) : décision « non » confirmée (`accessibilite.md`). |
+| `3.13.0` | Prochaine version, proposée : liste complète des fonctionnalités sur l'Accueil et tableau du README (#153, `liste-fonctionnalites.md`, spécifiée le 2026-10-26) ; avis des mois sautés d'une tâche mensuelle (#111, `recurrence.md`). Visite guidée interactive spécifiée (#96, `visite-guidee.md`), version à fixer. Glisser-déposer (#102) : décision « non » confirmée (`accessibilite.md`). |
 | `Backlog` | Non planifié : décision ou spec à écrire d'abord, dépendance externe (signature, synchronisation) ou attente de retours. Signatures macOS et Windows (#116, #117 : `deferred`), intégrations Jira/GitLab (#119), langues hors police (#147). |
 
 Le contenu de `4.0.0` est un **brouillon de planification**
 (issues #93 à #121 réparties le 2026-10-19, `3.9.0` et `4.0.0` remplis le 2026-10-24,
 `3.10.0` créé le même jour pour les connexions externes) :
-un milestone se déplace librement, rien n'est promis. Seule la **prochaine version** (`3.12.0` depuis la préparation de
-la `3.11.0`, le 2026-10-25 ; ses issues #150 et #151 n'ont plus de label d'état une fois la spec écrite) doit
+un milestone se déplace librement, rien n'est promis. Seule la **prochaine version** (`3.13.0` depuis la préparation de
+la `3.12.0`, le 2026-10-28 ; ses labels d'état restent à trier par la routine `kairos-retours`) doit
 être « propre » (voir ci-dessous) ; `4.0.0` est un horizon et garde les
 labels d'état de ses issues, qui disent ce qu'il reste à trancher avant de les tirer
 vers la prochaine version.
@@ -96,7 +96,7 @@ qui suit se fait en cinq minutes.
    | Vue | Type | Réglage |
    |---|---|---|
    | `Roadmap` | Board | Colonnes = `Milestone` ; filtre `-status:Done` |
-   | `Board` | Board | Colonnes = `Status` ; filtre `milestone:3.11.0,3.12.0` |
+   | `Board` | Board | Colonnes = `Status` ; filtre `milestone:3.12.0,3.13.0` |
    | `Feedback` | Table | Filtre `label:feedback status:Inbox` ; tri par date de création |
    | `Decisions` | Table | Filtre `label:needs-decision,needs-spec` ; groupé par `Milestone` |
    | `By area` | Table | Groupé par `Labels` ; filtre `-status:Done` |

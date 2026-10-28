@@ -241,6 +241,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   la tâche suivante. Sur Android même Kairos fermé (quelques minutes de retard
   possibles téléphone en veille, aucune permission de plus) ; sur le bureau et
   le web tant que Kairos est ouvert.
+- **Récapitulatif du jour** (Réglages, désactivé par défaut) : une notification
+  « Ta journée » à l’heure choisie, avec le nombre de tâches et de créneaux que
+  le plan prévoit et les trois premières tâches avec leur heure ; rien un jour
+  où rien n’est prévu. Un toucher ouvre la vue Jour.
 
 ### Vues
 
@@ -451,6 +455,7 @@ touché ; rien n’est enregistré avant « Enregistrer »).
 | | Score de priorité (WSJF), avancé | Base de valeur, horizon et poids de l’urgence, points par défaut | 4, 14 j, 8, 3 |
 | | Creux de l’après-midi, avancé | Activé, début, creux, fin, force | activé, 13 h – 15 h – 16 h, 1 |
 | Chrono et statistiques | Alertes du chrono | Chrono oublié, pause suggérée, son de secours | 180 min, 50 min, désactivé |
+| | Rappels | Tâches à heure fixe et avance, tâche suivante, récapitulatif du jour et son heure | désactivé, 10 min, désactivé, désactivé, 08:30 |
 | | Statistiques | Fenêtre des indicateurs | 8 semaines |
 | Équipe | Équipe | Gestion d’équipe, puis ses seuils, sa charge et ses prévisions | désactivé |
 | Données | Données, calendriers, réglages par défaut | Export, import, importer un calendrier (réimporter, retirer), restaurer les valeurs par défaut | |

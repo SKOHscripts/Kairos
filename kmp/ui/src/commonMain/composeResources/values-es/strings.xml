@@ -1644,4 +1644,18 @@
     <string name="widget_open_app">Abrir Kairos</string>
     <string name="widget_estimate">/ %1$s</string>
     <string name="widget_time_span">%1$s–%2$s</string>
+    <!-- Récapitulatif du jour (docs/spec/rappels.md § Récapitulatif du jour) -->
+    <string name="card_daily_summary_title">Tu día en una notificación</string>
+    <string name="card_daily_summary_body">En Ajustes → Cronómetro y estadísticas, el resumen del día envía «Tu día» a la hora elegida: cuántas tareas y franjas prevé el plan, y las primeras tareas con su hora. Solo los días con algo previsto; desactivado de forma predeterminada.</string>
+    <string name="setting_reminders_summary">Resumen del día</string>
+    <string name="setting_reminders_summary_time">A qué hora</string>
+    <string name="setting_reminders_summary_time_help">HH:MM, por ejemplo 08:30. Una notificación «Tu día» con lo que el plan prevé hoy, enviada solo los días en que hay algo previsto.</string>
+    <string name="settings_error_time">Hora ilegible: «%1$s» (formato HH:MM, de 00:00 a 23:59).</string>
+    <string name="reminder_summary_title">Tu día</string>
+    <string name="reminder_summary_tasks_one">1 tarea</string>
+    <string name="reminder_summary_tasks_many">%1$d tareas</string>
+    <string name="reminder_summary_slots_one">1 franja</string>
+    <string name="reminder_summary_slots_many">%1$d franjas</string>
+    <string name="reminder_summary_line">%1$s %2$s</string>
+    <string name="reminder_summary_more">…</string>
 </resources>

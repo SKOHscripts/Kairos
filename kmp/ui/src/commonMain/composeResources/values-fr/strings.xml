@@ -1647,4 +1647,18 @@
     <string name="widget_open_app">Ouvrir Kairos</string>
     <string name="widget_estimate">/ %1$s</string>
     <string name="widget_time_span">%1$s–%2$s</string>
+    <!-- Récapitulatif du jour (docs/spec/rappels.md § Récapitulatif du jour) -->
+    <string name="card_daily_summary_title">Ta journée en une notification</string>
+    <string name="card_daily_summary_body">Dans Réglages → Chrono et statistiques, le récapitulatif du jour envoie « Ta journée » à l’heure choisie : combien de tâches et de créneaux le plan prévoit, et les premières tâches avec leur heure. Seulement les jours où quelque chose est prévu ; désactivé par défaut.</string>
+    <string name="setting_reminders_summary">Récapitulatif du jour</string>
+    <string name="setting_reminders_summary_time">À quelle heure</string>
+    <string name="setting_reminders_summary_time_help">HH:MM, par exemple 08:30. Une notification « Ta journée » avec ce que le plan prévoit aujourd’hui, envoyée seulement les jours où quelque chose est prévu.</string>
+    <string name="settings_error_time">Heure illisible : « %1$s » (format HH:MM, de 00:00 à 23:59).</string>
+    <string name="reminder_summary_title">Ta journée</string>
+    <string name="reminder_summary_tasks_one">1 tâche</string>
+    <string name="reminder_summary_tasks_many">%1$d tâches</string>
+    <string name="reminder_summary_slots_one">1 créneau</string>
+    <string name="reminder_summary_slots_many">%1$d créneaux</string>
+    <string name="reminder_summary_line">%1$s %2$s</string>
+    <string name="reminder_summary_more">…</string>
 </resources>

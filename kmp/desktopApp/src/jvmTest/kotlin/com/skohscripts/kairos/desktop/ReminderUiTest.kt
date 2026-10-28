@@ -31,7 +31,8 @@ import kotlin.time.Instant
 
 /**
  * Veille des rappels (docs/spec/rappels.md, issue #103) : à 13 h 50, la tâche épinglée à 14 h a son bandeau « Starts at 14:00
- * (in 10 min) », une seule fois ; rien avant l'heure. Horloge simulée, fuseau du système.
+ * (in 10 min) », une seule fois ; rien avant l'heure. Le récapitulatif du jour (issue #151), rappels éteints : « Your day · 1 task » à
+ * l'heure choisie, une seule fois. Horloge simulée, fuseau du système.
  */
 @OptIn(ExperimentalTestApi::class)
 class ReminderUiTest {
@@ -48,14 +49,14 @@ class ReminderUiTest {
     @AfterTest
     fun restore() = Locale.setDefault(saved)
 
-    private fun services(): AppServices = runBlocking {
+    private fun services(reminders: ReminderSettings = ReminderSettings(enabled = true)): AppServices = runBlocking {
         val repository = KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock)
         repository.replaceAll(
             KairosSnapshot(
                 tasks = listOf(
                     Task(1, "Call Marc", priority = 1, fibonacciPoints = 2, estimatedMinutes = 30, pinnedStart = LocalDateTime(2026, 9, 29, 14, 0), createdAt = now, updatedAt = now),
                 ),
-                settings = Settings(reminders = ReminderSettings(enabled = true)),
+                settings = Settings(reminders = reminders),
             ),
         )
         val files = object : FileService {
@@ -86,5 +87,24 @@ class ReminderUiTest {
         mainClock.advanceTimeBy(3_000)
         waitForIdle()
         assertEquals(1, count(banner))
+    }
+
+    @Test
+    fun theDailySummaryArrivesOnceAtItsTimeEvenWithRemindersOff() = runComposeUiTest {
+        val services = services(ReminderSettings(dailySummary = true, dailySummaryTime = "13:50"))
+        val summary = "Your day · 1 task"
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Call Marc", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        mainClock.advanceTimeBy(1_500)
+        waitForIdle()
+        assertEquals(0, count(summary))
+        now = LocalDateTime(2026, 9, 29, 13, 50, 1).toInstant(zone)
+        waitUntil(conditionDescription = "bandeau du récapitulatif", timeoutMillis = 15_000) { count(summary) == 1 }
+        now = LocalDateTime(2026, 9, 29, 13, 52, 0).toInstant(zone)
+        mainClock.advanceTimeBy(3_000)
+        waitForIdle()
+        assertEquals(1, count(summary))
+        // Rappels éteints : pas de rappel d'heure fixe.
+        assertEquals(0, count(banner))
     }
 }

@@ -1,0 +1,1 @@
+Kairos 3.12.0: due widget per la schermata Home di Android, «Adesso» (completare l’attività con un doppio tocco, timer, cattura) e «Giornata» (il piano ora per ora). Un riepilogo del giorno in notifica, all’ora scelta (Impostazioni, disattivato per impostazione predefinita). Il colore predefinito diventa oceano; il miele resta disponibile in Impostazioni → Aspetto.

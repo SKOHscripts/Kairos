@@ -1,0 +1,1 @@
+Kairos 3.12.0: zwei Widgets für den Android-Startbildschirm, „Jetzt“ (Aufgabe per Doppeltipp erledigen, Timer, erfassen) und „Tag“ (der Plan Stunde für Stunde). Eine Tageszusammenfassung als Benachrichtigung zur gewählten Uhrzeit (Einstellungen, standardmäßig aus). Die Standardfarbe ist jetzt Ozean; Honig bleibt unter Einstellungen → Darstellung wählbar.

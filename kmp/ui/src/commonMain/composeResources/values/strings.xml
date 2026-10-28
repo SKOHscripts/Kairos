@@ -1645,4 +1645,18 @@
     <string name="widget_open_app">Open Kairos</string>
     <string name="widget_estimate">/ %1$s</string>
     <string name="widget_time_span">%1$s–%2$s</string>
+    <!-- Récapitulatif du jour (docs/spec/rappels.md § Récapitulatif du jour) -->
+    <string name="card_daily_summary_title">Your day in one notification</string>
+    <string name="card_daily_summary_body">In Settings → Timer and statistics, the daily summary sends “Your day” at the time you choose: how many tasks and slots the plan holds, and the first tasks with their time. Only on days with something planned; off by default.</string>
+    <string name="setting_reminders_summary">Daily summary</string>
+    <string name="setting_reminders_summary_time">At what time</string>
+    <string name="setting_reminders_summary_time_help">HH:MM, for example 08:30. A notification “Your day” with what the plan holds today, sent only on days with something planned.</string>
+    <string name="settings_error_time">Unreadable time: “%1$s” (format HH:MM, 00:00 to 23:59).</string>
+    <string name="reminder_summary_title">Your day</string>
+    <string name="reminder_summary_tasks_one">1 task</string>
+    <string name="reminder_summary_tasks_many">%1$d tasks</string>
+    <string name="reminder_summary_slots_one">1 slot</string>
+    <string name="reminder_summary_slots_many">%1$d slots</string>
+    <string name="reminder_summary_line">%1$s %2$s</string>
+    <string name="reminder_summary_more">…</string>
 </resources>

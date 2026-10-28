@@ -228,6 +228,10 @@ order (critical path). Cycles are refused.
   next task. On Android even with Kairos closed (possibly a few minutes late
   while the phone sleeps, no extra permission); on desktop and the web while
   Kairos is open.
+- **Daily summary** (Settings, off by default): a "Your day" notification at
+  the time you choose, with the number of tasks and slots the plan holds and the
+  first three tasks with their time; nothing on a day with nothing planned. A
+  tap opens the Day view.
 
 ### Views
 
@@ -424,6 +428,7 @@ you press "Save").
 | | Priority score (WSJF), advanced | Value base, urgency horizon and weight, default points | 4, 14 d, 8, 3 |
 | | Afternoon dip, advanced | On/off, start, trough, end, strength | on, 1 pm – 3 pm – 4 pm, 1 |
 | Timer and statistics | Timer alerts | Forgotten timer, suggested break, fallback sound | 180 min, 50 min, off |
+| | Reminders | Fixed-time tasks and lead time, next task, daily summary and its time | off, 10 min, off, off, 08:30 |
 | | Statistics | Window of the indicators | 8 weeks |
 | Team | Team | Team management, then its thresholds, load and forecasts | off |
 | Data | Data, calendars, default settings | Export, import, import a calendar (reimport, remove), restore the defaults | |

@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.reminders
 
+import com.skohscripts.kairos.core.reminders.DailySummary
 import com.skohscripts.kairos.core.reminders.Reminder
 import com.skohscripts.kairos.core.reminders.ReminderKind
 import com.skohscripts.kairos.ui.chrono.ChronoTexts
@@ -9,6 +10,13 @@ import com.skohscripts.kairos.ui.generated.resources.reminder_clock
 import com.skohscripts.kairos.ui.generated.resources.reminder_fixed_body
 import com.skohscripts.kairos.ui.generated.resources.reminder_fixed_now_body
 import com.skohscripts.kairos.ui.generated.resources.reminder_next_body
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_line
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_more
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_slots_many
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_slots_one
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_tasks_many
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_tasks_one
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_title
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.getString
 
@@ -32,4 +40,21 @@ object ReminderTexts {
     }
 
     suspend fun channel(): String = getString(Res.string.notif_channel_reminders)
+
+    /** Titre du récapitulatif du jour : « Ta journée ». */
+    suspend fun summaryTitle(): String = getString(Res.string.reminder_summary_title)
+
+    /** « 5 tâches · 2 créneaux », « 1 tâche », « 1 créneau » : un compte nul est omis. */
+    suspend fun summaryCounts(summary: DailySummary): String = listOfNotNull(
+        summary.tasks.takeIf { it > 0 }?.let { if (it == 1) getString(Res.string.reminder_summary_tasks_one) else getString(Res.string.reminder_summary_tasks_many, it) },
+        summary.slots.takeIf { it > 0 }?.let { if (it == 1) getString(Res.string.reminder_summary_slots_one) else getString(Res.string.reminder_summary_slots_many, it) },
+    ).joinToString(" · ")
+
+    /** Notification dépliée : le compte, puis les premières tâches avec leur heure (« 09h30 Point d'équipe »), « … » s'il y en a plus. */
+    suspend fun summaryDetail(summary: DailySummary): String {
+        val lines = listOf(summaryCounts(summary)) +
+            summary.first.map { getString(Res.string.reminder_summary_line, clock(it.start), it.title) } +
+            listOfNotNull(if (summary.tasks > summary.first.size) getString(Res.string.reminder_summary_more) else null)
+        return lines.joinToString("\n")
+    }
 }

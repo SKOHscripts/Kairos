@@ -1,0 +1,1 @@
+Kairos 3.12.0: dos widgets para la pantalla de inicio de Android, «Ahora» (terminar la tarea con un doble toque, cronómetro, captura) y «Día» (el plan hora a hora). Un resumen del día en notificación, a la hora elegida (Ajustes, desactivado de forma predeterminada). El color predeterminado pasa a ser océano; la miel sigue disponible en Ajustes → Apariencia.
