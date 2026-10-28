@@ -15,7 +15,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -24,6 +27,7 @@ import com.skohscripts.kairos.ui.Platform
 import com.skohscripts.kairos.ui.app.CrashReportScreen
 import com.skohscripts.kairos.ui.app.FileService
 import com.skohscripts.kairos.ui.app.mimeOf
+import com.skohscripts.kairos.ui.navigation.Destination
 import com.skohscripts.kairos.ui.theme.KairosTheme
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +50,8 @@ class MainActivity : ComponentActivity(), FileService {
     private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) {
         pendingOpen?.complete(it)
     }
+    /** Destination demandée par un widget, application déjà ouverte (`onNewIntent`) ; remise à `null` une fois ouverte. */
+    private var externalDestination by mutableStateOf<Destination?>(null)
     private var pendingPermission: CompletableDeferred<Boolean>? = null
     private val permissionRequest = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
         pendingPermission?.complete(it)
@@ -77,9 +83,28 @@ class MainActivity : ComponentActivity(), FileService {
                     null
                 }
             }
-            KairosApp(Platform.ANDROID, systemColorScheme = system, onDarkTheme = ::applySystemBars, splash = true) { services.await() }
+            KairosApp(
+                Platform.ANDROID,
+                // Ouvert par un widget (docs/spec/widgets-android.md § Actions) : la vue Jour ou la capture, pas l'Accueil.
+                initialDestination = destinationOf(intent) ?: Destination.START,
+                systemColorScheme = system,
+                onDarkTheme = ::applySystemBars,
+                splash = true,
+                externalDestination = externalDestination,
+                onExternalDestinationHandled = { externalDestination = null },
+            ) { services.await() }
         }
     }
+
+    /** Application déjà ouverte (`singleTop`) : un toucher sur un widget passe sur la vue demandée sans recréer l'activité. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        destinationOf(intent)?.let { externalDestination = it }
+    }
+
+    private fun destinationOf(intent: Intent?): Destination? =
+        intent?.getStringExtra(EXTRA_DESTINATION)?.let { name -> Destination.entries.firstOrNull { it.name == name } }
 
     /**
      * Icônes des barres du système selon le thème **affiché**, pas celui du système : un thème sombre choisi sur un
@@ -170,6 +195,11 @@ class MainActivity : ComponentActivity(), FileService {
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
         }
         return uri
+    }
+
+    companion object {
+        /** Extra des intentions des widgets : nom de la [Destination] à ouvrir (`DAY`, `NOTES`). */
+        const val EXTRA_DESTINATION = "com.skohscripts.kairos.DESTINATION"
     }
 
     override suspend fun openText(): String? {

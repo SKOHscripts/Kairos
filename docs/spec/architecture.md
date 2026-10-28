@@ -120,7 +120,7 @@ asynchrone de la base).
 | Script | Produit | Dépendance |
 |---|---|---|
 | `make_theme.py` | `ui/.../theme/KairosColors.kt` : les 36 rôles MD3 du schéma *Tonal spot* (spec 2021) de la graine par défaut `#2F6FED` (l’océan ; le miel `#C28417` jusqu’au 2026-10-27). | `materialyoucolor` 3.0.4 |
-| `make_icons.py` | `ui/.../icons/KairosIcons.kt` : tracés Material Symbols (Outlined 400) et variantes pleines. | `@material-symbols/svg-400` 0.47.5 (npm) |
+| `make_icons.py` | `ui/.../icons/KairosIcons.kt` : tracés Material Symbols (Outlined 400) et variantes pleines ; `androidApp/src/main/res/drawable/ic_widget_*.xml` : les mêmes tracés en `drawable` blancs pour les widgets (`widgets-android.md`). | `@material-symbols/svg-400` 0.47.5 (npm) |
 | `make_app_icons.py` | `desktopApp/icons/kairos.{png,ico,icns}`, favicon et icônes de `webApp`, icônes des fiches Fastlane (512 px) et de la page `site/`. | Pillow |
 | `validate_fastlane.py` | Vérifie les fiches `fastlane/metadata/android/` (`publication.md`). | aucune |
 | `fdroid_check.sh` | `fdroid lint` et `fdroid build` de la recette dans l'image des serveurs F-Droid (`publication.md`). | Docker, image `fdroidserver:buildserver` |

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fond d'un widget (docs/spec/widgets-android.md § Thème) : grand bloc arrondi à 16 dp, blanc, teinté par le widget
+     (`setColorFilter`) au rôle du thème choisi ; ni ombre ni dégradé. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="16dp" />
+    <solid android:color="#FFFFFFFF" />
+</shape>

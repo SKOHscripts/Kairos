@@ -86,6 +86,12 @@ fun KairosApp(
     onDarkTheme: (dark: Boolean) -> Unit = {},
     /** Page de démarrage (docs/spec/demarrage.md) : les points d'entrée seulement, jamais les tests ni les captures. */
     splash: Boolean = false,
+    /**
+     * Destination demandée de l'extérieur, application déjà ouverte (toucher sur un widget Android,
+     * docs/spec/widgets-android.md § Actions) : ouverte dès qu'elle change, puis rendue par [onExternalDestinationHandled].
+     */
+    externalDestination: Destination? = null,
+    onExternalDestinationHandled: () -> Unit = {},
     openServices: suspend () -> AppServices,
 ) {
     // Thème du système (docs/spec/apparence.md § Thème sombre) : celui de tout ce qui précède la lecture des réglages.
@@ -109,7 +115,7 @@ fun KairosApp(
                 CompositionLocalProvider(LocalStartupSplash provides !splashDone) {
                     when {
                         ready != null -> {
-                            // Thème et langue des réglages dès qu'ils sont lus ; le miel de la charte et la langue du système
+                            // Thème et langue des réglages dès qu’ils sont lus ; l’océan de la charte et la langue du système
                             // pendant le chargement.
                             val stored = ready.repository.snapshot.collectAsState().value
                             val settings = stored.settings
@@ -134,7 +140,12 @@ fun KairosApp(
                                 // Noms des calendriers importés : l'origine d'un créneau (docs/spec/connexions-externes.md § Interface).
                                 LocalCalendarNames provides remember(stored.calendarSources) { stored.calendarSources.associate { it.id to it.name } },
                             ) {
-                                KairosTheme(scheme, dark, light) { KairosShell(platform, ready, language, initialDestination, initialTeamDestination, initialSecondary) }
+                                KairosTheme(scheme, dark, light) {
+                                    KairosShell(
+                                        platform, ready, language, initialDestination, initialTeamDestination, initialSecondary,
+                                        externalDestination, onExternalDestinationHandled,
+                                    )
+                                }
                             }
                         }
                         failure != null -> Status(stringResource(Res.string.error_open_title), failure.toString())
@@ -158,6 +169,8 @@ private fun KairosShell(
     initialDestination: Destination,
     initialTeamDestination: TeamDestination,
     initialSecondary: Secondary?,
+    externalDestination: Destination?,
+    onExternalDestinationHandled: () -> Unit,
 ) {
     val repository = services.repository
     // Seul le sous-objet d'équipe intéresse la coquille : un changement d'un autre réglage ne la recompose pas.
@@ -199,6 +212,24 @@ private fun KairosShell(
             secondaryParent = null
             persistSpace(Space.PERSONAL)
         }
+    }
+
+    // Destination demandée par un widget : les widgets montrent l'espace Perso, on y revient (vue du jour, rien d'ouvert par-dessus).
+    val handled by rememberUpdatedState(onExternalDestinationHandled)
+    LaunchedEffect(externalDestination) {
+        val target = externalDestination ?: return@LaunchedEffect
+        nav.guideSpot.pending = null
+        nav.day = null
+        nav.week = null
+        nav.month = null
+        if (chosenSpace == Space.TEAM) {
+            chosenSpace = Space.PERSONAL
+            persistSpace(Space.PERSONAL)
+        }
+        destination = target
+        secondary = null
+        secondaryParent = null
+        handled()
     }
 
     BoxWithConstraints {

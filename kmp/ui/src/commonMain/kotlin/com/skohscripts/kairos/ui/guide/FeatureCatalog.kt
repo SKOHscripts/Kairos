@@ -66,6 +66,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_subtasks_body
 import com.skohscripts.kairos.ui.generated.resources.card_subtasks_title
 import com.skohscripts.kairos.ui.generated.resources.card_week_body
 import com.skohscripts.kairos.ui.generated.resources.card_week_title
+import com.skohscripts.kairos.ui.generated.resources.card_widgets_body
+import com.skohscripts.kairos.ui.generated.resources.card_widgets_title
 import com.skohscripts.kairos.ui.generated.resources.chapter_first_steps
 import com.skohscripts.kairos.ui.generated.resources.chapter_follow
 import com.skohscripts.kairos.ui.generated.resources.chapter_organize
@@ -154,6 +156,8 @@ object FeatureCatalog {
         FeatureCard("learned", GuideChapter.FOLLOW, { KairosIcons.TrendingUp }, Res.string.card_learned_title, Res.string.card_learned_body, GuideTarget.Settings(GuideSection.SETTINGS_LEARNED), since = "3.4.0"),
         FeatureCard("besthours", GuideChapter.FOLLOW, { KairosIcons.Schedule }, Res.string.card_besthours_title, Res.string.card_besthours_body, GuideTarget.Personal(Destination.STATS, GuideSection.STATS_HOURS), since = "3.5.0"),
         FeatureCard("besthours_efficiency", GuideChapter.FOLLOW, { KairosIcons.Timer }, Res.string.card_besthours_eff_title, Res.string.card_besthours_eff_body, GuideTarget.Personal(Destination.STATS, GuideSection.STATS_HOURS), since = "3.9.0"),
+        // Widgets Android (docs/spec/widgets-android.md) : la carte mène à la vue Jour, qu'ils reprennent.
+        FeatureCard("widgets", GuideChapter.FOLLOW, { KairosIcons.Today }, Res.string.card_widgets_title, Res.string.card_widgets_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_NOW), since = "3.12.0"),
         FeatureCard("week", GuideChapter.FOLLOW, { KairosIcons.DateRange }, Res.string.card_week_title, Res.string.card_week_body, GuideTarget.Personal(Destination.WEEK)),
         FeatureCard("month", GuideChapter.FOLLOW, { KairosIcons.CalendarMonth }, Res.string.card_month_title, Res.string.card_month_body, GuideTarget.Personal(Destination.WEEK), since = "3.8.0"),
         FeatureCard("week_move", GuideChapter.FOLLOW, { KairosIcons.SwapHoriz }, Res.string.card_week_move_title, Res.string.card_week_move_body, GuideTarget.Personal(Destination.WEEK), since = "3.7.0"),
@@ -265,6 +269,7 @@ object FeatureCatalog {
         "Dark theme" to "darktheme",
         "Languages" to "languages",
         "Reminders" to "reminders",
+        "Home screen widgets" to "widgets",
         "Guided first task" to "first_task",
         "Guided first team task" to "team_backlog",
         "Discover Kairos" to "discover",

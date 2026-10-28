@@ -1630,4 +1630,18 @@
     <string name="day_mark_all_day">Todo el día</string>
     <string name="day_marks_description">Todo el día: %1$s</string>
     <string name="hub_calendar_file">Este archivo es un calendario, no un intercambio de equipo. Para importarlo: Ajustes → Datos → Importar.</string>
+    <!-- Widgets Android (docs/spec/widgets-android.md) -->
+    <string name="card_widgets_title">Tu día en la pantalla de inicio</string>
+    <string name="card_widgets_body">En Android, dos widgets muestran tu día sin abrir Kairos: «Ahora» (terminar la tarea con un doble toque, iniciar el cronómetro, capturar) y «Día» (el plan hora a hora). Añádelos desde la lista de widgets del teléfono.</string>
+    <string name="widget_nothing_planned">Nada previsto hoy</string>
+    <string name="widget_all_done">Todo hecho por hoy</string>
+    <string name="widget_confirm">¿Confirmar?</string>
+    <string name="widget_next">Después %1$s · %2$s</string>
+    <string name="widget_inbox">Por procesar: %1$d</string>
+    <string name="widget_done_count">%1$d / %2$d hechas</string>
+    <string name="widget_no_slot">sin franja</string>
+    <string name="widget_deadline">fecha límite</string>
+    <string name="widget_open_app">Abrir Kairos</string>
+    <string name="widget_estimate">/ %1$s</string>
+    <string name="widget_time_span">%1$s–%2$s</string>
 </resources>

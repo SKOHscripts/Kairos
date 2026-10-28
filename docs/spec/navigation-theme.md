@@ -120,6 +120,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
 
 ### Icônes et logo (`icons/`)
 
+- Les icônes des widgets Android (`res/drawable/ic_widget_*.xml`) sont générées par le même script (`WIDGET_ICONS`) : `RemoteViews`
+  n'affiche pas d'`ImageVector` (`widgets-android.md` § Thème).
 - `KairosIcons.kt` (**généré** par `tools/make_icons.py`) : `ImageVector`
   paresseux construits par `symbol()` (`Symbol.kt`) depuis le tracé SVG
   Material Symbols (viewport 960, décalage `translationY = 960` du

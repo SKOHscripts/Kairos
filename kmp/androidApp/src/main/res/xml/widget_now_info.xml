@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget « Maintenant » (docs/spec/widgets-android.md) : redimensionnable, aucun rafraîchissement périodique
+     (updatePeriodMillis = 0 : WidgetSync redessine sur changement et aux frontières du plan). targetCell*, description et
+     previewLayout servent au sélecteur d'Android 12 et plus ; ignorés avant. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_now_description"
+    android:initialLayout="@layout/widget_now"
+    android:minWidth="180dp"
+    android:minHeight="40dp"
+    android:minResizeWidth="180dp"
+    android:minResizeHeight="40dp"
+    android:previewLayout="@layout/widget_now"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="3"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

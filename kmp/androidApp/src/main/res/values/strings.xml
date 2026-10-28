@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Noms et descriptions des widgets dans le sélecteur du système (docs/spec/widgets-android.md § Textes) : seules
+     chaînes de ressources Android de l'application, le reste vient des ressources Compose (`ui`). Clés identiques dans
+     les six langues (AndroidStringsParityTest). -->
+<resources>
+    <string name="widget_now_name">Kairos: Now</string>
+    <string name="widget_now_description">The task to do now: done, timer, capture.</string>
+    <string name="widget_day_name">Kairos: Day</string>
+    <string name="widget_day_description">Today’s plan, hour by hour.</string>
+</resources>

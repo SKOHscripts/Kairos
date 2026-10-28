@@ -2,6 +2,7 @@ package com.skohscripts.kairos.android
 
 import android.content.Context
 import androidx.compose.ui.graphics.ImageBitmap
+import com.skohscripts.kairos.android.widgets.WidgetSync
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.FileService
 import kotlinx.coroutines.CoroutineScope
@@ -42,6 +43,8 @@ object KairosProcess {
                 ChronoSync.start(app, it.repository, scope)
                 // Rappels (docs/spec/rappels.md) : même processus, mêmes alarmes inexactes.
                 ReminderSync.start(app, it.repository, scope)
+                // Widgets de l'écran d'accueil (docs/spec/widgets-android.md) : redessinés à chaque changement de la vue Perso.
+                WidgetSync.start(app, it, scope)
             }
         }.also { services = it }
     }
