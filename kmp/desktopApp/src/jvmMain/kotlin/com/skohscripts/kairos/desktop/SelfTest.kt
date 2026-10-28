@@ -23,6 +23,9 @@ import com.skohscripts.kairos.ui.guide.GuideKind
 import com.skohscripts.kairos.ui.guide.HelpDialog
 import com.skohscripts.kairos.ui.guide.HelpTopic
 import com.skohscripts.kairos.ui.screens.FeatureListScreen
+import com.skohscripts.kairos.ui.day.SkippedSeriesNotice
+import com.skohscripts.kairos.core.engine.SkippedSeries
+import kotlinx.datetime.LocalDate
 import com.skohscripts.kairos.ui.screens.HomeScreen
 import com.skohscripts.kairos.ui.navigation.NavState
 import com.skohscripts.kairos.ui.notes.NotesScreen
@@ -153,6 +156,7 @@ object SelfTest {
         val calendarZone = TimeZone.currentSystemDefault()
         val calendarToday = Clock.System.todayIn(calendarZone)
         val calendarPlan = CalendarImport.plan(sampleCalendar(calendarToday), calendarToday, calendarZone)
+        val skippedSample = SkippedSeries("Note de frais", 14, listOf(LocalDate(2026, 7, 1), LocalDate(2026, 8, 1)))
         val calendar = runBlocking {
             DesktopServices.open(dataDir, inMemory = true).also { s -> s.repository.importCalendar(calendarPlan.name ?: "Travail", false, calendarPlan, calendarToday) }
         }
@@ -398,6 +402,9 @@ object SelfTest {
             // Liste des fonctionnalités (docs/spec/liste-fonctionnalites.md, issue #153).
             Shot("features", 900, 1400, atWidth(900.dp) { FeatureListScreen(teamEnabled = true, onOpen = {}) }),
             Shot("features-narrow", 360, 1400, atWidth(360.dp) { FeatureListScreen(teamEnabled = false, onOpen = {}) }),
+            // Avis des mois sautés (docs/spec/recurrence.md § Avis des mois sautés, issue #111) : à 360 dp, les boutons passent sous le texte.
+            Shot("skipped-months", 900, 300, atWidth(900.dp) { SkippedSeriesNotice(skippedSample, onRecreate = {}, onIgnore = {}) }),
+            Shot("skipped-months-narrow", 360, 300, atWidth(360.dp) { SkippedSeriesNotice(skippedSample, onRecreate = {}, onIgnore = {}) }),
             // Un chapitre parcouru jusqu'au bout : coché, « · lu » (issue #94).
             Shot("discover", 900, 800, overScrim { DiscoverDialog(teamEnabled = true, onFirstTask = {}, onChapter = {}, onDismiss = {}, read = setOf(GuideChapter.PLAN)) }),
             Shot("discover-narrow", 360, 800, overScrim { DiscoverDialog(teamEnabled = false, onFirstTask = {}, onChapter = {}, onDismiss = {}) }),

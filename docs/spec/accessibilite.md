@@ -86,6 +86,9 @@ Espace Équipe (jalon E3, `equipe-backlog-suivi.md`) : la sélection multiple du
 - Interrupteurs des Réglages : ligne `toggleable` de rôle interrupteur,
   `Switch(onCheckedChange = null)` (`reglages.md`) ; cases à cocher :
   `LabeledCheckbox` (depuis M2).
+- Plusieurs boutons de même libellé sur un écran (avis des mois sautés, 3.13.0, `recurrence.md`) : le nom accessible de
+  chacun est son libellé visible **suivi** de son objet (« Ignorer : Note de frais »), pour que le lecteur d'écran les
+  distingue sans contredire ce qui est affiché.
 
 ### Décisions et pièges tracés
 

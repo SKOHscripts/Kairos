@@ -1702,4 +1702,18 @@
     <string name="features_platforms_only">solo %1$s</string>
     <string name="features_none">Ninguna función coincide</string>
     <string name="features_clear">Borrar</string>
+    <!-- Avis des mois sautés (docs/spec/recurrence.md, issue #111) -->
+    <string name="skipped_series_one">Se omitió 1 repetición mensual: %1$s</string>
+    <string name="skipped_series_many">Se omitieron %1$d repeticiones mensuales: %2$s</string>
+    <string name="skipped_recreate_one">Volver a crearla</string>
+    <string name="skipped_recreate_many">Volver a crearlas</string>
+    <string name="skipped_ignore">Ignorar</string>
+    <string name="skipped_recreate_for_one">Volver a crearla: %1$s</string>
+    <string name="skipped_recreate_for_many">Volver a crearlas: %1$s</string>
+    <string name="skipped_ignore_for">Ignorar: %1$s</string>
+    <string name="skipped_recreated_one">1 repetición recreada: %1$s</string>
+    <string name="skipped_recreated_many">%1$d repeticiones recreadas: %2$s</string>
+    <string name="skipped_ignored">Aviso ignorado: %1$s</string>
+    <string name="card_skipped_months_title">Meses omitidos</string>
+    <string name="card_skipped_months_body">Si Kairos no se abrió durante un mes entero, una tarea «el día N del mes» indica qué meses se omitieron, en la vista Día de hoy: vuelve a crearlos o ignóralos.</string>
 </resources>

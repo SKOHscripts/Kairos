@@ -72,6 +72,7 @@ ICONS = {
     "Monitoring": ("monitoring", True),
     "PersonAdd": ("person_add", False),
     "EventBusy": ("event_busy", False),
+    "EventRepeat": ("event_repeat", False),
     "Archive": ("archive", False),
     "Unarchive": ("unarchive", False),
     "SwapHoriz": ("swap_horiz", False),

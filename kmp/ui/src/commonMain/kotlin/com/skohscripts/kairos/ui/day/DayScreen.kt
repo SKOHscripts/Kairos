@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.core.engine.Recurrence
 import com.skohscripts.kairos.core.model.BlockSource
 import com.skohscripts.kairos.ui.app.withDeviceCalendars
 import com.skohscripts.kairos.core.engine.Workdays
@@ -99,6 +100,9 @@ import com.skohscripts.kairos.ui.Platform
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.StorageBanner
 import com.skohscripts.kairos.ui.generated.resources.Res
+import com.skohscripts.kairos.ui.generated.resources.skipped_ignored
+import com.skohscripts.kairos.ui.generated.resources.skipped_recreated_many
+import com.skohscripts.kairos.ui.generated.resources.skipped_recreated_one
 import com.skohscripts.kairos.ui.generated.resources.agenda_empty
 import com.skohscripts.kairos.ui.generated.resources.agenda_hint
 import com.skohscripts.kairos.ui.generated.resources.agenda_title
@@ -205,6 +209,9 @@ fun DayScreen(
 
     // Séries « le N du mois » : l'occurrence du mois courant (n'écrit que s'il y a lieu).
     LaunchedEffect(today, snapshot.tasks) { repository.ensureCalendarOccurrences(today) }
+    // Mois sautés de ces séries (issue #111) : un avis par série, calculé sans rien écrire, sur les seules tâches Perso.
+    val skipIgnored = stored.settings.recurrence?.skipIgnored.orEmpty()
+    val skipped = remember(stored.tasks, today, skipIgnored) { Recurrence.skippedSeries(stored.tasks, today, skipIgnored) }
 
     var editingId by rememberSaveable { mutableStateOf<Long?>(null) }
     var editingBlock by remember { mutableStateOf<EditableBlock?>(null) }
@@ -383,6 +390,35 @@ fun DayScreen(
                         onAddBlock = { edit -> scope.launch { repository.createBlock(edit) } },
                         onEditBlock = { editingBlock = it },
                     )
+                }
+
+                // Avis des mois sautés (docs/spec/recurrence.md § Avis des mois sautés) : le vrai aujourd'hui seulement.
+                if (day == today) skipped.forEach { series ->
+                    one("skipped-${series.key}") {
+                        SkippedSeriesNotice(
+                            series,
+                            onRecreate = {
+                                scope.launch {
+                                    val ids = repository.recreateSkippedOccurrences(series.title, series.dayOfMonth, today)
+                                    if (ids.isEmpty()) return@launch
+                                    val message = if (ids.size == 1) {
+                                        getString(Res.string.skipped_recreated_one, series.title)
+                                    } else {
+                                        getString(Res.string.skipped_recreated_many, ids.size, series.title)
+                                    }
+                                    undo(message, getString(Res.string.action_revert)) { scope.launch { ids.forEach { repository.deleteTask(it) } } }
+                                }
+                            },
+                            onIgnore = {
+                                scope.launch {
+                                    val previous = repository.ignoreSkippedOccurrences(series.title, series.dayOfMonth, today)
+                                    undo(getString(Res.string.skipped_ignored, series.title), getString(Res.string.action_revert)) {
+                                        scope.launch { repository.restoreSkipNotice(series.title, series.dayOfMonth, previous) }
+                                    }
+                                }
+                            },
+                        )
+                    }
                 }
 
                 // --- À traiter

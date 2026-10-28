@@ -135,6 +135,11 @@ supprimée.
 - **Récurrence** : quotidienne, jours ouvrés, hebdomadaire, mensuelle (terminer
   une occurrence crée la suivante), et « le N du mois » (décalée au jour ouvré
   précédent si week-end ou férié).
+- **Mois sautés** : si Kairos n’a pas été ouvert pendant un mois entier, une
+  tâche « le N du mois » n’a pas d’occurrence ce mois-là. La vue Jour
+  d’aujourd’hui le dit alors, une ligne par série (« 2 occurrences mensuelles
+  ont été sautées : Note de frais ») : les recréer (déjà en retard) ou les
+  ignorer, avec annulation. Rien n’est recréé sans demander.
 - **« Décaler »** : atterrit toujours sur un jour ouvré, et la tâche quitte
   « Aujourd’hui » jusque-là. **« Déplacer… »** programme une tâche pour un
   autre jour (demain, lundi prochain, dans une semaine, ou une date au choix)
@@ -474,6 +479,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Organiser | Sous-tâches | 3.0.0 | Toutes |
 | Organiser | Sous-tâches modifiables | 3.3.0 | Toutes |
 | Organiser | Récurrence | 3.0.0 | Toutes |
+| Organiser | Mois sautés | 3.13.0 | Toutes |
 | Organiser | Décaler et déplacer | 3.0.0 | Toutes |
 | Organiser | Bloqueurs | 3.0.0 | Toutes |
 | Organiser | Créneaux occupés | 3.0.0 | Toutes |

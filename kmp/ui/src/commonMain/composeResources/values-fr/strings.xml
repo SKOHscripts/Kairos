@@ -1705,4 +1705,18 @@
     <string name="features_platforms_only">%1$s seulement</string>
     <string name="features_none">Aucune fonctionnalité ne correspond</string>
     <string name="features_clear">Effacer</string>
+    <!-- Avis des mois sautés (docs/spec/recurrence.md, issue #111) -->
+    <string name="skipped_series_one">1 occurrence mensuelle a été sautée : %1$s</string>
+    <string name="skipped_series_many">%1$d occurrences mensuelles ont été sautées : %2$s</string>
+    <string name="skipped_recreate_one">La recréer</string>
+    <string name="skipped_recreate_many">Les recréer</string>
+    <string name="skipped_ignore">Ignorer</string>
+    <string name="skipped_recreate_for_one">La recréer : %1$s</string>
+    <string name="skipped_recreate_for_many">Les recréer : %1$s</string>
+    <string name="skipped_ignore_for">Ignorer : %1$s</string>
+    <string name="skipped_recreated_one">1 occurrence recréée : %1$s</string>
+    <string name="skipped_recreated_many">%1$d occurrences recréées : %2$s</string>
+    <string name="skipped_ignored">Avis ignoré : %1$s</string>
+    <string name="card_skipped_months_title">Mois sautés</string>
+    <string name="card_skipped_months_body">Si Kairos n’a pas été ouvert pendant un mois entier, une tâche « le N du mois » dit quels mois ont été sautés, sur la vue Jour d’aujourd’hui : recrée-les ou ignore-les.</string>
 </resources>

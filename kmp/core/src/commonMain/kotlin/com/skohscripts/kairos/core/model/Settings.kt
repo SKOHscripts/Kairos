@@ -79,6 +79,12 @@ data class Settings(
      * qu'aucun nom n'est choisi : même règle que [team]. Affichage seulement : le calcul et les échanges gardent les valeurs.
      */
     val levelNames: LevelNames? = null,
+    /**
+     * Mémoire de « Ignorer » de l'avis des mois sautés (docs/spec/recurrence.md § Avis des mois sautés, issue #111). `null` tant
+     * que rien n'est ignoré : même règle que [guide]. Hors du formulaire des Réglages, et gardée par « Restaurer les valeurs par
+     * défaut » : c'est une décision sur des données, pas une préférence.
+     */
+    val recurrence: RecurrenceSettings? = null,
 ) {
     /** L'espace Équipe est activé (valeur enregistrée). */
     val teamModeEnabled: Boolean get() = team?.enabled == true
@@ -213,6 +219,16 @@ data class GuideSettings(
     @EncodeDefault(EncodeDefault.Mode.NEVER) val newsHidden: String? = null,
     @EncodeDefault(EncodeDefault.Mode.NEVER) val readChapters: List<String> = emptyList(),
     @EncodeDefault(EncodeDefault.Mode.NEVER) val firstTaskDone: Boolean = false,
+)
+
+/**
+ * Mémoire de l'avis des mois sautés, sous-objet [Settings.recurrence] : [skipIgnored] clé de série (`jour|titre`) → dernier mois
+ * ignoré (`AAAA-MM`), un filigrane qui masque ce mois et les précédents. Jamais écrit vide.
+ */
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
+data class RecurrenceSettings(
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val skipIgnored: Map<String, String> = emptyMap(),
 )
 
 /**

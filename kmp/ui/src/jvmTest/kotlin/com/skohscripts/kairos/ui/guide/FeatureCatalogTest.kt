@@ -74,6 +74,7 @@ class FeatureCatalogTest {
         assertEquals(setOf("calendar_import", "phone_calendars", "linked_file"), FeatureCatalog.newIn("3.10.0").map { it.id }.toSet())
         assertEquals(setOf("languages"), FeatureCatalog.newIn("3.11.0").map { it.id }.toSet())
         assertEquals(setOf("widgets", "daily_summary"), FeatureCatalog.newIn("3.12.0").map { it.id }.toSet())
+        assertEquals(setOf("skipped_months"), FeatureCatalog.newIn("3.13.0").map { it.id }.toSet())
         assertEquals(setOf("subtasks_edit", "team_my_work"), FeatureCatalog.newIn("3.3.0").map { it.id }.toSet())
         assertEquals(
             setOf("team_members", "team_backlog", "team_assign", "team_board", "team_load", "team_forecast", "team_exchanges", "theme_color"),
@@ -132,10 +133,11 @@ class FeatureCatalogTest {
 
     @Test
     fun noCardIsNewerThanTheApp() {
-        // Une carte annonce une version déjà publiée ou celle en préparation, jamais une future.
+        // Une carte annonce une version déjà publiée ou celle en préparation, jamais une future. Le passage de version vient
+        // en dernière PR d'un cycle (docs/spec/distribution.md) : la version en préparation est la mineure suivante de l'app.
         fun minor(version: String): Int = version.substringBefore('-').split('.').let { it[0].toInt() * 100 + it[1].toInt() }
         val app = repoFile("kmp/gradle.properties").readLines().first { it.startsWith("kairos.versionName=") }.substringAfter('=')
-        assertEquals(emptyList(), cards.filter { minor(it.since) > minor(app) }.map { it.id }, "version de l'application : $app")
+        assertEquals(emptyList(), cards.filter { minor(it.since) > minor(app) + 1 }.map { it.id }, "version de l'application : $app")
     }
 
     @Test

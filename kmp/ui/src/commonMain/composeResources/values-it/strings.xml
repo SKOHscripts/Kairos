@@ -1702,4 +1702,18 @@
     <string name="features_platforms_only">solo %1$s</string>
     <string name="features_none">Nessuna funzione corrisponde</string>
     <string name="features_clear">Cancella</string>
+    <!-- Avis des mois sautés (docs/spec/recurrence.md, issue #111) -->
+    <string name="skipped_series_one">1 occorrenza mensile è stata saltata: %1$s</string>
+    <string name="skipped_series_many">%1$d occorrenze mensili sono state saltate: %2$s</string>
+    <string name="skipped_recreate_one">Ricrea</string>
+    <string name="skipped_recreate_many">Ricrea</string>
+    <string name="skipped_ignore">Ignora</string>
+    <string name="skipped_recreate_for_one">Ricrea: %1$s</string>
+    <string name="skipped_recreate_for_many">Ricrea: %1$s</string>
+    <string name="skipped_ignore_for">Ignora: %1$s</string>
+    <string name="skipped_recreated_one">1 occorrenza ricreata: %1$s</string>
+    <string name="skipped_recreated_many">%1$d occorrenze ricreate: %2$s</string>
+    <string name="skipped_ignored">Avviso ignorato: %1$s</string>
+    <string name="card_skipped_months_title">Mesi saltati</string>
+    <string name="card_skipped_months_body">Se Kairos non è stato aperto per un mese intero, un’attività «il giorno N del mese» indica nella vista Giorno di oggi quali mesi sono stati saltati: ricreali o ignorali.</string>
 </resources>

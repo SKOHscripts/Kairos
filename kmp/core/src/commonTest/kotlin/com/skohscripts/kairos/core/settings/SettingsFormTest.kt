@@ -491,4 +491,13 @@ class SettingsFormTest {
         assertEquals("23:59", SettingsForm.normalizeTime("23:59"))
         assertEquals("00:00", SettingsForm.normalizeTime("0:00"))
     }
+
+    @Test
+    fun restoringDefaultsKeepsTheSkipNotices() {
+        // La mémoire de « Ignorer » (issue #111) est une décision sur des données : le formulaire l'ignore et la garde.
+        val memory = base.copy(recurrence = com.skohscripts.kairos.core.model.RecurrenceSettings(mapOf("14|Note de frais" to "2026-08")))
+        val restored = SettingsForm.restoreDefaults(SettingsForm.values(memory))
+        assertEquals(memory.recurrence, SettingsForm.validate(restored, memory).settings!!.recurrence)
+        assertEquals(memory.recurrence, SettingsForm.validate(SettingsForm.values(memory), memory).settings!!.recurrence)
+    }
 }

@@ -4,17 +4,17 @@ _Rôle : les obligations qui se répètent et le report au jour ouvré suivant.
 Fichiers couverts : `kmp/core/src/commonMain/.../core/engine/Recurrence.kt`
 (calcul pur), son usage dans `data/KairosRepository.kt` (`toggleDone`,
 `ensureCalendarOccurrences`, `snooze`, `updateTask`) et dans
-`core/day/DayView.kt` (créneaux du jour), `core/week/WeekView.kt`, `core/team/TeamWork.kt` (charge de « moi »). Tests :
+`core/day/DayView.kt` (créneaux du jour), `core/week/WeekView.kt`, `core/team/TeamWork.kt` (charge de « moi »), avis des
+mois sautés `ui/.../day/SkippedSeriesNotice.kt` et `DayScreen`. Tests :
 `core/src/commonTest/.../engine/RecurrenceTest.kt`, partie calendaire de
 `DifferentialTest`, `data/.../KairosRepositoryTest.kt`, `BlockExceptionMigrationTest`,
-`desktopApp/.../BlockOccurrenceUiTest.kt`. Interface des créneaux : `ui/.../day/Blocks.kt`._
+`desktopApp/.../BlockOccurrenceUiTest.kt`, `desktopApp/.../SkippedMonthsUiTest.kt`. Interface des créneaux : `ui/.../day/Blocks.kt`._
 
 État : **jalon M2** ; fériés des créneaux « jours ouvrés » implémentés en 3.7.0 (issue #109) ; créneaux mensuels
 (issue #108) et une seule occurrence d'un créneau (issue #110) implémentés en 3.8.0. La partie calendaire est figée par les fichiers d'or de
 `DifferentialTest` (`calendar.json`, source de vérité depuis
 `retrait-kairos2.md`). **Avis des mois sautés** d'une série « le N du mois » (issue #111) : décidé par le propriétaire et
-**spécifié le 2026-10-26, non implémenté** (version proposée 3.13.0) ; ses passages sont marqués « non implémenté » et
-leurs impacts sur les autres specs sont listés en fin de document.
+spécifié le 2026-10-26, **implémenté en 3.13.0** ; ses impacts sur les autres specs sont listés en fin de document.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -96,8 +96,8 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
   ni un jour de pont déclaré (3.7.0, issue #109). Ni dans la vue Jour, ni dans la vue Semaine, ni dans la charge de
   « moi » de l'espace Équipe. Quotidien et hebdomadaire ignorent les fériés, comme avant. L'aide de la carte
   « Jours fériés » des Réglages le dit (« … tâches et créneaux « jours ouvrés »… »).
-- **Mois sautés : un avis discret par série** (spécifié le 2026-10-26, issue #111, décision du propriétaire ; **non
-  implémenté**, version proposée 3.13.0). Une série « le N du mois » ne reçoit l'occurrence du mois qu'à l'affichage de
+- **Mois sautés : un avis discret par série** (spécifié le 2026-10-26, issue #111, décision du propriétaire ;
+  implémenté en 3.13.0). Une série « le N du mois » ne reçoit l'occurrence du mois qu'à l'affichage de
   la vue Jour : si Kairos n'a pas été ouvert pendant un mois entier (congés, arrêt), ce mois n'a pas d'occurrence et
   rien ne le dit. Le rattrapage **automatique** reste exclu (une rafale de tâches en retard à la réouverture, dont
   certaines déjà faites hors de Kairos) ; Kairos **signale** et laisse choisir :
@@ -150,7 +150,7 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
   suppression et aller-retour d'export, export inchangé sans exception
   (`KairosRepositoryTest.deletingASeriesDeletesItsExceptionsAndExportsRoundTripThem`), migration sans perte
   (`BlockExceptionMigrationTest`), dialogue (`BlockOccurrenceUiTest.oneOccurrenceIsSkippedUndoneChangedAndRestored`).
-- **Mois sautés** (3.13.0, issue #111 ; tests **à écrire** avec l'implémentation, aucun n'existe encore) :
+- **Mois sautés** (3.13.0, issue #111) :
   - Détection pure (`RecurrenceTest`) : seuls les mois sans occurrence entre le premier mois de la série et le mois
     courant sont sautés (`skipped_months_lie_between_the_series_start_and_the_current_month`) ; une occurrence faite,
     archivée, ou dont l'échéance tombe dans le mois le couvre (`a_done_or_archived_occurrence_covers_its_month`,
@@ -163,6 +163,16 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
     fériés compris, sans heure fixe (`recreated_occurrences_fall_on_the_business_day_before_day_n_of_each_skipped_month`) ;
     `calendarOccurrences` ne change pas (`DifferentialTest.calendar_matches_golden` inchangé, jamais de rattrapage
     automatique).
+  - Dépôt (`KairosRepositoryTest`) : recréer deux fois ne crée qu'une fois, les occurrences recréées sont en retard et
+    « Annuler » les retire (`recreatingSkippedOccurrencesIsIdempotent`) ; « Ignorer » pose le filigrane, un second
+    « Ignorer » n'écrit rien, « Annuler » le retire (`ignoringASkipNoticeWritesTheWatermarkAndUndoRestoresIt`) ; la mémoire
+    survit à l'export et manque par défaut (`theSkipNoticeSurvivesAnExportAndIsAbsentByDefault`) ; « Restaurer les valeurs
+    par défaut » la garde (`SettingsFormTest.restoringDefaultsKeepsTheSkipNotices`).
+  - Interface (`SkippedMonthsUiTest`) : « Les recréer » puis « Annuler » (`recreatingAddsTheMissingMonthsAndUndoRemovesThem`,
+    qui vérifie aussi les noms accessibles et les cibles de 48 dp) ; « Ignorer » puis « Annuler »
+    (`ignoringHidesTheNoticeAndUndoBringsItBack`) ; aucun avis un autre jour (`anotherDayShowsNoNotice`) ; à 360 dp, rien
+    ne déborde et les boutons passent sous le texte (`theNoticeWrapsAt360dpWithoutOverflowing`). Captures hors écran
+    `skipped-months` et `skipped-months-narrow`.
   - Dépôt (`KairosRepositoryTest`) : recréer crée une occurrence par mois et l'avis disparaît, un second appel ne crée
     rien (`recreatingSkippedOccurrencesIsIdempotent`) ; ignorer écrit le filigrane une fois, annuler le rétablit
     (`ignoringASkipNoticeWritesTheWatermarkAndUndoRestoresIt`) ; la mémoire passe l'export et l'import et est absente
@@ -250,9 +260,9 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
 - La vue Jour appelle `ensureCalendarOccurrences` quand le jour ou les
   tâches changent.
 
-### Avis des mois sautés (spécifié le 2026-10-26, issue #111 ; **non implémenté**, 3.13.0)
+### Avis des mois sautés (spécifié le 2026-10-26, issue #111 ; implémenté en 3.13.0)
 
-Rien de ce bloc n'existe encore dans le code ; `calendarOccurrences` ne change pas (pas de rattrapage automatique).
+`calendarOccurrences` ne change pas (pas de rattrapage automatique).
 
 - **Calcul pur** (`core/engine/Recurrence.kt`, sans horloge ni I/O : `today` et les fériés sont des paramètres) :
   - `SkippedSeries(title, dayOfMonth, months)` : `months` = le premier jour de chaque mois sauté, ordre croissant ;
@@ -290,7 +300,10 @@ Rien de ce bloc n'existe encore dans le code ; `calendarOccurrences` ne change p
   `personalSnapshot`, mémorisé sur les tâches, le jour et ce réglage. Composant : `OutlinedCard` (contour, ni remplissage
   ni ombre : le bloc teinté de l'écran reste « Maintenant »), `FlowRow` d'une icône `Repeat` décorative, du texte
   (`bodyMedium`) puis deux `TextButton` « Les recréer » / « Ignorer ». Les messages passent par `LocalUndoMessages`
-  (`action_revert`), comme « Déplacer… » et le saut d'un créneau.
+  (`action_revert`), comme « Déplacer… » et le saut d'un créneau. La série est recalculée dans la transaction : si plus
+  rien n'est sauté (un double toucher, un autre appareil), « Les recréer » ne crée rien et **aucun message** ne s'affiche
+  (un « 0 occurrence recréée » n'apprendrait rien). La série est calculée sur `personalSnapshot` brut, sans les agendas du
+  téléphone (`withDeviceCalendars` n'ajoute que des créneaux, jamais de tâche).
 - **Accessibilité** : pas de région vivante (l'avis n'interrompt pas : le lecteur d'écran le lit à son tour dans la
   liste) ; ordre de lecture texte, « Les recréer », « Ignorer » ; nom accessible de chaque bouton = son libellé visible
   suivi de la série (« Les recréer : Note de frais », « Ignorer : Note de frais ») pour que plusieurs avis se
@@ -299,7 +312,7 @@ Rien de ce bloc n'existe encore dans le code ; `calendarOccurrences` ne change p
 - **Textes** (`values/` et `values-fr/`, `-es`, `-de`, `-ru`, `-it`, parité exigée par `StringsParityTest` ; le dépôt n'a
   pas de ressources de pluriel, d'où les paires `_one` / `_many`) : `skipped_series_one|many`, `skipped_recreate_one|many`,
   `skipped_ignore`, `skipped_recreate_for_one|many`, `skipped_ignore_for`, `skipped_recreated_one|many`,
-  `skipped_ignored`. Propositions à relire à l'implémentation :
+  `skipped_ignored`, plus la carte du catalogue `card_skipped_months_title|body`. Textes retenus :
 
   | Langue | Ligne (n ≥ 2, `%2$s` = série) | Actions (n ≥ 2) |
   |---|---|---|
@@ -357,8 +370,8 @@ Rien de ce bloc n'existe encore dans le code ; `calendarOccurrences` ne change p
   plus sûr (il ne touche qu'un jour).
 - **Annuler un saut par le message, rétablir par la liste** : l'occurrence sautée reste listée (barrée, badge), sinon
   rien ne permettrait de la retrouver une fois le message parti.
-- **Mois sautés : un avis par série, jamais de rafale** (2026-10-26, issue #111, décision du propriétaire ; spécifié, non
-  implémenté). Le rattrapage manquait (une note de frais sautée est une note de frais perdue en silence), mais le
+- **Mois sautés : un avis par série, jamais de rafale** (2026-10-26, issue #111, décision du propriétaire ;
+  implémenté en 3.13.0). Le rattrapage manquait (une note de frais sautée est une note de frais perdue en silence), mais le
   rattrapage automatique est pire : à la réouverture, N tâches en retard apparaissent sans demande, dont certaines déjà
   faites hors de Kairos. Kairos signale et l'utilisateur choisit, une ligne par série. Écartés : recréer d'office (la
   rafale) ; une notification (Kairos reste silencieux hors de l'écran ouvert, `rappels.md` mis à part) ; un avis sur
@@ -395,7 +408,7 @@ Rien de ce bloc n'existe encore dans le code ; `calendarOccurrences` ne change p
 - **Mois courant jamais candidat** : il revient à `calendarOccurrences`, qui le crée à l'affichage ; l'avis et la création
   automatique ne se marchent jamais dessus.
 
-### Impacts sur les specs existantes (à reporter à l'implémentation de l'avis des mois sautés, 3.13.0)
+### Impacts sur les specs existantes (reportés en 3.13.0)
 
 - `vue-jour.md` : la ligne d'avis dans l'ordre de l'écran (entre la capture et « À traiter »), son comportement et ses
   messages ; `DayScreen` (clé `skipped-…`).
@@ -405,5 +418,6 @@ Rien de ce bloc n'existe encore dans le code ; `calendarOccurrences` ne change p
 - `i18n.md` : les clés `skipped_*` dans les six langues.
 - `accessibilite.md` : noms accessibles « libellé visible + série » (registre transverse).
 - `visite-guidee.md` et README (`README.md` et `README.fr.md`, section Features) : carte du catalogue (`since` = 3.13.0,
-  `README_FEATURES`, `FeatureCatalogTest.readmeFeaturesAreCovered`) ; notes de version Fastlane (`31300.txt`) dans les six
-  langues. Une fonctionnalité visible : elle entre au README.
+  `README_FEATURES`, `FeatureCatalogTest.readmeFeaturesAreCovered`) : carte `skipped_months` (chapitre Organiser, icône
+  `EventRepeat`, ouvre la vue Jour), puce « Skipped months » / « Mois sautés » et ligne du tableau des fonctionnalités. Les
+  notes de version Fastlane (`31300.txt`) viennent avec le passage en 3.13.0, en dernière PR du cycle.

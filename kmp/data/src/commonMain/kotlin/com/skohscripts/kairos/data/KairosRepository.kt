@@ -21,6 +21,7 @@ import com.skohscripts.kairos.core.model.NoteStatus
 import com.skohscripts.kairos.core.notes.NoteConversion
 import com.skohscripts.kairos.core.model.PRIORITY_VALUES
 import com.skohscripts.kairos.core.model.GuideSettings
+import com.skohscripts.kairos.core.model.RecurrenceSettings
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskRecurrence
@@ -280,6 +281,47 @@ class KairosRepository(
             // Recalculé dans la transaction : l'état a pu changer depuis la vérification.
             Recurrence.calendarOccurrences(state.value.tasks, today, holidays, clock.now()).forEach { insertNew(it) }
         }
+    }
+
+    /** Séries sautées de l'espace Perso à [today], filigranes de « Ignorer » compris (docs/spec/recurrence.md § Avis des mois sautés). */
+    private fun skipped(today: LocalDate, title: String, dayOfMonth: Int) =
+        Recurrence.skippedSeries(state.value.tasks, today, state.value.settings.recurrence?.skipIgnored.orEmpty())
+            .firstOrNull { it.title == title && it.dayOfMonth == dayOfMonth }
+
+    /**
+     * « Les recréer » (issue #111) : une occurrence par mois sauté de la série, déjà en retard. Recalculé dans la transaction (l'état a
+     * pu changer) ; rend les identifiants créés, vide s'il n'y a plus rien de sauté (deux appels n'en créent pas deux fois).
+     */
+    suspend fun recreateSkippedOccurrences(title: String, dayOfMonth: Int, today: LocalDate): List<Long> {
+        if (skipped(today, title, dayOfMonth) == null) return emptyList()
+        val created = mutableListOf<Long>()
+        write {
+            val series = skipped(today, title, dayOfMonth) ?: return@write
+            val settings = state.value.settings
+            // L'année d'aujourd'hui et la précédente : les douze mois en arrière y sont tous.
+            val holidays = Workdays.holidaysFor(today, settings.holidaysFr, settings.extraHolidays)
+            Recurrence.recreateSkipped(state.value.tasks, series, holidays, clock.now()).forEach { task -> insertNew(task)?.let { created += it } }
+        }
+        return created
+    }
+
+    /**
+     * « Ignorer » : pose le filigrane de la série au dernier mois sauté (il masque ce mois et les précédents) et rend l'ancien
+     * filigrane, pour « Annuler » ([restoreSkipNotice]). Rien n'est écrit s'il n'y a rien de sauté.
+     */
+    suspend fun ignoreSkippedOccurrences(title: String, dayOfMonth: Int, today: LocalDate): String? {
+        val key = Recurrence.seriesKey(dayOfMonth, title)
+        val previous = state.value.settings.recurrence?.skipIgnored?.get(key)
+        val series = skipped(today, title, dayOfMonth) ?: return previous
+        val last = Recurrence.period(series.months.last())
+        updateRecurrence { it.copy(skipIgnored = it.skipIgnored + (key to last)) }
+        return previous
+    }
+
+    /** « Annuler » après « Ignorer » : remet le filigrane d'avant ([previous], ou rien), l'avis revient. */
+    suspend fun restoreSkipNotice(title: String, dayOfMonth: Int, previous: String?) {
+        val key = Recurrence.seriesKey(dayOfMonth, title)
+        updateRecurrence { if (previous == null) it.copy(skipIgnored = it.skipIgnored - key) else it.copy(skipIgnored = it.skipIgnored + (key to previous)) }
     }
 
     /**
@@ -1305,6 +1347,19 @@ class KairosRepository(
         write {
             val settings = state.value.settings
             queries.writeSettings(json.encodeToString(Settings.serializer(), settings.copy(guide = next(settings))))
+        }
+    }
+
+    /**
+     * Mémoire de l'avis des mois sautés (`Settings.recurrence`, issue #111) : même règle que [updateGuide], rien n'est écrit si rien
+     * ne change, et le sous-objet revient à nul à sa valeur par défaut.
+     */
+    suspend fun updateRecurrence(change: (RecurrenceSettings) -> RecurrenceSettings) {
+        fun next(settings: Settings) = change(settings.recurrence ?: RecurrenceSettings()).takeUnless { it == RecurrenceSettings() }
+        if (next(state.value.settings) == state.value.settings.recurrence) return
+        write {
+            val settings = state.value.settings
+            queries.writeSettings(json.encodeToString(Settings.serializer(), settings.copy(recurrence = next(settings))))
         }
     }
 

@@ -129,6 +129,11 @@ also be edited, archived without follow-up, or deleted.
 - **Recurrence**: daily, weekdays, weekly, monthly (finishing an occurrence
   creates the next one), and "on day N of the month" (moved to the previous
   working day if it falls on a weekend or holiday).
+- **Skipped months**: if Kairos was not opened for a whole month, a "day N of
+  the month" task gets no occurrence for that month. Today's Day view then
+  says so, one line per series ("2 monthly occurrences were skipped: Expense
+  report"): recreate them (already overdue) or ignore them, with an undo.
+  Nothing is recreated without asking.
 - **"Snooze"**: always lands on a working day, and the task leaves "Today"
   until then. **"Move…"** schedules a task for another day (tomorrow, next
   Monday, in a week, or any date) and offers to undo it.
@@ -445,6 +450,7 @@ version that brought it and the platforms it exists on.
 | Organize | Subtasks | 3.0.0 | All |
 | Organize | Editable subtasks | 3.3.0 | All |
 | Organize | Recurrence | 3.0.0 | All |
+| Organize | Skipped months | 3.13.0 | All |
 | Organize | Snooze and move | 3.0.0 | All |
 | Organize | Blockers | 3.0.0 | All |
 | Organize | Busy slots | 3.0.0 | All |
