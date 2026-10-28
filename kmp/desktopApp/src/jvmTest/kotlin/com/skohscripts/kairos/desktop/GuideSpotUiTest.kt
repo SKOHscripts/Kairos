@@ -86,8 +86,8 @@ class GuideSpotUiTest {
     fun learnedDurationsOpensThePlanningCategoryAndMarksItsCard() = runComposeUiTest {
         val services = services()
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
-        // « Follow » : chrono, puis durées apprises.
-        showCard("Follow", 1, "Learned durations")
+        // « Follow » : la place de la carte est tirée du catalogue.
+        showCard("Follow", position(GuideChapter.FOLLOW, "learned"), "Learned durations")
         waitText("Learn durations from past occurrences")
         waitText("Here")
         // La mise en valeur s'efface d'elle-même (3 s).
@@ -105,8 +105,8 @@ class GuideSpotUiTest {
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         // Les lignes de l'agenda portent l'heure devant le titre.
         waitText("Sign the contract", substring = true)
-        // « Organize » : sous-tâches, récurrence, puis bloqueurs.
-        showCard("Organize", 2, "Blockers")
+        // « Organize » : la place de la carte des bloqueurs est tirée du catalogue.
+        showCard("Organize", position(GuideChapter.ORGANIZE, "dependencies"), "Blockers")
         // La section « Blocked », repliée par défaut, est ouverte (son aide s'affiche) et mise en valeur.
         waitText("Waiting for another task to be finished before they can move on.")
         waitText("Here")
@@ -147,7 +147,7 @@ class GuideSpotUiTest {
         val services = services(KairosSnapshot(tasks = listOf(task(1, "Get the quote"))))
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitText("Get the quote", substring = true)
-        showCard("Organize", 2, "Blockers")
+        showCard("Organize", position(GuideChapter.ORGANIZE, "dependencies"), "Blockers")
         waitText("No blocked task right now.")
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Here").fetchSemanticsNodes().isEmpty() }
     }

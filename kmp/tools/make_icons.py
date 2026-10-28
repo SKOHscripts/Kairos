@@ -119,6 +119,20 @@ ICONS = {
     "DarkMode": ("dark_mode", False),
     # Calendriers importés (3.10.0, issue #136) : créneau importé, journée entière.
     "Event": ("event", False),
+    # Liste des fonctionnalités (docs/spec/liste-fonctionnalites.md, issue #153) : une icône par carte nouvelle.
+    "Keyboard": ("keyboard", False),
+    "Snooze": ("snooze", False),
+    "Calculate": ("calculate", False),
+    "Timeline": ("timeline", False),
+    "Mobile": ("mobile", False),
+    "WbTwilight": ("wb_twilight", False),
+    "Checklist": ("checklist", False),
+    "Web": ("web", False),
+    "Speed": ("speed", False),
+    "EventAvailable": ("event_available", False),
+    "CenterFocusStrong": ("center_focus_strong", False),
+    "Assignment": ("assignment", False),
+    "FormatListBulleted": ("format_list_bulleted", False),
 }
 
 

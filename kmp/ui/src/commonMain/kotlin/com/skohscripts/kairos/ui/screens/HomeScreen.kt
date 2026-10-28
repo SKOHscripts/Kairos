@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.KairosButton
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.app.heading
@@ -54,6 +55,7 @@ import com.skohscripts.kairos.ui.generated.resources.home_feature_time_body
 import com.skohscripts.kairos.ui.generated.resources.home_feature_time_title
 import com.skohscripts.kairos.ui.generated.resources.home_feature_week_body
 import com.skohscripts.kairos.ui.generated.resources.home_feature_week_title
+import com.skohscripts.kairos.ui.generated.resources.home_features_list
 import com.skohscripts.kairos.ui.generated.resources.home_features_title
 import com.skohscripts.kairos.ui.generated.resources.home_team_manager
 import com.skohscripts.kairos.ui.generated.resources.home_team_member
@@ -107,6 +109,8 @@ fun HomeScreen(
     newsHidden: Boolean = false,
     /** « Masquer » : la coquille le retient pour la version (`FeatureCatalog.newsKey`). */
     onHideNews: () -> Unit = {},
+    /** « Liste de fonctionnalités » : toujours là, version sans nouveauté ou « Nouveau » masqué compris (issue #153). */
+    onOpenFeatures: () -> Unit = {},
 ) {
     val news = remember(version) { FeatureCatalog.newIn(version) }
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
@@ -148,6 +152,10 @@ fun HomeScreen(
                         )
                     }
                 }
+            }
+            KairosOutlinedButton(onClick = onOpenFeatures, contentPadding = KairosButtonIconPadding) {
+                Icon(KairosIcons.FormatListBulleted, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.home_features_list), modifier = Modifier.padding(start = 6.dp))
             }
             Text(stringResource(Res.string.home_features_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
             FEATURES.forEach { feature ->

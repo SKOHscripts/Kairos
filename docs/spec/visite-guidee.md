@@ -175,18 +175,23 @@ découvrir sans que l'utilisateur ait à lire une documentation.
 ### Catalogue piloté par les données
 
 `FeatureCatalog.cards` (`ui/guide/FeatureCatalog.kt`) : une liste de `FeatureCard(id, chapter, icon, title, body, target,
-since, tour)`, **dans l'ordre de la visite**.
+since, tour, platforms)`, **dans l'ordre de la visite** ; **une carte par fonctionnalité du README** depuis l'inventaire du
+2026-10-28 (61 cartes, `liste-fonctionnalites.md` § Inventaire), `platforms` (toutes par défaut) disant celles qui n'existent pas
+partout. La liste complète des fonctionnalités lit le même catalogue.
 
-- **Chapitres** (`GuideChapter`) : `FIRST_STEPS` (capture, qualification, « faire dans l'ordre », « Découvrir Kairos »,
-  première tâche, le guide qui retient et montre l'endroit, 3.7), `PLAN` (priorité, points et estimation ; score et placement ; plages et contextes ; meilleures heures, 3.6 ; horaires par jour), `FOLLOW` (chrono ;
-  durées apprises ; semaine ; déplacer depuis la semaine, 3.7 ; statistiques ; filtres et export des statistiques, 3.7),
-  `ORGANIZE` (sous-tâches ; récurrence et déplacer ; bloqueurs ; créneaux et deep work ; fériés des créneaux « jours
-  ouvrés », 3.7), `TEAM` (les six cartes d'équipe), `SETTINGS` (réglages clairs ; réglages par catégories, 3.7 ; thème
-  sombre, 3.7 ; données). `FeatureCatalog.chapters(teamEnabled)`
-  n'offre `TEAM` que si l'espace Équipe est activé.
-- **Visites** : `GuideSteps.of(GuideKind.PERSONAL)` = les cartes `tour = true` (six, comme avant) ;
-  `GuideSteps.of(GuideKind.TEAM)` = le chapitre `TEAM` (six). Les textes des douze cartes d'avant gardent leurs
-  chaînes `guide_you_*` et `guide_team_*` ; les autres sont `card_<id>_title` / `card_<id>_body`.
+- **Chapitres** (`GuideChapter`) : `FIRST_STEPS` (capture, raccourcis clavier, qualification, « faire dans l'ordre », « Découvrir
+  Kairos », première tâche, le guide qui retient et montre l'endroit, récurrente et Réglages pas à pas), `PLAN` (priorité, points et
+  estimation ; noms des niveaux ; score ; placement ; creux de l'après-midi ; plages et contextes ; meilleures heures ; horaires par
+  jour ; jours ouvrés et fériés), `FOLLOW` (frise ; chrono ; trois alertes ; durées apprises ; heures de travail par type et heures les
+  plus efficaces ; widgets ; semaine ; mois ; déplacer depuis la semaine ; statistiques, évolutions, correction et filtres),
+  `ORGANIZE` (sous-tâches et sous-tâches modifiables ; récurrence ; décaler et déplacer ; bloqueurs ; créneaux occupés ; deep work ;
+  créneaux « jours ouvrés » sans les fériés ; créneaux mensuels ; import de calendrier ; calendriers du téléphone), `TEAM`
+  (première tâche d'équipe guidée, membres, travail perso compté, backlog, assignation, suivi, charge, prévisions, échanges),
+  `SETTINGS` (réglages clairs ; par catégories ; rappels ; récapitulatif du jour ; couleur du thème ; thème sombre ; langues ;
+  données ; fichier lié ; version web). `FeatureCatalog.chapters(teamEnabled)` n'offre `TEAM` que si l'espace Équipe est activé.
+- **Visites** : `GuideSteps.of(GuideKind.PERSONAL)` = les cartes `tour = true` hors Équipe (six) ; `GuideSteps.of(GuideKind.TEAM)` =
+  les cartes `tour = true` du chapitre `TEAM` (les six d'origine ; le chapitre en compte neuf depuis l'inventaire). Les textes des
+  douze cartes d'avant gardent leurs chaînes `guide_you_*` et `guide_team_*` ; les autres sont `card_<id>_title` / `card_<id>_body`.
 - **Cibles** (`GuideTarget`) : `Personal(destination, section?)`, `Team(destination, exchanges)`, `Settings(section?)` et
   `FirstTask` (lance l'accompagnement de `premiere-tache.md`, sans changer d'écran ; le bouton devient « Créer ma première
   tâche »).
@@ -234,6 +239,9 @@ since, tour)`, **dans l'ordre de la visite**.
 - **Cartes de la 3.10.0** : `calendar_import` (import d'un calendrier `.ics` et calendriers du téléphone, #136 et
   #138 ; section `SETTINGS_DATA`, chapitre « Organiser », icône `Event`), `linked_file` (fichier lié sur le bureau et
   Android, #137 ; section `SETTINGS_DATA`, chapitre « Réglages », icône `Description`).
+- **Inventaire du 2026-10-28** (issue #153, `liste-fonctionnalites.md` § Inventaire) : quinze cartes créées avec leur version
+  d'origine (`since` de 3.0.0 à 3.10.0 : elles n'apparaissent dans « Nouveau » d'aucune version à venir) ; les cartes d'équipe passent
+  à 3.1.0 et `recurrence` à 3.0.0.
 - **Carte de la 3.11.0** : `languages` (les six langues et leur choix, #75 ; cible `GuideTarget.Settings()` sans section,
   chapitre « Réglages », icône `Translate`).
 - **Cartes de la 3.12.0** : `widgets` (widgets Android, #150 ; vue Jour, section `DAY_NOW`, chapitre « Suivre », icône `Today` ;

@@ -199,8 +199,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 ### Créneaux et deep work
 
 - **Créneaux occupés** (réunions, déjeuner…), ponctuels ou récurrents
-  (quotidien, jours ouvrés, hebdomadaire), modifiables et supprimables ; un
-  créneau « jours ouvrés » saute les jours fériés, comme une tâche « jours ouvrés ».
+  (quotidien, jours ouvrés, hebdomadaire), modifiables et supprimables.
+- **Créneaux « jours ouvrés » sans les fériés** : un créneau « jours ouvrés »,
+  comme le point quotidien, saute les jours fériés et les jours de repos
+  ajoutés, comme une tâche « jours ouvrés ».
 - **Créneaux mensuels, un jour à part** : un créneau peut revenir chaque mois,
   un jour donné (« le 15 », ramené au jour ouvré précédent comme une tâche
   mensuelle) ou un jour de la semaine (« le 3e mardi », « le dernier vendredi »).
@@ -258,20 +260,21 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   heure, les échéances en tête et les tâches faites barrées. Aux couleurs de
   l’application, sans permission de plus ; un toucher ouvre la vue Jour.
 - **Semaine** : sept jours (échéances, tâches programmées, tâches faites, créneaux), temps réel de
-  la semaine par type ; toucher une tâche la déplace vers un autre jour (fériés et jours libres
-  signalés), avec « Annuler ».
+  la semaine par type.
+- **Déplacer depuis la semaine** : toucher une tâche de la vue Semaine la
+  déplace vers un autre jour (fériés et jours libres signalés), avec « Annuler ».
 - **Mois** : la bascule « Mois » de la vue Semaine montre le mois entier, une
   case par jour avec le nombre de tâches prévues, un drapeau pour les échéances,
   un avertissement pour les journées trop chargées et une icône pour les fériés et
   jours libres, et la même information en listes dessous ; toucher un jour l’ouvre.
 - **Statistiques** : débit hebdomadaire, calibration des estimations (temps
   réel médian par palier, biais), temps par type, flux, complétude. L’effectif
-  est affiché ; un petit échantillon est marqué « peu fiable ». À resserrer par
-  période (4, 8, 12 semaines ou tout) et avec la même recherche et les mêmes
-  filtres que la vue Jour (type, projet, priorité…) ; rien n’est enregistré.
-  « Exporter… » enregistre ce que l’écran montre : les tableaux dans un fichier
-  CSV (prêt pour un tableur), ou une carte en image PNG avec sa date, sa période
-  et son filtre.
+  est affiché ; un petit échantillon est marqué « peu fiable ».
+- **Des statistiques à ta façon** : à resserrer par période (4, 8, 12 semaines
+  ou tout) et avec la même recherche et les mêmes filtres que la vue Jour
+  (type, projet, priorité…) ; rien n’est enregistré. « Exporter… » enregistre
+  ce que l’écran montre : les tableaux dans un fichier CSV (prêt pour un
+  tableur), ou une carte en image PNG avec sa date, sa période et son filtre.
 - **Évolutions** (Statistiques) : le temps chronométré jour par jour (semaine
   par semaine au-delà de 8 semaines) et le biais d’estimation semaine par
   semaine, chaque graphique avec son résumé écrit et son effectif.
@@ -280,8 +283,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   l’on décoche celles à garder ; « Annuler » rend les anciennes estimations.
 - **Quand tu travailles chaque type** (Statistiques) : pour chaque type de
   tâche, les tranches de 2 h où tu travailles vraiment (d’après tes sessions de
-  chrono), comparées à ton rythme habituel, et celle où tu le finis le plus vite
-  au regard de tes estimations. Cette carte observe seulement.
+  chrono), comparées à ton rythme habituel. Cette carte observe seulement.
+- **Tes heures les plus efficaces** (Statistiques) : pour chaque type, la
+  tranche où tu le finis le plus vite au regard de tes estimations ; les
+  Meilleures heures peuvent s’en servir (mesurer par l’efficacité, ou les deux).
 - **Meilleures heures** (Réglages, désactivé par défaut) : le planning préfère,
   entre des tâches de score voisin, les heures où tu travailles d’habitude chaque
   type, celles où tu le finis plus vite que prévu, ou les deux (détectées avec le
@@ -325,6 +330,8 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   manager ou une équipe.
 - Les **Réglages** s’ouvrent par la roue crantée, en haut à droite de chaque
   écran.
+- **Réglages par catégorie** : chaque catégorie a son icône et le résumé de ce
+  qu’elle contient ; en fenêtre large, la liste et la catégorie sont côte à côte.
 - Un bouton **« ? »** en haut de chaque écran : l’aide de l’écran où tu te
   trouves, l’accès à l’Accueil et à la visite guidée.
 - Une **visite guidée** pas à pas (six étapes), proposée au premier
@@ -337,11 +344,13 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   journée et te félicite une fois qu’elle est réellement créée. Rien n’est
   écrit si tu renonces.
 - **Découvrir Kairos** : des chapitres sur chaque fonctionnalité (Réglages,
-  aide ou Accueil), à rouvrir quand tu veux (un chapitre lu jusqu’au bout est
-  coché), et une section **« Nouveau dans cette version »** sur l’Accueil, qui
-  reste masquée pour la version une fois fermée. Réglages → À propos → « Revoir
-  le guide depuis le début » fait tout revenir. « Voir l’écran » défile jusqu’à l’endroit
-  dont parle la carte et le met en valeur un instant.
+  aide ou Accueil), à rouvrir quand tu veux, et une section **« Nouveau dans
+  cette version »** sur l’Accueil.
+- **Le guide se souvient** : un chapitre lu jusqu’au bout est coché, « Nouveau
+  dans cette version » reste masqué pour la version une fois fermé, et « Voir
+  l’écran » défile jusqu’à l’endroit dont parle la carte et le met en valeur un
+  instant. Réglages → À propos → « Revoir le guide depuis le début » fait tout
+  revenir.
 - **Récurrente et Réglages pas à pas** : dans « Découvrir Kairos », « Créer ma
   première tâche récurrente » te guide dans la vraie fiche et montre, pour
   chaque règle, la prochaine échéance qu’elle produirait ; « Régler Kairos pas à
@@ -362,8 +371,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   absences ; « C’est moi » fait
   apparaître dans votre vue Jour les tâches d’équipe qui vous sont
   assignées.
-- **Backlog** d’équipe trié par le même score WSJF, catégories = types de
-  tâche, **assignation** et **réaffectation** (une à une ou en lot).
+- **Backlog d’équipe** trié par le même score WSJF, catégories = types de
+  tâche.
+- **Assignation** et **réaffectation** des tâches aux membres, une à une ou en
+  lot.
 - **Suivi** : une ligne par membre (en cours, à faire, faites), avancement
   par pas de 10 %, signaux « en retard », « sans avancement », « ballottée »,
   limite de tâches en cours ; **historique** complet de chaque tâche.
@@ -421,6 +432,75 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 - Au lancement, une **page de démarrage** (Android, bureau, web) : l’aiguille
   du cadran solaire fait un tour et se pose sur le logo, puis l’application
   apparaît en fondu. Un toucher l’abrège.
+
+## Liste des fonctionnalités
+
+Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’application (Accueil →
+« Liste de fonctionnalités »), avec la version qui l’a apportée et les plateformes où elle existe.
+
+| Chapitre | Fonctionnalité | Depuis | Plateformes |
+|---|---|---|---|
+| Premiers pas | Capturer sans réfléchir | 3.0.0 | Toutes |
+| Premiers pas | Raccourcis clavier | 3.0.0 | Bureau, Web |
+| Premiers pas | Qualifier en un clic | 3.0.0 | Toutes |
+| Premiers pas | Faire dans l’ordre | 3.0.0 | Toutes |
+| Premiers pas | Découvrir Kairos | 3.4.0 | Toutes |
+| Premiers pas | Créer ta première tâche | 3.4.0 | Toutes |
+| Premiers pas | Le guide retient et montre l’endroit | 3.7.0 | Toutes |
+| Premiers pas | Récurrente et Réglages pas à pas | 3.9.0 | Toutes |
+| Planifier | Priorité, points et estimation | 3.0.0 | Toutes |
+| Planifier | Noms des niveaux | 3.9.0 | Toutes |
+| Planifier | Score | 3.0.0 | Toutes |
+| Planifier | Placement dans la journée | 3.0.0 | Toutes |
+| Planifier | Creux de l’après-midi | 3.0.0 | Toutes |
+| Planifier | Plusieurs plages et contextes | 3.5.0 | Toutes |
+| Planifier | Planifier autour de tes meilleures heures | 3.6.0 | Toutes |
+| Planifier | Horaires par jour de la semaine | 3.4.0 | Toutes |
+| Planifier | Jours ouvrés et fériés | 3.0.0 | Toutes |
+| Suivre | Frise de la journée | 3.0.0 | Toutes |
+| Suivre | Suivre le temps | 3.0.0 | Toutes |
+| Suivre | Trois alertes du chrono | 3.0.0 | Toutes |
+| Suivre | Durées apprises | 3.4.0 | Toutes |
+| Suivre | Quand tu travailles chaque type | 3.5.0 | Toutes |
+| Suivre | Tes heures les plus efficaces | 3.9.0 | Toutes |
+| Suivre | Ta journée sur l’écran d’accueil | 3.12.0 | Android |
+| Suivre | Planifier la semaine | 3.0.0 | Toutes |
+| Suivre | Le mois d’un coup d’œil | 3.8.0 | Toutes |
+| Suivre | Déplacer une tâche depuis la semaine | 3.7.0 | Toutes |
+| Suivre | Semaine et statistiques | 3.0.0 | Toutes |
+| Suivre | Voir les choses évoluer | 3.8.0 | Toutes |
+| Suivre | Corriger ses estimations | 3.8.0 | Toutes |
+| Suivre | Des statistiques à ta mesure | 3.7.0 | Toutes |
+| Organiser | Sous-tâches | 3.0.0 | Toutes |
+| Organiser | Sous-tâches modifiables | 3.3.0 | Toutes |
+| Organiser | Récurrence | 3.0.0 | Toutes |
+| Organiser | Décaler et déplacer | 3.0.0 | Toutes |
+| Organiser | Bloqueurs | 3.0.0 | Toutes |
+| Organiser | Créneaux occupés | 3.0.0 | Toutes |
+| Organiser | Deep work | 3.0.0 | Toutes |
+| Organiser | Les créneaux des jours ouvrés sautent les fériés | 3.7.0 | Toutes |
+| Organiser | Créneaux mensuels, et un seul jour à part | 3.8.0 | Toutes |
+| Organiser | Importer tes réunions d’un agenda | 3.10.0 | Toutes |
+| Organiser | Calendriers du téléphone | 3.10.0 | Android |
+| Équipe | Première tâche d’équipe guidée | 3.8.0 | Toutes |
+| Équipe | Les membres | 3.1.0 | Toutes |
+| Équipe | Ton travail perso compte | 3.3.0 | Toutes |
+| Équipe | Le backlog | 3.1.0 | Toutes |
+| Équipe | Assigner | 3.1.0 | Toutes |
+| Équipe | Le suivi | 3.1.0 | Toutes |
+| Équipe | Charge de l’équipe | 3.1.0 | Toutes |
+| Équipe | Les prévisions | 3.1.0 | Toutes |
+| Équipe | Les échanges | 3.1.0 | Toutes |
+| Réglages | Des réglages clairs, les valeurs par défaut à portée | 3.4.0 | Toutes |
+| Réglages | Des réglages rangés par catégories | 3.7.0 | Toutes |
+| Réglages | Des rappels avant l’heure | 3.8.0 | Toutes |
+| Réglages | Ta journée en une notification | 3.12.0 | Toutes |
+| Réglages | Couleur du thème | 3.1.0 | Toutes |
+| Réglages | Thème sombre | 3.7.0 | Toutes |
+| Réglages | Langues | 3.11.0 | Toutes |
+| Réglages | Tes données et ton manager | 3.0.0 | Toutes |
+| Réglages | Une copie de tes données dans un dossier synchronisé | 3.10.0 | Toutes |
+| Réglages | Version web | 3.0.0 | Web |
 
 ## Réglages
 
