@@ -86,6 +86,7 @@ h2 { font-size: 22px; line-height: 28px; font-weight: 500; margin: 40px 0 16px; 
 .button:hover { background: rgba(72, 93, 146, 0.08); }
 .button.filled:hover { background: #3E5283; }
 .small { font-size: 12px; line-height: 16px; color: var(--md-on-surface-variant); }
+.nowrap { white-space: nowrap; }
 
 .shots { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
 .shots img {

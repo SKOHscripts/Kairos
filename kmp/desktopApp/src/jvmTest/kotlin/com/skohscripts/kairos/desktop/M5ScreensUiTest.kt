@@ -215,7 +215,7 @@ class M5ScreensUiTest {
         type("Custom color", "bleu")
         onNodeWithText("Save").performClick()
         waitText("Unreadable color: “bleu” (format #RRGGBB).")
-        assertEquals("#2F6FED", repository.snapshot.value.settings.themeColor)
+        assertEquals("#C28417", repository.snapshot.value.settings.themeColor)
         // Pas de « Couleurs du système » sur le bureau.
         assertEquals(0, onAllNodesWithContentDescription("System colors").fetchSemanticsNodes().size)
     }

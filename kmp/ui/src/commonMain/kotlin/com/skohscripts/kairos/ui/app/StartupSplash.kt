@@ -102,7 +102,7 @@ fun SplashFrame(progress: Float, loading: Boolean = false, modifier: Modifier = 
     val appName = stringResource(Res.string.app_name)
     Box(
         contentAlignment = Alignment.Center,
-        // Fond du thème miel par défaut (composé hors du thème des réglages) : celui des relais natifs.
+        // Fond du thème océan par défaut (composé hors du thème des réglages) : celui des relais natifs.
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)

@@ -1,4 +1,4 @@
-# Design system Kairos — Material Design 3, thème « miel »
+# Design system Kairos — Material Design 3, thème « océan »
 
 Charte visuelle de l'application, construite sur **Material Design 3** (MD3,
 https://m3.material.io) et rendue par les composants **Material 3 de Compose
@@ -26,10 +26,19 @@ domaine.
 - **Graine de couleur** : le terracotta du logo (`#D9713C`) jugé trop orange ;
   **miel `#C28417`** retenu (lumière de fin de journée sur le cadran solaire :
   chaud sans être orange, et 50° de teinte d'écart avec le rouge d'erreur — le
-  terracotta n'en avait que 18°, P0 et primaire se confondaient). Le logo suit
-  la graine (§ Logo).
+  terracotta n'en avait que 18°, P0 et primaire se confondaient). Le logo suivait
+  la graine (§ Logo) ; plus depuis le 2026-10-27 (voir la décision suivante).
+- **Graine par défaut : l'océan** (changé le 2026-10-27 : l'océan `#2F6FED`
+  remplace le miel `#C28417` comme graine par défaut). Le miel reste une couleur
+  au choix (Réglages → Général → Apparence) et la couleur du logo, qui garde
+  ses tons et contraste désormais avec l'interface (§ Logo). Les icônes
+  d'installation posent le logo sur un fond uni océan profond ; les boutons de
+  téléchargement et la page `site/` passent en palette océan. Les données
+  existantes restées sur l'ancienne valeur par défaut passent à l'océan
+  (`docs/spec/apparence.md` § Couleur par défaut).
 - **Schéma « Tonal spot »** (défaut d'Android) préféré à « Fidelity » : moins
-  saturé, conteneurs pêche/miel clair plutôt que le terracotta plein.
+  saturé, conteneurs pêche/miel clair (avec la graine d'alors) plutôt que le
+  terracotta plein.
 - **Rail de navigation** sur grand écran : décision « pas de barre latérale »
   explicitement rouverte et tranchée par l'utilisateur en faveur du rail MD3
   (§ Navigation).
@@ -44,7 +53,7 @@ domaine.
 
 Générés par l'algorithme officiel (material-color-utilities, portage Python
 `materialyoucolor`, `SchemeTonalSpot`, spec 2021, contraste standard) depuis la
-graine **`#C28417`**, par `kmp/tools/make_theme.py`, dans `KairosColors.kt`
+graine **`#2F6FED`** (l'océan), par `kmp/tools/make_theme.py`, dans `KairosColors.kt`
 (`lightColorScheme`, 36 rôles). **Thème sombre** (issue #72, 3.7.0) : le même
 outil génère `KairosDarkColors` (`darkColorScheme`, mêmes 36 rôles, `isDark`)
 depuis la même graine ; Kairos suit le système, un interrupteur à deux états
@@ -52,28 +61,28 @@ choisit l'autre thème (`docs/spec/apparence.md` § Thème sombre). Pour changer
 couleur : changer la graine et regénérer tout le schéma, jamais retoucher un
 rôle isolé.
 
-Le miel est la graine **par défaut** : dans Réglages → Général → Apparence, chacun peut en
-choisir une autre (graines proposées, couleur libre, couleurs du système sur
-Android 12 et plus). Tout le schéma en est alors recalculé par le même
-algorithme, embarqué dans l'application ; les valeurs ci-dessous sont celles du
-miel, les règles d'usage (« Où va la couleur ») valent pour toute graine. Le
+L'océan est la graine **par défaut** : dans Réglages → Général → Apparence, chacun peut en
+choisir une autre (graines proposées, le miel compris, couleur libre, couleurs
+du système sur Android 12 et plus). Tout le schéma en est alors recalculé par le
+même algorithme, embarqué dans l'application ; les valeurs ci-dessous sont celles
+de l'océan, les règles d'usage (« Où va la couleur ») valent pour toute graine. Le
 logo, le rouge d'erreur et le vert « ok » ne changent pas
 (`docs/spec/apparence.md`).
 
 | Rôle | `MaterialTheme.colorScheme` | Valeur | Usage principal |
 |---|---|---|---|
-| Primaire | `primary` / `onPrimary` | `#7F5610` / `#FFFFFF` | bouton plein, score WSJF, liens, focus |
-| Conteneur primaire | `primaryContainer` / `onPrimaryContainer` | `#FFDDB3` / `#624000` | carte « Maintenant », chrono en cours |
-| Secondaire | `secondary` | `#6F5B40` | contour du jour courant (vue Semaine) |
-| Conteneur secondaire | `secondaryContainer` / `onSecondaryContainer` | `#FADEBC` / `#56442A` | sélection : destination active, puces et pastilles choisies, créneaux de travail de la frise |
-| Conteneur tertiaire | `tertiaryContainer` / `onTertiaryContainer` (trait `tertiary`) | `#D4EABC` / `#3A4C2A` (`#516440`) | deep work, uniquement |
+| Primaire | `primary` / `onPrimary` | `#485D92` / `#FFFFFF` | bouton plein, score WSJF, liens, focus |
+| Conteneur primaire | `primaryContainer` / `onPrimaryContainer` | `#DAE2FF` / `#304578` | carte « Maintenant », chrono en cours |
+| Secondaire | `secondary` | `#585E71` | contour du jour courant (vue Semaine) |
+| Conteneur secondaire | `secondaryContainer` / `onSecondaryContainer` | `#DCE2F9` / `#404659` | sélection : destination active, puces et pastilles choisies, créneaux de travail de la frise |
+| Conteneur tertiaire | `tertiaryContainer` / `onTertiaryContainer` (trait `tertiary`) | `#FED7F9` / `#5A3D59` (`#735472`) | deep work, uniquement |
 | Erreur | `error` / `onError` | `#BA1A1A` / `#FFFFFF` | texte d'erreur, liseré critique |
 | Conteneur d'erreur | `errorContainer` / `onErrorContainer` | `#FFDAD6` / `#93000A` | P0, badges d'erreur, bandeau d'échec |
-| Surface | `surface` / `onSurface` | `#FFF8F4` / `#201B13` | fond, cartes à contour, texte |
-| Conteneurs de surface | `surfaceContainerLowest` … `Highest` | `#FFFFFF`, `#FEF1E5`, `#F9ECDF`, `#F3E6DA`, `#EDE0D4` | cartes « filled », lignes de tâche, badges neutres, dialogue |
-| Texte secondaire | `onSurfaceVariant` | `#4F4539` | libellés, aides, métadonnées |
-| Contours | `outline` / `outlineVariant` | `#817567` / `#D3C4B4` | champs, boutons à contour / cartes, séparateurs |
-| Surface inverse | `inverseSurface` / `inverseOnSurface` / `inversePrimary` | `#362F27` / `#FCEFE2` / `#F4BD6F` | carte « En ce moment », snackbar d'alerte |
+| Surface | `surface` / `onSurface` | `#FAF8FF` / `#1A1B21` | fond, cartes à contour, texte |
+| Conteneurs de surface | `surfaceContainerLowest` … `Highest` | `#FFFFFF`, `#F4F3FA`, `#EEEDF4`, `#E8E7EF`, `#E2E2E9` | cartes « filled », lignes de tâche, badges neutres, dialogue |
+| Texte secondaire | `onSurfaceVariant` | `#44464F` | libellés, aides, métadonnées |
+| Contours | `outline` / `outlineVariant` | `#757780` / `#C5C6D0` | champs, boutons à contour / cartes, séparateurs |
+| Surface inverse | `inverseSurface` / `inverseOnSurface` / `inversePrimary` | `#2F3036` / `#F1F0F7` / `#B1C5FF` | carte « En ce moment », snackbar d'alerte |
 
 Contrastes texte/fond (WCAG 2.1) : 6,4:1 et plus pour tous les couples
 ci-dessus, au-delà du minimum AA (4,5:1) ; voir `docs/spec/accessibilite.md`.
@@ -90,13 +99,17 @@ la carte Apparence, qui montrent la graine elle-même.
 que les rôles d'erreur). En thème sombre, comme l'erreur sombre : `ok`
 `#9CD49F` (ton 80), `okContainer` `#1D5127` et `onOkContainer` `#B7F1B8`
 (conteneur et texte échangés). **Non harmonisée** vers la graine : harmonisée, elle
-virait à l'olive, trop proche de la tertiaire.
+virait à l'olive, trop proche de la tertiaire (la sauge de la graine miel d'alors) ;
+la règle est gardée avec l'océan : le vert « ok » est le même quelle que soit la
+graine.
 
 ### Pas d'ambre d'avertissement (décision)
 
-Un ambre d'avertissement (`#755B00`/`#FFDF90`) serait **indiscernable du miel
-primaire** ; harmonisé vers la graine, il devenait même identique au conteneur
-primaire. Les états « à surveiller » sont donc rendus **par la forme** : badge
+Avec la graine miel d'origine, un ambre d'avertissement (`#755B00`/`#FFDF90`)
+était **indiscernable du miel primaire** ; harmonisé vers la graine, il devenait
+même identique au conteneur primaire. Le miel n'étant plus la graine par défaut
+(2026-10-27), l'ambre reste évité : le miel est toujours la couleur du logo et
+une graine au choix, et un état ne tient jamais à une teinte seule. Les états « à surveiller » sont donc rendus **par la forme** : badge
 à contour (`outline`) + icône `Warning` (`WarnBadge`), tuile de statistique à
 contour et icône, bandeau de dégradation neutre.
 
@@ -113,7 +126,7 @@ contour et icône, bandeau de dégradation neutre.
 4. **Le rouge** ne sert qu'à P0, aux erreurs et aux dépassements (badge
    d'erreur, liseré d'une ligne P0, temps au-delà de l'estimé), toujours
    accompagné d'un texte ou d'une icône. P1/P2 restent neutres.
-5. **La tertiaire** (vert sauge) ne sert qu'au deep work (badge, blocs de la
+5. **La tertiaire** (mauve rosé avec l'océan ; sauge avec le miel) ne sert qu'au deep work (badge, blocs de la
    frise).
 6. **Le vert « ok »** marque le fait (badge, coche, barres « fait », rail du
    temps chronométré).
@@ -213,14 +226,16 @@ réseau. **Ajouter une icône dans le script, jamais à la main.** Variante plei
 ## Logo
 
 Mark « cadran solaire » inchangé dans son dessin (cercle + un secteur + point
-pivot), recoloré depuis la graine : quatre tons de la même palette, pour qu'il
-s'accorde à l'interface au lieu d'y faire exception.
+pivot) et dans ses couleurs : quatre tons de la palette du **miel**, qui
+s'accordaient à l'interface tant que le miel était la graine du thème. Depuis le
+2026-10-27 la graine par défaut est l'océan : le logo **garde son miel**, couleurs
+fixes (`KairosLogo.kt`, jamais teintées), et contraste avec l'interface.
 
-| Pièce | Ton | Valeur |
+| Pièce | Ton (palette miel) | Valeur |
 |---|---|---|
-| Cadran | graine, ton 95 | `#FFEEDC` |
-| Anneau | graine, ton 85 | `#FFCC85` |
-| Secteur | la graine (ton 60) | `#C28417` |
+| Cadran | miel, ton 95 | `#FFEEDC` |
+| Anneau | miel, ton 85 | `#FFCC85` |
+| Secteur | le miel (ton 60) | `#C28417` |
 | Axe | neutre, ton 15 | `#2B251C` |
 
 ```html
@@ -238,6 +253,26 @@ d'application et des fiches générées par `kmp/tools/make_app_icons.py`
 Android (`colors.xml`, `mipmap-anydpi/ic_launcher.xml`,
 `drawable/ic_launcher_foreground.xml`, écran de démarrage). Toute évolution
 passe par tous ces endroits.
+
+### Icônes d'installation
+
+Le logo, inchangé, posé sur un **fond uni océan profond `#1C2F59`** (ton 20 de la
+palette primaire de la graine océan), généré par `make_app_icons.py`
+(`BACKGROUND`) : le cadran occupe 64 % du côté (`LOGO_RATIO`). Coins arrondis
+(22,5 % du côté) pour les icônes de bureau (`.png`, `.ico`, `.icns`), la page
+`site/` et les favicons ; **carré plein** pour les fiches Fastlane et les icônes
+web 192 et 512 (le système ou le magasin les masque). Android (icône adaptative) :
+`ic_launcher_background` = `#1C2F59`, le cadran crème est dessiné dans le premier
+plan, `kairos_bg` (fond des fenêtres de démarrage) = `#FAF8FF` en clair,
+`#121318` en sombre.
+
+### Page de téléchargement et boutons
+
+`site/style.css` reprend les rôles du schéma clair généré (variables `--md-*`).
+Les boutons de téléchargement (`site/badges/`, `kmp/tools/make_badges.py`) sont
+en **tonal clair** : fond `#DAE2FF` (conteneur primaire), texte et icône
+`#1C2F59`, en pilule ; ils se lisent sur fond clair comme sur le fond sombre de
+GitHub.
 
 ## Navigation
 

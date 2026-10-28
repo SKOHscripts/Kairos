@@ -13,7 +13,7 @@ dans `docs/spec-v3/`, est le seul.
 | Spec | Couvre | Jalon |
 |---|---|---|
 | [`architecture.md`](architecture.md) | Modules Gradle, pile technique, invariants (pureté de `core`, aucune dépendance non libre), versions. | M0 |
-| [`navigation-theme.md`](navigation-theme.md) | Thème MD3 « miel », typographie, icônes, logo, coquille de navigation (rail, barre haute, barre basse Android), écrans, « À propos et guide ». | M0 |
+| [`navigation-theme.md`](navigation-theme.md) | Thème MD3 « océan » (graine par défaut ; le miel au choix et dans le logo), typographie, icônes, logo, coquille de navigation (rail, barre haute, barre basse Android), écrans, « À propos et guide ». | M0 |
 | [`densite.md`](densite.md) | Densité visuelle : boutons de 36 dp, puces de 32 dp, segmentés de 40 dp, aire tactile de 48 dp conservée, échelle d'espacement, cartes et champs des Réglages. | passe design |
 | [`i18n.md`](i18n.md) | Langues (français, anglais, espagnol, allemand, russe, italien ; repli anglais), ressources de chaînes, choix de la langue dans les Réglages. | M0, 3.3.0 (#70), 3.11.0 (#75) |
 | [`distribution.md`](distribution.md) | Versionnage, APK Android, installeurs et zips portables de bureau, version web, CI, releases, GitHub Pages. | M0, M1, M6, M7 |
