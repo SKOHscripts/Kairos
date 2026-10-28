@@ -1703,4 +1703,18 @@
     <string name="features_platforms_only">%1$s only</string>
     <string name="features_none">No feature matches</string>
     <string name="features_clear">Clear</string>
+    <!-- Avis des mois sautés (docs/spec/recurrence.md, issue #111) -->
+    <string name="skipped_series_one">1 monthly occurrence was skipped: %1$s</string>
+    <string name="skipped_series_many">%1$d monthly occurrences were skipped: %2$s</string>
+    <string name="skipped_recreate_one">Recreate it</string>
+    <string name="skipped_recreate_many">Recreate them</string>
+    <string name="skipped_ignore">Ignore</string>
+    <string name="skipped_recreate_for_one">Recreate it: %1$s</string>
+    <string name="skipped_recreate_for_many">Recreate them: %1$s</string>
+    <string name="skipped_ignore_for">Ignore: %1$s</string>
+    <string name="skipped_recreated_one">1 occurrence recreated: %1$s</string>
+    <string name="skipped_recreated_many">%1$d occurrences recreated: %2$s</string>
+    <string name="skipped_ignored">Notice ignored: %1$s</string>
+    <string name="card_skipped_months_title">Skipped months</string>
+    <string name="card_skipped_months_body">If Kairos was not opened for a whole month, a “day N of the month” task says which months were skipped, on today’s Day view: recreate them or ignore them.</string>
 </resources>

@@ -115,7 +115,10 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   faux et `dailySummaryTime` « 08:30 », absents du JSON à ces valeurs ; nul tant qu'il vaut ses défauts, donc absent de
   l'export, `rappels.md`), `levelNames` (`LevelNames?`, 3.9.0 : `priority` et `points`,
   valeur → nom choisi (16 caractères au plus), une valeur sans nom absente ; nul tant qu'aucun nom n'est choisi, donc
-  absent de l'export ; affichage seulement, jamais dans un paquet d'échange, `planning-personnalise.md` § Lot D) ;
+  absent de l'export ; affichage seulement, jamais dans un paquet d'échange, `planning-personnalise.md` § Lot D),
+  `recurrence` (`RecurrenceSettings?`, 3.13.0 : `skipIgnored`, clé de série « N|titre » → dernier mois ignoré `AAAA-MM`
+  de l'avis des mois sautés ; nul tant que rien n'est ignoré, donc absent de l'export, aucune migration ; écrit par
+  `KairosRepository.updateRecurrence`, qui n'écrit rien si rien ne change, `recurrence.md` § Avis des mois sautés) ;
   `Task.seriesId` (identifiant de la première tâche d'une série récurrente, nul par défaut).
 - `TeamMember` (`core/team/`) : `id`, `uid`, `name`, `role`,
   `availabilityPercent`, `hoursPerDay`, `weekHours` (3.9.0, colonne `week_hours` « 8,8,8,8,0 », `NULL` = aucune ; schéma 10),

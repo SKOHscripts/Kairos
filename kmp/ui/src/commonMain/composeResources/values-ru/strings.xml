@@ -1702,4 +1702,18 @@
     <string name="features_platforms_only">только %1$s</string>
     <string name="features_none">Нет подходящих функций</string>
     <string name="features_clear">Очистить</string>
+    <!-- Avis des mois sautés (docs/spec/recurrence.md, issue #111) -->
+    <string name="skipped_series_one">Пропущен 1 ежемесячный повтор: %1$s</string>
+    <string name="skipped_series_many">Пропущено ежемесячных повторов: %1$d · %2$s</string>
+    <string name="skipped_recreate_one">Создать заново</string>
+    <string name="skipped_recreate_many">Создать заново</string>
+    <string name="skipped_ignore">Игнорировать</string>
+    <string name="skipped_recreate_for_one">Создать заново: %1$s</string>
+    <string name="skipped_recreate_for_many">Создать заново: %1$s</string>
+    <string name="skipped_ignore_for">Игнорировать: %1$s</string>
+    <string name="skipped_recreated_one">Создан 1 повтор: %1$s</string>
+    <string name="skipped_recreated_many">Создано повторов: %1$d · %2$s</string>
+    <string name="skipped_ignored">Уведомление скрыто: %1$s</string>
+    <string name="card_skipped_months_title">Пропущенные месяцы</string>
+    <string name="card_skipped_months_body">Если Kairos не открывался целый месяц, задача «N-го числа» покажет в виде «День» на сегодня, какие месяцы пропущены: создай их заново или игнорируй.</string>
 </resources>

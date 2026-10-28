@@ -159,7 +159,9 @@ JSON UTF-8 indenté :
   valeurs `null` omises ; codes de statut et de récurrence de la base.
 - **Série d'une tâche récurrente** (3.4, `durees-apprises.md`) : `seriesId` n'est écrit que s'il est non nul, **sans changer la
   version du format** (un champ de plus que les anciens lecteurs ignorent) ; une tâche sans série s'exporte comme avant
-  (`LearnedDurationsRepositoryTest.theSeriesSurvivesAnExportAndIsAbsentWhenThereIsNone`). Même règle pour `settings.learning`.
+  (`LearnedDurationsRepositoryTest.theSeriesSurvivesAnExportAndIsAbsentWhenThereIsNone`). Même règle pour `settings.learning`
+  et pour `settings.recurrence` (3.13.0, mémoire des avis de mois sautés ignorés, `recurrence.md` § Avis des mois sautés) :
+  absent tant que rien n'est ignoré, aller-retour sans perte (`KairosRepositoryTest.theSkipNoticeSurvivesAnExportAndIsAbsentByDefault`).
 - **Créneaux** (3.8.0) : `recurrence` peut valoir `monthly_day` ou `monthly_weekday` (`recurrence.md`) ; une version
   antérieure lit un code inconnu comme `""` (le créneau devient ponctuel à sa date d'origine). `blockExceptions`
   (`[ { "id", "blockId", "date": "2026-09-29", "skipped": true, "title", "start": "12:30", "end": "13:30", "createdAt" } ]`,

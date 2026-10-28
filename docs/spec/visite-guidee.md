@@ -176,7 +176,7 @@ découvrir sans que l'utilisateur ait à lire une documentation.
 
 `FeatureCatalog.cards` (`ui/guide/FeatureCatalog.kt`) : une liste de `FeatureCard(id, chapter, icon, title, body, target,
 since, tour, platforms)`, **dans l'ordre de la visite** ; **une carte par fonctionnalité du README** depuis l'inventaire du
-2026-10-28 (61 cartes, `liste-fonctionnalites.md` § Inventaire), `platforms` (toutes par défaut) disant celles qui n'existent pas
+2026-10-28 (61 cartes à l'inventaire, 62 avec `skipped_months`, `liste-fonctionnalites.md` § Inventaire), `platforms` (toutes par défaut) disant celles qui n'existent pas
 partout. La liste complète des fonctionnalités lit le même catalogue.
 
 - **Chapitres** (`GuideChapter`) : `FIRST_STEPS` (capture, raccourcis clavier, qualification, « faire dans l'ordre », « Découvrir

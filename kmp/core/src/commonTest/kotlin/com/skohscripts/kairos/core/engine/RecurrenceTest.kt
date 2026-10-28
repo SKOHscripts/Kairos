@@ -349,4 +349,106 @@ class RecurrenceTest {
         val stray = listOf(BlockException(4, blockId = 1, date = LocalDate(2026, 11, 3), title = "X", start = LocalTime(8, 0), end = LocalTime(9, 0), createdAt = created))
         assertEquals(4, Recurrence.expandRecurringBlocks(listOf(weekly), LocalDate(2026, 11, 2), LocalDate(2026, 11, 29), exceptions = stray).size)
     }
+
+    // --- Mois sautés (docs/spec/recurrence.md § Avis des mois sautés, issue #111) : mardi 29 septembre 2026 -------------------
+
+    private val skipToday = LocalDate(2026, 9, 29)
+    private val skipNow = Instant.parse("2026-09-29T07:00:00Z")
+
+    private fun monthly(
+        id: Long,
+        period: String,
+        day: Int = 14,
+        title: String = "Note de frais",
+        status: TaskStatus = TaskStatus.TODO,
+        space: TaskSpace = TaskSpace.PERSONAL,
+        deadline: LocalDate? = null,
+    ) = Task(
+        id, title, priority = 1, fibonacciPoints = 2, recurrence = TaskRecurrence.MONTHLY_ON_DAY, recurrenceDayOfMonth = day,
+        recurrencePeriod = period, deadline = deadline, status = status, space = space, createdAt = skipNow, updatedAt = skipNow,
+    )
+
+    private fun months(vararg ym: String) = ym.map { LocalDate.parse("$it-01") }
+
+    @Test
+    fun skipped_months_lie_between_the_series_start_and_the_current_month() {
+        val tasks = listOf(monthly(1, "2026-05"), monthly(2, "2026-09"))
+        val series = Recurrence.skippedSeries(tasks, skipToday, emptyMap()).single()
+        assertEquals("Note de frais", series.title)
+        assertEquals(14, series.dayOfMonth)
+        assertEquals(months("2026-06", "2026-07", "2026-08"), series.months)
+        assertEquals("14|Note de frais", series.key)
+    }
+
+    @Test
+    fun a_done_or_archived_occurrence_covers_its_month() {
+        val tasks = listOf(
+            monthly(1, "2026-05"),
+            monthly(2, "2026-06", status = TaskStatus.DONE),
+            monthly(3, "2026-07", status = TaskStatus.ARCHIVED),
+        )
+        assertEquals(months("2026-08"), Recurrence.skippedSeries(tasks, skipToday, emptyMap()).single().months)
+    }
+
+    @Test
+    fun a_deadline_inside_a_month_covers_it() {
+        val tasks = listOf(monthly(1, "2026-05"), monthly(2, "", deadline = LocalDate(2026, 7, 10)))
+        assertEquals(months("2026-06", "2026-08"), Recurrence.skippedSeries(tasks, skipToday, emptyMap()).single().months)
+    }
+
+    @Test
+    fun only_the_last_twelve_months_are_offered() {
+        val series = Recurrence.skippedSeries(listOf(monthly(1, "2024-01")), skipToday, emptyMap()).single()
+        assertEquals(12, series.months.size)
+        assertEquals(LocalDate(2025, 9, 1), series.months.first())
+        assertEquals(LocalDate(2026, 8, 1), series.months.last())
+    }
+
+    @Test
+    fun ignoring_hides_months_up_to_the_watermark_and_a_later_gap_shows_again() {
+        val tasks = listOf(monthly(1, "2026-05"))
+        assertEquals(emptyList(), Recurrence.skippedSeries(tasks, skipToday, mapOf("14|Note de frais" to "2026-08")))
+        assertEquals(months("2026-08"), Recurrence.skippedSeries(tasks, skipToday, mapOf("14|Note de frais" to "2026-07")).single().months)
+        // Un mois plus tard, septembre (non couvert) devient un trou postérieur au filigrane : il réapparaît.
+        val october = LocalDate(2026, 10, 2)
+        assertEquals(months("2026-09"), Recurrence.skippedSeries(tasks, october, mapOf("14|Note de frais" to "2026-08")).single().months)
+    }
+
+    @Test
+    fun a_series_started_this_month_a_team_series_and_other_rules_have_no_notice() {
+        val weekly = Task(9, "Revue", recurrence = TaskRecurrence.WEEKLY, createdAt = skipNow, updatedAt = skipNow)
+        val tasks = listOf(
+            monthly(1, "2026-09"),
+            monthly(2, "2026-03", title = "Rapport d'équipe", space = TaskSpace.TEAM),
+            weekly,
+        )
+        assertEquals(emptyList(), Recurrence.skippedSeries(tasks, skipToday, emptyMap()))
+    }
+
+    @Test
+    fun series_are_keyed_by_title_and_day_of_month() {
+        val tasks = listOf(monthly(1, "2026-07"), monthly(2, "2026-06", day = 5), monthly(3, "2026-06", title = "loyer"))
+        val got = Recurrence.skippedSeries(tasks, skipToday, emptyMap())
+        // Tri par titre sans casse, puis jour.
+        assertEquals(listOf("loyer" to 14, "Note de frais" to 5, "Note de frais" to 14), got.map { it.title to it.dayOfMonth })
+        assertEquals(months("2026-08"), got.last().months)
+        assertEquals(months("2026-07", "2026-08"), got[1].months)
+    }
+
+    @Test
+    fun recreated_occurrences_fall_on_the_business_day_before_day_n_of_each_skipped_month() {
+        val pinned = monthly(1, "2026-05").copy(pinnedStart = LocalDateTime(2026, 5, 14, 9, 0), estimatedMinutes = 25, projectTag = "Admin")
+        val tasks = listOf(pinned)
+        val series = Recurrence.skippedSeries(tasks, skipToday, emptyMap()).single()
+        val holidays = setOf(LocalDate(2026, 7, 14))
+        val made = Recurrence.recreateSkipped(tasks, series, holidays, skipNow)
+        // 14 juin 2026 : dimanche → vendredi 12 ; 14 juillet : férié → lundi 13 ; 14 août : vendredi.
+        assertEquals(listOf(LocalDate(2026, 6, 12), LocalDate(2026, 7, 13), LocalDate(2026, 8, 14)), made.map { it.deadline })
+        assertEquals(made.map { it.deadline }, made.map { it.scheduledDate })
+        assertEquals(listOf("2026-06", "2026-07", "2026-08"), made.map { it.recurrencePeriod })
+        assertTrue(made.all { it.id == 0L && it.pinnedStart == null && it.status == TaskStatus.TODO })
+        assertTrue(made.all { it.estimatedMinutes == 25 && it.projectTag == "Admin" && it.recurrenceDayOfMonth == 14 && it.seriesId == 1L })
+        // Le calcul ne recrée rien de lui-même : `calendarOccurrences` ne regarde que le mois courant.
+        assertEquals(listOf("2026-09"), Recurrence.calendarOccurrences(tasks, skipToday, holidays, skipNow).map { it.recurrencePeriod })
+    }
 }

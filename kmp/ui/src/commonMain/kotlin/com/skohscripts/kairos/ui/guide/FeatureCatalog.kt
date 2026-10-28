@@ -89,6 +89,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_points_body
 import com.skohscripts.kairos.ui.generated.resources.card_points_title
 import com.skohscripts.kairos.ui.generated.resources.card_recurrence_body
 import com.skohscripts.kairos.ui.generated.resources.card_recurrence_title
+import com.skohscripts.kairos.ui.generated.resources.card_skipped_months_body
+import com.skohscripts.kairos.ui.generated.resources.card_skipped_months_title
 import com.skohscripts.kairos.ui.generated.resources.card_score_body
 import com.skohscripts.kairos.ui.generated.resources.card_score_title
 import com.skohscripts.kairos.ui.generated.resources.card_settings_body
@@ -217,6 +219,7 @@ object FeatureCatalog {
         FeatureCard("subtasks", GuideChapter.ORGANIZE, { KairosIcons.Layers }, Res.string.card_subtasks_title, Res.string.card_subtasks_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_PARENTS)),
         FeatureCard("subtasks_edit", GuideChapter.ORGANIZE, { KairosIcons.Checklist }, Res.string.card_subtasks_edit_title, Res.string.card_subtasks_edit_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_PARENTS), since = "3.3.0"),
         FeatureCard("recurrence", GuideChapter.ORGANIZE, { KairosIcons.Repeat }, Res.string.card_recurrence_title, Res.string.card_recurrence_body, GuideTarget.Personal(Destination.DAY)),
+        FeatureCard("skipped_months", GuideChapter.ORGANIZE, { KairosIcons.EventRepeat }, Res.string.card_skipped_months_title, Res.string.card_skipped_months_body, GuideTarget.Personal(Destination.DAY), since = "3.13.0"),
         FeatureCard("snooze", GuideChapter.ORGANIZE, { KairosIcons.Snooze }, Res.string.card_snooze_title, Res.string.card_snooze_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_AGENDA), since = "3.0.0"),
         FeatureCard("dependencies", GuideChapter.ORGANIZE, { KairosIcons.Block }, Res.string.card_dependencies_title, Res.string.card_dependencies_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_BLOCKED)),
         FeatureCard("slots", GuideChapter.ORGANIZE, { KairosIcons.PushPin }, Res.string.card_slots_title, Res.string.card_slots_body, GuideTarget.Personal(Destination.DAY)),
@@ -300,6 +303,7 @@ object FeatureCatalog {
         "Keyboard shortcuts" to "shortcuts",
         "Subtasks" to "subtasks",
         "Recurrence" to "recurrence",
+        "Skipped months" to "skipped_months",
         "\"Snooze\"" to "snooze",
         "Blockers" to "dependencies",
         "Score" to "score",

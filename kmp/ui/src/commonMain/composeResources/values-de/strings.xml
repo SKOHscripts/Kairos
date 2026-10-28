@@ -1702,4 +1702,18 @@
     <string name="features_platforms_only">nur %1$s</string>
     <string name="features_none">Keine Funktion passt</string>
     <string name="features_clear">Löschen</string>
+    <!-- Avis des mois sautés (docs/spec/recurrence.md, issue #111) -->
+    <string name="skipped_series_one">1 monatlicher Termin wurde übersprungen: %1$s</string>
+    <string name="skipped_series_many">%1$d monatliche Termine wurden übersprungen: %2$s</string>
+    <string name="skipped_recreate_one">Neu anlegen</string>
+    <string name="skipped_recreate_many">Neu anlegen</string>
+    <string name="skipped_ignore">Ignorieren</string>
+    <string name="skipped_recreate_for_one">Neu anlegen: %1$s</string>
+    <string name="skipped_recreate_for_many">Neu anlegen: %1$s</string>
+    <string name="skipped_ignore_for">Ignorieren: %1$s</string>
+    <string name="skipped_recreated_one">1 Termin neu angelegt: %1$s</string>
+    <string name="skipped_recreated_many">%1$d Termine neu angelegt: %2$s</string>
+    <string name="skipped_ignored">Hinweis ignoriert: %1$s</string>
+    <string name="card_skipped_months_title">Übersprungene Monate</string>
+    <string name="card_skipped_months_body">Wurde Kairos einen ganzen Monat nicht geöffnet, zeigt eine Aufgabe „am N. des Monats“ in der heutigen Tagesansicht, welche Monate übersprungen wurden: neu anlegen oder ignorieren.</string>
 </resources>
