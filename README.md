@@ -188,8 +188,9 @@ order (critical path). Cycles are refused.
 ### Slots and deep work
 
 - **Busy slots** (meetings, lunch…), one-off or recurring (daily, weekdays,
-  weekly, monthly), editable and deletable; a "weekdays" slot skips public holidays,
-  like a "weekdays" task.
+  weekly, monthly), editable and deletable.
+- **Weekday slots skip holidays**: a "weekdays" slot, like the daily stand-up,
+  skips public holidays and extra days off, like a "weekdays" task.
 - **Monthly slots, one day apart**: a slot can repeat every month, on a day
   ("the 15th", moved back to the previous working day like a monthly task) or
   on a weekday ("the 3rd Tuesday", "the last Friday"). On any recurring slot,
@@ -244,19 +245,21 @@ order (critical path). Cycles are refused.
   through. In the app's colours, with no extra permission; a tap opens the Day
   view.
 - **Week**: seven days (deadlines, scheduled tasks, finished tasks, slots), the
-  week's real time by type; tap a task to move it to another day (public
-  holidays and days off are flagged), with "Undo".
+  week's real time by type.
+- **Move from the week**: tap a task in the Week view to move it to another
+  day (public holidays and days off are flagged), with "Undo".
 - **Month**: the "Month" switch of the Week view shows the whole month, one
   box per day with the number of planned tasks, a flag for deadlines, a warning
   for overloaded days and an icon for public holidays and days off, with the same
   information as lists below; tap a day to open it.
 - **Statistics**: weekly throughput, estimation calibration (median real time
   per level, bias), time by type, flow, completeness. The sample size is
-  shown; a small sample is marked "not reliable". Narrow it down by period
-  (4, 8, 12 weeks or all) and with the same search and filters as the Day
-  view (type, project, priority…); nothing is saved. "Export…" saves what the
-  screen shows: the tables as one CSV file (ready for a spreadsheet), or one card
-  as a PNG image with its date, period and filter.
+  shown; a small sample is marked "not reliable".
+- **Statistics your way**: narrow them down by period (4, 8, 12 weeks or all)
+  and with the same search and filters as the Day view (type, project,
+  priority…); nothing is saved. "Export…" saves what the screen shows: the
+  tables as one CSV file (ready for a spreadsheet), or one card as a PNG image
+  with its date, period and filter.
 - **Trends** (Statistics): tracked time day by day (week by week beyond 8
   weeks) and the estimation bias week by week, each chart with its written
   summary and sample size.
@@ -265,8 +268,10 @@ order (critical path). Cycles are refused.
   the ones to keep; "Undo" brings the old estimates back.
 - **When you work on each type** (Statistics): for each task type, the 2-hour
   slots where you really work (from your timer sessions), compared with your
-  usual rhythm, and the slot where you finish it fastest compared with your
-  estimates. This card only observes.
+  usual rhythm. This card only observes.
+- **Your most efficient hours** (Statistics): for each type, the slot where you
+  finish it fastest compared with your estimates; Best hours can use it
+  (measure by efficiency, or both).
 - **Best hours** (Settings, off by default): the plan prefers, between tasks of
   similar score, the hours when you usually work each type, the hours when you
   finish it faster than estimated, or both (detected from the timer, strength
@@ -278,7 +283,7 @@ order (critical path). Cycles are refused.
 
 - Everything stays on the device: no network connection (Android does not even
   have the permission), no account.
-- JSON **export and import** (Settings → Data); an automatic backup precedes
+- **Export and import** (JSON, Settings → Data); an automatic backup precedes
   every import.
 - On the desktop, the **data folder** can be changed (Settings → Data →
   "Change folder…", for a synced or encrypted folder) or set at launch with
@@ -305,6 +310,8 @@ order (critical path). Cycles are refused.
   recalls what Kairos is for and what it can do, with direct access to every
   screen; it also explains how to work with a manager or a team.
 - **Settings** open from the gear icon, at the top right of every screen.
+- **Settings by category**: each category has its icon and a summary of what
+  it holds; on a wide window, the list and the category sit side by side.
 - A **"?"** button at the top of every screen: help for the screen you are on,
   access to Home and to the guided tour.
 - A step-by-step **guided tour** (six steps), offered on first launch and
@@ -316,12 +323,12 @@ order (critical path). Cycles are refused.
   options), then shows where your task lands in the day and congratulates you
   once it is really created. Nothing is written if you give up.
 - **Discover Kairos**: chapters on every feature (Settings, help or Home),
-  reopened whenever you like (a chapter read to the end is checked), and a
-  **“New in this version”** section on Home, which stays hidden for the version
-  once dismissed. Settings → About → “See the guide again from the start”
-  brings everything back.
-  “Show me the screen” scrolls to the exact place a card talks about and
-  marks it for a moment.
+  reopened whenever you like, and a **“New in this version”** section on Home.
+- **The guide remembers**: a chapter read to the end is checked, “New in this
+  version” stays hidden for the version once dismissed, and “Show me the
+  screen” scrolls to the exact place a card talks about and marks it for a
+  moment. Settings → About → “See the guide again from the start” brings
+  everything back.
 - **Recurring task and Settings, step by step**: in "Discover Kairos",
   "Create my first recurring task" walks you through the real sheet and shows,
   for each rule, the next deadline it would produce; "Set up Kairos step by
@@ -339,8 +346,9 @@ order (critical path). Cycles are refused.
 - **Members**: availability, hours per day (or different hours from Monday
   to Friday, a day at 0 being a day off, for a four-day week), absences;
   "This is me" makes the team tasks assigned to you appear in your Day view.
-- Team **backlog** sorted by the same WSJF score, categories = task types,
-  **assignment** and **reassignment** (one by one or in bulk).
+- **Team backlog** sorted by the same WSJF score, categories = task types.
+- **Assignment** and **reassignment** of tasks to members, one by one or in
+  bulk.
 - **Tracking**: one row per member (in progress, to do, done), progress in 10 %
   steps, signals "late", "no progress", "bounced", limit on tasks in
   progress; a full **history** of every task.
@@ -395,6 +403,75 @@ order (critical path). Cycles are refused.
   images stay light.
 - At launch, a **startup page** (Android, desktop, web): the sundial hand makes
   one turn and settles on the logo, then the app fades in. A tap skips it.
+
+## Feature list
+
+Every feature in one table, in the order of the in-app list (Home → "Feature list"), with the
+version that brought it and the platforms it exists on.
+
+| Chapter | Feature | Since | Platforms |
+|---|---|---|---|
+| First steps | Capture without thinking | 3.0.0 | All |
+| First steps | Keyboard shortcuts | 3.0.0 | Desktop, Web |
+| First steps | Qualify in one click | 3.0.0 | All |
+| First steps | Do things in order | 3.0.0 | All |
+| First steps | Discover Kairos | 3.4.0 | All |
+| First steps | Create your first task | 3.4.0 | All |
+| First steps | The guide remembers and shows the spot | 3.7.0 | All |
+| First steps | Recurring task and Settings, step by step | 3.9.0 | All |
+| Plan | Priority, points and estimate | 3.0.0 | All |
+| Plan | Level names | 3.9.0 | All |
+| Plan | Score | 3.0.0 | All |
+| Plan | Placement in the day | 3.0.0 | All |
+| Plan | Afternoon dip | 3.0.0 | All |
+| Plan | Several windows and contexts | 3.5.0 | All |
+| Plan | Plan around your best hours | 3.6.0 | All |
+| Plan | Hours by day of the week | 3.4.0 | All |
+| Plan | Working days and holidays | 3.0.0 | All |
+| Follow | Timeline of the day | 3.0.0 | All |
+| Follow | Track time | 3.0.0 | All |
+| Follow | Three timer alerts | 3.0.0 | All |
+| Follow | Learned durations | 3.4.0 | All |
+| Follow | When you work on each type | 3.5.0 | All |
+| Follow | Your most efficient hours | 3.9.0 | All |
+| Follow | Your day on the home screen | 3.12.0 | Android |
+| Follow | Plan the week | 3.0.0 | All |
+| Follow | The month at a glance | 3.8.0 | All |
+| Follow | Move a task from the week | 3.7.0 | All |
+| Follow | Week and statistics | 3.0.0 | All |
+| Follow | See how things evolve | 3.8.0 | All |
+| Follow | Correct your estimates | 3.8.0 | All |
+| Follow | Statistics your way | 3.7.0 | All |
+| Organize | Subtasks | 3.0.0 | All |
+| Organize | Editable subtasks | 3.3.0 | All |
+| Organize | Recurrence | 3.0.0 | All |
+| Organize | Snooze and move | 3.0.0 | All |
+| Organize | Blockers | 3.0.0 | All |
+| Organize | Busy slots | 3.0.0 | All |
+| Organize | Deep work | 3.0.0 | All |
+| Organize | Weekday slots skip holidays | 3.7.0 | All |
+| Organize | Monthly slots, and one day apart | 3.8.0 | All |
+| Organize | Import your meetings from a calendar | 3.10.0 | All |
+| Organize | Phone calendars | 3.10.0 | Android |
+| Team | Guided first team task | 3.8.0 | All |
+| Team | The members | 3.1.0 | All |
+| Team | Your personal work counts | 3.3.0 | All |
+| Team | The backlog | 3.1.0 | All |
+| Team | Assign | 3.1.0 | All |
+| Team | Tracking | 3.1.0 | All |
+| Team | Team load | 3.1.0 | All |
+| Team | Forecasts | 3.1.0 | All |
+| Team | Exchanges | 3.1.0 | All |
+| Settings | Plain settings, defaults one tap away | 3.4.0 | All |
+| Settings | Settings sorted by category | 3.7.0 | All |
+| Settings | Reminders before it is time | 3.8.0 | All |
+| Settings | Your day in one notification | 3.12.0 | All |
+| Settings | Theme color | 3.1.0 | All |
+| Settings | Dark theme | 3.7.0 | All |
+| Settings | Languages | 3.11.0 | All |
+| Settings | Your data and your manager | 3.0.0 | All |
+| Settings | A copy of your data in a synced folder | 3.10.0 | All |
+| Settings | Web version | 3.0.0 | Web |
 
 ## Settings
 

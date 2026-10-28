@@ -79,6 +79,7 @@ import com.skohscripts.kairos.ui.generated.resources.nav_navigation
 import com.skohscripts.kairos.ui.generated.resources.nav_settings
 import com.skohscripts.kairos.ui.generated.resources.title_settings
 import com.skohscripts.kairos.ui.generated.resources.title_about
+import com.skohscripts.kairos.ui.generated.resources.features_list_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.icons.KairosLogo
 import com.skohscripts.kairos.ui.guide.GuideDialog
@@ -91,6 +92,7 @@ import com.skohscripts.kairos.ui.guide.LocalGuideSpot
 import com.skohscripts.kairos.ui.guide.HelpDialog
 import com.skohscripts.kairos.ui.guide.HelpTopic
 import com.skohscripts.kairos.ui.screens.AboutScreen
+import com.skohscripts.kairos.ui.screens.FeatureListScreen
 import com.skohscripts.kairos.ui.screens.DONATE_URL
 import com.skohscripts.kairos.ui.screens.HomeScreen
 import com.skohscripts.kairos.ui.settings.SettingsScreen
@@ -137,6 +139,8 @@ fun AppShell(
     onOpenSettings: () -> Unit,
     onOpenAbout: () -> Unit,
     onCloseSecondary: () -> Unit,
+    /** Ouvre la liste des fonctionnalités (bouton de l'Accueil, docs/spec/liste-fonctionnalites.md). */
+    onOpenFeatures: () -> Unit = {},
 ) {
     // Une catégorie des Réglages ouverte seule à l'écran (téléphone) : le retour ramène d'abord à la liste.
     val inSettingsCategory = secondary == Secondary.SETTINGS && nav.settings.inCategory
@@ -237,6 +241,7 @@ fun AppShell(
         inSettingsCategory -> stringResource(nav.settings.category!!.title)
         secondary == Secondary.SETTINGS -> stringResource(Res.string.title_settings)
         secondary == Secondary.ABOUT -> stringResource(Res.string.title_about)
+        secondary == Secondary.FEATURES -> stringResource(Res.string.features_list_title)
         team && teamName.isNotBlank() -> stringResource(Res.string.title_team_named, teamName, stringResource(current.title))
         team -> stringResource(current.title)
         // Sans rail (fenêtre étroite), date courte : « Semaine · du lundi 5 octobre 2026 » tenait sur trois lignes à 380 dp.
@@ -251,7 +256,7 @@ fun AppShell(
     // Sujet d'aide de ce qui est affiché ; `null` = pas de « ? » (Accueil, « À propos »).
     val helpTopic: HelpTopic? = when (secondary) {
         Secondary.SETTINGS -> HelpTopic.SETTINGS
-        Secondary.ABOUT -> null
+        Secondary.ABOUT, Secondary.FEATURES -> null
         null -> HelpTopic.of(current, nav.exchangesTab)
     }
     val topBar: @Composable () -> Unit = {
@@ -310,11 +315,14 @@ fun AppShell(
                             teamModeEnabled, openTarget, { guide = it }, onOpenAbout, onDiscover = { discover = true },
                             newsHidden = newsKey != null && memory?.newsHidden == newsKey,
                             onHideNews = { scope.launch { services.repository.updateGuide { it.copy(newsHidden = newsKey) } } },
+                            onOpenFeatures = onOpenFeatures,
                         )
                     }
                     when {
                         secondary == Secondary.SETTINGS -> SettingsScreen(services, nav.settings, onDiscover = { discover = true }, onOpenAbout = onOpenAbout)
                         secondary == Secondary.ABOUT -> AboutScreen()
+                        // Un toucher ferme la liste, puis ouvre la cible de la carte (qui peut être les Réglages).
+                        secondary == Secondary.FEATURES -> FeatureListScreen(teamModeEnabled) { target -> onCloseSecondary(); openTarget(target) }
                         team -> TeamDestinationScreen(teamDestination, services, nav, onTour = { guide = GuideKind.TEAM }, home = home)
                         else -> DestinationScreen(destination, services, nav, onOpenDay, onNavigate, home, onDiscover = { discover = true })
                     }

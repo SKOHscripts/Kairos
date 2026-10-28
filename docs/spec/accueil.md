@@ -101,6 +101,9 @@ le travail en cours.
   chapitres, aussi dans l'aide et les Réglages) et une section **« Nouveau dans la version X.Y.Z »** masquable pour la
   session ; l'accueil du premier lancement gagne **« Créer ma première tâche »** (accompagnement dans la vraie fiche) ;
   l'aide propose une entrée « Découvrir Kairos ». Le reste de cette spec est inchangé.
+- **3.13** (`liste-fonctionnalites.md`, issue #153) : sous la section « Nouveau » (et hors de sa condition d'affichage, donc
+  toujours là), un bouton **« Liste de fonctionnalités »** (`OutlinedButton`, icône `FormatListBulleted`) ouvre la liste complète du
+  catalogue, écran secondaire avec recherche et filtre « Nouveau depuis… ». L'Accueil ne change pas autrement.
 
 #### Équipe : l'onglet « Échanges »
 

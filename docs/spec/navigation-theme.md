@@ -187,7 +187,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `KairosShell` : état `destination` (initialisé à `initialDestination`,
   que changent les tests, l'auto-test et les captures des magasins,
   `publication.md`), `secondary: Secondary?` (`rememberSaveable` ;
-  `SETTINGS` ou `ABOUT` ; `initialSecondary` pour la capture des Réglages)
+  `SETTINGS`, `ABOUT` ou `FEATURES`, la liste des fonctionnalités ouverte par le bouton de l'Accueil,
+  `liste-fonctionnalites.md` ; `initialSecondary` pour la capture des Réglages)
   et `secondaryParent` (l'écran secondaire d'où « À propos » a été ouvert,
   rendu par la flèche retour),
   `NavState` (jour et semaine regardés, `vue-semaine.md`) ;

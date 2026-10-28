@@ -296,6 +296,11 @@ private fun KairosShell(
                         secondaryParent = secondary
                         secondary = Secondary.ABOUT
                     },
+                    onOpenFeatures = {
+                        nav.guideSpot.pending = null
+                        secondary = Secondary.FEATURES
+                        secondaryParent = null
+                    },
                     onCloseSecondary = {
                         secondary = secondaryParent
                         secondaryParent = null

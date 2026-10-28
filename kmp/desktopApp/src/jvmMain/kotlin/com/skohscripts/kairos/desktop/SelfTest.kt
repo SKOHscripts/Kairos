@@ -22,6 +22,7 @@ import com.skohscripts.kairos.ui.guide.DiscoverDialog
 import com.skohscripts.kairos.ui.guide.GuideKind
 import com.skohscripts.kairos.ui.guide.HelpDialog
 import com.skohscripts.kairos.ui.guide.HelpTopic
+import com.skohscripts.kairos.ui.screens.FeatureListScreen
 import com.skohscripts.kairos.ui.screens.HomeScreen
 import com.skohscripts.kairos.ui.navigation.NavState
 import com.skohscripts.kairos.ui.notes.NotesScreen
@@ -394,6 +395,9 @@ object SelfTest {
             Shot("home-team", 900, 1500, atWidth(900.dp) { HomeScreen(teamEnabled = true, onOpen = {}, onTour = {}, onAbout = {}) }),
             Shot("home-new", 900, 1900, atWidth(900.dp) { HomeScreen(teamEnabled = false, onOpen = {}, onTour = {}, onAbout = {}, version = "3.4.0") }),
             Shot("home-new-narrow", 360, 2900, atWidth(360.dp) { HomeScreen(teamEnabled = false, onOpen = {}, onTour = {}, onAbout = {}, version = "3.4.0") }),
+            // Liste des fonctionnalités (docs/spec/liste-fonctionnalites.md, issue #153).
+            Shot("features", 900, 1400, atWidth(900.dp) { FeatureListScreen(teamEnabled = true, onOpen = {}) }),
+            Shot("features-narrow", 360, 1400, atWidth(360.dp) { FeatureListScreen(teamEnabled = false, onOpen = {}) }),
             // Un chapitre parcouru jusqu'au bout : coché, « · lu » (issue #94).
             Shot("discover", 900, 800, overScrim { DiscoverDialog(teamEnabled = true, onFirstTask = {}, onChapter = {}, onDismiss = {}, read = setOf(GuideChapter.PLAN)) }),
             Shot("discover-narrow", 360, 800, overScrim { DiscoverDialog(teamEnabled = false, onFirstTask = {}, onChapter = {}, onDismiss = {}) }),
