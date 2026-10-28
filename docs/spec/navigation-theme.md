@@ -183,7 +183,11 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `openServices()` une fois (`LaunchedEffect`) : indicateur de progression
   pendant l'attente, titre d'erreur et détail en cas d'échec ; avec
   `splash = true` (points d'entrée seulement), la page de démarrage couvre
-  le tout jusqu'à son fondu (`demarrage.md`). Puis
+  le tout jusqu'à son fondu (`demarrage.md`). Puis `RealOrDemoShell`, qui montre la coquille réelle ou celle d'une
+  démonstration jetable sous un `SaveableStateHolder` (clés `app` et `demo`) et garde la `NavState` de la coquille réelle
+  pendant la démonstration (`visite-guidee.md` § Visite interactive ; en démonstration, `AppShell(demo)` ajoute
+  `DemoBanner` sous la barre du haut et `DemoPanel` au-dessus de la barre basse, retire l'Accueil des destinations et
+  les actions de la barre), puis
   `KairosShell` : état `destination` (initialisé à `initialDestination`,
   que changent les tests, l'auto-test et les captures des magasins,
   `publication.md`), `secondary: Secondary?` (`rememberSaveable` ;
@@ -191,7 +195,7 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `liste-fonctionnalites.md` ; `initialSecondary` pour la capture des Réglages)
   et `secondaryParent` (l'écran secondaire d'où « À propos » a été ouvert,
   rendu par la flèche retour),
-  `NavState` (jour et semaine regardés, `vue-semaine.md`) ;
+  `NavState` (jour et semaine regardés, `vue-semaine.md`), reçue de `RealOrDemoShell` ;
   `BoxWithConstraints` fournit la largeur à `choose`. Naviguer vers une
   destination ferme l'écran secondaire (Réglages ou « À propos ») et ramène à
   aujourd'hui et à la semaine courante ; `onOpenDay(jour)` ouvre la vue Jour d'un jour donné.

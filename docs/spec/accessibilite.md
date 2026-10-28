@@ -90,6 +90,11 @@ Espace Équipe (jalon E3, `equipe-backlog-suivi.md`) : la sélection multiple du
   chacun est son libellé visible **suivi** de son objet (« Ignorer : Note de frais »), pour que le lecteur d'écran les
   distingue sans contredire ce qui est affiché.
 
+- Démonstration interactive (3.13.0, `visite-guidee.md` § Visite interactive) : le panneau de l'étape est une région
+  vivante polie qui ne prend jamais le focus ; le repère est un contour et le texte « Ici », jamais la couleur seule ;
+  chaque étape se fait sans geste (« Faire pour moi »), et « À moi de jouer » donne le focus à l'élément ; aucun
+  mouvement (repères fixes, défilement sans animation, ni curseur ni frappe simulés).
+
 ### Décisions et pièges tracés
 
 - **Une ligne dépliable n'était qu'un `clickable`** : TalkBack la lisait

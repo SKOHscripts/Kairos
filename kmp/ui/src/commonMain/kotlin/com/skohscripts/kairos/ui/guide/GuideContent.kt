@@ -45,6 +45,9 @@ sealed interface GuideTarget {
 
     /** Lance l'accompagnement de la première tâche (docs/spec/premiere-tache.md) : ne change pas d'écran, ouvre la fiche. */
     data object FirstTask : GuideTarget
+
+    /** Lance la démonstration jetable (docs/spec/visite-guidee.md § Visite interactive) : ne change pas d'écran. */
+    data object Demo : GuideTarget
 }
 
 /** Écran qui porte une [GuideSection]. */

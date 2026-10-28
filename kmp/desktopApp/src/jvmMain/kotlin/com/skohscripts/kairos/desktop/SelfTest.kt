@@ -1,5 +1,14 @@
 package com.skohscripts.kairos.desktop
 
+import java.util.Locale
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.skohscripts.kairos.data.KairosStore
+import com.skohscripts.kairos.ui.navigation.Space
+import com.skohscripts.kairos.ui.navigation.NavigationLayout
+import com.skohscripts.kairos.ui.navigation.AppShell
+import com.skohscripts.kairos.ui.guide.demo.DemoTour
+import com.skohscripts.kairos.ui.app.forDemo
+import com.skohscripts.kairos.ui.app.openDemo
 import com.skohscripts.kairos.core.calendar.CalendarImport
 import com.skohscripts.kairos.ui.settings.CalendarImportDialog
 import androidx.compose.foundation.background
@@ -156,6 +165,25 @@ object SelfTest {
         val calendarZone = TimeZone.currentSystemDefault()
         val calendarToday = Clock.System.todayIn(calendarZone)
         val calendarPlan = CalendarImport.plan(sampleCalendar(calendarToday), calendarToday, calendarZone)
+        // Démonstration interactive (docs/spec/visite-guidee.md § Visite interactive, issue #96) : une démonstration neuve,
+        // tâche capturée, à l'étape de la priorité (repère sur les puces de sa ligne).
+        val demoServices = runBlocking {
+            val session = openDemo(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), Locale.getDefault().language, close = {}, clock = services.clock)
+            services.forDemo(session)
+        }
+        val demoTour = DemoTour(demoServices.repository, today = { demoServices.clock.todayIn(TimeZone.currentSystemDefault()) }).also { tour ->
+            runBlocking { tour.step.act(tour.context("Prepare Monday’s meeting")) }
+            tour.observe(demoServices.repository.snapshot.value)
+        }
+        fun demoShell(layout: NavigationLayout): @Composable () -> Unit = {
+            KairosTheme {
+                AppShell(
+                    layout, demoServices, Space.PERSONAL, Destination.DAY, TeamDestination.HOME, teamModeEnabled = false, teamName = "",
+                    secondary = null, nav = NavState(), onNavigate = {}, onNavigateTeam = {}, onSpaceChange = {}, onOpenDay = {},
+                    onOpenSettings = {}, onOpenAbout = {}, onCloseSecondary = {}, demo = demoTour,
+                )
+            }
+        }
         val skippedSample = SkippedSeries("Note de frais", 14, listOf(LocalDate(2026, 7, 1), LocalDate(2026, 8, 1)))
         val calendar = runBlocking {
             DesktopServices.open(dataDir, inMemory = true).also { s -> s.repository.importCalendar(calendarPlan.name ?: "Travail", false, calendarPlan, calendarToday) }
@@ -403,6 +431,8 @@ object SelfTest {
             Shot("features", 900, 1400, atWidth(900.dp) { FeatureListScreen(teamEnabled = true, onOpen = {}) }),
             Shot("features-narrow", 360, 1400, atWidth(360.dp) { FeatureListScreen(teamEnabled = false, onOpen = {}) }),
             // Avis des mois sautés (docs/spec/recurrence.md § Avis des mois sautés, issue #111) : à 360 dp, les boutons passent sous le texte.
+            Shot("demo", 1200, 1000, demoShell(NavigationLayout.RAIL)),
+            Shot("demo-narrow", 360, 1000, demoShell(NavigationLayout.BOTTOM_BAR)),
             Shot("skipped-months", 900, 300, atWidth(900.dp) { SkippedSeriesNotice(skippedSample, onRecreate = {}, onIgnore = {}) }),
             Shot("skipped-months-narrow", 360, 300, atWidth(360.dp) { SkippedSeriesNotice(skippedSample, onRecreate = {}, onIgnore = {}) }),
             // Un chapitre parcouru jusqu'au bout : coché, « · lu » (issue #94).

@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.guide.demo.DemoSpot
+import com.skohscripts.kairos.ui.guide.demo.DemoMark
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosButton
 import com.skohscripts.kairos.ui.theme.KairosSegmentedButton
@@ -142,10 +144,16 @@ private fun TaskCapture(focus: FocusRequester, onAdd: (String) -> Unit) {
         }
         runCatching { focus.requestFocus() }
     }
+    // Démonstration (docs/spec/visite-guidee.md § Visite interactive) : la première étape cerne le champ.
+    DemoMark(DemoSpot.CAPTURE) { TaskCaptureRow(text, { text = it }, focus, ::submit) }
+}
+
+@Composable
+private fun TaskCaptureRow(text: String, onText: (String) -> Unit, focus: FocusRequester, submit: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         OutlinedTextField(
             value = text,
-            onValueChange = { text = it },
+            onValueChange = onText,
             label = { Text(stringResource(Res.string.capture_label)) },
             placeholder = { Text(stringResource(Res.string.capture_placeholder)) },
             singleLine = true,

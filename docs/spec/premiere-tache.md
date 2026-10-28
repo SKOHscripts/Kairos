@@ -250,6 +250,9 @@ cerne la ligne de la tâche (2 dp primaire) et la liste défile jusqu'à elle (`
 - **Création réelle d'abord** : `createTeamTask(titre)` puis `updateTask(id, édition)`, dont la réaffectation écrit
   l'événement `assigned` ; les félicitations lisent la tâche créée (titulaire réel). Écarté : un dépôt dédié à la
   création complète (un chemin d'écriture de plus à journaliser).
+- **Démonstration interactive (3.13.0, issue #96) et « coach sur la vraie fiche »** : la démonstration n'est pas une fiche
+  factice mais les vrais écrans sur un dépôt jetable en mémoire (`visite-guidee.md` § Visite interactive) ; elle ne
+  remplace pas l'accompagnement de la première tâche, qui reste le chemin pour repartir avec une tâche à soi.
 - **Pas de persistance** : l'entrée reste dans le hub, à rejouer ; rien n'est retenu dans `Settings.guide` (aucune
   invitation à faire disparaître côté équipe).
 - **Empreinte sur les bases vides** : l'invitation s'affiche aussi sur une base sans aucune tâche ; les tests de la vue Jour

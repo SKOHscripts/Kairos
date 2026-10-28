@@ -1716,4 +1716,32 @@
     <string name="skipped_ignored">Aviso ignorado: %1$s</string>
     <string name="card_skipped_months_title">Meses omitidos</string>
     <string name="card_skipped_months_body">Si Kairos no se abrió durante un mes entero, una tarea «el día N del mes» indica qué meses se omitieron, en la vista Día de hoy: vuelve a crearlos o ignóralos.</string>
+    <!-- Démonstration interactive (docs/spec/visite-guidee.md § Visite interactive, issue #96) -->
+    <string name="demo_hub_title">Probar en una demostración</string>
+    <string name="demo_hub_hint">Cuatro gestos con ejemplos desechables: tus datos no se tocan.</string>
+    <string name="demo_hub_busy">Detén primero el cronómetro en marcha.</string>
+    <string name="demo_banner">Demostración: tus datos no se tocan</string>
+    <string name="demo_exit">Salir</string>
+    <string name="demo_do_it">Hazlo por mí</string>
+    <string name="demo_my_turn">Me toca</string>
+    <string name="demo_skip">Saltar el paso</string>
+    <string name="demo_capture_title">Capturar</string>
+    <string name="demo_capture_body">Escribe un título en «Nueva tarea» y valida: la tarea llega a «Por procesar», nada más que rellenar.</string>
+    <string name="demo_priority_title">Calificar: la prioridad</string>
+    <string name="demo_priority_body">Elige una prioridad en su línea: su importancia. El plazo cuenta aparte, por la fecha límite.</string>
+    <string name="demo_points_title">Calificar: los puntos</string>
+    <string name="demo_points_body">Elige puntos: su tamaño. Recibe una puntuación y ocupa su lugar en el día.</string>
+    <string name="demo_timer_start_title">Iniciar el cronómetro</string>
+    <string name="demo_timer_start_body">Inicia el cronómetro en su línea: «En este momento» muestra en qué trabajas.</string>
+    <string name="demo_timer_stop_title">Detener el cronómetro</string>
+    <string name="demo_timer_stop_body">Detenlo: el tiempo dedicado se guarda y alimenta tus estadísticas.</string>
+    <string name="demo_move_title">Mover</string>
+    <string name="demo_move_body">«Mover a otro día…» y luego «Mañana»: la tarea sale de hoy hasta entonces, su fecha límite no cambia.</string>
+    <string name="demo_done_title">Ya lo has visto todo</string>
+    <string name="demo_done_body">Tus datos no se han tocado.</string>
+    <string name="demo_done_exit">Salir de la demostración</string>
+    <string name="demo_done_restart">Empezar de nuevo</string>
+    <string name="demo_task_title">Preparar la reunión del lunes</string>
+    <string name="card_demo_title">Demostración interactiva</string>
+    <string name="card_demo_body">Capturar, calificar, cronometrar y mover una tarea con ejemplos desechables, paso a paso: tus datos no se tocan.</string>
 </resources>

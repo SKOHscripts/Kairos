@@ -1716,4 +1716,32 @@
     <string name="skipped_ignored">Уведомление скрыто: %1$s</string>
     <string name="card_skipped_months_title">Пропущенные месяцы</string>
     <string name="card_skipped_months_body">Если Kairos не открывался целый месяц, задача «N-го числа» покажет в виде «День» на сегодня, какие месяцы пропущены: создай их заново или игнорируй.</string>
+    <!-- Démonstration interactive (docs/spec/visite-guidee.md § Visite interactive, issue #96) -->
+    <string name="demo_hub_title">Попробовать в демо</string>
+    <string name="demo_hub_hint">Четыре действия на одноразовых примерах: твои данные не затрагиваются.</string>
+    <string name="demo_hub_busy">Сначала останови работающий таймер.</string>
+    <string name="demo_banner">Демо: твои данные не затрагиваются</string>
+    <string name="demo_exit">Выйти</string>
+    <string name="demo_do_it">Сделать за меня</string>
+    <string name="demo_my_turn">Я сам</string>
+    <string name="demo_skip">Пропустить шаг</string>
+    <string name="demo_capture_title">Записать</string>
+    <string name="demo_capture_body">Напиши название в поле «Новая задача» и подтверди: задача попадёт в «К обработке», больше ничего заполнять не нужно.</string>
+    <string name="demo_priority_title">Оценить: приоритет</string>
+    <string name="demo_priority_body">Выбери приоритет в её строке: насколько она важна. Срок учитывается отдельно.</string>
+    <string name="demo_points_title">Оценить: баллы</string>
+    <string name="demo_points_body">Выбери баллы: её размер. Она получает оценку и занимает своё место в дне.</string>
+    <string name="demo_timer_start_title">Запустить таймер</string>
+    <string name="demo_timer_start_body">Запусти таймер в её строке: «Прямо сейчас» показывает, над чем ты работаешь.</string>
+    <string name="demo_timer_stop_title">Остановить таймер</string>
+    <string name="demo_timer_stop_body">Останови его: затраченное время сохраняется и попадает в статистику.</string>
+    <string name="demo_move_title">Перенести</string>
+    <string name="demo_move_body">«Перенести на другой день…», затем «Завтра»: задача уходит из сегодняшнего дня до этой даты, срок не меняется.</string>
+    <string name="demo_done_title">Ты всё посмотрел</string>
+    <string name="demo_done_body">Твои данные не были затронуты.</string>
+    <string name="demo_done_exit">Выйти из демо</string>
+    <string name="demo_done_restart">Начать заново</string>
+    <string name="demo_task_title">Подготовить встречу в понедельник</string>
+    <string name="card_demo_title">Интерактивное демо</string>
+    <string name="card_demo_body">Записать, оценить, засечь время и перенести задачу на одноразовых примерах, шаг за шагом: твои данные не затрагиваются.</string>
 </resources>

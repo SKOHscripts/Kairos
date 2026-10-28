@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.android
 
+import com.skohscripts.kairos.ui.app.DemoSource
+import com.skohscripts.kairos.ui.app.openDemo
 import com.skohscripts.kairos.ui.app.LinkedFileSync
 import android.content.Context
 import android.content.res.Resources
@@ -64,6 +66,13 @@ object AndroidServices {
             // APK installé à la main : le lien vers la page de téléchargement (docs/spec/mises-a-jour.md § Android).
             downloadPage = InstallSource.installedByHand(installerOf(context)),
             applyLanguage = { Locale.setDefault(Locale.forLanguageTag(it)) },
+            // Démonstration jetable (docs/spec/visite-guidee.md § Visite interactive) : un nom nul, une base en mémoire.
+            demo = DemoSource { lang ->
+                withContext(Dispatchers.IO) {
+                    val memory = AndroidSqliteDriver(DeferredSchema, context, null)
+                    openDemo(KairosStore.open(memory), lang, close = { memory.close() }, clock = clock)
+                }
+            },
         )
     }
 

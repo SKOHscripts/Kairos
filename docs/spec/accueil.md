@@ -145,7 +145,7 @@ au lieu d'être réparti entre la fiche du membre et les Réglages.
 - Visite avec **pastilles qui pointent les éléments** de l'écran (coach marks) :
   écartée (§ Décisions) ; la visite est une suite de fenêtres qui ouvrent les
   écrans. Précisé le 2026-10-26 (issue #96) : une visite interactive sur une démonstration jetable cerne des éléments de
-  l'écran sans pastille ancrée, voir `visite-guidee.md` § Visite interactive (spécifiée, non implémentée).
+  l'écran sans pastille ancrée, voir `visite-guidee.md` § Visite interactive (implémentée en 3.13.0) ; son entrée est dans le hub, l'Accueil lui-même ne change pas.
 - Mémoriser « visite terminée », ou la relancer d'office à une mise à jour :
   non, pas de nouvel indicateur à stocker (et aucune incidence sur l'export).
 - Aide en ligne, vidéos, liens vers un site : non, l'application reste

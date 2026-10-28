@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.guide.demo.LocalDemoTour
+import com.skohscripts.kairos.ui.guide.demo.DemoSpot
+import com.skohscripts.kairos.ui.guide.demo.DemoMark
 import com.skohscripts.kairos.core.engine.Recurrence
 import com.skohscripts.kairos.core.model.BlockSource
 import com.skohscripts.kairos.ui.app.withDeviceCalendars
@@ -299,6 +302,25 @@ fun DayScreen(
             spot.show(section)
         }
     }
+    // Démonstration, « À moi de jouer » (docs/spec/visite-guidee.md § Visite interactive) : la liste défile jusqu'au repère, sans
+    // animation, puis l'élément cerné reçoit le focus. La liste est paresseuse : on y va par la position de l'entrée.
+    val demo = LocalDemoTour.current
+    val demoRequest = demo?.focusRequest ?: 0
+    LaunchedEffect(demoRequest) {
+        val tour = demo ?: return@LaunchedEffect
+        if (demoRequest == tour.handledFocus) return@LaunchedEffect
+        tour.handledFocus = demoRequest
+        val index = when (tour.spot) {
+            DemoSpot.CAPTURE -> positions["capture"]
+            DemoSpot.TIMER_STOP -> positions["running"]
+            null -> null
+            else -> tour.taskId?.let { rowPositions[it] }
+        }
+        awaitComposed()
+        index?.let { listState.scrollToItem(it) }
+        awaitComposed()
+        runCatching { tour.target?.requestFocus() }
+    }
     // La tâche qu'on vient de créer : la liste défile jusqu'à sa ligne, mise en évidence pendant l'explication de sa place.
     LaunchedEffect(placedId, placedStep) {
         val id = placedId ?: return@LaunchedEffect
@@ -375,7 +397,7 @@ fun DayScreen(
                 }
                 // Aucune tâche à soi (les exemples ne comptent pas) : l'invitation à l'accompagnement, qui disparaît d'elle-même
                 // dès la première tâche, et ne revient plus une fois l'accompagnement mené à son terme (issue #94).
-                if (!inviteDismissed && snapshot.settings.guide?.firstTaskDone != true && snapshot.tasks.none { !ExampleData.isExample(it) }) {
+                if (demo == null && !inviteDismissed && snapshot.settings.guide?.firstTaskDone != true && snapshot.tasks.none { !ExampleData.isExample(it) }) {
                     block("first-task") {
                         FirstTaskInvite(
                             onStart = { creating = true; coachStep = 0; coachRecurring = false },
@@ -847,8 +869,8 @@ internal fun InboxQualify(task: Task, onPriority: (Int?) -> Unit, onPoints: (Int
                 Text(stringResource(Levels.missing(missing)), style = MaterialTheme.typography.labelMedium)
             }
         }
-        PriorityPills(task.priority, onPriority)
-        PointsPills(task.fibonacciPoints, onPoints)
+        DemoMark(DemoSpot.PRIORITY, task.id) { PriorityPills(task.priority, onPriority) }
+        DemoMark(DemoSpot.POINTS, task.id) { PointsPills(task.fibonacciPoints, onPoints) }
     }
 }
 

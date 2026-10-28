@@ -327,6 +327,10 @@ order (critical path). Cycles are refused.
   field (title, priority, Fibonacci points, estimate, dates, type, advanced
   options), then shows where your task lands in the day and congratulates you
   once it is really created. Nothing is written if you give up.
+- **Interactive demo**: "Try it in a demo" in "Discover Kairos" opens the real
+  screens on throwaway examples, in memory, and guides you through capturing,
+  qualifying, timing and moving one task. Each step offers "Do it for me" or
+  "My turn"; a banner and "Exit" stay visible, and your data is never touched.
 - **Discover Kairos**: chapters on every feature (Settings, help or Home),
   reopened whenever you like, and a **“New in this version”** section on Home.
 - **The guide remembers**: a chapter read to the end is checked, “New in this
@@ -422,6 +426,7 @@ version that brought it and the platforms it exists on.
 | First steps | Do things in order | 3.0.0 | All |
 | First steps | Discover Kairos | 3.4.0 | All |
 | First steps | Create your first task | 3.4.0 | All |
+| First steps | Interactive demo | 3.13.0 | All |
 | First steps | The guide remembers and shows the spot | 3.7.0 | All |
 | First steps | Recurring task and Settings, step by step | 3.9.0 | All |
 | Plan | Priority, points and estimate | 3.0.0 | All |

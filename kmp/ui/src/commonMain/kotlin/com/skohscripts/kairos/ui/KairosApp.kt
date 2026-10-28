@@ -1,6 +1,12 @@
 package com.skohscripts.kairos.ui
 
 import com.skohscripts.kairos.core.model.LevelNames
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import com.skohscripts.kairos.ui.app.DemoSession
+import com.skohscripts.kairos.ui.app.forDemo
+import com.skohscripts.kairos.ui.guide.demo.DemoTour
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 import com.skohscripts.kairos.ui.day.LocalLevelNames
 import com.skohscripts.kairos.ui.day.LocalCalendarNames
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -141,7 +147,7 @@ fun KairosApp(
                                 LocalCalendarNames provides remember(stored.calendarSources) { stored.calendarSources.associate { it.id to it.name } },
                             ) {
                                 KairosTheme(scheme, dark, light) {
-                                    KairosShell(
+                                    RealOrDemoShell(
                                         platform, ready, language, initialDestination, initialTeamDestination, initialSecondary,
                                         externalDestination, onExternalDestinationHandled,
                                     )
@@ -160,6 +166,70 @@ fun KairosApp(
     }
 }
 
+/** Une démonstration ouverte (docs/spec/visite-guidee.md § Visite interactive) : ses services, sa base et son déroulé. */
+private class DemoRun(val services: AppServices, val session: DemoSession, val tour: DemoTour, val nav: NavState = NavState())
+
+/**
+ * La coquille réelle, ou celle d'une démonstration jetable (docs/spec/visite-guidee.md § Visite interactive). La démonstration
+ * n'est pas sauvegardée (`remember`) : une rotation ou la mort du processus la jette. Les deux coquilles vivent sous un
+ * `SaveableStateHolder` : la réelle, qui quitte la composition pendant la démonstration, retrouve ses `rememberSaveable`
+ * (destination, espace, écran secondaire) au retour ; sa `NavState` (jour et semaine affichés) est gardée ici. Thème, langue
+ * et noms des niveaux restent ceux des vrais réglages (calculés au-dessus).
+ */
+@Composable
+private fun RealOrDemoShell(
+    platform: Platform,
+    ready: AppServices,
+    language: String,
+    initialDestination: Destination,
+    initialTeamDestination: TeamDestination,
+    initialSecondary: Secondary?,
+    externalDestination: Destination?,
+    onExternalDestinationHandled: () -> Unit,
+) {
+    val holder = rememberSaveableStateHolder()
+    val nav = remember { NavState() }
+    var demo by remember { mutableStateOf<DemoRun?>(null) }
+    val scope = rememberCoroutineScope()
+    fun exitDemo() {
+        val run = demo ?: return
+        demo = null
+        holder.removeState(DEMO_KEY)
+        scope.launch { runCatching { run.session.close() } }
+    }
+    fun startDemo() {
+        val source = ready.demo ?: return
+        scope.launch {
+            val session = source.open(language)
+            val services = ready.forDemo(session)
+            demo = DemoRun(services, session, DemoTour(session.repository, today = { services.clock.todayIn(TimeZone.currentSystemDefault()) }))
+        }
+    }
+    // Un widget touché pendant la démonstration : on la quitte, la coquille réelle ouvre la destination demandée.
+    LaunchedEffect(externalDestination) { if (externalDestination != null) exitDemo() }
+    val run = demo
+    if (run == null) {
+        holder.SaveableStateProvider(APP_KEY) {
+            KairosShell(
+                platform, ready, language, initialDestination, initialTeamDestination, initialSecondary,
+                externalDestination, onExternalDestinationHandled, nav, onStartDemo = ::startDemo,
+            )
+        }
+    } else {
+        holder.SaveableStateProvider(DEMO_KEY) {
+            KairosShell(
+                platform, run.services, language, Destination.WORK, TeamDestination.HOME, null, null, {}, run.nav,
+                demo = run.tour,
+                onExitDemo = ::exitDemo,
+                onRestartDemo = { exitDemo(); startDemo() },
+            )
+        }
+    }
+}
+
+private const val APP_KEY = "app"
+private const val DEMO_KEY = "demo"
+
 @Composable
 private fun KairosShell(
     platform: Platform,
@@ -171,6 +241,13 @@ private fun KairosShell(
     initialSecondary: Secondary?,
     externalDestination: Destination?,
     onExternalDestinationHandled: () -> Unit,
+    /** Jour, semaine et mois affichés : gardés au-dessus, la coquille réelle quitte la composition pendant une démonstration. */
+    nav: NavState,
+    /** La démonstration que cette coquille montre, `null` pour la coquille réelle. */
+    demo: DemoTour? = null,
+    onStartDemo: () -> Unit = {},
+    onExitDemo: () -> Unit = {},
+    onRestartDemo: () -> Unit = {},
 ) {
     val repository = services.repository
     // Seul le sous-objet d'équipe intéresse la coquille : un changement d'un autre réglage ne la recompose pas.
@@ -186,7 +263,6 @@ private fun KairosShell(
     var secondary by rememberSaveable { mutableStateOf(initialSecondary) }
     // « À propos » ouvert depuis les Réglages : la flèche retour y ramène.
     var secondaryParent by rememberSaveable { mutableStateOf<Secondary?>(null) }
-    val nav = remember { NavState() }
     val scope = rememberCoroutineScope()
 
     // L'espace Équipe n'existe que tant que la gestion d'équipe est activée (valeur enregistrée).
@@ -305,6 +381,10 @@ private fun KairosShell(
                         secondary = secondaryParent
                         secondaryParent = null
                     },
+                    demo = demo,
+                    onStartDemo = onStartDemo,
+                    onExitDemo = onExitDemo,
+                    onRestartDemo = onRestartDemo,
                 )
             }
         }
