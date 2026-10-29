@@ -608,6 +608,14 @@ cd kmp
   [`docs/spec/publication.md`](docs/spec/publication.md).
 - Règles de contribution : [`CLAUDE.md`](CLAUDE.md).
 
+## On en parle
+
+<a href="https://alternativeto.net/software/kairos-by-skohstripts/about/?utm_source=badge&utm_medium=referral"><img src="https://alternativeto.net/static/badges/badge-compact-color.svg" alt="Kairos | AlternativeTo" width="150"></a>
+
+- [AlternativeTo](https://alternativeto.net/software/kairos-by-skohstripts/about/) : la fiche de Kairos, pour la noter ou la proposer
+  comme alternative à une autre application.
+- [r/foss](https://www.reddit.com/r/foss/s/WOqtfvyOGW) : post de présentation (octobre 2026, en anglais).
+
 ## Licence
 
 [MIT](LICENSE).

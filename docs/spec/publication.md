@@ -248,8 +248,15 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   réaliste, temps réel), cartes de téléchargement (Android : APK ; Windows :
   MSI et zip portable ; Linux : `.deb` et `.tar.gz` ; macOS : DMG Apple
   Silicon et Intel ; navigateur), lien vers les releases et `SHA256SUMS`,
-  captures 1 à 5 et 9, le thème sombre (défilement horizontal), notes de première installation, pied de
-  page (licence, source, tickets).
+  captures 1 à 5 et 9, le thème sombre (défilement horizontal), notes de première installation, « On en parle »
+  (liens texte vers la fiche AlternativeTo et le post r/foss, 2026-10-29), pied de page (licence, source, tickets).
+- **« On en parle » / « Mentioned on »** (2026-10-29, demande du propriétaire) : les mentions publiques de Kairos, aussi
+  dans le README (anglais et français, juste avant la licence), qui porte en plus le badge AlternativeTo (lien vers la
+  fiche avec `utm_source=badge`, image `alternativeto.net/static/badges/badge-compact-color.svg`). Le badge reste au
+  README : GitHub sert les images par son propre relais, le visiteur ne contacte pas AlternativeTo. La page de
+  téléchargement n'a que des liens texte : elle ne charge aucune ressource d'un tiers (polices servies par la page,
+  même règle). Une nouvelle mention (article, journal LinuxFr…) s'ajoute aux deux README et aux six pages ; ces
+  références servent aussi aux candidatures du type SignPath Foundation (`distribution.md` § Signature Windows).
 - Marqueurs remplacés par `pages.yml` : `@@DL@@` (base des téléchargements),
   `@@WEB@@` (`app/` ou `preview/`), `@@NOTICE_FR@@`, `@@NOTICE_EN@@`, `@@NOTICE_ES@@`, `@@NOTICE_DE@@`, `@@NOTICE_RU@@` et
   `@@NOTICE_IT@@` (bandeau de préversion, texte par langue dans le script Python de `pages.yml`). Un marqueur restant fait échouer la construction.
