@@ -90,8 +90,10 @@ bon fichier pour ton système. Tous les fichiers, et leurs sommes de contrôle
 
 **Première installation.**
 
-- **macOS** : l’application n’est pas notariée par Apple. Au premier lancement,
-  clic droit sur Kairos, « Ouvrir », puis confirmer.
+- **macOS** : l’application n’est pas notariée par Apple, donc macOS la bloque
+  au premier lancement. Ouvre Réglages Système → Confidentialité et sécurité et
+  clique sur « Ouvrir quand même » à côté de Kairos, puis confirme (jusqu’à
+  macOS 14, un clic droit sur Kairos puis « Ouvrir » suffit aussi).
 - **Windows** : SmartScreen peut afficher « Windows a protégé votre
   ordinateur » : « Informations complémentaires », puis « Exécuter quand même ».
 - **Android** : autoriser l’installation depuis le navigateur ou le
