@@ -1,0 +1,1 @@
+Kairos 3.13.0 : la liste complète des fonctionnalités, depuis l’Accueil, avec une recherche et un filtre par version. Une démonstration interactive pour essayer Kairos pas à pas sur des exemples jetables, sans toucher à tes données. Si Kairos n’est pas ouvert pendant un mois, une tâche « le N du mois » signale les mois sautés : les recréer ou les ignorer.

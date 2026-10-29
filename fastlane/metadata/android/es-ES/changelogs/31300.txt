@@ -1,0 +1,1 @@
+Kairos 3.13.0: la lista completa de funciones, desde Inicio, con búsqueda y filtro por versión. Una demostración interactiva para probar Kairos paso a paso con ejemplos desechables, sin tocar tus datos. Si Kairos no se abre durante un mes, una tarea «el día N del mes» señala los meses omitidos: vuelve a crearlos o ignóralos.

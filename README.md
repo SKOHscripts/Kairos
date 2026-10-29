@@ -578,6 +578,14 @@ The design and contribution documents are written in French.
 - Contribution rules: [`CLAUDE.md`](CLAUDE.md). Pull requests and issues are
   welcome in English.
 
+## Mentioned on
+
+<a href="https://alternativeto.net/software/kairos-by-skohstripts/about/?utm_source=badge&utm_medium=referral"><img src="https://alternativeto.net/static/badges/badge-compact-color.svg" alt="Kairos | AlternativeTo" width="150"></a>
+
+- [AlternativeTo](https://alternativeto.net/software/kairos-by-skohstripts/about/): Kairos's listing, to rate it or suggest it as an
+  alternative to another app.
+- [r/foss](https://www.reddit.com/r/foss/comments/1xiohaj/kairos_a_foss_task_manager_that_schedules_your/): presentation post (October 2026).
+
 ## License
 
 [MIT](LICENSE).
