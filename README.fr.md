@@ -614,7 +614,7 @@ cd kmp
 
 - [AlternativeTo](https://alternativeto.net/software/kairos-by-skohstripts/about/) : la fiche de Kairos, pour la noter ou la proposer
   comme alternative à une autre application.
-- [r/foss](https://www.reddit.com/r/foss/s/WOqtfvyOGW) : post de présentation (octobre 2026, en anglais).
+- [r/foss](https://www.reddit.com/r/foss/comments/1xiohaj/kairos_a_foss_task_manager_that_schedules_your/) : post de présentation (octobre 2026, en anglais).
 
 ## Licence
 

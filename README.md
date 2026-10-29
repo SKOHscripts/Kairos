@@ -584,7 +584,7 @@ The design and contribution documents are written in French.
 
 - [AlternativeTo](https://alternativeto.net/software/kairos-by-skohstripts/about/): Kairos's listing, to rate it or suggest it as an
   alternative to another app.
-- [r/foss](https://www.reddit.com/r/foss/s/WOqtfvyOGW): presentation post (October 2026).
+- [r/foss](https://www.reddit.com/r/foss/comments/1xiohaj/kairos_a_foss_task_manager_that_schedules_your/): presentation post (October 2026).
 
 ## License
 
