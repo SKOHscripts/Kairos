@@ -88,8 +88,10 @@ in the [GitHub releases](https://github.com/SKOHscripts/Kairos/releases).
 
 **First install.**
 
-- **macOS**: the app is not notarized by Apple. On first launch, right-click
-  Kairos, choose "Open", then confirm.
+- **macOS**: the app is not notarized by Apple, so macOS blocks it on first
+  launch. Open System Settings → Privacy & Security and click "Open Anyway"
+  next to Kairos, then confirm (up to macOS 14, right-clicking Kairos and
+  choosing "Open" also works).
 - **Windows**: SmartScreen may show "Windows protected your PC": click "More
   info", then "Run anyway".
 - **Android**: allow installation from the browser or the file manager when

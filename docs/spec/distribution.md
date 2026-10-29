@@ -59,8 +59,12 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 
 ### Hors périmètre (à ce jalon)
 
-- Signature et notarisation macOS, signature Authenticode Windows : différées
-  (plan § 6.2). Gatekeeper et SmartScreen afficheront un avertissement.
+- Signature et notarisation macOS : différées (plan § 6.2), **décision du 2026-10-29** (issue #116) : pas de compte
+  Apple Developer pour l'instant (§ Décisions). Gatekeeper affiche « développeur non identifié » au premier lancement ;
+  le README et la page de téléchargement gardent la marche à suivre (Réglages Système → Confidentialité et sécurité →
+  « Ouvrir quand même »).
+- Signature Authenticode Windows : différée (plan § 6.2) ; SmartScreen affiche un avertissement tant que l'installeur
+  n'est pas signé.
 - Mise à jour intégrée : jamais sur Android ; sur le bureau, simple
   vérification (`mises-a-jour.md`).
 - F-Droid, fiches et page de téléchargement : `publication.md`.
@@ -286,6 +290,21 @@ remplacer ; une version stable s'installe par-dessus la précédente.
     seul APK par release.
 
 ### Décisions et pièges tracés
+
+- **macOS : ni signature Developer ID ni notarisation pour l'instant** (2026-10-29, issue #116, décision du
+  propriétaire). Elles exigent l'Apple Developer Program, **99 USD par an**, au nom d'une personne ou d'une
+  organisation ; aucune autre voie ne retire l'avertissement de Gatekeeper (une signature ad hoc ou un certificat
+  auto-signé laissent « développeur non identifié »). Le compte n'est pas pris : le `.app`, le `.dmg` et le zip portable
+  restent non signés, le workflow ne change pas, et le README (anglais et français) comme les six pages de `site/`
+  gardent la marche à suivre, **corrigée le même jour** : depuis macOS 15 (Sequoia), le clic droit → « Ouvrir » ne
+  contourne plus Gatekeeper ; on passe par Réglages Système → Confidentialité et sécurité → « Ouvrir quand même », le
+  clic droit restant cité pour macOS 14 et avant. **Si la décision est rouverte**, la voie retenue
+  d'avance : un certificat « Developer ID Application » importé dans un trousseau temporaire du runner, la signature
+  et la notarisation de Compose Desktop (`macOS { signing { … } notarization { … } }` : `codesign` avec runtime
+  renforcé, `notarytool`, agrafage), et une **clé d'API App Store Connect** (`.p8`, révocable seule) plutôt que
+  l'identifiant Apple et un mot de passe d'application ; certificat, mot de passe du `.p12` et clé en secrets GitHub
+  seulement, et sans eux une construction non signée comme aujourd'hui (forks, contributeurs). L'APK, la vérification
+  `reproducible` (F-Droid) et `SHA256SUMS` ne sont pas concernés.
 
 - **Préversions installables à côté de la version stable** : identifiant
   Android `.preview`, produit de bureau distinct ; les versions finales
