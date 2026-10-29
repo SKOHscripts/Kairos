@@ -63,8 +63,9 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   Apple Developer pour l'instant (§ Décisions). Gatekeeper affiche « développeur non identifié » au premier lancement ;
   le README et la page de téléchargement gardent la marche à suivre (Réglages Système → Confidentialité et sécurité →
   « Ouvrir quand même »).
-- Signature Authenticode Windows : différée (plan § 6.2) ; SmartScreen affiche un avertissement tant que l'installeur
-  n'est pas signé.
+- Signature Authenticode Windows : **préparée le 2026-10-29** (issue #117, § Signature Windows) par SignPath
+  Foundation, active dès que le propriétaire a été accepté et a posé les secrets ; d'ici là, et pour les forks,
+  l'installeur reste non signé et SmartScreen affiche un avertissement.
 - Mise à jour intégrée : jamais sur Android ; sur le bureau, simple
   vérification (`mises-a-jour.md`).
 - F-Droid, fiches et page de téléchargement : `publication.md`.
@@ -227,6 +228,45 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   - icônes `desktopApp/icons/kairos.{ico,png,icns}` (`tools/make_app_icons.py`) ;
   - ProGuard désactivé.
 
+### Signature Windows (SignPath Foundation, issue #117)
+
+- **Quoi** : l'installeur `Kairos-windows-x64.msi` et le lanceur `Kairos.exe` (« Kairos Preview.exe » pour une
+  préversion) qu'il contient, ainsi que le lanceur du zip portable, reçoivent une signature Authenticode horodatée.
+  Le certificat est celui de **SignPath Foundation**, qui apparaît comme éditeur (offre gratuite des projets libres) ;
+  aucune clé n'est dans le dépôt ni sur le runner.
+- **Quand** : dans le job `desktop` de `kmp-release.yml`, sur Windows, **sur un tag seulement** et seulement si
+  `SIGNPATH_READY` est vrai (secret `SIGNPATH_API_TOKEN` et variable `SIGNPATH_ORGANIZATION_ID` présents). Sinon les
+  trois étapes sont sautées et la construction reste celle d'avant, non signée (forks, contributeurs, lancement
+  manuel, préversions sans configuration).
+- **Comment** : après « Nommer les fichiers », `actions/upload-artifact` envoie le `.msi` et le zip portable comme
+  artefact `unsigned-windows-x64` (préfixe distinct de `kairos3-` : la release ne le reprend pas) ;
+  `signpath/github-action-submit-signing-request@v3` soumet la demande (projet `vars.SIGNPATH_PROJECT_SLUG`, `Kairos`
+  par défaut ; politique `vars.SIGNPATH_SIGNING_POLICY_SLUG`, `release-signing` par défaut), attend l'**approbation
+  manuelle** une heure au plus, et dépose les fichiers signés à la place des non signés dans `out`. Une étape PowerShell
+  vérifie ensuite (`Get-AuthenticodeSignature`) que le `.msi` et le lanceur du zip portable ont une signature valide :
+  sinon la release échoue. L'artefact `kairos3-windows-x64`, donc la release et `SHA256SUMS`, portent les fichiers
+  signés. Le job a `actions: read` (l'action lit l'artefact par l'API des Actions).
+- **Configuration d'artefact** : `.signpath/artifact-configuration.xml`, à recopier dans le projet SignPath (SignPath ne
+  la lit pas dans le dépôt) : racine `<zip-file>` (l'artefact téléversé), signature profonde du `.msi` (lanceur
+  `**/Kairos*.exe`, puis le `.msi` lui-même) et du lanceur du zip portable.
+- **À faire par le propriétaire** (rien de cela ne peut se faire depuis le dépôt) :
+  1. Déposer la candidature sur signpath.org (licence MIT, construction depuis ce dépôt public par GitHub Actions).
+  2. Une fois accepté, publier la **politique de signature** exigée par SignPath Foundation, sous le titre « Code
+     signing policy » dans le README et sur la page de téléchargement : « Free code signing provided by SignPath.io,
+     certificate by SignPath Foundation », les rôles (auteurs, relecteurs, approbateurs : le propriétaire), et la
+     déclaration de confidentialité (Kairos ne transmet rien sur le réseau sans demande de l'utilisateur,
+     `connexions-en-ligne.md`). Elle n'est pas publiée avant l'acceptation : elle affirmerait une signature qui
+     n'existe pas encore.
+  3. Dans SignPath : organisation, projet `Kairos`, configuration d'artefact ci-dessus, politique `release-signing`
+     (approbation manuelle), système de construction de confiance « GitHub.com » lié au projet, application GitHub
+     SignPath installée sur le dépôt ; authentification à deux facteurs pour tous les membres (SignPath et GitHub).
+  4. Dans le dépôt GitHub : secret `SIGNPATH_API_TOKEN`, variable `SIGNPATH_ORGANIZATION_ID` (et, si les noms
+     diffèrent, `SIGNPATH_PROJECT_SLUG`, `SIGNPATH_SIGNING_POLICY_SLUG`).
+  5. Au premier tag signé, approuver la demande dans SignPath, puis vérifier l'installeur publié ; alors seulement,
+     retirer du README et de `site/` la consigne SmartScreen (« Informations complémentaires » → « Exécuter quand
+     même »), dans une petite PR de suivi. La réputation SmartScreen d'un nouvel éditeur se construit aux
+     téléchargements : l'avertissement peut persister quelque temps.
+
 ### Web (`kmp/webApp`)
 
 - Kotlin/Wasm (`wasmJs`, module de sortie `kairos`, script `kairos.js`),
@@ -283,14 +323,23 @@ remplacer ; une version stable s'installe par-dessus la précédente.
     `windows-x64`, `macos-latest` → `macos-arm64`, `macos-15-intel` →
     `macos-x64`) : `packageDistributionForCurrentOS` + `createDistributable`
     (`fakeroot` installé sous Linux), **auto-test de l'image empaquetée**, puis
-    `Kairos-<id>.{deb,msi,dmg}` et `Kairos-<id>-portable.{tar.gz,zip}` ;
-    captures en artefacts `screens-<id>` ;
+    `Kairos-<id>.{deb,msi,dmg}` et `Kairos-<id>-portable.{tar.gz,zip}`, ceux de Windows signés par SignPath
+    Foundation sur un tag quand c'est configuré (§ Signature Windows) ; captures en artefacts `screens-<id>` ;
   - `release` (tag seulement) : `SHA256SUMS` de tous les `Kairos-*`, release
     GitHub « Kairos <version> » (préversion si suffixe), notes générées. Un
     seul APK par release.
 
 ### Décisions et pièges tracés
 
+- **Windows : SignPath Foundation** (2026-10-29, issue #117, décision du propriétaire) : gratuit pour un projet libre
+  construit depuis son dépôt public, ce que Kairos est (licence MIT, release par GitHub Actions, APK reproductible).
+  Prix accepté : l'éditeur affiché est « SignPath Foundation », pas le nom de l'auteur, chaque release attend une
+  approbation manuelle, et une politique de signature doit être publiée. Écartés : Azure Artifact Signing (environ
+  10 USD par mois, vérification d'identité restreinte pour les particuliers selon le pays) ; un certificat OV d'une
+  autorité (200 à 400 € par an, clé sur jeton matériel ou HSM en ligne). Signature **sur tag seulement** : une demande
+  par construction de PR noierait l'approbateur. **Conditionnelle** : sans configuration, le workflow construit
+  comme avant, pour que forks et contributeurs ne soient jamais bloqués. Le README garde la consigne SmartScreen
+  jusqu'à la vérification d'une release réellement signée (choix du propriétaire).
 - **macOS : ni signature Developer ID ni notarisation pour l'instant** (2026-10-29, issue #116, décision du
   propriétaire). Elles exigent l'Apple Developer Program, **99 USD par an**, au nom d'une personne ou d'une
   organisation ; aucune autre voie ne retire l'avertissement de Gatekeeper (une signature ad hoc ou un certificat
