@@ -1,0 +1,1 @@
+Kairos 3.13.0: l’elenco completo delle funzioni, dalla Home, con ricerca e filtro per versione. Una demo interattiva per provare Kairos passo dopo passo su esempi usa e getta, senza toccare i tuoi dati. Se Kairos non viene aperto per un mese, un’attività «il giorno N del mese» segnala i mesi saltati: ricreali o ignorali.
