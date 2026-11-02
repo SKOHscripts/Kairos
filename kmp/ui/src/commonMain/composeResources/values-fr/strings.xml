@@ -1752,4 +1752,7 @@
     <string name="filter_missing_type">Sans type</string>
     <string name="filter_missing_points">Sans points</string>
     <string name="filter_missing_duration">Sans durée</string>
+    <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
+    <string name="estimate_filled_type">Estimée à %1$s (médiane de « %2$s »)</string>
+    <string name="estimate_filled_points">Estimée à %1$s (médiane des tâches à %2$d points)</string>
 </resources>

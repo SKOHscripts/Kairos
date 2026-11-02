@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import org.jetbrains.compose.resources.getString
 import androidx.compose.runtime.Composable
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.settings.UiLanguage
@@ -214,6 +215,18 @@ internal object Dates {
         val rounded = round(value * 10) / 10
         val whole = rounded.toLong()
         return if (rounded == whole.toDouble()) whole.toString() else rounded.toString()
+    }
+}
+
+/** [duration] hors composition (texte d'un message). */
+internal suspend fun durationText(minutes: Int): String {
+    val m = maxOf(0, minutes)
+    val hours = m / 60
+    val rest = m % 60
+    return when {
+        hours > 0 && rest > 0 -> getString(Res.string.duration_hours_minutes, hours, rest.toString().padStart(2, '0'))
+        hours > 0 -> getString(Res.string.duration_hours, hours)
+        else -> getString(Res.string.duration_minutes, rest)
     }
 }
 
