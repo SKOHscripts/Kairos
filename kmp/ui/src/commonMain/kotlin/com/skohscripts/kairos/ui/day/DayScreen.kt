@@ -887,7 +887,7 @@ internal fun InboxQualify(
         }
         DemoMark(DemoSpot.PRIORITY, task.id) { PriorityPills(task.priority, onPriority) }
         DemoMark(DemoSpot.POINTS, task.id) { PointsPills(task.fibonacciPoints, onPoints) }
-        TypeField(task.taskType, types, typeLabel, Modifier.widthIn(max = 320.dp).fillMaxWidth(), onType)
+        DemoMark(DemoSpot.TYPE, task.id) { TypeField(task.taskType, types, typeLabel, Modifier.widthIn(max = 320.dp).fillMaxWidth(), onType) }
     }
 }
 

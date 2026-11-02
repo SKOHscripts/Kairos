@@ -129,9 +129,10 @@ terminées à ce palier ; sans historique à un palier, l'exemple générique et
 différence entre points (l'ordre) et durée (le placement).
 
 **Édition** (dialogue) : titre, description, priorité, points (puis le
-guide des points), échéance, durée ; « Options avancées » : programmée pour, projet, temps passé manuel,
+guide des points), type (dans l'essentiel depuis 3.14.0, issue #166 : il qualifie la tâche au même titre que priorité et
+points), échéance, durée ; « Options avancées » : programmée pour, projet, temps passé manuel,
 récurrence (aucune, quotidienne, jours ouvrés, hebdomadaire, mensuelle,
-« le … du mois » avec le jour), type, heure fixe (HH:MM, vide = aucune),
+« le … du mois » avec le jour), heure fixe (HH:MM, vide = aucune),
 nouvelles sous-tâches (une par ligne), « Bloquée par » (cases à cocher).
 Quand la tâche a déjà des sous-tâches (issue #69, 3.3.0), une section
 **« Sous-tâches »** les liste dans les essentiels, avant « Options

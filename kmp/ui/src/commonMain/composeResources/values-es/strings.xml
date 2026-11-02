@@ -1424,7 +1424,7 @@
     <string name="coach_deadline_title">Fechas: fecha límite y día previsto</string>
     <string name="coach_deadline_body">La fecha límite sube la puntuación a medida que se acerca. «Programada para», en las opciones avanzadas, reserva la tarea para el día en que puedes empezarla.</string>
     <string name="coach_type_title">Tipo: para qué sirve</string>
-    <string name="coach_type_body">El tipo agrupa tus estadísticas y puede sugerir una duración. Los tipos se gestionan en los Ajustes.</string>
+    <string name="coach_type_body">El tipo agrupa tus estadísticas y puede sugerir una duración. También se elige directamente en «Por procesar». Los tipos se gestionan en los Ajustes.</string>
     <string name="coach_more_title">Para ir más lejos</string>
     <string name="coach_more_body">Proyecto, hora fija, repetición, subtareas y bloqueos están aquí. Podrás volver a ellos más tarde desde la ficha de la tarea.</string>
     <string name="coach_save_title">Guardar la tarea</string>
@@ -1749,4 +1749,7 @@
     <string name="filter_missing_type">Sin tipo</string>
     <string name="filter_missing_points">Sin puntos</string>
     <string name="filter_missing_duration">Sin duración</string>
+    <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
+    <string name="demo_type_title">Calificar: el tipo</string>
+    <string name="demo_type_body">Elige un tipo en su línea: agrupa tus estadísticas. Elegirlo aquí nunca cambia la duración.</string>
 </resources>

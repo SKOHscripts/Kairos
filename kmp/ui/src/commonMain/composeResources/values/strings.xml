@@ -1425,7 +1425,7 @@
     <string name="coach_deadline_title">Dates: deadline and planned day</string>
     <string name="coach_deadline_body">The deadline raises the score as it gets close. “Scheduled for”, in the more options, keeps the task for the day you can start it.</string>
     <string name="coach_type_title">Type: what it is for</string>
-    <string name="coach_type_body">The type groups your statistics and can suggest a duration. Types are managed in the Settings.</string>
+    <string name="coach_type_body">The type groups your statistics and can suggest a duration. You can also pick it right from “To process”. Types are managed in the Settings.</string>
     <string name="coach_more_title">Going further</string>
     <string name="coach_more_body">Project, fixed time, recurrence, subtasks and blockers are here. You can come back to them later from the task’s sheet.</string>
     <string name="coach_save_title">Save the task</string>
@@ -1750,4 +1750,7 @@
     <string name="filter_missing_type">No type</string>
     <string name="filter_missing_points">No points</string>
     <string name="filter_missing_duration">No duration</string>
+    <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
+    <string name="demo_type_title">Qualify: type</string>
+    <string name="demo_type_body">Pick a type on its line: it groups your statistics. Setting it here never changes the duration.</string>
 </resources>

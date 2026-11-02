@@ -85,9 +85,10 @@ class FirstTaskCoachUiTest {
         listOf("DESCRIPTION"),
         listOf("PRIORITY"),
         listOf("POINTS"),
+        // Le type suit les points depuis 3.14.0 (issue #166) : il est dans l'essentiel de la fiche.
+        listOf("TYPE"),
         listOf("MINUTES"),
         listOf("DEADLINE", "SCHEDULED"),
-        listOf("TYPE"),
         listOf("PROJECT", "MANUAL_TIME", "RECURRENCE", "PIN", "SUBTASKS", "BLOCKERS"),
         emptyList(),
     )

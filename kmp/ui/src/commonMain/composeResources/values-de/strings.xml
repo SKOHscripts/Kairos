@@ -1424,7 +1424,7 @@
     <string name="coach_deadline_title">Daten: Frist und geplanter Tag</string>
     <string name="coach_deadline_body">Die Frist erhöht den Score, je näher sie rückt. „Geplant für“ unter den erweiterten Optionen hält die Aufgabe für den Tag zurück, an dem du anfangen kannst.</string>
     <string name="coach_type_title">Typ: wozu er dient</string>
-    <string name="coach_type_body">Der Typ gruppiert deine Statistiken und kann eine Dauer vorschlagen. Typen werden in den Einstellungen verwaltet.</string>
+    <string name="coach_type_body">Der Typ gruppiert deine Statistiken und kann eine Dauer vorschlagen. Du kannst ihn auch direkt unter „Zu bearbeiten“ wählen. Typen werden in den Einstellungen verwaltet.</string>
     <string name="coach_more_title">Weitere Möglichkeiten</string>
     <string name="coach_more_body">Projekt, feste Uhrzeit, Wiederholung, Unteraufgaben und Blocker findest du hier. Du kannst später in den Aufgabendetails darauf zurückkommen.</string>
     <string name="coach_save_title">Aufgabe speichern</string>
@@ -1749,4 +1749,7 @@
     <string name="filter_missing_type">Ohne Typ</string>
     <string name="filter_missing_points">Ohne Punkte</string>
     <string name="filter_missing_duration">Ohne Dauer</string>
+    <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
+    <string name="demo_type_title">Einordnen: der Typ</string>
+    <string name="demo_type_body">Wähle in ihrer Zeile einen Typ: Er gruppiert deine Statistiken. Hier gewählt, ändert er nie die Dauer.</string>
 </resources>

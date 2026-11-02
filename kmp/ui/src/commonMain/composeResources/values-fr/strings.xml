@@ -1427,7 +1427,7 @@
     <string name="coach_deadline_title">Dates  : échéance et jour prévu</string>
     <string name="coach_deadline_body">L’échéance fait monter le score à mesure qu’elle approche. « Programmée pour », dans les options avancées, garde la tâche pour le jour où tu peux la commencer.</string>
     <string name="coach_type_title">Type  : à quoi il sert</string>
-    <string name="coach_type_body">Le type regroupe tes statistiques et peut suggérer une durée. Les types se gèrent dans les Réglages.</string>
+    <string name="coach_type_body">Le type regroupe tes statistiques et peut suggérer une durée. Il se choisit aussi directement dans « À traiter ». Les types se gèrent dans les Réglages.</string>
     <string name="coach_more_title">Pour aller plus loin</string>
     <string name="coach_more_body">Projet, heure fixe, récurrence, sous-tâches et bloqueurs sont ici. Tu pourras y revenir plus tard depuis la fiche de la tâche.</string>
     <string name="coach_save_title">Enregistrer la tâche</string>
@@ -1752,4 +1752,7 @@
     <string name="filter_missing_type">Sans type</string>
     <string name="filter_missing_points">Sans points</string>
     <string name="filter_missing_duration">Sans durée</string>
+    <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
+    <string name="demo_type_title">Qualifier : le type</string>
+    <string name="demo_type_body">Choisis un type sur sa ligne : il regroupe tes statistiques. Le choisir ici ne change jamais la durée.</string>
 </resources>

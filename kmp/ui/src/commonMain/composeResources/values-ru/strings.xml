@@ -1424,7 +1424,7 @@
     <string name="coach_deadline_title">Даты: срок и плановый день</string>
     <string name="coach_deadline_body">Чем ближе срок, тем выше рейтинг. «Запланировано на» в дополнительных параметрах оставляет задачу на день, когда ты сможешь ее начать.</string>
     <string name="coach_type_title">Тип: для чего он нужен</string>
-    <string name="coach_type_body">Тип группирует твою статистику и может подсказать длительность. Типы настраиваются в Настройках.</string>
+    <string name="coach_type_body">Тип группирует твою статистику и может подсказать длительность. Его можно выбрать и прямо в «К обработке». Типы настраиваются в Настройках.</string>
     <string name="coach_more_title">Что еще</string>
     <string name="coach_more_body">Проект, фиксированное время, повтор, подзадачи и блокировки находятся здесь. Вернуться к ним можно позже из карточки задачи.</string>
     <string name="coach_save_title">Сохрани задачу</string>
@@ -1749,4 +1749,7 @@
     <string name="filter_missing_type">Без типа</string>
     <string name="filter_missing_points">Без баллов</string>
     <string name="filter_missing_duration">Без длительности</string>
+    <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
+    <string name="demo_type_title">Оценить: тип</string>
+    <string name="demo_type_body">Выбери тип в её строке: он группирует статистику. Выбор здесь никогда не меняет длительность.</string>
 </resources>

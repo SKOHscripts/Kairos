@@ -46,8 +46,8 @@ déroutant sans explication.
 3. **Étapes** : (1) titre : un verbe et un résultat ; (2) description ; (3)
    priorité : P0 à P3, le rouge est réservé à P0 ; (4) points : taille relative et
    pourquoi la suite de Fibonacci, avec les repères du guide des points ; (5)
-   estimation en minutes : durée suggérée et durée apprise ; (6) échéance et date
-   programmée ; (7) type, et ce qu'il change pour les horaires ; (8) aperçu des
+   type, et ce qu'il change pour les horaires (il se choisit aussi dans « À traiter ») ; (6) estimation en minutes :
+   durée suggérée et durée apprise ; (7) échéance et date programmée ; (8) aperçu des
    options avancées (projet, récurrence, bloqueurs, heure fixe, sous-tâches) ;
    (9) enregistrer.
 4. **Placement** : après l'enregistrement, la vue Jour s'ouvre sur la tâche,
@@ -137,10 +137,12 @@ déroutant sans explication.
 « Enregistrer » exige un titre non vide (titre de la fiche « Première tâche »). Le paramètre optionnel
 `coach: CoachSession?` ajoute le panneau d'explication en bas de la fiche ; sans coach, la fiche est inchangée.
 
-- `EditField` (`ui/day/EditField.kt`) : les quatorze champs de la fiche, dont `advanced` pour ceux des options avancées ;
+- `EditField` (`ui/day/EditField.kt`) : les quatorze champs de la fiche, dont `advanced` pour ceux des options avancées
+  (le type n'en est plus depuis 3.14.0, issue #166 : il suit les points dans l'essentiel de la fiche, et son étape suit
+  celle des points, avant la durée qu'il peut suggérer) ;
   chacun porte la balise de test `edit-field-<NOM>` (`Modifier.coachField`).
 - `FirstTaskCoach.STEPS` (`ui/guide/FirstTaskCoach.kt`) : neuf `CoachStep`, chacune avec les champs qu'elle explique :
-  titre ; description ; priorité ; points ; minutes ; échéance et programmée ; type ; options avancées (projet, temps
+  titre ; description ; priorité ; points ; type ; minutes ; échéance et programmée ; options avancées (projet, temps
   manuel, récurrence, heure fixe, sous-tâches, bloqueurs) ; enregistrer (met « Enregistrer » en évidence).
   Une étape qui explique un champ avancé ouvre les options avancées.
 - Mise en évidence : contour primaire de 2 dp et défilement jusqu'au champ (`BringIntoViewRequester`) ; une marge constante

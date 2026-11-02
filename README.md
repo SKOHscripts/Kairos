@@ -329,7 +329,7 @@ order (critical path). Cycles are refused.
   enabled.
 - **Guided first task**: on first launch (or from the Day view while you have
   no task of your own), Kairos walks you through the real task sheet, field by
-  field (title, priority, Fibonacci points, estimate, dates, type, advanced
+  field (title, priority, Fibonacci points, type, estimate, dates, advanced
   options), then shows where your task lands in the day and congratulates you
   once it is really created. Nothing is written if you give up.
 - **Interactive demo**: "Try it in a demo" in "Discover Kairos" opens the real

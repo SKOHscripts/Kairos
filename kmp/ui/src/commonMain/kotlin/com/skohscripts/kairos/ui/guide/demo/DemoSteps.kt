@@ -16,6 +16,8 @@ import com.skohscripts.kairos.ui.generated.resources.demo_timer_start_body
 import com.skohscripts.kairos.ui.generated.resources.demo_timer_start_title
 import com.skohscripts.kairos.ui.generated.resources.demo_timer_stop_body
 import com.skohscripts.kairos.ui.generated.resources.demo_timer_stop_title
+import com.skohscripts.kairos.ui.generated.resources.demo_type_body
+import com.skohscripts.kairos.ui.generated.resources.demo_type_title
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
@@ -31,6 +33,9 @@ enum class DemoSpot {
 
     /** Puces de points de la même ligne. */
     POINTS,
+
+    /** Champ « Type » de la même ligne (3.14.0, issue #166). */
+    TYPE,
 
     /** Bouton chrono de la ligne de la tâche. */
     TIMER_START,
@@ -61,7 +66,7 @@ class DemoStep(
     val done: (KairosSnapshot, DemoContext) -> Boolean,
 )
 
-/** Le script de la démonstration : quatre scénarios, six étapes, une seule tâche. Données pures, testées sans interface. */
+/** Le script de la démonstration : quatre scénarios, sept étapes, une seule tâche. Données pures, testées sans interface. */
 object DemoSteps {
     /** La tâche capturée par l'utilisateur dans la démonstration : la plus récente qui n'est pas un exemple. */
     fun trackedTask(snapshot: KairosSnapshot): Long? = snapshot.tasks.filter { !ExampleData.isExample(it) }.maxOfOrNull { it.id }
@@ -87,6 +92,17 @@ object DemoSteps {
             "points", DemoSpot.POINTS, Res.string.demo_points_title, Res.string.demo_points_body,
             act = { ctx -> ensureTask(ctx)?.let { ctx.repository.setPoints(it, 3) } },
             done = { snapshot, ctx -> snapshot.task(ctx)?.fibonacciPoints != null },
+        ),
+        // Le type se choisit aussi sur place (3.14.0, issue #166) ; « Faire pour moi » prend le premier type des Réglages.
+        DemoStep(
+            "type", DemoSpot.TYPE, Res.string.demo_type_title, Res.string.demo_type_body,
+            act = { ctx ->
+                ensureTask(ctx)?.let { id ->
+                    val type = ctx.repository.snapshot.value.settings.taskTypeList.firstOrNull() ?: return@let
+                    ctx.repository.setTaskType(id, type)
+                }
+            },
+            done = { snapshot, ctx -> snapshot.task(ctx)?.taskType?.isNotEmpty() == true },
         ),
         DemoStep(
             "timer_start", DemoSpot.TIMER_START, Res.string.demo_timer_start_title, Res.string.demo_timer_start_body,

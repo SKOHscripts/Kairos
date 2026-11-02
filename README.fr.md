@@ -349,8 +349,8 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   Équipe quand il est activé.
 - **Première tâche guidée** : au premier lancement (ou depuis la vue Jour tant
   que tu n’as aucune tâche à toi), Kairos te guide dans la vraie fiche d’une
-  tâche, champ par champ (titre, priorité, points de Fibonacci, estimation,
-  dates, type, options avancées), puis te montre où elle se place dans la
+  tâche, champ par champ (titre, priorité, points de Fibonacci, type,
+  estimation, dates, options avancées), puis te montre où elle se place dans la
   journée et te félicite une fois qu’elle est réellement créée. Rien n’est
   écrit si tu renonces.
 - **Démonstration interactive** : « Essayer en démonstration » dans

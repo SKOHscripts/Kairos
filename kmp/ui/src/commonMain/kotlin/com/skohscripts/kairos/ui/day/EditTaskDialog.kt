@@ -325,6 +325,13 @@ internal fun EditTaskDialog(
                             })
                             PointsGuide(estimates.references)
                         }
+                        // Le type dans l'essentiel (3.14.0, issue #166) : il qualifie la tâche, au même titre que la priorité et les
+                        // points. Suggestion par type (issue #7) : seulement si la durée est encore vide, pour ne jamais écraser une
+                        // estimation saisie à la main.
+                        TypeField(type, taskTypes, label = if (teamEditing) Res.string.field_category else Res.string.field_type, modifier = Modifier.coachField(EditField.TYPE, coach)) { chosen ->
+                            type = chosen
+                            if (minutes.isBlank()) estimates.minutesByType[chosen]?.let { minutes = it.toString() }
+                        }
                         Column(Modifier.coachField(EditField.DEADLINE, coach)) { DateField(deadline, { deadline = it }, Res.string.field_deadline, deadlineInvalid, today) }
                         OutlinedTextField(
                             minutes,
@@ -390,12 +397,6 @@ internal fun EditTaskDialog(
                                     singleLine = true,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
-                            }
-                            // Suggestion par type (issue #7) : seulement si la durée est
-                            // encore vide, pour ne jamais écraser une estimation saisie à la main.
-                            TypeField(type, taskTypes, label = if (teamEditing) Res.string.field_category else Res.string.field_type, modifier = Modifier.coachField(EditField.TYPE, coach)) { chosen ->
-                                type = chosen
-                                if (minutes.isBlank()) estimates.minutesByType[chosen]?.let { minutes = it.toString() }
                             }
                             OutlinedTextField(
                                 pin,
