@@ -85,6 +85,7 @@ bon fichier pour ton système. Tous les fichiers, et leurs sommes de contrôle
 | Windows 10 ou 11 | `Kairos-windows-x64.msi` | Installation pour l’utilisateur courant, sans droit administrateur. |
 | Windows, poste verrouillé | `Kairos-windows-x64-portable.zip` | Dézipper, lancer `Kairos.exe` : rien n’est installé. Kairos propose ses raccourcis (menu Démarrer, Bureau). |
 | Linux (x86-64) | `Kairos-linux-x64.deb`, ou `Kairos-linux-x64-portable.tar.gz` | Version portable : Kairos propose de s’ajouter au menu des applications, avec son icône. |
+| Arch Linux (x86-64) | [AUR `kairos-bin`](https://aur.archlinux.org/packages/kairos-bin) : `yay -S kairos-bin` | Mis à jour par ton gestionnaire de paquets (`yay -Syu`), comme le reste du système. |
 | macOS | `Kairos-macos-arm64.dmg` (Apple Silicon), `Kairos-macos-x64.dmg` (Intel) | |
 | Navigateur | [Kairos en ligne](https://skohscripts.github.io/Kairos/app/) | Edge ou Chrome récents ; rien à installer. |
 
@@ -105,7 +106,8 @@ la dernière version » ouvre la page de téléchargement (Kairos ne se connecte
 toujours pas). Sur
 le bureau, Kairos vérifie toutes les 6 heures s’il existe une nouvelle version
 et l’annonce dans un bandeau (« Télécharger » ouvre sa page) ; réglage dans
-Réglages → Général → Mises à jour. La version web est toujours la dernière.
+Réglages → Général → Mises à jour. Installé depuis l’AUR, Kairos laisse ce soin à ton
+gestionnaire de paquets et ne vérifie jamais lui-même. La version web est toujours la dernière.
 
 ## Fonctionnalités
 

@@ -246,7 +246,8 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   un `<span class="nowrap">` : sans cela, la carte étroite le coupait au trait d'union (« F- / Droid »).
 - Contenu : accroche, trois points (ordre expliqué par la formule, journée
   réaliste, temps réel), cartes de téléchargement (Android : APK ; Windows :
-  MSI et zip portable ; Linux : `.deb` et `.tar.gz` ; macOS : DMG Apple
+  MSI et zip portable ; Linux : `.deb`, `.tar.gz` et le paquet AUR (lien vers `https://aur.archlinux.org/packages/kairos-bin`,
+  « Arch Linux (AUR) », 4.0.0, `distribution.md` § Paquet Arch Linux) ; macOS : DMG Apple
   Silicon et Intel ; navigateur), lien vers les releases et `SHA256SUMS`,
   captures 1 à 5 et 9, le thème sombre (défilement horizontal), notes de première installation, « On en parle »
   (liens texte vers la fiche AlternativeTo et le post r/foss, 2026-10-29), pied de page (licence, source, tickets).

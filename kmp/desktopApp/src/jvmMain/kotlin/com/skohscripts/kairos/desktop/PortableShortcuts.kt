@@ -176,14 +176,22 @@ class PortableCopy(
             appName: String,
         ): PortableCopy? {
             val launcher = appPath?.takeIf { it.isNotBlank() }?.let(::File) ?: return null
+            val (root, jars) = imageDirs(launcher, osName) ?: return null
+            if (!File(jars, MARKER).isFile) return null
+            return PortableCopy(root, launcher, osName.lowercase().startsWith("windows"), appName)
+        }
+
+        /**
+         * Racine de l'image jpackage et dossier de ses JAR, à partir du lanceur : `<racine>/Kairos.exe` et `app/` sous
+         * Windows, `<racine>/bin/Kairos` et `lib/app/` sous Linux ; `null` ailleurs (macOS : le marqueur n'y sert pas).
+         */
+        internal fun imageDirs(launcher: File, osName: String): Pair<File, File>? {
             val os = osName.lowercase()
-            val (root, jars) = when {
+            return when {
                 os.startsWith("windows") -> launcher.parentFile?.let { it to File(it, "app") }
                 os.startsWith("linux") -> launcher.parentFile?.parentFile?.let { it to File(it, "lib/app") }
                 else -> null
-            } ?: return null
-            if (!File(jars, MARKER).isFile) return null
-            return PortableCopy(root, launcher, os.startsWith("windows"), appName)
+            }
         }
     }
 }

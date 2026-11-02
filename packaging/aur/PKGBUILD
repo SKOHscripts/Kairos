@@ -1,0 +1,62 @@
+# Maintainer: Corentin Michel <corentin dot michel at mailo dot com>
+#
+# Gabarit du paquet AUR kairos-bin (docs/spec/distribution.md § Paquet Arch Linux) : build.sh remplit @PKGVER@ et
+# @SHA256@ à chaque version stable, le teste dans un conteneur Arch, et publish.sh le pousse sur l'AUR.
+# Source : https://github.com/SKOHscripts/Kairos/tree/main/packaging/aur
+
+pkgname=kairos-bin
+_pkgname=kairos
+pkgver=@PKGVER@
+pkgrel=1
+pkgdesc='The right time for every task: sorts your tasks and fits them into the gaps of your day, offline'
+arch=('x86_64')
+url='https://github.com/SKOHscripts/Kairos'
+license=('MIT')
+# Bibliothèques que l'image jpackage charge elle-même (runtime Java réduit, Skiko) ; le runtime Java est embarqué.
+# freetype et zlib viennent du runtime ; libGL est chargée à l'exécution par Skiko (namcap ne la voit pas).
+depends=(
+  'alsa-lib'
+  'fontconfig'
+  'glibc'
+  'libglvnd'
+  'libstdc++'
+  'libx11'
+  'libxext'
+  'libxi'
+  'libxrender'
+  'libxtst'
+)
+provides=("$_pkgname")
+conflicts=("$_pkgname")
+# Binaires du runtime jpackage laissés tels quels.
+options=('!strip' '!debug')
+source=("Kairos-$pkgver-linux-x64.deb::https://github.com/SKOHscripts/Kairos/releases/download/v$pkgver/Kairos-linux-x64.deb")
+sha256sums=('@SHA256@')
+
+package() {
+  # makepkg a ouvert le .deb (debian-binary, control.tar.*, data.tar.*) : l'image jpackage est dans data.tar.*.
+  bsdtar -xf data.tar.* -C "$pkgdir" ./opt
+
+  # Installation tenue par pacman : Kairos ne cherche pas lui-même de nouvelle version (SystemPackage.kt).
+  touch "$pkgdir/opt/$_pkgname/lib/app/kairos-managed"
+
+  install -d "$pkgdir/usr/bin"
+  ln -s "/opt/$_pkgname/bin/Kairos" "$pkgdir/usr/bin/$_pkgname"
+
+  install -Dm644 "$pkgdir/opt/$_pkgname/lib/Kairos.png" "$pkgdir/usr/share/pixmaps/$_pkgname.png"
+  install -Dm644 "$pkgdir/opt/$_pkgname/share/doc/copyright" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+
+  # StartupWMClass : la classe de fenêtre X11 que fixe WindowClass.kt.
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/$_pkgname.desktop" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=Kairos
+Comment=The right time for every task
+Comment[fr]=Le bon moment pour chaque tâche
+Exec=$_pkgname
+Icon=$_pkgname
+Terminal=false
+Categories=Office;ProjectManagement;
+StartupWMClass=kairos
+DESKTOP
+}

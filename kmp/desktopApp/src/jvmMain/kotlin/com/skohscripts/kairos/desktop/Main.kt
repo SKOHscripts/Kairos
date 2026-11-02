@@ -45,6 +45,8 @@ fun main(args: Array<String>) {
     val preview = System.getProperty("kairos.preview") == "true"
     val appName = if (preview) "Kairos Preview" else "Kairos"
     val portable = PortableCopy.detect(appName = appName)
+    // Paquet AUR (docs/spec/distribution.md § Paquet Arch Linux) : pacman met à jour, pas Kairos.
+    val managed = SystemPackage.detect()
     // Avant toute fenêtre : la classe X11 que cite l'entrée `.desktop` d'une copie portable.
     WindowClass.apply()
 
@@ -82,7 +84,7 @@ fun main(args: Array<String>) {
                 }
             }
             KairosApp(Platform.DESKTOP, splash = true) {
-                DesktopServices.open(dataDir, notifier = notifier, portable = portable, folder = folder, diagnostics = diagnostics)
+                DesktopServices.open(dataDir, notifier = notifier, portable = portable, folder = folder, diagnostics = diagnostics, managed = managed)
             }
         }
     }

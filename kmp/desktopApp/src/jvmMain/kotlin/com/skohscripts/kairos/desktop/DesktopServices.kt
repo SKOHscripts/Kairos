@@ -47,6 +47,8 @@ object DesktopServices {
         /** Dossier des données choisi et journal de diagnostic (docs/spec/bureau-avance.md) ; `null` pour l'auto-test. */
         folder: DesktopDataFolder? = null,
         diagnostics: FileDiagnostics? = null,
+        /** Installé par un gestionnaire de paquets (`SystemPackage`) : pas de vérification des mises à jour. */
+        managed: Boolean = false,
     ): AppServices = withContext(Dispatchers.IO) {
         dataDir.mkdirs()
         val url = if (inMemory) JdbcSqliteDriver.IN_MEMORY else "jdbc:sqlite:${File(dataDir, DATABASE_FILE).absolutePath}"
@@ -73,7 +75,8 @@ object DesktopServices {
             notifier = notifier,
             // L'auto-test (base en mémoire) rend l'interface habituelle, sans l'accueil ni réseau.
             firstLaunch = opened.created && !inMemory,
-            updates = if (inMemory) null else DesktopUpdates(File(dataDir, "updates.json"), log = { diagnostics?.log(it) }),
+            // Paquet AUR (docs/spec/mises-a-jour.md) : pacman met à jour, Kairos ne vérifie pas.
+            updates = if (inMemory || managed) null else DesktopUpdates(File(dataDir, "updates.json"), log = { diagnostics?.log(it) }),
             shortcuts = portable?.let { PortableShortcuts(it, File(dataDir, "shortcuts.json")) },
             systemLanguage = language,
             applyLanguage = { Locale.setDefault(Locale.forLanguageTag(it)) },
