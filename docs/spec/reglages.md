@@ -113,7 +113,9 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
 - « Restaurer les valeurs par défaut » remplit le formulaire des valeurs par défaut (`SettingsForm.restoreDefaults`), **sauf** les
   champs `team.*`, jamais touchés ; rien n'est écrit avant « Enregistrer » et « Annuler les modifications » revient en arrière.
   Il remet aussi le guide à zéro **à l'enregistrement** (3.7.0, issue #94) : « Enregistrer » devient actif si le guide a
-  retenu quelque chose, même quand tous les champs valent déjà leur défaut.
+  retenu quelque chose, même quand tous les champs valent déjà leur défaut. Il **garde** en revanche la mémoire des avis
+  de mois sautés ignorés (`Settings.recurrence`, 3.13.0, `recurrence.md` § Avis des mois sautés) : une décision sur des
+  données, pas une préférence ; le formulaire ne l'affiche pas et `validate` garde la valeur courante.
 - « WSJF » n'est plus dans le titre de la section du score ni dans l'aide de l'agenda (jargon ; il reste expliqué dans « À propos
   et guide »).
 

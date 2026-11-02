@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.web
 
+import com.skohscripts.kairos.ui.app.DemoSource
+import com.skohscripts.kairos.ui.app.openDemo
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asSkiaBitmap
 import app.cash.sqldelight.driver.worker.WebWorkerDriver
@@ -75,6 +77,12 @@ object WebServices {
             firstLaunch = snapshot == null && !restorePending,
             systemLanguage = language,
             applyLanguage = { KairosWeb.setLanguage(it) },
+            // Démonstration jetable (docs/spec/visite-guidee.md § Visite interactive) : un worker neuf, dont la base sql.js est
+            // en mémoire et distincte de celle que l'OPFS conserve ; le fermer termine le worker.
+            demo = DemoSource { lang ->
+                val driver = WebWorkerDriver(Worker("kairos-sqljs.worker.js"))
+                openDemo(KairosStore.open(driver), lang, close = { driver.close() }, clock = clock)
+            },
         )
     }
 }

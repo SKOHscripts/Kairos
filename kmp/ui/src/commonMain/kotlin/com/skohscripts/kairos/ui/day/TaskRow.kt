@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.guide.demo.DemoSpot
+import com.skohscripts.kairos.ui.guide.demo.DemoMark
 import com.skohscripts.kairos.ui.theme.KairosRowIconButton
 import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.BorderStroke
@@ -202,15 +204,17 @@ internal fun TaskRow(
 private fun RowActions(task: Task, ctx: RowContext, editable: Boolean) {
     if (task.status == TaskStatus.TODO) {
         val running = ctx.view.running?.taskId == task.id
-        KairosRowIconButton(
-            if (running) KairosIcons.Stop else KairosIcons.PlayArrow,
-            stringResource(if (running) Res.string.action_timer_stop else Res.string.action_timer_start),
-            onClick = { ctx.onToggleTimer(task) },
-            tint = if (running) MaterialTheme.colorScheme.primary else LocalContentColor.current,
-        )
+        DemoMark(DemoSpot.TIMER_START, task.id) {
+            KairosRowIconButton(
+                if (running) KairosIcons.Stop else KairosIcons.PlayArrow,
+                stringResource(if (running) Res.string.action_timer_stop else Res.string.action_timer_start),
+                onClick = { ctx.onToggleTimer(task) },
+                tint = if (running) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+            )
+        }
         KairosRowIconButton(KairosIcons.Redo, stringResource(Res.string.action_snooze), onClick = { ctx.onSnooze(task) })
         // Une tâche d'équipe n'a pas de date programmée (docs/spec/planning-personnalise.md) : pas de « Déplacer… ».
-        if (task.space == TaskSpace.PERSONAL) MoveButton(task, ctx)
+        if (task.space == TaskSpace.PERSONAL) DemoMark(DemoSpot.MOVE, task.id) { MoveButton(task, ctx) }
     }
     if (editable) {
         KairosRowIconButton(KairosIcons.Edit, stringResource(Res.string.action_edit), onClick = { ctx.onEdit(task) })

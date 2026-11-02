@@ -40,6 +40,10 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    se supprime seulement ; celui d'un calendrier du téléphone porte « Calendrier du téléphone « Nom » » et n'a aucune
    action, `connexions-externes.md`). Les journées entières d'un calendrier importé sont des
    pastilles sous le titre « Aujourd'hui, dans l'ordre », sans effet sur le planning.
+   **Avis des mois sautés** (3.13.0, issue #111, `recurrence.md` § Mois sautés), sous la capture et seulement sur le
+   vrai aujourd'hui : une ligne à contour par série « le N du mois » qui n'a pas d'occurrence un mois passé (« 2
+   occurrences mensuelles ont été sautées : Note de frais »), avec « Les recréer » (occurrences déjà en retard) et
+   « Ignorer » ; chacun affiche un message avec « Annuler ».
 3. **À traiter** : toute tâche sans priorité **ou** sans points, avec ce qui
    manque, qualifiable en un clic par pastilles dont le sens est écrit
    (P0 Critique · P1 Important · P2 Utile ; 1 trivial … 21 énorme).
@@ -244,6 +248,9 @@ posée.
   seulement pour un autre jour. `ensureCalendarOccurrences` reste appelé
   pour **aujourd'hui** (l'occurrence du mois courant), quel que soit le jour
   affiché. Titre de la barre : `AppShell` (`navigation-theme.md`).
+- Avis des mois sautés (3.13.0, `recurrence.md` § Avis des mois sautés) : `Recurrence.skippedSeries` sur
+  `personalSnapshot`, mémorisé sur les tâches, le jour et `settings.recurrence` ; un `SkippedSeriesNotice` par série
+  (clé `skipped-<jour>|<titre>`) entre `capture` et `inbox-title`, seulement si le jour affiché est aujourd'hui.
 - L'heure est lue sur `services.clock` et réévaluée à chaque minute
   (`produceState`) ; `DayView` est recalculé quand la base, la minute ou le
   filtre changent. `LaunchedEffect(jour, tâches)` appelle

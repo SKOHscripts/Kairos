@@ -1,0 +1,1 @@
+Kairos 3.13.0: the full feature list, from Home, with a search and a filter by version. An interactive demo to try Kairos step by step on throwaway examples, without touching your data. If Kairos is not opened for a month, a “day N of the month” task points out the skipped months: recreate them or ignore them.

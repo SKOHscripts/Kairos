@@ -86,6 +86,14 @@ Espace Équipe (jalon E3, `equipe-backlog-suivi.md`) : la sélection multiple du
 - Interrupteurs des Réglages : ligne `toggleable` de rôle interrupteur,
   `Switch(onCheckedChange = null)` (`reglages.md`) ; cases à cocher :
   `LabeledCheckbox` (depuis M2).
+- Plusieurs boutons de même libellé sur un écran (avis des mois sautés, 3.13.0, `recurrence.md`) : le nom accessible de
+  chacun est son libellé visible **suivi** de son objet (« Ignorer : Note de frais »), pour que le lecteur d'écran les
+  distingue sans contredire ce qui est affiché.
+
+- Démonstration interactive (3.13.0, `visite-guidee.md` § Visite interactive) : le panneau de l'étape est une région
+  vivante polie qui ne prend jamais le focus ; le repère est un contour et le texte « Ici », jamais la couleur seule ;
+  chaque étape se fait sans geste (« Faire pour moi »), et « À moi de jouer » donne le focus à l'élément ; aucun
+  mouvement (repères fixes, défilement sans animation, ni curseur ni frappe simulés).
 
 ### Décisions et pièges tracés
 

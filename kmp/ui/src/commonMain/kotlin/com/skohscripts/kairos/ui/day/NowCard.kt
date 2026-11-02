@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.guide.demo.DemoSpot
+import com.skohscripts.kairos.ui.guide.demo.DemoMark
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosButton
 import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
@@ -103,13 +105,15 @@ internal fun RunningCard(view: DayView, clock: Clock, onStop: () -> Unit, modifi
             (task.estimatedMinutes?.takeIf { it > 0 } ?: view.learned[task.id]?.takeIf { it.reliable }?.minutes)?.let {
                 Text(stringResource(Res.string.now_running_estimate, duration(it)), style = MaterialTheme.typography.bodySmall)
             }
-            KairosButton(
-                onClick = onStop,
-                colors = ButtonDefaults.buttonColors(containerColor = scheme.inversePrimary, contentColor = scheme.onPrimaryContainer),
-                contentPadding = KairosButtonIconPadding,
-            ) {
-                Icon(KairosIcons.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text(stringResource(Res.string.action_timer_stop), modifier = Modifier.padding(start = 6.dp))
+            DemoMark(DemoSpot.TIMER_STOP) {
+                KairosButton(
+                    onClick = onStop,
+                    colors = ButtonDefaults.buttonColors(containerColor = scheme.inversePrimary, contentColor = scheme.onPrimaryContainer),
+                    contentPadding = KairosButtonIconPadding,
+                ) {
+                    Icon(KairosIcons.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(stringResource(Res.string.action_timer_stop), modifier = Modifier.padding(start = 6.dp))
+                }
             }
         }
     }

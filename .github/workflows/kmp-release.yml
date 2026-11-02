@@ -118,6 +118,15 @@ jobs:
           - os: macos-15-intel
             id: macos-x64
     runs-on: ${{ matrix.os }}
+    # Signature Windows (docs/spec/distribution.md § Signature Windows, issue #117) : l'action SignPath lit l'artefact
+    # non signé par l'API des Actions.
+    permissions:
+      actions: read
+      contents: read
+    env:
+      # Vrai seulement quand le propriétaire a configuré SignPath ; sinon (forks, contributeurs) l'installeur reste
+      # non signé, comme avant.
+      SIGNPATH_READY: ${{ secrets.SIGNPATH_API_TOKEN != '' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
     defaults:
       run:
         shell: bash
@@ -179,6 +188,49 @@ jobs:
               (cd "$bin/app" && ditto -c -k --keepParent *.app "$out/Kairos-$id-portable.zip") ;;
           esac
           ls -la "$out"
+
+      # Signature Authenticode de l'installeur et du zip portable par SignPath Foundation (docs/spec/distribution.md
+      # § Signature Windows, issue #117) : sur un tag seulement (chaque demande attend l'approbation manuelle d'un
+      # approbateur), et seulement si SignPath est configuré. La configuration d'artefact du projet SignPath est
+      # `.signpath/artifact-configuration.xml`. Les fichiers signés remplacent les non signés dans `out`, donc dans la
+      # release et `SHA256SUMS`. L'artefact non signé ne commence pas par `kairos3-` : la release ne le reprend pas.
+      - name: Fichiers à signer (Windows)
+        id: unsigned
+        if: runner.os == 'Windows' && github.ref_type == 'tag' && env.SIGNPATH_READY == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-${{ matrix.id }}
+          path: |
+            ${{ runner.temp }}/out/Kairos-${{ matrix.id }}.msi
+            ${{ runner.temp }}/out/Kairos-${{ matrix.id }}-portable.zip
+          if-no-files-found: error
+      - name: Signature (SignPath Foundation)
+        if: steps.unsigned.outcome == 'success'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'Kairos' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG || 'release-signing' }}
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          # L'approbation est manuelle : une heure pour la donner.
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: ${{ runner.temp }}/out
+      - name: Vérifier les signatures (Windows)
+        if: steps.unsigned.outcome == 'success'
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP "out"
+          $portable = Join-Path $env:RUNNER_TEMP "portable"
+          Expand-Archive -Path (Join-Path $out "Kairos-${{ matrix.id }}-portable.zip") -DestinationPath $portable
+          $files = @(Get-Item (Join-Path $out "Kairos-${{ matrix.id }}.msi")) + @(Get-ChildItem $portable -Recurse -Filter "Kairos*.exe")
+          foreach ($f in $files) {
+            $s = Get-AuthenticodeSignature $f.FullName
+            Write-Output "$($f.Name) : $($s.Status) ($($s.SignerCertificate.Subject))"
+            if ($s.Status -ne "Valid") { Write-Error "Signature invalide : $($f.Name)"; exit 1 }
+          }
+
       - uses: actions/upload-artifact@v4
         with:
           name: kairos3-${{ matrix.id }}

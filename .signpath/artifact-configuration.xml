@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Configuration d'artefact du projet SignPath « Kairos » (docs/spec/distribution.md § Signature Windows, issue #117).
+  À recopier dans le projet SignPath : SignPath ne la lit pas dans le dépôt. L'artefact envoyé par kmp-release.yml
+  est un zip (upload-artifact) qui contient l'installeur et le zip portable de Windows ; on signe le lanceur
+  Kairos.exe (« Kairos Preview.exe » pour une préversion) dans chacun, puis l'installeur lui-même.
+-->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <msi-file path="Kairos-windows-x64.msi">
+      <pe-file path="**/Kairos*.exe">
+        <authenticode-sign/>
+      </pe-file>
+      <authenticode-sign/>
+    </msi-file>
+    <zip-file path="Kairos-windows-x64-portable.zip">
+      <pe-file path="**/Kairos*.exe">
+        <authenticode-sign/>
+      </pe-file>
+    </zip-file>
+  </zip-file>
+</artifact-configuration>

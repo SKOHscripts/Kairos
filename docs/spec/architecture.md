@@ -60,7 +60,9 @@ Graphe : `androidApp`, `desktopApp` et `webApp` → `ui` → `data` → `core`
 ouvert, `FileService`, `BackupStore`, emplacement des données, fichier lié
 (`LinkedStorage` : web, et `LinkedFileSync` sur le bureau et Android,
 `export-import.md`), calendriers du téléphone (`CalendarService`, Android,
-`connexions-externes.md`), horloge…), construit par chaque application et passé à
+`connexions-externes.md`), horloge, démonstration jetable (`DemoSource` : chaque plateforme ne fournit qu'une base en
+mémoire, `openDemo` et `AppServices.forDemo` sont communs, `visite-guidee.md` § Visite interactive)…), construit par chaque
+application et passé à
 `KairosApp(platform) { … }` sous forme de fonction suspendue (ouverture
 asynchrone de la base).
 

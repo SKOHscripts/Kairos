@@ -19,6 +19,14 @@ import kotlin.time.Instant
  * Récurrence des tâches et des créneaux (docs/spec/recurrence.md). Pur : les occurrences à créer sont
  * rendues, le dépôt les enregistre.
  */
+/**
+ * Une série « le N du mois » de l'espace Perso dont des mois passés n'ont pas d'occurrence (issue #111) : [months] = le premier
+ * jour de chaque mois sauté, dans l'ordre ; [key] = la clé de « Ignorer » (`Settings.recurrence`).
+ */
+data class SkippedSeries(val title: String, val dayOfMonth: Int, val months: List<LocalDate>) {
+    val key: String get() = Recurrence.seriesKey(dayOfMonth, title)
+}
+
 object Recurrence {
     /** Règles recréées à la complétion. */
     val COMPLETION_RULES = setOf(TaskRecurrence.DAILY, TaskRecurrence.WEEKDAYS, TaskRecurrence.WEEKLY, TaskRecurrence.MONTHLY)
@@ -192,6 +200,70 @@ object Recurrence {
             )
         }
     }
+
+    /** Fenêtre de l'avis des mois sautés : douze mois en arrière au plus (docs/spec/recurrence.md § Avis des mois sautés). */
+    const val SKIPPED_LOOKBACK_MONTHS = 12
+
+    /**
+     * Séries « le N du mois » de l'espace Perso dont des mois passés n'ont aucune occurrence (issue #111). Mêmes séries que
+     * [calendarOccurrences], restreintes à `PERSONAL`. Mois couverts = les périodes de ses membres (`recurrencePeriod` ou mois de
+     * l'échéance) ; candidats = de `max(premier mois couvert + 1, mois courant − 12)` au mois précédent ; sauté = candidat non
+     * couvert **et** postérieur au filigrane de « Ignorer » ([ignored], clé de série → dernier mois ignoré `AAAA-MM`). Le mois
+     * courant et la suite restent à [calendarOccurrences]. Tri par titre sans casse, puis jour.
+     */
+    fun skippedSeries(tasks: List<Task>, today: LocalDate, ignored: Map<String, String>): List<SkippedSeries> {
+        val current = LocalDate(today.year, today.month.ordinal + 1, 1)
+        val oldest = current.plus(DatePeriod(months = -SKIPPED_LOOKBACK_MONTHS))
+        return personalSeries(tasks).mapNotNull { (key, members) ->
+            val covered = coveredPeriods(members)
+            val first = covered.minOrNull() ?: return@mapNotNull null
+            val watermark = ignored[seriesKey(key.dayOfMonth, key.title)].orEmpty()
+            val months = generateSequence(oldest) { it.plus(DatePeriod(months = 1)) }
+                .takeWhile { it < current }
+                .filter { month -> period(month).let { it > first && it !in covered && it > watermark } }
+                .toList()
+            if (months.isEmpty()) null else SkippedSeries(key.title, key.dayOfMonth, months)
+        }.sortedWith(compareBy<SkippedSeries>({ it.title.lowercase() }, { it.dayOfMonth }))
+    }
+
+    /**
+     * Les occurrences à recréer pour [series] : une par mois sauté, copie du membre de plus grand id (mêmes champs hérités que
+     * [calendarOccurrences]), échéance = le N de ce mois reculé au jour ouvré précédent, donc déjà en retard ; sans heure fixe.
+     */
+    fun recreateSkipped(tasks: List<Task>, series: SkippedSeries, holidays: Set<LocalDate>, now: Instant): List<Task> {
+        val rep = personalSeries(tasks)[SeriesKey(series.title, series.dayOfMonth, TaskSpace.PERSONAL)]?.maxBy { it.id } ?: return emptyList()
+        return series.months.map { month ->
+            val deadline = calendarDeadline(series.dayOfMonth, month, holidays)
+            Task(
+                id = 0,
+                title = series.title,
+                description = rep.description,
+                priority = rep.priority,
+                fibonacciPoints = rep.fibonacciPoints,
+                taskType = rep.taskType,
+                deadline = deadline,
+                scheduledDate = deadline,
+                projectTag = rep.projectTag,
+                estimatedMinutes = rep.estimatedMinutes,
+                recurrence = TaskRecurrence.MONTHLY_ON_DAY,
+                recurrenceDayOfMonth = series.dayOfMonth,
+                recurrencePeriod = period(month),
+                seriesId = if (rep.origin == null) rep.seriesId ?: rep.id else null,
+                createdAt = now,
+                updatedAt = now,
+            )
+        }
+    }
+
+    /** Clé d'une série Perso pour la mémoire de « Ignorer » (`jour|titre`). */
+    fun seriesKey(dayOfMonth: Int, title: String): String = "$dayOfMonth|$title"
+
+    private fun personalSeries(tasks: List<Task>): Map<SeriesKey, List<Task>> =
+        tasks.filter { it.space == TaskSpace.PERSONAL && it.recurrence == TaskRecurrence.MONTHLY_ON_DAY && it.recurrenceDayOfMonth != null }
+            .groupBy { SeriesKey(it.title, it.recurrenceDayOfMonth!!, it.space) }
+
+    private fun coveredPeriods(members: List<Task>): Set<String> =
+        members.flatMap { m -> listOfNotNull(m.recurrencePeriod.takeIf { it.isNotEmpty() }, m.deadline?.let(::period)) }.toSet()
 
     /**
      * Occurrences des créneaux récurrents sur `[rangeStart, rangeEnd]` : le

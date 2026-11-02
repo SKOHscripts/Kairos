@@ -1,0 +1,1 @@
+Kairos 3.13.0: die vollständige Funktionsliste unter „Start“, mit Suche und Filter nach Version. Eine interaktive Demo, um Kairos Schritt für Schritt an Wegwerf-Beispielen auszuprobieren, ohne deine Daten zu berühren. Wird Kairos einen Monat lang nicht geöffnet, zeigt eine Aufgabe „am N. des Monats“ die übersprungenen Monate: neu anlegen oder ignorieren.

@@ -186,6 +186,55 @@ class KairosRepositoryTest {
         assertTrue("readChapters" !in one && "newsHidden" !in one)
     }
 
+    // --- Mois sautés (docs/spec/recurrence.md § Avis des mois sautés, issue #111) ----------------------------------------------
+
+    private fun noteDeFrais(id: Long, period: String) = Task(
+        id, "Note de frais", priority = 1, fibonacciPoints = 2, recurrence = TaskRecurrence.MONTHLY_ON_DAY, recurrenceDayOfMonth = 14,
+        recurrencePeriod = period, deadline = LocalDate.parse("$period-14"), createdAt = now, updatedAt = now,
+    )
+
+    @Test
+    fun recreatingSkippedOccurrencesIsIdempotent() = runTest {
+        val repo = empty()
+        repo.replaceAll(KairosSnapshot(tasks = listOf(noteDeFrais(1, "2026-06"))))
+        val created = repo.recreateSkippedOccurrences("Note de frais", 14, today)
+        // Juillet et août sautés : deux occurrences, en retard, et l'avis disparaît.
+        assertEquals(2, created.size)
+        val made = repo.snapshot.value.tasks.filter { it.id in created }
+        assertEquals(listOf("2026-07", "2026-08"), made.map { it.recurrencePeriod }.sorted())
+        assertTrue(made.all { it.status == TaskStatus.TODO && it.deadline!! < today })
+        assertEquals(emptyList(), com.skohscripts.kairos.core.engine.Recurrence.skippedSeries(repo.snapshot.value.tasks, today, emptyMap()))
+        assertEquals(emptyList(), repo.recreateSkippedOccurrences("Note de frais", 14, today))
+        // « Annuler » : les occurrences créées sont retirées.
+        created.forEach { repo.deleteTask(it) }
+        assertEquals(listOf(1L), repo.snapshot.value.tasks.map { it.id })
+    }
+
+    @Test
+    fun ignoringASkipNoticeWritesTheWatermarkAndUndoRestoresIt() = runTest {
+        val repo = empty()
+        repo.replaceAll(KairosSnapshot(tasks = listOf(noteDeFrais(1, "2026-06"))))
+        assertNull(repo.ignoreSkippedOccurrences("Note de frais", 14, today))
+        assertEquals(mapOf("14|Note de frais" to "2026-08"), repo.snapshot.value.settings.recurrence?.skipIgnored)
+        assertEquals(emptyList(), com.skohscripts.kairos.core.engine.Recurrence.skippedSeries(
+            repo.snapshot.value.tasks, today, repo.snapshot.value.settings.recurrence!!.skipIgnored,
+        ))
+        // Plus rien de sauté : un second « Ignorer » n'écrit rien et rend le filigrane en place.
+        assertEquals("2026-08", repo.ignoreSkippedOccurrences("Note de frais", 14, today))
+        repo.restoreSkipNotice("Note de frais", 14, null)
+        // Revenu à sa valeur par défaut : le sous-objet est de nouveau nul.
+        assertNull(repo.snapshot.value.settings.recurrence)
+    }
+
+    @Test
+    fun theSkipNoticeSurvivesAnExportAndIsAbsentByDefault() {
+        val now = Instant.parse("2026-10-28T07:00:00Z")
+        val plain = ExportCodec.encode(KairosSnapshot(settings = Settings()), "3.13.0", now)
+        assertTrue("recurrence" !in plain && "skipIgnored" !in plain, "sans rien d'ignoré, l'export ne porte aucun objet recurrence")
+        val memory = Settings(recurrence = com.skohscripts.kairos.core.model.RecurrenceSettings(mapOf("14|Note de frais" to "2026-08")))
+        assertEquals(memory, ExportCodec.decode(ExportCodec.encode(KairosSnapshot(settings = memory), "3.13.0", now)).settings)
+    }
+
     @Test
     fun theScheduleSurvivesAnExportAndIsAbsentWhenNotCustomised() {
         val now = Instant.parse("2026-09-29T07:00:00Z")

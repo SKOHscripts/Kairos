@@ -85,7 +85,11 @@ Checklist avant de pousser :
 
 - Fonctionnalité visible par l'utilisateur → `README.md` (EN) **et** `README.fr.md` (FR), en termes
   d'usage, **et une carte du catalogue** (`kmp/ui/.../ui/guide/FeatureCatalog.kt` : carte, `README_FEATURES`, `since` =
-  version de livraison) : `FeatureCatalogTest.readmeFeaturesAreCovered` casse sinon (`docs/spec/visite-guidee.md`).
+  version de livraison, `platforms` si elle n'existe pas partout, textes dans les six langues), **une seule** : une fonctionnalité
+  par carte, une carte par fonctionnalité. Plus **une ligne du tableau** « Feature list » / « Liste des fonctionnalités » des deux
+  README (chapitre, titre de la carte, version, plateformes, dans l'ordre du catalogue). `FeatureCatalogTest`
+  (`readmeFeaturesAreCovered`, `oneCardPerReadmeFeatureAndOneReadmeFeaturePerCard`, `readmeTableMatchesCatalog`) casse sinon
+  (`docs/spec/liste-fonctionnalites.md`).
 - Correctif, refactor, décision technique → **pas** de README, seulement la
   spec.
 - Version publiée → notes Fastlane FR et EN

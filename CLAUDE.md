@@ -20,9 +20,13 @@ quatre étapes ci-dessous, dans cet ordre.
 4. **Documenter dans le README si — et seulement si — c'est une feature.** Seules
    les fonctionnalités pertinentes pour l'utilisateur entrent dans le README, **dans
    les deux langues** : `README.md` (anglais, affiché par défaut sur GitHub) et
-   `README.fr.md` (français), qui se répondent section pour section. Un correctif
-   de bug, un refactor ou une décision technique interne n'y vont **pas** (ils sont
-   tracés en spec).
+   `README.fr.md` (français), qui se répondent section pour section. Une
+   fonctionnalité = **une carte** du catalogue (`FeatureCatalog` : `since` = la
+   version, `platforms`, textes dans les six langues), **une puce** en gras de la
+   section « Features » et **une ligne** du tableau « Feature list », en anglais et
+   en français (`docs/spec/liste-fonctionnalites.md`) : `FeatureCatalogTest` échoue
+   sinon. Un correctif de bug, un refactor ou une décision technique interne n'y
+   vont **pas** (ils sont tracés en spec).
 
 ## Pull requests
 

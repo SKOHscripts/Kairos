@@ -59,8 +59,13 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 
 ### Hors périmètre (à ce jalon)
 
-- Signature et notarisation macOS, signature Authenticode Windows : différées
-  (plan § 6.2). Gatekeeper et SmartScreen afficheront un avertissement.
+- Signature et notarisation macOS : différées (plan § 6.2), **décision du 2026-10-29** (issue #116) : pas de compte
+  Apple Developer pour l'instant (§ Décisions). Gatekeeper affiche « développeur non identifié » au premier lancement ;
+  le README et la page de téléchargement gardent la marche à suivre (Réglages Système → Confidentialité et sécurité →
+  « Ouvrir quand même »).
+- Signature Authenticode Windows : **préparée le 2026-10-29** (issue #117, § Signature Windows) par SignPath
+  Foundation, active dès que le propriétaire a été accepté et a posé les secrets ; d'ici là, et pour les forks,
+  l'installeur reste non signé et SmartScreen affiche un avertissement.
 - Mise à jour intégrée : jamais sur Android ; sur le bureau, simple
   vérification (`mises-a-jour.md`).
 - F-Droid, fiches et page de téléchargement : `publication.md`.
@@ -78,7 +83,7 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   (bascule) : `3.0.0` (`30000`).
   Versions suivantes : `3.1.0` (`30100`), `3.2.0` (`30200`), `3.3.0` (`30300`), puis `3.4.0` (`30400`, issue #64 :
   horaires par jour de la semaine, durées apprises, catalogue de fonctionnalités et première tâche guidée, ergonomie et
-  réglages, retrait de l'import de l'ancienne version ; notes `30400.txt` en français et en anglais), puis `3.5.0` (`30500`, issue #64 : plusieurs plages par jour et contextes, carte Statistiques « Quand tu travailles chaque type » ; notes `30500.txt` en français et en anglais), puis `3.6.0` (`30600`, issue #64 : réglage « Meilleures heures », le planning préfère les heures habituelles ou préférées de chaque type ; notes `30600.txt` en français et en anglais), puis `3.7.0` (`30700` : thème sombre, issue #72 ; filtres et export des statistiques, #114 et #113 ; déplacer depuis la vue Semaine, #106 ; fériés des créneaux « jours ouvrés », #109 ; Réglages par catégories, PR #124 ; guide qui retient et montre l'endroit, #94 et #95 ; notes `30700.txt` en français et en anglais), puis `3.8.0` (`30800` : vue Mois, #107 ; créneaux mensuels, #108 ; une seule occurrence d'un créneau, #110 ; évolutions des statistiques, #112 ; corriger les estimations, #101 ; rappels, #103 ; première tâche d'équipe guidée, #97 ; notes `30800.txt` en français et en anglais), puis `3.9.0` (`30900` : noms des niveaux, #93 ; meilleures heures mesurées par l'efficacité, #105 ; accompagnement des récurrences et des Réglages, #98 ; jours et heures par membre, #104 ; notes dans les échanges, #120 ; propositions d'un membre, #121 ; dossier des données, diagnostic et proxy du bureau, #115 ; lien « Voir la dernière version » sur Android, #143 ; notes `30900.txt` en français et en anglais), puis `3.10.0` (`31000` : import d'un calendrier `.ics`, #136 ; fichier lié sur le bureau et Android, #137 ; calendriers du téléphone, #138 ; notes `31000.txt` en français et en anglais), puis `3.11.0` (`31100` : espagnol, allemand, russe et italien, #75 ; fiches du magasin et page web dans ces langues ; notes `31100.txt` dans les six langues), puis `3.12.0` (`31200` : widgets Android, #150 ; récapitulatif du jour, #151 ; couleur par défaut océan ; notes `31200.txt` dans les six langues).
+  réglages, retrait de l'import de l'ancienne version ; notes `30400.txt` en français et en anglais), puis `3.5.0` (`30500`, issue #64 : plusieurs plages par jour et contextes, carte Statistiques « Quand tu travailles chaque type » ; notes `30500.txt` en français et en anglais), puis `3.6.0` (`30600`, issue #64 : réglage « Meilleures heures », le planning préfère les heures habituelles ou préférées de chaque type ; notes `30600.txt` en français et en anglais), puis `3.7.0` (`30700` : thème sombre, issue #72 ; filtres et export des statistiques, #114 et #113 ; déplacer depuis la vue Semaine, #106 ; fériés des créneaux « jours ouvrés », #109 ; Réglages par catégories, PR #124 ; guide qui retient et montre l'endroit, #94 et #95 ; notes `30700.txt` en français et en anglais), puis `3.8.0` (`30800` : vue Mois, #107 ; créneaux mensuels, #108 ; une seule occurrence d'un créneau, #110 ; évolutions des statistiques, #112 ; corriger les estimations, #101 ; rappels, #103 ; première tâche d'équipe guidée, #97 ; notes `30800.txt` en français et en anglais), puis `3.9.0` (`30900` : noms des niveaux, #93 ; meilleures heures mesurées par l'efficacité, #105 ; accompagnement des récurrences et des Réglages, #98 ; jours et heures par membre, #104 ; notes dans les échanges, #120 ; propositions d'un membre, #121 ; dossier des données, diagnostic et proxy du bureau, #115 ; lien « Voir la dernière version » sur Android, #143 ; notes `30900.txt` en français et en anglais), puis `3.10.0` (`31000` : import d'un calendrier `.ics`, #136 ; fichier lié sur le bureau et Android, #137 ; calendriers du téléphone, #138 ; notes `31000.txt` en français et en anglais), puis `3.11.0` (`31100` : espagnol, allemand, russe et italien, #75 ; fiches du magasin et page web dans ces langues ; notes `31100.txt` dans les six langues), puis `3.12.0` (`31200` : widgets Android, #150 ; récapitulatif du jour, #151 ; couleur par défaut océan ; notes `31200.txt` dans les six langues), puis `3.13.0` (`31300` : liste complète des fonctionnalités, #153 ; avis des mois sautés, #111 ; démonstration interactive, #96 ; décision sur la signature macOS, #116, et signature Windows préparée, #117 ; notes `31300.txt` dans les six langues).
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
 - `versionCode` (`AppVersion.versionCode`) : `X*10000 + Y*100 + Z` ; alpha :
@@ -197,7 +202,9 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   `desktop-team-settings.png`, et, depuis le jalon E2, l'écran Équipe, la
   fiche d'un membre et l'éditeur d'absence, chacun en 1200 et 360 px :
   `desktop-team-members[-narrow].png`, `desktop-team-member-sheet[-narrow].png`,
-  `desktop-team-absence[-narrow].png`, `equipe.md`). L'auto-test n'affiche pas l'accueil du premier
+  `desktop-team-absence[-narrow].png`, `equipe.md` ; une démonstration interactive à l'étape de la priorité,
+  `desktop-demo.png` et `desktop-demo-narrow.png` en 360 px, `visite-guidee.md` § Visite interactive). L'auto-test
+  n'affiche pas l'accueil du premier
   lancement et ne vérifie pas les mises à jour (aucun réseau). Code de
   sortie 0 ou 1.
 - **Empaquetage** (plugin Compose Desktop, jpackage, runtime Java réduit
@@ -220,6 +227,45 @@ remplacer ; une version stable s'installe par-dessus la précédente.
     administrateur), raccourci et menu ; `upgradeUuid` fixe par produit ;
   - icônes `desktopApp/icons/kairos.{ico,png,icns}` (`tools/make_app_icons.py`) ;
   - ProGuard désactivé.
+
+### Signature Windows (SignPath Foundation, issue #117)
+
+- **Quoi** : l'installeur `Kairos-windows-x64.msi` et le lanceur `Kairos.exe` (« Kairos Preview.exe » pour une
+  préversion) qu'il contient, ainsi que le lanceur du zip portable, reçoivent une signature Authenticode horodatée.
+  Le certificat est celui de **SignPath Foundation**, qui apparaît comme éditeur (offre gratuite des projets libres) ;
+  aucune clé n'est dans le dépôt ni sur le runner.
+- **Quand** : dans le job `desktop` de `kmp-release.yml`, sur Windows, **sur un tag seulement** et seulement si
+  `SIGNPATH_READY` est vrai (secret `SIGNPATH_API_TOKEN` et variable `SIGNPATH_ORGANIZATION_ID` présents). Sinon les
+  trois étapes sont sautées et la construction reste celle d'avant, non signée (forks, contributeurs, lancement
+  manuel, préversions sans configuration).
+- **Comment** : après « Nommer les fichiers », `actions/upload-artifact` envoie le `.msi` et le zip portable comme
+  artefact `unsigned-windows-x64` (préfixe distinct de `kairos3-` : la release ne le reprend pas) ;
+  `signpath/github-action-submit-signing-request@v3` soumet la demande (projet `vars.SIGNPATH_PROJECT_SLUG`, `Kairos`
+  par défaut ; politique `vars.SIGNPATH_SIGNING_POLICY_SLUG`, `release-signing` par défaut), attend l'**approbation
+  manuelle** une heure au plus, et dépose les fichiers signés à la place des non signés dans `out`. Une étape PowerShell
+  vérifie ensuite (`Get-AuthenticodeSignature`) que le `.msi` et le lanceur du zip portable ont une signature valide :
+  sinon la release échoue. L'artefact `kairos3-windows-x64`, donc la release et `SHA256SUMS`, portent les fichiers
+  signés. Le job a `actions: read` (l'action lit l'artefact par l'API des Actions).
+- **Configuration d'artefact** : `.signpath/artifact-configuration.xml`, à recopier dans le projet SignPath (SignPath ne
+  la lit pas dans le dépôt) : racine `<zip-file>` (l'artefact téléversé), signature profonde du `.msi` (lanceur
+  `**/Kairos*.exe`, puis le `.msi` lui-même) et du lanceur du zip portable.
+- **À faire par le propriétaire** (rien de cela ne peut se faire depuis le dépôt) :
+  1. Déposer la candidature sur signpath.org (licence MIT, construction depuis ce dépôt public par GitHub Actions).
+  2. Une fois accepté, publier la **politique de signature** exigée par SignPath Foundation, sous le titre « Code
+     signing policy » dans le README et sur la page de téléchargement : « Free code signing provided by SignPath.io,
+     certificate by SignPath Foundation », les rôles (auteurs, relecteurs, approbateurs : le propriétaire), et la
+     déclaration de confidentialité (Kairos ne transmet rien sur le réseau sans demande de l'utilisateur,
+     `connexions-en-ligne.md`). Elle n'est pas publiée avant l'acceptation : elle affirmerait une signature qui
+     n'existe pas encore.
+  3. Dans SignPath : organisation, projet `Kairos`, configuration d'artefact ci-dessus, politique `release-signing`
+     (approbation manuelle), système de construction de confiance « GitHub.com » lié au projet, application GitHub
+     SignPath installée sur le dépôt ; authentification à deux facteurs pour tous les membres (SignPath et GitHub).
+  4. Dans le dépôt GitHub : secret `SIGNPATH_API_TOKEN`, variable `SIGNPATH_ORGANIZATION_ID` (et, si les noms
+     diffèrent, `SIGNPATH_PROJECT_SLUG`, `SIGNPATH_SIGNING_POLICY_SLUG`).
+  5. Au premier tag signé, approuver la demande dans SignPath, puis vérifier l'installeur publié ; alors seulement,
+     retirer du README et de `site/` la consigne SmartScreen (« Informations complémentaires » → « Exécuter quand
+     même »), dans une petite PR de suivi. La réputation SmartScreen d'un nouvel éditeur se construit aux
+     téléchargements : l'avertissement peut persister quelque temps.
 
 ### Web (`kmp/webApp`)
 
@@ -277,13 +323,37 @@ remplacer ; une version stable s'installe par-dessus la précédente.
     `windows-x64`, `macos-latest` → `macos-arm64`, `macos-15-intel` →
     `macos-x64`) : `packageDistributionForCurrentOS` + `createDistributable`
     (`fakeroot` installé sous Linux), **auto-test de l'image empaquetée**, puis
-    `Kairos-<id>.{deb,msi,dmg}` et `Kairos-<id>-portable.{tar.gz,zip}` ;
-    captures en artefacts `screens-<id>` ;
+    `Kairos-<id>.{deb,msi,dmg}` et `Kairos-<id>-portable.{tar.gz,zip}`, ceux de Windows signés par SignPath
+    Foundation sur un tag quand c'est configuré (§ Signature Windows) ; captures en artefacts `screens-<id>` ;
   - `release` (tag seulement) : `SHA256SUMS` de tous les `Kairos-*`, release
     GitHub « Kairos <version> » (préversion si suffixe), notes générées. Un
     seul APK par release.
 
 ### Décisions et pièges tracés
+
+- **Windows : SignPath Foundation** (2026-10-29, issue #117, décision du propriétaire) : gratuit pour un projet libre
+  construit depuis son dépôt public, ce que Kairos est (licence MIT, release par GitHub Actions, APK reproductible).
+  Prix accepté : l'éditeur affiché est « SignPath Foundation », pas le nom de l'auteur, chaque release attend une
+  approbation manuelle, et une politique de signature doit être publiée. Écartés : Azure Artifact Signing (environ
+  10 USD par mois, vérification d'identité restreinte pour les particuliers selon le pays) ; un certificat OV d'une
+  autorité (200 à 400 € par an, clé sur jeton matériel ou HSM en ligne). Signature **sur tag seulement** : une demande
+  par construction de PR noierait l'approbateur. **Conditionnelle** : sans configuration, le workflow construit
+  comme avant, pour que forks et contributeurs ne soient jamais bloqués. Le README garde la consigne SmartScreen
+  jusqu'à la vérification d'une release réellement signée (choix du propriétaire).
+- **macOS : ni signature Developer ID ni notarisation pour l'instant** (2026-10-29, issue #116, décision du
+  propriétaire). Elles exigent l'Apple Developer Program, **99 USD par an**, au nom d'une personne ou d'une
+  organisation ; aucune autre voie ne retire l'avertissement de Gatekeeper (une signature ad hoc ou un certificat
+  auto-signé laissent « développeur non identifié »). Le compte n'est pas pris : le `.app`, le `.dmg` et le zip portable
+  restent non signés, le workflow ne change pas, et le README (anglais et français) comme les six pages de `site/`
+  gardent la marche à suivre, **corrigée le même jour** : depuis macOS 15 (Sequoia), le clic droit → « Ouvrir » ne
+  contourne plus Gatekeeper ; on passe par Réglages Système → Confidentialité et sécurité → « Ouvrir quand même », le
+  clic droit restant cité pour macOS 14 et avant. **Si la décision est rouverte**, la voie retenue
+  d'avance : un certificat « Developer ID Application » importé dans un trousseau temporaire du runner, la signature
+  et la notarisation de Compose Desktop (`macOS { signing { … } notarization { … } }` : `codesign` avec runtime
+  renforcé, `notarytool`, agrafage), et une **clé d'API App Store Connect** (`.p8`, révocable seule) plutôt que
+  l'identifiant Apple et un mot de passe d'application ; certificat, mot de passe du `.p12` et clé en secrets GitHub
+  seulement, et sans eux une construction non signée comme aujourd'hui (forks, contributeurs). L'APK, la vérification
+  `reproducible` (F-Droid) et `SHA256SUMS` ne sont pas concernés.
 
 - **Préversions installables à côté de la version stable** : identifiant
   Android `.preview`, produit de bureau distinct ; les versions finales

@@ -101,6 +101,9 @@ le travail en cours.
   chapitres, aussi dans l'aide et les Réglages) et une section **« Nouveau dans la version X.Y.Z »** masquable pour la
   session ; l'accueil du premier lancement gagne **« Créer ma première tâche »** (accompagnement dans la vraie fiche) ;
   l'aide propose une entrée « Découvrir Kairos ». Le reste de cette spec est inchangé.
+- **3.13** (`liste-fonctionnalites.md`, issue #153) : sous la section « Nouveau » (et hors de sa condition d'affichage, donc
+  toujours là), un bouton **« Liste de fonctionnalités »** (`OutlinedButton`, icône `FormatListBulleted`) ouvre la liste complète du
+  catalogue, écran secondaire avec recherche et filtre « Nouveau depuis… ». L'Accueil ne change pas autrement.
 
 #### Équipe : l'onglet « Échanges »
 
@@ -142,7 +145,7 @@ au lieu d'être réparti entre la fiche du membre et les Réglages.
 - Visite avec **pastilles qui pointent les éléments** de l'écran (coach marks) :
   écartée (§ Décisions) ; la visite est une suite de fenêtres qui ouvrent les
   écrans. Précisé le 2026-10-26 (issue #96) : une visite interactive sur une démonstration jetable cerne des éléments de
-  l'écran sans pastille ancrée, voir `visite-guidee.md` § Visite interactive (spécifiée, non implémentée).
+  l'écran sans pastille ancrée, voir `visite-guidee.md` § Visite interactive (implémentée en 3.13.0) ; son entrée est dans le hub, l'Accueil lui-même ne change pas.
 - Mémoriser « visite terminée », ou la relancer d'office à une mise à jour :
   non, pas de nouvel indicateur à stocker (et aucune incidence sur l'export).
 - Aide en ligne, vidéos, liens vers un site : non, l'application reste
