@@ -1744,4 +1744,7 @@
     <string name="demo_task_title">Preparare la riunione di lunedì</string>
     <string name="card_demo_title">Demo interattiva</string>
     <string name="card_demo_body">Annotare, qualificare, cronometrare e spostare un’attività su esempi usa e getta, passo dopo passo: i tuoi dati non vengono toccati.</string>
+    <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
+    <string name="estimate_filled_type">Stimata in %1$s (mediana di «%2$s»)</string>
+    <string name="estimate_filled_points">Stimata in %1$s (mediana delle attività da %2$d punti)</string>
 </resources>

@@ -22,6 +22,7 @@ import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskSpace
+import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TeamSettings
 import com.skohscripts.kairos.data.KairosRepository
 import com.skohscripts.kairos.data.KairosStore
@@ -83,6 +84,8 @@ class InlineTypeUiTest {
 
     private fun AppServices.task() = repository.snapshot.value.tasks.single()
 
+    private fun AppServices.inboxTask() = repository.snapshot.value.tasks.single { it.id == 1L }
+
     /** Ouvre le champ « [label] » de la ligne (sa valeur affichée est [shown]) et choisit [option]. */
     private fun ComposeUiTest.pick(shown: String, option: String) {
         // Le champ, pas l'étiquette de type que la ligne affiche aussi.
@@ -105,6 +108,28 @@ class InlineTypeUiTest {
         // « Aucun » vide le type.
         pick("Writing", "Uncategorised")
         waitUntil(timeoutMillis = 15_000) { services.task().taskType == "" }
+    }
+
+    @Test
+    fun finishingTheQualificationFillsAnEmptyDurationFromTheTypeMedianWithUndo() = runComposeUiTest {
+        // Trois tâches « Writing » faites en 45 min : une médiane fiable pour ce type.
+        val history = (11L..13L).map {
+            Task(it, "Old $it", priority = 1, fibonacciPoints = 5, taskType = "Writing", status = TaskStatus.DONE, manualTimeSpentMinutes = 45, createdAt = now, updatedAt = now)
+        }
+        val inbox = Task(1, "Draft the newsletter", priority = 1, createdAt = now, updatedAt = now)
+        val services = services(KairosSnapshot(tasks = history + inbox, settings = Settings(taskTypes = "Meeting,Writing")))
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitText("To process (1)")
+        // Le type seul ne suffit pas : il manque encore les points.
+        pick("Uncategorised", "Writing")
+        waitUntil(timeoutMillis = 15_000) { services.inboxTask().taskType == "Writing" }
+        assertNull(services.inboxTask().estimatedMinutes)
+        // Les points complètent la qualification : la médiane du type remplit la durée vide, avec « Annuler ».
+        onNodeWithText("3 moderate").performScrollTo().performClick()
+        waitText("Estimated at 45 min (median of “Writing”)")
+        assertEquals(45, services.inboxTask().estimatedMinutes)
+        onNodeWithText("Undo").performClick()
+        waitUntil(timeoutMillis = 15_000) { services.inboxTask().estimatedMinutes == null }
     }
 
     @Test

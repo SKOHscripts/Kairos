@@ -1745,4 +1745,7 @@
     <string name="demo_task_title">Prepare Monday’s meeting</string>
     <string name="card_demo_title">Interactive demo</string>
     <string name="card_demo_body">Capture, qualify, time and move a task on throwaway examples, guided step by step: your data is not touched.</string>
+    <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
+    <string name="estimate_filled_type">Estimated at %1$s (median of “%2$s”)</string>
+    <string name="estimate_filled_points">Estimated at %1$s (median of %2$d-point tasks)</string>
 </resources>

@@ -1744,4 +1744,7 @@
     <string name="demo_task_title">Подготовить встречу в понедельник</string>
     <string name="card_demo_title">Интерактивное демо</string>
     <string name="card_demo_body">Записать, оценить, засечь время и перенести задачу на одноразовых примерах, шаг за шагом: твои данные не затрагиваются.</string>
+    <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
+    <string name="estimate_filled_type">Оценка: %1$s (медиана типа «%2$s»)</string>
+    <string name="estimate_filled_points">Оценка: %1$s (медиана задач на %2$d балл.)</string>
 </resources>

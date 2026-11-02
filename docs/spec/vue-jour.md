@@ -53,10 +53,14 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    qualifier, le sens des priorités (importance, le délai compte à part par
    l'échéance), puis le guide des points (voir **Guide des points**).
    **Type sur place** (3.14.0, issue #166) : sous les pastilles, le champ « Type » de la fiche (« Non classé » puis les
-   types des Réglages, et le type actuel de la tâche s'il n'y est plus) ; le choix est enregistré aussitôt, **sans
-   toucher à la durée**, même vide (dans la fiche, un type fiable remplit une durée vide ; ici, comme les pastilles, il
-   n'y touche jamais). Le type n'est pas un critère de qualification : il ne fait ni entrer ni sortir une tâche de
-   « À traiter ». Le menu des types montre une barre de défilement dès que la liste ne tient pas en entier.
+   types des Réglages, et le type actuel de la tâche s'il n'y est plus) ; le choix est enregistré aussitôt. Le type
+   n'est pas un critère de qualification : il ne fait ni entrer ni sortir une tâche de « À traiter ».
+   **Durée dès le traitement** (même issue, choix du propriétaire du 2026-11-02) : quand un geste de « À traiter »
+   (priorité, points ou type) laisse la tâche avec **les trois** renseignés et **sans durée**, Kairos lui pose la médiane
+   fiable de son type, sinon celle de son palier de points, et le dit : « Estimée à 45 min (médiane de « Rédaction ») »,
+   ou « … (médiane des tâches à 3 points) », avec « Annuler » (la durée redevient vide). Une durée déjà là n'est jamais
+   touchée ; sans médiane fiable, rien n'est posé. Dans le backlog d'équipe, « À qualifier » ne pose aucune durée
+   (l'effort d'une tâche d'équipe se décide à l'assignation, `equipe-backlog-suivi.md`). Le menu des types montre une barre de défilement dès que la liste ne tient pas en entier.
 4. **Maintenant** (seul bloc teinté) : « À faire maintenant : » la première
    tâche placée (avec son heure), sinon la première sans créneau ; boutons
    nommés « Fait », « Démarrer le chrono » (ou « Arrêter le chrono ») et
@@ -198,6 +202,11 @@ Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt.
 - Un type choisi dans « À traiter » est enregistré, ne change pas la durée saisie et laisse la tâche à qualifier ;
   « Non classé » le vide ; dans le backlog d'équipe, la catégorie de « À qualifier » de même ; à 360 dp, le champ tient
   dans la largeur avec une cible d'au moins 48 dp (`InlineTypeUiTest`, 3.14.0, issue #166).
+- Une tâche qu'on finit de qualifier dans « À traiter » reçoit la médiane de son type (sinon de ses points) si elle n'a
+  pas de durée ; rien tant qu'il manque priorité, points ou type, rien sur une durée existante, et 0 compte comme vide
+  (`InboxFillTest`) ; `KairosRepository.setEstimate` pose et efface (`KairosRepositoryTest`) ; de bout en bout, le type
+  seul ne pose rien, les points complètent et la durée arrive avec son message, « Annuler » la retire
+  (`InlineTypeUiTest.finishingTheQualificationFillsAnEmptyDurationFromTheTypeMedianWithUndo`).
 - Toute tâche ouverte est dans une seule section (`DayViewTest`).
 - « Pourquoi à cette place ? » s'ouvre d'un clic et se referme d'un clic à
   côté ; « Fait » et « Décaler » de « Maintenant » agissent sur la bonne
@@ -323,7 +332,11 @@ posée.
   sur le bureau). `InboxQualify(tâche, onPriority, onPoints, types, typeLabel, onType)` : pastilles, puis `TypeField`
   (360 dp de large au plus) ; la vue Jour passe `taskTypeList` et `field_type`, et enregistre par
   `KairosRepository.setTaskType` (déjà utilisé par le changement de catégorie en lot du backlog d'équipe), qui ne touche
-  qu'au type.
+  qu'au type. Après chaque geste de la vue Jour (priorité, points, type), `Estimates.inboxFill(tâche)` (`PointsGuide.kt`,
+  à côté des médianes `minutesByType` et `minutesByPoints` de la fiche) rend la durée à poser, ou `null` ; la vue Jour
+  l'écrit par `KairosRepository.setEstimate` et l'annonce par `LocalUndoMessages` (`estimate_filled_type`,
+  `estimate_filled_points`, durée mise en forme hors composition par `durationText`). Le backlog d'équipe n'appelle pas
+  `inboxFill`.
 - `Dates` : « 30 sept. » / « Sep 30 », « 09h15 » / « 09:15 », graduations
   « 9h » / « 9:00 », nombres à une décimale sans « .0 » (deux pour une valeur positive
   qui s'arrondirait à 0 : un score de 1/21 s'affiche « 0,05 », jamais « 0 ») ;
@@ -397,9 +410,15 @@ posée.
   levée par la vue Semaine.
 - **Durée suggérée : le palier remplace, le type complète** (issues #15.6 et #7) : choisir un palier est un geste
   d'estimation, qui doit changer la durée ; un type n'est qu'un indice, qui ne
-  doit jamais écraser une estimation saisie. Les pastilles de « À traiter »
-  ne touchent jamais à la durée, **le type choisi sur place non plus** (2026-11-02, issue #166) : la qualification en
-  ligne reste un tri rapide, l'estimation se fait dans la fiche.
+  doit jamais écraser une estimation saisie.
+- **« À traiter » pose une durée vide une fois la tâche qualifiée** (2026-11-02, issue #166, choix du propriétaire, qui
+  **rouvre** « les pastilles de « À traiter » ne touchent jamais à la durée ») : une tâche qualifiée dans la boîte de
+  réception arrivait dans la journée sans durée, donc placée sur la durée par défaut ; avec priorité, points et type, on
+  a de quoi estimer dès le traitement. Ce qui ne change pas : une durée saisie n'est jamais écrasée (#166 le demande, et
+  c'est la règle du type dans la fiche) ; rien n'est posé tant qu'il manque l'un des trois (un geste isolé ne pose pas
+  une durée qu'un autre contredirait aussitôt). Le type avant les points : il dit la nature du travail, les points sa
+  taille relative. Le message avec « Annuler » rend la durée visible et réversible. Écartés : remplacer la durée comme les
+  points dans la fiche (contraire à #166) ; poser la durée au premier geste (elle changerait à chaque pastille).
 - **Le type n'est pas un critère de qualification** (issue #166) : « À traiter » reste défini par la priorité et les
   points (`needsProcessing`, `modele-donnees.md`) ; un type manquant ne retient pas la tâche dans la section, qui
   resterait sinon pleine des tâches qu'on ne type jamais.

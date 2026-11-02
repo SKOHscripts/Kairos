@@ -131,6 +131,21 @@ internal data class Estimates(
     val minutesByPoints: Map<Int, Int> = emptyMap(),
     val minutesByType: Map<String, Int> = emptyMap(),
 ) {
+    /** Une durée proposée pour une tâche qualifiée dans « À traiter » : [minutes] et le type d'où elle vient (`null` : ses points). */
+    data class Fill(val minutes: Int, val type: String?)
+
+    /**
+     * Durée à poser quand une tâche de « À traiter » vient d'être entièrement qualifiée (3.14.0, issue #166, choix du
+     * propriétaire) : priorité, points et type tous renseignés, **et** aucune durée encore (une durée saisie n'est jamais
+     * touchée). La médiane fiable de son type d'abord, sinon celle de son palier de points ; `null` sans médiane fiable.
+     */
+    fun inboxFill(task: Task): Fill? {
+        if (task.priority == null || (task.fibonacciPoints ?: 0) == 0 || task.taskType.isEmpty()) return null
+        if ((task.estimatedMinutes ?: 0) != 0) return null
+        minutesByType[task.taskType]?.let { return Fill(it, task.taskType) }
+        return minutesByPoints[task.fibonacciPoints]?.let { Fill(it, null) }
+    }
+
     companion object {
         fun of(tasks: List<Task>, sessions: List<WorkSession>, now: Instant): Estimates {
             val spent = TimeTracking.spentMinutesByTask(sessions, now, tasks)
