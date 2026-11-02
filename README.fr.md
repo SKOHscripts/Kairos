@@ -158,7 +158,8 @@ posés, en un toucher sur des pastilles qui disent ce que vaut chaque choix
 aussi sur place. Une fois priorité, points et type posés, une tâche sans durée
 reçoit la médiane de son type (ou de ses points) d’après tes tâches terminées,
 annoncée avec « Annuler » ; une durée saisie n’est jamais touchée. Dans le
-backlog d’équipe, « À qualifier » propose la **catégorie** de la même façon.
+backlog d’équipe, « À qualifier » propose la **catégorie** de la même façon, et
+son estimation vient des seules tâches d’équipe terminées.
 
 ### Ordonnancement
 

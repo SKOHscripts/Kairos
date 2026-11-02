@@ -95,6 +95,9 @@ enum class QualifiedField(val code: String) {
     POINTS("points"),
     TYPE("type"),
     DEADLINE("deadline"),
+
+    /** Durée estimée en minutes (3.14.0, issue #166) ; une version antérieure lit ce préfixe inconnu comme « Modification ». */
+    ESTIMATE("estimate"),
 }
 
 /** Lectures et écritures pures sur le journal (textes des valeurs, historique d'une tâche). */

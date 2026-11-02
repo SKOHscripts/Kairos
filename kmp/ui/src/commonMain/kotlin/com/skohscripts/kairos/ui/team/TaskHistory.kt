@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.generated.resources.event_estimate
+import com.skohscripts.kairos.ui.day.duration
 import com.skohscripts.kairos.core.team.TeamEventSource
 import com.skohscripts.kairos.ui.generated.resources.event_note_sent
 import com.skohscripts.kairos.ui.generated.resources.event_note_received
@@ -123,13 +125,14 @@ internal fun eventSentence(event: TeamEvent, context: AssignContext, today: Loca
             val field = (to ?: from)?.first
             val priorityNames = Levels.priorityShorts()
             val pointsNames = LocalLevelNames.current.points
-            fun value(pair: Pair<QualifiedField, String>?): String {
+            @Composable fun value(pair: Pair<QualifiedField, String>?): String {
                 val raw = pair?.second.orEmpty()
                 if (raw.isEmpty()) return none
                 return when (field) {
                     QualifiedField.PRIORITY -> raw.toIntOrNull()?.let { priorityNames[it] } ?: "P$raw"
                     QualifiedField.POINTS -> raw.toIntOrNull()?.let { pointsNames[it] } ?: raw
                     QualifiedField.DEADLINE -> runCatching { LocalDate.parse(raw) }.getOrNull()?.let { dateSpan(it, it, today, language).first } ?: raw
+                    QualifiedField.ESTIMATE -> raw.toIntOrNull()?.let { duration(it) } ?: raw
                     else -> raw
                 }
             }
@@ -138,6 +141,7 @@ internal fun eventSentence(event: TeamEvent, context: AssignContext, today: Loca
                 QualifiedField.POINTS -> stringResource(Res.string.event_points, value(from), value(to))
                 QualifiedField.TYPE -> stringResource(Res.string.event_category, value(from), value(to))
                 QualifiedField.DEADLINE -> stringResource(Res.string.event_deadline, value(from), value(to))
+                QualifiedField.ESTIMATE -> stringResource(Res.string.event_estimate, value(from), value(to))
                 null -> stringResource(Res.string.event_unknown)
             }
         }

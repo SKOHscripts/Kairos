@@ -151,7 +151,8 @@ qualify?" recalls the rule. The **type** can be picked right there too. Once
 priority, points and type are set, a task with no duration gets the median of
 its type (or of its points) from your finished tasks, announced with "Undo"; a
 duration you entered is never touched. In the team backlog, "To qualify" offers
-the **category** the same way.
+the **category** the same way, and its estimate comes from finished team tasks
+only.
 
 ### Scheduling
 

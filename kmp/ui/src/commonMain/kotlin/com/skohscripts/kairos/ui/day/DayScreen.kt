@@ -1,7 +1,5 @@
 package com.skohscripts.kairos.ui.day
 
-import com.skohscripts.kairos.ui.generated.resources.estimate_filled_points
-import com.skohscripts.kairos.ui.generated.resources.estimate_filled_type
 import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.guide.demo.LocalDemoTour
 import com.skohscripts.kairos.ui.guide.demo.DemoSpot
@@ -462,15 +460,7 @@ fun DayScreen(
                     TaskRow(task, ctx) {
                         // Une tâche qu'on finit de qualifier ici (priorité, points et type) reçoit une durée si elle n'en a pas
                         // (issue #166) : la médiane de son type, sinon de ses points, annoncée avec « Annuler ».
-                        suspend fun fillEstimate() {
-                            val qualified = repository.snapshot.value.tasks.firstOrNull { it.id == task.id } ?: return
-                            val fill = estimates.inboxFill(qualified) ?: return
-                            repository.setEstimate(task.id, fill.minutes)
-                            val text = durationText(fill.minutes)
-                            val message = fill.type?.let { getString(Res.string.estimate_filled_type, text, it) }
-                                ?: getString(Res.string.estimate_filled_points, text, qualified.fibonacciPoints ?: 0)
-                            undo(message, getString(Res.string.action_revert)) { scope.launch { repository.setEstimate(task.id, null) } }
-                        }
+                        suspend fun fillEstimate() = fillInboxEstimate(repository, estimates, task.id, undo, scope)
                         InboxQualify(
                             task,
                             onPriority = { scope.launch { repository.setPriority(task.id, it); fillEstimate() } },

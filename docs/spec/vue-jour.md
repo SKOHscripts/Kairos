@@ -59,8 +59,8 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    (priorité, points ou type) laisse la tâche avec **les trois** renseignés et **sans durée**, Kairos lui pose la médiane
    fiable de son type, sinon celle de son palier de points, et le dit : « Estimée à 45 min (médiane de « Rédaction ») »,
    ou « … (médiane des tâches à 3 points) », avec « Annuler » (la durée redevient vide). Une durée déjà là n'est jamais
-   touchée ; sans médiane fiable, rien n'est posé. Dans le backlog d'équipe, « À qualifier » ne pose aucune durée
-   (l'effort d'une tâche d'équipe se décide à l'assignation, `equipe-backlog-suivi.md`). Le menu des types montre une barre de défilement dès que la liste ne tient pas en entier.
+   touchée ; sans médiane fiable, rien n'est posé. Le backlog d'équipe fait de même dans « À qualifier », avec les
+   médianes des seules tâches d'équipe terminées (`equipe-backlog-suivi.md`). Le menu des types montre une barre de défilement dès que la liste ne tient pas en entier.
 4. **Maintenant** (seul bloc teinté) : « À faire maintenant : » la première
    tâche placée (avec son heure), sinon la première sans créneau ; boutons
    nommés « Fait », « Démarrer le chrono » (ou « Arrêter le chrono ») et
@@ -335,8 +335,8 @@ posée.
   qu'au type. Après chaque geste de la vue Jour (priorité, points, type), `Estimates.inboxFill(tâche)` (`PointsGuide.kt`,
   à côté des médianes `minutesByType` et `minutesByPoints` de la fiche) rend la durée à poser, ou `null` ; la vue Jour
   l'écrit par `KairosRepository.setEstimate` et l'annonce par `LocalUndoMessages` (`estimate_filled_type`,
-  `estimate_filled_points`, durée mise en forme hors composition par `durationText`). Le backlog d'équipe n'appelle pas
-  `inboxFill`.
+  `estimate_filled_points`, durée mise en forme hors composition par `durationText`) : `fillInboxEstimate(dépôt, médianes,
+  tâche, undo, scope)`, partagée avec le backlog d'équipe, qui lui passe ses propres médianes.
 - `Dates` : « 30 sept. » / « Sep 30 », « 09h15 » / « 09:15 », graduations
   « 9h » / « 9:00 », nombres à une décimale sans « .0 » (deux pour une valeur positive
   qui s'arrondirait à 0 : un score de 1/21 s'affiche « 0,05 », jamais « 0 ») ;

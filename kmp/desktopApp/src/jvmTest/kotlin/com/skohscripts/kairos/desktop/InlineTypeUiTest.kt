@@ -45,8 +45,9 @@ import kotlin.time.Instant
 
 /**
  * Type d'une tâche choisi dans « À traiter » (vue Jour) et catégorie dans « À qualifier » (backlog d'équipe)
- * (docs/spec/vue-jour.md, issue #166) : enregistré aussitôt, la durée ne bouge pas, la tâche reste à qualifier tant que
- * priorité ou points manquent, et rien ne déborde à 360 dp. Horloge figée au mardi 29 septembre 2026.
+ * (docs/spec/vue-jour.md, issue #166) : enregistré aussitôt, une durée saisie ne bouge pas, la tâche reste à qualifier
+ * tant que priorité ou points manquent ; une fois qualifiée sans durée, la médiane fiable la remplit (tâches d'équipe
+ * seulement dans le backlog d'équipe, journalisée) ; rien ne déborde à 360 dp. Horloge figée au mardi 29 septembre 2026.
  */
 @OptIn(ExperimentalTestApi::class)
 class InlineTypeUiTest {
@@ -143,6 +144,30 @@ class InlineTypeUiTest {
         waitUntil(timeoutMillis = 15_000) { services.task().taskType == "Frontend" }
         assertEquals(30, services.task().estimatedMinutes)
         waitText("To qualify (1)")
+    }
+
+    @Test
+    fun theTeamBacklogFillsFromFinishedTeamTasksOnlyAndJournalsTheEstimate() = runComposeUiTest {
+        // Trois tâches d'équipe « Frontend » faites en 90 min (temps rapporté) ; une tâche perso « Frontend » de 10 min, ignorée.
+        val history = (11L..13L).map {
+            Task(it, "Team $it", priority = 1, fibonacciPoints = 5, taskType = "Frontend", status = TaskStatus.DONE, space = TaskSpace.TEAM, reportedMinutes = 90, createdAt = now, updatedAt = now)
+        } + (21L..23L).map {
+            Task(it, "Mine $it", priority = 1, fibonacciPoints = 5, taskType = "Frontend", status = TaskStatus.DONE, manualTimeSpentMinutes = 10, createdAt = now, updatedAt = now)
+        }
+        val inbox = Task(1, "Draft the newsletter", priority = 1, space = TaskSpace.TEAM, createdAt = now, updatedAt = now)
+        val team = Settings(taskTypes = "Backend,Frontend", team = TeamSettings(enabled = true, name = "Platform", identity = "id-1", lastSpace = TeamSettings.SPACE_TEAM))
+        val services = services(KairosSnapshot(tasks = history + inbox, settings = team))
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BACKLOG) { services } }
+        waitText("To qualify (1)")
+        pick("Uncategorised", "Frontend")
+        waitUntil(timeoutMillis = 15_000) { services.inboxTask().taskType == "Frontend" }
+        onNodeWithText("3 moderate").performScrollTo().performClick()
+        waitText("(median of “Frontend”)", substring = true)
+        // La médiane de l'équipe (90 min), pas celle des tâches perso (10 min).
+        assertEquals(90, services.inboxTask().estimatedMinutes)
+        val estimate = services.repository.snapshot.value.teamEvents.last { it.taskId == 1L }
+        assertEquals("estimate:", estimate.fromValue)
+        assertEquals("estimate:90", estimate.toValue)
     }
 
     @Test
