@@ -1,5 +1,16 @@
 package com.skohscripts.kairos.ui.day
 
+import androidx.compose.material3.Checkbox
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
+import com.skohscripts.kairos.core.day.MissingField
+import com.skohscripts.kairos.ui.generated.resources.filter_missing_label
+import com.skohscripts.kairos.ui.generated.resources.filter_missing_type
+import com.skohscripts.kairos.ui.generated.resources.filter_missing_points
+import com.skohscripts.kairos.ui.generated.resources.filter_missing_duration
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.app.disclosure
 import androidx.compose.foundation.layout.Arrangement
@@ -98,10 +109,51 @@ internal fun FilterCard(
                     Facet(stringResource(Res.string.field_project), filter.project, projects, { it }, all) { onChange(filter.copy(project = it)) }
                     Facet(stringResource(Res.string.field_type), filter.taskType, taskTypes, { it }, all) { onChange(filter.copy(taskType = it)) }
                     Facet(stringResource(Res.string.points_label), filter.points, FIBONACCI_SCALE, { pointsNames[it] ?: "$it" }, all) { onChange(filter.copy(points = it)) }
+                    // Tâches à compléter (issue #166) : celles à qui manque l'un des champs cochés.
+                    val missingNames = mapOf(
+                        MissingField.TYPE to stringResource(Res.string.filter_missing_type),
+                        MissingField.POINTS to stringResource(Res.string.filter_missing_points),
+                        MissingField.DURATION to stringResource(Res.string.filter_missing_duration),
+                    )
+                    MultiFacet(stringResource(Res.string.filter_missing_label), filter.missing, MissingField.entries, missingNames::getValue, all) {
+                        onChange(filter.copy(missing = it))
+                    }
                 }
                 if (filter.active) {
                     KairosTextButton(onClick = { onChange(DayFilter()) }) { Text(stringResource(Res.string.filter_reset)) }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Facette à choix multiple : le menu reste ouvert pendant qu'on coche, chaque entrée est une case lue comme telle ; le
+ * champ affiche les choix séparés par des virgules, ou [all] sans choix.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun <T> MultiFacet(label: String, values: Set<T>, options: List<T>, show: (T) -> String, all: String, width: Dp = 220.dp, onChange: (Set<T>) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+        OutlinedTextField(
+            value = if (values.isEmpty()) all else options.filter { it in values }.joinToString(", ", transform = show),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            singleLine = true,
+            modifier = Modifier.width(width).menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { option ->
+                val checked = option in values
+                DropdownMenuItem(
+                    text = { Text(show(option)) },
+                    leadingIcon = { Checkbox(checked = checked, onCheckedChange = null) },
+                    onClick = { onChange(if (checked) values - option else values + option) },
+                    modifier = Modifier.semantics { role = Role.Checkbox; toggleableState = ToggleableState(checked) },
+                )
             }
         }
     }

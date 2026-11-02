@@ -147,7 +147,12 @@ also be edited, archived without follow-up, or deleted.
 A task only enters the ranking once its **priority** and **points** are set,
 in one tap on chips that say what each choice means (**P0 Critical**,
 **P1 Important**, **P2 Useful**; from "1 trivial" to "21 huge"). "How to
-qualify?" recalls the rule.
+qualify?" recalls the rule. The **type** can be picked right there too. Once
+priority, points and type are set, a task with no duration gets the median of
+its type (or of its points) from your finished tasks, announced with "Undo"; a
+duration you entered is never touched. In the team backlog, "To qualify" offers
+the **category** the same way, and its estimate comes from finished team tasks
+only.
 
 ### Scheduling
 
@@ -244,7 +249,8 @@ order (critical path). Cycles are refused.
 ### Views
 
 - **Day**: "Up next", the ordered agenda, sections "To process", "Blocked",
-  "Scheduled later", filters, backlog, timeline; "lingering for N d" badge and
+  "Scheduled later", filters (including "Incomplete": tasks without a type,
+  points or duration), backlog, timeline; "lingering for N d" badge and
   P0 overload banner. You can look at another day.
 - **Home screen widgets** (Android): "Now" shows the task to do now, its times
   and the next one, with "Done" (tap twice to confirm), the timer and capture;
@@ -326,7 +332,7 @@ order (critical path). Cycles are refused.
   enabled.
 - **Guided first task**: on first launch (or from the Day view while you have
   no task of your own), Kairos walks you through the real task sheet, field by
-  field (title, priority, Fibonacci points, estimate, dates, type, advanced
+  field (title, priority, Fibonacci points, type, estimate, dates, advanced
   options), then shows where your task lands in the day and congratulates you
   once it is really created. Nothing is written if you give up.
 - **Interactive demo**: "Try it in a demo" in "Discover Kairos" opens the real

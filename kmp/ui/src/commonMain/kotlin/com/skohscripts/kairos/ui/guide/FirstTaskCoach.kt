@@ -129,9 +129,10 @@ internal object FirstTaskCoach {
         CoachStep({ KairosIcons.Description }, Res.string.coach_description_title, Res.string.coach_description_body, setOf(EditField.DESCRIPTION)),
         CoachStep({ KairosIcons.Warning }, Res.string.coach_priority_title, Res.string.coach_priority_body, setOf(EditField.PRIORITY)),
         CoachStep({ KairosIcons.Balance }, Res.string.coach_points_title, Res.string.coach_points_body, setOf(EditField.POINTS)),
+        // Après les points, avant la durée (3.14.0, issue #166) : le type peut suggérer cette durée.
+        CoachStep({ KairosIcons.Layers }, Res.string.coach_type_title, Res.string.coach_type_body, setOf(EditField.TYPE)),
         CoachStep({ KairosIcons.Schedule }, Res.string.coach_minutes_title, Res.string.coach_minutes_body, setOf(EditField.MINUTES)),
         CoachStep({ KairosIcons.DateRange }, Res.string.coach_deadline_title, Res.string.coach_deadline_body, setOf(EditField.DEADLINE, EditField.SCHEDULED)),
-        CoachStep({ KairosIcons.Layers }, Res.string.coach_type_title, Res.string.coach_type_body, setOf(EditField.TYPE)),
         CoachStep(
             { KairosIcons.ExpandMore }, Res.string.coach_more_title, Res.string.coach_more_body,
             setOf(EditField.PROJECT, EditField.MANUAL_TIME, EditField.RECURRENCE, EditField.PIN, EditField.SUBTASKS, EditField.BLOCKERS),

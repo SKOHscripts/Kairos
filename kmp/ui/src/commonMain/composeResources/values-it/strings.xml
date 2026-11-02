@@ -1228,7 +1228,7 @@
     <string name="guide_you_capture_title">Catturare senza pensarci</string>
     <string name="guide_you_capture_body">In Note, scrivi tutto ciò che ti passa per la testa, senza ordinare. Una nota diventa un’attività quando vuoi.</string>
     <string name="guide_you_qualify_title">Qualificare con un clic</string>
-    <string name="guide_you_qualify_body">Un’attività da elaborare aspetta priorità, punti di impegno e scadenza. «Come qualificare?» ti aiuta a scegliere; Kairos ne ricava un punteggio.</string>
+    <string name="guide_you_qualify_body">Un’attività da elaborare aspetta priorità, punti di impegno e scadenza; anche il tipo si sceglie lì. «Come qualificare?» ti aiuta a scegliere; Kairos ne ricava un punteggio.</string>
     <string name="guide_you_do_title">Fare in ordine</string>
     <string name="guide_you_do_body">«Prossima» mostra l’attività da fare, le successive sono ordinate per punteggio attorno alle tue riunioni. «Perché in questa posizione?» spiega ogni posizione.</string>
     <string name="guide_you_time_title">Tracciare il tempo</string>
@@ -1424,7 +1424,7 @@
     <string name="coach_deadline_title">Date: scadenza e giorno previsto</string>
     <string name="coach_deadline_body">La scadenza fa salire il punteggio man mano che si avvicina. «Programmata per», nelle opzioni avanzate, tiene l’attività per il giorno in cui puoi iniziarla.</string>
     <string name="coach_type_title">Tipo: a cosa serve</string>
-    <string name="coach_type_body">Il tipo raggruppa le tue statistiche e può suggerire una durata. I tipi si gestiscono nelle Impostazioni.</string>
+    <string name="coach_type_body">Il tipo raggruppa le tue statistiche e può suggerire una durata. Si sceglie anche direttamente in «Da elaborare». I tipi si gestiscono nelle Impostazioni.</string>
     <string name="coach_more_title">Per approfondire</string>
     <string name="coach_more_body">Progetto, ora fissa, ricorrenza, sottoattività e bloccanti sono qui. Potrai tornarci più tardi dalla scheda dell’attività.</string>
     <string name="coach_save_title">Salva l’attività</string>
@@ -1744,4 +1744,17 @@
     <string name="demo_task_title">Preparare la riunione di lunedì</string>
     <string name="card_demo_title">Demo interattiva</string>
     <string name="card_demo_body">Annotare, qualificare, cronometrare e spostare un’attività su esempi usa e getta, passo dopo passo: i tuoi dati non vengono toccati.</string>
+    <!-- Facette « Incomplètes » des filtres (docs/spec/vue-jour.md § Filtres, issue #166) -->
+    <string name="filter_missing_label">Incomplete</string>
+    <string name="filter_missing_type">Senza tipo</string>
+    <string name="filter_missing_points">Senza punti</string>
+    <string name="filter_missing_duration">Senza durata</string>
+    <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
+    <string name="demo_type_title">Qualificare: il tipo</string>
+    <string name="demo_type_body">Scegli un tipo sulla sua riga: raggruppa le tue statistiche. Con priorità, punti e tipo, Kairos può stimare la durata dalle tue attività completate.</string>
+    <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
+    <string name="estimate_filled_type">Stimata in %1$s (mediana di «%2$s»)</string>
+    <string name="estimate_filled_points">Stimata in %1$s (mediana delle attività da %2$d punti)</string>
+    <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
+    <string name="event_estimate">Durata stimata %1$s → %2$s</string>
 </resources>

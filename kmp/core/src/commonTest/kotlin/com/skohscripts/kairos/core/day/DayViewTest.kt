@@ -183,6 +183,29 @@ class DayViewTest {
     }
 
     @Test
+    fun the_incomplete_facet_keeps_tasks_missing_any_chosen_field() {
+        // Issue #166 : sans type, sans points ou sans durée, comme la carte « Complétude » des statistiques.
+        val typed = task(1).copy(taskType = "Admin")
+        val noType = task(2)
+        val noDuration = task(3, minutes = null).copy(taskType = "Admin")
+        val zeroDuration = task(4, minutes = 0).copy(taskType = "Admin")
+        val noPoints = task(5, pts = null).copy(taskType = "Admin")
+        val all = listOf(typed, noType, noDuration, zeroDuration, noPoints)
+        fun kept(vararg fields: MissingField) = all.filter { DayFilter(missing = fields.toSet()).matches(it) }.map { it.id }
+        assertEquals(listOf(2L), kept(MissingField.TYPE))
+        assertEquals(listOf(3L, 4L), kept(MissingField.DURATION))
+        assertEquals(listOf(5L), kept(MissingField.POINTS))
+        // Plusieurs champs : il suffit qu'un seul manque.
+        assertEquals(listOf(2L, 3L, 4L), kept(MissingField.TYPE, MissingField.DURATION))
+        assertEquals(all.map { it.id }, kept())
+        assertTrue(DayFilter(missing = setOf(MissingField.TYPE)).active)
+        // La vue : le filtre réduit les listes (« À traiter » comprise), jamais le planning.
+        val view = build(KairosSnapshot(tasks = all), filter = DayFilter(missing = setOf(MissingField.POINTS)))
+        assertEquals(listOf(5L), view.inbox.map { it.id })
+        assertTrue(view.agenda.isEmpty())
+    }
+
+    @Test
     fun recurring_blocks_count_on_their_days_and_stay_editable_as_templates() {
         val monday = LocalDate(2026, 9, 28)
         val blocks = listOf(

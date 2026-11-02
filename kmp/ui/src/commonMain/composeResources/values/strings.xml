@@ -1229,7 +1229,7 @@
     <string name="guide_you_capture_title">Capture without thinking</string>
     <string name="guide_you_capture_body">In Notes, write down whatever comes to mind, without sorting. A note becomes a task whenever you want.</string>
     <string name="guide_you_qualify_title">Qualify in one click</string>
-    <string name="guide_you_qualify_body">A task to process is waiting for its priority, effort points and deadline. “How to qualify?” helps you choose; Kairos derives a score.</string>
+    <string name="guide_you_qualify_body">A task to process is waiting for its priority, effort points and deadline; its type can be picked on the spot too. “How to qualify?” helps you choose; Kairos derives a score.</string>
     <string name="guide_you_do_title">Do things in order</string>
     <string name="guide_you_do_body">“Up next” shows the task to do, the next ones are ranked by score around your meetings. “Why this position?” explains each rank.</string>
     <string name="guide_you_time_title">Track time</string>
@@ -1425,7 +1425,7 @@
     <string name="coach_deadline_title">Dates: deadline and planned day</string>
     <string name="coach_deadline_body">The deadline raises the score as it gets close. “Scheduled for”, in the more options, keeps the task for the day you can start it.</string>
     <string name="coach_type_title">Type: what it is for</string>
-    <string name="coach_type_body">The type groups your statistics and can suggest a duration. Types are managed in the Settings.</string>
+    <string name="coach_type_body">The type groups your statistics and can suggest a duration. You can also pick it right from “To process”. Types are managed in the Settings.</string>
     <string name="coach_more_title">Going further</string>
     <string name="coach_more_body">Project, fixed time, recurrence, subtasks and blockers are here. You can come back to them later from the task’s sheet.</string>
     <string name="coach_save_title">Save the task</string>
@@ -1745,4 +1745,17 @@
     <string name="demo_task_title">Prepare Monday’s meeting</string>
     <string name="card_demo_title">Interactive demo</string>
     <string name="card_demo_body">Capture, qualify, time and move a task on throwaway examples, guided step by step: your data is not touched.</string>
+    <!-- Facette « Incomplètes » des filtres (docs/spec/vue-jour.md § Filtres, issue #166) -->
+    <string name="filter_missing_label">Incomplete</string>
+    <string name="filter_missing_type">No type</string>
+    <string name="filter_missing_points">No points</string>
+    <string name="filter_missing_duration">No duration</string>
+    <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
+    <string name="demo_type_title">Qualify: type</string>
+    <string name="demo_type_body">Pick a type on its line: it groups your statistics. With priority, points and type set, Kairos can estimate the duration from your finished tasks.</string>
+    <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
+    <string name="estimate_filled_type">Estimated at %1$s (median of “%2$s”)</string>
+    <string name="estimate_filled_points">Estimated at %1$s (median of %2$d-point tasks)</string>
+    <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
+    <string name="event_estimate">Estimated duration %1$s → %2$s</string>
 </resources>

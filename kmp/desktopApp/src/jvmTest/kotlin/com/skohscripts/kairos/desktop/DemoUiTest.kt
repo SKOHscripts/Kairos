@@ -112,13 +112,13 @@ class DemoUiTest {
         listOf("Notes", "Day", "Week", "Stats").forEach { assertEquals(1, count(it), it) }
         assertEquals(1, count("Exit"))
         // Panneau : région vivante polie ; repère « Ici » ; cibles de 48 dp.
-        onNode(hasText("Step 1 of 6", substring = true) and SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite)).assertExists()
+        onNode(hasText("Step 1 of 7", substring = true) and SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite)).assertExists()
         assertEquals(1, count("Here"))
         onNodeWithText("Do it for me").assertTouchHeightIsEqualTo(48.dp)
         onNodeWithText("My turn").assertTouchHeightIsEqualTo(48.dp)
-        for (step in 2..6) {
+        for (step in 2..7) {
             onNodeWithText("Do it for me").performClick()
-            waitText("Step $step of 6", substring = true)
+            waitText("Step $step of 7", substring = true)
         }
         onNodeWithText("Do it for me").performClick()
         waitText("You have seen it all")
@@ -140,19 +140,19 @@ class DemoUiTest {
         waitUntil(timeoutMillis = 15_000) { runCatching { field.assertIsFocused() }.isSuccess }
         field.performTextInput("Call the bank")
         field.performImeAction()
-        waitText("Step 2 of 6", substring = true)
+        waitText("Step 2 of 7", substring = true)
         // « À moi de jouer » à chaque étape : la liste défile jusqu'à la ligne de la tâche, parmi les exemples.
         onNodeWithText("My turn").performClick()
         waitUntil(timeoutMillis = 15_000) { runCatching { marked("P1 Important").fetchSemanticsNode() }.isSuccess }
         marked("P1 Important").performScrollTo().performClick()
-        waitText("Step 3 of 6", substring = true)
+        waitText("Step 3 of 7", substring = true)
         onNodeWithText("My turn").performClick()
         waitUntil(timeoutMillis = 15_000) { runCatching { marked("3 moderate").fetchSemanticsNode() }.isSuccess }
         marked("3 moderate").performScrollTo().performClick()
-        waitText("Step 4 of 6", substring = true)
+        waitText("Step 4 of 7", substring = true)
         // « Précédent » revient d'une étape sans rien défaire.
         onNodeWithText("Previous").performClick()
-        waitText("Step 3 of 6", substring = true)
+        waitText("Step 3 of 7", substring = true)
         assertEquals(emptyList(), services.repository.snapshot.value.tasks)
     }
 

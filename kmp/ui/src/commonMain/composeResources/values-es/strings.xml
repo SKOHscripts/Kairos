@@ -1228,7 +1228,7 @@
     <string name="guide_you_capture_title">Captura sin pensar</string>
     <string name="guide_you_capture_body">En Notas, escribe todo lo que se te pase por la cabeza, sin ordenar. Una nota se convierte en tarea cuando quieras.</string>
     <string name="guide_you_qualify_title">Califica en un clic</string>
-    <string name="guide_you_qualify_body">Una tarea por procesar espera su prioridad, sus puntos de esfuerzo y su fecha límite. «¿Cómo calificar?» te ayuda a elegir; Kairos obtiene una puntuación.</string>
+    <string name="guide_you_qualify_body">Una tarea por procesar espera su prioridad, sus puntos de esfuerzo y su fecha límite; su tipo también se elige ahí mismo. «¿Cómo calificar?» te ayuda a elegir; Kairos obtiene una puntuación.</string>
     <string name="guide_you_do_title">Haz en orden</string>
     <string name="guide_you_do_body">«A continuación» muestra la tarea por hacer; las siguientes se ordenan por puntuación en torno a tus reuniones. «¿Por qué en este lugar?» explica cada posición.</string>
     <string name="guide_you_time_title">Sigue el tiempo</string>
@@ -1424,7 +1424,7 @@
     <string name="coach_deadline_title">Fechas: fecha límite y día previsto</string>
     <string name="coach_deadline_body">La fecha límite sube la puntuación a medida que se acerca. «Programada para», en las opciones avanzadas, reserva la tarea para el día en que puedes empezarla.</string>
     <string name="coach_type_title">Tipo: para qué sirve</string>
-    <string name="coach_type_body">El tipo agrupa tus estadísticas y puede sugerir una duración. Los tipos se gestionan en los Ajustes.</string>
+    <string name="coach_type_body">El tipo agrupa tus estadísticas y puede sugerir una duración. También se elige directamente en «Por procesar». Los tipos se gestionan en los Ajustes.</string>
     <string name="coach_more_title">Para ir más lejos</string>
     <string name="coach_more_body">Proyecto, hora fija, repetición, subtareas y bloqueos están aquí. Podrás volver a ellos más tarde desde la ficha de la tarea.</string>
     <string name="coach_save_title">Guardar la tarea</string>
@@ -1744,4 +1744,17 @@
     <string name="demo_task_title">Preparar la reunión del lunes</string>
     <string name="card_demo_title">Demostración interactiva</string>
     <string name="card_demo_body">Capturar, calificar, cronometrar y mover una tarea con ejemplos desechables, paso a paso: tus datos no se tocan.</string>
+    <!-- Facette « Incomplètes » des filtres (docs/spec/vue-jour.md § Filtres, issue #166) -->
+    <string name="filter_missing_label">Incompletas</string>
+    <string name="filter_missing_type">Sin tipo</string>
+    <string name="filter_missing_points">Sin puntos</string>
+    <string name="filter_missing_duration">Sin duración</string>
+    <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
+    <string name="demo_type_title">Calificar: el tipo</string>
+    <string name="demo_type_body">Elige un tipo en su línea: agrupa tus estadísticas. Con prioridad, puntos y tipo, Kairos puede estimar la duración a partir de tus tareas terminadas.</string>
+    <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
+    <string name="estimate_filled_type">Estimada en %1$s (mediana de «%2$s»)</string>
+    <string name="estimate_filled_points">Estimada en %1$s (mediana de las tareas de %2$d puntos)</string>
+    <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
+    <string name="event_estimate">Duración estimada %1$s → %2$s</string>
 </resources>

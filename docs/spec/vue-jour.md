@@ -52,6 +52,15 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    traiter ne correspond au filtre » (ne pas annoncer que tout est clarifié). Une tâche **bloquée** non qualifiée n'y figure pas : elle reste dans « Bloquées » (une tâche ouverte, une seule section). Sous l'en-tête, « Comment qualifier ? » (replié) : pourquoi
    qualifier, le sens des priorités (importance, le délai compte à part par
    l'échéance), puis le guide des points (voir **Guide des points**).
+   **Type sur place** (3.14.0, issue #166) : sous les pastilles, le champ « Type » de la fiche (« Non classé » puis les
+   types des Réglages, et le type actuel de la tâche s'il n'y est plus) ; le choix est enregistré aussitôt. Le type
+   n'est pas un critère de qualification : il ne fait ni entrer ni sortir une tâche de « À traiter ».
+   **Durée dès le traitement** (même issue, choix du propriétaire du 2026-11-02) : quand un geste de « À traiter »
+   (priorité, points ou type) laisse la tâche avec **les trois** renseignés et **sans durée**, Kairos lui pose la médiane
+   fiable de son type, sinon celle de son palier de points, et le dit : « Estimée à 45 min (médiane de « Rédaction ») »,
+   ou « … (médiane des tâches à 3 points) », avec « Annuler » (la durée redevient vide). Une durée déjà là n'est jamais
+   touchée ; sans médiane fiable, rien n'est posé. Le backlog d'équipe fait de même dans « À qualifier », avec les
+   médianes des seules tâches d'équipe terminées (`equipe-backlog-suivi.md`). Le menu des types montre une barre de défilement dès que la liste ne tient pas en entier.
 4. **Maintenant** (seul bloc teinté) : « À faire maintenant : » la première
    tâche placée (avec son heure), sinon la première sans créneau ; boutons
    nommés « Fait », « Démarrer le chrono » (ou « Arrêter le chrono ») et
@@ -74,7 +83,9 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    « Tâches mères en cours » (« 1/2 sous-tâche(s) »), « Fait » (terminées
    aujourd'hui). Les quatre dernières sont repliées.
 8. **Rechercher / filtrer** (repliée) : recherche dans le titre, la
-   description et le projet, facettes priorité, projet, type, points ;
+   description et le projet, facettes priorité, projet, type, points, et
+   **« Incomplètes »** (3.14.0, issue #166 : choix multiple « Sans type », « Sans points », « Sans durée » ; garde les
+   tâches à qui manque **au moins un** des champs cochés, vides comme dans la carte « Complétude » des statistiques) ;
    « filtre actif » et « Réinitialiser ». Un filtre actif remonte au-dessus
    de l'agenda. Il réduit les listes, jamais le planning.
 9. **Backlog, sans date** (replié, toujours présent) : tâches à faire sans
@@ -122,9 +133,10 @@ terminées à ce palier ; sans historique à un palier, l'exemple générique et
 différence entre points (l'ordre) et durée (le placement).
 
 **Édition** (dialogue) : titre, description, priorité, points (puis le
-guide des points), échéance, durée ; « Options avancées » : programmée pour, projet, temps passé manuel,
+guide des points), type (dans l'essentiel depuis 3.14.0, issue #166 : il qualifie la tâche au même titre que priorité et
+points), échéance, durée ; « Options avancées » : programmée pour, projet, temps passé manuel,
 récurrence (aucune, quotidienne, jours ouvrés, hebdomadaire, mensuelle,
-« le … du mois » avec le jour), type, heure fixe (HH:MM, vide = aucune),
+« le … du mois » avec le jour), heure fixe (HH:MM, vide = aucune),
 nouvelles sous-tâches (une par ligne), « Bloquée par » (cases à cocher).
 Quand la tâche a déjà des sous-tâches (issue #69, 3.3.0), une section
 **« Sous-tâches »** les liste dans les essentiels, avant « Options
@@ -190,6 +202,18 @@ Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt.
 - Une tâche capturée apparaît aussitôt dans « À traiter », jamais dans le
   planning tant qu'il lui manque la priorité ou les points ; qualifiée d'un
   clic chacune, elle entre dans l'agenda (`DayScreenUiTest`).
+- Un type choisi dans « À traiter » est enregistré, ne change pas la durée saisie et laisse la tâche à qualifier ;
+  « Non classé » le vide ; dans le backlog d'équipe, la catégorie de « À qualifier » de même ; à 360 dp, le champ tient
+  dans la largeur avec une cible d'au moins 48 dp (`InlineTypeUiTest`, 3.14.0, issue #166).
+- La facette « Incomplètes » garde les tâches à qui manque l'un des champs cochés, « ou » entre eux, et réduit les listes
+  sans toucher au planning (`DayViewTest.the_incomplete_facet_keeps_tasks_missing_any_chosen_field`) ; cocher
+  « Sans type » ne laisse que les tâches sans type dans « À traiter », les entrées se lisent comme des cases, décocher
+  rend tout (`IncompleteFilterUiTest`).
+- Une tâche qu'on finit de qualifier dans « À traiter » reçoit la médiane de son type (sinon de ses points) si elle n'a
+  pas de durée ; rien tant qu'il manque priorité, points ou type, rien sur une durée existante, et 0 compte comme vide
+  (`InboxFillTest`) ; `KairosRepository.setEstimate` pose et efface (`KairosRepositoryTest`) ; de bout en bout, le type
+  seul ne pose rien, les points complètent et la durée arrive avec son message, « Annuler » la retire
+  (`InlineTypeUiTest.finishingTheQualificationFillsAnEmptyDurationFromTheTypeMedianWithUndo`).
 - Toute tâche ouverte est dans une seule section (`DayViewTest`).
 - « Pourquoi à cette place ? » s'ouvre d'un clic et se referme d'un clic à
   côté ; « Fait » et « Décaler » de « Maintenant » agissent sur la bonne
@@ -238,7 +262,11 @@ début de la journée de travail (`Scheduling.buildDaySchedule` n'utilise
 l'heure que si elle tombe ce jour-là).
 `DayFilter` : recherche insensible à la casse sur titre, description et
 projet ; `active` si la recherche n'est pas vide ou qu'une facette est
-posée.
+posée. `missing: Set<MissingField>` (3.14.0, issue #166) : `TYPE` (type vide), `POINTS` (points nuls ou 0), `DURATION`
+(estimation nulle ou 0), les règles de `TaskStats.completeness` ; une tâche passe si l'un des champs cochés lui manque
+(« ou » : on fait le ménage de ce qui reste à compléter). La carte de filtres étant commune, la facette sert aussi la vue
+Semaine et les statistiques. À l'écran, `MultiFacet` (`Filters.kt`) : un menu qui reste ouvert pendant qu'on coche,
+chaque entrée une case (rôle et état lus par le lecteur d'écran), le champ affichant les choix ou « Tous ».
 
 ### Écran (`DayScreen`, `ui`)
 
@@ -309,6 +337,17 @@ posée.
   `pointsExample`. `EditTaskDialog` reçoit `estimates` : `PointsPills`
   remplace la durée par `minutesByPoints[palier]`, `TypeField` ne remplit
   qu'une durée vide avec `minutesByType[type]`.
+- `TypeField` (`ui/day/TypeField.kt`, 3.14.0, issue #166) : partagé par la fiche et `InboxQualify` ; menu
+  `ExposedDropdownMenu` avec un `scrollState` et `Modifier.scrollIndicator` (pouce arrondi de 4 dp en `outline` au bord
+  droit, proportionnel à la part visible, rien quand tout tient ; dessiné en commun, `VerticalScrollbar` n'existant que
+  sur le bureau). `InboxQualify(tâche, onPriority, onPoints, types, typeLabel, onType)` : pastilles, puis `TypeField`
+  (360 dp de large au plus) ; la vue Jour passe `taskTypeList` et `field_type`, et enregistre par
+  `KairosRepository.setTaskType` (déjà utilisé par le changement de catégorie en lot du backlog d'équipe), qui ne touche
+  qu'au type. Après chaque geste de la vue Jour (priorité, points, type), `Estimates.inboxFill(tâche)` (`PointsGuide.kt`,
+  à côté des médianes `minutesByType` et `minutesByPoints` de la fiche) rend la durée à poser, ou `null` ; la vue Jour
+  l'écrit par `KairosRepository.setEstimate` et l'annonce par `LocalUndoMessages` (`estimate_filled_type`,
+  `estimate_filled_points`, durée mise en forme hors composition par `durationText`) : `fillInboxEstimate(dépôt, médianes,
+  tâche, undo, scope)`, partagée avec le backlog d'équipe, qui lui passe ses propres médianes.
 - `Dates` : « 30 sept. » / « Sep 30 », « 09h15 » / « 09:15 », graduations
   « 9h » / « 9:00 », nombres à une décimale sans « .0 » (deux pour une valeur positive
   qui s'arrondirait à 0 : un score de 1/21 s'affiche « 0,05 », jamais « 0 ») ;
@@ -382,8 +421,18 @@ posée.
   levée par la vue Semaine.
 - **Durée suggérée : le palier remplace, le type complète** (issues #15.6 et #7) : choisir un palier est un geste
   d'estimation, qui doit changer la durée ; un type n'est qu'un indice, qui ne
-  doit jamais écraser une estimation saisie. Les pastilles de « À traiter »
-  ne touchent jamais à la durée.
+  doit jamais écraser une estimation saisie.
+- **« À traiter » pose une durée vide une fois la tâche qualifiée** (2026-11-02, issue #166, choix du propriétaire, qui
+  **rouvre** « les pastilles de « À traiter » ne touchent jamais à la durée ») : une tâche qualifiée dans la boîte de
+  réception arrivait dans la journée sans durée, donc placée sur la durée par défaut ; avec priorité, points et type, on
+  a de quoi estimer dès le traitement. Ce qui ne change pas : une durée saisie n'est jamais écrasée (#166 le demande, et
+  c'est la règle du type dans la fiche) ; rien n'est posé tant qu'il manque l'un des trois (un geste isolé ne pose pas
+  une durée qu'un autre contredirait aussitôt). Le type avant les points : il dit la nature du travail, les points sa
+  taille relative. Le message avec « Annuler » rend la durée visible et réversible. Écartés : remplacer la durée comme les
+  points dans la fiche (contraire à #166) ; poser la durée au premier geste (elle changerait à chaque pastille).
+- **Le type n'est pas un critère de qualification** (issue #166) : « À traiter » reste défini par la priorité et les
+  points (`needsProcessing`, `modele-donnees.md`) ; un type manquant ne retient pas la tâche dans la section, qui
+  resterait sinon pleine des tâches qu'on ne type jamais.
 - **Guide replié par défaut**, dans le dialogue comme dans « À traiter » :
   il est long, et la phrase d'aide courte reste visible.
 - **Jour et heures saisis à part** pour un créneau : un champ

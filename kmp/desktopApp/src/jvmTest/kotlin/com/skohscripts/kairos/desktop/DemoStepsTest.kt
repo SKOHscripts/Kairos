@@ -48,7 +48,7 @@ class DemoStepsTest {
     fun sixStepsInOrderEachDoneByItsActOnAFreshDemo() = runBlocking {
         val session = demo()
         val tour = DemoTour(session.repository, today = { today })
-        assertEquals(listOf("capture", "priority", "points", "timer_start", "timer_stop", "move"), tour.steps.map { it.id })
+        assertEquals(listOf("capture", "priority", "points", "type", "timer_start", "timer_stop", "move"), tour.steps.map { it.id })
         // Le jeu d'exemples seul : aucune tâche de l'utilisateur.
         assertNull(DemoSteps.trackedTask(session.repository.snapshot.value))
         tour.steps.forEachIndexed { i, step ->
@@ -86,7 +86,7 @@ class DemoStepsTest {
         // « Passer l’étape » jusqu'à l'arrêt du chrono : « Faire pour moi » crée la tâche et démarre avant d'arrêter.
         val session = demo()
         val tour = DemoTour(session.repository, today = { today })
-        repeat(4) { tour.next() }
+        repeat(5) { tour.next() }
         assertEquals("timer_stop", tour.step.id)
         tour.step.act(tour.context(title))
         tour.observe(session.repository.snapshot.value)

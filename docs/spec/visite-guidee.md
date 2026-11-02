@@ -94,9 +94,9 @@ découvrir sans que l'utilisateur ait à lire une documentation.
      enregistrer ni d'équipe dans une démonstration.
    - **Quatre scénarios courts et scriptés**, enchaînés sur la **même tâche** : (1) **Capturer** : écrire un titre dans
      la capture de la vue Jour, la tâche arrive dans « À traiter » ; (2) **Qualifier** : choisir une priorité puis des
-     points sur sa ligne, elle reçoit un score et prend sa place ; (3) **Lancer le chrono** : le démarrer puis l’arrêter,
+     points sur sa ligne, elle reçoit un score et prend sa place, puis son type (3.14.0, issue #166) ; (3) **Lancer le chrono** : le démarrer puis l’arrêter,
      « En ce moment » apparaît ; (4) **Déplacer** : « Déplacer… » puis « Demain », elle quitte « Aujourd'hui » (message
-     « Annuler »). Six étapes en tout, puis un dialogue de fin.
+     « Annuler »). Sept étapes en tout (six jusqu'à 3.13.0, avant l'étape du type), puis un dialogue de fin.
    - **Chaque étape** a un texte court (quoi faire, pourquoi), un **repère** sur l'élément concerné (contour et
      étiquette « Ici ») et deux actions : **« Faire pour moi »** (la visite fait le geste, avec le même effet que si
      l'utilisateur l'avait fait) et **« À moi de jouer »** (le focus passe sur l'élément à toucher, la visite attend).
@@ -142,7 +142,7 @@ découvrir sans que l'utilisateur ait à lire une documentation.
 - La 3.7.0 liste ses six cartes dans « Nouveau dans cette version » (`FeatureCatalogTest`) ; « Premiers pas » en a six,
   comme le chapitre de l'équipe (`M6GuideUiTest`).
 - **Visite interactive** (issue #96, 3.13.0 ; tests du module `desktopApp`, qui a SQLite en mémoire) :
-  - Le script (`DemoStepsTest`) : six étapes dans l'ordre (capturer, priorité, points, démarrer, arrêter, déplacer) ; pour
+  - Le script (`DemoStepsTest`) : sept étapes dans l'ordre (capturer, priorité, points, type, démarrer, arrêter, déplacer) ; pour
     chacune, `done` faux avant, `act` (« Faire pour moi ») sur une démonstration neuve le rend vrai, sans interface
     (`sixStepsInOrderEachDoneByItsActOnAFreshDemo`) ; la tâche qui disparaît ramène à la première étape
     (`theTrackedTaskThatDisappearsBringsTheTourBackToTheFirstStep`) ; des étapes sautées n'empêchent pas « Faire pour moi »
@@ -344,9 +344,10 @@ Fichiers : `ui/app/Demo.kt` (`DemoSource`, `DemoSession`, `openDemo`, `forDemo`)
   | 1 | Capturer | `CAPTURE` : champ « Nouvelle tâche » de la capture | une tâche qui n'est pas un exemple (`ExampleData.isExample`) existe | `createTask(demo_task_title)` |
   | 2 | Qualifier | `PRIORITY` : puces de priorité de sa ligne « À traiter » | sa `priority` n'est plus nulle | `setPriority(taskId, 1)` |
   | 3 | Qualifier | `POINTS` : puces de points | ses `fibonacciPoints` ne sont plus nuls | `setPoints(taskId, 3)` |
-  | 4 | Chrono | `TIMER_START` : bouton chrono de sa ligne | une séance est ouverte sur elle | `startTimer(taskId)` |
-  | 5 | Chrono | `TIMER_STOP` : « Arrêter le chrono » de « En ce moment » | plus de séance ouverte, une séance close sur elle | `startTimer` si rien ne tourne sur elle, puis `stopTimer()` |
-  | 6 | Déplacer | `MOVE` : bouton « Déplacer… » de sa ligne | sa `scheduledDate` est après aujourd'hui | `schedule(taskId, demain)` |
+  | 4 | Qualifier | `TYPE` : champ « Type » de sa ligne (3.14.0, issue #166) | son `taskType` n'est plus vide | `setTaskType(taskId, premier type des Réglages)` |
+  | 5 | Chrono | `TIMER_START` : bouton chrono de sa ligne | une séance est ouverte sur elle | `startTimer(taskId)` |
+  | 6 | Chrono | `TIMER_STOP` : « Arrêter le chrono » de « En ce moment » | plus de séance ouverte, une séance close sur elle | `startTimer` si rien ne tourne sur elle, puis `stopTimer()` |
+  | 7 | Déplacer | `MOVE` : bouton « Déplacer… » de sa ligne | sa `scheduledDate` est après aujourd'hui | `schedule(taskId, demain)` |
 
   La tâche suivie est la plus récente qui n'est pas un exemple (`DemoSteps.trackedTask`) ; une étape dont la tâche manque
   (étapes précédentes sautées) la crée d'abord (`ensureTask`). `done` lit l'**effet dans les données**, jamais le geste ni
@@ -369,7 +370,7 @@ Fichiers : `ui/app/Demo.kt` (`DemoSource`, `DemoSession`, `openDemo`, `forDemo`)
 - **Repères** (`DemoMark(spot, taskId)`) : contour `BorderStroke(2.dp, primary)` aux coins de l'élément et étiquette « Ici »
   (`guide_spot_here`, icône `Spot`) qui chevauche le bord haut (posée dedans, elle cacherait un bouton de 48 dp), **tenus**
   tant que l'étape dure, sans animation, sans région vivante (le panneau annonce déjà l'étape). Posés en enveloppant
-  l'élément lui-même (champ de capture, `PriorityPills`, `PointsPills`, boutons chrono et « Déplacer… » de la ligne de la
+  l'élément lui-même (champ de capture, `PriorityPills`, `PointsPills`, champ « Type » de « À traiter », boutons chrono et « Déplacer… » de la ligne de la
   tâche suivie, bouton d'arrêt de `RunningCard`) et non par coordonnées : ils suivent le rail, la barre basse et 360 dp.
   Hors démonstration, ou pour une autre étape, l'élément est rendu tel quel, sans conteneur. Balise de test
   `DEMO_MARK_TAG`.
@@ -448,7 +449,8 @@ met à jour une carte dans le même changement ; `FeatureCatalogTest` casse sino
 - **L'étape se valide sur l'effet, pas sur le geste** : `done` lit l'instantané de la démonstration. Écarté : écouter les
   clics (fragile, exclut le clavier et le lecteur d'écran) et lire la place dans la frise (elle dépend de l'heure : le
   soir, tout est « Sans créneau »).
-- **Six étapes, quatre scénarios, une minute** : le hub porte la profondeur (`Visite initiale courte`). Écartés : tout
+- **Sept étapes, quatre scénarios, une minute** (six jusqu'à 3.13.0 ; l'étape du type, issue #166, complète le scénario
+  « Qualifier » sans en ajouter un) : le hub porte la profondeur (`Visite initiale courte`). Écartés : tout
   couvrir ; un scénario d'équipe (autre public, autre isolation) ; plusieurs tâches (une seule suffit à voir le fil
   capturer → qualifier → faire → déplacer).
 - **Le lancement est une entrée du hub** (comme la première tâche d'équipe et la récurrente), pas une carte « faire » dans

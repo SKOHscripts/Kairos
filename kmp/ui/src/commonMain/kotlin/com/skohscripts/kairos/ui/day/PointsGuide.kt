@@ -1,5 +1,12 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.generated.resources.action_revert
+import com.skohscripts.kairos.ui.generated.resources.estimate_filled_points
+import com.skohscripts.kairos.ui.generated.resources.estimate_filled_type
+import org.jetbrains.compose.resources.getString
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import com.skohscripts.kairos.data.KairosRepository
 import com.skohscripts.kairos.ui.generated.resources.guide_points_named
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosTextButton
@@ -126,11 +133,41 @@ private fun Small(text: String) {
  * comprises) : guide des points et durées suggérées du
  * dialogue d'édition. Seules les médianes fiables (`reliable`) sont suggérées.
  */
+/**
+ * Après un geste de qualification en ligne (« À traiter » de la vue Jour, « À qualifier » du backlog d'équipe, issue #166) :
+ * si la tâche [taskId] est désormais entièrement qualifiée et sans durée, lui pose la médiane d'[estimates] et l'annonce
+ * avec « Annuler » ([undo], `LocalUndoMessages`).
+ */
+internal suspend fun fillInboxEstimate(repository: KairosRepository, estimates: Estimates, taskId: Long, undo: (String, String, () -> Unit) -> Unit, scope: CoroutineScope) {
+    val qualified = repository.snapshot.value.tasks.firstOrNull { it.id == taskId } ?: return
+    val fill = estimates.inboxFill(qualified) ?: return
+    repository.setEstimate(taskId, fill.minutes)
+    val text = durationText(fill.minutes)
+    val message = fill.type?.let { getString(Res.string.estimate_filled_type, text, it) }
+        ?: getString(Res.string.estimate_filled_points, text, qualified.fibonacciPoints ?: 0)
+    undo(message, getString(Res.string.action_revert)) { scope.launch { repository.setEstimate(taskId, null) } }
+}
+
 internal data class Estimates(
     val references: Map<Int, TaskStats.FiboReference> = emptyMap(),
     val minutesByPoints: Map<Int, Int> = emptyMap(),
     val minutesByType: Map<String, Int> = emptyMap(),
 ) {
+    /** Une durée proposée pour une tâche qualifiée dans « À traiter » : [minutes] et le type d'où elle vient (`null` : ses points). */
+    data class Fill(val minutes: Int, val type: String?)
+
+    /**
+     * Durée à poser quand une tâche de « À traiter » vient d'être entièrement qualifiée (3.14.0, issue #166, choix du
+     * propriétaire) : priorité, points et type tous renseignés, **et** aucune durée encore (une durée saisie n'est jamais
+     * touchée). La médiane fiable de son type d'abord, sinon celle de son palier de points ; `null` sans médiane fiable.
+     */
+    fun inboxFill(task: Task): Fill? {
+        if (task.priority == null || (task.fibonacciPoints ?: 0) == 0 || task.taskType.isEmpty()) return null
+        if ((task.estimatedMinutes ?: 0) != 0) return null
+        minutesByType[task.taskType]?.let { return Fill(it, task.taskType) }
+        return minutesByPoints[task.fibonacciPoints]?.let { Fill(it, null) }
+    }
+
     companion object {
         fun of(tasks: List<Task>, sessions: List<WorkSession>, now: Instant): Estimates {
             val spent = TimeTracking.spentMinutesByTask(sessions, now, tasks)

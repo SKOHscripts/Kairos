@@ -154,7 +154,12 @@ supprimée.
 Une tâche n’entre dans le tri qu’une fois sa **priorité** et ses **points**
 posés, en un toucher sur des pastilles qui disent ce que vaut chaque choix
 (**P0 Critique**, **P1 Important**, **P2 Utile** ; de « 1 trivial » à
-« 21 énorme »). « Comment qualifier ? » rappelle la règle.
+« 21 énorme »). « Comment qualifier ? » rappelle la règle. Le **type** se choisit
+aussi sur place. Une fois priorité, points et type posés, une tâche sans durée
+reçoit la médiane de son type (ou de ses points) d’après tes tâches terminées,
+annoncée avec « Annuler » ; une durée saisie n’est jamais touchée. Dans le
+backlog d’équipe, « À qualifier » propose la **catégorie** de la même façon, et
+son estimation vient des seules tâches d’équipe terminées.
 
 ### Ordonnancement
 
@@ -258,7 +263,8 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 ### Vues
 
 - **Jour** : « Maintenant », agenda ordonné, sections « À traiter »,
-  « Bloquées », « Programmées plus tard », filtres, backlog, frise ; badge
+  « Bloquées », « Programmées plus tard », filtres (dont « Incomplètes » :
+  les tâches sans type, sans points ou sans durée), backlog, frise ; badge
   « traîne depuis N j » et bandeau de surcharge de P0. On peut regarder un
   autre jour.
 - **Widgets de l’écran d’accueil** (Android) : « Maintenant » montre la tâche du
@@ -346,8 +352,8 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   Équipe quand il est activé.
 - **Première tâche guidée** : au premier lancement (ou depuis la vue Jour tant
   que tu n’as aucune tâche à toi), Kairos te guide dans la vraie fiche d’une
-  tâche, champ par champ (titre, priorité, points de Fibonacci, estimation,
-  dates, type, options avancées), puis te montre où elle se place dans la
+  tâche, champ par champ (titre, priorité, points de Fibonacci, type,
+  estimation, dates, options avancées), puis te montre où elle se place dans la
   journée et te félicite une fois qu’elle est réellement créée. Rien n’est
   écrit si tu renonces.
 - **Démonstration interactive** : « Essayer en démonstration » dans

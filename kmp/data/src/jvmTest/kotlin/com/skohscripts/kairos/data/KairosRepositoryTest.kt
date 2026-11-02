@@ -194,6 +194,19 @@ class KairosRepositoryTest {
     )
 
     @Test
+    fun setEstimateWritesTheDurationAndNullOrZeroClearsIt() = runTest {
+        // Durée posée en qualifiant dans « À traiter » et son annulation (issue #166).
+        val repo = empty()
+        val id = repo.createTask("Draft")!!
+        repo.setEstimate(id, 45)
+        assertEquals(45, repo.snapshot.value.tasks.single().estimatedMinutes)
+        repo.setEstimate(id, null)
+        assertNull(repo.snapshot.value.tasks.single().estimatedMinutes)
+        repo.setEstimate(id, 0)
+        assertNull(repo.snapshot.value.tasks.single().estimatedMinutes)
+    }
+
+    @Test
     fun recreatingSkippedOccurrencesIsIdempotent() = runTest {
         val repo = empty()
         repo.replaceAll(KairosSnapshot(tasks = listOf(noteDeFrais(1, "2026-06"))))
