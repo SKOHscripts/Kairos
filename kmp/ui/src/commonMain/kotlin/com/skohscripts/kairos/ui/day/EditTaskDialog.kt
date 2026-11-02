@@ -89,7 +89,6 @@ import com.skohscripts.kairos.ui.generated.resources.field_project
 import com.skohscripts.kairos.ui.generated.resources.field_title
 import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.generated.resources.field_category
-import com.skohscripts.kairos.ui.generated.resources.field_type_none
 import com.skohscripts.kairos.ui.generated.resources.edit_advanced
 import com.skohscripts.kairos.ui.generated.resources.field_blockers
 import com.skohscripts.kairos.ui.generated.resources.team_count_in_team
@@ -579,30 +578,6 @@ private fun RecurrenceField(value: TaskRecurrence, modifier: Modifier = Modifier
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             TaskRecurrence.entries.forEach { r ->
                 DropdownMenuItem(text = { Text(stringResource(recurrenceLabel(r))) }, onClick = { onChange(r); expanded = false })
-            }
-        }
-    }
-}
-
-/** Type de tâche : liste des Réglages ; une valeur retirée de la liste reste affichée (jamais perdue). */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TypeField(value: String, types: List<String>, label: StringResource, modifier: Modifier = Modifier, onChange: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    val none = stringResource(Res.string.field_type_none)
-    val options = (listOf("") + types + listOfNotNull(value.takeIf { it.isNotEmpty() && it !in types })).distinct()
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
-        OutlinedTextField(
-            value = value.ifEmpty { none },
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(label)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            options.forEach { option ->
-                DropdownMenuItem(text = { Text(option.ifEmpty { none }) }, onClick = { onChange(option); expanded = false })
             }
         }
     }
