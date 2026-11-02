@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.app.LocalUndoMessages
+import com.skohscripts.kairos.ui.day.fillInboxEstimate
+import com.skohscripts.kairos.ui.day.Estimates
 import com.skohscripts.kairos.ui.generated.resources.field_category
 import com.skohscripts.kairos.ui.day.Levels
 import com.skohscripts.kairos.ui.app.uiLanguage
@@ -168,6 +171,12 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
     // Une tâche assignée ou supprimée sort de la sélection.
     val selected = selection.filter { it in visibleIds }.toSet()
     val selecting = selected.isNotEmpty()
+    // Médianes des seules tâches d'équipe terminées (issue #166, choix du propriétaire) : l'équipe apprend de son propre
+    // historique, jamais des tâches personnelles, comme les durées partagées de #100 le feront.
+    val undo = LocalUndoMessages.current
+    val teamEstimates = remember(snapshot) {
+        Estimates.of(snapshot.tasks.filter { it.space == TaskSpace.TEAM }, snapshot.workSessions, services.clock.now())
+    }
     val categories = remember(snapshot.tasks, snapshot.settings) {
         (snapshot.settings.taskTypeList + snapshot.tasks.filter { it.space == TaskSpace.TEAM }.map { it.taskType }.filter { it.isNotEmpty() }).distinct()
     }
@@ -219,10 +228,10 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
                     onOpen = { openId = card.task.id }, onToggle = { toggle(card.task.id) },
                     onAssign = { member -> scope.launch { repository.assign(listOf(card.task.id), member) } },
                     onDelete = { deleteId = card.task.id },
-                    onPriority = { scope.launch { repository.setPriority(card.task.id, it) } },
-                    onPoints = { scope.launch { repository.setPoints(card.task.id, it) } },
+                    onPriority = { scope.launch { repository.setPriority(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope) } },
+                    onPoints = { scope.launch { repository.setPoints(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope) } },
                     categories = categories,
-                    onCategory = { scope.launch { repository.setTaskType(card.task.id, it) } },
+                    onCategory = { scope.launch { repository.setTaskType(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope) } },
                 )
             }
 

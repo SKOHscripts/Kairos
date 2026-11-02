@@ -1550,6 +1550,7 @@ class KairosRepository(
             Triple(QualifiedField.POINTS, old.fibonacciPoints?.toString(), new.fibonacciPoints?.toString()),
             Triple(QualifiedField.TYPE, old.taskType.ifEmpty { null }, new.taskType.ifEmpty { null }),
             Triple(QualifiedField.DEADLINE, old.deadline?.toString(), new.deadline?.toString()),
+            Triple(QualifiedField.ESTIMATE, old.estimatedMinutes?.toString(), new.estimatedMinutes?.toString()),
         )
         for ((field, before, after) in changes) {
             if (before == after) continue
