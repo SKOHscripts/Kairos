@@ -1751,5 +1751,8 @@
     <string name="filter_missing_duration">Без длительности</string>
     <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
     <string name="demo_type_title">Оценить: тип</string>
-    <string name="demo_type_body">Выбери тип в её строке: он группирует статистику. Выбор здесь никогда не меняет длительность.</string>
+    <string name="demo_type_body">Выбери тип в её строке: он группирует статистику. Зная приоритет, баллы и тип, Kairos может оценить длительность по твоим завершённым задачам.</string>
+    <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
+    <string name="estimate_filled_type">Оценка: %1$s (медиана типа «%2$s»)</string>
+    <string name="estimate_filled_points">Оценка: %1$s (медиана задач на %2$d балл.)</string>
 </resources>

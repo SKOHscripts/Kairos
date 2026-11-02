@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.generated.resources.estimate_filled_points
+import com.skohscripts.kairos.ui.generated.resources.estimate_filled_type
 import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.guide.demo.LocalDemoTour
 import com.skohscripts.kairos.ui.guide.demo.DemoSpot
@@ -458,13 +460,24 @@ fun DayScreen(
                 }
                 rows("inbox", view.inbox) { task ->
                     TaskRow(task, ctx) {
+                        // Une tâche qu'on finit de qualifier ici (priorité, points et type) reçoit une durée si elle n'en a pas
+                        // (issue #166) : la médiane de son type, sinon de ses points, annoncée avec « Annuler ».
+                        suspend fun fillEstimate() {
+                            val qualified = repository.snapshot.value.tasks.firstOrNull { it.id == task.id } ?: return
+                            val fill = estimates.inboxFill(qualified) ?: return
+                            repository.setEstimate(task.id, fill.minutes)
+                            val text = durationText(fill.minutes)
+                            val message = fill.type?.let { getString(Res.string.estimate_filled_type, text, it) }
+                                ?: getString(Res.string.estimate_filled_points, text, qualified.fibonacciPoints ?: 0)
+                            undo(message, getString(Res.string.action_revert)) { scope.launch { repository.setEstimate(task.id, null) } }
+                        }
                         InboxQualify(
                             task,
-                            onPriority = { scope.launch { repository.setPriority(task.id, it) } },
-                            onPoints = { scope.launch { repository.setPoints(task.id, it) } },
+                            onPriority = { scope.launch { repository.setPriority(task.id, it); fillEstimate() } },
+                            onPoints = { scope.launch { repository.setPoints(task.id, it); fillEstimate() } },
                             types = snapshot.settings.taskTypeList,
                             typeLabel = Res.string.field_type,
-                            onType = { scope.launch { repository.setTaskType(task.id, it) } },
+                            onType = { scope.launch { repository.setTaskType(task.id, it); fillEstimate() } },
                         )
                     }
                 }
@@ -865,8 +878,8 @@ private fun OverloadBanner(count: Int) {
 
 /**
  * Qualification en ligne d'une tâche de la boîte de réception : ce qui manque, puis les pastilles, puis le type (issue #166 :
- * [typeLabel] « Type », ou « Catégorie » dans le backlog d'équipe). Le type est enregistré aussitôt, sans jamais toucher à
- * la durée (les pastilles de « À traiter » non plus) ; il n'est pas un critère de qualification.
+ * [typeLabel] « Type », ou « Catégorie » dans le backlog d'équipe), chacun enregistré aussitôt ; le type n'est pas un critère
+ * de qualification. La durée posée une fois les trois renseignés est l'affaire de l'appelant (vue Jour seulement).
  */
 @Composable
 internal fun InboxQualify(

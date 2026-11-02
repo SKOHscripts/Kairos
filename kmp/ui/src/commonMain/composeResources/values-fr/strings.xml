@@ -1754,5 +1754,8 @@
     <string name="filter_missing_duration">Sans durée</string>
     <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
     <string name="demo_type_title">Qualifier : le type</string>
-    <string name="demo_type_body">Choisis un type sur sa ligne : il regroupe tes statistiques. Le choisir ici ne change jamais la durée.</string>
+    <string name="demo_type_body">Choisis un type sur sa ligne : il regroupe tes statistiques. Avec priorité, points et type, Kairos peut estimer la durée d’après tes tâches terminées.</string>
+    <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
+    <string name="estimate_filled_type">Estimée à %1$s (médiane de « %2$s »)</string>
+    <string name="estimate_filled_points">Estimée à %1$s (médiane des tâches à %2$d points)</string>
 </resources>
