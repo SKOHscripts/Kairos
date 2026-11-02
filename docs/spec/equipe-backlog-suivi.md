@@ -32,7 +32,8 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   - **À qualifier** : il manque la priorité ou les points (règle
     `needsProcessing` de `modele-donnees.md`) ; mêmes chips de
     qualification que « À traiter », puis la **catégorie** choisie sur place (3.14.0, issue #166 : même champ que le
-    type de la vue Jour, enregistré aussitôt, sans toucher à la durée ni faire sortir la tâche) ;
+    type de la vue Jour, enregistré aussitôt, sans faire sortir la tâche ; ici, aucune durée n'est posée, contrairement
+    à « À traiter », car l'effort d'une tâche d'équipe se décide à l'assignation) ;
   - **Prêtes** : triées par score WSJF (même calcul que l'espace Perso,
     mêmes réglages de score), en retard d'abord, avec le score en chiffre
     primaire, la priorité, les points, l'échéance, la catégorie.

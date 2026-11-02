@@ -136,6 +136,13 @@ class KairosRepository(
         modify(taskId, source) { it.copy(fibonacciPoints = points?.takeIf { p -> p in FIBONACCI_SCALE }) }
 
     /**
+     * Durée estimée d'une tâche, en un geste (`null` ou ≤ 0 : sans estimation) : la durée qu'on pose quand une tâche de
+     * « À traiter » vient d'être qualifiée (issue #166), et son annulation. Tâche d'équipe : comme les autres qualifications.
+     */
+    suspend fun setEstimate(taskId: Long, minutes: Int?, source: TeamEventSource? = null) =
+        modify(taskId, source) { it.copy(estimatedMinutes = minutes?.takeIf { m -> m > 0 }) }
+
+    /**
      * Catégorie (type) en un geste, pour le changement en lot du Backlog d'équipe ; vide =
      * « sans catégorie ». Tâche d'équipe : un événement `qualified` (`type`).
      */

@@ -155,8 +155,10 @@ Une tâche n’entre dans le tri qu’une fois sa **priorité** et ses **points*
 posés, en un toucher sur des pastilles qui disent ce que vaut chaque choix
 (**P0 Critique**, **P1 Important**, **P2 Utile** ; de « 1 trivial » à
 « 21 énorme »). « Comment qualifier ? » rappelle la règle. Le **type** se choisit
-aussi sur place, enregistré aussitôt sans toucher à la durée ; dans le backlog
-d’équipe, « À qualifier » propose la **catégorie** de la même façon.
+aussi sur place. Une fois priorité, points et type posés, une tâche sans durée
+reçoit la médiane de son type (ou de ses points) d’après tes tâches terminées,
+annoncée avec « Annuler » ; une durée saisie n’est jamais touchée. Dans le
+backlog d’équipe, « À qualifier » propose la **catégorie** de la même façon.
 
 ### Ordonnancement
 
