@@ -1229,7 +1229,7 @@
     <string name="guide_you_capture_title">Capture without thinking</string>
     <string name="guide_you_capture_body">In Notes, write down whatever comes to mind, without sorting. A note becomes a task whenever you want.</string>
     <string name="guide_you_qualify_title">Qualify in one click</string>
-    <string name="guide_you_qualify_body">A task to process is waiting for its priority, effort points and deadline. “How to qualify?” helps you choose; Kairos derives a score.</string>
+    <string name="guide_you_qualify_body">A task to process is waiting for its priority, effort points and deadline; its type can be picked on the spot too. “How to qualify?” helps you choose; Kairos derives a score.</string>
     <string name="guide_you_do_title">Do things in order</string>
     <string name="guide_you_do_body">“Up next” shows the task to do, the next ones are ranked by score around your meetings. “Why this position?” explains each rank.</string>
     <string name="guide_you_time_title">Track time</string>

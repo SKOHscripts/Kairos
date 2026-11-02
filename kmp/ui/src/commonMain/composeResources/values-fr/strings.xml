@@ -1231,7 +1231,7 @@
     <string name="guide_you_capture_title">Capturer sans réfléchir</string>
     <string name="guide_you_capture_body">Dans Notes, écris tout ce qui te passe par la tête, sans trier. Une note devient une tâche quand tu veux.</string>
     <string name="guide_you_qualify_title">Qualifier en un clic</string>
-    <string name="guide_you_qualify_body">Une tâche à traiter attend sa priorité, ses points d’effort et son échéance. « Comment qualifier ? » t’aide à choisir ; Kairos en tire un score.</string>
+    <string name="guide_you_qualify_body">Une tâche à traiter attend sa priorité, ses points d’effort et son échéance ; son type se choisit aussi sur place. « Comment qualifier ? » t’aide à choisir ; Kairos en tire un score.</string>
     <string name="guide_you_do_title">Faire dans l’ordre</string>
     <string name="guide_you_do_body">« Maintenant » montre la tâche à faire, les suivantes sont rangées par score autour de tes réunions. « Pourquoi à cette place ? » explique chaque position.</string>
     <string name="guide_you_time_title">Suivre le temps</string>

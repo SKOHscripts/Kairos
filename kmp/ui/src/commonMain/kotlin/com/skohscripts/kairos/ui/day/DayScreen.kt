@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.guide.demo.LocalDemoTour
 import com.skohscripts.kairos.ui.guide.demo.DemoSpot
 import com.skohscripts.kairos.ui.guide.demo.DemoMark
@@ -461,6 +462,9 @@ fun DayScreen(
                             task,
                             onPriority = { scope.launch { repository.setPriority(task.id, it) } },
                             onPoints = { scope.launch { repository.setPoints(task.id, it) } },
+                            types = snapshot.settings.taskTypeList,
+                            typeLabel = Res.string.field_type,
+                            onType = { scope.launch { repository.setTaskType(task.id, it) } },
                         )
                     }
                 }
@@ -859,9 +863,21 @@ private fun OverloadBanner(count: Int) {
     }
 }
 
-/** Qualification en ligne d'une tâche de la boîte de réception : ce qui manque, puis les pastilles. */
+/**
+ * Qualification en ligne d'une tâche de la boîte de réception : ce qui manque, puis les pastilles, puis le type (issue #166 :
+ * [typeLabel] « Type », ou « Catégorie » dans le backlog d'équipe). Le type est enregistré aussitôt, sans jamais toucher à
+ * la durée (les pastilles de « À traiter » non plus) ; il n'est pas un critère de qualification.
+ */
 @Composable
-internal fun InboxQualify(task: Task, onPriority: (Int?) -> Unit, onPoints: (Int?) -> Unit, start: Dp = 48.dp) {
+internal fun InboxQualify(
+    task: Task,
+    onPriority: (Int?) -> Unit,
+    onPoints: (Int?) -> Unit,
+    types: List<String>,
+    typeLabel: StringResource,
+    onType: (String) -> Unit,
+    start: Dp = 48.dp,
+) {
     Column(Modifier.padding(start = start, end = 16.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         task.missingQualification?.let { missing ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -871,6 +887,7 @@ internal fun InboxQualify(task: Task, onPriority: (Int?) -> Unit, onPoints: (Int
         }
         DemoMark(DemoSpot.PRIORITY, task.id) { PriorityPills(task.priority, onPriority) }
         DemoMark(DemoSpot.POINTS, task.id) { PointsPills(task.fibonacciPoints, onPoints) }
+        TypeField(task.taskType, types, typeLabel, Modifier.widthIn(max = 320.dp).fillMaxWidth(), onType)
     }
 }
 

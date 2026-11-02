@@ -31,7 +31,8 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 - Deux sections, comme la vue Jour :
   - **À qualifier** : il manque la priorité ou les points (règle
     `needsProcessing` de `modele-donnees.md`) ; mêmes chips de
-    qualification que « À traiter » ;
+    qualification que « À traiter », puis la **catégorie** choisie sur place (3.14.0, issue #166 : même champ que le
+    type de la vue Jour, enregistré aussitôt, sans toucher à la durée ni faire sortir la tâche) ;
   - **Prêtes** : triées par score WSJF (même calcul que l'espace Perso,
     mêmes réglages de score), en retard d'abord, avec le score en chiffre
     primaire, la priorité, les points, l'échéance, la catégorie.
@@ -293,7 +294,8 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 - `TeamBacklogScreen(services, initialSelection)` : `Capture` réutilisé en
   volet « Tâche » seul (`taskOnly`, crée par `createTeamTask`) ; filtres
   (recherche, catégorie, priorité, « Avec échéance ») ; sections « À
-  qualifier » (mêmes chips que « À traiter », `InboxQualify`) et « Prêtes »
+  qualifier » (mêmes chips que « À traiter », `InboxQualify`, avec la catégorie : `field_category`, les catégories
+  des Réglages et celles déjà employées, `setTaskType` qui journalise un `qualified`) et « Prêtes »
   (`ScoreBadge`, priorité, points, échéance, catégorie, liseré P0) dans une
   ligne dédiée : `TaskRow` est lié au modèle de la vue Jour, une « variante
   équipe » l'aurait alourdi. Menu ⋮ : « Assigner à… », « Supprimer »

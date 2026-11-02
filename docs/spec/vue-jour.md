@@ -52,6 +52,11 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    traiter ne correspond au filtre » (ne pas annoncer que tout est clarifié). Une tâche **bloquée** non qualifiée n'y figure pas : elle reste dans « Bloquées » (une tâche ouverte, une seule section). Sous l'en-tête, « Comment qualifier ? » (replié) : pourquoi
    qualifier, le sens des priorités (importance, le délai compte à part par
    l'échéance), puis le guide des points (voir **Guide des points**).
+   **Type sur place** (3.14.0, issue #166) : sous les pastilles, le champ « Type » de la fiche (« Non classé » puis les
+   types des Réglages, et le type actuel de la tâche s'il n'y est plus) ; le choix est enregistré aussitôt, **sans
+   toucher à la durée**, même vide (dans la fiche, un type fiable remplit une durée vide ; ici, comme les pastilles, il
+   n'y touche jamais). Le type n'est pas un critère de qualification : il ne fait ni entrer ni sortir une tâche de
+   « À traiter ». Le menu des types montre une barre de défilement dès que la liste ne tient pas en entier.
 4. **Maintenant** (seul bloc teinté) : « À faire maintenant : » la première
    tâche placée (avec son heure), sinon la première sans créneau ; boutons
    nommés « Fait », « Démarrer le chrono » (ou « Arrêter le chrono ») et
@@ -190,6 +195,9 @@ Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt.
 - Une tâche capturée apparaît aussitôt dans « À traiter », jamais dans le
   planning tant qu'il lui manque la priorité ou les points ; qualifiée d'un
   clic chacune, elle entre dans l'agenda (`DayScreenUiTest`).
+- Un type choisi dans « À traiter » est enregistré, ne change pas la durée saisie et laisse la tâche à qualifier ;
+  « Non classé » le vide ; dans le backlog d'équipe, la catégorie de « À qualifier » de même ; à 360 dp, le champ tient
+  dans la largeur avec une cible d'au moins 48 dp (`InlineTypeUiTest`, 3.14.0, issue #166).
 - Toute tâche ouverte est dans une seule section (`DayViewTest`).
 - « Pourquoi à cette place ? » s'ouvre d'un clic et se referme d'un clic à
   côté ; « Fait » et « Décaler » de « Maintenant » agissent sur la bonne
@@ -309,6 +317,13 @@ posée.
   `pointsExample`. `EditTaskDialog` reçoit `estimates` : `PointsPills`
   remplace la durée par `minutesByPoints[palier]`, `TypeField` ne remplit
   qu'une durée vide avec `minutesByType[type]`.
+- `TypeField` (`ui/day/TypeField.kt`, 3.14.0, issue #166) : partagé par la fiche et `InboxQualify` ; menu
+  `ExposedDropdownMenu` avec un `scrollState` et `Modifier.scrollIndicator` (pouce arrondi de 4 dp en `outline` au bord
+  droit, proportionnel à la part visible, rien quand tout tient ; dessiné en commun, `VerticalScrollbar` n'existant que
+  sur le bureau). `InboxQualify(tâche, onPriority, onPoints, types, typeLabel, onType)` : pastilles, puis `TypeField`
+  (360 dp de large au plus) ; la vue Jour passe `taskTypeList` et `field_type`, et enregistre par
+  `KairosRepository.setTaskType` (déjà utilisé par le changement de catégorie en lot du backlog d'équipe), qui ne touche
+  qu'au type.
 - `Dates` : « 30 sept. » / « Sep 30 », « 09h15 » / « 09:15 », graduations
   « 9h » / « 9:00 », nombres à une décimale sans « .0 » (deux pour une valeur positive
   qui s'arrondirait à 0 : un score de 1/21 s'affiche « 0,05 », jamais « 0 ») ;
@@ -383,7 +398,11 @@ posée.
 - **Durée suggérée : le palier remplace, le type complète** (issues #15.6 et #7) : choisir un palier est un geste
   d'estimation, qui doit changer la durée ; un type n'est qu'un indice, qui ne
   doit jamais écraser une estimation saisie. Les pastilles de « À traiter »
-  ne touchent jamais à la durée.
+  ne touchent jamais à la durée, **le type choisi sur place non plus** (2026-11-02, issue #166) : la qualification en
+  ligne reste un tri rapide, l'estimation se fait dans la fiche.
+- **Le type n'est pas un critère de qualification** (issue #166) : « À traiter » reste défini par la priorité et les
+  points (`needsProcessing`, `modele-donnees.md`) ; un type manquant ne retient pas la tâche dans la section, qui
+  resterait sinon pleine des tâches qu'on ne type jamais.
 - **Guide replié par défaut**, dans le dialogue comme dans « À traiter » :
   il est long, et la phrase d'aide courte reste visible.
 - **Jour et heures saisis à part** pour un créneau : un champ

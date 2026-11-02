@@ -1228,7 +1228,7 @@
     <string name="guide_you_capture_title">Captura sin pensar</string>
     <string name="guide_you_capture_body">En Notas, escribe todo lo que se te pase por la cabeza, sin ordenar. Una nota se convierte en tarea cuando quieras.</string>
     <string name="guide_you_qualify_title">Califica en un clic</string>
-    <string name="guide_you_qualify_body">Una tarea por procesar espera su prioridad, sus puntos de esfuerzo y su fecha límite. «¿Cómo calificar?» te ayuda a elegir; Kairos obtiene una puntuación.</string>
+    <string name="guide_you_qualify_body">Una tarea por procesar espera su prioridad, sus puntos de esfuerzo y su fecha límite; su tipo también se elige ahí mismo. «¿Cómo calificar?» te ayuda a elegir; Kairos obtiene una puntuación.</string>
     <string name="guide_you_do_title">Haz en orden</string>
     <string name="guide_you_do_body">«A continuación» muestra la tarea por hacer; las siguientes se ordenan por puntuación en torno a tus reuniones. «¿Por qué en este lugar?» explica cada posición.</string>
     <string name="guide_you_time_title">Sigue el tiempo</string>

@@ -1228,7 +1228,7 @@
     <string name="guide_you_capture_title">Ohne Nachdenken erfassen</string>
     <string name="guide_you_capture_body">Schreibe unter Notizen alles auf, was dir durch den Kopf geht, ohne zu sortieren. Aus einer Notiz wird eine Aufgabe, wann du willst.</string>
     <string name="guide_you_qualify_title">Mit einem Klick qualifizieren</string>
-    <string name="guide_you_qualify_body">Eine Aufgabe unter „Zu bearbeiten“ wartet auf Priorität, Aufwandspunkte und Frist. „Wie qualifizieren?“ hilft dir bei der Wahl; Kairos leitet einen Score ab.</string>
+    <string name="guide_you_qualify_body">Eine Aufgabe unter „Zu bearbeiten“ wartet auf Priorität, Aufwandspunkte und Frist; ihr Typ lässt sich direkt dort wählen. „Wie qualifizieren?“ hilft dir bei der Wahl; Kairos leitet einen Score ab.</string>
     <string name="guide_you_do_title">Der Reihe nach erledigen</string>
     <string name="guide_you_do_body">„Als Nächstes“ zeigt die anstehende Aufgabe, die folgenden sind nach Score rund um deine Meetings geordnet. „Warum an dieser Stelle?“ erklärt jeden Rang.</string>
     <string name="guide_you_time_title">Zeit messen</string>

@@ -1228,7 +1228,7 @@
     <string name="guide_you_capture_title">Записывать не раздумывая</string>
     <string name="guide_you_capture_body">В «Заметках» записывай все, что приходит в голову, не сортируя. Заметка становится задачей, когда захочешь.</string>
     <string name="guide_you_qualify_title">Квалифицировать за один клик</string>
-    <string name="guide_you_qualify_body">Задача к обработке ждет приоритета, баллов усилий и срока. «Как квалифицировать?» поможет выбрать; Kairos выведет рейтинг.</string>
+    <string name="guide_you_qualify_body">Задача к обработке ждет приоритета, баллов усилий и срока; её тип можно выбрать прямо там. «Как квалифицировать?» поможет выбрать; Kairos выведет рейтинг.</string>
     <string name="guide_you_do_title">Делать по порядку</string>
     <string name="guide_you_do_body">«Далее» показывает задачу, которую нужно делать, следующие выстроены по рейтингу вокруг твоих встреч. «Почему на этом месте?» объясняет каждую позицию.</string>
     <string name="guide_you_time_title">Следить за временем</string>

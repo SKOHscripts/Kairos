@@ -154,7 +154,9 @@ supprimée.
 Une tâche n’entre dans le tri qu’une fois sa **priorité** et ses **points**
 posés, en un toucher sur des pastilles qui disent ce que vaut chaque choix
 (**P0 Critique**, **P1 Important**, **P2 Utile** ; de « 1 trivial » à
-« 21 énorme »). « Comment qualifier ? » rappelle la règle.
+« 21 énorme »). « Comment qualifier ? » rappelle la règle. Le **type** se choisit
+aussi sur place, enregistré aussitôt sans toucher à la durée ; dans le backlog
+d’équipe, « À qualifier » propose la **catégorie** de la même façon.
 
 ### Ordonnancement
 

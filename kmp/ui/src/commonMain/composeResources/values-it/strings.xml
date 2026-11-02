@@ -1228,7 +1228,7 @@
     <string name="guide_you_capture_title">Catturare senza pensarci</string>
     <string name="guide_you_capture_body">In Note, scrivi tutto ciò che ti passa per la testa, senza ordinare. Una nota diventa un’attività quando vuoi.</string>
     <string name="guide_you_qualify_title">Qualificare con un clic</string>
-    <string name="guide_you_qualify_body">Un’attività da elaborare aspetta priorità, punti di impegno e scadenza. «Come qualificare?» ti aiuta a scegliere; Kairos ne ricava un punteggio.</string>
+    <string name="guide_you_qualify_body">Un’attività da elaborare aspetta priorità, punti di impegno e scadenza; anche il tipo si sceglie lì. «Come qualificare?» ti aiuta a scegliere; Kairos ne ricava un punteggio.</string>
     <string name="guide_you_do_title">Fare in ordine</string>
     <string name="guide_you_do_body">«Prossima» mostra l’attività da fare, le successive sono ordinate per punteggio attorno alle tue riunioni. «Perché in questa posizione?» spiega ogni posizione.</string>
     <string name="guide_you_time_title">Tracciare il tempo</string>

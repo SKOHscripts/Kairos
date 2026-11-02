@@ -147,7 +147,9 @@ also be edited, archived without follow-up, or deleted.
 A task only enters the ranking once its **priority** and **points** are set,
 in one tap on chips that say what each choice means (**P0 Critical**,
 **P1 Important**, **P2 Useful**; from "1 trivial" to "21 huge"). "How to
-qualify?" recalls the rule.
+qualify?" recalls the rule. The **type** can be picked right there too, saved
+at once without touching the duration; in the team backlog, "To qualify" offers
+the **category** the same way.
 
 ### Scheduling
 
