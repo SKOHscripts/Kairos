@@ -79,7 +79,9 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    « Tâches mères en cours » (« 1/2 sous-tâche(s) »), « Fait » (terminées
    aujourd'hui). Les quatre dernières sont repliées.
 8. **Rechercher / filtrer** (repliée) : recherche dans le titre, la
-   description et le projet, facettes priorité, projet, type, points ;
+   description et le projet, facettes priorité, projet, type, points, et
+   **« Incomplètes »** (3.14.0, issue #166 : choix multiple « Sans type », « Sans points », « Sans durée » ; garde les
+   tâches à qui manque **au moins un** des champs cochés, vides comme dans la carte « Complétude » des statistiques) ;
    « filtre actif » et « Réinitialiser ». Un filtre actif remonte au-dessus
    de l'agenda. Il réduit les listes, jamais le planning.
 9. **Backlog, sans date** (replié, toujours présent) : tâches à faire sans
@@ -198,6 +200,10 @@ Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt.
 - Un type choisi dans « À traiter » est enregistré, ne change pas la durée saisie et laisse la tâche à qualifier ;
   « Non classé » le vide ; dans le backlog d'équipe, la catégorie de « À qualifier » de même ; à 360 dp, le champ tient
   dans la largeur avec une cible d'au moins 48 dp (`InlineTypeUiTest`, 3.14.0, issue #166).
+- La facette « Incomplètes » garde les tâches à qui manque l'un des champs cochés, « ou » entre eux, et réduit les listes
+  sans toucher au planning (`DayViewTest.the_incomplete_facet_keeps_tasks_missing_any_chosen_field`) ; cocher
+  « Sans type » ne laisse que les tâches sans type dans « À traiter », les entrées se lisent comme des cases, décocher
+  rend tout (`IncompleteFilterUiTest`).
 - Toute tâche ouverte est dans une seule section (`DayViewTest`).
 - « Pourquoi à cette place ? » s'ouvre d'un clic et se referme d'un clic à
   côté ; « Fait » et « Décaler » de « Maintenant » agissent sur la bonne
@@ -246,7 +252,11 @@ début de la journée de travail (`Scheduling.buildDaySchedule` n'utilise
 l'heure que si elle tombe ce jour-là).
 `DayFilter` : recherche insensible à la casse sur titre, description et
 projet ; `active` si la recherche n'est pas vide ou qu'une facette est
-posée.
+posée. `missing: Set<MissingField>` (3.14.0, issue #166) : `TYPE` (type vide), `POINTS` (points nuls ou 0), `DURATION`
+(estimation nulle ou 0), les règles de `TaskStats.completeness` ; une tâche passe si l'un des champs cochés lui manque
+(« ou » : on fait le ménage de ce qui reste à compléter). La carte de filtres étant commune, la facette sert aussi la vue
+Semaine et les statistiques. À l'écran, `MultiFacet` (`Filters.kt`) : un menu qui reste ouvert pendant qu'on coche,
+chaque entrée une case (rôle et état lus par le lecteur d'écran), le champ affichant les choix ou « Tous ».
 
 ### Écran (`DayScreen`, `ui`)
 

@@ -1744,4 +1744,9 @@
     <string name="demo_task_title">Montagsbesprechung vorbereiten</string>
     <string name="card_demo_title">Interaktive Demo</string>
     <string name="card_demo_body">Eine Aufgabe an Wegwerf-Beispielen erfassen, einordnen, stoppen und verschieben, Schritt für Schritt geführt: Deine Daten bleiben unberührt.</string>
+    <!-- Facette « Incomplètes » des filtres (docs/spec/vue-jour.md § Filtres, issue #166) -->
+    <string name="filter_missing_label">Unvollständig</string>
+    <string name="filter_missing_type">Ohne Typ</string>
+    <string name="filter_missing_points">Ohne Punkte</string>
+    <string name="filter_missing_duration">Ohne Dauer</string>
 </resources>

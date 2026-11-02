@@ -246,7 +246,8 @@ order (critical path). Cycles are refused.
 ### Views
 
 - **Day**: "Up next", the ordered agenda, sections "To process", "Blocked",
-  "Scheduled later", filters, backlog, timeline; "lingering for N d" badge and
+  "Scheduled later", filters (including "Incomplete": tasks without a type,
+  points or duration), backlog, timeline; "lingering for N d" badge and
   P0 overload banner. You can look at another day.
 - **Home screen widgets** (Android): "Now" shows the task to do now, its times
   and the next one, with "Done" (tap twice to confirm), the timer and capture;

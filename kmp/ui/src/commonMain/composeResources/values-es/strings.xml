@@ -1744,4 +1744,9 @@
     <string name="demo_task_title">Preparar la reunión del lunes</string>
     <string name="card_demo_title">Demostración interactiva</string>
     <string name="card_demo_body">Capturar, calificar, cronometrar y mover una tarea con ejemplos desechables, paso a paso: tus datos no se tocan.</string>
+    <!-- Facette « Incomplètes » des filtres (docs/spec/vue-jour.md § Filtres, issue #166) -->
+    <string name="filter_missing_label">Incompletas</string>
+    <string name="filter_missing_type">Sin tipo</string>
+    <string name="filter_missing_points">Sin puntos</string>
+    <string name="filter_missing_duration">Sin duración</string>
 </resources>

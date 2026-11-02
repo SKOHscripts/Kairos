@@ -1747,4 +1747,9 @@
     <string name="demo_task_title">Préparer la réunion de lundi</string>
     <string name="card_demo_title">Démonstration interactive</string>
     <string name="card_demo_body">Capturer, qualifier, chronométrer et déplacer une tâche sur des exemples jetables, guidé pas à pas : tes données ne sont pas touchées.</string>
+    <!-- Facette « Incomplètes » des filtres (docs/spec/vue-jour.md § Filtres, issue #166) -->
+    <string name="filter_missing_label">Incomplètes</string>
+    <string name="filter_missing_type">Sans type</string>
+    <string name="filter_missing_points">Sans points</string>
+    <string name="filter_missing_duration">Sans durée</string>
 </resources>

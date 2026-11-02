@@ -38,9 +38,15 @@ data class DayFilter(
     val project: String? = null,
     val taskType: String? = null,
     val points: Int? = null,
+    /**
+     * Facette « Incomplètes » (issue #166) : ne garder que les tâches à qui manque **au moins un** des champs choisis
+     * (vide = facette inactive). Mêmes règles que la carte « Complétude » des statistiques (`TaskStats.completeness`).
+     */
+    val missing: Set<MissingField> = emptySet(),
 ) {
     val active: Boolean
-        get() = query.isNotBlank() || priority != null || !project.isNullOrEmpty() || !taskType.isNullOrEmpty() || points != null
+        get() = query.isNotBlank() || priority != null || !project.isNullOrEmpty() || !taskType.isNullOrEmpty() || points != null ||
+            missing.isNotEmpty()
 
     fun matches(task: Task): Boolean {
         val q = query.trim()
@@ -52,8 +58,16 @@ data class DayFilter(
         if (!project.isNullOrEmpty() && task.projectTag != project) return false
         if (!taskType.isNullOrEmpty() && task.taskType != taskType) return false
         if (points != null && task.fibonacciPoints != points) return false
+        if (missing.isNotEmpty() && missing.none { it.isMissing(task) }) return false
         return true
     }
+}
+
+/** Un champ que la facette « Incomplètes » cherche vide ; « vide » comme dans la carte « Complétude » des statistiques. */
+enum class MissingField(val isMissing: (Task) -> Boolean) {
+    TYPE({ it.taskType.isEmpty() }),
+    POINTS({ (it.fibonacciPoints ?: 0) == 0 }),
+    DURATION({ (it.estimatedMinutes ?: 0) == 0 }),
 }
 
 /** Tâche bloquée et titres de ses bloqueurs directs encore à faire (« Mère › Fille » pour une sous-tâche). */

@@ -260,7 +260,8 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 ### Vues
 
 - **Jour** : « Maintenant », agenda ordonné, sections « À traiter »,
-  « Bloquées », « Programmées plus tard », filtres, backlog, frise ; badge
+  « Bloquées », « Programmées plus tard », filtres (dont « Incomplètes » :
+  les tâches sans type, sans points ou sans durée), backlog, frise ; badge
   « traîne depuis N j » et bandeau de surcharge de P0. On peut regarder un
   autre jour.
 - **Widgets de l’écran d’accueil** (Android) : « Maintenant » montre la tâche du

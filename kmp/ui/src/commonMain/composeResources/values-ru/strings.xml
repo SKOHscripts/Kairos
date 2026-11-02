@@ -1744,4 +1744,9 @@
     <string name="demo_task_title">Подготовить встречу в понедельник</string>
     <string name="card_demo_title">Интерактивное демо</string>
     <string name="card_demo_body">Записать, оценить, засечь время и перенести задачу на одноразовых примерах, шаг за шагом: твои данные не затрагиваются.</string>
+    <!-- Facette « Incomplètes » des filtres (docs/spec/vue-jour.md § Filtres, issue #166) -->
+    <string name="filter_missing_label">Неполные</string>
+    <string name="filter_missing_type">Без типа</string>
+    <string name="filter_missing_points">Без баллов</string>
+    <string name="filter_missing_duration">Без длительности</string>
 </resources>
