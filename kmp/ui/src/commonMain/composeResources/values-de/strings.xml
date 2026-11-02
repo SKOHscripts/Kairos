@@ -1752,4 +1752,6 @@
     <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
     <string name="estimate_filled_type">Auf %1$s geschätzt (Median von „%2$s“)</string>
     <string name="estimate_filled_points">Auf %1$s geschätzt (Median der Aufgaben mit %2$d Punkten)</string>
+    <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
+    <string name="event_estimate">Geschätzte Dauer %1$s → %2$s</string>
 </resources>

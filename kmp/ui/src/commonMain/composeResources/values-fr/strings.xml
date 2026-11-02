@@ -1755,4 +1755,6 @@
     <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
     <string name="estimate_filled_type">Estimée à %1$s (médiane de « %2$s »)</string>
     <string name="estimate_filled_points">Estimée à %1$s (médiane des tâches à %2$d points)</string>
+    <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
+    <string name="event_estimate">Durée estimée %1$s → %2$s</string>
 </resources>
