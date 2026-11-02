@@ -32,8 +32,12 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   - **À qualifier** : il manque la priorité ou les points (règle
     `needsProcessing` de `modele-donnees.md`) ; mêmes chips de
     qualification que « À traiter », puis la **catégorie** choisie sur place (3.14.0, issue #166 : même champ que le
-    type de la vue Jour, enregistré aussitôt, sans faire sortir la tâche ; ici, aucune durée n'est posée, contrairement
-    à « À traiter », car l'effort d'une tâche d'équipe se décide à l'assignation) ;
+    type de la vue Jour, enregistré aussitôt, sans faire sortir la tâche). Comme dans « À traiter », une tâche qui y
+    devient entièrement qualifiée (priorité, points, catégorie) et n'a pas de durée reçoit la médiane fiable de sa
+    catégorie, sinon de ses points, avec « Annuler » ; mais ces médianes viennent des **seules tâches d'équipe
+    terminées** (temps rapporté par les membres compris), jamais des tâches personnelles (choix du propriétaire du
+    2026-11-02 : l'équipe apprend de son propre historique, en cohérence avec les durées partagées de #100 et
+    l'estimateur de #99). Une durée déjà là n'est jamais touchée ;
   - **Prêtes** : triées par score WSJF (même calcul que l'espace Perso,
     mêmes réglages de score), en retard d'abord, avec le score en chiffre
     primaire, la priorité, les points, l'échéance, la catégorie.
@@ -137,7 +141,9 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   suppression, rapport reçu (`equipe-echanges.md`), application d'un
   scénario (`equipe-simulation.md`).
 - Fiche → onglet **Historique** : les événements de la tâche, du plus
-  récent au plus ancien (« 30 sept. · Assignée à Léa (était : Marc) »).
+  récent au plus ancien (« 30 sept. · Assignée à Léa (était : Marc) »). Une
+  durée posée ou changée s'y lit « Durée estimée aucune → 1 h 30 » (3.14.0,
+  `event_estimate`).
 - Fiche membre → **Activité** : les événements de ses tâches sur 30 jours.
 - Une tâche supprimée garde ses événements (titre recopié dans
   l'événement) : l'activité d'un membre reste lisible.
@@ -166,6 +172,10 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   (`TeamRepositoryTest.reassignmentIsJournaled`).
 - Le tri des Prêtes est celui de `Scheduling.sortKey` sur les mêmes
   réglages (`TeamBoardTest.backlogUsesTheWsjfOrder`).
+- Qualifier entièrement une tâche de « À qualifier » sans durée pose la
+  médiane des tâches d'équipe terminées, jamais celle des tâches perso, et
+  le journal en garde un `qualified` `estimate:`
+  (`InlineTypeUiTest.theTeamBacklogFillsFromFinishedTeamTasksOnlyAndJournalsTheEstimate`).
 - Signaux : chaque seuil franchi et non franchi est testé ; un signal n'est
   jamais porté par la couleur seule.
 - Suivi lisible à 360 dp (sections empilées) et à 1280 dp (colonnes).
@@ -235,8 +245,9 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   `scenario` (E5) ; code inconnu → `manual`.
 - `TeamEventKind` : `created` (`toValue` = titre), `qualified` (un
   événement par champ changé, valeurs `priority:1`, `points:5`,
-  `type:Dev`, `deadline:2026-10-03`, vide après le deux-points si le champ
-  est vidé ; `QualifiedField`, `TeamEvents.qualifiedValue`,
+  `type:Dev`, `deadline:2026-10-03`, `estimate:90` (minutes, 3.14.0, issue #166 : toute durée posée ou changée sur une
+  tâche d'équipe, dont celle de « À qualifier » et son annulation ; une version antérieure lit ce préfixe comme
+  « Modification »), vide après le deux-points si le champ est vidé ; `QualifiedField`, `TeamEvents.qualifiedValue`,
   `parseQualified`), `assigned` (identifiants de membre de → vers),
   `started` (`toValue` = date ISO), `progress` (pourcentages ; « 0 » si
   l'avancement était vide), `done` (`fromValue` = avancement d'avant la
@@ -296,7 +307,8 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   volet « Tâche » seul (`taskOnly`, crée par `createTeamTask`) ; filtres
   (recherche, catégorie, priorité, « Avec échéance ») ; sections « À
   qualifier » (mêmes chips que « À traiter », `InboxQualify`, avec la catégorie : `field_category`, les catégories
-  des Réglages et celles déjà employées, `setTaskType` qui journalise un `qualified`) et « Prêtes »
+  des Réglages et celles déjà employées, `setTaskType` qui journalise un `qualified` ; puis `fillInboxEstimate` avec des
+  `Estimates` calculées sur les tâches d'équipe seulement, `setEstimate` journalisé `qualified` `estimate:`) et « Prêtes »
   (`ScoreBadge`, priorité, points, échéance, catégorie, liseré P0) dans une
   ligne dédiée : `TaskRow` est lié au modèle de la vue Jour, une « variante
   équipe » l'aurait alourdi. Menu ⋮ : « Assigner à… », « Supprimer »
@@ -366,6 +378,13 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   nouveau titulaire ; pour repartir de zéro, le manager pose 0 % (curseur de
   la carte). Le vrai trou était ailleurs : une tâche à 100 % ne pouvait pas
   être terminée depuis le Suivi, d'où « Terminer » dans le menu de la carte.
+- **Durée de « À qualifier » tirée des seules tâches d'équipe** (2026-11-02,
+  issue #166, propriétaire) : d'abord exclu (« l'effort se décide à
+  l'assignation »), puis rouvert pour donner au backlog une première
+  estimation, cohérente avec les durées partagées (#100) et l'estimateur
+  d'équipe (#99) à venir. Mêler les tâches perso de l'appareil du manager
+  aurait estimé l'équipe sur son seul rythme : écarté. La pose est
+  journalisée (`estimate:`) comme toute qualification, son annulation aussi.
 - **Journal écrit par le dépôt** : c'est la seule façon de garantir le
   « suivi complet » demandé, y compris pour les modifications faites depuis
   la vue Jour.
