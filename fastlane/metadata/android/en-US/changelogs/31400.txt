@@ -1,0 +1,1 @@
+Kairos 3.14.0: pick a task’s type right in “To process” (and its category in the team backlog’s “To qualify”), without touching its duration. In the task sheet, the type joins the essentials. A new “Incomplete” filter finds tasks without a type, points or duration. The type menu now shows a scrollbar.

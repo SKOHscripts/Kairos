@@ -1,0 +1,1 @@
+Kairos 3.14.0: Der Typ einer Aufgabe lässt sich direkt unter „Zu bearbeiten“ wählen (und die Kategorie im Team-Backlog), ohne ihre Dauer zu ändern. Im Aufgabenblatt gehört der Typ jetzt zum Wesentlichen. Ein neuer Filter „Unvollständig“ findet Aufgaben ohne Typ, Punkte oder Dauer. Das Typ-Menü zeigt eine Bildlaufleiste.

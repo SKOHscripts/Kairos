@@ -1,0 +1,1 @@
+Kairos 3.14.0: el tipo de una tarea se elige directamente en «Por procesar» (y la categoría en «Por calificar» del backlog del equipo), sin tocar su duración. En la ficha, el tipo pasa a lo esencial. Un nuevo filtro «Incompletas» encuentra las tareas sin tipo, sin puntos o sin duración. El menú de tipos muestra una barra de desplazamiento.

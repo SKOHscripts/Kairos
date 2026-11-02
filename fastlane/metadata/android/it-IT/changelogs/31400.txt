@@ -1,0 +1,1 @@
+Kairos 3.14.0: il tipo di un’attività si sceglie direttamente in «Da elaborare» (e la categoria nel backlog del team), senza toccarne la durata. Nella scheda, il tipo passa tra gli elementi essenziali. Un nuovo filtro «Incomplete» trova le attività senza tipo, punti o durata. Il menu dei tipi mostra una barra di scorrimento.
