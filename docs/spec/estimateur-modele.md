@@ -13,8 +13,14 @@ Fichiers couverts (prévus, 4.0.0) : `kmp/core/.../engine/DurationEstimator.kt` 
 `IntervalCoverageTest`, `ModelPerformanceTest`, `EffortSpreadTest`, `LearnedModelTeamLoadTest`, `DurationEstimatorTest`,
 `TeamIsolationTest`, `LearnedDurationsUiTest`, `StringsParityTest`._
 
-État : **issue #99**, à spécifier le 2026-10-26, à implémenter (4.0.0). Aucun code n'existe encore : cette spec ne modifie
-pas les specs existantes ; ses effets sont listés en fin de document (« Impacts sur les specs existantes »).
+État : **issue #99**, spécifiée le 2026-10-26, **en cours d'implémentation (4.0.0)**, en PR empilées par étape (choix du
+propriétaire du 2026-11-02) : 1) interface extraite et chaîne de repli, sans changement de comportement ; 2) le modèle et ses
+rétro-tests dans `core` ; 3) l'interface, les Réglages, l'estimation au tri et la mesure web ; 4) les prévisions d'équipe.
+**Étape 1 livrée** : `DurationEstimator.kt` (interface et façade), `HistoryEstimators.kt` (`SeriesEstimator`,
+`TitleEstimator`), `EstimatorChain.kt`, `Sample` enrichi ; test `EstimatorChainTest`. À ce stade `Source` n'a pas encore
+`MODEL`, `Estimate` pas encore `low`, `high`, `evidence`, et `History` pas encore de `cache` : ils arrivent avec le modèle
+(étape 2). Les effets sur les autres specs sont listés en fin de document (« Impacts sur les specs existantes ») et reportés
+à mesure.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -61,7 +67,13 @@ façon dont la durée est obtenue.
    modèle est tiré **dans son intervalle** (et non dans le seul écart historique de l'équipe) : une tâche mal connue
    élargit la fourchette de la date de fin, une tâche bien connue la resserre. Le résultat dit combien de tâches du périmètre
    sont estimées ainsi.
-9. **Isolation.** Une tâche d'un espace n'apprend que de son espace ; une tâche reçue d'un manager n'apprend ni n'enseigne
+9. **Estimation au tri** (ajoutée le 2026-11-02, choix du propriétaire, prolonge `vue-jour.md` § Durée dès le traitement,
+   3.14.0). Quand « À traiter » (vue Jour) ou « À qualifier » (backlog d'équipe) pose une durée à une tâche qui vient d'être
+   entièrement qualifiée sans durée, cette durée est d'abord la durée apprise **fiable** de la chaîne (série, titre, puis
+   **modèle**), et seulement à défaut la médiane du type, puis des points (règle de 3.14.0). Le message dit la provenance
+   (« Estimée à 45 min par le modèle, d'après 5 tâches proches ») et garde « Annuler » ; une durée déjà là n'est jamais
+   touchée. Dans le backlog d'équipe, la chaîne ne lit que les tâches d'équipe faites, comme les médianes.
+10. **Isolation.** Une tâche d'un espace n'apprend que de son espace ; une tâche reçue d'un manager n'apprend ni n'enseigne
    rien ; le mode solo ne dépend d'aucune donnée d'équipe et son fichier d'export reste identique octet pour octet.
 
 ### Critères de succès
@@ -415,8 +427,8 @@ La provenance est visible partout où la durée l'est, avec les mêmes règles q
 
 ### Décisions et pièges tracés
 
-Décidées le 2026-10-26 à la rédaction de la spec ; à confirmer par le propriétaire à la revue (l'activation par défaut en
-particulier).
+Décidées le 2026-10-26 à la rédaction de la spec ; **l'activation par défaut sous garde est confirmée par le propriétaire le
+2026-11-02**, avec le périmètre de la première version : prévisions d'équipe, estimation au tri et mesure web comprises.
 
 - **Modèle local, calculé de l'historique, sans poids stockés** (écarté : poids pré-entraînés passés en paramètre en JSON,
   piste de `durees-apprises.md`) : un historique personnel est petit, et aucun jeu de données public ne ressemble à celui d'une
