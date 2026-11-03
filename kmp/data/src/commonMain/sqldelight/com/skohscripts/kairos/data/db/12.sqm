@@ -1,0 +1,45 @@
+-- Schéma 12 -> 13 : tables de la synchronisation par fichier (docs/spec/synchronisation.md § Stockage), additives et vides
+-- pour qui ne synchronise pas. Marqueur : la table `sync_state` (`KairosStore.MARKERS`).
+-- État de l'installation : `device` (sa présence seule dit que la base est synchronisée), `label`, `clock`, `seen` (JSON),
+-- `labels` (JSON), `settings` (marques des réglages partagés), `lastMerge` (JSON), `examples` (exemples posés, JSON).
+CREATE TABLE sync_state (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+-- `uid` de chaque enregistrement de la portée (et des identités fantômes), par genre.
+CREATE TABLE sync_identity (
+    kind TEXT NOT NULL,
+    local_id INTEGER NOT NULL,
+    uid TEXT NOT NULL,
+    PRIMARY KEY (kind, local_id)
+);
+CREATE UNIQUE INDEX sync_identity_uid ON sync_identity(kind, uid);
+
+-- Marques d'un enregistrement, une ligne par enregistrement (écart à la spec d'origine, une ligne par champ : 5 000 tâches
+-- feraient 100 000 lignes) : `born`, `base`, `stamps` (« champ=marque » séparés par des tabulations) et `hashes` (« champ=empreinte »).
+CREATE TABLE sync_mark (
+    kind TEXT NOT NULL,
+    uid TEXT NOT NULL,
+    born TEXT NOT NULL,
+    base TEXT NOT NULL,
+    stamps TEXT NOT NULL,
+    hashes TEXT NOT NULL,
+    PRIMARY KEY (kind, uid)
+);
+
+-- « À revoir » : conflits et éléments conservés, **locaux** (ni fichier, ni export). `kept` = 1 pour un élément conservé après une
+-- suppression faite ailleurs ; sinon la valeur écartée d'un conflit (`loser_*`) et la gagnante appliquée (`winner_*`).
+CREATE TABLE sync_review (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT,
+    uid TEXT,
+    field TEXT NOT NULL,
+    title TEXT NOT NULL,
+    loser_value TEXT NOT NULL,
+    loser_stamp TEXT NOT NULL,
+    winner_value TEXT NOT NULL,
+    winner_stamp TEXT NOT NULL,
+    kept INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+);

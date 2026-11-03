@@ -17,6 +17,20 @@ import com.skohscripts.kairos.core.model.BlockKind
 import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.FIBONACCI_SCALE
 import com.skohscripts.kairos.core.model.KairosSnapshot
+import com.skohscripts.kairos.core.sync.MergeOutcome
+import com.skohscripts.kairos.core.sync.RecordKind
+import com.skohscripts.kairos.core.sync.RecordRef
+import com.skohscripts.kairos.core.sync.SnapshotMerge
+import com.skohscripts.kairos.core.sync.Stamp
+import com.skohscripts.kairos.core.sync.SyncData
+import com.skohscripts.kairos.core.sync.SyncEdit
+import com.skohscripts.kairos.core.sync.SyncReconcile
+import com.skohscripts.kairos.core.sync.SyncRecords
+import com.skohscripts.kairos.core.sync.SyncRepair
+import com.skohscripts.kairos.core.sync.SyncScope
+import com.skohscripts.kairos.core.sync.Synced
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.skohscripts.kairos.core.model.NoteStatus
 import com.skohscripts.kairos.core.notes.NoteConversion
 import com.skohscripts.kairos.core.model.PRIORITY_VALUES
@@ -67,6 +81,7 @@ import kotlinx.datetime.toInstant
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -102,9 +117,28 @@ class KairosRepository(
      */
     val personalSnapshot: StateFlow<KairosSnapshot> = personal.asStateFlow()
 
-    /** Relit la base et publie l'état (à l'ouverture). */
+    // --- Synchronisation par fichier (docs/spec/synchronisation.md § Dépôt) ---------------------------------------------
+    private val syncStore = SyncStore(queries)
+    private val syncState = MutableStateFlow<SyncData?>(null)
+    private val reviewState = MutableStateFlow<List<SyncReviewItem>>(emptyList())
+    private val lastMergeState = MutableStateFlow<LastMerge?>(null)
+
+    /** État de synchronisation ; `null` tant que la base ne synchronise pas (aucune donnée `sync_*`). */
+    val sync: StateFlow<SyncData?> = syncState.asStateFlow()
+
+    /** « À revoir » : conflits et éléments conservés, les plus anciens d'abord. */
+    val syncReview: StateFlow<List<SyncReviewItem>> = reviewState.asStateFlow()
+
+    /** La dernière fusion qui a changé quelque chose ici (carte Données). */
+    val lastMerge: StateFlow<LastMerge?> = lastMergeState.asStateFlow()
+
+    /** Relit la base et publie l'état (à l'ouverture) ; une base synchronisée est réconciliée en entier (rattrapage). */
     suspend fun load(): KairosSnapshot = mutex.withLock {
-        readAll().also(::publish)
+        val all = readAll()
+        syncState.value = syncStore.load()
+        reconcileAfter(previous = null, all = all)
+        refreshSyncExtras(all)
+        all.also(::publish)
     }
 
     private fun publish(all: KairosSnapshot) {
@@ -1387,7 +1421,11 @@ class KairosRepository(
      * compris (import, exemples d'une base neuve, rechargement de la version
      * web). Transaction unique : en cas d'erreur, la base reste intacte.
      */
-    suspend fun replaceAll(snapshot: KairosSnapshot) = write {
+    suspend fun replaceAll(snapshot: KairosSnapshot, uids: Map<RecordKind, Map<Long, String>>? = null) =
+        // Synchronisée, la base prend les uid du fichier (sinon ceux de migration) : importer = une série de modifications locales.
+        write(rebase = if (syncState.value != null) uids ?: SyncReconcile.legacy(snapshot).uids else null) { replaceRows(snapshot) }
+
+    private suspend fun replaceRows(snapshot: KairosSnapshot) {
         queries.deleteAllTasks()
         queries.deleteAllTimeBlocks()
         queries.deleteAllDependencies()
@@ -1583,12 +1621,192 @@ class KairosRepository(
 
     private fun roundProgress(percent: Int): Int = (percent.coerceIn(0, 100) + 5) / 10 * 10
 
-    private suspend fun write(block: suspend () -> Unit) {
+    private suspend fun write(rebase: Map<RecordKind, Map<Long, String>>? = null, block: suspend () -> Unit) {
         val updated = mutex.withLock {
+            val before = state.value
             database.transaction { block() }
-            readAll().also(::publish)
+            val all = readAll()
+            reconcileAfter(before, all, rebase)
+            all.also(::publish)
         }
         onChanged(updated)
+    }
+
+    /**
+     * L'entonnoir de la synchronisation (docs/spec/synchronisation.md § Réconciliation locale) : après chaque écriture, les
+     * marques se déduisent de la différence, dans leur propre transaction. [rebase] : les `uid` à prendre d'abord (import).
+     */
+    private suspend fun reconcileAfter(previous: KairosSnapshot?, all: KairosSnapshot, rebase: Map<RecordKind, Map<Long, String>>? = null) {
+        val d = syncState.value ?: return
+        val start = rebase?.let { d.copy(uids = it) } ?: d
+        val r = SyncReconcile.reconcile(all, start, if (rebase != null) null else previous, clock.now().toEpochMilliseconds()) { Uuid.random().toString() }
+        if (!r.changed && rebase == null) return
+        database.transaction { syncStore.save(d, r.data) }
+        syncState.value = r.data
+    }
+
+    /**
+     * Active la synchronisation (premier lien, première fusion) : identité de l'appareil (12 caractères hexadécimaux), `uid`
+     * de migration, marques d'après les dates des enregistrements ; les exemples posés sur une base neuve et restés tels quels
+     * prennent leur `uid` d'exemple et la marque d'origine. Sans effet si la base synchronise déjà.
+     */
+    suspend fun enableSync(label: String): SyncData = mutex.withLock {
+        syncState.value?.let { return it }
+        val all = state.value
+        val (presets, origin) = examplePresets(all)
+        val device = Uuid.random().toHexString().take(DEVICE_LENGTH)
+        val d = SyncReconcile.activate(all, device, clock.now().toEpochMilliseconds(), presets, origin, label.trim().take(LABEL_MAX))
+        database.transaction { syncStore.save(null, d) }
+        syncState.value = d
+        d
+    }
+
+    /** Renomme cet appareil (« Android · 3f9c »), tel qu'il apparaît dans « À revoir » sur les autres. */
+    suspend fun renameDevice(label: String) = mutex.withLock {
+        val d = syncState.value ?: return
+        val updated = d.copy(label = label.trim().take(LABEL_MAX))
+        database.transaction { syncStore.save(d, updated) }
+        syncState.value = updated
+    }
+
+    /**
+     * Fusionne [theirs] (le fichier lié, ou un fichier choisi) dans la base (docs/spec/synchronisation.md § Dépôt). La fusion
+     * se calcule hors du fil d'interface ; si elle modifie ou supprime quelque chose, [backup] doit d'abord réussir (sinon rien
+     * n'est fusionné, `BackupFailed`). Une seule transaction installe le résultat et « À revoir » ; suivent la réconciliation
+     * complète et les réparations (une seule session ouverte, boucles de mères), écrites comme des modifications locales.
+     */
+    suspend fun merge(theirs: Synced, backup: suspend (KairosSnapshot) -> Boolean): MergeResult {
+        val result = mutex.withLock {
+            val d = syncState.value ?: return MergeResult.NotSynced
+            val before = state.value
+            val now = clock.now()
+            val out = withContext(Dispatchers.Default) { SnapshotMerge.merge(Synced(before, d), theirs, now.toEpochMilliseconds()) }
+            if (out.changes.destructive && !backup(before)) return MergeResult.BackupFailed
+            database.transaction {
+                if (!out.changes.isEmpty) replaceRows(out.merged.snapshot)
+                syncStore.save(d, out.merged.data)
+                recordReview(out, now)
+                if (!out.changes.isEmpty) syncStore.write(SyncStore.LAST_MERGE, LastMerge.encode(LastMerge(now, out.changes.added.values.sum(), out.changes.modified.values.sum(), out.changes.removed.values.sum())))
+            }
+            syncState.value = out.merged.data
+            var all = readAll()
+            reconcileAfter(previous = null, all = all)
+            val repaired = SyncRepair.repair(all, syncState.value)
+            if (repaired.repairs.isNotEmpty()) {
+                val prev = all
+                database.transaction { replaceRows(repaired.snapshot) }
+                all = readAll()
+                reconcileAfter(prev, all)
+            }
+            refreshSyncExtras(all)
+            publish(all)
+            all to out
+        }
+        if (!result.second.changes.isEmpty) onChanged(result.first)
+        return MergeResult.Applied(result.second)
+    }
+
+    /** « Garder celle-ci » ([takeOther] faux) ou « Prendre l'autre » : la valeur écartée, écrite comme une modification locale. */
+    suspend fun resolveReview(id: Long, takeOther: Boolean) {
+        val item = reviewState.value.firstOrNull { it.id == id } ?: return
+        if (takeOther && !item.kept) {
+            val d = syncState.value ?: return
+            val snapshot = state.value
+            val changed = if (item.ref == null) SyncEdit.setSetting(snapshot, item.field, item.lostValue) else SyncEdit.setField(snapshot, d, item.ref, item.field, item.lostValue)
+            if (changed != null) write { replaceRows(changed) }
+        }
+        dropReview(id)
+    }
+
+    /** « Supprimer à nouveau » un élément conservé après une suppression faite ailleurs. */
+    suspend fun deleteKept(id: Long) {
+        val item = reviewState.value.firstOrNull { it.id == id && it.kept } ?: return
+        val d = syncState.value
+        val changed = if (item.ref != null && d != null) SyncEdit.remove(state.value, d, item.ref) else null
+        if (changed != null) write { replaceRows(changed) }
+        dropReview(id)
+    }
+
+    /** « Tout garder le plus récent » : vide la liste. */
+    suspend fun clearReview() = mutex.withLock {
+        database.transaction { queries.clearSyncReview() }
+        reviewState.value = emptyList()
+    }
+
+    private suspend fun dropReview(id: Long) = mutex.withLock {
+        database.transaction { queries.deleteSyncReview(id) }
+        reviewState.value = reviewState.value.filter { it.id != id }
+    }
+
+    /** Consigne conflits et éléments conservés dans « À revoir » (dans la transaction de la fusion). */
+    private suspend fun recordReview(out: MergeOutcome, now: kotlin.time.Instant) {
+        val merged = out.merged
+        for (c in out.conflicts) {
+            val title = c.ref?.let { SyncEdit.title(merged.snapshot, merged.data, it) }.orEmpty()
+            queries.insertSyncReview(c.ref?.kind?.code, c.ref?.uid, c.field, title, c.lostValue, c.loser.toString(), c.keptValue, c.winner.toString(), 0L, now.toString())
+        }
+        for (k in out.kept) {
+            val title = SyncEdit.title(merged.snapshot, merged.data, k.ref)
+            queries.insertSyncReview(k.ref.kind.code, k.ref.uid, "", title, "", "", "", "", 1L, now.toString())
+        }
+    }
+
+    /**
+     * Relit « À revoir » et la dernière fusion. Un conflit dont le champ a reçu depuis une autre marque que la gagnante (quelqu'un
+     * a tranché ailleurs, ou modifié) est retiré tout seul ; rétention : 30 jours, 200 éléments.
+     */
+    private suspend fun refreshSyncExtras(all: KairosSnapshot) {
+        val d = syncState.value ?: run { reviewState.value = emptyList(); lastMergeState.value = null; return }
+        val now = clock.now()
+        database.transaction {
+            queries.deleteSyncReviewBefore((now - REVIEW_DAYS.days).toString())
+            queries.trimSyncReview(REVIEW_MAX.toLong())
+        }
+        val rows = queries.allSyncReview().awaitAsList().map { r ->
+            SyncReviewItem(
+                id = r.id,
+                ref = r.kind?.let(RecordKind::fromCode)?.let { k -> r.uid?.let { RecordRef(k, it) } },
+                field = r.field_,
+                title = r.title,
+                lostValue = r.loser_value,
+                lost = Stamp.parse(r.loser_stamp),
+                keptValue = r.winner_value,
+                winner = Stamp.parse(r.winner_stamp),
+                kept = r.kept != 0L,
+                at = runCatching { kotlin.time.Instant.parse(r.created_at) }.getOrNull() ?: now,
+            )
+        }
+        val stale = rows.filter { it.isStale(d) }
+        if (stale.isNotEmpty()) database.transaction { stale.forEach { queries.deleteSyncReview(it.id) } }
+        reviewState.value = rows - stale.toSet()
+        lastMergeState.value = syncStore.read(SyncStore.LAST_MERGE)?.let(LastMerge::decode)
+    }
+
+    private fun SyncReviewItem.isStale(d: SyncData): Boolean {
+        if (kept) return ref != null && d.marks[ref] == null
+        val current = if (ref == null) d.settings.of(field) else d.marks[ref]?.of(field) ?: return true
+        return winner != null && current != winner
+    }
+
+    /**
+     * Exemples posés sur une base neuve (`sync_state.examples`) restés tels quels : `uid` `example:<n>` et marque d'origine,
+     * pour que les exemples de deux appareils soient les mêmes et ne ressuscitent jamais une suppression.
+     */
+    private suspend fun examplePresets(all: KairosSnapshot): Pair<Map<RecordKind, Map<Long, String>>, Set<Pair<RecordKind, Long>>> {
+        val recorded = syncStore.read(SyncStore.EXAMPLES)?.let(ExampleMarks::decode).orEmpty()
+        if (recorded.isEmpty()) return emptyMap<RecordKind, Map<Long, String>>() to emptySet()
+        val current = ExampleMarks.of(all)
+        val presets = HashMap<RecordKind, HashMap<Long, String>>()
+        val origin = HashSet<Pair<RecordKind, Long>>()
+        for ((kind, entries) in recorded.groupBy { it.kind }) {
+            entries.forEachIndexed { i, e ->
+                if (current[kind to e.id] == e.hash) {
+                    presets.getOrPut(kind) { HashMap() }[e.id] = "example:${i + 1}"
+                    origin += kind to e.id
+                }
+            }
+        }
+        return presets to origin
     }
 
     private suspend fun readAll(): KairosSnapshot = KairosSnapshot(
@@ -1609,7 +1827,21 @@ class KairosRepository(
             ?: Settings(),
     )
 
+    private suspend fun recordExamples(posed: KairosSnapshot) = mutex.withLock {
+        database.transaction { syncStore.write(SyncStore.EXAMPLES, ExampleMarks.encode(posed)) }
+    }
+
     companion object {
+        /** Longueur de l'identité d'un appareil (caractères hexadécimaux). */
+        private const val DEVICE_LENGTH = 12
+
+        /** Longueur maximale du nom d'un appareil. */
+        const val LABEL_MAX = 30
+
+        /** Rétention de « À revoir ». */
+        private const val REVIEW_DAYS = 30
+        private const val REVIEW_MAX = 200
+
         /** Avancement d'une tâche d'équipe terminée. */
         private const val DONE_PROGRESS = 100
 
@@ -1630,7 +1862,12 @@ class KairosRepository(
             val repository = KairosRepository(opened.database, clock, timeZone, onChanged)
             if (opened.created) {
                 // Une erreur de pose des exemples ne doit jamais empêcher le démarrage.
-                runCatching { repository.replaceAll(examples()) }
+                runCatching {
+                    val posed = examples()
+                    repository.replaceAll(posed)
+                    // Les exemples tels que posés : à l'activation de la synchronisation, ceux restés intacts deviennent example:<n>.
+                    repository.recordExamples(posed)
+                }
             }
             repository.load()
             return repository

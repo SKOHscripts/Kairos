@@ -108,7 +108,7 @@ class TeamIsolationTest {
 
     @Test
     fun aNewerFormatIsRefused() {
-        val e = kotlin.runCatching { ExportCodec.decode("""{"format":"kairos-export","formatVersion":3}""") }.exceptionOrNull()
+        val e = kotlin.runCatching { ExportCodec.decode("""{"format":"kairos-export","formatVersion":4}""") }.exceptionOrNull()
         assertEquals(ImportException.Reason.TOO_NEW, (e as ImportException).reason)
     }
 

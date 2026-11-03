@@ -21,7 +21,11 @@ dépôt ; 4) cycle du fichier lié ; 5) interface ; 6) durées apprises partagé
 `reconcile`) ; tests `HlcTest`, `SyncScopeTest`, `SyncRecordsTest`, `SyncReconcileTest`. **Étape 2 livrée** :
 `SnapshotMerge.kt` (`merge`, `Synced`, `Rec`, `Conflict`, `KeptAfterDeletion`, `LocalChanges`, `MergeOutcome`), `SyncRepair.kt`,
 `Canonical.kt`, `SyncReconcile.legacy` ; tests `SnapshotMergeTest`, `SnapshotMergePropertiesTest` (simulateur `SyncSim`),
-`SyncRepairTest`. Rien n'est encore branché : le reste du document décrit les étapes suivantes (voir aussi « Impacts sur
+`SyncRepairTest`. **Étape 3 livrée** : format 3 (`ExportCodec.encode(…, sync)`, `ExportCodec.decodeSynced`), schéma 13
+(`12.sqm`, tables `sync_*`), `SyncStore.kt`, `SyncTypes.kt` (`SyncReviewItem`, `LastMerge`, `MergeResult`), dépôt
+(`sync`, `syncReview`, `lastMerge`, `enableSync`, `renameDevice`, `merge`, `resolveReview`, `deleteKept`, `clearReview`,
+`replaceAll(snapshot, uids)`) ; tests `SyncCodecTest`, `SyncRepositoryTest`, `SyncMigrationTest`. Rien n'est encore branché
+à l'interface ni au fichier lié (étapes 4 et 5) : le reste du document décrit les étapes suivantes (voir aussi « Impacts sur
 les specs existantes »). La moitié « écriture » de #88, le fichier lié et sa garde
 contre une modification faite ailleurs, est **implémentée en 3.10.0** (`export-import.md`) : cette spec la remplace.
 
@@ -469,8 +473,11 @@ tour suivant les valeurs sont égales, donc sans conflit.
   { "base": "<stamp>", "stamps": { "<champ>": "<stamp>" } } }`.
 - Par enregistrement synchronisé : `"uid"`, `"born"` (marque), `"base"` (omis s'il vaut `born`) et `"stamps": { "<champ>":
   "<stamp>" }` (omis s'il est vide). Les noms de champs sont ceux du JSON d'export.
-- **Déterministe** : enregistrements triés par `uid`, clés triées. Deux appareils qui ont convergé écrivent les mêmes octets, à
-  `exportedAt`, `appVersion` et réglages locaux près.
+- **Déterministe** : enregistrements dans l'ordre des identifiants locaux (comme les formats 1 et 2), clés de `stamps` triées.
+  Deux appareils convergés n'écrivent **pas** les mêmes octets (les identifiants locaux diffèrent) : c'est `writeNeeded`, calculé
+  sur la forme canonique, qui évite le ping-pong, pas la comparaison des octets.
+- **Identités fantômes** : `"sync": { …, "phantoms": { "<identifiant local>": "<uid>" } }` (omis s'il n'y en a pas), pour que les
+  références molles vers une tâche supprimée se lisent ailleurs comme ici.
 - **Tout le reste du fichier est inchangé** : champs des enregistrements (les `id` restent, les références aussi), réglages
   complets, données d'équipe de l'appareil qui écrit (`hasTeamData`, version 2). Le fichier lié reste donc **un export complet
   et valide** de l'appareil qui l'a écrit en dernier ; seule la portée est fusionnée, le reste est « écrit tel quel par le
@@ -497,10 +504,15 @@ pour qui ne synchronise pas, **sans toucher à aucune table existante** (donc sa
   résumé), `since`, `examples` (identifiants des exemples posés, voir « Identité »). **La clé `device` seule dit que la base est
   synchronisée.**
 - `sync_identity(kind TEXT, local_id INTEGER, uid TEXT NOT NULL, PRIMARY KEY (kind, local_id))`, index unique `(kind, uid)`.
-- `sync_mark(kind TEXT, uid TEXT, field TEXT, wall INTEGER, counter INTEGER, device TEXT, hash TEXT, PRIMARY KEY (kind, uid,
-  field))` ; `field` vaut `@born`, `@base` ou le nom d'un champ ; `hash` est l'empreinte de la valeur marquée.
-- `sync_review(id INTEGER PRIMARY KEY AUTOINCREMENT, kind, uid, field, title, loser_value, loser_wall, loser_counter,
-  loser_device, kept INTEGER, created_at)` : « À revoir », **locale** (ni fichier, ni export).
+- `sync_mark(kind TEXT, uid TEXT, born TEXT, base TEXT, stamps TEXT, hashes TEXT, PRIMARY KEY (kind, uid))` : **une ligne par
+  enregistrement** (implémentation, étape 3 ; la première version de cette spec prévoyait une ligne par champ, soit 100 000
+  lignes pour 5 000 tâches). `stamps` : `champ=marque` séparés par des tabulations ; `hashes` : `champ=empreinte hexadécimale`
+  pour chaque champ. Réécrite seulement quand ses marques changent (`SyncStore.save`, par différence).
+- `sync_review(id INTEGER PRIMARY KEY AUTOINCREMENT, kind, uid, field, title, loser_value, loser_stamp, winner_value,
+  winner_stamp, kept INTEGER, created_at)` : « À revoir », **locale** (ni fichier, ni export) ; `kind` et `uid` nuls pour un
+  réglage partagé, `kept = 1` pour un élément conservé.
+- `sync_state` porte aussi `clock`, `seen`, `labels` et `settings` (marques des réglages partagés, même codage qu'une ligne de
+  `sync_mark`).
 
 ### Dépôt (`KairosRepository`)
 
@@ -522,6 +534,36 @@ pour qui ne synchronise pas, **sans toucher à aucune table existante** (donc sa
 - Entrée : `restoreConflict(reviewId, chooseOther)` : prendre l'autre valeur = écrire la valeur perdue comme une modification
   locale (marque fraîche) ; garder = classer l'item. Un item dont le champ a depuis reçu une autre marque que la gagnante est
   retiré tout seul. Rétention : 30 jours, 200 items (les plus vieux partent d'abord).
+
+#### Précisions de l'implémentation (étape 3)
+
+- **Entonnoir** : `write` garde l'état publié avant la transaction, relit la base, puis `reconcileAfter` réconcilie et
+  enregistre la différence dans sa propre transaction. `load` (ouverture) réconcilie sans état précédent : rattrapage.
+- **Import** : `replaceAll(snapshot, uids)` prend les `uid` du fichier (`decodeSynced(...).data.uids`) ou, à défaut, ceux de
+  migration (`SyncReconcile.legacy`), puis réconcilie **sans état précédent** : un `uid` connu dont une valeur diffère reçoit une
+  marque fraîche, un `uid` absent disparaît, un nouveau naît. Une base qui ne synchronise pas n'en garde aucune trace.
+- **Fusion** : `merge(theirs, backup)` calcule `SnapshotMerge.merge` sur `Dispatchers.Default`, appelle `backup(état d'avant)`
+  si la fusion modifie ou supprime (échec : `MergeResult.BackupFailed`, rien n'est écrit), installe dans **une** transaction
+  (lignes, `sync_*`, « À revoir », `lastMerge` si quelque chose a changé ici), réconcilie sans état précédent, puis applique les
+  réparations comme une écriture locale. Le nommage et la rotation des sauvegardes (`avant-fusion-…`) appartiennent à
+  l'appelant (étape 4), qui a le `BackupStore`.
+- **Activation** : `enableSync(label)` tire l'identité (12 caractères hexadécimaux d'un `Uuid` aléatoire), applique
+  `SyncReconcile.activate` avec les exemples restés tels que posés (`sync_state.examples` : `genre|id|empreinte` de leurs champs,
+  écrit par `open` sur une base neuve, `ExampleMarks`). Conséquence voulue de la marque d'origine : un appareil **sans** les
+  exemples (base vidée, importée) les supprime chez l'autre à la première fusion, comme une suppression ordinaire ; deux
+  appareils neufs les partagent sans doublon.
+- **Première rencontre et réglages** : à l'activation, chaque appareil date ses réglages `Stamp(0, appareil)`. Deux appareils
+  dont un réglage diffère donnent donc un **conflit** à leur première fusion (la plus grande identité l'emporte, l'autre valeur
+  va dans « À revoir ») : c'est le comportement voulu du premier rapprochement, pas une préférence silencieuse.
+- **« À revoir »** : `resolveReview(id, takeOther)` écrit la valeur écartée (`SyncEdit.setField`, ou `setSetting` pour un
+  réglage) comme une modification locale ; `deleteKept` supprime à nouveau (`SyncEdit.remove`, une tâche emporte ses
+  dépendances) ; `clearReview` vide la liste. À chaque relecture, un conflit dont le champ porte désormais une autre marque que
+  la gagnante est retiré, comme un élément conservé qui n'existe plus ; rétention 30 jours et 200 éléments.
+- **Tests d'isolation** : `SyncRepositoryTest.nothingIsStoredBeforeActivation` (aucune donnée `sync_*`, export en format 1 sans
+  champ de synchronisation) et `noTeamDataEntersASoloBase` (fichier d'un manager : ses tâches perso arrivent, ni membre, ni tâche
+  d'équipe, ni réglage d'équipe) ; `SyncCodecTest.anExportWithoutSyncIsUnchanged`. Ils remplacent le `SyncIsolationTest` prévu.
+- Les tests de migration qui simulent un schéma antérieur retirent aussi les tables `sync_*` (sinon le marqueur du schéma 13
+  les dispense de migrer) ; « format plus récent » se teste désormais avec le format 4.
 
 ### Fichier lié : cycle de synchronisation (`LinkedFileSync`)
 

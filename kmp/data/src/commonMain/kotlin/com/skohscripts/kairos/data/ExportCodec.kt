@@ -6,6 +6,16 @@ import com.skohscripts.kairos.core.model.BlockKind
 import com.skohscripts.kairos.core.model.FIBONACCI_SCALE
 import com.skohscripts.kairos.core.model.PRIORITY_VALUES
 import com.skohscripts.kairos.core.settings.SettingsForm
+import com.skohscripts.kairos.core.sync.Context
+import com.skohscripts.kairos.core.sync.Hlc
+import com.skohscripts.kairos.core.sync.Marks
+import com.skohscripts.kairos.core.sync.RecordKind
+import com.skohscripts.kairos.core.sync.RecordRef
+import com.skohscripts.kairos.core.sync.Stamp
+import com.skohscripts.kairos.core.sync.SyncData
+import com.skohscripts.kairos.core.sync.SyncReconcile
+import com.skohscripts.kairos.core.sync.SyncScope
+import com.skohscripts.kairos.core.sync.Synced
 import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.DayMark
 import com.skohscripts.kairos.core.model.BlockSource
@@ -66,8 +76,33 @@ object ExportCodec {
         explicitNulls = false
     }
 
-    fun encode(snapshot: KairosSnapshot, appVersion: String, exportedAt: Instant): String =
-        json.encodeToString(ExportFile.serializer(), ExportFile.from(snapshot, appVersion, exportedAt))
+    fun encode(snapshot: KairosSnapshot, appVersion: String, exportedAt: Instant, sync: SyncData? = null): String =
+        json.encodeToString(ExportFile.serializer(), ExportFile.from(snapshot, appVersion, exportedAt).let { if (sync == null) it else it.synced(snapshot, sync) })
+
+    /** Version écrite par une installation synchronisée (docs/spec/synchronisation.md § Format). */
+    const val SYNC_FORMAT_VERSION = 3
+
+    /**
+     * Comme [decode], et l'état de synchronisation du fichier (docs/spec/synchronisation.md § Format) : pour un format 3, les
+     * `uid`, marques et contexte qu'il porte ; pour un format 1 ou 2, celui d'un fichier d'avant la synchronisation
+     * ([SyncReconcile.legacy]). Validations : `uid` uniques par genre et de [SyncScope.MAX_UID] caractères au plus, marques bien
+     * formées, au plus [Context.MAX_DEVICES] appareils ; `CORRUPTED` sinon, rien n'est rendu en partie.
+     */
+    fun decodeSynced(text: String): Synced {
+        val snapshot = decode(text)
+        val root = json.parseToJsonElement(text.removePrefix("\uFEFF")) as JsonObject
+        val file = try {
+            json.decodeFromJsonElement(ExportFile.serializer(), root)
+        } catch (e: Exception) {
+            throw ImportException(ImportException.Reason.CORRUPTED, e)
+        }
+        val sync = file.sync ?: return Synced(snapshot, SyncReconcile.legacy(snapshot))
+        return try {
+            Synced(snapshot, file.syncData(snapshot, sync))
+        } catch (e: Exception) {
+            throw ImportException(ImportException.Reason.CORRUPTED, e)
+        }
+    }
 
     /** Titre le plus long accepté à l'import : au-delà, l'affichage d'une seule ligne gelait l'interface (2 Mo). */
     internal const val MAX_TITLE = 10_000
@@ -88,7 +123,7 @@ object ExportCodec {
         val root = element as? JsonObject ?: throw ImportException(ImportException.Reason.NOT_AN_EXPORT)
         if ((root["format"] as? JsonPrimitive)?.takeIf { it.isString }?.content != FORMAT) throw ImportException(ImportException.Reason.NOT_AN_EXPORT)
         val version = (root["formatVersion"] as? JsonPrimitive)?.intOrNull ?: throw ImportException(ImportException.Reason.NOT_AN_EXPORT)
-        if (version > FORMAT_VERSION) throw ImportException(ImportException.Reason.TOO_NEW)
+        if (version > SYNC_FORMAT_VERSION) throw ImportException(ImportException.Reason.TOO_NEW)
         return try {
             json.decodeFromJsonElement(ExportFile.serializer(), root).toSnapshot().also(::check)
         } catch (e: Exception) {
@@ -182,6 +217,8 @@ private data class ExportFile(
     // Calendriers importés et leurs journées entières (3.10.0, issue #136) : même règle, nuls tant qu'il n'y en a aucun.
     val calendarSources: List<CalendarSourceJson>? = null,
     val dayMarks: List<DayMarkJson>? = null,
+    // Synchronisation (formatVersion 3) : nul, donc omis, pour une base qui ne synchronise pas.
+    val sync: SyncJson? = null,
 ) {
     fun toSnapshot() = KairosSnapshot(
         tasks = tasks.map { it.toModel() },
@@ -203,7 +240,89 @@ private data class ExportFile(
         dayMarks = dayMarks.orEmpty().map { it.toModel() },
     )
 
+    /** La même exportation, en format 3 : chaque enregistrement de la portée porte son `uid` et ses marques, la racine le contexte. */
+    fun synced(s: KairosSnapshot, d: SyncData): ExportFile {
+        fun tag(kind: RecordKind, id: Long): Tag? {
+            val uid = d.uidOf(kind, id) ?: return null
+            val m = d.marks[RecordRef(kind, uid)] ?: return null
+            return Tag(uid, m.born.toString(), m.base.takeIf { it != m.born }?.toString(), m.stamps.takeIf { it.isNotEmpty() }?.mapValues { it.value.toString() }?.toSortedMap())
+        }
+        return copy(
+            formatVersion = ExportCodec.SYNC_FORMAT_VERSION,
+            tasks = tasks.map { j -> tag(RecordKind.TASK, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
+            timeBlocks = timeBlocks.map { j -> tag(RecordKind.BLOCK, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
+            dependencies = dependencies.map { j -> tag(RecordKind.DEPENDENCY, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
+            workSessions = workSessions.map { j -> tag(RecordKind.SESSION, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
+            notes = notes.map { j -> tag(RecordKind.NOTE, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
+            blockExceptions = blockExceptions?.map { j -> tag(RecordKind.EXCEPTION, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
+            calendarSources = calendarSources?.map { j -> tag(RecordKind.CALENDAR, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
+            dayMarks = dayMarks?.map { j -> tag(RecordKind.DAYMARK, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
+            sync = SyncJson(
+                device = d.device,
+                label = d.label,
+                seen = d.seen.mapValues { it.value.toString() }.toSortedMap(),
+                labels = d.labels.takeIf { it.isNotEmpty() }?.toSortedMap(),
+                settings = MarksJson(d.settings.base.toString(), d.settings.stamps.takeIf { it.isNotEmpty() }?.mapValues { it.value.toString() }?.toSortedMap()),
+                // Phantômes (tâches supprimées encore référencées) : leur uid, pour que les références se lisent pareil ailleurs.
+                phantoms = s.tasks.mapTo(HashSet()) { it.id }.let { present -> d.uids[RecordKind.TASK].orEmpty().filterKeys { it !in present } }.takeIf { it.isNotEmpty() }
+                    ?.entries?.associate { (id, uid) -> id.toString() to uid }?.toSortedMap(),
+            ),
+        )
+    }
+
+    /** L'état de synchronisation porté par un fichier de format 3 ; `IllegalArgumentException` s'il est mal formé. */
+    fun syncData(s: KairosSnapshot, sync: SyncJson): SyncData {
+        fun stamp(text: String?): Stamp = requireNotNull(text?.let(Stamp::parse)) { "marque" }
+        require(sync.device.isNotEmpty() && sync.device.length <= Stamp.MAX_DEVICE) { "appareil" }
+        require(sync.seen.size <= Context.MAX_DEVICES) { "trop d'appareils" }
+        val seen = sync.seen.mapValues { requireNotNull(Hlc.parse(it.value)) { "contexte" } }
+        val uids = HashMap<RecordKind, HashMap<Long, String>>()
+        val marks = HashMap<RecordRef, Marks>()
+        fun take(kind: RecordKind, id: Long, uid: String?, born: String?, base: String?, stamps: Map<String, String>?) {
+            uid ?: return
+            require(uid.isNotEmpty() && uid.length <= SyncScope.MAX_UID) { "uid" }
+            val m = uids.getOrPut(kind) { HashMap() }
+            require(uid !in m.values) { "uid en double" }
+            m[id] = uid
+            val b = stamp(born)
+            marks[RecordRef(kind, uid)] = Marks(b, base?.let(::stamp) ?: b, stamps.orEmpty().mapValues { stamp(it.value) })
+        }
+        tasks.forEach { take(RecordKind.TASK, it.id, it.uid, it.born, it.base, it.stamps) }
+        timeBlocks.forEach { take(RecordKind.BLOCK, it.id, it.uid, it.born, it.base, it.stamps) }
+        dependencies.forEach { take(RecordKind.DEPENDENCY, it.id, it.uid, it.born, it.base, it.stamps) }
+        workSessions.forEach { take(RecordKind.SESSION, it.id, it.uid, it.born, it.base, it.stamps) }
+        notes.forEach { take(RecordKind.NOTE, it.id, it.uid, it.born, it.base, it.stamps) }
+        blockExceptions.orEmpty().forEach { take(RecordKind.EXCEPTION, it.id, it.uid, it.born, it.base, it.stamps) }
+        calendarSources.orEmpty().forEach { take(RecordKind.CALENDAR, it.id, it.uid, it.born, it.base, it.stamps) }
+        dayMarks.orEmpty().forEach { take(RecordKind.DAYMARK, it.id, it.uid, it.born, it.base, it.stamps) }
+        sync.phantoms.orEmpty().forEach { (id, uid) ->
+            require(uid.isNotEmpty() && uid.length <= SyncScope.MAX_UID) { "uid" }
+            uids.getOrPut(RecordKind.TASK) { HashMap() }[id.toLong()] = uid
+        }
+        // Un enregistrement de la portée sans uid (fichier écrit à la main) : ses marques sont celles d'un fichier ancien.
+        val legacy = SyncReconcile.legacy(s)
+        val scoped = SyncScope.of(s)
+        for (kind in RecordKind.entries) for (id in scoped.ids(kind)) {
+            if (uids[kind]?.containsKey(id) == true) continue
+            val uid = legacy.uidOf(kind, id)!!
+            require(uids[kind]?.values?.contains(uid) != true) { "uid en double" }
+            uids.getOrPut(kind) { HashMap() }[id] = uid
+            marks[RecordRef(kind, uid)] = legacy.marks.getValue(RecordRef(kind, uid))
+        }
+        val settings = sync.settings.let { stamp(it.base).let { base -> Marks(base, base, it.stamps.orEmpty().mapValues { (_, v) -> stamp(v) }) } }
+        val clock = seen.values.fold(Hlc.ZERO) { a, b -> if (b > a) b else a }
+        val data = SyncData(sync.device, clock, seen, uids, marks, settings, sync.label.take(LABEL_MAX), sync.labels.orEmpty())
+        // Les empreintes se recalculent d'après le contenu du fichier (elles ne sont pas écrites).
+        val withHashes = SyncReconcile.rehash(s, data)
+        return withHashes
+    }
+
+    private data class Tag(val uid: String, val born: String, val base: String?, val stamps: Map<String, String>?)
+
     companion object {
+        /** Longueur maximale du nom d'un appareil. */
+        const val LABEL_MAX = 30
+
         fun from(s: KairosSnapshot, appVersion: String, exportedAt: Instant): ExportFile {
             val team = Workspaces.hasTeamData(s)
             return ExportFile(
@@ -232,6 +351,20 @@ private data class ExportFile(
         }
     }
 }
+
+/** Racine `sync` d'un fichier de format 3 (docs/spec/synchronisation.md § Format). */
+@Serializable
+private data class SyncJson(
+    val device: String,
+    val label: String = "",
+    val seen: Map<String, String> = emptyMap(),
+    val labels: Map<String, String>? = null,
+    val settings: MarksJson,
+    val phantoms: Map<String, String>? = null,
+)
+
+@Serializable
+private data class MarksJson(val base: String, val stamps: Map<String, String>? = null)
 
 @Serializable
 private data class TaskJson(
@@ -279,6 +412,11 @@ private data class TaskJson(
     val noteIn: ExchangeNoteJson? = null,
     // Proposition au manager (3.9.0, docs/spec/equipe-echanges.md § Propositions) : omise quand nulle.
     val proposedTo: String? = null,
+    // Synchronisation (formatVersion 3, docs/spec/synchronisation.md § Format) : nuls, donc omis, hors synchronisation.
+    val uid: String? = null,
+    val born: String? = null,
+    val base: String? = null,
+    val stamps: Map<String, String>? = null,
 ) {
     fun toModel() = Task(
         id = id,
@@ -351,6 +489,11 @@ private data class BlockJson(
     // Calendrier importé d'origine (3.10.0, docs/spec/connexions-externes.md) : nuls, donc omis, pour un créneau saisi à la main.
     val sourceId: Long? = null,
     val sourceUid: String? = null,
+    // Synchronisation (formatVersion 3, docs/spec/synchronisation.md § Format) : nuls, donc omis, hors synchronisation.
+    val uid: String? = null,
+    val born: String? = null,
+    val base: String? = null,
+    val stamps: Map<String, String>? = null,
 ) {
     fun toModel() = TimeBlock(
         id, title, LocalDateTime.parse(start), LocalDateTime.parse(end),
@@ -370,7 +513,14 @@ private data class BlockJson(
 
 /** Calendrier importé (3.10.0) : `hideTitles` n'est écrit que s'il est vrai. */
 @Serializable
-private data class CalendarSourceJson(val id: Long, val name: String, val hideTitles: Boolean? = null, val importedAt: String, val createdAt: String) {
+private data class CalendarSourceJson(
+    val id: Long, val name: String, val hideTitles: Boolean? = null, val importedAt: String, val createdAt: String,
+    // Synchronisation (formatVersion 3, docs/spec/synchronisation.md § Format) : nuls, donc omis, hors synchronisation.
+    val uid: String? = null,
+    val born: String? = null,
+    val base: String? = null,
+    val stamps: Map<String, String>? = null,
+) {
     fun toModel() = CalendarSource(id, name, hideTitles == true, Instant.parse(importedAt), Instant.parse(createdAt))
 
     companion object {
@@ -380,7 +530,14 @@ private data class CalendarSourceJson(val id: Long, val name: String, val hideTi
 
 /** Journée entière d'un calendrier importé (3.10.0) : dates « 2026-10-28 », fin incluse. */
 @Serializable
-private data class DayMarkJson(val id: Long, val title: String = "", val start: String, val end: String, val sourceId: Long, val sourceUid: String = "", val createdAt: String) {
+private data class DayMarkJson(
+    val id: Long, val title: String = "", val start: String, val end: String, val sourceId: Long, val sourceUid: String = "", val createdAt: String,
+    // Synchronisation (formatVersion 3, docs/spec/synchronisation.md § Format) : nuls, donc omis, hors synchronisation.
+    val uid: String? = null,
+    val born: String? = null,
+    val base: String? = null,
+    val stamps: Map<String, String>? = null,
+) {
     fun toModel() = DayMark(id, title, LocalDate.parse(start), LocalDate.parse(end), BlockSource.Imported(sourceId, sourceUid), Instant.parse(createdAt))
 
     companion object {
@@ -402,6 +559,11 @@ private data class BlockExceptionJson(
     val start: String? = null,
     val end: String? = null,
     val createdAt: String,
+    // Synchronisation (formatVersion 3, docs/spec/synchronisation.md § Format) : nuls, donc omis, hors synchronisation.
+    val uid: String? = null,
+    val born: String? = null,
+    val base: String? = null,
+    val stamps: Map<String, String>? = null,
 ) {
     fun toModel() = BlockException(
         id, blockId, LocalDate.parse(date), skipped == true, title, start?.let(LocalTime::parse), end?.let(LocalTime::parse),
@@ -416,7 +578,14 @@ private data class BlockExceptionJson(
 }
 
 @Serializable
-private data class DependencyJson(val id: Long, val taskId: Long, val blockerId: Long, val createdAt: String)
+private data class DependencyJson(
+    val id: Long, val taskId: Long, val blockerId: Long, val createdAt: String,
+    // Synchronisation (formatVersion 3, docs/spec/synchronisation.md § Format) : nuls, donc omis, hors synchronisation.
+    val uid: String? = null,
+    val born: String? = null,
+    val base: String? = null,
+    val stamps: Map<String, String>? = null,
+)
 
 @Serializable
 private data class SessionJson(
@@ -425,6 +594,11 @@ private data class SessionJson(
     val startedAt: String,
     val endedAt: String? = null,
     val createdAt: String,
+    // Synchronisation (formatVersion 3, docs/spec/synchronisation.md § Format) : nuls, donc omis, hors synchronisation.
+    val uid: String? = null,
+    val born: String? = null,
+    val base: String? = null,
+    val stamps: Map<String, String>? = null,
 )
 
 @Serializable
@@ -435,6 +609,11 @@ private data class NoteJson(
     val convertedTaskId: Long? = null,
     val createdAt: String,
     val updatedAt: String,
+    // Synchronisation (formatVersion 3, docs/spec/synchronisation.md § Format) : nuls, donc omis, hors synchronisation.
+    val uid: String? = null,
+    val born: String? = null,
+    val base: String? = null,
+    val stamps: Map<String, String>? = null,
 )
 
 @Serializable

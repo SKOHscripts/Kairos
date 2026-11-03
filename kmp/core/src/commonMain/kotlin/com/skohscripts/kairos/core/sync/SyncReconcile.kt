@@ -97,6 +97,20 @@ object SyncReconcile {
     }
 
     /**
+     * Recalcule les empreintes de [data] d'après [snapshot] (un fichier ne les écrit pas, `ExportCodec.decodeSynced`) : les
+     * marques restent celles du fichier, seules les empreintes de leurs valeurs sont posées.
+     */
+    fun rehash(snapshot: KairosSnapshot, data: SyncData): SyncData {
+        val lifted = liftAll(SyncScope.of(snapshot)) { k, id -> data.uidOf(k, id) }
+        val marks = HashMap(data.marks)
+        for ((kind, records) in lifted) for ((id, l) in records) {
+            val ref = RecordRef(kind, data.uidOf(kind, id) ?: continue)
+            marks[ref]?.let { marks[ref] = it.copy(hashes = hashes(l.fields)) }
+        }
+        return data.copy(marks = marks, settings = data.settings.copy(hashes = hashes(SyncRecords.liftSettings(snapshot.settings))))
+    }
+
+    /**
      * Une passe après une écriture locale. Pour chaque enregistrement de la portée : sans `uid` (nouveau), un `uid` (aléatoire
      * par [newUid], ou déterministe quand deux appareils peuvent créer « la même chose ») et `born = base = tick` ; avec `uid`,
      * une nouvelle marque pour chaque champ dont l'empreinte a changé. Un `uid` dont l'enregistrement n'existe plus perd ses
