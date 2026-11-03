@@ -393,9 +393,12 @@ L'évaluation vit dans les tests (aucun code de production) :
   des échantillons d'indice > `j`, ou la durée de `j` lui-même, laisse son estimation strictement égale.
 - Les seuils sont ceux des critères de succès. Graines 1 à 20 en dur. Les valeurs attendues en dur de
   `ModelReproducibilityTest` couvrent l'index (idf), une ressemblance, une médiane pondérée, la régression, un intervalle et
-  l'empreinte. Elles sont vérifiées sur la JVM ; les tests de `core` sur wasm (`wasmJsBrowserTest`, Karma) ne tournent ni en
-  CI ni dans l'environnement de développement (le téléchargement de Karma y est refusé) : la cible wasm est vérifiée à
-  l'étape 3, par la mesure dans Chromium.
+  l'empreinte. Elles sont vérifiées sur la JVM, et **sur wasm par la CI** (étape « Tests du modèle (wasm, Chrome) » de
+  `kmp.yml` : `:core:wasmJsBrowserTest` limité à `ModelReproducibilityTest`, `TextFeaturesTest`, `ModelEstimatorTest`,
+  `NoFutureInfoTest` et `ModelPerformanceTest`, Chrome sans tête par Karma, `core/build.gradle.kts`), qui mesure du même coup
+  le budget de 1 s sur la cible web. L'environnement de développement ne peut ni lancer ces tests ni compiler la version web
+  (le proxy y refuse le téléchargement de Karma, `codeload.github.com`) : la mesure manuelle dans Chromium prévue plus haut
+  est remplacée par ce passage en CI, plus sûr car refait à chaque PR.
 - **Résultats mesurés** (2026-11-03, 20 graines par profil, réglages ci-dessus) : `NOVEL`, erreur médiane de la chaîne de
   0,30 à 0,46 × celle de la chaîne sans modèle sur les 20 graines (seuil 0,8), modèle fiable sur au moins 137 tâches testées
   sur 140 ; `RECURRING`, le modèle égale la médiane par titre sur chaque graine (rapport 1,00) ; `NOISE`, la garde coupe le

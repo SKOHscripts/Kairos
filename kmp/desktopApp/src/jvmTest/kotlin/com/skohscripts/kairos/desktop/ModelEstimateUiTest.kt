@@ -7,7 +7,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -142,13 +145,14 @@ class ModelEstimateUiTest {
     }
 
     @Test
-    fun theSheetSuggestionFitsAt360dp() = runComposeUiTest {
+    fun theModelBadgeFitsAt360dp() = runComposeUiTest {
+        // Le dialogue s'ouvre dans la fenêtre entière (hors de la boîte de 360 dp) : on mesure la ligne de la tâche.
         val services = services(listOf(target))
         setContent { Box(Modifier.width(360.dp).height(1400.dp)) { KairosApp(Platform.ANDROID, Destination.DAY, TeamDestination.BOARD) { services } } }
         waitText("Quarterly report for the board", substring = true)
-        onAllNodesWithContentDescription("Edit").onFirst().performClick()
-        waitText("Edit task")
-        val bounds = onNodeWithText("Use 45 min (between", substring = true).performScrollTo().getUnclippedBoundsInRoot()
-        assertTrue(bounds.right <= 360.dp, "puce du modèle hors de la fenêtre de 360 dp : $bounds")
+        onAllNodes(hasScrollToNodeAction()).onFirst()
+            .performScrollToNode(hasContentDescription("Estimated by the model from 5 similar tasks", substring = true))
+        val bounds = onAllNodesWithContentDescription("Estimated by the model from 5 similar tasks", substring = true).onFirst().getUnclippedBoundsInRoot()
+        assertTrue(bounds.right <= 360.dp, "pastille du modèle hors de la fenêtre de 360 dp : $bounds")
     }
 }
