@@ -23,6 +23,12 @@ enum class EffortSource {
      */
     LEARNED,
 
+    /**
+     * La durée estimée **par le modèle** (docs/spec/estimateur-modele.md), lue comme [LEARNED] par les calculs ; seule la fiche
+     * la distingue, avec son intervalle.
+     */
+    MODEL,
+
     /** La médiane réelle (fiable, n ≥ 3) des tâches d'équipe faites au même palier de points. */
     CALIBRATED,
 

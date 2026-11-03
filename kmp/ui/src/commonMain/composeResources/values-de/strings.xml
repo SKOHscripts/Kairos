@@ -1784,4 +1784,7 @@
     <!-- Carte « Estimer par modèle » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
     <string name="card_model_title">Mit dem Modell schätzen</string>
     <string name="card_model_body">Eine Aufgabe mit neuem Titel erhält eine Dauer aus deinen erledigten Aufgaben, die ihr ähneln (Titel, Typ, Punkte), mit einer Spanne und der Liste dieser Aufgaben. Sie gilt erst, wenn sie bei deinem eigenen Verlauf besser ist als die Standarddauer; nichts verlässt das Gerät.</string>
+    <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
+    <string name="effort_model">%1$s, vom Modell geschätzt (%2$s bis %3$s)</string>
+    <string name="forecast_model_estimated">Davon %1$d vom Modell geschätzte Aufgabe(n) (gelernte Spanne)</string>
 </resources>

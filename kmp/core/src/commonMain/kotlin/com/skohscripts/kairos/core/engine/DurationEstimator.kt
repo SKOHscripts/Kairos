@@ -141,11 +141,7 @@ interface DurationEstimator {
          * occurrences), qui lisent alors la durée apprise sans autre changement. Les tâches faites ne sont jamais touchées
          * (ni la calibration, ni les erreurs d'estimation passées). Sans durée apprise, le même objet est rendu.
          */
-        fun withLearnedEstimates(snapshot: KairosSnapshot, now: Instant): KairosSnapshot {
-            val applied = appliedMinutes(estimates(snapshot, now))
-            if (applied.isEmpty()) return snapshot
-            return snapshot.copy(tasks = snapshot.tasks.map { t -> applied[t.id]?.let { t.copy(estimatedMinutes = it) } ?: t })
-        }
+        fun withLearnedEstimates(snapshot: KairosSnapshot, now: Instant): KairosSnapshot = withLearned(snapshot, now).snapshot
 
         /**
          * Ce qu'on attend de [task] en minutes pour les alertes du chrono : son estimation explicite, sinon sa durée apprise
@@ -173,6 +169,27 @@ interface DurationEstimator {
             val corpus = ModelEstimator.corpus(past.filter { it.space == space })
             if (corpus.isEmpty()) return ModelStatus(0, ModelGate.fromErrors(emptyList(), emptyList()))
             return ModelStatus(corpus.size, cache.state(corpus, settings) { ModelEstimator.build(corpus, settings) }.gate)
+        }
+
+        /** L'intervalle d'une estimation du modèle, en minutes (prévisions d'équipe, docs/spec/estimateur-modele.md § Prévisions). */
+        data class Spread(val minutes: Int, val low: Int, val high: Int)
+
+        /** Les intervalles des estimations **fiables** de source [Source.MODEL] : ce que les prévisions tirent tâche par tâche. */
+        fun spreads(estimates: Map<Long, Estimate>): Map<Long, Spread> =
+            estimates.filterValues { it.reliable && it.source == Source.MODEL && it.low != null && it.high != null }
+                .mapValues { (_, e) -> Spread(e.minutes, e.low!!, e.high!!) }
+
+        /** L'instantané où les durées apprises fiables valent estimation ([withLearnedEstimates]), et les intervalles du modèle. */
+        class Learned(val snapshot: KairosSnapshot, val spreads: Map<Long, Spread>)
+
+        fun withLearned(snapshot: KairosSnapshot, now: Instant): Learned {
+            val estimates = estimates(snapshot, now)
+            val applied = appliedMinutes(estimates)
+            if (applied.isEmpty()) return Learned(snapshot, emptyMap())
+            return Learned(
+                snapshot.copy(tasks = snapshot.tasks.map { t -> applied[t.id]?.let { t.copy(estimatedMinutes = it) } ?: t }),
+                spreads(estimates),
+            )
         }
 
         /** Les durées apprises **fiables**, en minutes : ce que le planning, les alertes et les projections appliquent. */

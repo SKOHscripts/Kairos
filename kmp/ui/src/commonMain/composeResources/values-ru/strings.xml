@@ -1784,4 +1784,7 @@
     <!-- Carte « Estimer par modèle » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
     <string name="card_model_title">Оценка моделью</string>
     <string name="card_model_body">Задача с новым названием получает длительность по похожим выполненным задачам (название, тип, баллы), с диапазоном и списком этих задач. Она применяется, только если на твоей истории она точнее длительности по умолчанию; ничего не покидает устройство.</string>
+    <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
+    <string name="effort_model">%1$s, оценено моделью (от %2$s до %3$s)</string>
+    <string name="forecast_model_estimated">В том числе задач, оцененных моделью (выученный диапазон): %1$d</string>
 </resources>

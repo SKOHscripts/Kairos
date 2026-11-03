@@ -26,8 +26,10 @@ le 2026-11-03).
 avec la pastille, « Pourquoi », la fiche, la carte des Réglages et son état (`ModelStatusLine`, `DurationEstimator.
 modelStatus`), l'estimation au tri (besoin 9), la carte du catalogue et le README ; test `ModelEstimateUiTest`. L'effort
 d'une tâche d'équipe estimée par le modèle se lit encore « apprise des occurrences passées » dans la fiche d'équipe jusqu'à
-l'étape 4 (`EffortSource.MODEL`). Les effets sur les autres specs sont listés en fin de document (« Impacts sur les specs
-existantes ») et reportés à mesure.
+l'étape 4 (`EffortSource.MODEL`). **Étape 4 livrée** : `DurationEstimator.Spread`, `spreads`, `withLearned` ;
+`team/forecast/EffortSpread.kt` ; `EffortModel` et `MonteCarlo.prepare` ; `ForecastResult.modelEstimated` et sa ligne dans
+`ForecastPanels` ; `EffortSource.MODEL` et l'intervalle dans `TeamTaskSheet` ; test `EffortSpreadTest`. Les effets sur les
+autres specs sont listés en fin de document (« Impacts sur les specs existantes ») et reportés à mesure.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -412,7 +414,9 @@ l'historique de l'équipe (borné [0,2 ; 5]) et le multiplie par l'effort du pla
 propre dispersion, apprise de tâches qui lui ressemblent. On la substitue au facteur global pour cette tâche seule.
 
 - **Transport** : `withLearned` rend `Learned(snapshot, spreads)` ; le snapshot porte la durée du modèle comme
-  `estimatedMinutes` (comme les durées apprises), et `spreads` (`taskId → Spread(low, high)`) l'intervalle. `MonteCarlo.prepare`
+  `estimatedMinutes` (comme les durées apprises), et `spreads` (`taskId → Spread(minutes, low, high)`) l'intervalle ;
+  `EffortSpread.ratios` en tire `l` et `h`, bornés à [0,2 ; 1] et [1 ; 5]. Une durée apprise ne dépasse jamais la fenêtre de
+  travail (plafond commun à toutes les durées apprises) : l'intervalle non plus. `MonteCarlo.prepare`
   lit `withLearned` à la place de `withLearnedEstimates` et passe `spreads` à `EffortModel`. Aucune signature d'`Effort`,
   `TeamWork` ou `LoadPlan` ne change.
 - **Loi** (`team/forecast/EffortSpread.kt`) : avec `m` la durée (médiane), `l = low / m` et `h = high / m`, le **facteur
@@ -433,6 +437,33 @@ propre dispersion, apprise de tâches qui lui ressemblent. On la substitue au fa
   **elle aussi tirée de durées réelles** (voisins), pas ajustée à une forme. Seule la ligne « Hors périmètre : apprentissage
   automatique, régression » est précisée (elle vise l'ajustement de lois sur l'échantillon, petit, d'**une équipe**, pas
   l'estimation par ressemblance sur l'historique de **l'utilisateur**) ; le report se fait à l'implémentation.
+
+### Rythme selon le jour et l'heure (étape 5, besoin 11)
+
+- **Ce qui est mesuré.** Pour chaque échantillon du corpus qui a au moins une séance chronométrée, le **jour de la
+  semaine** et la **tranche** (matin avant 12 h, après-midi de 12 h à 17 h, soir à partir de 17 h) de sa **première
+  séance**, à l'heure locale (`Sample.startedOn`, `Sample.band`, remplis par `samples(…, timeZone)` à partir des
+  séances ; une tâche au temps seulement saisi à la main n'en a pas et ne compte pas pour le rythme). Son **rapport**
+  `r = réel / attendu`, où `attendu` est l'estimation du modèle par les voisins **sans cet échantillon** (laisser-un-dehors
+  sur l'index complet : l'idf le compte encore, écart négligeable et accepté ; la garde, elle, reste stricte sur
+  l'avenir) ; un échantillon sans estimation à base suffisante ne compte pas.
+- **Le facteur.** Par jour (7) et par tranche (3), séparément : la médiane basse des rapports du groupe, bornée à
+  [0,5 ; 2], retenue seulement si le groupe compte au moins `RHYTHM_MIN` = 8 rapports, si elle s'écarte d'au moins 10 %
+  de 1 (`|f − 1| ≥ 0,1`) et si, **sur ce groupe**, l'erreur relative symétrique médiane de `attendu × f` est au plus
+  0,95 × celle de `attendu` (même principe que la garde : un facteur qui n'aide pas ne s'applique pas). Calculé une fois
+  par corpus avec le modèle (`ModelEstimator.State.rhythm`, même cache).
+- **Application.** À une estimation **fiable du modèle** seulement (les séries et titres gardent leur médiane) : le facteur
+  du jour si la tâche est planifiée (`scheduledDate`, ou la date de `pinnedStart`), celui de la tranche si elle a une heure
+  fixe (`pinnedStart`) ; les deux se multiplient (deux marges estimées séparément, approximation assumée : un tableau
+  jour × tranche serait trop clairsemé). La durée, `low` et `high` sont multipliés, puis arrondis et bornés comme avant.
+  Une tâche sans jour ni heure garde l'estimation sans facteur.
+- **Preuve.** `Evidence.rhythm` (`Rhythm(weekday, weekdayFactor, band, bandFactor)`, facteurs nuls quand non appliqués)
+  ; « Pourquoi » et la fiche ajoutent « dont +20 % le lundi » / « dont −15 % le matin ».
+- **Fuseau.** `core` reste pur : le fuseau est un paramètre (`DurationEstimator.estimates(…, timeZone)`,
+  `effectiveMinutes`, `withLearned`, `DayView.build` le passe). Sans fuseau (`null`), pas de rythme : les échantillons
+  n'ont ni jour ni tranche.
+- **Tests** : `RhythmTest` (un historique simulé où le lundi prend 30 % de plus : facteur trouvé, erreur meilleure ; sans
+  effet de jour : aucun facteur ; groupes trop petits : aucun facteur ; tâche non planifiée : inchangée).
 
 ### Réglage
 

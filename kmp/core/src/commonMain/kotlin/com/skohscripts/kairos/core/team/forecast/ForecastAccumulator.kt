@@ -126,6 +126,7 @@ class ForecastAccumulator internal constructor(private val setup: MonteCarlo.Set
             expectedLate = if (n == 0 || !setup.taskLevel) 0.0 else lateTotal.toDouble() / n,
             allOnTimeProbability = if (n == 0 || !setup.taskLevel) 1.0 else lateDistribution[0].toDouble() / n,
             toQualify = setup.toQualify,
+            modelEstimated = setup.modelEstimated,
             samples = ForecastSamples(sorted, taskEnds?.let { stored -> gather(stored, n) }, scope),
         )
     }

@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.day.duration
+import com.skohscripts.kairos.ui.generated.resources.effort_model
+import com.skohscripts.kairos.core.engine.TimeTracking
 import com.skohscripts.kairos.ui.app.uiLanguage
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
@@ -78,16 +81,30 @@ internal class EffortInfo(
     val points: Int?,
     val calibratedCount: Int?,
     val hoursPerPoint: Double,
+    /** L'intervalle de l'estimation du modèle, en minutes ([EffortSource.MODEL] seulement). */
+    val modelLowMinutes: Int? = null,
+    val modelHighMinutes: Int? = null,
 ) {
     companion object {
         /** Lit l'effort de [task] dans [snapshot] : calibration de l'équipe, réglages. Léger : une seule passe sur les tâches faites. */
         fun of(task: Task, snapshot: KairosSnapshot, now: Instant): EffortInfo {
             val calibration = Effort.teamCalibration(snapshot, now)
-            // Sans estimation, la durée apprise des occurrences passées vaut estimation (docs/spec/durees-apprises.md) ; la fiche dit d'où elle vient.
-            val learned = if (task.estimatedMinutes?.takeIf { it > 0 } == null) DurationEstimator.effectiveMinutes(task, snapshot, now) else null
+            // Sans estimation, la durée apprise fiable vaut estimation (docs/spec/durees-apprises.md) ; la fiche dit d'où elle vient,
+            // et l'intervalle quand c'est le modèle (docs/spec/estimateur-modele.md).
+            val estimate = if (task.estimatedMinutes?.takeIf { it > 0 } == null) {
+                val spent = TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks)
+                DurationEstimator.estimate(task, DurationEstimator.samples(snapshot.tasks, spent), snapshot.settings)?.takeIf { it.reliable }
+            } else {
+                null
+            }
+            val learned = estimate?.minutes
             val read = if (learned != null) task.copy(estimatedMinutes = learned) else task
             val (hours, computed) = Effort.base(read, calibration, snapshot.settings)
-            val source = if (learned != null) EffortSource.LEARNED else computed
+            val source = when {
+                estimate == null -> computed
+                estimate.source == DurationEstimator.Source.MODEL -> EffortSource.MODEL
+                else -> EffortSource.LEARNED
+            }
             val points = task.fibonacciPoints
             return EffortInfo(
                 hours = hours,
@@ -97,6 +114,8 @@ internal class EffortInfo(
                 points = points,
                 calibratedCount = if (source == EffortSource.CALIBRATED) calibration.firstOrNull { it.key == points.toString() }?.count else null,
                 hoursPerPoint = (snapshot.settings.team ?: TeamSettings()).hoursPerPoint,
+                modelLowMinutes = estimate?.low.takeIf { source == EffortSource.MODEL },
+                modelHighMinutes = estimate?.high.takeIf { source == EffortSource.MODEL },
             )
         }
     }
@@ -247,6 +266,9 @@ private fun EffortLine(effort: EffortInfo) {
         val text = when (effort.source) {
             EffortSource.ESTIMATE -> stringResource(Res.string.effort_estimate, base)
             EffortSource.LEARNED -> stringResource(Res.string.effort_learned, base)
+            EffortSource.MODEL -> stringResource(
+                Res.string.effort_model, base, duration(effort.modelLowMinutes ?: 0), duration(effort.modelHighMinutes ?: 0),
+            )
             EffortSource.CALIBRATED -> stringResource(Res.string.effort_calibrated, base, effort.points ?: 0, effort.calibratedCount ?: 0)
             EffortSource.POINTS_RATE -> stringResource(Res.string.effort_points, base, effort.points ?: 0, decimalText(effort.hoursPerPoint, uiLanguage()))
             EffortSource.NONE -> stringResource(Res.string.effort_none)
