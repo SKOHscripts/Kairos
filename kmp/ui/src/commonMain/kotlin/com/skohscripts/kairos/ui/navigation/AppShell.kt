@@ -363,7 +363,7 @@ fun AppShell(
                     LocalDemoTour provides demo,
                 ) {
                     if (estimateReview) {
-                        EstimateReviewDialog(services, estimateChanges.orEmpty()) { estimateReview = false; estimateChanges = null }
+                        EstimateReviewDialog(services, estimateChanges.orEmpty(), scope) { estimateReview = false; estimateChanges = null }
                     }
                     val home: @Composable () -> Unit = {
                         HomeScreen(

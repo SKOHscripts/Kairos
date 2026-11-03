@@ -26,9 +26,11 @@ le 2026-11-03).
 avec la pastille, « Pourquoi », la fiche, la carte des Réglages et son état (`ModelStatusLine`, `DurationEstimator.
 modelStatus`), l'estimation au tri (besoin 9), la carte du catalogue et le README ; test `ModelEstimateUiTest`. L'effort
 d'une tâche d'équipe estimée par le modèle se lit encore « apprise des occurrences passées » dans la fiche d'équipe jusqu'à
-l'étape 4 (`EffortSource.MODEL`). **Étape 5 livrée** (rythme, § Rythme ; `engine/model/Rhythm.kt`). **Étape 4 livrée** : `DurationEstimator.Spread`, `spreads`, `withLearned` ;
+l'étape 4 (`EffortSource.MODEL`). **Étape 4 livrée** : `DurationEstimator.Spread`, `spreads`, `withLearned` ;
 `team/forecast/EffortSpread.kt` ; `EffortModel` et `MonteCarlo.prepare` ; `ForecastResult.modelEstimated` et sa ligne dans
-`ForecastPanels` ; `EffortSource.MODEL` et l'intervalle dans `TeamTaskSheet` ; test `EffortSpreadTest`. Les effets sur les
+`ForecastPanels` ; `EffortSource.MODEL` et l'intervalle dans `TeamTaskSheet` ; test `EffortSpreadTest`. **Étape 5 livrée**
+(rythme, § Rythme ; `engine/model/Rhythm.kt`). **Étape 6 livrée** (§ Estimations qui changent ; `engine/model/EstimateChanges.kt`,
+`ui/app/EstimateReview.kt`, champ `learning.notifyChanges`). Les effets sur les
 autres specs sont listés en fin de document (« Impacts sur les specs existantes ») et reportés à mesure.
 
 ## 1. Besoin métier (cahier des charges)
@@ -493,12 +495,16 @@ propre dispersion, apprise de tâches qui lui ressemblent. On la substitue au fa
   notification « n estimations ont changé » (`tag` `estimates`) ; **au plus une par jour et par session** (garde en
   mémoire : la référence repart du relevé du lancement, rien n'est stocké) ; puis la référence devient le relevé.
   Réglage `learning.notifyChanges` (`Boolean?`, nul = actif, seul `false` s'écrit), dans la carte « Durées apprises »,
-  affiché avec l'interrupteur du modèle ; coupé, ni bandeau ni notification.
+  affiché seulement si le modèle l'est (`SHOWN_WITH` suivi de proche en proche : durées apprises → modèle → prévenir) ;
+  coupé, ni bandeau ni notification (`EstimateChanges.applied` rend un relevé vide).
 - **Bandeau** (`EstimateChangesBanner`, neutre comme celui des mises à jour, sous lui) : « 3 estimations ont changé »,
   « Voir » ouvre la revue, « Plus tard » le ferme.
 - **Revue** (`EstimateReviewDialog`) : « Ce qui a changé » (titre, avant → après) et « Estimations saisies à revoir »
   (titre, saisie → modèle avec son intervalle, « Passer à 45 min » par ligne, « Tout appliquer ») ; chaque application
-  écrit par `KairosRepository.setEstimate` et propose « Annuler » (`LocalUndoMessages`), qui remet l'ancienne valeur.
+  écrit par `KairosRepository.setEstimate` et propose « Annuler » (`LocalUndoMessages`), qui remet l'ancienne valeur. Les
+  écritures et l'annulation passent par la **portée de coroutines de l'hôte** (coquille, carte des Réglages), jamais celle
+  du dialogue : « Annuler » vit dans la snackbar de la coquille, sert après la fermeture du dialogue (un clic hors d'un
+  dialogue modal le ferme), et une portée du dialogue l'aurait perdue (bug trouvé par `EstimateReviewUiTest`).
   Ouverte aussi depuis la carte « Durées apprises » (« Revoir les estimations saisies (n) », affiché s'il y en a).
 - **Fiche** : une durée saisie dont le modèle s'écarte nettement montre « Le modèle estime 45 min (entre 30 et 60) » et
   la puce « Passer à 45 min », qui remplit le champ **sur action** (rien n'est changé sans accord).

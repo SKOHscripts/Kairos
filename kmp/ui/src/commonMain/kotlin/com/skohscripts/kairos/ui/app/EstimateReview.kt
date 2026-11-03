@@ -18,7 +18,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -43,6 +42,7 @@ import com.skohscripts.kairos.ui.generated.resources.review_typed_row
 import com.skohscripts.kairos.ui.generated.resources.update_later
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.theme.KairosTextButton
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -110,10 +110,11 @@ fun EstimateChangesBanner(count: Int, onView: () -> Unit, onDismiss: () -> Unit,
  * ligne avec « Passer à … », plus « Tout appliquer » ; chaque application propose « Annuler », qui remet la durée saisie.
  */
 @Composable
-fun EstimateReviewDialog(services: AppServices, changes: List<EstimateChanges.Change>, onDismiss: () -> Unit) {
+fun EstimateReviewDialog(services: AppServices, changes: List<EstimateChanges.Change>, scope: CoroutineScope, onDismiss: () -> Unit) {
+    // [scope] est celui de l'hôte : « Annuler » vit dans la snackbar de la coquille et peut servir après la fermeture du
+    // dialogue (cliquer dessus le ferme) ; une portée du dialogue serait annulée avec lui, et l'annulation perdue.
     val snapshot by services.repository.personalSnapshot.collectAsState()
     val undo = LocalUndoMessages.current
-    val scope = rememberCoroutineScope()
     val titles = remember(snapshot) { snapshot.tasks.associate { it.id to it.title } }
     val proposals = remember(snapshot) { EstimateChanges.proposals(snapshot, services.clock.now(), TimeZone.currentSystemDefault()) }
     AlertDialog(

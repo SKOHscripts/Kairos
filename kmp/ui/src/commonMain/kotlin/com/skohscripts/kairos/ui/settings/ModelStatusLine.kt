@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.settings
 
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.datetime.TimeZone
@@ -49,5 +50,6 @@ internal fun ModelStatusLine(services: AppServices) {
     if (proposals.isNotEmpty()) {
         KairosOutlinedButton(onClick = { review = true }) { Text(stringResource(Res.string.settings_review_button, proposals.size)) }
     }
-    if (review) EstimateReviewDialog(services, emptyList()) { review = false }
+    val scope = rememberCoroutineScope()
+    if (review) EstimateReviewDialog(services, emptyList(), scope) { review = false }
 }
