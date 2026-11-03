@@ -245,7 +245,7 @@ private data class ExportFile(
         fun tag(kind: RecordKind, id: Long): Tag? {
             val uid = d.uidOf(kind, id) ?: return null
             val m = d.marks[RecordRef(kind, uid)] ?: return null
-            return Tag(uid, m.born.toString(), m.base.takeIf { it != m.born }?.toString(), m.stamps.takeIf { it.isNotEmpty() }?.mapValues { it.value.toString() }?.toSortedMap())
+            return Tag(uid, m.born.toString(), m.base.takeIf { it != m.born }?.toString(), m.stamps.takeIf { it.isNotEmpty() }?.mapValues { it.value.toString() }?.sortedByKey())
         }
         return copy(
             formatVersion = ExportCodec.SYNC_FORMAT_VERSION,
@@ -260,12 +260,12 @@ private data class ExportFile(
             sync = SyncJson(
                 device = d.device,
                 label = d.label,
-                seen = d.seen.mapValues { it.value.toString() }.toSortedMap(),
-                labels = d.labels.takeIf { it.isNotEmpty() }?.toSortedMap(),
-                settings = MarksJson(d.settings.base.toString(), d.settings.stamps.takeIf { it.isNotEmpty() }?.mapValues { it.value.toString() }?.toSortedMap()),
+                seen = d.seen.mapValues { it.value.toString() }.sortedByKey(),
+                labels = d.labels.takeIf { it.isNotEmpty() }?.sortedByKey(),
+                settings = MarksJson(d.settings.base.toString(), d.settings.stamps.takeIf { it.isNotEmpty() }?.mapValues { it.value.toString() }?.sortedByKey()),
                 // Phantômes (tâches supprimées encore référencées) : leur uid, pour que les références se lisent pareil ailleurs.
                 phantoms = s.tasks.mapTo(HashSet()) { it.id }.let { present -> d.uids[RecordKind.TASK].orEmpty().filterKeys { it !in present } }.takeIf { it.isNotEmpty() }
-                    ?.entries?.associate { (id, uid) -> id.toString() to uid }?.toSortedMap(),
+                    ?.entries?.associate { (id, uid) -> id.toString() to uid }?.sortedByKey(),
             ),
         )
     }

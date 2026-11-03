@@ -100,7 +100,7 @@ internal class SyncStore(private val queries: KairosQueries) {
         private val mapJson = Json
         private val stringMap = MapSerializer(String.serializer(), String.serializer())
 
-        private fun encodeMap(m: Map<String, String>): String = mapJson.encodeToString(stringMap, m.toSortedMap())
+        private fun encodeMap(m: Map<String, String>): String = mapJson.encodeToString(stringMap, m.sortedByKey())
         private fun decodeMap(text: String): Map<String, String> = runCatching { mapJson.decodeFromString(stringMap, text) }.getOrDefault(emptyMap())
 
         /** `born`, `base`, `stamps` (« champ=marque » séparés par des tabulations) et `hashes` (« champ=empreinte hexadécimale »). */

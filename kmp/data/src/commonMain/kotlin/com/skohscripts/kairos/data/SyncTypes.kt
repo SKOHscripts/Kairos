@@ -84,3 +84,6 @@ internal object ExampleMarks {
         Entry(kind, parts[1].toLongOrNull() ?: return@mapNotNull null, parts[2].toLongOrNull() ?: return@mapNotNull null)
     }
 }
+
+/** La même table, clés triées (ordre d'insertion conservé) : `toSortedMap` n'existe que sur la JVM, `data` compile aussi pour le web. */
+internal fun <V> Map<String, V>.sortedByKey(): Map<String, V> = entries.sortedBy { it.key }.associate { it.key to it.value }
