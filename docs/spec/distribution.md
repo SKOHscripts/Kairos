@@ -5,7 +5,7 @@ publié sur chaque cible. Fichiers couverts : `kmp/gradle.properties`
 (version), `kmp/core/src/commonMain/.../AppVersion.kt`, `kmp/androidApp/`,
 `kmp/desktopApp/` (dont `Main.kt`, `DataDirectory.kt`, `SingleInstance.kt`,
 `CrashLog.kt`, `SelfTest.kt`, `icons/`), `kmp/webApp/`,
-`kmp/tools/make_app_icons.py`, `.github/workflows/kmp.yml`,
+`kmp/tools/make_app_icons.py`, `packaging/aur/` (paquet Arch Linux), `.github/workflows/kmp.yml`,
 `.github/workflows/kmp-release.yml` et `.github/workflows/pages.yml` (sa
 partie version web). Les services de fichiers et de sauvegarde de chaque plateforme
 sont décrits par `export-import.md` ; F-Droid, fiches Fastlane et
@@ -22,6 +22,7 @@ utilisateurs travaillent :
 
 - sur Android, depuis F-Droid ou l'APK des releases ;
 - sur un poste Windows, Linux ou macOS, par un installeur classique ;
+- sur **Arch Linux** et ses dérivées, par le gestionnaire de paquets, qui le tient à jour (4.0.0) ;
 - sur un **poste professionnel verrouillé**, sans droit d'installation : par un
   **zip portable** ou par la **version web** dans Edge ou Chrome.
 
@@ -41,6 +42,12 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 - **Bureau** : un installeur par OS (`.msi`, `.deb`, `.dmg`), qui n'exige pas
   de droits administrateur sous Windows, et un **zip portable** par OS : on
   dézippe, on lance, rien n'est installé.
+- **Arch Linux** (4.0.0, choix du propriétaire du 2026-11-02) : un paquet AUR **`kairos-bin`**
+  (`yay -S kairos-bin`, ou tout assistant AUR), qui reprend le `.deb` de la release. Kairos apparaît dans le menu des
+  applications et se lance par la commande `kairos`. Chaque version stable arrive par `yay -Syu` peu après son tag,
+  sans geste du propriétaire. Installé ainsi, Kairos ne cherche pas lui-même de nouvelle version (ni bandeau ni carte
+  « Mises à jour », `mises-a-jour.md`) : le gestionnaire de paquets s'en charge. Les données sont les mêmes que
+  celles du `.deb` (`~/.local/share/Kairos/v3`) : passer de l'un à l'autre ne perd rien.
 - L'application de bureau s'ouvre sur une fenêtre « Kairos » (ou « Kairos
   Preview »). La relancer alors qu'elle est ouverte ramène la fenêtre
   existante au premier plan, sans seconde instance.
@@ -61,6 +68,9 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   avant publication ; un auto-test en échec bloque la release.
 - Un tag produit un APK **signé**, avec toujours la même clé (chaque version s'installe par-dessus la précédente).
 - Les fichiers publiés ont des noms fixes (liens stables) et un `SHA256SUMS`.
+- Le paquet AUR est **construit, installé avec ses dépendances et lancé** (auto-test) dans un conteneur Arch Linux
+  avant d'être poussé ; un échec bloque sa publication, jamais la release GitHub. Il vérifie la somme SHA-256 du
+  `.deb` publié.
 - Un build de test ne construit que des commits de la branche depuis laquelle il est lancé, passe les mêmes tests et
   auto-tests qu'une release, et ne publie jamais rien.
 
@@ -76,6 +86,9 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 - Mise à jour intégrée : jamais sur Android ; sur le bureau, simple
   vérification (`mises-a-jour.md`).
 - F-Droid, fiches et page de téléchargement : `publication.md`.
+- Arch Linux : dépôts officiels (`extra`, il faudrait qu'un mainteneur de confiance d'Arch adopte le paquet), paquet
+  compilé depuis les sources, préversions (`kairos-preview-bin`), ARM. Autres distributions (Flatpak, RPM) : non
+  prévues.
 
 ## 2. Solution technique
 
@@ -168,7 +181,8 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   3. `--self-test[=dossier]` : auto-test puis sortie ;
   4. instance unique (`SingleInstance.acquire`), sinon sortie immédiate ;
   5. copie portable (`PortableCopy.detect`) et classe de fenêtre X11
-     (`WindowClass.apply`), voir `raccourci-portable.md` ;
+     (`WindowClass.apply`), voir `raccourci-portable.md` ; installation tenue par un gestionnaire de paquets
+     (`SystemPackage.detect`, § Paquet Arch Linux) ;
   6. fenêtre 1200 × 800 dp (minimum 360 × 480 px), titre `Kairos` ou
      `Kairos Preview` (propriété JVM `kairos.preview`), icône = logo,
      contenu `KairosApp(Platform.DESKTOP) { DesktopServices.open(dataDir, …,
@@ -274,6 +288,61 @@ remplacer ; une version stable s'installe par-dessus la précédente.
      même »), dans une petite PR de suivi. La réputation SmartScreen d'un nouvel éditeur se construit aux
      téléchargements : l'avertissement peut persister quelque temps.
 
+### Paquet Arch Linux (AUR, `packaging/aur/`, 4.0.0)
+
+- **Quoi** : le paquet AUR `kairos-bin` (base de paquet du même nom), x86-64, versions stables seulement. Le dépôt
+  garde le gabarit `packaging/aur/PKGBUILD` (`pkgver=@PKGVER@`, `sha256sums=('@SHA256@')`) et deux scripts ; l'AUR
+  ne reçoit que le `PKGBUILD` rempli et son `.SRCINFO`.
+- **`PKGBUILD`** :
+  - source : `Kairos-<version>-linux-x64.deb::https://github.com/SKOHscripts/Kairos/releases/download/v<version>/Kairos-linux-x64.deb`,
+    avec sa somme SHA-256 (le nom local porte la version : le cache d'un assistant AUR ne resert pas l'ancien) ;
+  - `package()` : extrait `data.tar.*` du `.deb` (que `makepkg` a déjà ouvert) dans `$pkgdir`, donc l'image jpackage
+    dans `/opt/kairos` ; y ajoute le marqueur `/opt/kairos/lib/app/kairos-managed` (§ Décisions) ; lien
+    `/usr/bin/kairos` → `/opt/kairos/bin/Kairos` ; entrée de menu `/usr/share/applications/kairos.desktop`
+    (`Exec=kairos`, `Icon=kairos`, `Categories=Office;ProjectManagement;`, `StartupWMClass=kairos`, la classe de
+    fenêtre de `WindowClass`, commentaire anglais et `Comment[fr]`) ; icône `/usr/share/pixmaps/kairos.png` (le logo
+    1024 px de l'image) ; licence `/usr/share/licenses/kairos-bin/LICENSE` (le fichier `copyright` du `.deb`, MIT) ;
+  - `depends` : les bibliothèques que l'image charge elle-même (runtime Java réduit, Skiko) : `alsa-lib`,
+    `fontconfig`, `glibc`, `libglvnd` (libGL, chargée à l'exécution par Skiko), `libstdc++`, `libx11`, `libxext`,
+    `libxi`, `libxrender`, `libxtst` ; freetype et zlib viennent du runtime, qui est embarqué : aucun JDK n'est
+    demandé ; `provides`/`conflicts` : `kairos` ;
+    `options=('!strip' '!debug')` (binaires du runtime jpackage laissés tels quels).
+- **`build.sh <version> <.deb> <sortie>`** (lancé en root dans `archlinux:base-devel`) : met le système à jour,
+  remplit le gabarit (version, somme du `.deb` local, posé sous le nom de la source pour que `makepkg` ne le
+  retélécharge pas), construit le paquet sous un compte sans privilège, l'installe par `pacman -U` (ses dépendances
+  viennent des dépôts : un nom faux échoue ici), vérifie qu'aucune bibliothèque de `/opt/kairos` ne manque (`ldd`,
+  avec les dossiers du runtime dans `LD_LIBRARY_PATH` comme le lanceur : `libjvm.so` n'est pas dans le système),
+  que le marqueur, l'entrée de menu, l'icône et la licence sont là, lance **l'auto-test par `/usr/bin/kairos`**
+  (`KAIROS_DATA_DIR` temporaire), passe `namcap` (avis seulement : il signale toujours, à tort pour cette image,
+  « ELF hors chemin valide » pour `/opt` et une dépendance `java-runtime` non déclarée), puis écrit `PKGBUILD` et `.SRCINFO`
+  (`makepkg --printsrcinfo`) dans la sortie. Essayé le 2026-11-02 sur le `.deb` 3.14.0 publié : paquet installé
+  avec ses dépendances, aucune bibliothèque manquante, auto-test réussi par `/usr/bin/kairos`.
+- **`publish.sh <sortie>`** : clé privée `AUR_SSH_PRIVATE_KEY`, empreinte de la clé d'hôte Ed25519 de l'AUR
+  **épinglée** (`SHA256:RFzBCUItH9LZS0cKB5UE6ceAYhBD5C8GeOBip8Z11+4`, publiée sur aur.archlinux.org) et comparée à
+  celle que renvoie `ssh-keyscan` (sinon échec) ; clone `ssh://aur@aur.archlinux.org/kairos-bin.git` (vide au premier
+  envoi : l'AUR crée la base de paquet à la première poussée sur `master`), y copie les deux fichiers, commit
+  « Kairos <version> » (auteur `Kairos release`, adresse `noreply` de GitHub Actions) et pousse ; rien à pousser si
+  le contenu est déjà là (relance du job).
+- **Job `aur` de `kmp-release.yml`** : après `release` sur un tag (ou après `desktop` lors d'un lancement manuel),
+  version stable seulement ; télécharge l'artefact `kairos3-linux-x64`, lance `build.sh` dans le conteneur, téléverse
+  l'artefact `aur-kairos-bin` (`PKGBUILD`, `.SRCINFO`, pour une poussée à la main), puis lance `publish.sh` **sur un
+  tag seulement et seulement si** le secret `AUR_SSH_PRIVATE_KEY` existe (`AUR_READY`, comme `SIGNPATH_READY`) :
+  forks et lancements manuels construisent et testent sans rien publier. Un échec du job n'annule pas la release
+  GitHub, déjà publiée.
+- **Application** : `SystemPackage.detect()` (`desktopApp`) cherche le marqueur `kairos-managed` à côté des JAR de
+  l'image (même résolution que `PortableCopy` à partir de `jpackage.app-path`, `/proc/self/exe` du lanceur, donc
+  `/opt/kairos/bin/Kairos` même lancé par le lien `/usr/bin/kairos`) ; `Main` le passe à `DesktopServices.open
+  (managed = …)`, qui ne crée alors pas `DesktopUpdates` (`AppServices.updates` nul : ni vérification, ni bandeau, ni
+  carte, `mises-a-jour.md`).
+- **À faire par le propriétaire** (rien de cela ne peut se faire depuis le dépôt) :
+  1. Créer un compte sur aur.archlinux.org.
+  2. Créer une paire de clés dédiée (`ssh-keygen -t ed25519 -f aur -C kairos-aur`), poser la clé **publique** dans
+     « My Account » → « SSH Public Key » de l'AUR.
+  3. Dans le dépôt GitHub : secret `AUR_SSH_PRIVATE_KEY` = le contenu de la clé **privée**.
+  4. Au premier tag stable (`v4.0.0`), vérifier le job `aur`, puis la page `https://aur.archlinux.org/packages/kairos-bin`.
+     Sans secret, l'artefact `aur-kairos-bin` se pousse à la main (`git clone ssh://aur@aur.archlinux.org/kairos-bin.git`,
+     copier les deux fichiers, commit, push).
+
 ### Web (`kmp/webApp`)
 
 - Kotlin/Wasm (`wasmJs`, module de sortie `kairos`, script `kairos.js`),
@@ -321,7 +390,7 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   runner à deux cœurs, avec les modules testés en parallèle, 5 s ont manqué
   par intermittence (`M5ScreensUiTest`), d'où 15 s.
 - `kmp-test-build.yml` (lancement manuel seulement) : build de test d'un commit de la branche, voir § Build de test.
-- `kmp-release.yml` (tag `v3.*`, lancement manuel) :
+- `kmp-release.yml` (tags `v3.*` et `v4.*` (`v4.*` ajouté avec le paquet AUR, pour que la 4.0.0 se publie), lancement manuel) :
   - `version` : lit `kairos.versionName` ; échec si le tag diffère ; drapeau
     `prerelease` si la version contient `-` ;
   - `android` : tests JVM, keystore depuis `KAIROS_KEYSTORE_BASE64` (échec
@@ -335,7 +404,9 @@ remplacer ; une version stable s'installe par-dessus la précédente.
     Foundation sur un tag quand c'est configuré (§ Signature Windows) ; captures en artefacts `screens-<id>` ;
   - `release` (tag seulement) : `SHA256SUMS` de tous les `Kairos-*`, release
     GitHub « Kairos <version> » (préversion si suffixe), notes générées. Un
-    seul APK par release.
+    seul APK par release ;
+  - `aur` (version stable) : paquet `kairos-bin` construit et testé dans un conteneur Arch, poussé sur l'AUR sur un
+    tag quand `AUR_SSH_PRIVATE_KEY` existe (§ Paquet Arch Linux).
 
 ### Build de test (`kmp-test-build.yml`)
 
@@ -363,6 +434,20 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 
 ### Décisions et pièges tracés
 
+- **Arch Linux : paquet AUR `kairos-bin` publié par la CI** (2026-11-02, choix du propriétaire, 4.0.0). Tiré du
+  `.deb` plutôt que de l'archive portable : celle-ci porte le marqueur `kairos-portable`, et Kairos installé par pacman
+  proposerait de « s'ajouter au menu ». Écartés : un paquet compilé depuis les sources (Gradle et un JDK chez chaque
+  utilisateur, long et fragile, pour le même résultat) ; un `.pkg.tar.zst` joint aux releases (`pacman -U`, sans mise
+  à jour). Publication **automatique** sur tag, **conditionnelle** au secret (forks jamais bloqués), versions stables
+  seulement (une préversion dans `kairos-bin` la pousserait à tous). Le paquet est **installé et lancé dans un vrai
+  Arch** avant chaque envoi : ses dépendances ne se déduisent pas de celles du `.deb` (noms Debian), seul un essai
+  les prouve. Clé d'hôte de l'AUR épinglée plutôt qu'acceptée au premier contact : la clé privée ne doit parler qu'à
+  l'AUR.
+- **Marqueur `kairos-managed` posé par le `PKGBUILD`, pas par la release** : le même `.deb`, installé à la main par
+  `dpkg`, n'a personne pour le mettre à jour et garde la vérification. Un fichier plutôt qu'une option JVM : le
+  `Kairos.cfg` du lanceur fait partie de l'image du `.deb`, le réécrire couplerait le paquet à son format.
+- **`v4.*` ajouté aux tags de `kmp-release.yml`** (2026-11-02) : le filtre `v3.*` aurait ignoré le tag `v4.0.0`, et
+  avec lui la release et la première publication AUR.
 - **Build de test séparé de la release** (2026-11-03) : un workflow à part plutôt qu'un champ « commit » ajouté au
   lancement manuel de `kmp-release.yml`, pour que le chemin de release reste celui des tags et que le build de test ne
   puisse rien publier par construction. Écartés : un commit hors de la branche du lancement (un SHA de fork serait

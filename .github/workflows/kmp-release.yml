@@ -1,11 +1,12 @@
-# Release de Kairos 3 (docs/spec/distribution.md § Release) : sur tag v3.*,
+# Release de Kairos (docs/spec/distribution.md § Release) : sur tag v3.* ou v4.*,
 # APK signé, installeurs et images portables des trois OS de bureau, version
-# web, SHA256SUMS, release GitHub (préversion si le tag a un suffixe).
+# web, SHA256SUMS, release GitHub (préversion si le tag a un suffixe), paquet AUR
+# kairos-bin pour une version stable.
 name: Kairos 3 release
 
 on:
   push:
-    tags: ["v3.*"]
+    tags: ["v3.*", "v4.*"]
   workflow_dispatch:
 
 permissions:
@@ -265,3 +266,35 @@ jobs:
           files: |
             artifacts/Kairos-*
             artifacts/SHA256SUMS
+
+  # Paquet AUR kairos-bin (docs/spec/distribution.md § Paquet Arch Linux) : construit, installé et lancé dans un
+  # conteneur Arch à partir du .deb publié, puis poussé sur l'AUR sur un tag stable si le secret existe. Lancement
+  # manuel : construit et testé seulement.
+  aur:
+    needs: [version, desktop, release]
+    if: >-
+      always() && needs.version.outputs.prerelease == 'false' && needs.desktop.result == 'success'
+      && (needs.release.result == 'success' || github.ref_type != 'tag')
+    runs-on: ubuntu-latest
+    env:
+      AUR_READY: ${{ secrets.AUR_SSH_PRIVATE_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: kairos3-linux-x64
+          path: artifacts
+      - name: Construire et tester (conteneur Arch)
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w archlinux:base-devel \
+            bash packaging/aur/build.sh "${{ needs.version.outputs.name }}" artifacts/Kairos-linux-x64.deb aur-out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aur-kairos-bin
+          path: aur-out/
+          include-hidden-files: true
+      - name: Publier sur l'AUR
+        if: github.ref_type == 'tag' && env.AUR_READY == 'true'
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: bash packaging/aur/publish.sh aur-out

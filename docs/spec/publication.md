@@ -261,7 +261,8 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   **« Nouveau en 4.0 : du machine learning sur l'appareil »**, suivi d'un paragraphe « Une IA ? Non, du machine learning », l'estimateur par
   modèle, `estimateur-modele.md`, mis en avant comme fonctionnalité majeure de la 4.0, demande du propriétaire du
   2026-11-03 ; puis ordre expliqué par la formule, journée réaliste, temps réel), cartes de téléchargement (Android : APK ; Windows :
-  MSI et zip portable ; Linux : `.deb` et `.tar.gz` ; macOS : DMG Apple
+  MSI et zip portable ; Linux : `.deb`, `.tar.gz` et le paquet AUR (lien vers `https://aur.archlinux.org/packages/kairos-bin`,
+  « Arch Linux (AUR) », 4.0.0, `distribution.md` § Paquet Arch Linux) ; macOS : DMG Apple
   Silicon et Intel ; navigateur), lien vers les releases et `SHA256SUMS`,
   captures 1 à 6 et 10 (dont la 2, le machine learning), le thème sombre (défilement horizontal), notes de première installation, « On en parle »
   (liens texte vers la fiche AlternativeTo et le post r/foss, 2026-10-29), pied de page (licence, source, tickets).

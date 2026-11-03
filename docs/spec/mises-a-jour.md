@@ -7,8 +7,8 @@ comparaison, cadence ; pur), `kmp/desktopApp/.../DesktopUpdates.kt` (appel
 réseau, état), `kmp/ui/.../app/Updates.kt` (`UpdateService`,
 `UpdateStatus`, `UpdateWatcher`, `UpdateBanner`), la carte Mises à jour de
 `settings/SettingsScreen.kt`, le module `java.net.http` du runtime embarqué
-(`desktopApp/build.gradle.kts`). Tests : `UpdateCheckTest`,
-`DesktopUpdatesTest`, `M5ScreensUiTest.anAvailableVersionShowsABannerUntilLater`. Android (3.9.0, issue #143) :
+(`desktopApp/build.gradle.kts`), `desktopApp/.../SystemPackage.kt` (paquet Arch, 4.0.0). Tests : `UpdateCheckTest`,
+`DesktopUpdatesTest`, `SystemPackageTest`, `M5ScreensUiTest.anAvailableVersionShowsABannerUntilLater`. Android (3.9.0, issue #143) :
 `core/updates/InstallSource.kt` (pur), `androidApp/.../AndroidServices.kt` (installateur), carte « Mises à jour »
 d'Android dans `settings/SettingsScreen.kt` ; tests `InstallSourceTest`, `DownloadPageUiTest`._
 
@@ -38,6 +38,11 @@ savoir.
   3.0.1 est disponible (…) », « Vérification impossible le … (hors
   ligne ?). ») et « Vérifier maintenant », qui marche même réglage coupé.
 - Une vérification qui échoue ne gêne jamais l'application.
+- **Bureau installé par un gestionnaire de paquets** (paquet AUR `kairos-bin`, 4.0.0, choix du propriétaire du
+  2026-11-02, `distribution.md` § Paquet Arch Linux) : **aucune vérification**, ni bandeau, ni carte « Mises à jour »
+  (la catégorie Général dit alors « Langue, apparence ») ; c'est le gestionnaire de paquets qui met à jour, comme un
+  magasin sur Android. Le `.deb` installé à la main, l'installeur Windows, le DMG et les copies portables vérifient
+  comme avant.
 - Android : **aucune vérification** jusqu'à la 3.x (aucune permission réseau ; les mises à jour passent par le magasin ou l'APK).
   **Rouvert le 2026-10-26 par `connexions-en-ligne.md`** (4.0.0, issue #144, à implémenter) : un APK installé à la main peut vérifier, par un
   interrupteur **désactivé par défaut** (état propre à Android, distinct de `updateCheckEnabled`), seulement application ouverte ; la
@@ -59,6 +64,8 @@ savoir.
   « Vérifier maintenant » passe outre ; 404 = à jour, autre code ou exception
   = échec ; « Plus tard » survit à la relance (`DesktopUpdatesTest`).
 - Bandeau affiché, puis masqué par « Plus tard » (`M5ScreensUiTest`).
+- Marqueur `kairos-managed` à côté des JAR de l'image Linux : installation gérée, aucun service de mise à jour ;
+  sans marqueur, ou hors image jpackage : vérification (`SystemPackageTest`).
 - Android : à la main = installateur absent ou installateur de paquets du système (`com.google.android.packageinstaller`,
   `com.android.packageinstaller`, `com.android.shell` pour `adb`) ; tout autre installateur = un magasin
   (`InstallSourceTest`). La carte montre la version et ouvre la page de la langue de l'interface ; sans lien
@@ -90,7 +97,9 @@ savoir.
   système : `java.net.useSystemProxies`, `bureau-avance.md`) ; 200 → disponible ou à jour, 404 → à jour, sinon → échec ; état
   écrit dans `updates.json` du dossier de données (`lastCheck`, `failed`,
   `latest`, `url`, `dismissed`) et relu au lancement. Pas créé pour
-  l'auto-test (base en mémoire, aucun réseau).
+  l'auto-test (base en mémoire, aucun réseau) ni pour une installation gérée par un gestionnaire de paquets
+  (`DesktopServices.open(managed = SystemPackage.detect())`, marqueur `lib/app/kairos-managed` posé par le
+  `PKGBUILD` ; même résolution du dossier des JAR que `PortableCopy.detect`).
 - `UpdateWatcher` (coquille) : tant que le réglage est actif,
   `check(force = false)` toutes les 30 minutes (la cadence réelle est celle
   de `due`). `UpdateBanner` : au-dessus du contenu de chaque destination,

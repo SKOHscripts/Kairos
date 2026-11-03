@@ -130,6 +130,7 @@ in the [GitHub releases](https://github.com/SKOHscripts/Kairos/releases).
 | Windows 10 or 11 | `Kairos-windows-x64.msi` | Per-user install, no administrator rights needed. |
 | Windows, locked-down PC | `Kairos-windows-x64-portable.zip` | Unzip, run `Kairos.exe`: nothing is installed. Kairos offers to add its shortcuts (Start menu, Desktop). |
 | Linux (x86-64) | `Kairos-linux-x64.deb`, or `Kairos-linux-x64-portable.tar.gz` | Portable version: Kairos offers to add itself to the applications menu, with its icon. |
+| Arch Linux (x86-64) | [AUR `kairos-bin`](https://aur.archlinux.org/packages/kairos-bin): `yay -S kairos-bin` | Updated by your package manager (`yay -Syu`), like the rest of the system. |
 | macOS | `Kairos-macos-arm64.dmg` (Apple Silicon), `Kairos-macos-x64.dmg` (Intel) | |
 | Browser | [Kairos online](https://skohscripts.github.io/Kairos/app/) | Recent Edge or Chrome; nothing to install. |
 
@@ -148,7 +149,8 @@ in the [GitHub releases](https://github.com/SKOHscripts/Kairos/releases).
 by hand, Settings → General → Updates shows your version and "See the latest
 version" opens the download page (Kairos still never connects). On the desktop, Kairos
 checks every 6 hours for a new version and announces it in a banner
-("Download" opens its page); setting in Settings → General → Updates. The web version is
+("Download" opens its page); setting in Settings → General → Updates. Installed from the AUR,
+Kairos leaves this to your package manager and never checks itself. The web version is
 always the latest.
 
 ## Features
