@@ -217,7 +217,8 @@ interface DurationEstimator {
   (paramètre `cache` facultatif ajouté à celles qui calculent), donc les tests actuels compilent tels quels.
   `appliedMinutes` garde les estimations fiables, modèle compris.
 - Nouveau : `DurationEstimator.spreads(estimates): Map<Long, Spread>` (les estimations **fiables** de source `MODEL` :
-  `Spread(low, high)`, en minutes), et `DurationEstimator.withLearned(snapshot, now, cache): Learned(snapshot, spreads)` ;
+  `Spread(minutes, low, high)`, en minutes), et `DurationEstimator.withLearned(snapshot, now, timeZone): Learned(snapshot,
+  spreads)` ;
   `withLearnedEstimates` en est la projection `snapshot`. Voir « Prévisions ».
 
 ### Données : `Sample` enrichi
@@ -285,12 +286,12 @@ urgence, pas une taille ; on la laisse à la régression, qui dira si les donné
 - `Evidence(NEIGHBOURS, …)` : les voisins retenus avec leur durée et leur ressemblance en pour cent entier.
 
 **4. Régression légère en repli** (`RidgePrior.kt`) quand il y a moins de `MIN_NEIGHBOURS` voisins retenus
-(`MIN_NEIGHBOURS = max(3, learning.minSamples)`) : un type riche en historique mais dont aucun titre ne ressemble.
+(`MIN_NEIGHBOURS = min(NEIGHBOURS_MAX, max(3, learning.minSamples))`) : un type riche en historique mais dont aucun titre ne ressemble.
 
 - Cible : `y = sqrt(minutes)` (stabilise la variance, la racine est exacte sur toutes les cibles ; pas de logarithme).
 - Variables : constante ; rang des points centré et réduit ((rang − 3) / 3, 0 si absents) et indicateur « points absents » ;
-  une variable 0/1 par **type** présent dans au moins 3 échantillons (huit au plus, dans l'ordre alphabétique des types
-  repliés ; les autres types et l'absence de type forment la référence) ; priorité P0 et P1 (P2 et absence = référence) ;
+  une variable 0/1 par **type** présent dans au moins 3 échantillons (les huit **plus fréquents**, égalités par nom, puis
+  rangés par nom ; les autres types et l'absence de type forment la référence) ; priorité P0 et P1 (P2 et absence = référence) ;
   récurrence 0/1. Au plus 14 variables.
 - **Crête** (ridge) de coefficient `RIDGE_LAMBDA` = 1,0 sur toutes les variables sauf la constante ; équations normales
   résolues par élimination de Gauss à pivot partiel (pivot de plus grande valeur absolue, égalités au plus petit indice) :
@@ -329,11 +330,14 @@ Une estimation de source `MODEL` non fiable (garde échouée, corpus trop court,
 `reliable = false` quand elle existe : affichée « pas encore fiable », jamais appliquée.
 
 **Paramètres** : toutes les constantes vivent dans `ModelParams` (valeurs de départ ci-dessus, arbitrées par le rétro-test) :
-`MAX_CORPUS` 500, `MIN_CORPUS` 20, `NEIGHBOURS_MAX` 5, `SIMILARITY_MIN` 0,25, `MIN_NEIGHBOURS` max(3, `minSamples`),
-poids 0,5 / 0,2 / 0,2 / 0,1, quantiles 0,10 et 0,90, `RIDGE_LAMBDA` 1,0, `GATE_SIZE` 30, `GATE_PREFIX_MIN` 8, `GATE_MIN` 10,
+`MAX_CORPUS` 500, `MIN_CORPUS` 20, `NEIGHBOURS_MAX` 5, `SIMILARITY_MIN` 0,25, `MIN_NEIGHBOURS` min(5, max(3, `minSamples`)),
+poids 0,5 / 0,2 / 0,2 / 0,1, quantiles 0,10 et 0,90, `NEIGHBOUR_WIDEN` 2 (élargissement `1 + 2/k`), `RIDGE_LAMBDA` 1,0,
+`RIDGE_WIDEN` 1,25, `RIDGE_TYPE_MIN` 3, `RIDGE_MAX_TYPES` 8, `GATE_SIZE` 30, `GATE_PREFIX_MIN` 8, `GATE_MIN` 10,
 `GATE_RATIO` 0,8, facteur d'aberrant 3,0 (partagé avec `HistoryEstimators`). Ce ne sont **pas** des réglages utilisateur
 (un seul interrupteur : § Réglage). `learning.history` ne concerne que séries et titres ; `learning.minSamples` fixe aussi
-le nombre minimal de voisins, avec un plancher à 3.
+le nombre minimal de voisins, avec un plancher à 3 et un **plafond à `NEIGHBOURS_MAX`** (relecture du 2026-11-03 : sans
+plafond, `minSamples` ≥ 6, permis jusqu'à `learning.history`, rendait toute base de voisins insuffisante et éteignait le
+modèle sans le dire ; `RobustnessTest.manyRequiredSamplesNeverSilenceTheModel`).
 
 ### Déterminisme et pureté
 
@@ -451,7 +455,7 @@ propre dispersion, apprise de tâches qui lui ressemblent. On la substitue au fa
   sur l'index complet : l'idf le compte encore, écart négligeable et accepté ; la garde, elle, reste stricte sur
   l'avenir) ; un échantillon sans estimation à base suffisante ne compte pas.
 - **Le facteur.** Par jour (7) et par tranche (3), séparément : la médiane basse des rapports du groupe, bornée à
-  [0,5 ; 2], retenue seulement si le groupe compte au moins `RHYTHM_MIN` = 8 rapports, si elle s'écarte d'au moins 10 %
+  [0,5 ; 2], retenue seulement si le groupe compte au moins `MIN_RATIOS` = 8 rapports, si elle s'écarte d'au moins 10 %
   de 1 (`|f − 1| ≥ 0,1`) et si, **sur ce groupe**, l'erreur relative symétrique médiane de `attendu × f` est au plus
   0,95 × celle de `attendu` (même principe que la garde : un facteur qui n'aide pas ne s'applique pas). Calculé une fois
   par corpus avec le modèle (`Rhythm.learn`, `ModelEstimator.State.rhythm`, même cache : l'empreinte couvre le jour et la
@@ -566,6 +570,32 @@ La provenance est visible partout où la durée l'est, avec les mêmes règles q
 - Les prévisions n'existent que dans l'espace Équipe : le chemin `spreads` n'est atteint que par `MonteCarlo.prepare`.
 
 ### Décisions et pièges tracés
+
+**Passe de robustesse du 2026-11-03** (deux relectures indépendantes, en lecture seule, du moteur et de l'interface ; test
+`RobustnessTest`, `EstimateReviewUiTest`) :
+
+- **Plafond de `MIN_NEIGHBOURS`** à `NEIGHBOURS_MAX` (§ Paramètres) : sinon un `minSamples` élevé éteignait le modèle.
+- **Types de la régression par fréquence** : par ordre alphabétique, un type lourd en fin d'alphabet perdait sa variable
+  au profit de huit types rares (`theMostFrequentTypesGetARegressionVariable`).
+- **Corpus et empreinte une fois par calcul** : `ModelCache.prepare` mémorise par **identité** de la liste d'échantillons,
+  et la façade passe la même liste pour toutes les tâches d'un espace (`estimates` regroupe par espace ; la chaîne garde la
+  liste telle quelle si elle est déjà réduite). Avant, chaque tâche triait le corpus et recalculait son empreinte : 200
+  tâches × 500 échantillons à chaque minute de la vue Jour (`theFacadeShareOneCorpusPerSpaceForAllTasks`). Les listes du
+  cache sont `@Volatile` (publication sûre entre la vue Jour en arrière-plan, les Réglages et les prévisions ; une course
+  ne coûte qu'une reconstruction).
+- **Accents décomposés** (NFD, U+0300 à U+036F) ignorés dans le mot au lieu de le couper (« re\u0301diger » = « rédiger »).
+- **La garde trie elle-même** son corpus : un préfixe n'est le passé que dans l'ordre des `taskId`, même si un appelant
+  futur oublie `corpus()`.
+- **Rythme** : le produit jour × tranche est borné comme chaque facteur ([0,5 ; 2]) ; la validation d'un facteur arrondit
+  et borne comme la production (multiple de 5, fenêtre de travail). Le laisser-un-dehors ne retire la tâche que des voisins
+  (l'idf et la régression la comptent encore) : écart accepté, la garde reste, elle, stricte sur l'avenir.
+- **« Tâches proches »** : une tâche du même type passe le seuil de ressemblance à elle seule (0,2 / 0,7 ≈ 0,29 ≥ 0,25 sans
+  points ni étiquette) ; c'est voulu (le type est une ressemblance réelle), et la fiche donne le pour cent de chacune.
+- **Interface** : le rythme est dit aussi dans la fiche pour une base de voisins ; « pas encore assez de tâches
+  comparables pour vérifier le modèle » quand la garde manque de candidats (et non « pas assez de tâches faites ») ; « ne
+  fait pas **nettement** mieux » (la garde exige 0,8 ×) ; « … » après trois tâches proches nommées ; « points : 1 » plutôt
+  que « 1 points » ; l'état de la vérification dans les Réglages suit les valeurs **enregistrées** (il apparaît après
+  « Enregistrer » quand on vient d'activer le modèle) et passe le fuseau, comme la vue Jour, pour partager sa case de cache.
 
 Décidées le 2026-10-26 à la rédaction de la spec ; **l'activation par défaut sous garde est confirmée par le propriétaire le
 2026-11-02**, avec le périmètre de la première version : prévisions d'équipe, estimation au tri et mesure web comprises.

@@ -43,6 +43,7 @@ import com.skohscripts.kairos.ui.generated.resources.why_learned_model_few_tasks
 import com.skohscripts.kairos.ui.generated.resources.why_learned_model_neighbour
 import com.skohscripts.kairos.ui.generated.resources.why_learned_model_not_better
 import com.skohscripts.kairos.ui.generated.resources.why_learned_model_regression
+import com.skohscripts.kairos.ui.generated.resources.why_learned_model_unverified
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -62,14 +63,16 @@ internal fun modelProvenance(estimate: DurationEstimator.Estimate, learning: Lea
             evidence.basis == DurationEstimator.Basis.NEIGHBOURS && evidence.neighbours.size < minNeighbours ->
                 stringResource(Res.string.why_learned_model_few_neighbours, evidence.neighbours.size, minNeighbours)
             evidence.gate.reason == ModelGate.Reason.TOO_FEW_SAMPLES ->
-                stringResource(Res.string.why_learned_model_few_tasks, evidence.gate.evaluated, ModelParams.GATE_MIN)
+                stringResource(Res.string.why_learned_model_unverified, evidence.gate.evaluated, ModelParams.GATE_MIN)
             else -> stringResource(Res.string.why_learned_model_not_better)
         }
     }
     val sentence = when (evidence.basis) {
         DurationEstimator.Basis.NEIGHBOURS -> {
             val names = evidence.neighbours.take(3).map { stringResource(Res.string.why_learned_model_neighbour, it.title, duration(it.minutes)) }
-            stringResource(Res.string.why_learned_model, duration(estimate.minutes), low, high, estimate.samples, names.joinToString(", "))
+            // Trois noms au plus : « … » dit qu'il y en a d'autres (la fiche les liste tous).
+            val list = names.joinToString(", ") + if (evidence.neighbours.size > 3) "\u2026" else ""
+            stringResource(Res.string.why_learned_model, duration(estimate.minutes), low, high, estimate.samples, list)
         }
         DurationEstimator.Basis.REGRESSION ->
             stringResource(Res.string.why_learned_model_regression, duration(estimate.minutes), low, high, evidence.corpus, regressionBasis(evidence))
@@ -152,5 +155,9 @@ internal fun ModelSuggestion(estimate: DurationEstimator.Estimate, learning: Lea
                 )
             }
         }
+    }
+    // Le rythme explique l'écart entre la durée proposée et celles des tâches proches (besoin 11).
+    evidence.rhythm?.let { rhythmText(it) }?.let {
+        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

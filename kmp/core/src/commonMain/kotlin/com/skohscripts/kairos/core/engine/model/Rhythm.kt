@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.core.engine.model
 
+import com.skohscripts.kairos.core.engine.HistoryEstimates
 import com.skohscripts.kairos.core.model.Settings
 import kotlinx.datetime.LocalDateTime
 
@@ -58,7 +59,9 @@ object Rhythm {
             val f = ModelGate.lowMedian(group.map { it.real.toDouble() / it.expected }).coerceIn(MIN_FACTOR, MAX_FACTOR)
             if (f in (1.0 - MIN_EFFECT)..(1.0 + MIN_EFFECT)) return null
             val without = ModelGate.lowMedian(group.map { ModelGate.error(it.expected, it.real) })
-            val with = ModelGate.lowMedian(group.map { ModelGate.error((it.expected * f).toInt(), it.real) })
+            // Même arrondi et même borne que la production (multiple de 5, fenêtre de travail).
+            val cap = HistoryEstimates.cap(settings)
+            val with = ModelGate.lowMedian(group.map { ModelGate.error(HistoryEstimates.roundToFive(it.expected * f).coerceIn(5, cap), it.real) })
             return f.takeIf { with <= MIN_GAIN * without }
         }
         val weekdays = LinkedHashMap<Int, Double>()
@@ -70,7 +73,8 @@ object Rhythm {
 
     /** Ce qui s'applique à une tâche : le facteur de son jour (planifiée) et de sa tranche (heure fixe), 1 sinon. */
     data class Applied(val weekday: Int?, val weekdayFactor: Double?, val band: Band?, val bandFactor: Double?) {
-        val factor: Double get() = (weekdayFactor ?: 1.0) * (bandFactor ?: 1.0)
+        /** Le produit des deux facteurs, borné comme chacun d'eux à [[MIN_FACTOR] ; [MAX_FACTOR]]. */
+        val factor: Double get() = ((weekdayFactor ?: 1.0) * (bandFactor ?: 1.0)).coerceIn(MIN_FACTOR, MAX_FACTOR)
         val isEmpty: Boolean get() = weekdayFactor == null && bandFactor == null
     }
 

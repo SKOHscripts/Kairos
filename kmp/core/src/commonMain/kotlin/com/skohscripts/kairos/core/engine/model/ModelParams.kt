@@ -15,8 +15,12 @@ object ModelParams {
     const val NEIGHBOURS_MAX = 5
     const val SIMILARITY_MIN = 0.25
 
-    /** Voisins retenus minimaux : `max(3, learning.minSamples)`. */
-    fun minNeighbours(minSamples: Int): Int = maxOf(3, minSamples)
+    /**
+     * Voisins retenus minimaux : `max(3, learning.minSamples)`, **plafonné à [NEIGHBOURS_MAX]** : au-delà, aucune base de
+     * voisins ne serait jamais suffisante et le modèle s'éteindrait sans le dire (`minSamples` peut monter jusqu'à
+     * `learning.history`).
+     */
+    fun minNeighbours(minSamples: Int): Int = minOf(NEIGHBOURS_MAX, maxOf(3, minSamples))
 
     const val WEIGHT_TEXT = 0.5
     const val WEIGHT_TYPE = 0.2

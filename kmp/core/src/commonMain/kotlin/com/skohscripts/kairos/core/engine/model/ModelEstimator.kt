@@ -79,9 +79,10 @@ object ModelEstimator : DurationEstimator {
     override fun estimate(task: Task, history: DurationEstimator.History, settings: Settings): DurationEstimator.Estimate? {
         val learning = settings.learning ?: LearningSettings()
         if (!learning.enabled || learning.model == false) return null
-        val corpus = corpus(history.samples)
+        val prepared = history.cache.prepare(history.samples)
+        val corpus = prepared.corpus
         if (corpus.isEmpty()) return null
-        val state = history.cache.state(corpus, settings) { build(corpus, settings) }
+        val state = history.cache.state(prepared, settings) { build(corpus, settings) }
         val features = Features.of(task)
         val p = predict(state.fit, features, settings) ?: return null
         val reliable = corpus.size >= ModelParams.MIN_CORPUS && p.sufficient && state.gate.passed

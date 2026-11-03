@@ -156,10 +156,12 @@ interface DurationEstimator {
             if (settings.learning?.enabled == false) return emptyMap()
             val past = past(snapshot, now, timeZone)
             if (past.isEmpty()) return emptyMap()
+            // Une liste par espace, la même pour toutes ses tâches : le cache du modèle la reconnaît (corpus et empreinte une fois).
+            val bySpace = past.groupBy { it.space }
             val out = LinkedHashMap<Long, Estimate>()
             for (t in snapshot.tasks) {
                 if (t.status != TaskStatus.TODO) continue
-                estimate(t, past, settings)?.let { out[t.id] = it }
+                estimate(t, bySpace[t.space].orEmpty(), settings)?.let { out[t.id] = it }
             }
             return out
         }
@@ -202,9 +204,10 @@ interface DurationEstimator {
             val learning = settings.learning ?: LearningSettings()
             if (!learning.enabled || learning.model == false) return null
             val past = past(snapshot, now, timeZone)
-            val corpus = ModelEstimator.corpus(past.filter { it.space == space })
+            val prepared = cache.prepare(past.filter { it.space == space })
+            val corpus = prepared.corpus
             if (corpus.isEmpty()) return ModelStatus(0, ModelGate.fromErrors(emptyList(), emptyList()))
-            return ModelStatus(corpus.size, cache.state(corpus, settings) { ModelEstimator.build(corpus, settings) }.gate)
+            return ModelStatus(corpus.size, cache.state(prepared, settings) { ModelEstimator.build(corpus, settings) }.gate)
         }
 
         /** L'intervalle d'une estimation du modèle, en minutes (prévisions d'équipe, docs/spec/estimateur-modele.md § Prévisions). */

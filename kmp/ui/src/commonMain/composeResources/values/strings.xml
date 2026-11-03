@@ -1764,16 +1764,16 @@
     <string name="learning_model_status_few">Not enough timed tasks yet (%1$d of %2$d).</string>
     <string name="learning_model_status_unverified">Not enough comparable tasks to check it yet (%1$d of %2$d).</string>
     <string name="learning_model_status_ok">On your last %1$d tasks: median error %2$d%, against %3$d% for the default duration.</string>
-    <string name="learning_model_status_not_better">Not better than the default duration on your last %1$d tasks (%2$d% against %3$d%): not applied.</string>
+    <string name="learning_model_status_not_better">Not clearly better than the default duration on your last %1$d tasks (%2$d% against %3$d%): not applied.</string>
     <string name="learned_model_badge_description">Estimated by the model from %1$d similar tasks, between %2$s and %3$s</string>
     <string name="learned_model_badge_description_regression">Estimated by the model from your %1$d finished tasks, between %2$s and %3$s</string>
     <string name="why_learned_model">Duration: ~%1$s (between %2$s and %3$s), estimated by the model from %4$d similar tasks: %5$s.</string>
     <string name="why_learned_model_neighbour">“%1$s” (%2$s)</string>
     <string name="why_learned_model_regression">Duration: ~%1$s (between %2$s and %3$s), estimated by the model from your %4$d finished tasks (%5$s).</string>
-    <string name="model_basis_type_points">type “%1$s”, %2$d points</string>
+    <string name="model_basis_type_points">type “%1$s”, points: %2$d</string>
     <string name="model_basis_type">type “%1$s”</string>
-    <string name="model_basis_points">%1$d points</string>
-    <string name="why_learned_model_not_better">Duration: the model does not do better than the default duration on your last tasks yet (not applied).</string>
+    <string name="model_basis_points">points: %1$d</string>
+    <string name="why_learned_model_not_better">Duration: the model is not yet clearly better than the default duration on your last tasks (not applied).</string>
     <string name="why_learned_model_few_tasks">Duration: not enough finished tasks for the model yet (%1$d of %2$d needed).</string>
     <string name="why_learned_model_few_neighbours">Duration: not enough similar tasks for the model (%1$d, %2$d needed).</string>
     <string name="learned_model_use">Use %1$s (between %2$s and %3$s)</string>
@@ -1811,4 +1811,6 @@
     <string name="review_empty">Nothing to review: your typed estimates agree with the model.</string>
     <string name="settings_review_button">Review typed estimates (%1$d)</string>
     <string name="sheet_model_differs">The model estimates %1$s (between %2$s and %3$s).</string>
+    <!-- Estimateur par modèle : garde pas encore vérifiable (passe de robustesse, #99) -->
+    <string name="why_learned_model_unverified">Duration: not enough comparable tasks to check the model yet (%1$d of %2$d).</string>
 </resources>

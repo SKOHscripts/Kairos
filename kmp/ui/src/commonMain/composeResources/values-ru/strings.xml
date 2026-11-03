@@ -1763,7 +1763,7 @@
     <string name="learning_model_status_few">Пока недостаточно задач с замером времени (%1$d из %2$d).</string>
     <string name="learning_model_status_unverified">Пока недостаточно похожих задач, чтобы его проверить (%1$d из %2$d).</string>
     <string name="learning_model_status_ok">На твоих последних %1$d задачах: медианная ошибка %2$d%, против %3$d% у длительности по умолчанию.</string>
-    <string name="learning_model_status_not_better">Не лучше длительности по умолчанию на твоих последних %1$d задачах (%2$d% против %3$d%): не применяется.</string>
+    <string name="learning_model_status_not_better">Не заметно лучше длительности по умолчанию на твоих последних %1$d задачах (%2$d% против %3$d%): не применяется.</string>
     <string name="learned_model_badge_description">Оценено моделью по похожим задачам (%1$d), от %2$s до %3$s</string>
     <string name="learned_model_badge_description_regression">Оценено моделью по твоим выполненным задачам (%1$d), от %2$s до %3$s</string>
     <string name="why_learned_model">Длительность: ~%1$s (от %2$s до %3$s), оценена моделью по похожим задачам (%4$d): %5$s.</string>
@@ -1772,7 +1772,7 @@
     <string name="model_basis_type_points">тип «%1$s», баллов: %2$d</string>
     <string name="model_basis_type">тип «%1$s»</string>
     <string name="model_basis_points">баллов: %1$d</string>
-    <string name="why_learned_model_not_better">Длительность: модель пока не лучше длительности по умолчанию на твоих последних задачах (не применяется).</string>
+    <string name="why_learned_model_not_better">Длительность: модель пока не заметно лучше длительности по умолчанию на твоих последних задачах (не применяется).</string>
     <string name="why_learned_model_few_tasks">Длительность: пока мало выполненных задач для модели (%1$d из %2$d нужных).</string>
     <string name="why_learned_model_few_neighbours">Длительность: мало похожих задач для модели (%1$d, нужно %2$d).</string>
     <string name="learned_model_use">Использовать %1$s (от %2$s до %3$s)</string>
@@ -1810,4 +1810,6 @@
     <string name="review_empty">Нечего проверять: введённые оценки близки к модели.</string>
     <string name="settings_review_button">Проверить введённые оценки (%1$d)</string>
     <string name="sheet_model_differs">Модель оценивает %1$s (от %2$s до %3$s).</string>
+    <!-- Estimateur par modèle : garde pas encore vérifiable (passe de robustesse, #99) -->
+    <string name="why_learned_model_unverified">Длительность: пока мало похожих задач, чтобы проверить модель (%1$d из %2$d).</string>
 </resources>

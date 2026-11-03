@@ -1763,16 +1763,16 @@
     <string name="learning_model_status_few">Aún no hay suficientes tareas cronometradas (%1$d de %2$d).</string>
     <string name="learning_model_status_unverified">Aún no hay suficientes tareas comparables para comprobarlo (%1$d de %2$d).</string>
     <string name="learning_model_status_ok">En tus últimas %1$d tareas: error mediano del %2$d%, frente al %3$d% de la duración por defecto.</string>
-    <string name="learning_model_status_not_better">No mejora la duración por defecto en tus últimas %1$d tareas (%2$d% frente a %3$d%): no se aplica.</string>
+    <string name="learning_model_status_not_better">No mejora claramente la duración por defecto en tus últimas %1$d tareas (%2$d% frente a %3$d%): no se aplica.</string>
     <string name="learned_model_badge_description">Estimada por el modelo a partir de %1$d tareas parecidas, entre %2$s y %3$s</string>
     <string name="learned_model_badge_description_regression">Estimada por el modelo a partir de tus %1$d tareas terminadas, entre %2$s y %3$s</string>
     <string name="why_learned_model">Duración: ~%1$s (entre %2$s y %3$s), estimada por el modelo a partir de %4$d tareas parecidas: %5$s.</string>
     <string name="why_learned_model_neighbour">«%1$s» (%2$s)</string>
     <string name="why_learned_model_regression">Duración: ~%1$s (entre %2$s y %3$s), estimada por el modelo a partir de tus %4$d tareas terminadas (%5$s).</string>
-    <string name="model_basis_type_points">tipo «%1$s», %2$d puntos</string>
+    <string name="model_basis_type_points">tipo «%1$s», puntos: %2$d</string>
     <string name="model_basis_type">tipo «%1$s»</string>
-    <string name="model_basis_points">%1$d puntos</string>
-    <string name="why_learned_model_not_better">Duración: el modelo aún no mejora la duración por defecto en tus últimas tareas (no se aplica).</string>
+    <string name="model_basis_points">puntos: %1$d</string>
+    <string name="why_learned_model_not_better">Duración: el modelo aún no mejora claramente la duración por defecto en tus últimas tareas (no se aplica).</string>
     <string name="why_learned_model_few_tasks">Duración: aún no hay suficientes tareas terminadas para el modelo (%1$d de %2$d necesarias).</string>
     <string name="why_learned_model_few_neighbours">Duración: no hay suficientes tareas parecidas para el modelo (%1$d, %2$d necesarias).</string>
     <string name="learned_model_use">Usar %1$s (entre %2$s y %3$s)</string>
@@ -1810,4 +1810,6 @@
     <string name="review_empty">Nada que revisar: tus estimaciones escritas coinciden con el modelo.</string>
     <string name="settings_review_button">Revisar las estimaciones escritas (%1$d)</string>
     <string name="sheet_model_differs">El modelo estima %1$s (entre %2$s y %3$s).</string>
+    <!-- Estimateur par modèle : garde pas encore vérifiable (passe de robustesse, #99) -->
+    <string name="why_learned_model_unverified">Duración: aún no hay suficientes tareas comparables para comprobar el modelo (%1$d de %2$d).</string>
 </resources>

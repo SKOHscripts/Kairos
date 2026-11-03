@@ -1763,16 +1763,16 @@
     <string name="learning_model_status_few">Noch nicht genug gestoppte Aufgaben (%1$d von %2$d).</string>
     <string name="learning_model_status_unverified">Noch nicht genug vergleichbare Aufgaben, um es zu prüfen (%1$d von %2$d).</string>
     <string name="learning_model_status_ok">Bei deinen letzten %1$d Aufgaben: mittlerer Fehler %2$d%, gegenüber %3$d% mit der Standarddauer.</string>
-    <string name="learning_model_status_not_better">Nicht besser als die Standarddauer bei deinen letzten %1$d Aufgaben (%2$d% gegenüber %3$d%): nicht angewendet.</string>
+    <string name="learning_model_status_not_better">Nicht deutlich besser als die Standarddauer bei deinen letzten %1$d Aufgaben (%2$d% gegenüber %3$d%): nicht angewendet.</string>
     <string name="learned_model_badge_description">Vom Modell geschätzt anhand von %1$d ähnlichen Aufgaben, zwischen %2$s und %3$s</string>
     <string name="learned_model_badge_description_regression">Vom Modell geschätzt anhand deiner %1$d erledigten Aufgaben, zwischen %2$s und %3$s</string>
     <string name="why_learned_model">Dauer: ~%1$s (zwischen %2$s und %3$s), vom Modell geschätzt anhand von %4$d ähnlichen Aufgaben: %5$s.</string>
     <string name="why_learned_model_neighbour">„%1$s“ (%2$s)</string>
     <string name="why_learned_model_regression">Dauer: ~%1$s (zwischen %2$s und %3$s), vom Modell geschätzt anhand deiner %4$d erledigten Aufgaben (%5$s).</string>
-    <string name="model_basis_type_points">Typ „%1$s“, %2$d Punkte</string>
+    <string name="model_basis_type_points">Typ „%1$s“, Punkte: %2$d</string>
     <string name="model_basis_type">Typ „%1$s“</string>
-    <string name="model_basis_points">%1$d Punkte</string>
-    <string name="why_learned_model_not_better">Dauer: Das Modell ist bei deinen letzten Aufgaben noch nicht besser als die Standarddauer (nicht angewendet).</string>
+    <string name="model_basis_points">Punkte: %1$d</string>
+    <string name="why_learned_model_not_better">Dauer: Das Modell ist bei deinen letzten Aufgaben noch nicht deutlich besser als die Standarddauer (nicht angewendet).</string>
     <string name="why_learned_model_few_tasks">Dauer: noch nicht genug erledigte Aufgaben für das Modell (%1$d von %2$d nötig).</string>
     <string name="why_learned_model_few_neighbours">Dauer: nicht genug ähnliche Aufgaben für das Modell (%1$d, %2$d nötig).</string>
     <string name="learned_model_use">%1$s übernehmen (zwischen %2$s und %3$s)</string>
@@ -1810,4 +1810,6 @@
     <string name="review_empty">Nichts zu prüfen: Deine eingegebenen Schätzungen passen zum Modell.</string>
     <string name="settings_review_button">Eingegebene Schätzungen prüfen (%1$d)</string>
     <string name="sheet_model_differs">Das Modell schätzt %1$s (zwischen %2$s und %3$s).</string>
+    <!-- Estimateur par modèle : garde pas encore vérifiable (passe de robustesse, #99) -->
+    <string name="why_learned_model_unverified">Dauer: noch nicht genug vergleichbare Aufgaben, um das Modell zu prüfen (%1$d von %2$d).</string>
 </resources>

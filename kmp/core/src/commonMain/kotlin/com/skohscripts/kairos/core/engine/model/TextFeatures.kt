@@ -41,6 +41,8 @@ object TextFeatures {
         for (raw in title) {
             val c = raw.lowercaseChar()
             when {
+                // Accent décomposé (forme NFD, U+0300 à U+036F) : ignoré, le mot continue (« re\u0301diger » = « rediger »).
+                c in '\u0300'..'\u036F' -> Unit
                 c in '0'..'9' -> {
                     if (!inDigits) word.append('0')
                     inDigits = true

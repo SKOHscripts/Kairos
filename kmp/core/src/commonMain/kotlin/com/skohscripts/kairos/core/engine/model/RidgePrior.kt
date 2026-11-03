@@ -56,7 +56,11 @@ class RidgePrior private constructor(
                 val k = Similarity.key(s.taskType)
                 if (k.isNotEmpty()) counts[k] = (counts[k] ?: 0) + 1
             }
-            val types = counts.filter { it.value >= ModelParams.RIDGE_TYPE_MIN }.keys.sorted().take(ModelParams.RIDGE_MAX_TYPES)
+            // Les types les plus fréquents (égalités par nom), puis rangés par nom : un type lourd ne perd jamais sa variable
+            // au profit d'un type rare qui le précède dans l'alphabet.
+            val types = counts.filter { it.value >= ModelParams.RIDGE_TYPE_MIN }.entries
+                .sortedWith(compareByDescending<Map.Entry<String, Int>> { it.value }.thenBy { it.key })
+                .take(ModelParams.RIDGE_MAX_TYPES).map { it.key }.sorted()
             val rows = samples.map { s ->
                 features(types, Similarity.key(s.taskType).takeIf { it in types }, Similarity.rank(s.points), s.priority, s.recurring)
             }
