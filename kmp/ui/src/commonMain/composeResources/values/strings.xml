@@ -1758,4 +1758,61 @@
     <string name="estimate_filled_points">Estimated at %1$s (median of %2$d-point tasks)</string>
     <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
     <string name="event_estimate">Estimated duration %1$s → %2$s</string>
+    <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
+    <string name="setting_learning_model">Estimate with machine learning</string>
+    <string name="setting_learning_model_help">On-device machine learning: compares a task’s title, type and points with your finished tasks. Nothing leaves this device.</string>
+    <string name="learning_model_status_few">Not enough timed tasks yet (%1$d of %2$d).</string>
+    <string name="learning_model_status_unverified">Not enough comparable tasks to check it yet (%1$d of %2$d).</string>
+    <string name="learning_model_status_ok">On your last %1$d tasks: median error %2$d%, against %3$d% for the default duration.</string>
+    <string name="learning_model_status_not_better">Not clearly better than the default duration on your last %1$d tasks (%2$d% against %3$d%): not applied.</string>
+    <string name="learned_model_badge_description">Estimated by machine learning from %1$d similar tasks, between %2$s and %3$s</string>
+    <string name="learned_model_badge_description_regression">Estimated by machine learning from your %1$d finished tasks, between %2$s and %3$s</string>
+    <string name="why_learned_model">Duration: ~%1$s (between %2$s and %3$s), estimated by machine learning from %4$d similar tasks: %5$s.</string>
+    <string name="why_learned_model_neighbour">“%1$s” (%2$s)</string>
+    <string name="why_learned_model_regression">Duration: ~%1$s (between %2$s and %3$s), estimated by machine learning from your %4$d finished tasks (%5$s).</string>
+    <string name="model_basis_type_points">type “%1$s”, points: %2$d</string>
+    <string name="model_basis_type">type “%1$s”</string>
+    <string name="model_basis_points">points: %1$d</string>
+    <string name="why_learned_model_not_better">Duration: machine learning is not yet clearly better than the default duration on your last tasks (not applied).</string>
+    <string name="why_learned_model_few_tasks">Duration: not enough finished tasks for machine learning yet (%1$d of %2$d needed).</string>
+    <string name="why_learned_model_few_neighbours">Duration: not enough similar tasks for machine learning (%1$d, %2$d needed).</string>
+    <string name="learned_model_use">Use %1$s (between %2$s and %3$s)</string>
+    <string name="learned_model_neighbours">Similar tasks (%1$d)</string>
+    <string name="learned_model_neighbour">%1$s: %2$s, %3$d% similar</string>
+    <string name="estimate_filled_learned">Estimated at %1$s (your last %2$d times)</string>
+    <string name="estimate_filled_model">Estimated at %1$s by machine learning (%2$d similar tasks)</string>
+    <string name="estimate_filled_model_regression">Estimated at %1$s by machine learning (your %2$d finished tasks)</string>
+    <!-- Carte « Estimation par machine learning » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
+    <string name="card_model_title">Machine-learning estimates</string>
+    <string name="card_model_body">A machine-learning model, trained on your device, gives a task with a new title a duration from your finished tasks that look like it, with a range and the list of those tasks. It applies only once it beats the default duration on your own history, learns your pace by day and time, and tells you when estimates change. Nothing leaves the device. AI? No, machine learning: robust and local, it trains on every task you finish, light and very fast.</string>
+    <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
+    <string name="effort_model">%1$s, estimated by machine learning (%2$s to %3$s)</string>
+    <string name="forecast_model_estimated">Including %1$d task(s) estimated by machine learning (learned range)</string>
+    <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
+    <string name="why_model_rhythm">Your pace: %1$s.</string>
+    <string name="model_rhythm_weekday">%1$s% on %2$s</string>
+    <string name="model_rhythm_morning">%1$s% in the morning</string>
+    <string name="model_rhythm_afternoon">%1$s% in the afternoon</string>
+    <string name="model_rhythm_evening">%1$s% in the evening</string>
+    <!-- Estimations qui changent et estimations saisies à revoir (docs/spec/estimateur-modele.md, besoins 12 et 13) -->
+    <string name="setting_learning_notify">Tell me when estimates change</string>
+    <string name="setting_learning_notify_help">At most once a day, when finished tasks move the estimate of tasks to do by 15 min or 25% at least.</string>
+    <string name="estimates_changed_banner">%1$d estimate(s) changed after your last finished tasks</string>
+    <string name="estimates_changed_title">Estimates updated</string>
+    <string name="action_view">View</string>
+    <string name="review_changed_header">What changed</string>
+    <string name="review_changed_row">%1$s: %2$s → %3$s</string>
+    <string name="review_typed_header">Typed estimates to review (%1$d)</string>
+    <string name="review_typed_row">%1$s: typed %2$s, machine learning estimates %3$s (%4$s to %5$s)</string>
+    <string name="review_apply">Set to %1$s</string>
+    <string name="review_apply_all">Apply all</string>
+    <string name="review_applied">Estimate set to %1$s</string>
+    <string name="review_applied_all">%1$d estimate(s) updated</string>
+    <string name="review_empty">Nothing to review: your typed estimates agree with machine learning.</string>
+    <string name="settings_review_button">Review typed estimates (%1$d)</string>
+    <string name="sheet_model_differs">Machine learning estimates %1$s (between %2$s and %3$s).</string>
+    <!-- Estimateur par modèle : garde pas encore vérifiable (passe de robustesse, #99) -->
+    <string name="why_learned_model_unverified">Duration: not enough comparable tasks to check the machine-learning model yet (%1$d of %2$d).</string>
+    <!-- Fiche : intitulé de l’estimation par machine learning (docs/spec/estimateur-modele.md § Interface, #99) -->
+    <string name="sheet_model_title">Machine-learning estimate</string>
 </resources>

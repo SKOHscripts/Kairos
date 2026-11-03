@@ -1757,4 +1757,61 @@
     <string name="estimate_filled_points">Auf %1$s geschätzt (Median der Aufgaben mit %2$d Punkten)</string>
     <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
     <string name="event_estimate">Geschätzte Dauer %1$s → %2$s</string>
+    <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
+    <string name="setting_learning_model">Mit maschinellem Lernen schätzen</string>
+    <string name="setting_learning_model_help">Maschinelles Lernen auf dem Gerät: vergleicht Titel, Typ und Punkte einer Aufgabe mit deinen erledigten Aufgaben. Nichts verlässt dieses Gerät.</string>
+    <string name="learning_model_status_few">Noch nicht genug gestoppte Aufgaben (%1$d von %2$d).</string>
+    <string name="learning_model_status_unverified">Noch nicht genug vergleichbare Aufgaben, um es zu prüfen (%1$d von %2$d).</string>
+    <string name="learning_model_status_ok">Bei deinen letzten %1$d Aufgaben: mittlerer Fehler %2$d%, gegenüber %3$d% mit der Standarddauer.</string>
+    <string name="learning_model_status_not_better">Nicht deutlich besser als die Standarddauer bei deinen letzten %1$d Aufgaben (%2$d% gegenüber %3$d%): nicht angewendet.</string>
+    <string name="learned_model_badge_description">Durch maschinelles Lernen geschätzt anhand von %1$d ähnlichen Aufgaben, zwischen %2$s und %3$s</string>
+    <string name="learned_model_badge_description_regression">Durch maschinelles Lernen geschätzt anhand deiner %1$d erledigten Aufgaben, zwischen %2$s und %3$s</string>
+    <string name="why_learned_model">Dauer: ~%1$s (zwischen %2$s und %3$s), durch maschinelles Lernen geschätzt anhand von %4$d ähnlichen Aufgaben: %5$s.</string>
+    <string name="why_learned_model_neighbour">„%1$s“ (%2$s)</string>
+    <string name="why_learned_model_regression">Dauer: ~%1$s (zwischen %2$s und %3$s), durch maschinelles Lernen geschätzt anhand deiner %4$d erledigten Aufgaben (%5$s).</string>
+    <string name="model_basis_type_points">Typ „%1$s“, Punkte: %2$d</string>
+    <string name="model_basis_type">Typ „%1$s“</string>
+    <string name="model_basis_points">Punkte: %1$d</string>
+    <string name="why_learned_model_not_better">Dauer: Das maschinelle Lernen ist bei deinen letzten Aufgaben noch nicht deutlich besser als die Standarddauer (nicht angewendet).</string>
+    <string name="why_learned_model_few_tasks">Dauer: noch nicht genug erledigte Aufgaben für das maschinelle Lernen (%1$d von %2$d nötig).</string>
+    <string name="why_learned_model_few_neighbours">Dauer: nicht genug ähnliche Aufgaben für das maschinelle Lernen (%1$d, %2$d nötig).</string>
+    <string name="learned_model_use">%1$s übernehmen (zwischen %2$s und %3$s)</string>
+    <string name="learned_model_neighbours">Ähnliche Aufgaben (%1$d)</string>
+    <string name="learned_model_neighbour">%1$s: %2$s, zu %3$d% ähnlich</string>
+    <string name="estimate_filled_learned">Auf %1$s geschätzt (deine letzten %2$d Male)</string>
+    <string name="estimate_filled_model">Durch maschinelles Lernen auf %1$s geschätzt (%2$d ähnliche Aufgaben)</string>
+    <string name="estimate_filled_model_regression">Durch maschinelles Lernen auf %1$s geschätzt (deine %2$d erledigten Aufgaben)</string>
+    <!-- Carte « Estimation par machine learning » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
+    <string name="card_model_title">Schätzung durch maschinelles Lernen</string>
+    <string name="card_model_body">Ein auf dem Gerät trainiertes Modell für maschinelles Lernen gibt einer Aufgabe mit neuem Titel eine Dauer aus deinen erledigten Aufgaben, die ihr ähneln, mit einer Spanne und der Liste dieser Aufgaben. Es gilt erst, wenn es auf deinem Verlauf besser ist als die Standarddauer, lernt dein Tempo nach Tag und Uhrzeit und meldet, wenn sich Schätzungen ändern. Nichts verlässt das Gerät. KI? Nein, maschinelles Lernen: robust und lokal, es trainiert mit jeder erledigten Aufgabe weiter, leicht und sehr schnell.</string>
+    <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
+    <string name="effort_model">%1$s, durch maschinelles Lernen geschätzt (%2$s bis %3$s)</string>
+    <string name="forecast_model_estimated">Davon %1$d durch maschinelles Lernen geschätzte Aufgabe(n) (gelernte Spanne)</string>
+    <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
+    <string name="why_model_rhythm">Dein Tempo: %1$s.</string>
+    <string name="model_rhythm_weekday">%1$s% am %2$s</string>
+    <string name="model_rhythm_morning">%1$s% am Vormittag</string>
+    <string name="model_rhythm_afternoon">%1$s% am Nachmittag</string>
+    <string name="model_rhythm_evening">%1$s% am Abend</string>
+    <!-- Estimations qui changent et estimations saisies à revoir (docs/spec/estimateur-modele.md, besoins 12 et 13) -->
+    <string name="setting_learning_notify">Melden, wenn sich Schätzungen ändern</string>
+    <string name="setting_learning_notify_help">Höchstens einmal am Tag, wenn erledigte Aufgaben die Schätzung offener Aufgaben um mindestens 15 Min. oder 25 % verschieben.</string>
+    <string name="estimates_changed_banner">%1$d Schätzung(en) haben sich nach deinen letzten erledigten Aufgaben geändert</string>
+    <string name="estimates_changed_title">Schätzungen aktualisiert</string>
+    <string name="action_view">Ansehen</string>
+    <string name="review_changed_header">Was sich geändert hat</string>
+    <string name="review_changed_row">%1$s: %2$s → %3$s</string>
+    <string name="review_typed_header">Eingegebene Schätzungen zu prüfen (%1$d)</string>
+    <string name="review_typed_row">%1$s: eingegeben %2$s, das maschinelle Lernen schätzt %3$s (%4$s bis %5$s)</string>
+    <string name="review_apply">Auf %1$s setzen</string>
+    <string name="review_apply_all">Alle übernehmen</string>
+    <string name="review_applied">Schätzung auf %1$s gesetzt</string>
+    <string name="review_applied_all">%1$d Schätzung(en) aktualisiert</string>
+    <string name="review_empty">Nichts zu prüfen: Deine eingegebenen Schätzungen passen zum maschinellen Lernen.</string>
+    <string name="settings_review_button">Eingegebene Schätzungen prüfen (%1$d)</string>
+    <string name="sheet_model_differs">Das maschinelle Lernen schätzt %1$s (zwischen %2$s und %3$s).</string>
+    <!-- Estimateur par modèle : garde pas encore vérifiable (passe de robustesse, #99) -->
+    <string name="why_learned_model_unverified">Dauer: noch nicht genug vergleichbare Aufgaben, um das Lernmodell zu prüfen (%1$d von %2$d).</string>
+    <!-- Fiche : intitulé de l’estimation par machine learning (docs/spec/estimateur-modele.md § Interface, #99) -->
+    <string name="sheet_model_title">Schätzung durch maschinelles Lernen</string>
 </resources>

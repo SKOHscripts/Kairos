@@ -2,7 +2,7 @@
 
 _Rôle : une tâche sans estimation explicite récupère une durée à partir de ses
 réalisations passées, pour mieux remplir la journée. Fichiers couverts :
-`kmp/core/.../engine/DurationEstimator.kt`, `engine/Scheduling.kt`
+`kmp/core/.../engine/DurationEstimator.kt`, `engine/HistoryEstimators.kt`, `engine/EstimatorChain.kt`, `engine/Scheduling.kt`
 (`durationMinutes`, `buildDaySchedule`), `engine/Recurrence.kt`
 (`nextOccurrence`, `calendarOccurrences`), `day/DayView.kt`, `model/Task.kt`
 (`seriesId`), `model/LearningSettings.kt`, `model/Settings.kt` (`learning`),
@@ -12,7 +12,7 @@ réalisations passées, pour mieux remplir la journée. Fichiers couverts :
 `KairosRepository`), `ui/day/TaskRow.kt`, `Why.kt`, `NowCard.kt`,
 `EditTaskDialog.kt`, `DayScreen.kt`, `ui/chrono/ChronoWatcher.kt`,
 `androidApp/.../ChronoSync.kt`, `ui/settings/SettingsFormCards.kt`,
-`ui/team/TeamTaskSheet.kt`. Tests : `DurationEstimatorTest`,
+`ui/team/TeamTaskSheet.kt`. Tests : `DurationEstimatorTest`, `EstimatorChainTest`,
 `LearnedTeamLoadTest`, `LearnedDurationsRepositoryTest`,
 `LearnedDurationsUiTest`, `ExchangeMigrationTest`, `TeamIsolationTest`._
 
@@ -108,16 +108,20 @@ sans la réaliser.
 
 ### Port pur dans `core`
 
-`object DurationEstimator` (`core/engine/DurationEstimator.kt`) : pur, ni
-horloge ni accès aux données (l'instant et l'historique sont des paramètres,
-`architecture.md`).
+`interface DurationEstimator` (`core/engine/DurationEstimator.kt`, extraite en 4.0.0 pour le modèle, issue #99,
+`estimateur-modele.md` § Interface extraite) : pur, ni horloge ni accès aux données (l'instant et l'historique sont des
+paramètres, `architecture.md`). Un niveau répond `estimate(task, History(samples), settings): Estimate?` ;
+`SeriesEstimator` et `TitleEstimator` (`HistoryEstimators.kt`) sont les deux niveaux ci-dessous, `EstimatorChain`
+(`EstimatorChain.kt`) les essaie dans l'ordre derrière les garde-fous communs. La façade (`companion`) garde les noms :
 
 ```kotlin
 enum class Source { SERIES, TITLE }
 data class Estimate(val minutes: Int, val source: Source, val samples: Int, val reliable: Boolean)
-data class Sample(val taskId: Long, val seriesId: Long?, val title: String, val space: TaskSpace, val minutes: Int)
+data class Sample(val taskId: Long, val seriesId: Long?, val title: String, val space: TaskSpace, val minutes: Int,
+                  val taskType: String = "", val points: Int? = null, val priority: Int? = null,
+                  val projectTag: String = "", val recurring: Boolean = false)   // champs lus par le modèle
 fun samples(tasks, spentByTask): List<Sample>
-fun estimate(task, samples, settings): Estimate?
+fun estimate(task, samples, settings): Estimate?            // la chaîne : série, puis titre
 fun estimates(snapshot, now): Map<Long, Estimate>          // tâches à faire sans estimation
 fun appliedMinutes(estimates): Map<Long, Int>              // les fiables seulement
 fun effectiveMinutes(task, snapshot, now): Int?            // explicite, sinon apprise fiable, sinon null
@@ -217,23 +221,10 @@ jamais touché. Carte « Durées apprises » dans Réglages, catégorie « Plani
 
 ### Évolution : modèle d'apprentissage automatique (version majeure)
 
-Cette évolution est spécifiée (non implémentée) dans [`estimateur-modele.md`](estimateur-modele.md) (issue #99, 4.0.0) : modèle local et explicable calculé de l'historique, sans poids pré-entraînés, qui précise ou remplace les contraintes ci-dessous à l'implémentation.
-
-Un `ModelEstimator(params)` se branche derrière le **même point d'entrée**
-(`DurationEstimator.estimate`, extrait en interface à ce moment-là) et renvoie
-`Source.MODEL` avec un intervalle `low`/`high` qui alimente le modèle d'effort
-de la simulation (`core/team/forecast/EffortModel.kt`). Contraintes déjà
-connues :
-
-- Kotlin pur exécutable sur wasm, JVM et Android ; aucune dépendance native ni
-  non libre (F-Droid, `architecture.md`).
-- Les poids du modèle sont des **données** passées en paramètre (JSON) ;
-  l'entraînement est hors ligne ou une fonction pure à graine fixe
-  (reproductibilité, skill `kairos-monte-carlo`).
-- Caractéristiques : ce que porte déjà `Sample` (à enrichir : type, points) (jetons du titre,
-  type, points, priorité, récurrence, jour de semaine).
-- Le planificateur, le badge et les specs ne changent pas : seuls `Source` et
-  `samples` traversent la frontière.
+Spécifiée dans [`estimateur-modele.md`](estimateur-modele.md) (issue #99, 4.0.0), qui remplace les contraintes
+esquissées ici en 3.4.0 : modèle **local**, calculé de l'historique de l'utilisateur, **sans poids pré-entraînés ni JSON**,
+branché comme troisième niveau de la chaîne (`Source.MODEL`, intervalle `low`/`high`). Première étape livrée : l'interface
+extraite, la chaîne et `Sample` enrichi (type, points, priorité, étiquette, récurrence), sans changement de comportement.
 
 ### Décisions et pièges tracés
 
@@ -261,9 +252,9 @@ connues :
   niveaux du port aurait dupliqué ce calcul. `Source.TYPE`, `POINTS`, `MODEL`
   ne sont donc pas déclarés ; `Source.MODEL` s'ajoutera avec le modèle
   d'apprentissage automatique.
-- **Un objet, pas une interface** : le port pur est `DurationEstimator`
-  (fonctions) ; l'interface se dégagera quand un second estimateur existera (le
-  modèle d'apprentissage automatique), sans que les appelants changent.
+- **Un objet, pas une interface** (3.4.0) : le port pur était `DurationEstimator`
+  (fonctions) ; l'interface s'est dégagée en 4.0.0 avec le second estimateur (le modèle, `estimateur-modele.md`), sans que
+  les appelants changent (façade du `companion`).
 - **L'estimation apprise de l'équipe passe par l'instantané**
   (`withLearnedEstimates`) plutôt que par une table : un seul point, aucune
   signature d'`Effort`/`TeamWork` modifiée.

@@ -86,6 +86,8 @@ class MonteCarlo private constructor(
         val source: SourceInfo,
         val taskLevel: Boolean,
         val toQualify: Int,
+        /** Tâches du périmètre dont l'effort vient du modèle (tirées dans leur propre intervalle). */
+        val modelEstimated: Int = 0,
     )
 
     val model: ForecastModel get() = setup.model
@@ -145,7 +147,9 @@ class MonteCarlo private constructor(
          */
         fun prepare(request: ForecastRequest): MonteCarlo {
             // Durées apprises : estimation des tâches qui n'en ont pas (docs/spec/durees-apprises.md).
-            val snapshot = TeamWork.view(DurationEstimator.withLearnedEstimates(request.snapshot, request.now))
+            // L'intervalle des tâches estimées par le modèle devient leur loi d'effort (docs/spec/estimateur-modele.md § Prévisions).
+            val learned = DurationEstimator.withLearned(request.snapshot, request.now, request.timeZone)
+            val snapshot = TeamWork.view(learned.snapshot)
             val settings = snapshot.settings
             val team = settings.team ?: TeamSettings()
             val local = request.now.toLocalDateTime(request.timeZone)
@@ -218,12 +222,14 @@ class MonteCarlo private constructor(
                 source = if (effort) request.data.estimationSource else request.data.throughputSource(memberScope),
                 taskLevel = effort,
                 toQualify = toQualify,
+                modelEstimated = if (effort) scoped.count { it.id in learned.spreads } else 0,
             )
             val engine: DrawEngine = if (effort) {
                 EffortModel(
                     snapshot = replayed, day = day, calibration = calibration, todayFraction = fraction,
                     data = request.data, capacityRandomness = request.options.capacityRandomness, seed = request.seed, scopeIds = scopeIds,
                     spent = input.spent, busy = input.busy,
+                    spreads = learned.spreads.mapValues { (_, s) -> EffortSpread.ratios(s.minutes, s.low, s.high) },
                 )
             } else {
                 ThroughputModel(

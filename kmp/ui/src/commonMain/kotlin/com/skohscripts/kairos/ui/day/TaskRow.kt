@@ -54,6 +54,8 @@ import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.core.model.LearningSettings
 import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.ui.generated.resources.learned_badge_description
+import com.skohscripts.kairos.ui.generated.resources.learned_model_badge_description
+import com.skohscripts.kairos.ui.generated.resources.learned_model_badge_description_regression
 import com.skohscripts.kairos.ui.generated.resources.action_move
 import com.skohscripts.kairos.ui.generated.resources.tag_blocks_many
 import com.skohscripts.kairos.ui.generated.resources.tag_blocks_one
@@ -272,13 +274,25 @@ private fun Title(task: Task, ctx: RowContext, time: LocalDateTime?, done: Boole
  */
 @Composable
 internal fun LearnedBadge(estimate: DurationEstimator.Estimate) {
-    val description = stringResource(Res.string.learned_badge_description, estimate.samples)
+    // Le modèle (docs/spec/estimateur-modele.md § Interface) a son icône ; l'intervalle est dit au lecteur d'écran, pas écrit.
+    val model = estimate.source == DurationEstimator.Source.MODEL
+    val description = when {
+        !model -> stringResource(Res.string.learned_badge_description, estimate.samples)
+        estimate.evidence?.basis == DurationEstimator.Basis.REGRESSION -> stringResource(
+            Res.string.learned_model_badge_description_regression, estimate.samples,
+            duration(estimate.low ?: estimate.minutes), duration(estimate.high ?: estimate.minutes),
+        )
+        else -> stringResource(
+            Res.string.learned_model_badge_description, estimate.samples,
+            duration(estimate.low ?: estimate.minutes), duration(estimate.high ?: estimate.minutes),
+        )
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         modifier = Modifier.semantics { contentDescription = description },
     ) {
-        Icon(KairosIcons.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+        Icon(if (model) KairosIcons.Model else KairosIcons.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
         Muted("~" + duration(estimate.minutes))
     }
 }

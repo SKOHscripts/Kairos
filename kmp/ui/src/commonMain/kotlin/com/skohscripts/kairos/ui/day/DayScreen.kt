@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.core.engine.model.EstimateChanges
 import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.guide.demo.LocalDemoTour
 import com.skohscripts.kairos.ui.guide.demo.DemoSpot
@@ -7,6 +8,7 @@ import com.skohscripts.kairos.ui.guide.demo.DemoMark
 import com.skohscripts.kairos.core.engine.Recurrence
 import com.skohscripts.kairos.core.model.BlockSource
 import com.skohscripts.kairos.ui.app.withDeviceCalendars
+import com.skohscripts.kairos.ui.app.LocalShowcaseTask
 import com.skohscripts.kairos.core.engine.Workdays
 import com.skohscripts.kairos.ui.guide.RecurrenceCoach
 import com.skohscripts.kairos.ui.generated.resources.note_affinity_combined
@@ -217,7 +219,9 @@ fun DayScreen(
     val skipIgnored = stored.settings.recurrence?.skipIgnored.orEmpty()
     val skipped = remember(stored.tasks, today, skipIgnored) { Recurrence.skippedSeries(stored.tasks, today, skipIgnored) }
 
-    var editingId by rememberSaveable { mutableStateOf<Long?>(null) }
+    // Captures des magasins : la fiche de la tâche vitrine s'ouvre d'emblée (LocalShowcaseTask) ; nulle ailleurs.
+    val showcaseTask = LocalShowcaseTask.current
+    var editingId by rememberSaveable { mutableStateOf(showcaseTask) }
     var editingBlock by remember { mutableStateOf<EditableBlock?>(null) }
     var filterOpen by rememberSaveable { mutableStateOf(false) }
     // Accompagnement de la première tâche (docs/spec/premiere-tache.md) : la fiche de création (l'étape du coach, -1 une fois
@@ -460,7 +464,7 @@ fun DayScreen(
                     TaskRow(task, ctx) {
                         // Une tâche qu'on finit de qualifier ici (priorité, points et type) reçoit une durée si elle n'en a pas
                         // (issue #166) : la médiane de son type, sinon de ses points, annoncée avec « Annuler ».
-                        suspend fun fillEstimate() = fillInboxEstimate(repository, estimates, task.id, undo, scope)
+                        suspend fun fillEstimate() = fillInboxEstimate(repository, estimates, task.id, undo, scope, services.clock.now())
                         InboxQualify(
                             task,
                             onPriority = { scope.launch { repository.setPriority(task.id, it); fillEstimate() } },
@@ -637,6 +641,8 @@ fun DayScreen(
                 day = day,
                 today = today,
                 learned = view.learned[id],
+                learning = snapshot.settings.learning ?: LearningSettings(),
+                proposal = remember(snapshot, id) { EstimateChanges.proposalFor(task, snapshot, services.clock.now(), timeZone) },
                 taskTypes = snapshot.settings.taskTypeList,
                 candidates = view.openTasks,
                 blockerIds = view.blockersOf[id].orEmpty().toSet(),

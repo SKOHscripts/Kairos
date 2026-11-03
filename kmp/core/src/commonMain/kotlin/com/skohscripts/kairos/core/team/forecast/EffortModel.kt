@@ -48,6 +48,11 @@ internal class EffortModel(
     private val spent: Map<Long, Int> = emptyMap(),
     /** Heures occupées de « moi » par jour (`TeamWork.selfBusy`). */
     private val busy: (LocalDate) -> Double = LoadPlan.NO_BUSY,
+    /**
+     * Rapports `(low / m, high / m)` des tâches estimées par le modèle (docs/spec/estimateur-modele.md § Prévisions) : leur
+     * facteur d'effort est tiré dans leur propre intervalle ([EffortSpread]) au lieu du facteur d'erreur de l'équipe.
+     */
+    private val spreads: Map<Long, Pair<Double, Double>> = emptyMap(),
 ) : DrawEngine {
     private val settings = snapshot.settings
 
@@ -60,6 +65,8 @@ internal class EffortModel(
         ForecastRandom.fnv1a64(planTasks.getValue(prepared.taskIds[it]).teamUid ?: "task-${prepared.taskIds[it]}")
     }
     private val taskHours: DoubleArray = prepared.baseHours
+    private val spreadLow = DoubleArray(taskCount) { spreads[prepared.taskIds[it]]?.first ?: Double.NaN }
+    private val spreadHigh = DoubleArray(taskCount) { spreads[prepared.taskIds[it]]?.second ?: Double.NaN }
 
     // Capacité de base par membre et par jour (décalage depuis [day]), calculée une seule fois.
     private val dayEpoch = day.toEpochDays()
@@ -115,7 +122,9 @@ internal class EffortModel(
         for (i in 0 until count) {
             val base = ForecastRandom.drawBase(seed, from + i)
             for (k in 0 until taskCount) {
-                val factor = data.errorFactor(ForecastRandom.stream(base, ForecastRandom.DOMAIN_ERROR, taskKeys[k]))
+                // Même sous-générateur que le facteur d'erreur : les tirages communs entre réel et scénarios sont gardés.
+                val rng = ForecastRandom.stream(base, ForecastRandom.DOMAIN_ERROR, taskKeys[k])
+                val factor = if (spreadLow[k].isNaN()) data.errorFactor(rng) else EffortSpread.factor(rng.nextDouble(), spreadLow[k], spreadHigh[k])
                 hours[k] = taskHours[k] * factor
             }
             factorCache.fill(Double.NaN)

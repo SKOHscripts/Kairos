@@ -54,7 +54,9 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
      ce champ ; `schedule` reste nul tant que les trois valent leur défaut), **Durées apprises** (3.4,
      `durees-apprises.md` : interrupteur `learning.enabled`, occurrences considérées `learning.history` ≥ 3,
      occurrences nécessaires `learning.minSamples` ≥ 2 et au plus `history`, sinon `TOO_LARGE` sur
-     `learning.minSamples` ; `Settings.learning` reste nul tant que les trois valent leur défaut), **Garde-fous**
+     `learning.minSamples` ; « Estimer par machine learning » `learning.model`, 4.0.0, `estimateur-modele.md`, affiché seulement avec
+     les durées apprises, avec dessous l'état de la vérification du modèle ; `Settings.learning` reste nul tant que les
+     quatre valent leur défaut), **Garde-fous**
      (seuils « traîne » en retard et sans date, seuil de surcharge P0), puis le groupe replié **« Avancé : comment
      les tâches sont ordonnées »** (`planning-personnalise.md` lot A, ouvert d'office quand un de ses champs est en
      erreur) : **Score de priorité** (base de valeur, horizon d'urgence, poids maximal de l'urgence, points par

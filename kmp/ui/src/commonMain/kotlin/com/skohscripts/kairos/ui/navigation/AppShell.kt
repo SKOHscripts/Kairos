@@ -1,5 +1,10 @@
 package com.skohscripts.kairos.ui.navigation
 
+import com.skohscripts.kairos.ui.app.LocalShellScope
+import com.skohscripts.kairos.ui.app.EstimateReviewDialog
+import com.skohscripts.kairos.ui.app.EstimateChangesBanner
+import com.skohscripts.kairos.ui.app.EstimateWatcher
+import com.skohscripts.kairos.core.engine.model.EstimateChanges
 import com.skohscripts.kairos.ui.reminders.ReminderWatcher
 import com.skohscripts.kairos.core.engine.TimeTracking
 import com.skohscripts.kairos.ui.generated.resources.demo_hub_busy
@@ -184,6 +189,11 @@ fun AppShell(
     // Rappels des tâches à heure fixe et de la tâche suivante (docs/spec/rappels.md) : mêmes bandeaux.
     ReminderWatcher(services, alerts)
     UpdateWatcher(services)
+    // Estimations qui changent (docs/spec/estimateur-modele.md, besoin 12) : bandeau et revue.
+    var estimateChanges by remember { mutableStateOf<List<EstimateChanges.Change>?>(null) }
+    var estimateReview by remember { mutableStateOf(false) }
+    EstimateWatcher(services) { estimateChanges = it }
+    val personal by services.repository.personalSnapshot.collectAsState()
     val scope = rememberCoroutineScope()
     // Ce que le guide a retenu (docs/spec/visite-guidee.md § Persistance, issue #94).
     val stored by services.repository.snapshot.collectAsState()
@@ -345,12 +355,20 @@ fun AppShell(
         Column(modifier.fillMaxSize()) {
             if (demo != null) DemoBanner(onExitDemo)
             CompositionLocalProvider(LocalMessages provides showMessage) { UpdateBanner(services) }
+            // Seules les tâches encore à faire comptent : une tâche supprimée ou faite depuis l'annonce n'y est plus.
+            val pendingChanges = estimateChanges?.let { EstimateChanges.stillOpen(it, personal.tasks) }.orEmpty()
+            if (pendingChanges.isNotEmpty()) {
+                EstimateChangesBanner(pendingChanges.size, onView = { estimateReview = true }, onDismiss = { estimateChanges = null })
+            }
             CompositionLocalProvider(LocalMessages provides showMessage) { ShortcutBanner(services) }
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 CompositionLocalProvider(
-                    LocalMessages provides showMessage, LocalUndoMessages provides showUndo, LocalGuideSpot provides nav.guideSpot,
+                    LocalMessages provides showMessage, LocalUndoMessages provides showUndo, LocalShellScope provides scope, LocalGuideSpot provides nav.guideSpot,
                     LocalDemoTour provides demo,
                 ) {
+                    if (estimateReview) {
+                        EstimateReviewDialog(services, estimateChanges.orEmpty()) { estimateReview = false; estimateChanges = null }
+                    }
                     val home: @Composable () -> Unit = {
                         HomeScreen(
                             teamModeEnabled, openTarget, { guide = it }, onOpenAbout, onDiscover = { discover = true },

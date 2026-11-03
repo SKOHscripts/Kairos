@@ -1,1 +1,1 @@
-Le attività in ordine, inserite nella giornata. Senza account né rete.
+Le attività in ordine e nella giornata, con machine learning sul dispositivo.

@@ -41,7 +41,8 @@ kotlin {
         minSdk = 26
     }
     @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
-    wasmJs { browser() }
+    // Tests wasm dans Chrome sans tête : la CI y vérifie l'estimateur par modèle (docs/spec/estimateur-modele.md).
+    wasmJs { browser { testTask { useKarma { useChromeHeadless() } } } }
 
     sourceSets {
         commonMain {
