@@ -196,14 +196,20 @@ class SyncReconcileTest {
     }
 
     @Test
-    fun aParentDeletedElsewhereIsASoftReferenceChange() {
-        // La mère disparaît de la portée : la valeur levée de parentId devient vide, ce qui est une modification de la fille.
+    fun aDeletedParentKeepsItsUidAsAPhantom() {
+        // La mère disparaît : la référence molle de la fille garde son uid (identité fantôme), donc la fille ne change pas.
         val before = rich()
         val d = active(before)
-        val after = before.copy(tasks = before.tasks.filter { it.id != 1L }, dependencies = emptyList(), workSessions = before.workSessions.filter { it.taskId != 1L }, notes = before.notes.map { it.copy(convertedTaskId = null) })
+        val mother = d.uidOf(RecordKind.TASK, 1)!!
+        val after = before.copy(tasks = before.tasks.filter { it.id != 1L }, dependencies = emptyList(), workSessions = before.workSessions.filter { it.taskId != 1L })
         val r = SyncReconcile.reconcile(after, d, before, now + 10, Uids()).data
+        assertEquals(mother, r.uidOf(RecordKind.TASK, 1), "identité fantôme : la fille et la note convertie la référencent encore")
+        assertNull(r.marks[RecordRef(RecordKind.TASK, mother)], "mais plus de marques : la tâche est supprimée")
         val fille = r.marks.getValue(RecordRef(RecordKind.TASK, d.uidOf(RecordKind.TASK, 2)!!))
-        assertTrue("parentId" in fille.stamps)
+        assertTrue("parentId" !in fille.stamps)
+        // Plus aucune référence : l'identité fantôme disparaît.
+        val orphan = after.copy(tasks = after.tasks.map { it.copy(parentId = null) }, notes = after.notes.map { it.copy(convertedTaskId = null) })
+        assertNull(SyncReconcile.reconcile(orphan, r, after, now + 20, Uids()).data.uidOf(RecordKind.TASK, 1))
     }
 
     @Test

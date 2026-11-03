@@ -19,13 +19,9 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.intOrNull
 import kotlin.time.Instant
 
 /**
@@ -312,11 +308,37 @@ object SyncRecords {
     private fun ref(uids: UidOf, kind: RecordKind, id: Long?): String = str(id?.let { uids.uid(kind, it) })
     private const val NULL = "null"
 
-    /** Lecture des valeurs canoniques d'un enregistrement. */
+    /**
+     * Lecture des valeurs canoniques d'un enregistrement : scalaires JSON (`null`, nombre, booléen, chaîne) décodés à la main,
+     * sans l'analyseur JSON (une fusion de 5 000 tâches en lit près de 100 000).
+     */
     private class Fields(private val map: Map<String, String>) {
-        private fun element(name: String): JsonElement? = map[name]?.let { canonicalJson.parseToJsonElement(it) }
-        fun string(name: String): String? = (element(name) as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull
-        fun int(name: String): Int? = (element(name) as? JsonPrimitive)?.intOrNull
-        fun bool(name: String): Boolean = (element(name) as? JsonPrimitive)?.booleanOrNull == true
+        fun string(name: String): String? = map[name]?.let(::scalarString)
+        fun int(name: String): Int? = map[name]?.takeIf { it != NULL && !it.startsWith('"') }?.toIntOrNull()
+        fun bool(name: String): Boolean = map[name] == "true"
+    }
+
+    /** Une chaîne JSON canonique (`"…"`) décodée ; `null` pour `null` ou pour tout ce qui n'est pas une chaîne. */
+    internal fun scalarString(text: String): String? {
+        if (text.length < 2 || text[0] != '"' || text[text.lastIndex] != '"') return null
+        if (text.indexOf('\\') < 0) return text.substring(1, text.lastIndex)
+        val out = StringBuilder(text.length)
+        var i = 1
+        while (i < text.lastIndex) {
+            val c = text[i]
+            if (c != '\\') { out.append(c); i++; continue }
+            when (val e = text[i + 1]) {
+                '"', '\\', '/' -> out.append(e)
+                'b' -> out.append('\b')
+                'f' -> out.append('\u000C')
+                'n' -> out.append('\n')
+                'r' -> out.append('\r')
+                't' -> out.append('\t')
+                'u' -> { out.append(text.substring(i + 2, i + 6).toInt(16).toChar()); i += 4 }
+                else -> out.append(e)
+            }
+            i += 2
+        }
+        return out.toString()
     }
 }

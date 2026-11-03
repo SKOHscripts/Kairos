@@ -66,6 +66,37 @@ object SyncReconcile {
     }
 
     /**
+     * L'état d'un fichier d'**avant** la synchronisation (formats 1 et 2, docs/spec/synchronisation.md § Format) : `uid` de
+     * migration (`legacy:…`, les mêmes que ceux d'une copie de même origine), marques `Stamp(updatedAt ?? createdAt, legacy)`,
+     * contexte vide. Personne ne couvre l'appareil `legacy` : ses éléments absents d'ici sont des ajouts, ses valeurs
+     * différentes des conflits ; la fusion adopte ensuite ces marques comme une écriture locale (`SnapshotMerge`).
+     */
+    fun legacy(snapshot: KairosSnapshot): SyncData {
+        val scoped = SyncScope.of(snapshot)
+        val uids = RecordKind.entries.associateWith { kind ->
+            val created = createdAtById(scoped, kind)
+            scoped.ids(kind).associateWith { id -> legacyUid(kind, id, created.getValue(id)) }
+        }
+        val marks = HashMap<RecordRef, Marks>()
+        for ((kind, records) in liftAll(scoped) { k, id -> uids[k]?.get(id) }) {
+            for ((id, l) in records) {
+                val born = Stamp(Hlc(l.createdAt.millis(), 0), Stamp.LEGACY_DEVICE)
+                val base = Stamp(Hlc((l.updatedAt ?: l.createdAt).millis().coerceAtLeast(born.hlc.wall), 0), Stamp.LEGACY_DEVICE)
+                marks[RecordRef(kind, uids.getValue(kind).getValue(id))] = Marks(born, base, hashes = hashes(l.fields))
+            }
+        }
+        val zero = Stamp(Hlc.ZERO, Stamp.LEGACY_DEVICE)
+        return SyncData(
+            device = Stamp.LEGACY_DEVICE,
+            clock = Hlc.ZERO,
+            seen = emptyMap(),
+            uids = uids.filterValues { it.isNotEmpty() },
+            marks = marks,
+            settings = Marks(zero, zero, hashes = hashes(SyncRecords.liftSettings(snapshot.settings))),
+        )
+    }
+
+    /**
      * Une passe après une écriture locale. Pour chaque enregistrement de la portée : sans `uid` (nouveau), un `uid` (aléatoire
      * par [newUid], ou déterministe quand deux appareils peuvent créer « la même chose ») et `born = base = tick` ; avec `uid`,
      * une nouvelle marque pour chaque champ dont l'empreinte a changé. Un `uid` dont l'enregistrement n'existe plus perd ses
@@ -105,8 +136,9 @@ object SyncReconcile {
             }
         }
         // Enregistrements disparus : leurs marques partent avec eux.
+        // Seuls les enregistrements présents gardent des marques : une identité fantôme (supprimée, encore référencée) n'en a pas.
         val live = HashSet<RecordRef>()
-        for ((kind, m) in uids) for (uid in m.values) live += RecordRef(kind, uid)
+        for (kind in RecordKind.entries) for (id in scoped.ids(kind)) uids[kind]?.get(id)?.let { live += RecordRef(kind, it) }
         val gone = marks.keys.filter { it !in live }
         if (gone.isNotEmpty()) {
             gone.forEach(marks::remove)
@@ -179,6 +211,10 @@ object SyncReconcile {
             val m = LinkedHashMap<Long, String>()
             val taken = HashSet<String>()
             for (id in ids) known[id]?.let { m[id] = it; taken += it }
+            // Identités fantômes : une tâche supprimée que référence encore une référence molle de la portée (mère, série, note
+            // convertie) garde son uid, pour que cette référence se lise partout de la même façon (docs/spec/synchronisation.md
+            // § Identité, fantômes).
+            if (kind == RecordKind.TASK) for (id in softTargets(scoped, data)) known[id]?.let { m[id] = it; taken += it }
             val fresh = ids.filter { it !in m }.sorted()
             if (kind == RecordKind.TASK) {
                 // Deux passes : les tâches ordinaires d'abord, puis celles dont l'uid dérive d'une autre (série, terminée).
@@ -201,6 +237,17 @@ object SyncReconcile {
             out[kind] = m
         }
         return out.filterValues { it.isNotEmpty() }
+    }
+
+    /** Cibles des références molles vers des tâches qui n'existent plus dans la base (ni dans la portée, ni hors d'elle). */
+    internal fun softTargets(scoped: SyncScope.Scoped, data: SyncData): Set<Long> {
+        val known = data.uids[RecordKind.TASK] ?: return emptySet()
+        val present = scoped.tasks.mapTo(HashSet()) { it.id }
+        val out = HashSet<Long>()
+        fun add(id: Long?) { if (id != null && id !in present && id in known) out += id }
+        for (t in scoped.tasks) { add(t.parentId); add(t.seriesId) }
+        for (n in scoped.notes) add(n.convertedTaskId)
+        return out
     }
 
     private fun mayDerive(t: Task): Boolean = t.seriesId != null && t.recurrence != TaskRecurrence.NONE

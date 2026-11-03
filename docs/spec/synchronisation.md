@@ -18,8 +18,11 @@ perdre en silence ce qu'un appareil a fait. Fichiers couverts (à créer ou à m
 dépôt ; 4) cycle du fichier lié ; 5) interface ; 6) durées apprises partagées (#100) ; 7) passe de robustesse.
 **Étape 1 livrée** : `Hlc.kt` (`Hlc`, `Stamp`, `Context`, `Drift`), `SyncScope.kt` (`RecordKind`, `RecordRef`, portée),
 `SyncRecords.kt` (levée et reconstruction), `SyncData.kt` (`Marks`, `SyncData`), `SyncReconcile.kt` (`activate`,
-`reconcile`) ; tests `HlcTest`, `SyncScopeTest`, `SyncRecordsTest`, `SyncReconcileTest`. Rien n'est encore branché : le reste
-du document décrit les étapes suivantes (voir aussi « Impacts sur les specs existantes »). La moitié « écriture » de #88, le fichier lié et sa garde
+`reconcile`) ; tests `HlcTest`, `SyncScopeTest`, `SyncRecordsTest`, `SyncReconcileTest`. **Étape 2 livrée** :
+`SnapshotMerge.kt` (`merge`, `Synced`, `Rec`, `Conflict`, `KeptAfterDeletion`, `LocalChanges`, `MergeOutcome`), `SyncRepair.kt`,
+`Canonical.kt`, `SyncReconcile.legacy` ; tests `SnapshotMergeTest`, `SnapshotMergePropertiesTest` (simulateur `SyncSim`),
+`SyncRepairTest`. Rien n'est encore branché : le reste du document décrit les étapes suivantes (voir aussi « Impacts sur
+les specs existantes »). La moitié « écriture » de #88, le fichier lié et sa garde
 contre une modification faite ailleurs, est **implémentée en 3.10.0** (`export-import.md`) : cette spec la remplace.
 
 ## 1. Besoin métier (cahier des charges)
@@ -343,7 +346,14 @@ Pur et idempotent (une seconde passe ne change rien). Pour chaque enregistrement
 - **Portée** : une session de travail n'est dans la portée que si sa tâche l'est ; un créneau importé ou une journée entière,
   que si son calendrier est stocké. Conséquence assumée : supprimer une tâche fait sortir ses sessions de la portée ; elles
   restent dans la base de l'appareil qui a supprimé (comme aujourd'hui, `modele-donnees.md`) et disparaissent des autres, ce
-  qui garde la portée identique partout. `sync_identity` ne garde donc aucun `uid` d'enregistrement supprimé.
+  qui garde la portée identique partout.
+- **Identités fantômes** (étape 2) : une tâche supprimée que référence encore une **référence molle** de la portée (`parentId`,
+  `seriesId` d'une tâche, `convertedTaskId` d'une note) garde son `uid` dans `sync_identity`, **sans marques**. Sans cela, la
+  même référence se lèverait `uid` sur un appareil et vide sur un autre, sous la même marque : la fusion dépendrait de l'ordre
+  des échanges (trouvé par `SnapshotMergePropertiesTest`). À la fusion, une référence vers un `uid` inconnu ici reçoit un
+  identifiant local **négatif** (jamais attribué par la base, `AUTOINCREMENT`, donc jamais repris par une tâche créée ensuite) :
+  la référence molle pointe vers une tâche absente, ce qu'elle sait déjà faire (elle se lit vide). L'identité disparaît quand
+  plus rien ne la référence.
 - **`uid` déterministes** : occurrence « le N du mois » = `cal:<uid de la série>:<recurrencePeriod>` ; occurrence suivante =
   `next:<uid de la terminée>`, reconnue quand **une seule** tâche de la même série est passée à « Faite » dans la même écriture
   (comparaison avec `previous`) ; sans `previous`, ou si plusieurs candidates, l'`uid` est aléatoire. Calendrier :
@@ -404,6 +414,38 @@ canonique `Canonical.of(snapshot, data)` : enregistrements triés par `uid`, ré
 La règle de survie (étape 3) est celle des ensembles « ajout gagnant » à contexte causal (δ-CRDT), appliquée aux enregistrements ;
 les registres de champs sont des « dernier écrivain gagnant ». Les propriétés ci-dessus sont des **tests**, pas des
 affirmations : si l'associativité ne tenait pas sur un cas, la règle de survie serait à revoir avant tout code d'interface.
+
+#### Précisions de l'implémentation (étape 2)
+
+- **Les réparations ne font pas partie de la fusion** : `SnapshotMerge.merge` est la jointure pure (commutative, idempotente) ;
+  `SyncRepair.repair` se calcule ensuite sur l'état installé et s'applique comme une écriture locale (une marque de cet
+  appareil). Les mêmes valeurs étant calculées partout, les marques différentes ne font aucun conflit.
+- **Après la fusion, le dépôt réconcilie sans état précédent** (passe complète) : c'est elle qui consigne, comme écriture
+  locale identique sur tous les appareils, ce que l'abaissement a changé (dépendance tombée avec son bloqueur…).
+- **Fichier d'avant la synchronisation** : `SyncReconcile.legacy` donne ses `uid` de migration et ses marques `legacy`. Comme
+  personne ne couvre `legacy`, ses éléments ne pourraient plus jamais être supprimés ailleurs : la fusion **adopte** toute
+  marque `legacy` de l'état fusionné comme une écriture locale de cette fusion (une seule marque fraîche, le contexte de
+  l'appareil avance).
+- **Valeurs égales** : la plus grande des deux marques ; **base** fusionnée = la plus petite des deux bases, chaque champ dont la
+  marque effective en diffère garde la sienne. **`endedAt`** : la plus petite fin non nulle, avec la marque de la valeur retenue.
+- **Associativité** : vraie sauf dans un cas, prouvé et accepté. Un élément supprimé d'un côté (la suppression avait vu
+  certaines de ses valeurs) et conservé grâce à une modification non vue ailleurs revient avec la copie qui l'a gardé : selon
+  l'ordre des échanges, ses autres champs peuvent être ceux d'avant la suppression. Corriger demanderait des pierres tombales
+  (écartées). La **convergence** reste garantie dans tous les cas (`SnapshotMergePropertiesTest.convergence`) ;
+  l'associativité est vérifiée sur chaque histoire sans élément conservé (88 sur 120).
+- **Abaissement** : identifiants neufs au-delà du plus grand identifiant du genre **et** des identifiants connus de
+  `sync_identity` ; une référence molle levée vide ici parce qu'elle vise **hors de la portée** (note convertie en tâche
+  d'équipe) garde sa valeur locale tant que la fusion ne l'a pas changée ; une dépendance hors portée vers une tâche que la fusion
+  retire tombe avec elle.
+- **`writeNeeded` et le résumé** se calculent sur les enregistrements déjà levés (`Canonical.from`) : 5 000 tâches de chaque côté,
+  toutes différentes, fusionnent en 0,2 s sur le bureau (borne du test : 1 s).
+- `Conflict(ref, champ, valeur perdue, marque perdue, marque gagnante, valeur gardée)` ; `ref` nul pour un réglage partagé.
+- Tests de propriétés : `SyncSim`, trois appareils, 120 histoires à graine fixe de 45 à 60 opérations (création, modification,
+  suppression, récurrente terminée, chrono, dépendance, note, réglage) entremêlées d'échanges ; identifiants jamais réutilisés,
+  comme la base. « Rien de perdu en silence » : chaque écriture est appliquée, dépassée par une écriture qui l'a vue (elle ou une
+  valeur égale), supprimée avec son élément par une suppression qui l'a vue, ou listée dans un conflit.
+- CI : `HlcTest`, `SyncRecordsTest` et `SyncRepairTest` tournent aussi dans Chrome (wasm) : horloge, empreintes et texte
+  canonique y sont les mêmes au bit près.
 
 ### Réparations (`SyncRepair`)
 
