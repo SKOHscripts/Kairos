@@ -1783,7 +1783,7 @@
     <string name="estimate_filled_model_regression">Durch maschinelles Lernen auf %1$s geschätzt (deine %2$d erledigten Aufgaben)</string>
     <!-- Carte « Estimation par machine learning » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
     <string name="card_model_title">Schätzung durch maschinelles Lernen</string>
-    <string name="card_model_body">Ein auf dem Gerät trainiertes Modell für maschinelles Lernen gibt einer Aufgabe mit neuem Titel eine Dauer aus deinen erledigten Aufgaben, die ihr ähneln, mit einer Spanne und der Liste dieser Aufgaben. Es gilt erst, wenn es auf deinem Verlauf besser ist als die Standarddauer, lernt dein Tempo nach Tag und Uhrzeit und meldet, wenn sich Schätzungen ändern. Nichts verlässt das Gerät. Garantiert KI-frei: nur robustes, lokales maschinelles Lernen, leicht und sehr schnell.</string>
+    <string name="card_model_body">Ein auf dem Gerät trainiertes Modell für maschinelles Lernen gibt einer Aufgabe mit neuem Titel eine Dauer aus deinen erledigten Aufgaben, die ihr ähneln, mit einer Spanne und der Liste dieser Aufgaben. Es gilt erst, wenn es auf deinem Verlauf besser ist als die Standarddauer, lernt dein Tempo nach Tag und Uhrzeit und meldet, wenn sich Schätzungen ändern. Nichts verlässt das Gerät. KI? Nein, maschinelles Lernen: robust und lokal, es trainiert mit jeder erledigten Aufgabe weiter, leicht und sehr schnell.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, durch maschinelles Lernen geschätzt (%2$s bis %3$s)</string>
     <string name="forecast_model_estimated">Davon %1$d durch maschinelles Lernen geschätzte Aufgabe(n) (gelernte Spanne)</string>

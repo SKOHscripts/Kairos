@@ -77,11 +77,11 @@ sur ton appareil : plus proches voisins sur ton historique, régression ridge e
 repli, et une vérification sur tes propres données avant de changer quoi que ce
 soit.
 
-> **Garanti sans IA.** Pas de chatbot, pas de modèle géant, pas de cloud : juste
-> du bon vieux machine learning, robuste et local, qui s’affine à chaque tâche
-> que tu termines. Il ne garde que tes 500 dernières tâches faites et calcule
-> 200 estimations en moins d’une seconde (mesuré à chaque build). Ton téléphone
-> ne chauffera pas.
+> **Une IA ? Non, du machine learning.** Pas de chatbot, pas de modèle géant,
+> pas de cloud : juste du bon vieux machine learning, robuste et local, qui
+> s’entraîne à chaque tâche que tu termines. Il ne garde que tes 500 dernières
+> tâches faites et calcule 200 estimations en moins d’une seconde (mesuré à
+> chaque build). Ton téléphone ne chauffera pas.
 
 - **Par ressemblance, avec sa preuve.** Une tâche jamais faite (« Rapport
   trimestriel pour le conseil ») est comparée à tes tâches faites : mots du

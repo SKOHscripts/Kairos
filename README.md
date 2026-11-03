@@ -74,8 +74,8 @@ long the next ones will take. It is trained and run entirely on your device:
 nearest neighbours on your history, a ridge regression as a fallback, and a
 check against your own data before it changes anything.
 
-> **Guaranteed AI-free.** No chatbot, no giant model, no cloud: just good old
-> machine learning, robust and local, that gets sharper with every task you
+> **AI? No, machine learning.** No chatbot, no giant model, no cloud: just
+> good old machine learning, robust and local, that trains on every task you
 > finish. It keeps only your last 500 finished tasks and computes 200
 > estimates in under a second (measured on every build). Your phone won’t even
 > get warm.

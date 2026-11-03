@@ -1783,7 +1783,7 @@
     <string name="estimate_filled_model_regression">Estimada en %1$s por aprendizaje automático (tus %2$d tareas terminadas)</string>
     <!-- Carte « Estimation par machine learning » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
     <string name="card_model_title">Estimación por aprendizaje automático</string>
-    <string name="card_model_body">Un modelo de aprendizaje automático, entrenado en el dispositivo, da a una tarea con un título nuevo una duración a partir de tus tareas terminadas que se le parecen, con un intervalo y la lista de esas tareas. Solo se aplica cuando mejora la duración por defecto en tu historial, aprende tu ritmo según el día y la hora, y te avisa cuando cambian las estimaciones. Nada sale del dispositivo. Garantizado sin IA: solo aprendizaje automático robusto y local, ligero y muy rápido.</string>
+    <string name="card_model_body">Un modelo de aprendizaje automático, entrenado en el dispositivo, da a una tarea con un título nuevo una duración a partir de tus tareas terminadas que se le parecen, con un intervalo y la lista de esas tareas. Solo se aplica cuando mejora la duración por defecto en tu historial, aprende tu ritmo según el día y la hora, y te avisa cuando cambian las estimaciones. Nada sale del dispositivo. ¿IA? No, aprendizaje automático: robusto y local, se entrena con cada tarea que terminas, ligero y muy rápido.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, estimado por aprendizaje automático (de %2$s a %3$s)</string>
     <string name="forecast_model_estimated">De ellas, %1$d tarea(s) estimada(s) por aprendizaje automático (intervalo aprendido)</string>

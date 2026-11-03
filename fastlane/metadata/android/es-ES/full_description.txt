@@ -1,7 +1,7 @@
 Kairos ordena sus tareas en el orden en que conviene hacerlas y las encaja en los huecos de su día, a la hora adecuada, y aprende cuánto tardan de verdad con aprendizaje automático en el dispositivo.
 
 <b>Nuevo en 4.0: aprendizaje automático en el dispositivo</b>
-Un modelo de aprendizaje automático entrenado en su dispositivo da a una tarea con un título nuevo una duración a partir de tareas terminadas parecidas, con un intervalo y la lista de esas tareas. Kairos solo la aplica cuando mejora la duración por defecto en su historial, aprende su ritmo según el día y la hora, y le avisa cuando cambian las estimaciones. Todo queda en el dispositivo. Garantizado sin IA: ni chatbot ni nube, solo aprendizaje automático robusto y local, que afina con cada tarea terminada, ligero y muy rápido.
+Un modelo de aprendizaje automático entrenado en su dispositivo da a una tarea con un título nuevo una duración a partir de tareas terminadas parecidas, con un intervalo y la lista de esas tareas. Kairos solo la aplica cuando mejora la duración por defecto en su historial, aprende su ritmo según el día y la hora, y le avisa cuando cambian las estimaciones. Todo queda en el dispositivo. ¿IA? No, aprendizaje automático: ni chatbot ni nube, solo aprendizaje automático robusto y local, que se entrena con cada tarea terminada, ligero y muy rápido.
 
 <b>Un orden que se puede explicar</b>
 Cada tarea recibe una puntuación de prioridad (WSJF): su valor (prioridad P0, P1 o P2, más la urgencia de su fecha límite) dividido entre su esfuerzo en puntos. Lo pequeño e importante va antes que lo grande y lejano; una tarea vencida siempre pasa primero. «¿Por qué esta posición?» muestra el cálculo con un solo toque.
