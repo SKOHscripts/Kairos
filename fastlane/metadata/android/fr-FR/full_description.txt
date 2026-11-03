@@ -1,5 +1,8 @@
 Kairos range vos tâches dans l’ordre où les faire et les place dans les trous de votre journée, au bon moment.
 
+<b>Nouveau en 4.0 : il apprend vos durées</b>
+Une tâche au titre nouveau reçoit une durée d’après vos tâches faites qui lui ressemblent, avec une fourchette et la liste de ces tâches. Kairos ne l’applique que s’il bat la durée par défaut sur votre historique, apprend votre rythme selon le jour et l’heure, et vous prévient quand les estimations changent. Tout reste sur l’appareil.
+
 <b>Un ordre qui s’explique</b>
 Chaque tâche reçoit un score de priorité (WSJF) : sa valeur (priorité P0, P1 ou P2, plus l’urgence de son échéance) divisée par son effort en points. Petit et important passe avant gros et lointain ; une tâche en retard passe toujours en tête. « Pourquoi à cette place ? » détaille le calcul d’un toucher.
 

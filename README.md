@@ -30,6 +30,10 @@ no network: your data stays on your device.
 
 ## In short
 
+- **New in 4.0: it learns how long your tasks really take.** A task with a
+  new title gets a duration from your finished tasks that look like it, with a
+  range and the list of those tasks, and only once this beats the default
+  duration on your own history. [How it works](#it-learns-how-long-your-tasks-take).
 - It ranks the day's tasks with a priority score, shown on each one, and
   explains that score in one tap.
 - It places each task in the gaps of the calendar, around meetings, with a
@@ -60,6 +64,38 @@ in **Settings**.
 > instant to act, as opposed to *Chronos*, the time that flows by. That is the
 > tool's job: finding the right slot for every task. Code name: **14h55**, the
 > post-lunch dip, the least productive hour of the day.
+
+## It learns how long your tasks take
+
+New in 4.0, and computed entirely on your device.
+
+- **By resemblance, with its proof.** A task you have never done before
+  ("Quarterly report for the board") is compared with your finished tasks: words
+  of the title, type, points, project. Its duration is the weighted median of
+  the closest ones, with a range ("~45 min, between 30 and 60") and the list of
+  those tasks, their real time and how similar they are. Without close tasks, a
+  small regression on type and points takes over and says so.
+- **Only once it has proven itself.** Kairos replays the model on your last 30
+  finished tasks, without letting it see their real time, and applies it only
+  if it clearly beats the default duration. Settings shows the result ("median
+  error 12%, against 48% for the default duration"); otherwise the estimate is
+  shown as "not reliable yet" and changes nothing.
+- **Your pace.** If you are consistently slower on Monday mornings or faster in
+  the evening, it learns that from your timed sessions and adjusts planned
+  tasks ("Your pace: +20% on Monday").
+- **It keeps you posted.** When finished tasks move the estimates of tasks to
+  do, a banner (and at most one notification a day) says so, with before and
+  after. Typed estimates the model clearly disagrees with are offered for
+  review, never changed without you.
+- **Everywhere the duration matters**: the day plan, the "Now" card, the
+  overrun alert, triage in "To process", and team forecasts, where each
+  model-estimated task is drawn within its own learned range.
+- **Private and explainable by design.** No network, no pre-trained weights, no
+  black box: only your own history, and the same result to the bit on Android,
+  desktop and web. Measured on simulated histories, it cuts the median error on
+  new titles by more than half, and when there is nothing to learn it stays
+  within 10% of the default duration.
+  It can be switched off in Settings.
 
 ## Install
 
@@ -192,8 +228,10 @@ only.
   finished tasks that look like it (words of the title, type, points), with a
   range (“between 30 and 60 min”) and the list of those tasks with their real
   time. It only applies once it does better than the default duration on your
-  own last tasks, which Settings shows. Everything is computed on the device,
-  from your history only.
+  own last tasks, which Settings shows. It learns your pace by day and time,
+  tells you when estimates change, and offers to review typed estimates it
+  disagrees with. Everything is computed on the device, from your history only
+  ([details](#it-learns-how-long-your-tasks-take)).
 - **Working days and holidays**: built-in French calendar, with extra dates
   in Settings.
 

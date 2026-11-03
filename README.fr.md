@@ -31,6 +31,11 @@ ton appareil.
 
 ## En bref
 
+- **Nouveau en 4.0 : il apprend combien de temps prennent vraiment tes
+  tâches.** Une tâche au titre nouveau reçoit une durée d’après tes tâches
+  faites qui lui ressemblent, avec une fourchette et la liste de ces tâches, et
+  seulement une fois que cela fait mieux que la durée par défaut sur ton propre
+  historique. [Comment ça marche](#il-apprend-combien-de-temps-prennent-tes-tâches).
 - Il classe les tâches du jour par un score de priorité, affiché sur chacune,
   et explique ce score en un toucher.
 - Il pose chaque tâche dans les trous de l’agenda, autour des réunions, avec
@@ -61,6 +66,39 @@ se règlent dans les **Réglages**.
 > C’est le métier de l’outil : trouver le bon créneau pour chaque tâche. Nom de
 > code : **14h55**, le creux post-déjeuner, l’heure la moins productive de la
 > journée.
+
+## Il apprend combien de temps prennent tes tâches
+
+Nouveau en 4.0, et calculé entièrement sur ton appareil.
+
+- **Par ressemblance, avec sa preuve.** Une tâche jamais faite (« Rapport
+  trimestriel pour le conseil ») est comparée à tes tâches faites : mots du
+  titre, type, points, projet. Sa durée est la médiane pondérée des plus proches,
+  avec une fourchette (« ~45 min, entre 30 et 60 ») et la liste de ces tâches,
+  leur temps réel et leur degré de ressemblance. Sans tâche proche, une petite
+  régression sur le type et les points prend le relais, et le dit.
+- **Seulement une fois qu’il a fait ses preuves.** Kairos rejoue le modèle sur
+  tes 30 dernières tâches faites, sans lui montrer leur temps réel, et ne
+  l’applique que s’il bat nettement la durée par défaut. Les Réglages montrent le
+  résultat (« erreur médiane 12 %, contre 48 % pour la durée par défaut ») ;
+  sinon l’estimation s’affiche « pas encore fiable » et ne change rien.
+- **Ton rythme.** Si tu vas régulièrement moins vite le lundi matin ou plus vite
+  le soir, il l’apprend de tes séances chronométrées et ajuste les tâches
+  planifiées (« Ton rythme : +20 % le lundi »).
+- **Il te tient au courant.** Quand des tâches faites déplacent l’estimation de
+  tâches à faire, un bandeau (et au plus une notification par jour) le dit, avec
+  l’avant et l’après. Les estimations saisies que le modèle conteste nettement te
+  sont proposées à la revue, jamais changées sans toi.
+- **Partout où la durée compte** : le plan de la journée, la carte
+  « Maintenant », l’alerte de dépassement, le tri dans « À traiter », et les
+  prévisions d’équipe, où chaque tâche estimée par le modèle est tirée dans sa
+  propre fourchette apprise.
+- **Privé et explicable par construction.** Pas de réseau, pas de poids
+  pré-entraînés, pas de boîte noire : seulement ton historique, et le même
+  résultat au bit près sur Android, le bureau et le web. Mesuré sur des
+  historiques simulés, il divise par plus de deux l’erreur médiane sur les titres
+  nouveaux, et quand il n’y a rien à apprendre il reste à moins de 10 % de la
+  durée par défaut. On peut le couper dans les Réglages.
 
 ## Installer
 
@@ -203,8 +241,11 @@ son estimation vient des seules tâches d’équipe terminées.
   tes tâches faites qui lui ressemblent (mots du titre, type, points), avec une
   fourchette (« entre 30 et 60 min ») et la liste de ces tâches avec leur temps
   réel. Elle ne s’applique qu’une fois qu’elle fait mieux que la durée par défaut
-  sur tes dernières tâches, ce que montrent les Réglages. Tout se calcule sur
-  l’appareil, à partir de ton seul historique.
+  sur tes dernières tâches, ce que montrent les Réglages. Il apprend ton rythme
+  selon le jour et l’heure, te prévient quand les estimations changent et propose
+  de revoir les estimations saisies qu’il conteste. Tout se calcule sur
+  l’appareil, à partir de ton seul historique
+  ([détails](#il-apprend-combien-de-temps-prennent-tes-tâches)).
 - **Jours ouvrés et fériés** : calendrier français intégré, dates
   supplémentaires dans les Réglages.
 

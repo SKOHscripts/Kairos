@@ -1783,7 +1783,7 @@
     <string name="estimate_filled_model_regression">Stimata in %1$s dal modello (le tue %2$d attività completate)</string>
     <!-- Carte « Estimer par modèle » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
     <string name="card_model_title">Stima con il modello</string>
-    <string name="card_model_body">Un’attività con un titolo nuovo riceve una durata dalle tue attività completate che le somigliano (titolo, tipo, punti), con un intervallo e l’elenco di quelle attività. Si applica solo quando fa meglio della durata predefinita sul tuo storico; nulla lascia il dispositivo.</string>
+    <string name="card_model_body">Un’attività con un titolo nuovo riceve una durata dalle tue attività completate che le somigliano, con un intervallo e l’elenco di quelle attività. Si applica solo quando fa meglio della durata predefinita sul tuo storico, impara il tuo ritmo secondo giorno e ora, e ti avvisa quando le stime cambiano. Nulla lascia il dispositivo.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, stimato dal modello (da %2$s a %3$s)</string>
     <string name="forecast_model_estimated">Di cui %1$d attività stimata/e dal modello (intervallo appreso)</string>

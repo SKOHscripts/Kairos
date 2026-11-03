@@ -1,5 +1,8 @@
 Kairos mette le Sue attività nell’ordine in cui svolgerle e le inserisce negli spazi liberi della giornata, al momento giusto.
 
+<b>Novità 4.0: impara le sue durate</b>
+Un’attività con un titolo nuovo riceve una durata da attività completate simili, con un intervallo e l’elenco di quelle attività. Kairos la applica solo quando fa meglio della durata predefinita sul suo storico, impara il suo ritmo secondo giorno e ora, e la avvisa quando le stime cambiano. Tutto resta sul dispositivo.
+
 <b>Un ordine che si può spiegare</b>
 Ogni attività riceve un punteggio di priorità (WSJF): il suo valore (priorità P0, P1 o P2, più l’urgenza della scadenza) diviso per il suo impegno in punti. Ciò che è piccolo e importante viene prima di ciò che è grande e lontano; un’attività in ritardo passa sempre per prima. «Perché questa posizione?» mostra il calcolo con un tocco.
 

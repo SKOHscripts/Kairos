@@ -1786,7 +1786,7 @@
     <string name="estimate_filled_model_regression">Estimée à %1$s par le modèle (tes %2$d tâches faites)</string>
     <!-- Carte « Estimer par modèle » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
     <string name="card_model_title">Estimer par modèle</string>
-    <string name="card_model_body">Une tâche au titre nouveau reçoit une durée d’après tes tâches faites qui lui ressemblent (titre, type, points), avec une fourchette et la liste de ces tâches. Elle ne s’applique qu’une fois qu’elle fait mieux que la durée par défaut sur ton propre historique ; rien ne quitte l’appareil.</string>
+    <string name="card_model_body">Une tâche au titre nouveau reçoit une durée d’après tes tâches faites qui lui ressemblent, avec une fourchette et la liste de ces tâches. Elle ne s’applique qu’une fois qu’elle bat la durée par défaut sur ton historique, apprend ton rythme selon le jour et l’heure, et te prévient quand les estimations changent. Rien ne quitte l’appareil.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, estimé par le modèle (%2$s à %3$s)</string>
     <string name="forecast_model_estimated">Dont %1$d tâche(s) estimée(s) par le modèle (fourchette apprise)</string>
