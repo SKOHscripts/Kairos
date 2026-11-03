@@ -1812,4 +1812,6 @@
     <string name="sheet_model_differs">El aprendizaje automático estima %1$s (entre %2$s y %3$s).</string>
     <!-- Estimateur par modèle : garde pas encore vérifiable (passe de robustesse, #99) -->
     <string name="why_learned_model_unverified">Duración: aún no hay suficientes tareas comparables para comprobar el modelo de aprendizaje automático (%1$d de %2$d).</string>
+    <!-- Fiche : intitulé de l’estimation par machine learning (docs/spec/estimateur-modele.md § Interface, #99) -->
+    <string name="sheet_model_title">Estimación por aprendizaje automático</string>
 </resources>

@@ -7,6 +7,7 @@ import com.skohscripts.kairos.ui.generated.resources.model_rhythm_weekday
 import com.skohscripts.kairos.ui.generated.resources.why_model_rhythm
 import kotlin.math.floor
 import com.skohscripts.kairos.ui.app.uiLanguage
+import com.skohscripts.kairos.ui.app.LocalShowcaseTask
 import com.skohscripts.kairos.core.engine.model.Rhythm
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.generated.resources.learned_model_neighbour
 import com.skohscripts.kairos.ui.generated.resources.learned_model_neighbours
+import com.skohscripts.kairos.ui.generated.resources.sheet_model_title
 import com.skohscripts.kairos.ui.generated.resources.learned_model_use
 import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.core.engine.model.ModelGate
@@ -129,6 +131,8 @@ internal fun ModelSuggestion(estimate: DurationEstimator.Estimate, learning: Lea
         Text(modelProvenance(estimate, learning), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         return
     }
+    // L'intitulé dit d'où vient la durée proposée : du machine learning (vocabulaire, estimateur-modele.md § Décisions).
+    Text(stringResource(Res.string.sheet_model_title), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     KairosTextButton(onClick = { onUse(estimate.minutes) }, contentPadding = KairosButtonIconPadding) {
         Icon(KairosIcons.Model, contentDescription = null, modifier = Modifier.size(18.dp))
         Text(
@@ -141,7 +145,9 @@ internal fun ModelSuggestion(estimate: DurationEstimator.Estimate, learning: Lea
         Text(modelProvenance(estimate, learning), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         return
     }
-    var open by rememberSaveable { mutableStateOf(false) }
+    // Dépliée d'emblée seulement pour la capture des magasins (LocalShowcaseTask) : ailleurs, la liste attend le toucher.
+    val showcase = LocalShowcaseTask.current != null
+    var open by rememberSaveable { mutableStateOf(showcase) }
     KairosTextButton(onClick = { open = !open }, modifier = Modifier.expandedState(open), contentPadding = KairosButtonIconPadding) {
         Icon(if (open) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
         Text(stringResource(Res.string.learned_model_neighbours, evidence.neighbours.size), modifier = Modifier.padding(start = 6.dp))

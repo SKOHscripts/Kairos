@@ -110,6 +110,8 @@ class ModelEstimateUiTest {
         }
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
         waitText("Edit task")
+        // L'intitulé dit d'où vient la durée proposée.
+        onNodeWithText("Machine-learning estimate").performScrollTo().assertExists()
         // « Tâches proches », repliée : chaque voisin avec sa durée réelle et sa ressemblance.
         onNodeWithText("Similar tasks (5)").performScrollTo().performClick()
         waitText("Quarterly report", substring = true)

@@ -544,10 +544,14 @@ La provenance est visible partout où la durée l'est, avec les mêmes règles q
 - `ui/day/Why.kt` : ligne de provenance en phrase complète (fiable : durée, intervalle, nombre et titres de quelques voisins ;
   non fiable : la raison de la garde, « le modèle ne fait pas encore mieux que la durée par défaut sur tes dernières
   tâches », « pas assez de tâches faites (12 sur 20 nécessaires) » ou « pas assez de tâches proches (2, 3 nécessaires) »).
-- `ui/day/EditTaskDialog.kt` : sous le champ des minutes, tant qu'il est vide : puce « Utiliser 45 min (entre 30 et 60) » qui
+- `ui/day/EditTaskDialog.kt` : sous le champ des minutes, tant qu'il est vide : l'intitulé « Estimation par machine learning »
+  (`sheet_model_title`, ajouté le 2026-11-03 : la fiche disait la durée sans dire d'où elle venait), puis la puce « Utiliser
+  45 min (entre 30 et 60) » qui
   remplit le champ **sur action** (règle « on ne remplit que ce qui est vide »), et une section repliable « Tâches proches »
   qui liste chaque voisin (titre, durée réelle, ressemblance en %), bascule de 48 dp. Pour une base de régression : la phrase
-  « d'après tes 34 tâches de type « Rédaction » à 5 points ». Si le modèle n'est pas fiable : une phrase, sans action.
+  « d'après tes 34 tâches de type « Rédaction » à 5 points ». Si le modèle n'est pas fiable : une phrase, sans action (elle
+  nomme déjà le machine learning, sans intitulé). La fiche ainsi ouverte est la capture 2 des magasins (`publication.md`
+  § Captures), dont « Tâches proches » est dépliée d'emblée par `LocalShowcaseTask` ; ailleurs elle attend le toucher.
 - `ui/team/TeamTaskSheet.kt` : « …, estimée par le modèle (30 à 60 min) » via `EffortSource.MODEL`
   (`core/team/Effort.kt`, à côté de `LEARNED`).
 - `ui/team/forecast/ForecastPanels.kt` : « dont n tâches estimées par le modèle » sous la source des données.

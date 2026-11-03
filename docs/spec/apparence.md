@@ -70,7 +70,7 @@ rôles et règles d'usage de la couleur restent ceux de Material Design 3.
 - Les **images exportées** des Stats (`statistiques.md` § Export) restent **claires**, sur la même graine : une image se
   colle dans un rapport ou s'imprime.
 - Les fiches des magasins et la page gardent leurs captures claires et en ajoutent une **en sombre** (la vue Jour,
-  capture 9, `publication.md`).
+  capture 10, `publication.md`).
 
 ### Couleur par défaut : l'océan (changé le 2026-10-27)
 

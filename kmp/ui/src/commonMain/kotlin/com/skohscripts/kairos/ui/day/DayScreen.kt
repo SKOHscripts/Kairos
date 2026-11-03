@@ -8,6 +8,7 @@ import com.skohscripts.kairos.ui.guide.demo.DemoMark
 import com.skohscripts.kairos.core.engine.Recurrence
 import com.skohscripts.kairos.core.model.BlockSource
 import com.skohscripts.kairos.ui.app.withDeviceCalendars
+import com.skohscripts.kairos.ui.app.LocalShowcaseTask
 import com.skohscripts.kairos.core.engine.Workdays
 import com.skohscripts.kairos.ui.guide.RecurrenceCoach
 import com.skohscripts.kairos.ui.generated.resources.note_affinity_combined
@@ -218,7 +219,9 @@ fun DayScreen(
     val skipIgnored = stored.settings.recurrence?.skipIgnored.orEmpty()
     val skipped = remember(stored.tasks, today, skipIgnored) { Recurrence.skippedSeries(stored.tasks, today, skipIgnored) }
 
-    var editingId by rememberSaveable { mutableStateOf<Long?>(null) }
+    // Captures des magasins : la fiche de la tâche vitrine s'ouvre d'emblée (LocalShowcaseTask) ; nulle ailleurs.
+    val showcaseTask = LocalShowcaseTask.current
+    var editingId by rememberSaveable { mutableStateOf(showcaseTask) }
     var editingBlock by remember { mutableStateOf<EditableBlock?>(null) }
     var filterOpen by rememberSaveable { mutableStateOf(false) }
     // Accompagnement de la première tâche (docs/spec/premiere-tache.md) : la fiche de création (l'étape du coach, -1 une fois
