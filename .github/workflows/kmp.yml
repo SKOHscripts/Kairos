@@ -33,6 +33,17 @@ jobs:
       - name: Tests (JVM)
         run: ./gradlew --no-daemon :core:jvmTest :data:jvmTest :ui:jvmTest :desktopApp:jvmTest
 
+      # L'estimateur par modèle doit rendre les mêmes valeurs au bit près sur wasm que sur la JVM, dans le budget de temps
+      # (docs/spec/estimateur-modele.md § Déterminisme) : ses tests rapides tournent aussi dans Chrome (Kotlin/wasm).
+      - name: Tests du modèle (wasm, Chrome)
+        run: >
+          ./gradlew --no-daemon :core:wasmJsBrowserTest
+          --tests 'com.skohscripts.kairos.core.engine.model.ModelReproducibilityTest'
+          --tests 'com.skohscripts.kairos.core.engine.model.TextFeaturesTest'
+          --tests 'com.skohscripts.kairos.core.engine.model.ModelEstimatorTest'
+          --tests 'com.skohscripts.kairos.core.engine.model.NoFutureInfoTest'
+          --tests 'com.skohscripts.kairos.core.engine.model.ModelPerformanceTest'
+
       - name: Builds (APK, bureau, web)
         run: >
           ./gradlew --no-daemon

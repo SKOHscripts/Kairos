@@ -55,9 +55,9 @@ import kotlin.time.Instant
  * `--store-screenshots=<dossier fastlane/metadata/android>` rend hors écran,
  * en français et en anglais, l'interface **Android** en largeur téléphone
  * (1080 × 2400 px, densité 2,625) sur un jeu de données réaliste, et écrit
- * `<langue>/images/phoneScreenshots/1.png` à `9.png` (1 à 5 : espace Perso, base solo ; 6 à 8 : espace Équipe,
- * seconde base de [StoreTeam] ; 9 : la vue Jour en thème sombre, issue #72). Thème du système imposé (clair, sombre pour
- * la 9) : les captures ne dépendent pas de la machine. Rien de ce jeu n'est livré dans
+ * `<langue>/images/phoneScreenshots/1.png` à `10.png` (1 à 6 : espace Perso, base solo, dont la 2 : la fiche d'une tâche
+ * estimée par machine learning ; 7 à 9 : espace Équipe, seconde base de [StoreTeam] ; 10 : la vue Jour en thème sombre,
+ * issue #72). Thème du système imposé (clair, sombre pour la 10) : les captures ne dépendent pas de la machine. Rien de ce jeu n'est livré dans
  * l'application : c'est une vitrine, pas des exemples.
  */
 object StoreScreenshots {
@@ -67,12 +67,12 @@ object StoreScreenshots {
     private val now: Instant = LocalDateTime(today, LocalTime(10, 12)).toInstant(TimeZone.UTC)
 
     /**
-     * Captures 1 à 5 : l'espace Perso, sur la base du mode solo. `null` = les Réglages, écran secondaire ouvert
-     * par-dessus la vue Jour (ils ne sont plus une destination, docs/spec/navigation-theme.md).
+     * Captures 1 et 3 à 6 : l'espace Perso, sur la base du mode solo. `null` = les Réglages, écran secondaire ouvert
+     * par-dessus la vue Jour (ils ne sont plus une destination, docs/spec/navigation-theme.md). La 2 suit la vue Jour.
      */
     private val shots = listOf(Destination.DAY, Destination.WEEK, Destination.STATS, Destination.NOTES, null)
 
-    /** Captures 6 à 8 : l'espace Équipe, sur une seconde base (gestion d'équipe activée, [StoreTeam]). */
+    /** Captures 7 à 9 : l'espace Équipe, sur une seconde base (gestion d'équipe activée, [StoreTeam]). */
     private val teamShots = listOf(TeamDestination.BOARD, TeamDestination.MEMBERS, TeamDestination.FORECAST)
 
     fun run(metadataDir: File): Int = try {
@@ -81,28 +81,30 @@ object StoreScreenshots {
         for ((folder, locale) in listOf("fr-FR" to Locale.FRANCE, "en-US" to Locale.US)) {
             Locale.setDefault(locale)
             val out = File(metadataDir, "$folder/images/phoneScreenshots").apply { mkdirs() }
-            shots.forEachIndexed { i, destination ->
+            var number = 0
+            fun write(png: ByteArray) = File(out, "${++number}.png").writeBytes(png)
+            shots.forEach { destination ->
                 val services = runBlocking { services(locale.language) }
-                val png = render {
-                    if (destination != null) {
-                        KairosApp(Platform.ANDROID, destination, systemDark = false) { services }
-                    } else {
-                        KairosApp(Platform.ANDROID, Destination.DAY, initialSecondary = Secondary.SETTINGS, systemDark = false) { services }
-                    }
-                }
-                File(out, "${i + 1}.png").writeBytes(png)
+                write(
+                    render {
+                        if (destination != null) {
+                            KairosApp(Platform.ANDROID, destination, systemDark = false) { services }
+                        } else {
+                            KairosApp(Platform.ANDROID, Destination.DAY, initialSecondary = Secondary.SETTINGS, systemDark = false) { services }
+                        }
+                    },
+                )
+                if (destination == Destination.DAY) write(machineLearningShot(locale.language))
             }
-            teamShots.forEachIndexed { i, destination ->
+            teamShots.forEach { destination ->
                 val services = runBlocking { teamServices(locale.language, destination) }
                 // Les calculs de l'espace Équipe (charge, historique) se font hors composition : on attend la stabilité.
                 val scroll = if (destination == TeamDestination.FORECAST) FORECAST_SCROLL else 0f
-                val png = render(settle = true, wheel = scroll) { KairosApp(Platform.ANDROID, initialTeamDestination = destination, systemDark = false) { services } }
-                File(out, "${shots.size + i + 1}.png").writeBytes(png)
+                write(render(settle = true, wheel = scroll) { KairosApp(Platform.ANDROID, initialTeamDestination = destination, systemDark = false) { services } })
             }
-            // Capture 9 : la vue Jour de la capture 1, système en sombre, rien de réglé (docs/spec/apparence.md § Thème sombre).
+            // Capture 10 : la vue Jour de la capture 1, système en sombre, rien de réglé (docs/spec/apparence.md § Thème sombre).
             val darkServices = runBlocking { services(locale.language) }
-            val dark = render { KairosApp(Platform.ANDROID, Destination.DAY, systemDark = true) { darkServices } }
-            File(out, "${shots.size + teamShots.size + 1}.png").writeBytes(dark)
+            write(render { KairosApp(Platform.ANDROID, Destination.DAY, systemDark = true) { darkServices } })
         }
         println("Captures des magasins écrites dans $metadataDir")
         0
@@ -111,13 +113,26 @@ object StoreScreenshots {
         1
     }
 
-    private suspend fun services(language: String): AppServices {
+    /**
+     * Capture 2 (docs/spec/publication.md § Captures, docs/spec/estimateur-modele.md § Interface) : la base de la capture 1
+     * enrichie de rapports faits et chronométrés, et la fiche d'un rapport au titre nouveau, sans durée saisie, ouverte
+     * d'emblée ([KairosApp] `showcaseTaskId`) : « Utiliser 45 min (entre … et …) » et « Tâches proches » dépliée. Le calcul
+     * du modèle se fait hors composition : on attend la stabilité.
+     */
+    private fun machineLearningShot(language: String): ByteArray {
+        val services = runBlocking { services(language, machineLearning = true) }
+        val title = (if (language == "fr") FR else EN).quarterly
+        val id = services.repository.snapshot.value.tasks.first { it.title == title }.id
+        return render(settle = true, wheel = SHEET_SCROLL) { KairosApp(Platform.ANDROID, Destination.DAY, systemDark = false, showcaseTaskId = id) { services } }
+    }
+
+    private suspend fun services(language: String, machineLearning: Boolean = false): AppServices {
         val clock = object : Clock {
             override fun now() = now
         }
         val repository = KairosRepository.open(
             KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)),
-            examples = { snapshot(language) },
+            examples = { snapshot(language, machineLearning) },
             clock = clock,
             timeZone = TimeZone.UTC,
         )
@@ -183,6 +198,9 @@ object StoreScreenshots {
     /** Défilement (en crans de molette) de la capture Prévisions, pour que le résultat soit en haut de l'écran. */
     private const val FORECAST_SCROLL = 24f
 
+    /** Défilement (en crans de molette) de la fiche de la capture 2, pour que l'estimation par machine learning soit à l'écran. */
+    private const val SHEET_SCROLL = 40f
+
     /** Textes du jeu de données, par langue. */
     private class Words(
         val types: String,
@@ -191,6 +209,8 @@ object StoreScreenshots {
         val survey: String, val deploy: String, val report: String,
         val project: String, val focus: String, val lunch: String, val sync: String,
         val notes: List<String>, val history: List<String>,
+        /** Capture 2 : rapports déjà faits (titres voisins, durées réelles proches) et le rapport à estimer. */
+        val reports: List<String>, val quarterly: String,
     )
 
     private val FR = Words(
@@ -211,6 +231,12 @@ object StoreScreenshots {
             "Revue de l’architecture", "Préparer la rétrospective", "Nettoyer le backlog", "Corriger l’affichage mobile",
             "Rédiger la note de version", "Configurer la supervision", "Former la nouvelle recrue",
         ),
+        reports = listOf(
+            "Rédiger le rapport d’activité de mai", "Rédiger le rapport d’activité de juin", "Rédiger le rapport d’activité de juillet",
+            "Rédiger le rapport d’activité d’août", "Rédiger le rapport d’activité de septembre", "Rédiger le rapport d’audit des accès",
+            "Rédiger le rapport de tests de charge", "Rédiger le rapport d’incident de la mise en production",
+        ),
+        quarterly = "Rédiger le rapport d’activité du trimestre",
     )
 
     private val EN = Words(
@@ -231,9 +257,15 @@ object StoreScreenshots {
             "Architecture review", "Prepare the retrospective", "Clean up the backlog", "Fix the mobile layout",
             "Write the release notes", "Set up monitoring", "Onboard the new hire",
         ),
+        reports = listOf(
+            "Write the May activity report", "Write the June activity report", "Write the July activity report",
+            "Write the August activity report", "Write the September activity report", "Write the access audit report",
+            "Write the load testing report", "Write the release incident report",
+        ),
+        quarterly = "Write the quarterly activity report",
     )
 
-    private fun snapshot(language: String): KairosSnapshot {
+    private fun snapshot(language: String, machineLearning: Boolean = false): KairosSnapshot {
         val w = if (language == "fr") FR else EN
         fun at(day: LocalDate, h: Int, m: Int = 0) = LocalDateTime(day, LocalTime(h, m))
         fun instant(day: LocalDate, h: Int, m: Int = 0) = at(day, h, m).toInstant(TimeZone.UTC)
@@ -283,6 +315,21 @@ object StoreScreenshots {
                 val minutes = points * (14 + random.nextInt(14))
                 sessions += WorkSession(sessions.size + 1L, id, start, start + minutes.minutes, start)
             }
+        }
+        if (machineLearning) {
+            // Capture 2 : huit rapports faits ces dernières semaines, chronométrés entre 40 et 60 min, puis le rapport du
+            // trimestre, sans durée saisie : le machine learning l'estime d'après eux (docs/spec/estimateur-modele.md).
+            val real = listOf(45, 50, 40, 55, 45, 60, 50, 45)
+            w.reports.forEachIndexed { i, title ->
+                val day = today.minus(DatePeriod(days = 52 - 7 * i))
+                val id = task(
+                    title, 2, 3, null, w.doc, status = TaskStatus.DONE, updated = instant(day, 16),
+                    createdAt = instant(day.minus(DatePeriod(days = 1)), 9),
+                )
+                val start = instant(day, 14)
+                sessions += WorkSession(sessions.size + 1L, id, start, start + real[i].minutes, start)
+            }
+            task(w.quarterly, 1, 3, null, w.doc, today.plus(DatePeriod(days = 4)))
         }
         // Le compte rendu fait ce matin, et le chrono en cours sur la fuite mémoire.
         sessions += WorkSession(sessions.size + 1L, 8, instant(today, 8, 40), instant(today, 9, 5), instant(today, 8, 40))

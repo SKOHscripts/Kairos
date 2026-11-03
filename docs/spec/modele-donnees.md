@@ -108,7 +108,8 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   `planning-personnalise.md` § Lots B1 et B2 ; non écrit dans l'export tant qu'il est nul ; 3.5 : `DaySchedule.windows` (plusieurs plages `WorkWindow(startHour, endHour, context?)`) et
   `ScheduleSettings.contexts` (`WorkContext(name, types)`), jamais écrits quand ils sont vides ; 3.6 : `ScheduleSettings.bestHours` (`BestHoursSettings?` : `enabled` faux, `strength` 1 = Moyenne,
   `preferred` type → heure 0 à 23, vide ; nul tant qu'il vaut ses défauts, donc absent de l'export ; hors bornes à l'import, l'export est refusé comme corrompu, `SettingsForm.validate`)), `learning` (`LearningSettings?` : `enabled` vrai,
-  `history` 5, `minSamples` 3 ; nul = valeurs par défaut, non écrit dans l'export tant qu'il est nul, `durees-apprises.md`),
+  `history` 5, `minSamples` 3, `model` (`Boolean?`, 4.0.0 : nul = estimer par modèle, seul `false` s'écrit,
+  `estimateur-modele.md`) ; nul = valeurs par défaut, non écrit dans l'export tant qu'il est nul, `durees-apprises.md`),
   `guide` (`GuideSettings?`, 3.7.0 : `newsHidden` (version majeure.mineure), `readChapters`, `firstTaskDone` ; nul tant
   que le guide n'a rien retenu, donc absent de l'export, `visite-guidee.md` § Persistance), `reminders`
   (`ReminderSettings?`, 3.8.0 : `enabled` faux, `leadMinutes` 10 (0-120), `nextTask` faux ; 3.12.0 : `dailySummary`

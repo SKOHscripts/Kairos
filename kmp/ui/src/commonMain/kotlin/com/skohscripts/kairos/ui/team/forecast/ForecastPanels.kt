@@ -43,6 +43,7 @@ import com.skohscripts.kairos.core.team.forecast.ForecastScope
 import com.skohscripts.kairos.core.team.forecast.LateSet
 import com.skohscripts.kairos.ui.day.Dates
 import com.skohscripts.kairos.ui.generated.resources.Res
+import com.skohscripts.kairos.ui.generated.resources.forecast_model_estimated
 import com.skohscripts.kairos.ui.generated.resources.forecast_bottleneck_empty
 import com.skohscripts.kairos.ui.generated.resources.forecast_bottleneck_hint
 import com.skohscripts.kairos.ui.generated.resources.forecast_bottleneck_share
@@ -180,6 +181,10 @@ internal fun HonestyNote(result: ForecastResult, computedAt: kotlin.time.Instant
             style = MaterialTheme.typography.bodySmall,
         )
         Text(sourceText(result.source, result.model), style = MaterialTheme.typography.bodySmall)
+        // Honnêteté : combien de tâches du périmètre sont tirées dans l'intervalle du modèle (docs/spec/estimateur-modele.md).
+        if (result.modelEstimated > 0) {
+            Text(stringResource(Res.string.forecast_model_estimated, result.modelEstimated), style = MaterialTheme.typography.bodySmall)
+        }
         if (!result.reliable) {
             val throughput = result.model == ForecastModel.THROUGHPUT
             val required = if (throughput) minOf(result.source.minimum, result.source.windowWeeks) else result.source.minimum

@@ -1757,4 +1757,61 @@
     <string name="estimate_filled_points">Stimata in %1$s (mediana delle attività da %2$d punti)</string>
     <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
     <string name="event_estimate">Durata stimata %1$s → %2$s</string>
+    <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
+    <string name="setting_learning_model">Stima con il machine learning</string>
+    <string name="setting_learning_model_help">Machine learning sul dispositivo: confronta titolo, tipo e punti di un’attività con le tue attività completate. Nulla lascia questo dispositivo.</string>
+    <string name="learning_model_status_few">Non ci sono ancora abbastanza attività cronometrate (%1$d su %2$d).</string>
+    <string name="learning_model_status_unverified">Non ci sono ancora abbastanza attività confrontabili per verificarlo (%1$d su %2$d).</string>
+    <string name="learning_model_status_ok">Sulle tue ultime %1$d attività: errore mediano %2$d%, contro %3$d% della durata predefinita.</string>
+    <string name="learning_model_status_not_better">Non fa nettamente meglio della durata predefinita sulle tue ultime %1$d attività (%2$d% contro %3$d%): non applicato.</string>
+    <string name="learned_model_badge_description">Stimata dal machine learning in base a %1$d attività simili, tra %2$s e %3$s</string>
+    <string name="learned_model_badge_description_regression">Stimata dal machine learning in base alle tue %1$d attività completate, tra %2$s e %3$s</string>
+    <string name="why_learned_model">Durata: ~%1$s (tra %2$s e %3$s), stimata dal machine learning in base a %4$d attività simili: %5$s.</string>
+    <string name="why_learned_model_neighbour">«%1$s» (%2$s)</string>
+    <string name="why_learned_model_regression">Durata: ~%1$s (tra %2$s e %3$s), stimata dal machine learning in base alle tue %4$d attività completate (%5$s).</string>
+    <string name="model_basis_type_points">tipo «%1$s», punti: %2$d</string>
+    <string name="model_basis_type">tipo «%1$s»</string>
+    <string name="model_basis_points">punti: %1$d</string>
+    <string name="why_learned_model_not_better">Durata: il machine learning non fa ancora nettamente meglio della durata predefinita sulle tue ultime attività (non applicato).</string>
+    <string name="why_learned_model_few_tasks">Durata: non ci sono ancora abbastanza attività completate per il machine learning (%1$d su %2$d necessarie).</string>
+    <string name="why_learned_model_few_neighbours">Durata: non ci sono abbastanza attività simili per il machine learning (%1$d, %2$d necessarie).</string>
+    <string name="learned_model_use">Usa %1$s (tra %2$s e %3$s)</string>
+    <string name="learned_model_neighbours">Attività simili (%1$d)</string>
+    <string name="learned_model_neighbour">%1$s: %2$s, simile al %3$d%</string>
+    <string name="estimate_filled_learned">Stimata in %1$s (le tue ultime %2$d volte)</string>
+    <string name="estimate_filled_model">Stimata in %1$s dal machine learning (%2$d attività simili)</string>
+    <string name="estimate_filled_model_regression">Stimata in %1$s dal machine learning (le tue %2$d attività completate)</string>
+    <!-- Carte « Estimation par machine learning » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
+    <string name="card_model_title">Stima con il machine learning</string>
+    <string name="card_model_body">Un modello di machine learning, addestrato sul dispositivo, dà a un’attività con un titolo nuovo una durata dalle tue attività completate che le somigliano, con un intervallo e l’elenco di quelle attività. Si applica solo quando fa meglio della durata predefinita sul tuo storico, impara il tuo ritmo secondo giorno e ora, e ti avvisa quando le stime cambiano. Nulla lascia il dispositivo. IA? No, machine learning: robusto e locale, si allena a ogni attività che completi, leggero e velocissimo.</string>
+    <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
+    <string name="effort_model">%1$s, stimato dal machine learning (da %2$s a %3$s)</string>
+    <string name="forecast_model_estimated">Di cui %1$d attività stimata/e dal machine learning (intervallo appreso)</string>
+    <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
+    <string name="why_model_rhythm">Il tuo ritmo: %1$s.</string>
+    <string name="model_rhythm_weekday">%1$s% il %2$s</string>
+    <string name="model_rhythm_morning">%1$s% al mattino</string>
+    <string name="model_rhythm_afternoon">%1$s% al pomeriggio</string>
+    <string name="model_rhythm_evening">%1$s% la sera</string>
+    <!-- Estimations qui changent et estimations saisies à revoir (docs/spec/estimateur-modele.md, besoins 12 et 13) -->
+    <string name="setting_learning_notify">Avvisami quando le stime cambiano</string>
+    <string name="setting_learning_notify_help">Al massimo una volta al giorno, quando attività completate spostano la stima di attività da fare di almeno 15 min o del 25%.</string>
+    <string name="estimates_changed_banner">%1$d stima/e cambiata/e dopo le tue ultime attività completate</string>
+    <string name="estimates_changed_title">Stime aggiornate</string>
+    <string name="action_view">Vedi</string>
+    <string name="review_changed_header">Cosa è cambiato</string>
+    <string name="review_changed_row">%1$s: %2$s → %3$s</string>
+    <string name="review_typed_header">Stime inserite da rivedere (%1$d)</string>
+    <string name="review_typed_row">%1$s: inserita %2$s, il machine learning stima %3$s (da %4$s a %5$s)</string>
+    <string name="review_apply">Imposta %1$s</string>
+    <string name="review_apply_all">Applica tutto</string>
+    <string name="review_applied">Stima impostata a %1$s</string>
+    <string name="review_applied_all">%1$d stima/e aggiornata/e</string>
+    <string name="review_empty">Niente da rivedere: le stime inserite sono vicine a quelle del machine learning.</string>
+    <string name="settings_review_button">Rivedi le stime inserite (%1$d)</string>
+    <string name="sheet_model_differs">Il machine learning stima %1$s (tra %2$s e %3$s).</string>
+    <!-- Estimateur par modèle : garde pas encore vérifiable (passe de robustesse, #99) -->
+    <string name="why_learned_model_unverified">Durata: non ci sono ancora abbastanza attività confrontabili per verificare il modello di machine learning (%1$d su %2$d).</string>
+    <!-- Fiche : intitulé de l’estimation par machine learning (docs/spec/estimateur-modele.md § Interface, #99) -->
+    <string name="sheet_model_title">Stima del machine learning</string>
 </resources>

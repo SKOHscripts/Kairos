@@ -104,6 +104,8 @@ ICONS = {
     "Label": ("label", False),
     "LightMode": ("light_mode", False),
     "History": ("history", False),
+    # Durée estimée par le modèle, distincte de l'horloge des séries (docs/spec/estimateur-modele.md § Interface).
+    "Model": ("model_training", False),
     "Shield": ("shield", False),
     "Leaderboard": ("leaderboard", False),
     "Bedtime": ("bedtime", False),

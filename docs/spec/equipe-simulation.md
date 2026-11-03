@@ -84,7 +84,11 @@ Chaque tirage rejoue le **plan de charge** (`equipe-charge.md`) — mêmes
 membres, mêmes ordres, mêmes dépendances, mêmes absences — avec l'effort de
 chaque tâche multiplié par un **facteur d'erreur d'estimation** tiré dans
 l'historique de l'équipe (rapport réel / estimé des tâches faites). Il
-répond aux six questions et tient compte de qui fait quoi.
+répond aux six questions et tient compte de qui fait quoi. Une tâche dont la
+durée vient de l'estimateur par modèle (4.0.0, `estimateur-modele.md`) est
+tirée dans **son propre intervalle** au lieu de ce facteur, et la ligne de
+source le dit (« Dont 2 tâche(s) estimée(s) par le modèle (fourchette
+apprise) »).
 
 - Option « Inclure le backlog non assigné » : à chaque tirage, les tâches
   du backlog sont réparties par la suggestion de répartition
@@ -155,9 +159,11 @@ une ».
 
 ### Hors périmètre / différé
 
-- Apprentissage automatique, régression, modèles bayésiens : l'échantillon
-  d'une équipe est petit ; le rééchantillonnage de l'historique réel est
-  plus honnête et plus explicable.
+- Apprentissage automatique, régression, modèles bayésiens **ajustés sur
+  l'échantillon d'une équipe** : il est petit ; le rééchantillonnage de
+  l'historique réel est plus honnête et plus explicable. Précisé en 4.0.0 :
+  l'estimation par ressemblance sur l'historique (`estimateur-modele.md`)
+  n'en est pas un ; ses intervalles sont eux aussi tirés de durées réelles.
 - Optimisation automatique du meilleur scénario (recherche) : le manager
   compose et compare ; Kairos calcule.
 - Corrélations fines (un membre qui sous-estime plus qu'un autre) :
@@ -184,6 +190,13 @@ une ».
 - `errorFactor(rng)` : dans l'historique si n ≥ `minSamples` ; sinon dans
   l'historique avec la probabilité n / minimum, dans la **loi
   triangulaire** (0,8 ; 1 ; 2) sinon (`triangular(u)`).
+- Tâche estimée par le modèle (4.0.0) : `MonteCarlo.prepare` lit
+  `DurationEstimator.withLearned` (instantané et intervalles), `EffortModel`
+  reçoit les rapports `(low / m, high / m)` (`EffortSpread.ratios`) et tire,
+  **avec le même sous-générateur** (tirages communs gardés), le facteur
+  `EffortSpread.factor(u, l, h)` au lieu de `errorFactor` : pas de double
+  compte. `ForecastResult.modelEstimated` compte ces tâches du périmètre
+  (modèle par effort seulement). Test `EffortSpreadTest`.
 - **Débits** : tâches d'équipe finies par semaine, de l'équipe ou d'un
   membre (`throughputOf`) ; disponible (`throughputAvailable`) avec au
   moins 4 semaines actives et au moins min(`minSamples`, `historyWeeks`).

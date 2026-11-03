@@ -1,4 +1,7 @@
-Kairos range vos tâches dans l’ordre où les faire et les place dans les trous de votre journée, au bon moment.
+Kairos range vos tâches dans l’ordre où les faire et les place dans les trous de votre journée, au bon moment, et apprend par machine learning, sur votre appareil, combien de temps elles prennent vraiment.
+
+<b>Nouveau en 4.0 : du machine learning sur l’appareil</b>
+Un modèle de machine learning entraîné sur votre appareil donne à une tâche au titre nouveau une durée d’après vos tâches faites qui lui ressemblent, avec une fourchette et la liste de ces tâches. Kairos ne l’applique que s’il bat la durée par défaut sur votre historique, apprend votre rythme selon le jour et l’heure, et vous prévient quand les estimations changent. Tout reste sur l’appareil. Une IA ? Non, du machine learning : pas de chatbot ni de cloud, juste du machine learning robuste et local, qui s’entraîne à chaque tâche terminée, léger et très rapide.
 
 <b>Un ordre qui s’explique</b>
 Chaque tâche reçoit un score de priorité (WSJF) : sa valeur (priorité P0, P1 ou P2, plus l’urgence de son échéance) divisée par son effort en points. Petit et important passe avant gros et lointain ; une tâche en retard passe toujours en tête. « Pourquoi à cette place ? » détaille le calcul d’un toucher.

@@ -116,7 +116,7 @@ data class TeamLoad(
             calibration: List<Calibration>? = null,
         ): TeamLoad {
             // Les durées apprises des occurrences passées valent estimation pour les tâches qui n'en ont pas (docs/spec/durees-apprises.md).
-            val snapshot = DurationEstimator.withLearnedEstimates(stored, now)
+            val snapshot = DurationEstimator.withLearnedEstimates(stored, now, timeZone)
             val settings = snapshot.settings
             val team = settings.team ?: TeamSettings()
             val local = now.toLocalDateTime(timeZone)

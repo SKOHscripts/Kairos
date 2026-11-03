@@ -208,7 +208,7 @@ data class DayView(
             }.sortedBy { it.occurrence.start.time }
 
             // Durées apprises des tâches sans estimation explicite (docs/spec/durees-apprises.md) : les fiables servent au placement.
-            val learned = DurationEstimator.estimates(snapshot, instant)
+            val learned = DurationEstimator.estimates(snapshot, instant, timeZone)
             // Heures habituelles ou préférées par type (étape C2) : mesurées seulement si le réglage est actif, sinon `null` (comme avant).
             val affinity = if (settings.schedule?.bestHours?.enabled == true) {
                 BestHours.affinity(settings, BestHours.measure(snapshot.tasks, snapshot.workSessions, instant, settings, timeZone))

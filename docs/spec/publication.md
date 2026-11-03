@@ -106,9 +106,12 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   (`validate_fastlane.py` ne les exige que pour ces deux dossiers). Dans chaque dossier : `title.txt` (« Kairos »), `short_description.txt` (≤ 80),
   `full_description.txt` (≤ 4000, HTML simple `<b>`, `<ul>`, `<li>`),
   `changelogs/<versionCode>.txt` (≤ 500), `images/icon.png` (512 px, carré plein : le logo
-  sur un fond uni océan profond `#1C2F59`, `make_app_icons.py`, `apparence.md` § Icônes et supports fixes), `images/phoneScreenshots/1.png` à `8.png`.
-- La description présente la formule du score, le placement dans la journée, le chrono et
-  ses alertes, les statistiques, et l'absence de compte et de réseau (jusqu'à la 3.x : la 4.0.0 devra dire les connexions en ligne facultatives,
+  sur un fond uni océan profond `#1C2F59`, `make_app_icons.py`, `apparence.md` § Icônes et supports fixes), `images/phoneScreenshots/1.png` à `10.png`.
+- L'accroche (première phrase) dit que Kairos apprend la durée des tâches **par machine learning sur l'appareil**, comme la
+  description courte (« … par machine learning local », ≤ 80) ; la description ouvre ensuite sur **« Nouveau en 4.0 : du
+  machine learning sur l'appareil »** (l'estimateur par modèle, qui finit sur « Une IA ? Non, du machine learning : … »,
+  `estimateur-modele.md`, fonctionnalité majeure de la 4.0, demande du propriétaire du 2026-11-03), puis présente la
+  formule du score, le placement dans la journée, le chrono et ses alertes, les statistiques, et l'absence de compte et de réseau (jusqu'à la 3.x : la 4.0.0 devra dire les connexions en ligne facultatives,
   désactivées par défaut, et la permission réseau, `connexions-en-ligne.md`) ; depuis la 3.10.0, le fichier lié et les
   calendriers (fichier `.ics`, ou calendriers du téléphone avec l'autorisation **facultative** de lecture du
   calendrier, `connexions-externes.md`).
@@ -126,11 +129,11 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   rend hors écran (`ImageComposeScene`, comme l'auto-test) l'interface
   **Android** (`KairosApp(Platform.ANDROID, destination)` : barre basse,
   textes tactiles) en 1080 × 2400 px, densité 2,625 (téléphone de 411 dp de
-  large), pour Jour, Semaine, Statistiques, Notes et Réglages (1 à 5), puis,
-  sur une base où la gestion d'équipe est activée, Suivi, Équipe (charge) et
-  Prévisions (6 à 8, `equipe.md`), puis la vue Jour de la capture 1, système en sombre (9, `apparence.md` § Thème
-  sombre ; 1 à 8 imposent un système clair, `systemDark = false`), en `fr-FR` (`Locale.FRANCE`) puis `en-US`
-  (`Locale.US`). Les captures 1 à 5 restent celles du mode solo : le jeu de
+  large), pour Jour, **la fiche d'une tâche estimée par machine learning** (2, ci-dessous), Semaine, Statistiques, Notes
+  et Réglages (1 à 6), puis, sur une base où la gestion d'équipe est activée, Suivi, Équipe (charge) et
+  Prévisions (7 à 9, `equipe.md`), puis la vue Jour de la capture 1, système en sombre (10, `apparence.md` § Thème
+  sombre ; 1 à 9 imposent un système clair, `systemDark = false`), en `fr-FR` (`Locale.FRANCE`) puis `en-US`
+  (`Locale.US`). Les captures 1 à 6 restent celles du mode solo : le jeu de
   l'équipe vit dans une seconde base, pour que les écrans personnels
   n'en montrent rien.
 - Données : une base en mémoire remplie d'un jeu réaliste dans la langue de la
@@ -140,22 +143,32 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   aucune tâche « À traiter », qui masquerait « Maintenant » en haut de
   l'écran). Horloge figée au mardi 6 octobre 2026, 10 h 12, fuseau UTC, tirages
   à graine fixe : deux exécutions donnent les mêmes images. Jeu d'équipe
-  (captures 6 à 8) : trois membres dont « moi », une absence, une dizaine de
+  (captures 7 à 9) : trois membres dont « moi », une absence, une dizaine de
   tâches d'équipe à divers états, un historique de tâches faites estimées et
   chronométrées sur plusieurs semaines, dates relatives à la même horloge ;
-  la simulation de la capture 8 est calculée avant le rendu, à graine fixe.
+  la simulation de la capture 9 est calculée avant le rendu, à graine fixe.
   Ce jeu de vitrine (`StoreTeam.kt`) n'est pas celui de l'auto-test
   (`TeamSeed`, qui suit le jour réel). « Moi » (Claire) porte le
   dépassement de charge : l'espace Équipe la montre en premier, donc dans
   les 2400 px. Le dépôt tire des `teamUid` aléatoires dont la simulation
   dérive ses tirages : le jeu les remplace par des identités fixes
-  (`replaceAll`), sans quoi la capture 8 changeait d'une exécution à
+  (`replaceAll`), sans quoi la capture 9 changeait d'une exécution à
   l'autre malgré la graine fixe. `KairosApp` accepte une destination
   d'équipe initiale (`initialTeamDestination`, par défaut le Suivi) ; la
-  capture 8 est défilée jusqu'au résultat. Les captures 6 à 8 attendent une
-  image stable (calculs de charge asynchrones) ; 1 à 5 sont rendues comme
+  capture 9 est défilée jusqu'au résultat. Les captures 7 à 9 attendent une
+  image stable (calculs de charge asynchrones) ; 1 et 3 à 6 sont rendues comme
   avant, à l'octet près. Ce jeu n'est pas
   livré dans l'application (ce ne sont pas les exemples).
+- **Capture 2, le machine learning** (ajoutée le 2026-11-03 : aucune capture ne le montrait, la fonctionnalité majeure de la
+  4.0 doit se voir) : la base de la capture 1, enrichie de huit rapports faits ces dernières semaines (« Rédiger le rapport
+  d'activité de mai »…, chronométrés de 40 à 60 min), et un rapport au titre nouveau sans durée saisie (« Rédiger le rapport
+  d'activité du trimestre »). `KairosApp(showcaseTaskId = …)` (`LocalShowcaseTask`, `ui/app/StoreShowcase.kt`) fait
+  ouvrir sa fiche d'emblée par la vue Jour, « Tâches proches » dépliée ; la fiche est défilée à la molette jusqu'au champ
+  des minutes (`SHEET_SCROLL`) et la capture attend une image stable (le calcul du modèle se fait hors composition). On y
+  lit « Estimation par machine learning », « Utiliser 45 min (entre 40 min et 1 h) » et les cinq rapports les plus
+  proches, leur temps réel et leur ressemblance. Ce point d'entrée ne sert qu'aux captures : l'application et les tests ne
+  le posent jamais. Décision : une capture de plus (en 2e position, juste après la vue Jour) plutôt que remplacer celle
+  des Réglages, qui garde la vue d'ensemble des catégories.
 - `KairosApp` accepte pour cela une destination initiale
   (`initialDestination`, par défaut l'écran d'accueil habituel).
 - **Couleur** (changé le 2026-10-27) : les captures montrent le thème par défaut, donc l'océan ; elles ont été régénérées
@@ -244,11 +257,13 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   (`fonts/`), cartes sans ombre, boutons en pilule, cibles de 40 px ; icône et favicon de la page : le logo sur le fond
   océan profond à coins arrondis (`make_app_icons.py`). « F-Droid » dans la petite ligne de la carte Android est dans
   un `<span class="nowrap">` : sans cela, la carte étroite le coupait au trait d'union (« F- / Droid »).
-- Contenu : accroche, trois points (ordre expliqué par la formule, journée
-  réaliste, temps réel), cartes de téléchargement (Android : APK ; Windows :
+- Contenu : accroche (le héros et la description de la page disent le machine learning embarqué), quatre points (en tête,
+  **« Nouveau en 4.0 : du machine learning sur l'appareil »**, suivi d'un paragraphe « Une IA ? Non, du machine learning », l'estimateur par
+  modèle, `estimateur-modele.md`, mis en avant comme fonctionnalité majeure de la 4.0, demande du propriétaire du
+  2026-11-03 ; puis ordre expliqué par la formule, journée réaliste, temps réel), cartes de téléchargement (Android : APK ; Windows :
   MSI et zip portable ; Linux : `.deb` et `.tar.gz` ; macOS : DMG Apple
   Silicon et Intel ; navigateur), lien vers les releases et `SHA256SUMS`,
-  captures 1 à 5 et 9, le thème sombre (défilement horizontal), notes de première installation, « On en parle »
+  captures 1 à 6 et 10 (dont la 2, le machine learning), le thème sombre (défilement horizontal), notes de première installation, « On en parle »
   (liens texte vers la fiche AlternativeTo et le post r/foss, 2026-10-29), pied de page (licence, source, tickets).
 - **« On en parle » / « Mentioned on »** (2026-10-29, demande du propriétaire) : les mentions publiques de Kairos, aussi
   dans le README (anglais et français, juste avant la licence), qui porte en plus le badge AlternativeTo (lien vers la

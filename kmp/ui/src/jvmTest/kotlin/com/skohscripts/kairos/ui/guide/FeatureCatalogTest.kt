@@ -134,10 +134,12 @@ class FeatureCatalogTest {
     @Test
     fun noCardIsNewerThanTheApp() {
         // Une carte annonce une version déjà publiée ou celle en préparation, jamais une future. Le passage de version vient
-        // en dernière PR d'un cycle (docs/spec/distribution.md) : la version en préparation est la mineure suivante de l'app.
+        // en dernière PR d'un cycle (docs/spec/distribution.md) : la version en préparation est la mineure suivante de l'app,
+        // ou la majeure suivante (X+1.0, 4.0.0 préparée après 3.14.0).
         fun minor(version: String): Int = version.substringBefore('-').split('.').let { it[0].toInt() * 100 + it[1].toInt() }
         val app = repoFile("kmp/gradle.properties").readLines().first { it.startsWith("kairos.versionName=") }.substringAfter('=')
-        assertEquals(emptyList(), cards.filter { minor(it.since) > minor(app) + 1 }.map { it.id }, "version de l'application : $app")
+        val nextMajor = (minor(app) / 100 + 1) * 100
+        assertEquals(emptyList(), cards.filter { minor(it.since) > minor(app) + 1 && minor(it.since) != nextMajor }.map { it.id }, "version de l'application : $app")
     }
 
     @Test

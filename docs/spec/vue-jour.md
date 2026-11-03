@@ -56,8 +56,9 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    types des Réglages, et le type actuel de la tâche s'il n'y est plus) ; le choix est enregistré aussitôt. Le type
    n'est pas un critère de qualification : il ne fait ni entrer ni sortir une tâche de « À traiter ».
    **Durée dès le traitement** (même issue, choix du propriétaire du 2026-11-02) : quand un geste de « À traiter »
-   (priorité, points ou type) laisse la tâche avec **les trois** renseignés et **sans durée**, Kairos lui pose la médiane
-   fiable de son type, sinon celle de son palier de points, et le dit : « Estimée à 45 min (médiane de « Rédaction ») »,
+   (priorité, points ou type) laisse la tâche avec **les trois** renseignés et **sans durée**, Kairos lui pose sa durée
+   apprise fiable (série, titre ou modèle, 4.0.0, `estimateur-modele.md`, « Estimée à 45 min par le modèle (5 tâches
+   proches) »), sinon la médiane fiable de son type, sinon celle de son palier de points, et le dit : « Estimée à 45 min (médiane de « Rédaction ») »,
    ou « … (médiane des tâches à 3 points) », avec « Annuler » (la durée redevient vide). Une durée déjà là n'est jamais
    touchée ; sans médiane fiable, rien n'est posé. Le backlog d'équipe fait de même dans « À qualifier », avec les
    médianes des seules tâches d'équipe terminées (`equipe-backlog-suivi.md`). Le menu des types montre une barre de défilement dès que la liste ne tient pas en entier.
@@ -343,11 +344,14 @@ chaque entrée une case (rôle et état lus par le lecteur d'écran), le champ a
   sur le bureau). `InboxQualify(tâche, onPriority, onPoints, types, typeLabel, onType)` : pastilles, puis `TypeField`
   (360 dp de large au plus) ; la vue Jour passe `taskTypeList` et `field_type`, et enregistre par
   `KairosRepository.setTaskType` (déjà utilisé par le changement de catégorie en lot du backlog d'équipe), qui ne touche
-  qu'au type. Après chaque geste de la vue Jour (priorité, points, type), `Estimates.inboxFill(tâche)` (`PointsGuide.kt`,
-  à côté des médianes `minutesByType` et `minutesByPoints` de la fiche) rend la durée à poser, ou `null` ; la vue Jour
-  l'écrit par `KairosRepository.setEstimate` et l'annonce par `LocalUndoMessages` (`estimate_filled_type`,
+  qu'au type. Après chaque geste de la vue Jour (priorité, points, type), `Estimates.inboxFill(tâche, apprise)`
+  (`PointsGuide.kt`, à côté des médianes `minutesByType` et `minutesByPoints` de la fiche) rend la durée à poser, ou `null` :
+  la durée apprise **fiable** d'abord (`DurationEstimator.estimate` sur l'instantané, 4.0.0), puis les médianes ; la vue
+  Jour l'écrit par `KairosRepository.setEstimate` et l'annonce par `LocalUndoMessages` (`estimate_filled_learned` pour une
+  série ou un titre, `estimate_filled_model` ou `estimate_filled_model_regression` pour le modèle, `estimate_filled_type`,
   `estimate_filled_points`, durée mise en forme hors composition par `durationText`) : `fillInboxEstimate(dépôt, médianes,
-  tâche, undo, scope)`, partagée avec le backlog d'équipe, qui lui passe ses propres médianes.
+  tâche, undo, scope, maintenant)`, partagée avec le backlog d'équipe, qui lui passe ses propres médianes (la chaîne, elle,
+  ne lit que l'espace de la tâche).
 - `Dates` : « 30 sept. » / « Sep 30 », « 09h15 » / « 09:15 », graduations
   « 9h » / « 9:00 », nombres à une décimale sans « .0 » (deux pour une valeur positive
   qui s'arrondirait à 0 : un score de 1/21 s'affiche « 0,05 », jamais « 0 ») ;
