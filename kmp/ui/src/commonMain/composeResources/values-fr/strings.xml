@@ -1786,7 +1786,7 @@
     <string name="estimate_filled_model_regression">Estimée à %1$s par machine learning (tes %2$d tâches faites)</string>
     <!-- Carte « Estimation par machine learning » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
     <string name="card_model_title">Estimation par machine learning</string>
-    <string name="card_model_body">Un modèle de machine learning, entraîné sur l’appareil, donne à une tâche au titre nouveau une durée d’après tes tâches faites qui lui ressemblent, avec une fourchette et la liste de ces tâches. Il ne s’applique qu’une fois qu’il bat la durée par défaut sur ton historique, apprend ton rythme selon le jour et l’heure, et te prévient quand les estimations changent. Rien ne quitte l’appareil.</string>
+    <string name="card_model_body">Un modèle de machine learning, entraîné sur l’appareil, donne à une tâche au titre nouveau une durée d’après tes tâches faites qui lui ressemblent, avec une fourchette et la liste de ces tâches. Il ne s’applique qu’une fois qu’il bat la durée par défaut sur ton historique, apprend ton rythme selon le jour et l’heure, et te prévient quand les estimations changent. Rien ne quitte l’appareil. Garanti sans IA : juste du machine learning robuste et local, léger et très rapide.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, estimé par machine learning (%2$s à %3$s)</string>
     <string name="forecast_model_estimated">Dont %1$d tâche(s) estimée(s) par machine learning (fourchette apprise)</string>

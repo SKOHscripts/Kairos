@@ -601,6 +601,15 @@ première phrase de la fiche Fastlane et de sa description courte, en plus de la
 bref » et du premier point de la page (`publication.md`). La description courte des fiches cède « sans compte ni réseau »
 au machine learning (80 caractères au plus) ; l'absence de compte reste dans la description longue.
 
+**Mention « Garanti sans IA » (demande du 2026-11-03, ton volontairement complice)** : la vitrine dit qu'il n'y a **pas
+d'IA** dans Kairos (ni chatbot, ni modèle géant, ni cloud), seulement du machine learning robuste, local, qui s'affine à
+chaque tâche terminée, léger et rapide. Où : un encadré dans la section dédiée du README (FR, EN), un paragraphe sous la
+carte « Nouveau en 4.0 » de la page (six langues), une phrase au bout du paragraphe « Nouveau en 4.0 » des fiches Fastlane
+et au bout de la carte du catalogue (six langues). Les chiffres du README sont ceux que les tests vérifient à chaque build :
+corpus borné aux 500 tâches faites les plus récentes (`ModelParams.MAX_CORPUS`), 200 estimations sur 500 tâches en moins
+d'une seconde (`ModelPerformanceTest`, JVM et wasm en CI). Ailleurs, « léger et très rapide » sans chiffre. « Ton téléphone
+ne chauffera pas » est une image, pas une mesure : Android n'est pas chronométré.
+
 **Passe de robustesse du 2026-11-03** (trois relectures indépendantes, en lecture seule : le moteur, l'interface, puis
 l'étape 6 et les corrections ; tests `RobustnessTest`, `EstimateChangesTest`, `EstimateReviewUiTest`) :
 

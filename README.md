@@ -74,6 +74,12 @@ long the next ones will take. It is trained and run entirely on your device:
 nearest neighbours on your history, a ridge regression as a fallback, and a
 check against your own data before it changes anything.
 
+> **Guaranteed AI-free.** No chatbot, no giant model, no cloud: just good old
+> machine learning, robust and local, that gets sharper with every task you
+> finish. It keeps only your last 500 finished tasks and computes 200
+> estimates in under a second (measured on every build). Your phone won’t even
+> get warm.
+
 - **By resemblance, with its proof.** A task you have never done before
   ("Quarterly report for the board") is compared with your finished tasks: words
   of the title, type, points, project. Its duration is the weighted median of
