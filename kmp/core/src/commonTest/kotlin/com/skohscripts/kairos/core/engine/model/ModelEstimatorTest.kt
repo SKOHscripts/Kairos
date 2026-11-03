@@ -34,8 +34,10 @@ class ModelEstimatorTest {
         for (profile in listOf(Profile.NOVEL, Profile.RECURRING, Profile.NOISE)) {
             val history = SimulatedHistory.generate(3, profile, n = 120)
             val bt = Backtest(history)
+            // Un cache par historique, comme l'application : le modèle et sa garde ne sont construits qu'une fois.
+            val cache = ModelCache.memo()
             for (s in history.takeLast(15)) {
-                val e = ModelEstimator.estimate(bt.task(s).copy(id = 5000 + s.taskId), DurationEstimator.History(history), settings) ?: continue
+                val e = ModelEstimator.estimate(bt.task(s).copy(id = 5000 + s.taskId), DurationEstimator.History(history, cache), settings) ?: continue
                 assertEquals(Source.MODEL, e.source)
                 val evidence = assertNotNull(e.evidence)
                 when (evidence.basis) {
