@@ -21,4 +21,9 @@ data class LearningSettings(
      * utilisateur qui a déjà un objet `learning` (une valeur nulle n'est pas écrite).
      */
     val model: Boolean? = null,
+    /**
+     * Prévenir quand des estimations changent nettement (docs/spec/estimateur-modele.md, besoin 12) ; **`null` = actif**, seul
+     * `false` s'écrit (même raison que [model]).
+     */
+    val notifyChanges: Boolean? = null,
 )

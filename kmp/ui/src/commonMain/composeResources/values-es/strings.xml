@@ -1793,4 +1793,21 @@
     <string name="model_rhythm_morning">%1$s% por la mañana</string>
     <string name="model_rhythm_afternoon">%1$s% por la tarde</string>
     <string name="model_rhythm_evening">%1$s% por la noche</string>
+    <!-- Estimations qui changent et estimations saisies à revoir (docs/spec/estimateur-modele.md, besoins 12 et 13) -->
+    <string name="setting_learning_notify">Avisarme cuando cambien las estimaciones</string>
+    <string name="setting_learning_notify_help">Como mucho una vez al día, cuando tareas terminadas mueven la estimación de tareas pendientes al menos 15 min o un 25 %.</string>
+    <string name="estimates_changed_banner">%1$d estimación(es) cambiaron tras tus últimas tareas terminadas</string>
+    <string name="estimates_changed_title">Estimaciones actualizadas</string>
+    <string name="action_view">Ver</string>
+    <string name="review_changed_header">Qué ha cambiado</string>
+    <string name="review_changed_row">%1$s: %2$s → %3$s</string>
+    <string name="review_typed_header">Estimaciones escritas por revisar (%1$d)</string>
+    <string name="review_typed_row">%1$s: escrita %2$s, el modelo estima %3$s (de %4$s a %5$s)</string>
+    <string name="review_apply">Cambiar a %1$s</string>
+    <string name="review_apply_all">Aplicar todo</string>
+    <string name="review_applied">Estimación cambiada a %1$s</string>
+    <string name="review_applied_all">%1$d estimación(es) actualizada(s)</string>
+    <string name="review_empty">Nada que revisar: tus estimaciones escritas coinciden con el modelo.</string>
+    <string name="settings_review_button">Revisar las estimaciones escritas (%1$d)</string>
+    <string name="sheet_model_differs">El modelo estima %1$s (entre %2$s y %3$s).</string>
 </resources>

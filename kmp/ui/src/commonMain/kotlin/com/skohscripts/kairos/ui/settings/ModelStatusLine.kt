@@ -1,5 +1,12 @@
 package com.skohscripts.kairos.ui.settings
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import kotlinx.datetime.TimeZone
+import com.skohscripts.kairos.ui.generated.resources.settings_review_button
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
+import com.skohscripts.kairos.ui.app.EstimateReviewDialog
+import com.skohscripts.kairos.core.engine.model.EstimateChanges
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,7 +33,7 @@ import kotlin.math.floor
 @Composable
 internal fun ModelStatusLine(services: AppServices) {
     val snapshot by services.repository.snapshot.collectAsState()
-    val status = remember(snapshot) { DurationEstimator.modelStatus(snapshot, services.clock.now()) } ?: return
+    val status = remember(snapshot) { DurationEstimator.modelStatus(snapshot, services.clock.now(), timeZone = TimeZone.currentSystemDefault()) } ?: return
     val gate = status.gate
     fun percent(x: Double) = floor(x * 100.0 + 0.5).toInt()
     val text = when {
@@ -36,4 +43,11 @@ internal fun ModelStatusLine(services: AppServices) {
         else -> stringResource(Res.string.learning_model_status_not_better, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
     }
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    // Estimations saisies que le modèle conteste (besoin 13) : la revue, depuis la carte.
+    val proposals = remember(snapshot) { EstimateChanges.proposals(snapshot, services.clock.now(), TimeZone.currentSystemDefault()) }
+    var review by remember { mutableStateOf(false) }
+    if (proposals.isNotEmpty()) {
+        KairosOutlinedButton(onClick = { review = true }) { Text(stringResource(Res.string.settings_review_button, proposals.size)) }
+    }
+    if (review) EstimateReviewDialog(services, emptyList()) { review = false }
 }

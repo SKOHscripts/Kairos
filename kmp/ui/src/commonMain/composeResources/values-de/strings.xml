@@ -1793,4 +1793,21 @@
     <string name="model_rhythm_morning">%1$s% am Vormittag</string>
     <string name="model_rhythm_afternoon">%1$s% am Nachmittag</string>
     <string name="model_rhythm_evening">%1$s% am Abend</string>
+    <!-- Estimations qui changent et estimations saisies à revoir (docs/spec/estimateur-modele.md, besoins 12 et 13) -->
+    <string name="setting_learning_notify">Melden, wenn sich Schätzungen ändern</string>
+    <string name="setting_learning_notify_help">Höchstens einmal am Tag, wenn erledigte Aufgaben die Schätzung offener Aufgaben um mindestens 15 Min. oder 25 % verschieben.</string>
+    <string name="estimates_changed_banner">%1$d Schätzung(en) haben sich nach deinen letzten erledigten Aufgaben geändert</string>
+    <string name="estimates_changed_title">Schätzungen aktualisiert</string>
+    <string name="action_view">Ansehen</string>
+    <string name="review_changed_header">Was sich geändert hat</string>
+    <string name="review_changed_row">%1$s: %2$s → %3$s</string>
+    <string name="review_typed_header">Eingegebene Schätzungen zu prüfen (%1$d)</string>
+    <string name="review_typed_row">%1$s: eingegeben %2$s, das Modell schätzt %3$s (%4$s bis %5$s)</string>
+    <string name="review_apply">Auf %1$s setzen</string>
+    <string name="review_apply_all">Alle übernehmen</string>
+    <string name="review_applied">Schätzung auf %1$s gesetzt</string>
+    <string name="review_applied_all">%1$d Schätzung(en) aktualisiert</string>
+    <string name="review_empty">Nichts zu prüfen: Deine eingegebenen Schätzungen passen zum Modell.</string>
+    <string name="settings_review_button">Eingegebene Schätzungen prüfen (%1$d)</string>
+    <string name="sheet_model_differs">Das Modell schätzt %1$s (zwischen %2$s und %3$s).</string>
 </resources>

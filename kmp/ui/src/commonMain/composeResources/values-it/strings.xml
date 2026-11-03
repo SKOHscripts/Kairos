@@ -1793,4 +1793,21 @@
     <string name="model_rhythm_morning">%1$s% al mattino</string>
     <string name="model_rhythm_afternoon">%1$s% al pomeriggio</string>
     <string name="model_rhythm_evening">%1$s% la sera</string>
+    <!-- Estimations qui changent et estimations saisies à revoir (docs/spec/estimateur-modele.md, besoins 12 et 13) -->
+    <string name="setting_learning_notify">Avvisami quando le stime cambiano</string>
+    <string name="setting_learning_notify_help">Al massimo una volta al giorno, quando attività completate spostano la stima di attività da fare di almeno 15 min o del 25%.</string>
+    <string name="estimates_changed_banner">%1$d stima/e cambiata/e dopo le tue ultime attività completate</string>
+    <string name="estimates_changed_title">Stime aggiornate</string>
+    <string name="action_view">Vedi</string>
+    <string name="review_changed_header">Cosa è cambiato</string>
+    <string name="review_changed_row">%1$s: %2$s → %3$s</string>
+    <string name="review_typed_header">Stime inserite da rivedere (%1$d)</string>
+    <string name="review_typed_row">%1$s: inserita %2$s, il modello stima %3$s (da %4$s a %5$s)</string>
+    <string name="review_apply">Imposta %1$s</string>
+    <string name="review_apply_all">Applica tutto</string>
+    <string name="review_applied">Stima impostata a %1$s</string>
+    <string name="review_applied_all">%1$d stima/e aggiornata/e</string>
+    <string name="review_empty">Niente da rivedere: le stime inserite sono vicine al modello.</string>
+    <string name="settings_review_button">Rivedi le stime inserite (%1$d)</string>
+    <string name="sheet_model_differs">Il modello stima %1$s (tra %2$s e %3$s).</string>
 </resources>

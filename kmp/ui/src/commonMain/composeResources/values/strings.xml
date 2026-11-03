@@ -1794,4 +1794,21 @@
     <string name="model_rhythm_morning">%1$s% in the morning</string>
     <string name="model_rhythm_afternoon">%1$s% in the afternoon</string>
     <string name="model_rhythm_evening">%1$s% in the evening</string>
+    <!-- Estimations qui changent et estimations saisies à revoir (docs/spec/estimateur-modele.md, besoins 12 et 13) -->
+    <string name="setting_learning_notify">Tell me when estimates change</string>
+    <string name="setting_learning_notify_help">At most once a day, when finished tasks move the estimate of tasks to do by 15 min or 25% at least.</string>
+    <string name="estimates_changed_banner">%1$d estimate(s) changed after your last finished tasks</string>
+    <string name="estimates_changed_title">Estimates updated</string>
+    <string name="action_view">View</string>
+    <string name="review_changed_header">What changed</string>
+    <string name="review_changed_row">%1$s: %2$s → %3$s</string>
+    <string name="review_typed_header">Typed estimates to review (%1$d)</string>
+    <string name="review_typed_row">%1$s: typed %2$s, the model estimates %3$s (%4$s to %5$s)</string>
+    <string name="review_apply">Set to %1$s</string>
+    <string name="review_apply_all">Apply all</string>
+    <string name="review_applied">Estimate set to %1$s</string>
+    <string name="review_applied_all">%1$d estimate(s) updated</string>
+    <string name="review_empty">Nothing to review: your typed estimates agree with the model.</string>
+    <string name="settings_review_button">Review typed estimates (%1$d)</string>
+    <string name="sheet_model_differs">The model estimates %1$s (between %2$s and %3$s).</string>
 </resources>

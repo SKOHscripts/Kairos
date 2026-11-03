@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.ui.navigation
 
+import com.skohscripts.kairos.ui.app.EstimateReviewDialog
+import com.skohscripts.kairos.ui.app.EstimateChangesBanner
+import com.skohscripts.kairos.ui.app.EstimateWatcher
+import com.skohscripts.kairos.core.engine.model.EstimateChanges
 import com.skohscripts.kairos.ui.reminders.ReminderWatcher
 import com.skohscripts.kairos.core.engine.TimeTracking
 import com.skohscripts.kairos.ui.generated.resources.demo_hub_busy
@@ -184,6 +188,10 @@ fun AppShell(
     // Rappels des tâches à heure fixe et de la tâche suivante (docs/spec/rappels.md) : mêmes bandeaux.
     ReminderWatcher(services, alerts)
     UpdateWatcher(services)
+    // Estimations qui changent (docs/spec/estimateur-modele.md, besoin 12) : bandeau et revue.
+    var estimateChanges by remember { mutableStateOf<List<EstimateChanges.Change>?>(null) }
+    var estimateReview by remember { mutableStateOf(false) }
+    EstimateWatcher(services) { estimateChanges = it }
     val scope = rememberCoroutineScope()
     // Ce que le guide a retenu (docs/spec/visite-guidee.md § Persistance, issue #94).
     val stored by services.repository.snapshot.collectAsState()
@@ -345,12 +353,18 @@ fun AppShell(
         Column(modifier.fillMaxSize()) {
             if (demo != null) DemoBanner(onExitDemo)
             CompositionLocalProvider(LocalMessages provides showMessage) { UpdateBanner(services) }
+            estimateChanges?.let { changes ->
+                EstimateChangesBanner(changes.size, onView = { estimateReview = true }, onDismiss = { estimateChanges = null })
+            }
             CompositionLocalProvider(LocalMessages provides showMessage) { ShortcutBanner(services) }
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 CompositionLocalProvider(
                     LocalMessages provides showMessage, LocalUndoMessages provides showUndo, LocalGuideSpot provides nav.guideSpot,
                     LocalDemoTour provides demo,
                 ) {
+                    if (estimateReview) {
+                        EstimateReviewDialog(services, estimateChanges.orEmpty()) { estimateReview = false; estimateChanges = null }
+                    }
                     val home: @Composable () -> Unit = {
                         HomeScreen(
                             teamModeEnabled, openTarget, { guide = it }, onOpenAbout, onDiscover = { discover = true },

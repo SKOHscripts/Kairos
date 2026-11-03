@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.core.engine.model.EstimateChanges
 import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.guide.demo.LocalDemoTour
 import com.skohscripts.kairos.ui.guide.demo.DemoSpot
@@ -638,6 +639,7 @@ fun DayScreen(
                 today = today,
                 learned = view.learned[id],
                 learning = snapshot.settings.learning ?: LearningSettings(),
+                proposal = remember(snapshot, id) { EstimateChanges.proposalFor(task, snapshot, services.clock.now(), timeZone) },
                 taskTypes = snapshot.settings.taskTypeList,
                 candidates = view.openTasks,
                 blockerIds = view.blockersOf[id].orEmpty().toSet(),

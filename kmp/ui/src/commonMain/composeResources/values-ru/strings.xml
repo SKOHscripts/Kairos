@@ -1793,4 +1793,21 @@
     <string name="model_rhythm_morning">%1$s% утром</string>
     <string name="model_rhythm_afternoon">%1$s% днём</string>
     <string name="model_rhythm_evening">%1$s% вечером</string>
+    <!-- Estimations qui changent et estimations saisies à revoir (docs/spec/estimateur-modele.md, besoins 12 et 13) -->
+    <string name="setting_learning_notify">Сообщать, когда оценки меняются</string>
+    <string name="setting_learning_notify_help">Не чаще раза в день, когда выполненные задачи меняют оценку предстоящих хотя бы на 15 мин или 25 %.</string>
+    <string name="estimates_changed_banner">Оценок изменилось после последних выполненных задач: %1$d</string>
+    <string name="estimates_changed_title">Оценки обновлены</string>
+    <string name="action_view">Посмотреть</string>
+    <string name="review_changed_header">Что изменилось</string>
+    <string name="review_changed_row">%1$s: %2$s → %3$s</string>
+    <string name="review_typed_header">Введённые оценки на проверку (%1$d)</string>
+    <string name="review_typed_row">%1$s: введено %2$s, модель оценивает %3$s (от %4$s до %5$s)</string>
+    <string name="review_apply">Изменить на %1$s</string>
+    <string name="review_apply_all">Применить все</string>
+    <string name="review_applied">Оценка изменена на %1$s</string>
+    <string name="review_applied_all">Обновлено оценок: %1$d</string>
+    <string name="review_empty">Нечего проверять: введённые оценки близки к модели.</string>
+    <string name="settings_review_button">Проверить введённые оценки (%1$d)</string>
+    <string name="sheet_model_differs">Модель оценивает %1$s (от %2$s до %3$s).</string>
 </resources>
