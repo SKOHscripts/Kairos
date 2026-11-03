@@ -54,6 +54,11 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 - Un crash laisse une trace lisible dans un fichier, sans terminal.
 - **Web** : la même interface dans le navigateur. Un navigateur trop ancien
   affiche un message clair plutôt qu'un écran figé.
+- **Build de test avant une release** (demande du 2026-11-03) : depuis l'onglet Actions, on lance à la main un build d'**un
+  commit précis** de `main` (par défaut le dernier), en choisissant les plateformes (Android, bureau, web), pour essayer la
+  version avant de poser le tag. L'APK de test est signé avec la clé des releases : il s'installe **par-dessus** la
+  version en place et garde ses données, comme le fera la release. Rien n'est publié : ni release, ni AUR, ni signature
+  Windows ; les fichiers sont téléchargeables dans les artefacts du lancement, qui portent le commit dans leur nom.
 
 ### Critères de succès
 
@@ -66,6 +71,8 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 - Le paquet AUR est **construit, installé avec ses dépendances et lancé** (auto-test) dans un conteneur Arch Linux
   avant d'être poussé ; un échec bloque sa publication, jamais la release GitHub. Il vérifie la somme SHA-256 du
   `.deb` publié.
+- Un build de test ne construit que des commits de la branche depuis laquelle il est lancé, passe les mêmes tests et
+  auto-tests qu'une release, et ne publie jamais rien.
 
 ### Hors périmètre (à ce jalon)
 
@@ -383,6 +390,7 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   runner à deux cœurs, avec les modules testés en parallèle, 5 s ont manqué
   par intermittence (`M5ScreensUiTest`), d'où 15 s.
 - `kmp-release.yml` (tags `v3.*` et `v4.*` (`v4.*` ajouté avec le paquet AUR, pour que la 4.0.0 se publie), lancement manuel) :
+- `kmp-test-build.yml` (lancement manuel seulement) : build de test d'un commit de la branche, voir § Build de test.
   - `version` : lit `kairos.versionName` ; échec si le tag diffère ; drapeau
     `prerelease` si la version contient `-` ;
   - `android` : tests JVM, keystore depuis `KAIROS_KEYSTORE_BASE64` (échec
@@ -400,6 +408,30 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   - `aur` (version stable) : paquet `kairos-bin` construit et testé dans un conteneur Arch, poussé sur l'AUR sur un
     tag quand `AUR_SSH_PRIVATE_KEY` existe (§ Paquet Arch Linux).
 
+### Build de test (`kmp-test-build.yml`)
+
+- **Déclenchement** : `workflow_dispatch` seulement, lancé depuis `main` (Actions → « Kairos test build » → « Run
+  workflow »). Champs : `commit` (SHA court ou long ; vide = le dernier commit de la branche choisie), et trois cases
+  cochées par défaut, `android`, `desktop`, `web`.
+- **`resolve`** : historique complet, `git rev-parse --verify "$COMMIT^{commit}"`, puis
+  `git merge-base --is-ancestor` : le commit doit appartenir à la branche du lancement, sinon échec. Le champ passe par
+  une variable d'environnement, jamais interpolé dans le script (injection). Sorties : SHA complet, SHA court,
+  `kairos.versionName` du commit. Le résumé du lancement (`$GITHUB_STEP_SUMMARY`) dit le commit, la version et les
+  plateformes demandées.
+- **`tests`** (toujours) : les tests JVM de la CI (`:core:jvmTest :data:jvmTest :ui:jvmTest :desktopApp:jvmTest`), en
+  parallèle des constructions : un test en échec rend le lancement rouge sans retarder les fichiers.
+- **`android`** (si coché) : `assembleRelease` signé avec les secrets des releases (`KAIROS_KEYSTORE_BASE64`…), donc
+  installable par-dessus la version en place, même `versionCode` compris ; sans secrets (fork), APK non signé avec un
+  avertissement → `Kairos-android-test-<court>.apk`.
+- **`desktop`** (si coché) : la matrice des quatre OS de la release, `fakeroot` sous Linux, **auto-test de l'image
+  empaquetée**, puis `Kairos-<id>-test-<court>.{deb,msi,dmg}` et `Kairos-<id>-test-<court>-portable.{tar.gz,zip}` (marqueur
+  portable comme la release) ; captures en artefacts `test-screens-<id>`. Pas de SignPath : chaque demande attend une
+  approbation manuelle, réservée aux releases.
+- **`web`** (si coché) : `Kairos-web-test-<court>.zip`.
+- **Artefacts** `kairos-test-<court>-<cible>`, gardés **14 jours** (un build de test n'a pas à durer au-delà de la
+  release qu'il prépare).
+- Permissions : `contents: read` seulement ; aucun job ne publie ni n'écrit dans le dépôt.
+
 ### Décisions et pièges tracés
 
 - **Arch Linux : paquet AUR `kairos-bin` publié par la CI** (2026-11-02, choix du propriétaire, 4.0.0). Tiré du
@@ -416,6 +448,11 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   `Kairos.cfg` du lanceur fait partie de l'image du `.deb`, le réécrire couplerait le paquet à son format.
 - **`v4.*` ajouté aux tags de `kmp-release.yml`** (2026-11-02) : le filtre `v3.*` aurait ignoré le tag `v4.0.0`, et
   avec lui la release et la première publication AUR.
+- **Build de test séparé de la release** (2026-11-03) : un workflow à part plutôt qu'un champ « commit » ajouté au
+  lancement manuel de `kmp-release.yml`, pour que le chemin de release reste celui des tags et que le build de test ne
+  puisse rien publier par construction. Écartés : un commit hors de la branche du lancement (un SHA de fork serait
+  construit avec la clé de signature) ; un APK non signé par défaut (il faudrait désinstaller Kairos, et ses données,
+  pour l'essayer).
 
 - **Windows : SignPath Foundation** (2026-10-29, issue #117, décision du propriétaire) : gratuit pour un projet libre
   construit depuis son dépôt public, ce que Kairos est (licence MIT, release par GitHub Actions, APK reproductible).
