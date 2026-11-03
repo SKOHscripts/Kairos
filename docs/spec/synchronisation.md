@@ -13,9 +13,13 @@ perdre en silence ce qu'un appareil a fait. Fichiers couverts (à créer ou à m
 `SyncCodecTest`, `SyncRepositoryTest`, `SyncMigrationTest`, `SyncIsolationTest`, `LinkedFileSyncTest` (étendu),
 `SyncUiTest`, `LearnedDurationsSyncTest`._
 
-État : **décidée le 2026-10-26, à implémenter (4.0.0)** (issues #88 et #100, décision du propriétaire du 2026-10-26) ;
-spécifiée le 2026-10-26, **non implémentée** : rien de ce document n'existe encore dans le code, et les specs existantes ne
-sont pas modifiées (voir « Impacts sur les specs existantes »). La moitié « écriture » de #88, le fichier lié et sa garde
+État : **décidée le 2026-10-26, en cours d'implémentation (4.0.0)** (issues #88 et #100), en PR empilées, une par étape :
+1) cœur pur (`core/sync` : horloge, portée, enregistrements, réconciliation) ; 2) fusion et réparations ; 3) base, format 3 et
+dépôt ; 4) cycle du fichier lié ; 5) interface ; 6) durées apprises partagées (#100) ; 7) passe de robustesse.
+**Étape 1 livrée** : `Hlc.kt` (`Hlc`, `Stamp`, `Context`, `Drift`), `SyncScope.kt` (`RecordKind`, `RecordRef`, portée),
+`SyncRecords.kt` (levée et reconstruction), `SyncData.kt` (`Marks`, `SyncData`), `SyncReconcile.kt` (`activate`,
+`reconcile`) ; tests `HlcTest`, `SyncScopeTest`, `SyncRecordsTest`, `SyncReconcileTest`. Rien n'est encore branché : le reste
+du document décrit les étapes suivantes (voir aussi « Impacts sur les specs existantes »). La moitié « écriture » de #88, le fichier lié et sa garde
 contre une modification faite ailleurs, est **implémentée en 3.10.0** (`export-import.md`) : cette spec la remplace.
 
 ## 1. Besoin métier (cahier des charges)
@@ -320,6 +324,37 @@ Pur et idempotent (une seconde passe ne change rien). Pour chaque enregistrement
   grand (sinon deux modifications de champs différents se contrediraient toutes deux sur `updatedAt`).
 - Un changement qui ne vient pas d'une écriture locale (une référence devenue vide parce que la mère a été supprimée ailleurs)
   est consigné comme une modification locale au passage suivant ; tous les appareils le font à l'identique, sans conflit.
+
+#### Précisions de l'implémentation (étape 1)
+
+- **Empreinte de chaque champ** : `Marks.hashes` garde l'empreinte de la valeur de **tous** les champs synchronisés, pas
+  seulement des champs marqués : c'est elle qui permet à une passe sans `previous` (ouverture) de voir une modification.
+  `Marks.stamps` ne porte que les champs modifiés depuis la naissance ou la migration. Un champ jamais haché (ajouté par une
+  version suivante) reçoit son empreinte **sans** marque : sa valeur garde `base`.
+- **Champs levés**, par genre (noms du JSON d'export, références en `uid`, `SyncRecords.REFERENCES`) : tâche (`title`,
+  `description`, `priority`, `deadline`, `projectTag`, `status`, `estimatedMinutes`, `pinnedStart`, `parentId`, `recurrence`,
+  `scheduledDate`, `recurrenceDayOfMonth`, `recurrenceDayOfWeek`, `recurrencePeriod`, `taskType`, `fibonacciPoints`,
+  `manualTimeSpentMinutes`, `seriesId`) ; créneau (`title`, `start`, `end`, `kind`, `recurrence`, `sourceId`, `sourceUid`) ;
+  exception (`blockId`, `date`, `skipped`, `title`, `start`, `end`) ; dépendance (`taskId`, `blockerId`) ; session (`taskId`,
+  `startedAt`, `endedAt`) ; note (`body`, `status`, `convertedTaskId`) ; calendrier (`name`, `hideTitles`, `importedAt`) ;
+  journée entière (`title`, `start`, `end`, `sourceId`, `sourceUid`). `createdAt` et `updatedAt` (tâche, note) sont les deux
+  registres particuliers, hors des champs. Valeur : texte JSON compact (`SyncRecords.canonicalJson`, défauts et `null` écrits).
+  Réglages : un registre par champ de premier niveau, même texte.
+- **Portée** : une session de travail n'est dans la portée que si sa tâche l'est ; un créneau importé ou une journée entière,
+  que si son calendrier est stocké. Conséquence assumée : supprimer une tâche fait sortir ses sessions de la portée ; elles
+  restent dans la base de l'appareil qui a supprimé (comme aujourd'hui, `modele-donnees.md`) et disparaissent des autres, ce
+  qui garde la portée identique partout. `sync_identity` ne garde donc aucun `uid` d'enregistrement supprimé.
+- **`uid` déterministes** : occurrence « le N du mois » = `cal:<uid de la série>:<recurrencePeriod>` ; occurrence suivante =
+  `next:<uid de la terminée>`, reconnue quand **une seule** tâche de la même série est passée à « Faite » dans la même écriture
+  (comparaison avec `previous`) ; sans `previous`, ou si plusieurs candidates, l'`uid` est aléatoire. Calendrier :
+  `cal:` + nom en minuscules **sans aucun blanc**. Un `uid` déterministe de plus de 100 caractères devient
+  `<préfixe>:#<empreinte hexadécimale>` (`SyncReconcile.bounded`), lui aussi déterministe. Un `uid` déterministe déjà pris par
+  un autre enregistrement du même genre retombe sur l'aléatoire. Les nouveaux reçoivent leur `uid` par identifiant croissant.
+- **Activation** : `born = Stamp(createdAt, device)`, `base = Stamp(max(updatedAt ?? createdAt, createdAt), device)` ;
+  l'horloge démarre au plus grand de ces instants et de l'heure courante, et `seen[device]` vaut cette horloge.
+- **Coût d'une passe** : avec `previous`, seuls les enregistrements dont le modèle a changé, ou qui référencent un
+  enregistrement entré ou sorti de la portée, sont levés et hachés : 5,6 ms pour une écriture sur 5 000 tâches (bureau, à
+  chaud ; borne du test : 20 ms).
 
 ### Fusion (`SnapshotMerge`, pure, dans `core`)
 
