@@ -210,7 +210,9 @@ uniformes, comme avant.
 ### Effort (`core/team/Effort.kt`, pur)
 
 - `EffortSource` (paquet `team`) : `ESTIMATE`, `CALIBRATED`, `POINTS_RATE`,
-  `LEARNED` (3.4 : durée apprise des occurrences passées, `durees-apprises.md`, posée par `TeamTaskSheet`), `NONE`.
+  `LEARNED` (3.4 : durée apprise des occurrences passées, `durees-apprises.md`, posée par `TeamTaskSheet`), `MODEL` (4.0.0 :
+  durée estimée par le modèle, lue comme `LEARNED` par les calculs ; la fiche l'écrit avec son intervalle,
+  `estimateur-modele.md`), `NONE`.
   `TeamLoad.build`, `AssignmentSuggestion.suggest` et `MonteCarlo.prepare` lisent d'abord
   `DurationEstimator.withLearnedEstimates` : une tâche **à faire** sans estimation y porte sa durée apprise fiable comme
   estimation, sans autre changement de calcul ; les tâches faites ne sont jamais touchées.

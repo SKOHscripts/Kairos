@@ -1,1 +1,1 @@
-Vos tâches dans le bon ordre, placées dans la journée, sans compte ni réseau.
+Vos tâches dans le bon ordre et dans la journée, par machine learning local.

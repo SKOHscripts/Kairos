@@ -11,8 +11,9 @@
 **The right time for every task.** Kairos answers a concrete question: "what do
 I do now, and in what order, given that a meeting from 1 pm to 2 pm keeps me
 from handling the urgent topic before 2:05 pm?" It sorts your tasks into the
-order to do them and fits them into the gaps of your day. No account, no ads,
-no network: your data stays on your device.
+order to do them, fits them into the gaps of your day, and uses **on-device
+machine learning** to learn how long they really take. No account, no ads, no
+network: your data stays on your device.
 
 **Android, Windows, Linux, macOS, and in the browser.**
 
@@ -30,6 +31,11 @@ no network: your data stays on your device.
 
 ## In short
 
+- **New in 4.0: on-device machine learning learns how long your tasks really
+  take.** A task with a new title gets a duration from your finished tasks
+  that look like it, with a range and the list of those tasks, and only once
+  this beats the default duration on your own history.
+  [How it works](#on-device-machine-learning-how-long-your-tasks-really-take).
 - It ranks the day's tasks with a priority score, shown on each one, and
   explains that score in one tap.
 - It places each task in the gaps of the calendar, around meetings, with a
@@ -60,6 +66,47 @@ in **Settings**.
 > instant to act, as opposed to *Chronos*, the time that flows by. That is the
 > tool's job: finding the right slot for every task. Code name: **14h55**, the
 > post-lunch dip, the least productive hour of the day.
+
+## On-device machine learning: how long your tasks really take
+
+New in 4.0: a machine-learning model that learns from your finished tasks how
+long the next ones will take. It is trained and run entirely on your device:
+nearest neighbours on your history, a ridge regression as a fallback, and a
+check against your own data before it changes anything.
+
+> **AI? No, machine learning.** No chatbot, no giant model, no cloud: just
+> good old machine learning, robust and local, that trains on every task you
+> finish. It keeps only your last 500 finished tasks and computes 200
+> estimates in under a second (measured on every build). Your phone won’t even
+> get warm.
+
+- **By resemblance, with its proof.** A task you have never done before
+  ("Quarterly report for the board") is compared with your finished tasks: words
+  of the title, type, points, project. Its duration is the weighted median of
+  the closest ones, with a range ("~45 min, between 30 and 60") and the list of
+  those tasks, their real time and how similar they are. Without close tasks, a
+  small regression on type and points takes over and says so.
+- **Only once it has proven itself.** Kairos replays the model on your last 30
+  finished tasks, without letting it see their real time, and applies it only
+  if it clearly beats the default duration. Settings shows the result ("median
+  error 12%, against 48% for the default duration"); otherwise the estimate is
+  shown as "not reliable yet" and changes nothing.
+- **Your pace.** If you are consistently slower on Monday mornings or faster in
+  the evening, it learns that from your timed sessions and adjusts planned
+  tasks ("Your pace: +20% on Monday").
+- **It keeps you posted.** When finished tasks move the estimates of tasks to
+  do, a banner (and at most one notification a day) says so, with before and
+  after. Typed estimates the model clearly disagrees with are offered for
+  review, never changed without you.
+- **Everywhere the duration matters**: the day plan, the "Now" card, the
+  overrun alert, triage in "To process", and team forecasts, where each
+  model-estimated task is drawn within its own learned range.
+- **Private and explainable by design.** No network, no pre-trained weights, no
+  black box: only your own history, and the same result to the bit on Android,
+  desktop and web. Measured on simulated histories, it cuts the median error on
+  new titles by more than half, and when there is nothing to learn it stays
+  within 10% of the default duration.
+  It can be switched off in Settings.
 
 ## Install
 
@@ -190,6 +237,15 @@ only.
   title) once there are enough of them. It shows as `~45 min` with its source
   in “Why this position?”, and an estimate you type always wins. It can be
   switched off, or tuned, in Settings.
+- **Machine-learning estimates**: a machine-learning model trained on your
+  device gives a task with a new title a duration from your finished tasks
+  that look like it (words of the title, type, points), with a range (“between
+  30 and 60 min”) and the list of those tasks with their real time. It only
+  applies once it does better than the default duration on your own last
+  tasks, which Settings shows. It learns your pace by day and time,
+  tells you when estimates change, and offers to review typed estimates it
+  disagrees with. Everything is computed on the device, from your history only
+  ([details](#on-device-machine-learning-how-long-your-tasks-really-take)).
 - **Working days and holidays**: built-in French calendar, with extra dates
   in Settings.
 
@@ -452,6 +508,7 @@ version that brought it and the platforms it exists on.
 | Follow | Track time | 3.0.0 | All |
 | Follow | Three timer alerts | 3.0.0 | All |
 | Follow | Learned durations | 3.4.0 | All |
+| Follow | Machine-learning estimates | 4.0.0 | All |
 | Follow | When you work on each type | 3.5.0 | All |
 | Follow | Your most efficient hours | 3.9.0 | All |
 | Follow | Your day on the home screen | 3.12.0 | Android |
@@ -521,7 +578,7 @@ you press "Save").
 | Planning | Task types | List of types | |
 | | Level names | A name for each priority and each points level (16 characters at most) | default names |
 | | Best hours | Prefer my usual hours, strength, measure by (frequency, efficiency, both), preferred hour per type | off, medium, frequency |
-| | Learned durations | On/off, occurrences considered, occurrences needed | on, 5, 3 |
+| | Learned durations | On/off, occurrences considered, occurrences needed, estimate with machine learning | on, 5, 3, on |
 | | Safeguards | "Lingering" thresholds (overdue, undated), P0 overload | 7 d, 14 d, 5 |
 | | Priority score (WSJF), advanced | Value base, urgency horizon and weight, default points | 4, 14 d, 8, 3 |
 | | Afternoon dip, advanced | On/off, start, trough, end, strength | on, 1 pm – 3 pm – 4 pm, 1 |

@@ -87,6 +87,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_hours_body
 import com.skohscripts.kairos.ui.generated.resources.card_hours_title
 import com.skohscripts.kairos.ui.generated.resources.card_learned_body
 import com.skohscripts.kairos.ui.generated.resources.card_learned_title
+import com.skohscripts.kairos.ui.generated.resources.card_model_body
+import com.skohscripts.kairos.ui.generated.resources.card_model_title
 import com.skohscripts.kairos.ui.generated.resources.card_points_body
 import com.skohscripts.kairos.ui.generated.resources.card_points_title
 import com.skohscripts.kairos.ui.generated.resources.card_recurrence_body
@@ -207,6 +209,7 @@ object FeatureCatalog {
         FeatureCard("time", GuideChapter.FOLLOW, { KairosIcons.Schedule }, Res.string.guide_you_time_title, Res.string.guide_you_time_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_NOW), tour = true),
         FeatureCard("alerts", GuideChapter.FOLLOW, { KairosIcons.NotificationsActive }, Res.string.card_alerts_title, Res.string.card_alerts_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_NOW), since = "3.0.0"),
         FeatureCard("learned", GuideChapter.FOLLOW, { KairosIcons.TrendingUp }, Res.string.card_learned_title, Res.string.card_learned_body, GuideTarget.Settings(GuideSection.SETTINGS_LEARNED), since = "3.4.0"),
+        FeatureCard("model", GuideChapter.FOLLOW, { KairosIcons.Model }, Res.string.card_model_title, Res.string.card_model_body, GuideTarget.Settings(GuideSection.SETTINGS_LEARNED), since = "4.0.0"),
         FeatureCard("besthours", GuideChapter.FOLLOW, { KairosIcons.Schedule }, Res.string.card_besthours_title, Res.string.card_besthours_body, GuideTarget.Personal(Destination.STATS, GuideSection.STATS_HOURS), since = "3.5.0"),
         FeatureCard("besthours_efficiency", GuideChapter.FOLLOW, { KairosIcons.Timer }, Res.string.card_besthours_eff_title, Res.string.card_besthours_eff_body, GuideTarget.Personal(Destination.STATS, GuideSection.STATS_HOURS), since = "3.9.0"),
         // Widgets Android (docs/spec/widgets-android.md) : la carte mène à la vue Jour, qu'ils reprennent.
@@ -317,6 +320,7 @@ object FeatureCatalog {
         "Hours by day of the week" to "hours",
         "Several windows and contexts" to "contexts",
         "Learned durations" to "learned",
+        "Machine-learning estimates" to "model",
         "Working days and holidays" to "holidays",
         "Busy slots" to "slots",
         "Weekday slots skip holidays" to "holidays_slots",

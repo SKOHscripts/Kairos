@@ -109,7 +109,7 @@ Depuis le jalon E1 de l'espace Équipe, la veille du chrono (`ChronoWatcher`) et
   la **session**. Seuil à 0 ou sans estimé : pas d'alerte. `crossed(since,
   now)` : franchis dans `]since, now]` ; `upcoming(now)` : encore à venir.
   L'estimé passé à `thresholds` est `DurationEstimator.effectiveMinutes` (3.4, `durees-apprises.md`) : l'estimation de la
-  tâche, sinon sa durée apprise **fiable**, sinon rien (pas d'alerte de dépassement) ; `ChronoWatcher` et, sur Android,
+  tâche, sinon sa durée apprise **fiable** (série, titre ou modèle, `estimateur-modele.md`), sinon rien (pas d'alerte de dépassement) ; `ChronoWatcher` et, sur Android,
   `ChronoSync` s'en servent, et la carte « Maintenant » affiche la même valeur.
 - `DayView` : `spentByTask`, `running`, `runningTask`, `runningBaseMinutes`
   (temps de la tâche avant la session), `spentToday`, `spentByTypeToday`

@@ -41,6 +41,7 @@ import com.skohscripts.kairos.core.model.TeamSettings
 import com.skohscripts.kairos.core.settings.ThemeMode
 import com.skohscripts.kairos.core.settings.UiLanguage
 import com.skohscripts.kairos.ui.app.AppServices
+import com.skohscripts.kairos.ui.app.LocalShowcaseTask
 import com.skohscripts.kairos.ui.app.LocalStartupSplash
 import com.skohscripts.kairos.ui.app.LocalUiLanguage
 import com.skohscripts.kairos.ui.app.StartupSplash
@@ -98,6 +99,11 @@ fun KairosApp(
      */
     externalDestination: Destination? = null,
     onExternalDestinationHandled: () -> Unit = {},
+    /**
+     * Captures des magasins seulement : la tâche dont la vue Jour ouvre la fiche d'emblée, « Tâches proches » dépliée
+     * ([LocalShowcaseTask], docs/spec/publication.md § Captures). `null` ailleurs.
+     */
+    showcaseTaskId: Long? = null,
     openServices: suspend () -> AppServices,
 ) {
     // Thème du système (docs/spec/apparence.md § Thème sombre) : celui de tout ce qui précède la lecture des réglages.
@@ -107,6 +113,7 @@ fun KairosApp(
             LocalPlatform provides platform,
             LocalSystemColorScheme provides systemColorScheme?.invoke(systemIsDark),
             LocalSystemDark provides systemIsDark,
+            LocalShowcaseTask provides showcaseTaskId,
         ) {
             var services by remember { mutableStateOf<AppServices?>(null) }
             var failure by remember { mutableStateOf<Throwable?>(null) }

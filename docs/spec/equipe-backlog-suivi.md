@@ -33,8 +33,9 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
     `needsProcessing` de `modele-donnees.md`) ; mêmes chips de
     qualification que « À traiter », puis la **catégorie** choisie sur place (3.14.0, issue #166 : même champ que le
     type de la vue Jour, enregistré aussitôt, sans faire sortir la tâche). Comme dans « À traiter », une tâche qui y
-    devient entièrement qualifiée (priorité, points, catégorie) et n'a pas de durée reçoit la médiane fiable de sa
-    catégorie, sinon de ses points, avec « Annuler » ; mais ces médianes viennent des **seules tâches d'équipe
+    devient entièrement qualifiée (priorité, points, catégorie) et n'a pas de durée reçoit sa durée apprise fiable (série,
+    titre ou modèle, sur les seules tâches d'équipe : la chaîne ne lit que l'espace de la tâche, 4.0.0), sinon la médiane
+    fiable de sa catégorie, sinon de ses points, avec « Annuler » ; mais ces médianes viennent des **seules tâches d'équipe
     terminées** (temps rapporté par les membres compris), jamais des tâches personnelles (choix du propriétaire du
     2026-11-02 : l'équipe apprend de son propre historique, en cohérence avec les durées partagées de #100 et
     l'estimateur de #99). Une durée déjà là n'est jamais touchée ;

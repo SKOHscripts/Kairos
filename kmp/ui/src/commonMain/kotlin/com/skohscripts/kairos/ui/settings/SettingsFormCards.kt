@@ -35,6 +35,10 @@ import com.skohscripts.kairos.ui.generated.resources.setting_learning_history
 import com.skohscripts.kairos.ui.generated.resources.setting_learning_history_help
 import com.skohscripts.kairos.ui.generated.resources.setting_learning_min
 import com.skohscripts.kairos.ui.generated.resources.setting_learning_min_help
+import com.skohscripts.kairos.ui.generated.resources.setting_learning_model
+import com.skohscripts.kairos.ui.generated.resources.setting_learning_model_help
+import com.skohscripts.kairos.ui.generated.resources.setting_learning_notify
+import com.skohscripts.kairos.ui.generated.resources.setting_learning_notify_help
 import com.skohscripts.kairos.ui.generated.resources.settings_section_learning
 import com.skohscripts.kairos.ui.generated.resources.settings_section_learning_body
 import com.skohscripts.kairos.ui.generated.resources.settings_advanced_body
@@ -186,6 +190,8 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "learning.enabled" to FieldText(Res.string.setting_learning_enabled, Res.string.setting_learning_enabled_help),
     "learning.history" to FieldText(Res.string.setting_learning_history, Res.string.setting_learning_history_help),
     "learning.minSamples" to FieldText(Res.string.setting_learning_min, Res.string.setting_learning_min_help),
+    "learning.model" to FieldText(Res.string.setting_learning_model, Res.string.setting_learning_model_help),
+    "learning.notifyChanges" to FieldText(Res.string.setting_learning_notify, Res.string.setting_learning_notify_help),
     "timerIdleAlertMinutes" to FieldText(Res.string.settings_idle),
     "pomodoroFocusMinutes" to FieldText(Res.string.settings_pomodoro),
     "timerAlertSound" to FieldText(Res.string.settings_sound),
@@ -233,7 +239,7 @@ private val HOLIDAYS = Section(Res.string.settings_section_holidays, Res.string.
 private val TYPES = Section(Res.string.settings_section_types, null, KairosIcons.Label, listOf("taskTypes"))
 private val LEARNING = Section(
     Res.string.settings_section_learning, Res.string.settings_section_learning_body, KairosIcons.History,
-    listOf("learning.enabled", "learning.history", "learning.minSamples"),
+    listOf("learning.enabled", "learning.history", "learning.minSamples", "learning.model", "learning.notifyChanges"),
 )
 private val GUARDS = Section(Res.string.settings_section_guards, null, KairosIcons.Shield, listOf("staleOverdueDays", "staleUntouchedDays", "priorityOverloadThreshold"))
 private val CHRONO = Section(
@@ -323,6 +329,8 @@ internal fun SettingsFormCards(
     values: Map<String, String>,
     errors: Map<String, FieldError>,
     onChange: (String, String) -> Unit,
+    /** Sous l'interrupteur « Estimer par machine learning » : l'état de la vérification (docs/spec/estimateur-modele.md § Interface). */
+    learningStatus: @Composable () -> Unit = {},
 ) {
     when (category) {
         SettingsCategory.DAY -> {
@@ -339,7 +347,11 @@ internal fun SettingsFormCards(
             GuideSpot(GuideSection.SETTINGS_LEVELS) { LevelNamesCard(values, errors, onChange) }
             // Les heures préférées se donnent par type : la carte suit les types.
             GuideSpot(GuideSection.SETTINGS_BEST_HOURS) { BestHoursCard(values, errors, onChange) }
-            GuideSpot(GuideSection.SETTINGS_LEARNED) { SectionCard(LEARNING, values, errors, onChange) }
+            GuideSpot(GuideSection.SETTINGS_LEARNED) {
+                SectionCard(LEARNING, values, errors, onChange) {
+                    if (values["learning.enabled"] == "true") learningStatus()
+                }
+            }
             SectionCard(GUARDS, values, errors, onChange)
             AdvancedGroup(values, errors, onChange)
         }
@@ -353,18 +365,39 @@ internal fun SettingsFormCards(
 }
 
 @Composable
-private fun SectionCard(section: Section, values: Map<String, String>, errors: Map<String, FieldError>, onChange: (String, String) -> Unit) {
+private fun SectionCard(
+    section: Section,
+    values: Map<String, String>,
+    errors: Map<String, FieldError>,
+    onChange: (String, String) -> Unit,
+    after: @Composable () -> Unit = {},
+) {
     SettingsCard {
         SettingsCardHeader(section.icon, stringResource(section.title), section.body?.let { stringResource(it) })
         section.keys
             // Un champ qui ne sert qu'avec son interrupteur n'apparaît qu'avec lui (sauf s'il est en erreur).
-            .filter { key -> SHOWN_WITH[key]?.let { values[it] == "true" } != false || key in errors }
+            .filter { key -> shown(key, values) || key in errors }
             .forEach { key -> SettingInput(key, values[key].orEmpty(), errors[key]) { onChange(key, it) } }
+        after()
     }
 }
 
-/** Champ → interrupteur dont il dépend : « À quelle heure » du récapitulatif n'apparaît que s'il est activé (docs/spec/rappels.md). */
-private val SHOWN_WITH = mapOf("reminders.dailySummaryTime" to "reminders.dailySummary")
+/**
+ * Champ → interrupteur dont il dépend : « À quelle heure » du récapitulatif n'apparaît que s'il est activé (docs/spec/rappels.md) ;
+ * « Estimer par machine learning » n'a de sens qu'avec les durées apprises (docs/spec/estimateur-modele.md).
+ */
+private val SHOWN_WITH = mapOf(
+    "reminders.dailySummaryTime" to "reminders.dailySummary",
+    "learning.model" to "learning.enabled",
+    // La veille annonce aussi les durées des séries et des titres : elle dépend des durées apprises, pas du modèle.
+    "learning.notifyChanges" to "learning.enabled",
+)
+
+/** Visible si chaque interrupteur dont il dépend, de proche en proche, est actif. */
+private fun shown(key: String, values: Map<String, String>): Boolean {
+    val parent = SHOWN_WITH[key] ?: return true
+    return values[parent] == "true" && shown(parent, values)
+}
 
 /**
  * « Avancé : comment les tâches sont ordonnées » : le score de priorité et le creux de l'après-midi, repliés. Ils

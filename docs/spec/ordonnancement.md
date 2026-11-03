@@ -129,7 +129,8 @@ dans aucune plage qui l'accueille est « Sans créneau » ; si son contexte n'a 
 score affiché. Détail : `planning-personnalise.md` § Lot B2.
 
 **Durée de placement** (3.4, `durees-apprises.md`) : `durationMinutes(tâche, réglages, learned)` = les minutes de la tâche (≠ 0), sinon
-`learned[id]` (la durée apprise **fiable** que `DayView` calcule par `DurationEstimator`), sinon `defaultTaskDurationMinutes`.
+`learned[id]` (la durée apprise **fiable** que `DayView` calcule par `DurationEstimator`, celle du modèle comprise depuis la 4.0.0,
+`estimateur-modele.md`), sinon `defaultTaskDurationMinutes`.
 `buildDaySchedule` reçoit `learned` (vide par défaut : comportement d'avant, octet pour octet) et le passe à chaque calcul de
 durée (placement, capacité requise, repli d'une épinglée).
 Entrées : toutes les tâches, les créneaux du jour (ponctuels et occurrences

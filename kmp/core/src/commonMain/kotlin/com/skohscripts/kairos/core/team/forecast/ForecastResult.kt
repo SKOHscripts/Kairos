@@ -142,6 +142,8 @@ data class ForecastResult(
     val allOnTimeProbability: Double,
     /** Tâches du backlog à qualifier, écartées du périmètre (ni priorité ni points : pas de plan possible). */
     val toQualify: Int,
+    /** Tâches du périmètre dont l'effort est tiré dans l'intervalle du modèle (docs/spec/estimateur-modele.md § Prévisions). */
+    val modelEstimated: Int = 0,
     val samples: ForecastSamples,
 ) {
     /** Résultat sous le minimum d'échantillons : l'écran écrit « peu fiable ». */
