@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.android
 
+import kotlinx.datetime.TimeZone
 import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
@@ -52,7 +53,7 @@ object ChronoSync {
         val task = running?.let { r -> snapshot.tasks.firstOrNull { it.id == r.taskId } }
         return Key(
             running?.id, running?.startedAt, task?.title, running?.let { baseMinutes(snapshot, it) } ?: 0,
-            task?.let { DurationEstimator.effectiveMinutes(it, snapshot, Clock.System.now()) },
+            task?.let { DurationEstimator.effectiveMinutes(it, snapshot, Clock.System.now(), TimeZone.currentSystemDefault()) },
             snapshot.settings.timerIdleAlertMinutes, snapshot.settings.pomodoroFocusMinutes,
         )
     }

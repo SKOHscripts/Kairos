@@ -148,7 +148,7 @@ class MonteCarlo private constructor(
         fun prepare(request: ForecastRequest): MonteCarlo {
             // Durées apprises : estimation des tâches qui n'en ont pas (docs/spec/durees-apprises.md).
             // L'intervalle des tâches estimées par le modèle devient leur loi d'effort (docs/spec/estimateur-modele.md § Prévisions).
-            val learned = DurationEstimator.withLearned(request.snapshot, request.now)
+            val learned = DurationEstimator.withLearned(request.snapshot, request.now, request.timeZone)
             val snapshot = TeamWork.view(learned.snapshot)
             val settings = snapshot.settings
             val team = settings.team ?: TeamSettings()

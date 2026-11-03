@@ -113,7 +113,7 @@ object AssignmentSuggestion {
         calibration: List<Calibration>? = null,
     ): Result {
         // Durées apprises : estimation des tâches qui n'en ont pas (docs/spec/durees-apprises.md).
-        val snapshot = DurationEstimator.withLearnedEstimates(stored, now)
+        val snapshot = DurationEstimator.withLearnedEstimates(stored, now, timeZone)
         val settings = snapshot.settings
         val team = settings.team ?: TeamSettings()
         val local = now.toLocalDateTime(timeZone)

@@ -1790,4 +1790,10 @@
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, estimé par le modèle (%2$s à %3$s)</string>
     <string name="forecast_model_estimated">Dont %1$d tâche(s) estimée(s) par le modèle (fourchette apprise)</string>
+    <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
+    <string name="why_model_rhythm">Ton rythme : %1$s.</string>
+    <string name="model_rhythm_weekday">%1$s % le %2$s</string>
+    <string name="model_rhythm_morning">%1$s % le matin</string>
+    <string name="model_rhythm_afternoon">%1$s % l’après-midi</string>
+    <string name="model_rhythm_evening">%1$s % le soir</string>
 </resources>

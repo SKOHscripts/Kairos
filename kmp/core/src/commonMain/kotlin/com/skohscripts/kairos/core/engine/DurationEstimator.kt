@@ -3,6 +3,11 @@ package com.skohscripts.kairos.core.engine
 import com.skohscripts.kairos.core.engine.model.ModelCache
 import com.skohscripts.kairos.core.engine.model.ModelEstimator
 import com.skohscripts.kairos.core.engine.model.ModelGate
+import com.skohscripts.kairos.core.engine.model.Rhythm
+import com.skohscripts.kairos.core.model.WorkSession
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.LearningSettings
 import com.skohscripts.kairos.core.model.Settings
@@ -55,6 +60,8 @@ interface DurationEstimator {
         val points: Int?,
         val corpus: Int,
         val gate: ModelGate.Result,
+        /** Le facteur de rythme appliqué (jour, tranche), ou `null` (docs/spec/estimateur-modele.md § Rythme). */
+        val rhythm: Rhythm.Applied? = null,
     )
 
     /**
@@ -73,6 +80,9 @@ interface DurationEstimator {
         val priority: Int? = null,
         val projectTag: String = "",
         val recurring: Boolean = false,
+        /** Jour ISO (1 = lundi) et tranche de la première séance, à l'heure locale ; nuls sans séance ou sans fuseau (rythme). */
+        val weekday: Int? = null,
+        val band: Rhythm.Band? = null,
     )
 
     /**
@@ -95,19 +105,38 @@ interface DurationEstimator {
          * Les occurrences passées : tâches **terminées**, au temps passé (chrono et saisie manuelle) d'au moins
          * [MIN_SAMPLE_MINUTES]. Une tâche reçue d'un manager n'en est jamais (isolation d'espace).
          */
-        fun samples(tasks: List<Task>, spentByTask: Map<Long, Int>): List<Sample> =
+        fun samples(tasks: List<Task>, spentByTask: Map<Long, Int>, firstStarts: Map<Long, LocalDateTime> = emptyMap()): List<Sample> =
             tasks.filter { it.status == TaskStatus.DONE && it.origin == null }.mapNotNull { t ->
                 val spent = spentByTask[t.id] ?: return@mapNotNull null
                 if (spent < MIN_SAMPLE_MINUTES) {
                     null
                 } else {
+                    val start = firstStarts[t.id]?.let(Rhythm::of)
                     Sample(
                         t.id, t.seriesId, t.title, t.space, spent,
                         taskType = t.taskType, points = t.fibonacciPoints, priority = t.priority,
                         projectTag = t.projectTag, recurring = t.recurrence != TaskRecurrence.NONE,
+                        weekday = start?.first, band = start?.second,
                     )
                 }
             }
+
+        /** L'heure locale de la première séance de chaque tâche, dans [timeZone] (rythme) ; vide sans fuseau. */
+        fun firstStarts(sessions: List<WorkSession>, timeZone: TimeZone?): Map<Long, LocalDateTime> {
+            if (timeZone == null) return emptyMap()
+            val first = LinkedHashMap<Long, Instant>()
+            for (s in sessions) {
+                val known = first[s.taskId]
+                if (known == null || s.startedAt < known) first[s.taskId] = s.startedAt
+            }
+            return first.mapValues { it.value.toLocalDateTime(timeZone) }
+        }
+
+        private fun past(snapshot: KairosSnapshot, now: Instant, timeZone: TimeZone?): List<Sample> = samples(
+            snapshot.tasks,
+            TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks),
+            firstStarts(snapshot.workSessions, timeZone),
+        )
 
         /**
          * La durée apprise de [task], ou `null` : désactivée, tâche reçue, estimation explicite, ou aucune occurrence passée.
@@ -122,10 +151,10 @@ interface DurationEstimator {
          * Les durées apprises de toutes les tâches **à faire** du [snapshot] sans estimation explicite (fiables ou non), au
          * temps [now]. Un seul calcul des occurrences passées pour toutes les tâches.
          */
-        fun estimates(snapshot: KairosSnapshot, now: Instant): Map<Long, Estimate> {
+        fun estimates(snapshot: KairosSnapshot, now: Instant, timeZone: TimeZone? = null): Map<Long, Estimate> {
             val settings = snapshot.settings
             if (settings.learning?.enabled == false) return emptyMap()
-            val past = samples(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks))
+            val past = past(snapshot, now, timeZone)
             if (past.isEmpty()) return emptyMap()
             val out = LinkedHashMap<Long, Estimate>()
             for (t in snapshot.tasks) {
@@ -141,16 +170,17 @@ interface DurationEstimator {
          * occurrences), qui lisent alors la durée apprise sans autre changement. Les tâches faites ne sont jamais touchées
          * (ni la calibration, ni les erreurs d'estimation passées). Sans durée apprise, le même objet est rendu.
          */
-        fun withLearnedEstimates(snapshot: KairosSnapshot, now: Instant): KairosSnapshot = withLearned(snapshot, now).snapshot
+        fun withLearnedEstimates(snapshot: KairosSnapshot, now: Instant, timeZone: TimeZone? = null): KairosSnapshot =
+            withLearned(snapshot, now, timeZone).snapshot
 
         /**
          * Ce qu'on attend de [task] en minutes pour les alertes du chrono : son estimation explicite, sinon sa durée apprise
          * **fiable**, sinon `null` (pas d'alerte de dépassement). Une seule tâche : un seul passage sur l'historique.
          */
-        fun effectiveMinutes(task: Task, snapshot: KairosSnapshot, now: Instant): Int? {
+        fun effectiveMinutes(task: Task, snapshot: KairosSnapshot, now: Instant, timeZone: TimeZone? = null): Int? {
             task.estimatedMinutes?.takeIf { it > 0 }?.let { return it }
             if (snapshot.settings.learning?.enabled == false) return null
-            val past = samples(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks))
+            val past = past(snapshot, now, timeZone)
             return estimate(task, past, snapshot.settings)?.takeIf { it.reliable }?.minutes
         }
 
@@ -161,11 +191,17 @@ interface DurationEstimator {
          * L'état du modèle pour l'espace [space] du [snapshot] au temps [now], ou `null` s'il est coupé (durées apprises ou
          * modèle désactivés). Même corpus et même cache que les estimations.
          */
-        fun modelStatus(snapshot: KairosSnapshot, now: Instant, space: TaskSpace = TaskSpace.PERSONAL, cache: ModelCache = ModelCache.shared): ModelStatus? {
+        fun modelStatus(
+            snapshot: KairosSnapshot,
+            now: Instant,
+            space: TaskSpace = TaskSpace.PERSONAL,
+            cache: ModelCache = ModelCache.shared,
+            timeZone: TimeZone? = null,
+        ): ModelStatus? {
             val settings = snapshot.settings
             val learning = settings.learning ?: LearningSettings()
             if (!learning.enabled || learning.model == false) return null
-            val past = samples(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks))
+            val past = past(snapshot, now, timeZone)
             val corpus = ModelEstimator.corpus(past.filter { it.space == space })
             if (corpus.isEmpty()) return ModelStatus(0, ModelGate.fromErrors(emptyList(), emptyList()))
             return ModelStatus(corpus.size, cache.state(corpus, settings) { ModelEstimator.build(corpus, settings) }.gate)
@@ -182,8 +218,8 @@ interface DurationEstimator {
         /** L'instantané où les durées apprises fiables valent estimation ([withLearnedEstimates]), et les intervalles du modèle. */
         class Learned(val snapshot: KairosSnapshot, val spreads: Map<Long, Spread>)
 
-        fun withLearned(snapshot: KairosSnapshot, now: Instant): Learned {
-            val estimates = estimates(snapshot, now)
+        fun withLearned(snapshot: KairosSnapshot, now: Instant, timeZone: TimeZone? = null): Learned {
+            val estimates = estimates(snapshot, now, timeZone)
             val applied = appliedMinutes(estimates)
             if (applied.isEmpty()) return Learned(snapshot, emptyMap())
             return Learned(

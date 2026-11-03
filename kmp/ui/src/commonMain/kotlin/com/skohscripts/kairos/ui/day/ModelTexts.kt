@@ -1,5 +1,13 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.generated.resources.model_rhythm_evening
+import com.skohscripts.kairos.ui.generated.resources.model_rhythm_afternoon
+import com.skohscripts.kairos.ui.generated.resources.model_rhythm_morning
+import com.skohscripts.kairos.ui.generated.resources.model_rhythm_weekday
+import com.skohscripts.kairos.ui.generated.resources.why_model_rhythm
+import kotlin.math.floor
+import com.skohscripts.kairos.ui.app.uiLanguage
+import com.skohscripts.kairos.core.engine.model.Rhythm
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -58,7 +66,7 @@ internal fun modelProvenance(estimate: DurationEstimator.Estimate, learning: Lea
             else -> stringResource(Res.string.why_learned_model_not_better)
         }
     }
-    return when (evidence.basis) {
+    val sentence = when (evidence.basis) {
         DurationEstimator.Basis.NEIGHBOURS -> {
             val names = evidence.neighbours.take(3).map { stringResource(Res.string.why_learned_model_neighbour, it.title, duration(it.minutes)) }
             stringResource(Res.string.why_learned_model, duration(estimate.minutes), low, high, estimate.samples, names.joinToString(", "))
@@ -66,6 +74,33 @@ internal fun modelProvenance(estimate: DurationEstimator.Estimate, learning: Lea
         DurationEstimator.Basis.REGRESSION ->
             stringResource(Res.string.why_learned_model_regression, duration(estimate.minutes), low, high, evidence.corpus, regressionBasis(evidence))
     }
+    val rhythm = evidence.rhythm?.let { rhythmText(it) } ?: return sentence
+    return "$sentence $rhythm"
+}
+
+/** « Ton rythme : +20 % le lundi, −15 % le matin. » (docs/spec/estimateur-modele.md § Rythme). */
+@Composable
+internal fun rhythmText(applied: Rhythm.Applied): String? {
+    val language = uiLanguage()
+    fun signed(f: Double): String {
+        val percent = floor((f - 1.0) * 100.0 + 0.5).toInt()
+        return if (percent >= 0) "+$percent" else "\u2212${-percent}"
+    }
+    val parts = ArrayList<String>()
+    val wf = applied.weekdayFactor
+    val weekday = applied.weekday
+    if (wf != null && weekday != null) parts.add(stringResource(Res.string.model_rhythm_weekday, signed(wf), Dates.weekdayName(weekday - 1, language)))
+    val bf = applied.bandFactor
+    if (bf != null) {
+        val res = when (applied.band) {
+            Rhythm.Band.MORNING -> Res.string.model_rhythm_morning
+            Rhythm.Band.AFTERNOON -> Res.string.model_rhythm_afternoon
+            else -> Res.string.model_rhythm_evening
+        }
+        parts.add(stringResource(res, signed(bf)))
+    }
+    if (parts.isEmpty()) return null
+    return stringResource(Res.string.why_model_rhythm, parts.joinToString(", "))
 }
 
 /** « type « Rédaction », 5 points » : ce qu'a lu la régression. */

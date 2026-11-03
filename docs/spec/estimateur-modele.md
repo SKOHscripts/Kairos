@@ -26,7 +26,7 @@ le 2026-11-03).
 avec la pastille, « Pourquoi », la fiche, la carte des Réglages et son état (`ModelStatusLine`, `DurationEstimator.
 modelStatus`), l'estimation au tri (besoin 9), la carte du catalogue et le README ; test `ModelEstimateUiTest`. L'effort
 d'une tâche d'équipe estimée par le modèle se lit encore « apprise des occurrences passées » dans la fiche d'équipe jusqu'à
-l'étape 4 (`EffortSource.MODEL`). **Étape 4 livrée** : `DurationEstimator.Spread`, `spreads`, `withLearned` ;
+l'étape 4 (`EffortSource.MODEL`). **Étape 5 livrée** (rythme, § Rythme ; `engine/model/Rhythm.kt`). **Étape 4 livrée** : `DurationEstimator.Spread`, `spreads`, `withLearned` ;
 `team/forecast/EffortSpread.kt` ; `EffortModel` et `MonteCarlo.prepare` ; `ForecastResult.modelEstimated` et sa ligne dans
 `ForecastPanels` ; `EffortSource.MODEL` et l'intervalle dans `TeamTaskSheet` ; test `EffortSpreadTest`. Les effets sur les
 autres specs sont listés en fin de document (« Impacts sur les specs existantes ») et reportés à mesure.
@@ -442,8 +442,9 @@ propre dispersion, apprise de tâches qui lui ressemblent. On la substitue au fa
 
 - **Ce qui est mesuré.** Pour chaque échantillon du corpus qui a au moins une séance chronométrée, le **jour de la
   semaine** et la **tranche** (matin avant 12 h, après-midi de 12 h à 17 h, soir à partir de 17 h) de sa **première
-  séance**, à l'heure locale (`Sample.startedOn`, `Sample.band`, remplis par `samples(…, timeZone)` à partir des
-  séances ; une tâche au temps seulement saisi à la main n'en a pas et ne compte pas pour le rythme). Son **rapport**
+  séance**, à l'heure locale (`Sample.weekday`, jour ISO 1 = lundi, et `Sample.band`, remplis par `samples(tâches, temps,
+  firstStarts)` où `DurationEstimator.firstStarts(séances, fuseau)` donne l'heure locale de la première séance de chaque
+  tâche ; une tâche au temps seulement saisi à la main n'en a pas et ne compte pas pour le rythme). Son **rapport**
   `r = réel / attendu`, où `attendu` est l'estimation du modèle par les voisins **sans cet échantillon** (laisser-un-dehors
   sur l'index complet : l'idf le compte encore, écart négligeable et accepté ; la garde, elle, reste stricte sur
   l'avenir) ; un échantillon sans estimation à base suffisante ne compte pas.
@@ -451,19 +452,58 @@ propre dispersion, apprise de tâches qui lui ressemblent. On la substitue au fa
   [0,5 ; 2], retenue seulement si le groupe compte au moins `RHYTHM_MIN` = 8 rapports, si elle s'écarte d'au moins 10 %
   de 1 (`|f − 1| ≥ 0,1`) et si, **sur ce groupe**, l'erreur relative symétrique médiane de `attendu × f` est au plus
   0,95 × celle de `attendu` (même principe que la garde : un facteur qui n'aide pas ne s'applique pas). Calculé une fois
-  par corpus avec le modèle (`ModelEstimator.State.rhythm`, même cache).
+  par corpus avec le modèle (`Rhythm.learn`, `ModelEstimator.State.rhythm`, même cache : l'empreinte couvre le jour et la
+  tranche), et seulement si un échantillon a un jour. Le laisser-un-dehors coûte un passage par échantillon :
+  `ModelPerformanceTest` le compte dans son budget (500 tâches, toutes avec jour et tranche). Constantes dans `Rhythm`
+  (`MIN_RATIOS` 8, `MIN_EFFECT` 0,1, bornes 0,5 et 2, `MIN_GAIN` 0,95).
 - **Application.** À une estimation **fiable du modèle** seulement (les séries et titres gardent leur médiane) : le facteur
   du jour si la tâche est planifiée (`scheduledDate`, ou la date de `pinnedStart`), celui de la tranche si elle a une heure
   fixe (`pinnedStart`) ; les deux se multiplient (deux marges estimées séparément, approximation assumée : un tableau
   jour × tranche serait trop clairsemé). La durée, `low` et `high` sont multipliés, puis arrondis et bornés comme avant.
   Une tâche sans jour ni heure garde l'estimation sans facteur.
-- **Preuve.** `Evidence.rhythm` (`Rhythm(weekday, weekdayFactor, band, bandFactor)`, facteurs nuls quand non appliqués)
-  ; « Pourquoi » et la fiche ajoutent « dont +20 % le lundi » / « dont −15 % le matin ».
-- **Fuseau.** `core` reste pur : le fuseau est un paramètre (`DurationEstimator.estimates(…, timeZone)`,
-  `effectiveMinutes`, `withLearned`, `DayView.build` le passe). Sans fuseau (`null`), pas de rythme : les échantillons
-  n'ont ni jour ni tranche.
-- **Tests** : `RhythmTest` (un historique simulé où le lundi prend 30 % de plus : facteur trouvé, erreur meilleure ; sans
-  effet de jour : aucun facteur ; groupes trop petits : aucun facteur ; tâche non planifiée : inchangée).
+- **Preuve.** `Evidence.rhythm` (`Rhythm.Applied(weekday, weekdayFactor, band, bandFactor)`, facteurs nuls quand non
+  appliqués, `null` sans facteur) ; « Pourquoi » et la fiche ajoutent « Ton rythme : +20 % le lundi, −15 % le matin. »
+  (`rhythmText`, `ModelTexts.kt` ; textes `why_model_rhythm`, `model_rhythm_*`, nom du jour par `Dates.weekdayName`).
+- **Fuseau.** `core` reste pur : le fuseau est un paramètre facultatif de la façade (`estimates`, `effectiveMinutes`,
+  `withLearned`, `withLearnedEstimates`, `modelStatus`). Le passent : `DayView.build` (Jour, Semaine, rappels, widgets),
+  `MonteCarlo.prepare`, `TeamLoad`, `AssignmentSuggestion` (leur fuseau), et, côté interface, `ChronoWatcher`,
+  `ChronoSync` (Android), la fiche d'équipe et l'estimation au tri (fuseau du système). Sans fuseau (`null`), pas de
+  rythme : les échantillons n'ont ni jour ni tranche.
+- **Tests** : `RhythmTest` (un historique simulé où le lundi prend 30 % de plus : facteur trouvé sur au moins 8 graines sur
+  10, entre 1,1 et 1,5, appliqué à une tâche planifiée un lundi, pas un mardi ni sans date ; sans effet de jour : au plus
+  un faux facteur sur dix graines ; groupes trop petits ou sans séance : aucun facteur ; jour et tranche de la première
+  séance à l'heure locale). Mesuré : le facteur est **sous-estimé, jamais surestimé** (1,11 à 1,3 pour un vrai 1,3), car
+  les voisins d'une tâche du lundi sont souvent des lundis ; écart prudent, accepté.
+
+### Estimations qui changent et estimations saisies à revoir (étape 6, besoins 12 et 13)
+
+- **Écart net** (`EstimateChanges.significant(avant, après)`, `core/engine/model/EstimateChanges.kt`, pur) : au moins
+  `MIN_MINUTES` = 15 min **ou** `MIN_SHARE` = 25 % de l'ancienne valeur. Une seule règle pour les deux besoins.
+- **Changements** (`EstimateChanges.diff(avant, après)`) : les tâches présentes dans les deux relevés dont la durée
+  appliquée a changé nettement, triées par `taskId`. Le relevé est `DurationEstimator.appliedMinutes(estimates(…))` de
+  l'instantané **perso** (les tâches à faire sans estimation saisie).
+- **Propositions** (`EstimateChanges.proposals(instantané, maintenant, fuseau)`) : les tâches à faire **avec** une durée
+  saisie dont la durée apprise **fiable du modèle** (chaîne interrogée sur la tâche sans sa durée saisie) s'en écarte
+  nettement ; la série et le titre ne proposent rien (leur médiane ne s'applique déjà qu'aux tâches sans durée, on ne les
+  oppose pas à une durée saisie). Triées par écart décroissant, puis `taskId`.
+- **Veille** (`EstimateWatcher`, `ui/app/`, dans la coquille comme `ReminderWatcher`) : au premier relevé de la session, il
+  prend la **référence** sans rien dire (ce qui a changé application fermée n'est pas annoncé : pas de calcul en
+  arrière-plan, choix du propriétaire) ; à chaque changement de l'instantané perso, il compare le relevé à la référence ; des
+  changements nets → le bandeau et, si le système ne s'en charge pas (`ChronoNotifier.systemHandlesAlerts` faux), une
+  notification « n estimations ont changé » (`tag` `estimates`) ; **au plus une par jour et par session** (garde en
+  mémoire : la référence repart du relevé du lancement, rien n'est stocké) ; puis la référence devient le relevé.
+  Réglage `learning.notifyChanges` (`Boolean?`, nul = actif, seul `false` s'écrit), dans la carte « Durées apprises »,
+  affiché avec l'interrupteur du modèle ; coupé, ni bandeau ni notification.
+- **Bandeau** (`EstimateChangesBanner`, neutre comme celui des mises à jour, sous lui) : « 3 estimations ont changé »,
+  « Voir » ouvre la revue, « Plus tard » le ferme.
+- **Revue** (`EstimateReviewDialog`) : « Ce qui a changé » (titre, avant → après) et « Estimations saisies à revoir »
+  (titre, saisie → modèle avec son intervalle, « Passer à 45 min » par ligne, « Tout appliquer ») ; chaque application
+  écrit par `KairosRepository.setEstimate` et propose « Annuler » (`LocalUndoMessages`), qui remet l'ancienne valeur.
+  Ouverte aussi depuis la carte « Durées apprises » (« Revoir les estimations saisies (n) », affiché s'il y en a).
+- **Fiche** : une durée saisie dont le modèle s'écarte nettement montre « Le modèle estime 45 min (entre 30 et 60) » et
+  la puce « Passer à 45 min », qui remplit le champ **sur action** (rien n'est changé sans accord).
+- **Tests** : `EstimateChangesTest` (seuil, diff, propositions, la série ne propose rien), `EstimateReviewUiTest`
+  (bandeau après une tâche terminée, revue, application et annulation, puce de la fiche, réglage).
 
 ### Réglage
 

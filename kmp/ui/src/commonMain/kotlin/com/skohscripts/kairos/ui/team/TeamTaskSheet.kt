@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.team
 
+import kotlinx.datetime.TimeZone
 import com.skohscripts.kairos.ui.day.duration
 import com.skohscripts.kairos.ui.generated.resources.effort_model
 import com.skohscripts.kairos.core.engine.TimeTracking
@@ -93,7 +94,7 @@ internal class EffortInfo(
             // et l'intervalle quand c'est le modèle (docs/spec/estimateur-modele.md).
             val estimate = if (task.estimatedMinutes?.takeIf { it > 0 } == null) {
                 val spent = TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks)
-                DurationEstimator.estimate(task, DurationEstimator.samples(snapshot.tasks, spent), snapshot.settings)?.takeIf { it.reliable }
+                DurationEstimator.estimate(task, DurationEstimator.samples(snapshot.tasks, spent, DurationEstimator.firstStarts(snapshot.workSessions, TimeZone.currentSystemDefault())), snapshot.settings)?.takeIf { it.reliable }
             } else {
                 null
             }

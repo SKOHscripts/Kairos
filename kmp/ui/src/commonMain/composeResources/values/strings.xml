@@ -1788,4 +1788,10 @@
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, estimated by the model (%2$s to %3$s)</string>
     <string name="forecast_model_estimated">Including %1$d task(s) estimated by the model (learned range)</string>
+    <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
+    <string name="why_model_rhythm">Your pace: %1$s.</string>
+    <string name="model_rhythm_weekday">%1$s% on %2$s</string>
+    <string name="model_rhythm_morning">%1$s% in the morning</string>
+    <string name="model_rhythm_afternoon">%1$s% in the afternoon</string>
+    <string name="model_rhythm_evening">%1$s% in the evening</string>
 </resources>

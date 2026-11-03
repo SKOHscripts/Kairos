@@ -112,7 +112,7 @@ class ModelIndex private constructor(
         /**
          * Empreinte FNV-1a 64 bits (écrite à la main, jamais `hashCode`) des échantillons triés par `taskId` : la clé du cache
          * ([ModelCache]). Couvre tout ce que le modèle lit : identifiant, minutes, type, points, priorité, étiquette,
-         * récurrence, titre.
+         * récurrence, titre, jour et tranche (rythme).
          */
         fun fingerprint(samples: List<DurationEstimator.Sample>): Long {
             var h = FNV_OFFSET
@@ -136,6 +136,8 @@ class ModelIndex private constructor(
                 mix(s.projectTag)
                 mix(if (s.recurring) 1L else 0L)
                 mix(s.title)
+                mix((s.weekday ?: 0).toLong())
+                mix((s.band?.ordinal ?: -1).toLong())
             }
             return h
         }

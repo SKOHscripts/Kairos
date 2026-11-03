@@ -25,9 +25,19 @@ object ModelEstimator : DurationEstimator {
         val priority: Int?,
         val projectTag: String,
         val recurring: Boolean,
+        /** Jour ISO où la tâche est planifiée et tranche de son heure fixe (rythme) ; nuls sans date ou sans heure. */
+        val weekday: Int? = null,
+        val band: Rhythm.Band? = null,
     ) {
         companion object {
-            fun of(task: Task) = Features(task.title, task.taskType, task.fibonacciPoints, task.priority, task.projectTag, task.recurrence != TaskRecurrence.NONE)
+            fun of(task: Task): Features {
+                val pinned = task.pinnedStart
+                val day = pinned?.date ?: task.scheduledDate
+                return Features(
+                    task.title, task.taskType, task.fibonacciPoints, task.priority, task.projectTag, task.recurrence != TaskRecurrence.NONE,
+                    weekday = day?.let { it.dayOfWeek.ordinal + 1 }, band = pinned?.let { Rhythm.band(it.hour) },
+                )
+            }
             fun of(sample: DurationEstimator.Sample) = Features(sample.title, sample.taskType, sample.points, sample.priority, sample.projectTag, sample.recurring)
         }
     }
@@ -35,8 +45,8 @@ object ModelEstimator : DurationEstimator {
     /** Le modèle ajusté d'un corpus, sans sa garde. */
     class Fit(val index: ModelIndex, val ridge: RidgePrior?)
 
-    /** Le modèle d'un corpus et sa garde : ce que [ModelCache] mémorise. */
-    class State(val space: TaskSpace?, val fit: Fit, val gate: ModelGate.Result)
+    /** Le modèle d'un corpus, sa garde et son rythme : ce que [ModelCache] mémorise. */
+    class State(val space: TaskSpace?, val fit: Fit, val gate: ModelGate.Result, val rhythm: Rhythm.Factors = Rhythm.Factors.NONE)
 
     /** Une estimation brute : [sufficient] si la base l'est (assez de voisins, ou régression admise). */
     class Prediction(
@@ -59,8 +69,12 @@ object ModelEstimator : DurationEstimator {
     fun fit(corpus: List<DurationEstimator.Sample>): Fit = Fit(ModelIndex.build(corpus), RidgePrior.fit(corpus))
 
     /** Le modèle et sa garde, sans cache. */
-    fun build(corpus: List<DurationEstimator.Sample>, settings: Settings): State =
-        State(corpus.firstOrNull()?.space, fit(corpus), ModelGate.evaluate(corpus, settings))
+    fun build(corpus: List<DurationEstimator.Sample>, settings: Settings): State {
+        val fit = fit(corpus)
+        // Le rythme ne se calcule que si des échantillons ont un jour (séances et fuseau connus).
+        val rhythm = if (corpus.any { it.weekday != null }) Rhythm.learn(fit, settings) else Rhythm.Factors.NONE
+        return State(corpus.firstOrNull()?.space, fit, ModelGate.evaluate(corpus, settings), rhythm)
+    }
 
     override fun estimate(task: Task, history: DurationEstimator.History, settings: Settings): DurationEstimator.Estimate? {
         val learning = settings.learning ?: LearningSettings()
@@ -68,11 +82,19 @@ object ModelEstimator : DurationEstimator {
         val corpus = corpus(history.samples)
         if (corpus.isEmpty()) return null
         val state = history.cache.state(corpus, settings) { build(corpus, settings) }
-        val p = predict(state.fit, Features.of(task), settings) ?: return null
+        val features = Features.of(task)
+        val p = predict(state.fit, features, settings) ?: return null
         val reliable = corpus.size >= ModelParams.MIN_CORPUS && p.sufficient && state.gate.passed
+        // Rythme (besoin 11) : seulement sur une estimation fiable, pour une tâche planifiée ou à heure fixe.
+        val rhythm = if (reliable) Rhythm.applied(state.rhythm, features.weekday, features.band).takeIf { !it.isEmpty } else null
+        val f = rhythm?.factor ?: 1.0
+        val cap = HistoryEstimates.cap(settings)
+        val minutes = if (rhythm == null) p.minutes else round(p.minutes * f, cap)
+        val low = if (rhythm == null) p.low else minOf(round(p.low * f, cap), minutes)
+        val high = if (rhythm == null) p.high else maxOf(round(p.high * f, cap), minutes)
         return DurationEstimator.Estimate(
-            p.minutes, DurationEstimator.Source.MODEL, p.samples, reliable, p.low, p.high,
-            DurationEstimator.Evidence(p.basis, p.neighbours, p.taskType, p.points, p.corpus, state.gate),
+            minutes, DurationEstimator.Source.MODEL, p.samples, reliable, low, high,
+            DurationEstimator.Evidence(p.basis, p.neighbours, p.taskType, p.points, p.corpus, state.gate, rhythm),
         )
     }
 
@@ -81,13 +103,13 @@ object ModelEstimator : DurationEstimator {
      * moins de `max(3, minSamples)` voisins retenus : la régression si elle est admise, sinon les voisins trouvés (base
      * insuffisante).
      */
-    fun predict(fit: Fit, features: Features, settings: Settings): Prediction? {
+    fun predict(fit: Fit, features: Features, settings: Settings, skip: Int = -1): Prediction? {
         val learning = settings.learning ?: LearningSettings()
         val cap = HistoryEstimates.cap(settings)
         val index = fit.index
         val target = Similarity.Target(index.query(features.title), features.taskType, features.points, features.projectTag)
         val minNeighbours = ModelParams.minNeighbours(learning.minSamples)
-        val neighbours = neighbours(index, target)
+        val neighbours = neighbours(index, target, skip)
         if (neighbours.size >= minNeighbours) return fromNeighbours(neighbours, index.samples.size, cap, sufficient = true)
         val ridge = fit.ridge?.predict(features.taskType, features.points, features.priority, features.recurring)
         if (ridge != null) {
@@ -104,9 +126,10 @@ object ModelEstimator : DurationEstimator {
     private class Neighbour(val sample: DurationEstimator.Sample, val similarity: Double, val weight: Double)
 
     /** Les voisins retenus (ressemblance ≥ seuil, les plus proches, au plus 9), pondérés `ressemblance² × récence`, sans aberrants. */
-    private fun neighbours(index: ModelIndex, target: Similarity.Target): List<Neighbour> {
+    private fun neighbours(index: ModelIndex, target: Similarity.Target, skip: Int = -1): List<Neighbour> {
         val scored = ArrayList<Pair<Int, Double>>()
         for (i in index.samples.indices) {
+            if (i == skip) continue
             val s = Similarity.of(target, index, i)
             if (s >= ModelParams.SIMILARITY_MIN) scored.add(i to s)
         }

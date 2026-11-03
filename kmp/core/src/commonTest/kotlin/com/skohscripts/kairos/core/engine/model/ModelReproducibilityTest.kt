@@ -36,7 +36,7 @@ class ModelReproducibilityTest {
         val target = Similarity.Target(q, "Rédaction", 5, "")
         assertEquals(0.7348851895206634, Similarity.of(target, index, 0))
         assertEquals(0.475511878067807, Similarity.of(target, index, 4))
-        assertEquals(-3881057229422056706L, ModelIndex.fingerprint(history))
+        assertEquals(7520944353665861822L, ModelIndex.fingerprint(history))
         assertEquals(ModelIndex.fingerprint(history), ModelIndex.fingerprint(history.reversed()))
     }
 

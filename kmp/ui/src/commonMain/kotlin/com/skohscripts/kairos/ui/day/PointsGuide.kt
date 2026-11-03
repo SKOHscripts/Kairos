@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import kotlinx.datetime.TimeZone
 import com.skohscripts.kairos.ui.generated.resources.estimate_filled_model_regression
 import com.skohscripts.kairos.ui.generated.resources.estimate_filled_model
 import com.skohscripts.kairos.ui.generated.resources.estimate_filled_learned
@@ -155,7 +156,12 @@ internal suspend fun fillInboxEstimate(
     // La durée apprise fiable de la chaîne (série, titre, modèle) passe avant les médianes (docs/spec/estimateur-modele.md,
     // besoin 9) ; la chaîne ne lit que l'espace de la tâche (backlog d'équipe : les tâches d'équipe faites).
     val learned = DurationEstimator.estimate(
-        qualified, DurationEstimator.samples(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks)), snapshot.settings,
+        qualified,
+        DurationEstimator.samples(
+            snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks),
+            DurationEstimator.firstStarts(snapshot.workSessions, TimeZone.currentSystemDefault()),
+        ),
+        snapshot.settings,
     )?.takeIf { it.reliable }
     val fill = estimates.inboxFill(qualified, learned) ?: return
     repository.setEstimate(taskId, fill.minutes)

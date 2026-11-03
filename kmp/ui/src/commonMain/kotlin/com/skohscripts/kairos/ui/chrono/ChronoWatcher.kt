@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.chrono
 
+import kotlinx.datetime.TimeZone
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -72,7 +73,7 @@ fun ChronoWatcher(services: AppServices, alerts: SnapshotStateList<String>) {
     val clock = services.clock
 
     // L'estimation attendue : explicite, sinon la durée apprise fiable (docs/spec/durees-apprises.md) ; l'alerte « dépassement » la suit.
-    val expected = task?.let { DurationEstimator.effectiveMinutes(it, snapshot, services.clock.now()) }
+    val expected = task?.let { DurationEstimator.effectiveMinutes(it, snapshot, services.clock.now(), TimeZone.currentSystemDefault()) }
     LaunchedEffect(running?.id, task?.title, expected, base, settings.timerIdleAlertMinutes, settings.pomodoroFocusMinutes, settings.timerAlertSound) {
         if (running == null || task == null) {
             notifier.setTitle(null)

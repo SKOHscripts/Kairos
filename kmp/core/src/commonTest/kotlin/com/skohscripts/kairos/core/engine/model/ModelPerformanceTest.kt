@@ -11,7 +11,9 @@ import kotlin.time.TimeSource
 class ModelPerformanceTest {
     @Test
     fun fiveHundredSamplesAndTwoHundredTasksUnderOneSecond() {
+        // Chaque tâche a un jour et une tranche : le rythme (laisser-un-dehors sur tout le corpus) entre dans le budget.
         val history = SimulatedHistory.generate(11, Profile.NOVEL, n = 500)
+            .mapIndexed { i, s -> s.copy(weekday = i % 7 + 1, band = Rhythm.Band.entries[i % 3]) }
         val targets = SimulatedHistory.generate(12, Profile.NOVEL, n = 200).map { Backtest(history).task(it).copy(id = 100_000 + it.taskId) }
         val settings = Settings()
         // Une fois pour chauffer la JVM, puis la mesure, avec le cache d'une instance d'application.

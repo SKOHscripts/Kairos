@@ -142,6 +142,9 @@ internal object Dates {
     /** Nom du jour de la semaine : « mardi », « Tuesday ». */
     fun weekdayName(date: LocalDate, language: String): String = names(language).days[date.dayOfWeek.ordinal]
 
+    /** Nom du jour de la semaine (lundi = 0) : « mardi », « Tuesday ». */
+    fun weekdayName(weekday: Int, language: String): String = names(language).days[weekday]
+
     /** Jour du mois seul : « 1er » (français seulement), « 15 » ; « 1 », « 15 ». */
     fun dayOfMonth(date: LocalDate, language: String): String =
         if (UiLanguage.isFrench(language) && date.day == 1) "1er" else date.day.toString()
