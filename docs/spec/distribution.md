@@ -389,8 +389,8 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   manqué. Les attentes des tests d'interface sont en temps réel : sur un
   runner à deux cœurs, avec les modules testés en parallèle, 5 s ont manqué
   par intermittence (`M5ScreensUiTest`), d'où 15 s.
-- `kmp-release.yml` (tags `v3.*` et `v4.*` (`v4.*` ajouté avec le paquet AUR, pour que la 4.0.0 se publie), lancement manuel) :
 - `kmp-test-build.yml` (lancement manuel seulement) : build de test d'un commit de la branche, voir § Build de test.
+- `kmp-release.yml` (tags `v3.*` et `v4.*` (`v4.*` ajouté avec le paquet AUR, pour que la 4.0.0 se publie), lancement manuel) :
   - `version` : lit `kairos.versionName` ; échec si le tag diffère ; drapeau
     `prerelease` si la version contient `-` ;
   - `android` : tests JVM, keystore depuis `KAIROS_KEYSTORE_BASE64` (échec
