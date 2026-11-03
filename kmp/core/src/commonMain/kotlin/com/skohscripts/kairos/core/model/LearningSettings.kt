@@ -16,7 +16,7 @@ data class LearningSettings(
     /** Occurrences chronométrées minimales pour qu'une durée apprise soit appliquée, ≥ 2. */
     val minSamples: Int = 3,
     /**
-     * Estimer par modèle (docs/spec/estimateur-modele.md, 4.0.0) ; **`null` = actif**. Nullable plutôt qu'un booléen à
+     * Estimer par machine learning (docs/spec/estimateur-modele.md, 4.0.0) ; **`null` = actif**. Nullable plutôt qu'un booléen à
      * `true` : l'export écrit les valeurs par défaut, et un booléen écrirait `"model": true` dans le fichier de tout
      * utilisateur qui a déjà un objet `learning` (une valeur nulle n'est pas écrite).
      */

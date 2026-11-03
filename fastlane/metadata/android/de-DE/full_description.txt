@@ -1,7 +1,7 @@
-Kairos bringt Ihre Aufgaben in die Reihenfolge, in der sie zu erledigen sind, und plant sie zur passenden Zeit in die Lücken Ihres Tages ein.
+Kairos bringt Ihre Aufgaben in die Reihenfolge, in der sie zu erledigen sind, und plant sie zur passenden Zeit in die Lücken Ihres Tages ein. Durch maschinelles Lernen auf dem Gerät lernt es, wie lange sie wirklich dauern.
 
-<b>Neu in 4.0: Es lernt Ihre Dauern</b>
-Eine Aufgabe mit neuem Titel erhält eine Dauer aus ähnlichen erledigten Aufgaben, mit Spanne und Liste dieser Aufgaben. Kairos wendet sie erst an, wenn sie auf Ihrem Verlauf besser ist als die Standarddauer, lernt Ihr Tempo nach Tag und Uhrzeit und meldet geänderte Schätzungen. Alles bleibt auf dem Gerät.
+<b>Neu in 4.0: maschinelles Lernen auf dem Gerät</b>
+Ein auf Ihrem Gerät trainiertes Modell für maschinelles Lernen gibt einer Aufgabe mit neuem Titel eine Dauer aus ähnlichen erledigten Aufgaben, mit Spanne und Liste dieser Aufgaben. Kairos wendet sie erst an, wenn sie auf Ihrem Verlauf besser ist als die Standarddauer, lernt Ihr Tempo nach Tag und Uhrzeit und meldet geänderte Schätzungen. Alles bleibt auf dem Gerät.
 
 <b>Eine Reihenfolge, die sich erklären lässt</b>
 Jede Aufgabe erhält einen Prioritäts-Score (WSJF): ihren Wert (Priorität P0, P1 oder P2 plus die Dringlichkeit der Frist) geteilt durch ihren Aufwand in Punkten. Klein und wichtig kommt vor groß und fern; eine überfällige Aufgabe steht immer an erster Stelle. „Warum diese Position?“ zeigt die Berechnung mit einem Tippen.

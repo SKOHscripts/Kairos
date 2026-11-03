@@ -106,7 +106,7 @@ class ModelEstimateUiTest {
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitText("Quarterly report for the board", substring = true)
         waitUntil(timeoutMillis = 15_000) {
-            onAllNodesWithContentDescription("Estimated by the model from 5 similar tasks", substring = true).fetchSemanticsNodes().isNotEmpty()
+            onAllNodesWithContentDescription("Estimated by machine learning from 5 similar tasks", substring = true).fetchSemanticsNodes().isNotEmpty()
         }
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
         waitText("Edit task")
@@ -125,9 +125,9 @@ class ModelEstimateUiTest {
         val repository = services.repository
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         openSettings(SettingsCategory.PLANNING)
-        waitText("Estimate with the model")
+        waitText("Estimate with machine learning")
         waitText("On your last", substring = true)
-        onNodeWithText("Estimate with the model").performScrollTo().performClick()
+        onNodeWithText("Estimate with machine learning").performScrollTo().performClick()
         onNodeWithText("Save").performClick()
         waitUntil(timeoutMillis = 15_000) { repository.snapshot.value.settings.learning?.model == false }
     }
@@ -140,7 +140,7 @@ class ModelEstimateUiTest {
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitText("To process (1)")
         onNodeWithText("3 moderate").performScrollTo().performClick()
-        waitText("Estimated at 45 min by the model (5 similar tasks)")
+        waitText("Estimated at 45 min by machine learning (5 similar tasks)")
         assertEquals(45, services.repository.snapshot.value.tasks.single { it.id == 200L }.estimatedMinutes)
     }
 
@@ -151,8 +151,8 @@ class ModelEstimateUiTest {
         setContent { Box(Modifier.width(360.dp).height(1400.dp)) { KairosApp(Platform.ANDROID, Destination.DAY, TeamDestination.BOARD) { services } } }
         waitText("Quarterly report for the board", substring = true)
         onAllNodes(hasScrollToNodeAction()).onFirst()
-            .performScrollToNode(hasContentDescription("Estimated by the model from 5 similar tasks", substring = true))
-        val bounds = onAllNodesWithContentDescription("Estimated by the model from 5 similar tasks", substring = true).onFirst().getUnclippedBoundsInRoot()
+            .performScrollToNode(hasContentDescription("Estimated by machine learning from 5 similar tasks", substring = true))
+        val bounds = onAllNodesWithContentDescription("Estimated by machine learning from 5 similar tasks", substring = true).onFirst().getUnclippedBoundsInRoot()
         assertTrue(bounds.right <= 360.dp, "pastille du modèle hors de la fenêtre de 360 dp : $bounds")
     }
 }

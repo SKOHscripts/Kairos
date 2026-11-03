@@ -118,7 +118,7 @@ class EstimateReviewUiTest {
         openSettings(SettingsCategory.PLANNING)
         waitText("Review typed estimates (1)")
         onNodeWithText("Review typed estimates (1)").performScrollTo().performClick()
-        waitText("typed 2 h, the model estimates 45 min", substring = true)
+        waitText("typed 2 h, machine learning estimates 45 min", substring = true)
         onNodeWithText("Set to 45 min").performClick()
         waitUntil(timeoutMillis = 15_000) { services.repository.snapshot.value.tasks.single { it.id == 501L }.estimatedMinutes == 45 }
         waitText("Estimate set to 45 min")
@@ -135,7 +135,7 @@ class EstimateReviewUiTest {
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitText("Quarterly report for the committee", substring = true)
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
-        waitText("The model estimates 45 min", substring = true)
+        waitText("Machine learning estimates 45 min", substring = true)
         onNode(hasSetTextAction() and hasText("120")).assertExists()
         onNodeWithText("Set to 45 min").performScrollTo().performClick()
         onNode(hasSetTextAction() and hasText("45")).assertExists()

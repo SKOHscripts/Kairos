@@ -11,9 +11,10 @@
 **Le bon moment pour chaque tâche.** Kairos répond à une question concrète :
 « qu’est-ce que je fais maintenant, et dans quel ordre, sachant qu’une réunion
 de 13 h à 14 h m’empêche de traiter le sujet urgent avant 14 h 05 ? » Il range
-tes tâches dans l’ordre où les faire et les place dans les trous de ta
-journée. Sans compte, sans publicité, sans réseau : tes données restent sur
-ton appareil.
+tes tâches dans l’ordre où les faire, les place dans les trous de ta journée,
+et apprend par **machine learning, sur ton appareil,** combien de temps elles
+prennent vraiment. Sans compte, sans publicité, sans réseau : tes données
+restent sur ton appareil.
 
 **Android, Windows, Linux, macOS, et dans le navigateur.**
 
@@ -31,11 +32,12 @@ ton appareil.
 
 ## En bref
 
-- **Nouveau en 4.0 : il apprend combien de temps prennent vraiment tes
-  tâches.** Une tâche au titre nouveau reçoit une durée d’après tes tâches
-  faites qui lui ressemblent, avec une fourchette et la liste de ces tâches, et
-  seulement une fois que cela fait mieux que la durée par défaut sur ton propre
-  historique. [Comment ça marche](#il-apprend-combien-de-temps-prennent-tes-tâches).
+- **Nouveau en 4.0 : du machine learning, sur ton appareil, apprend
+  combien de temps prennent vraiment tes tâches.** Une tâche au titre nouveau
+  reçoit une durée d’après tes tâches faites qui lui ressemblent, avec une
+  fourchette et la liste de ces tâches, et seulement une fois que cela fait
+  mieux que la durée par défaut sur ton propre historique.
+  [Comment ça marche](#machine-learning-sur-lappareil-pour-la-vraie-durée-de-tes-tâches).
 - Il classe les tâches du jour par un score de priorité, affiché sur chacune,
   et explique ce score en un toucher.
 - Il pose chaque tâche dans les trous de l’agenda, autour des réunions, avec
@@ -67,9 +69,13 @@ se règlent dans les **Réglages**.
 > code : **14h55**, le creux post-déjeuner, l’heure la moins productive de la
 > journée.
 
-## Il apprend combien de temps prennent tes tâches
+## Machine learning sur l’appareil, pour la vraie durée de tes tâches
 
-Nouveau en 4.0, et calculé entièrement sur ton appareil.
+Nouveau en 4.0 : un modèle de machine learning qui apprend de tes tâches faites
+combien de temps prendront les suivantes. Il est entraîné et exécuté entièrement
+sur ton appareil : plus proches voisins sur ton historique, régression ridge en
+repli, et une vérification sur tes propres données avant de changer quoi que ce
+soit.
 
 - **Par ressemblance, avec sa preuve.** Une tâche jamais faite (« Rapport
   trimestriel pour le conseil ») est comparée à tes tâches faites : mots du
@@ -237,15 +243,16 @@ son estimation vient des seules tâches d’équipe terminées.
   s’affiche `~45 min` avec sa source dans « Pourquoi à cette place ? », et une
   estimation saisie l’emporte toujours. On peut la couper ou la régler dans les
   Réglages.
-- **Estimer par modèle** : une tâche au titre nouveau reçoit une durée d’après
+- **Estimation par machine learning** : un modèle de machine learning
+  entraîné sur l’appareil donne à une tâche au titre nouveau une durée d’après
   tes tâches faites qui lui ressemblent (mots du titre, type, points), avec une
   fourchette (« entre 30 et 60 min ») et la liste de ces tâches avec leur temps
-  réel. Elle ne s’applique qu’une fois qu’elle fait mieux que la durée par défaut
+  réel. Il ne s’applique qu’une fois qu’il fait mieux que la durée par défaut
   sur tes dernières tâches, ce que montrent les Réglages. Il apprend ton rythme
   selon le jour et l’heure, te prévient quand les estimations changent et propose
   de revoir les estimations saisies qu’il conteste. Tout se calcule sur
   l’appareil, à partir de ton seul historique
-  ([détails](#il-apprend-combien-de-temps-prennent-tes-tâches)).
+  ([détails](#machine-learning-sur-lappareil-pour-la-vraie-durée-de-tes-tâches)).
 - **Jours ouvrés et fériés** : calendrier français intégré, dates
   supplémentaires dans les Réglages.
 
@@ -528,7 +535,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Suivre le temps | 3.0.0 | Toutes |
 | Suivre | Trois alertes du chrono | 3.0.0 | Toutes |
 | Suivre | Durées apprises | 3.4.0 | Toutes |
-| Suivre | Estimer par modèle | 4.0.0 | Toutes |
+| Suivre | Estimation par machine learning | 4.0.0 | Toutes |
 | Suivre | Quand tu travailles chaque type | 3.5.0 | Toutes |
 | Suivre | Tes heures les plus efficaces | 3.9.0 | Toutes |
 | Suivre | Ta journée sur l’écran d’accueil | 3.12.0 | Android |
@@ -599,7 +606,7 @@ touché ; rien n’est enregistré avant « Enregistrer »).
 | Planification | Types de tâches | Liste des types | |
 | | Noms des niveaux | Un nom par priorité et par palier de points (16 caractères au plus) | noms par défaut |
 | | Meilleures heures | Préférer mes heures habituelles, force, mesurer par (fréquence, efficacité, les deux), heure préférée par type | désactivé, moyenne, fréquence |
-| | Durées apprises | Activé, occurrences considérées, occurrences nécessaires, estimer par modèle | activé, 5, 3, activé |
+| | Durées apprises | Activé, occurrences considérées, occurrences nécessaires, estimer par machine learning | activé, 5, 3, activé |
 | | Garde-fous | Seuils « traîne » (en retard, sans date), surcharge P0 | 7 j, 14 j, 5 |
 | | Score de priorité (WSJF), avancé | Base de valeur, horizon et poids de l’urgence, points par défaut | 4, 14 j, 8, 3 |
 | | Creux de l’après-midi, avancé | Activé, début, creux, fin, force | activé, 13 h – 15 h – 16 h, 1 |

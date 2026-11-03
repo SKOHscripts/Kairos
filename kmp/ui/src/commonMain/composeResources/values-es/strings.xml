@@ -1758,35 +1758,35 @@
     <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
     <string name="event_estimate">Duración estimada %1$s → %2$s</string>
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
-    <string name="setting_learning_model">Estimar con el modelo</string>
-    <string name="setting_learning_model_help">Compara el título, el tipo y los puntos de una tarea con tus tareas terminadas. Nada sale de este dispositivo.</string>
+    <string name="setting_learning_model">Estimar con aprendizaje automático</string>
+    <string name="setting_learning_model_help">Aprendizaje automático en el dispositivo: compara el título, el tipo y los puntos de una tarea con tus tareas terminadas. Nada sale de este dispositivo.</string>
     <string name="learning_model_status_few">Aún no hay suficientes tareas cronometradas (%1$d de %2$d).</string>
     <string name="learning_model_status_unverified">Aún no hay suficientes tareas comparables para comprobarlo (%1$d de %2$d).</string>
     <string name="learning_model_status_ok">En tus últimas %1$d tareas: error mediano del %2$d%, frente al %3$d% de la duración por defecto.</string>
     <string name="learning_model_status_not_better">No mejora claramente la duración por defecto en tus últimas %1$d tareas (%2$d% frente a %3$d%): no se aplica.</string>
-    <string name="learned_model_badge_description">Estimada por el modelo a partir de %1$d tareas parecidas, entre %2$s y %3$s</string>
-    <string name="learned_model_badge_description_regression">Estimada por el modelo a partir de tus %1$d tareas terminadas, entre %2$s y %3$s</string>
-    <string name="why_learned_model">Duración: ~%1$s (entre %2$s y %3$s), estimada por el modelo a partir de %4$d tareas parecidas: %5$s.</string>
+    <string name="learned_model_badge_description">Estimada por aprendizaje automático a partir de %1$d tareas parecidas, entre %2$s y %3$s</string>
+    <string name="learned_model_badge_description_regression">Estimada por aprendizaje automático a partir de tus %1$d tareas terminadas, entre %2$s y %3$s</string>
+    <string name="why_learned_model">Duración: ~%1$s (entre %2$s y %3$s), estimada por aprendizaje automático a partir de %4$d tareas parecidas: %5$s.</string>
     <string name="why_learned_model_neighbour">«%1$s» (%2$s)</string>
-    <string name="why_learned_model_regression">Duración: ~%1$s (entre %2$s y %3$s), estimada por el modelo a partir de tus %4$d tareas terminadas (%5$s).</string>
+    <string name="why_learned_model_regression">Duración: ~%1$s (entre %2$s y %3$s), estimada por aprendizaje automático a partir de tus %4$d tareas terminadas (%5$s).</string>
     <string name="model_basis_type_points">tipo «%1$s», puntos: %2$d</string>
     <string name="model_basis_type">tipo «%1$s»</string>
     <string name="model_basis_points">puntos: %1$d</string>
-    <string name="why_learned_model_not_better">Duración: el modelo aún no mejora claramente la duración por defecto en tus últimas tareas (no se aplica).</string>
-    <string name="why_learned_model_few_tasks">Duración: aún no hay suficientes tareas terminadas para el modelo (%1$d de %2$d necesarias).</string>
-    <string name="why_learned_model_few_neighbours">Duración: no hay suficientes tareas parecidas para el modelo (%1$d, %2$d necesarias).</string>
+    <string name="why_learned_model_not_better">Duración: el aprendizaje automático aún no mejora claramente la duración por defecto en tus últimas tareas (no se aplica).</string>
+    <string name="why_learned_model_few_tasks">Duración: aún no hay suficientes tareas terminadas para el aprendizaje automático (%1$d de %2$d necesarias).</string>
+    <string name="why_learned_model_few_neighbours">Duración: no hay suficientes tareas parecidas para el aprendizaje automático (%1$d, %2$d necesarias).</string>
     <string name="learned_model_use">Usar %1$s (entre %2$s y %3$s)</string>
     <string name="learned_model_neighbours">Tareas parecidas (%1$d)</string>
     <string name="learned_model_neighbour">%1$s: %2$s, %3$d% parecida</string>
     <string name="estimate_filled_learned">Estimada en %1$s (tus últimas %2$d veces)</string>
-    <string name="estimate_filled_model">Estimada en %1$s por el modelo (%2$d tareas parecidas)</string>
-    <string name="estimate_filled_model_regression">Estimada en %1$s por el modelo (tus %2$d tareas terminadas)</string>
-    <!-- Carte « Estimer par modèle » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
-    <string name="card_model_title">Estimar con el modelo</string>
-    <string name="card_model_body">Una tarea con un título nuevo recibe una duración a partir de tus tareas terminadas que se le parecen, con un intervalo y la lista de esas tareas. Solo se aplica cuando mejora la duración por defecto en tu historial, aprende tu ritmo según el día y la hora, y te avisa cuando cambian las estimaciones. Nada sale del dispositivo.</string>
+    <string name="estimate_filled_model">Estimada en %1$s por aprendizaje automático (%2$d tareas parecidas)</string>
+    <string name="estimate_filled_model_regression">Estimada en %1$s por aprendizaje automático (tus %2$d tareas terminadas)</string>
+    <!-- Carte « Estimation par machine learning » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
+    <string name="card_model_title">Estimación por aprendizaje automático</string>
+    <string name="card_model_body">Un modelo de aprendizaje automático, entrenado en el dispositivo, da a una tarea con un título nuevo una duración a partir de tus tareas terminadas que se le parecen, con un intervalo y la lista de esas tareas. Solo se aplica cuando mejora la duración por defecto en tu historial, aprende tu ritmo según el día y la hora, y te avisa cuando cambian las estimaciones. Nada sale del dispositivo.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
-    <string name="effort_model">%1$s, estimado por el modelo (de %2$s a %3$s)</string>
-    <string name="forecast_model_estimated">De ellas, %1$d tarea(s) estimada(s) por el modelo (intervalo aprendido)</string>
+    <string name="effort_model">%1$s, estimado por aprendizaje automático (de %2$s a %3$s)</string>
+    <string name="forecast_model_estimated">De ellas, %1$d tarea(s) estimada(s) por aprendizaje automático (intervalo aprendido)</string>
     <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
     <string name="why_model_rhythm">Tu ritmo: %1$s.</string>
     <string name="model_rhythm_weekday">%1$s% el %2$s</string>
@@ -1802,14 +1802,14 @@
     <string name="review_changed_header">Qué ha cambiado</string>
     <string name="review_changed_row">%1$s: %2$s → %3$s</string>
     <string name="review_typed_header">Estimaciones escritas por revisar (%1$d)</string>
-    <string name="review_typed_row">%1$s: escrita %2$s, el modelo estima %3$s (de %4$s a %5$s)</string>
+    <string name="review_typed_row">%1$s: escrita %2$s, el aprendizaje automático estima %3$s (de %4$s a %5$s)</string>
     <string name="review_apply">Cambiar a %1$s</string>
     <string name="review_apply_all">Aplicar todo</string>
     <string name="review_applied">Estimación cambiada a %1$s</string>
     <string name="review_applied_all">%1$d estimación(es) actualizada(s)</string>
-    <string name="review_empty">Nada que revisar: tus estimaciones escritas coinciden con el modelo.</string>
+    <string name="review_empty">Nada que revisar: tus estimaciones escritas coinciden con el aprendizaje automático.</string>
     <string name="settings_review_button">Revisar las estimaciones escritas (%1$d)</string>
-    <string name="sheet_model_differs">El modelo estima %1$s (entre %2$s y %3$s).</string>
+    <string name="sheet_model_differs">El aprendizaje automático estima %1$s (entre %2$s y %3$s).</string>
     <!-- Estimateur par modèle : garde pas encore vérifiable (passe de robustesse, #99) -->
-    <string name="why_learned_model_unverified">Duración: aún no hay suficientes tareas comparables para comprobar el modelo (%1$d de %2$d).</string>
+    <string name="why_learned_model_unverified">Duración: aún no hay suficientes tareas comparables para comprobar el modelo de aprendizaje automático (%1$d de %2$d).</string>
 </resources>

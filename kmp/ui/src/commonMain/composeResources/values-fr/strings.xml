@@ -1761,35 +1761,35 @@
     <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
     <string name="event_estimate">Durée estimée %1$s → %2$s</string>
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
-    <string name="setting_learning_model">Estimer par modèle</string>
-    <string name="setting_learning_model_help">Compare le titre, le type et les points d’une tâche à tes tâches déjà faites. Rien ne quitte cet appareil.</string>
+    <string name="setting_learning_model">Estimer par machine learning</string>
+    <string name="setting_learning_model_help">Machine learning sur l’appareil : compare le titre, le type et les points d’une tâche à tes tâches déjà faites. Rien ne quitte cet appareil.</string>
     <string name="learning_model_status_few">Pas encore assez de tâches chronométrées (%1$d sur %2$d).</string>
     <string name="learning_model_status_unverified">Pas encore assez de tâches comparables pour le vérifier (%1$d sur %2$d).</string>
     <string name="learning_model_status_ok">Sur tes %1$d dernières tâches : erreur médiane %2$d %, contre %3$d % pour la durée par défaut.</string>
     <string name="learning_model_status_not_better">Ne fait pas nettement mieux que la durée par défaut sur tes %1$d dernières tâches (%2$d % contre %3$d %) : non appliqué.</string>
-    <string name="learned_model_badge_description">Estimée par le modèle d’après %1$d tâches proches, entre %2$s et %3$s</string>
-    <string name="learned_model_badge_description_regression">Estimée par le modèle d’après tes %1$d tâches faites, entre %2$s et %3$s</string>
-    <string name="why_learned_model">Durée : ~%1$s (entre %2$s et %3$s), estimée par le modèle d’après %4$d tâches proches : %5$s.</string>
+    <string name="learned_model_badge_description">Estimée par machine learning d’après %1$d tâches proches, entre %2$s et %3$s</string>
+    <string name="learned_model_badge_description_regression">Estimée par machine learning d’après tes %1$d tâches faites, entre %2$s et %3$s</string>
+    <string name="why_learned_model">Durée : ~%1$s (entre %2$s et %3$s), estimée par machine learning d’après %4$d tâches proches : %5$s.</string>
     <string name="why_learned_model_neighbour">« %1$s » (%2$s)</string>
-    <string name="why_learned_model_regression">Durée : ~%1$s (entre %2$s et %3$s), estimée par le modèle d’après tes %4$d tâches faites (%5$s).</string>
+    <string name="why_learned_model_regression">Durée : ~%1$s (entre %2$s et %3$s), estimée par machine learning d’après tes %4$d tâches faites (%5$s).</string>
     <string name="model_basis_type_points">type « %1$s », points : %2$d</string>
     <string name="model_basis_type">type « %1$s »</string>
     <string name="model_basis_points">points : %1$d</string>
-    <string name="why_learned_model_not_better">Durée : le modèle ne fait pas encore nettement mieux que la durée par défaut sur tes dernières tâches (non appliqué).</string>
-    <string name="why_learned_model_few_tasks">Durée : pas encore assez de tâches faites pour le modèle (%1$d sur %2$d nécessaires).</string>
-    <string name="why_learned_model_few_neighbours">Durée : pas assez de tâches proches pour le modèle (%1$d, %2$d nécessaires).</string>
+    <string name="why_learned_model_not_better">Durée : le machine learning ne fait pas encore nettement mieux que la durée par défaut sur tes dernières tâches (non appliqué).</string>
+    <string name="why_learned_model_few_tasks">Durée : pas encore assez de tâches faites pour le machine learning (%1$d sur %2$d nécessaires).</string>
+    <string name="why_learned_model_few_neighbours">Durée : pas assez de tâches proches pour le machine learning (%1$d, %2$d nécessaires).</string>
     <string name="learned_model_use">Utiliser %1$s (entre %2$s et %3$s)</string>
     <string name="learned_model_neighbours">Tâches proches (%1$d)</string>
     <string name="learned_model_neighbour">%1$s : %2$s, proche à %3$d %</string>
     <string name="estimate_filled_learned">Estimée à %1$s (tes %2$d dernières fois)</string>
-    <string name="estimate_filled_model">Estimée à %1$s par le modèle (%2$d tâches proches)</string>
-    <string name="estimate_filled_model_regression">Estimée à %1$s par le modèle (tes %2$d tâches faites)</string>
-    <!-- Carte « Estimer par modèle » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
-    <string name="card_model_title">Estimer par modèle</string>
-    <string name="card_model_body">Une tâche au titre nouveau reçoit une durée d’après tes tâches faites qui lui ressemblent, avec une fourchette et la liste de ces tâches. Elle ne s’applique qu’une fois qu’elle bat la durée par défaut sur ton historique, apprend ton rythme selon le jour et l’heure, et te prévient quand les estimations changent. Rien ne quitte l’appareil.</string>
+    <string name="estimate_filled_model">Estimée à %1$s par machine learning (%2$d tâches proches)</string>
+    <string name="estimate_filled_model_regression">Estimée à %1$s par machine learning (tes %2$d tâches faites)</string>
+    <!-- Carte « Estimation par machine learning » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
+    <string name="card_model_title">Estimation par machine learning</string>
+    <string name="card_model_body">Un modèle de machine learning, entraîné sur l’appareil, donne à une tâche au titre nouveau une durée d’après tes tâches faites qui lui ressemblent, avec une fourchette et la liste de ces tâches. Il ne s’applique qu’une fois qu’il bat la durée par défaut sur ton historique, apprend ton rythme selon le jour et l’heure, et te prévient quand les estimations changent. Rien ne quitte l’appareil.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
-    <string name="effort_model">%1$s, estimé par le modèle (%2$s à %3$s)</string>
-    <string name="forecast_model_estimated">Dont %1$d tâche(s) estimée(s) par le modèle (fourchette apprise)</string>
+    <string name="effort_model">%1$s, estimé par machine learning (%2$s à %3$s)</string>
+    <string name="forecast_model_estimated">Dont %1$d tâche(s) estimée(s) par machine learning (fourchette apprise)</string>
     <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
     <string name="why_model_rhythm">Ton rythme : %1$s.</string>
     <string name="model_rhythm_weekday">%1$s % le %2$s</string>
@@ -1805,14 +1805,14 @@
     <string name="review_changed_header">Ce qui a changé</string>
     <string name="review_changed_row">%1$s : %2$s → %3$s</string>
     <string name="review_typed_header">Estimations saisies à revoir (%1$d)</string>
-    <string name="review_typed_row">%1$s : saisie %2$s, le modèle estime %3$s (%4$s à %5$s)</string>
+    <string name="review_typed_row">%1$s : saisie %2$s, le machine learning estime %3$s (%4$s à %5$s)</string>
     <string name="review_apply">Passer à %1$s</string>
     <string name="review_apply_all">Tout appliquer</string>
     <string name="review_applied">Estimation passée à %1$s</string>
     <string name="review_applied_all">%1$d estimation(s) mise(s) à jour</string>
-    <string name="review_empty">Rien à revoir : tes estimations saisies sont proches du modèle.</string>
+    <string name="review_empty">Rien à revoir : tes estimations saisies sont proches de celles du machine learning.</string>
     <string name="settings_review_button">Revoir les estimations saisies (%1$d)</string>
-    <string name="sheet_model_differs">Le modèle estime %1$s (entre %2$s et %3$s).</string>
+    <string name="sheet_model_differs">Le machine learning estime %1$s (entre %2$s et %3$s).</string>
     <!-- Estimateur par modèle : garde pas encore vérifiable (passe de robustesse, #99) -->
-    <string name="why_learned_model_unverified">Durée : pas encore assez de tâches comparables pour vérifier le modèle (%1$d sur %2$d).</string>
+    <string name="why_learned_model_unverified">Durée : pas encore assez de tâches comparables pour vérifier le modèle de machine learning (%1$d sur %2$d).</string>
 </resources>

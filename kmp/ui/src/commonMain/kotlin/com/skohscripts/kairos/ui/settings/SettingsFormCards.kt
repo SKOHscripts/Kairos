@@ -329,7 +329,7 @@ internal fun SettingsFormCards(
     values: Map<String, String>,
     errors: Map<String, FieldError>,
     onChange: (String, String) -> Unit,
-    /** Sous l'interrupteur « Estimer par modèle » : l'état de la vérification (docs/spec/estimateur-modele.md § Interface). */
+    /** Sous l'interrupteur « Estimer par machine learning » : l'état de la vérification (docs/spec/estimateur-modele.md § Interface). */
     learningStatus: @Composable () -> Unit = {},
 ) {
     when (category) {
@@ -384,7 +384,7 @@ private fun SectionCard(
 
 /**
  * Champ → interrupteur dont il dépend : « À quelle heure » du récapitulatif n'apparaît que s'il est activé (docs/spec/rappels.md) ;
- * « Estimer par modèle » n'a de sens qu'avec les durées apprises (docs/spec/estimateur-modele.md).
+ * « Estimer par machine learning » n'a de sens qu'avec les durées apprises (docs/spec/estimateur-modele.md).
  */
 private val SHOWN_WITH = mapOf(
     "reminders.dailySummaryTime" to "reminders.dailySummary",

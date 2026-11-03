@@ -107,7 +107,9 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   `full_description.txt` (≤ 4000, HTML simple `<b>`, `<ul>`, `<li>`),
   `changelogs/<versionCode>.txt` (≤ 500), `images/icon.png` (512 px, carré plein : le logo
   sur un fond uni océan profond `#1C2F59`, `make_app_icons.py`, `apparence.md` § Icônes et supports fixes), `images/phoneScreenshots/1.png` à `8.png`.
-- La description ouvre, juste après l'accroche, sur **« Nouveau en 4.0 : il apprend vos durées »** (l'estimateur par modèle,
+- L'accroche (première phrase) dit que Kairos apprend la durée des tâches **par machine learning sur l'appareil**, comme la
+  description courte (« … par machine learning local », ≤ 80) ; la description ouvre ensuite sur **« Nouveau en 4.0 : du
+  machine learning sur l'appareil »** (l'estimateur par modèle,
   `estimateur-modele.md`, fonctionnalité majeure de la 4.0, demande du propriétaire du 2026-11-03), puis présente la
   formule du score, le placement dans la journée, le chrono et ses alertes, les statistiques, et l'absence de compte et de réseau (jusqu'à la 3.x : la 4.0.0 devra dire les connexions en ligne facultatives,
   désactivées par défaut, et la permission réseau, `connexions-en-ligne.md`) ; depuis la 3.10.0, le fichier lié et les
@@ -245,7 +247,8 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   (`fonts/`), cartes sans ombre, boutons en pilule, cibles de 40 px ; icône et favicon de la page : le logo sur le fond
   océan profond à coins arrondis (`make_app_icons.py`). « F-Droid » dans la petite ligne de la carte Android est dans
   un `<span class="nowrap">` : sans cela, la carte étroite le coupait au trait d'union (« F- / Droid »).
-- Contenu : accroche, quatre points (en tête, **« Nouveau en 4.0 : des durées qui s'apprennent »**, l'estimateur par
+- Contenu : accroche (le héros et la description de la page disent le machine learning embarqué), quatre points (en tête,
+  **« Nouveau en 4.0 : du machine learning sur l'appareil »**, l'estimateur par
   modèle, `estimateur-modele.md`, mis en avant comme fonctionnalité majeure de la 4.0, demande du propriétaire du
   2026-11-03 ; puis ordre expliqué par la formule, journée réaliste, temps réel), cartes de téléchargement (Android : APK ; Windows :
   MSI et zip portable ; Linux : `.deb` et `.tar.gz` ; macOS : DMG Apple

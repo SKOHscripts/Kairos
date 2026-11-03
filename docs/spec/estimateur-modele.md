@@ -67,7 +67,7 @@ façon dont la durée est obtenue.
    défaut. Si le modèle ne fait pas nettement mieux, ou si l'historique est trop court, son estimation est **affichée comme
    « pas encore fiable » sans être appliquée**, exactement comme une durée apprise sous son seuil. Le résultat de cette
    vérification est lisible dans les Réglages.
-5. **Interrupteur « Estimer par modèle »** dans la carte « Durées apprises » des Réglages. **Activé par défaut** (voir
+5. **Interrupteur « Estimer par machine learning »** dans la carte « Durées apprises » des Réglages. **Activé par défaut** (voir
    « Décisions »). Désactivé, ou si les durées apprises sont coupées, Kairos se comporte exactement comme en 3.x.
 6. **Local et hors ligne.** Rien ne quitte l'appareil, aucun réseau, aucune permission, aucun modèle téléchargé ni
    pré-entraîné : le « modèle » est calculé à partir de l'historique de l'utilisateur, et seulement de lui. Il fonctionne
@@ -552,8 +552,8 @@ La provenance est visible partout où la durée l'est, avec les mêmes règles q
   (`core/team/Effort.kt`, à côté de `LEARNED`).
 - `ui/team/forecast/ForecastPanels.kt` : « dont n tâches estimées par le modèle » sous la source des données.
 - `ui/settings/SettingsFormCards.kt` : dans la carte « Durées apprises » (catégorie « Planification »), interrupteur
-  « Estimer par modèle » avec son aide (« Compare le titre, le type et les points d'une tâche à tes tâches déjà faites. Rien ne
-  quitte cet appareil. ») et, dessous, **l'état de la vérification** : « Sur tes 30 dernières tâches : erreur médiane 25 %,
+  « Estimer par machine learning » avec son aide (« Machine learning sur l’appareil : compare le titre, le type et les points
+  d'une tâche à tes tâches déjà faites. Rien ne quitte cet appareil. ») et, dessous, **l'état de la vérification** : « Sur tes 30 dernières tâches : erreur médiane 25 %,
   contre 48 % pour la durée par défaut » / « Pas encore assez de tâches chronométrées (12 sur 20) » / « Ne fait pas mieux que la
   durée par défaut : non appliqué ». Quand les durées apprises sont coupées, l'interrupteur et son état **disparaissent**
   (règle `SHOWN_WITH` des Réglages, comme l'heure du récapitulatif), plutôt que d'être grisés : écart décidé à
@@ -579,6 +579,23 @@ La provenance est visible partout où la durée l'est, avec les mêmes règles q
 - Les prévisions n'existent que dans l'espace Équipe : le chemin `spreads` n'est atteint que par `MonteCarlo.prepare`.
 
 ### Décisions et pièges tracés
+
+**Vocabulaire « machine learning » (demande du propriétaire du 2026-11-03)** : la fonctionnalité se présente comme du
+**machine learning sur l'appareil**, plus parlant et plus accrocheur que « modèle ». Partout où l'utilisateur lit « le
+modèle » au sens de cet estimateur, il lit « machine learning » : interrupteur (« Estimer par machine learning »), aide,
+pastille, « Pourquoi ? », remplissage au tri, fiche et prévisions d'équipe, revue des estimations, carte du catalogue
+(« Estimation par machine learning » / « Machine-learning estimates », clé `model` et `README_FEATURES` inchangées). Mot
+retenu par langue : « machine learning » en français, en anglais et en italien (l'anglicisme y est courant), « maschinelles
+Lernen » en allemand, « aprendizaje automático » en espagnol, « машинное обучение » en russe. Il reste « modèle de machine
+learning » là où la phrase parle de l'objet vérifié (« vérifier le modèle de machine learning »). **Hors de ce renommage** :
+le « Modèle » des prévisions d'équipe (« Par effort » / « Par débit », `forecast_model*`), qui est un autre concept, les noms
+de code (`ModelEstimator`, `learning.model`, clés `*_model*`) et les commentaires. Le terme est juste : voisins pondérés et
+régression ridge, entraînés sur l'historique et validés hors échantillon (§ Le modèle, § Fiabilité). « IA » est écarté : il
+évoque un modèle génératif ou en ligne, à rebours de « pas de boîte noire, rien ne quitte l'appareil ». Mise en avant
+(choix du même jour) : **dans l'accroche** du README (FR, EN), du héros et de la description de la page (six langues), de la
+première phrase de la fiche Fastlane et de sa description courte, en plus de la section dédiée, de la première puce « En
+bref » et du premier point de la page (`publication.md`). La description courte des fiches cède « sans compte ni réseau »
+au machine learning (80 caractères au plus) ; l'absence de compte reste dans la description longue.
 
 **Passe de robustesse du 2026-11-03** (trois relectures indépendantes, en lecture seule : le moteur, l'interface, puis
 l'étape 6 et les corrections ; tests `RobustnessTest`, `EstimateChangesTest`, `EstimateReviewUiTest`) :

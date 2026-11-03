@@ -320,7 +320,7 @@ object FeatureCatalog {
         "Hours by day of the week" to "hours",
         "Several windows and contexts" to "contexts",
         "Learned durations" to "learned",
-        "Estimate by model" to "model",
+        "Machine-learning estimates" to "model",
         "Working days and holidays" to "holidays",
         "Busy slots" to "slots",
         "Weekday slots skip holidays" to "holidays_slots",

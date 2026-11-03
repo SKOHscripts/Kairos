@@ -11,8 +11,9 @@
 **The right time for every task.** Kairos answers a concrete question: "what do
 I do now, and in what order, given that a meeting from 1 pm to 2 pm keeps me
 from handling the urgent topic before 2:05 pm?" It sorts your tasks into the
-order to do them and fits them into the gaps of your day. No account, no ads,
-no network: your data stays on your device.
+order to do them, fits them into the gaps of your day, and uses **on-device
+machine learning** to learn how long they really take. No account, no ads, no
+network: your data stays on your device.
 
 **Android, Windows, Linux, macOS, and in the browser.**
 
@@ -30,10 +31,11 @@ no network: your data stays on your device.
 
 ## In short
 
-- **New in 4.0: it learns how long your tasks really take.** A task with a
-  new title gets a duration from your finished tasks that look like it, with a
-  range and the list of those tasks, and only once this beats the default
-  duration on your own history. [How it works](#it-learns-how-long-your-tasks-take).
+- **New in 4.0: on-device machine learning learns how long your tasks really
+  take.** A task with a new title gets a duration from your finished tasks
+  that look like it, with a range and the list of those tasks, and only once
+  this beats the default duration on your own history.
+  [How it works](#on-device-machine-learning-how-long-your-tasks-really-take).
 - It ranks the day's tasks with a priority score, shown on each one, and
   explains that score in one tap.
 - It places each task in the gaps of the calendar, around meetings, with a
@@ -65,9 +67,12 @@ in **Settings**.
 > tool's job: finding the right slot for every task. Code name: **14h55**, the
 > post-lunch dip, the least productive hour of the day.
 
-## It learns how long your tasks take
+## On-device machine learning: how long your tasks really take
 
-New in 4.0, and computed entirely on your device.
+New in 4.0: a machine-learning model that learns from your finished tasks how
+long the next ones will take. It is trained and run entirely on your device:
+nearest neighbours on your history, a ridge regression as a fallback, and a
+check against your own data before it changes anything.
 
 - **By resemblance, with its proof.** A task you have never done before
   ("Quarterly report for the board") is compared with your finished tasks: words
@@ -224,14 +229,15 @@ only.
   title) once there are enough of them. It shows as `~45 min` with its source
   in “Why this position?”, and an estimate you type always wins. It can be
   switched off, or tuned, in Settings.
-- **Estimate by model**: a task with a new title gets a duration from your
-  finished tasks that look like it (words of the title, type, points), with a
-  range (“between 30 and 60 min”) and the list of those tasks with their real
-  time. It only applies once it does better than the default duration on your
-  own last tasks, which Settings shows. It learns your pace by day and time,
+- **Machine-learning estimates**: a machine-learning model trained on your
+  device gives a task with a new title a duration from your finished tasks
+  that look like it (words of the title, type, points), with a range (“between
+  30 and 60 min”) and the list of those tasks with their real time. It only
+  applies once it does better than the default duration on your own last
+  tasks, which Settings shows. It learns your pace by day and time,
   tells you when estimates change, and offers to review typed estimates it
   disagrees with. Everything is computed on the device, from your history only
-  ([details](#it-learns-how-long-your-tasks-take)).
+  ([details](#on-device-machine-learning-how-long-your-tasks-really-take)).
 - **Working days and holidays**: built-in French calendar, with extra dates
   in Settings.
 
@@ -494,7 +500,7 @@ version that brought it and the platforms it exists on.
 | Follow | Track time | 3.0.0 | All |
 | Follow | Three timer alerts | 3.0.0 | All |
 | Follow | Learned durations | 3.4.0 | All |
-| Follow | Estimate by model | 4.0.0 | All |
+| Follow | Machine-learning estimates | 4.0.0 | All |
 | Follow | When you work on each type | 3.5.0 | All |
 | Follow | Your most efficient hours | 3.9.0 | All |
 | Follow | Your day on the home screen | 3.12.0 | Android |
@@ -564,7 +570,7 @@ you press "Save").
 | Planning | Task types | List of types | |
 | | Level names | A name for each priority and each points level (16 characters at most) | default names |
 | | Best hours | Prefer my usual hours, strength, measure by (frequency, efficiency, both), preferred hour per type | off, medium, frequency |
-| | Learned durations | On/off, occurrences considered, occurrences needed, estimate with the model | on, 5, 3, on |
+| | Learned durations | On/off, occurrences considered, occurrences needed, estimate with machine learning | on, 5, 3, on |
 | | Safeguards | "Lingering" thresholds (overdue, undated), P0 overload | 7 d, 14 d, 5 |
 | | Priority score (WSJF), advanced | Value base, urgency horizon and weight, default points | 4, 14 d, 8, 3 |
 | | Afternoon dip, advanced | On/off, start, trough, end, strength | on, 1 pm – 3 pm – 4 pm, 1 |
