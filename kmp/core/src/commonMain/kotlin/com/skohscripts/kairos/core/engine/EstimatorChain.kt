@@ -15,7 +15,7 @@ class EstimatorChain(private val levels: List<DurationEstimator>) : DurationEsti
         val learning = settings.learning ?: LearningSettings()
         if (!learning.enabled || task.origin != null) return null
         if (task.estimatedMinutes != null && task.estimatedMinutes > 0) return null
-        val sameSpace = DurationEstimator.History(history.samples.filter { it.space == task.space && it.taskId != task.id })
+        val sameSpace = DurationEstimator.History(history.samples.filter { it.space == task.space && it.taskId != task.id }, history.cache)
         var weak: DurationEstimator.Estimate? = null
         for (level in levels) {
             val estimate = level.estimate(task, sameSpace, settings) ?: continue

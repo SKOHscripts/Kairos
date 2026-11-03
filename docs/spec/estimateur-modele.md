@@ -17,10 +17,12 @@ Fichiers couverts (prévus, 4.0.0) : `kmp/core/.../engine/DurationEstimator.kt` 
 propriétaire du 2026-11-02) : 1) interface extraite et chaîne de repli, sans changement de comportement ; 2) le modèle et ses
 rétro-tests dans `core` ; 3) l'interface, les Réglages, l'estimation au tri et la mesure web ; 4) les prévisions d'équipe.
 **Étape 1 livrée** : `DurationEstimator.kt` (interface et façade), `HistoryEstimators.kt` (`SeriesEstimator`,
-`TitleEstimator`), `EstimatorChain.kt`, `Sample` enrichi ; test `EstimatorChainTest`. À ce stade `Source` n'a pas encore
-`MODEL`, `Estimate` pas encore `low`, `high`, `evidence`, et `History` pas encore de `cache` : ils arrivent avec le modèle
-(étape 2). Les effets sur les autres specs sont listés en fin de document (« Impacts sur les specs existantes ») et reportés
-à mesure.
+`TitleEstimator`), `EstimatorChain.kt`, `Sample` enrichi ; test `EstimatorChainTest`. **Étape 2 livrée** : `engine/model/`
+(`ModelParams`, `TextFeatures`, `ModelIndex`, `Similarity`, `RidgePrior`, `ModelGate`, `ModelCache`, `ModelEstimator`),
+`Source.MODEL`, `Estimate.low`/`high`/`evidence`, `History.cache`, `LearningSettings.model` ; le rétro-test et ses tests.
+**Le modèle n'est pas encore branché** dans la chaîne de la façade (`DurationEstimator.chain` reste série puis titre) : il
+le sera à l'étape 3, avec l'interface qui sait l'afficher ; d'ici là, aucun comportement de l'application ne change. Les
+effets sur les autres specs sont listés en fin de document (« Impacts sur les specs existantes ») et reportés à mesure.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -233,7 +235,7 @@ urgence, pas une taille ; on la laisse à la régression, qui dira si les donné
 
 **3. Voisins et médiane pondérée** (`ModelEstimator.kt`) :
 
-- Voisins = les `NEIGHBOURS_MAX` = 9 échantillons de ressemblance la plus haute, **au moins `SIMILARITY_MIN` = 0,25**
+- Voisins = les `NEIGHBOURS_MAX` = 5 échantillons de ressemblance la plus haute, **au moins `SIMILARITY_MIN` = 0,25**
   (égalités départagées par `taskId` décroissant, donc par récence).
 - Poids d'un voisin : `ressemblance² × récence`, avec `récence = 2 − rang/n` (`rang` 0 pour le plus récent des `n` voisins) :
   le carré favorise les quasi-doublons, le plus récent compte au plus deux fois le plus ancien (les durées dérivent à mesure
@@ -275,24 +277,28 @@ urgence, pas une taille ; on la laisse à la régression, qui dira si les donné
 
 La garde est le moyen de tenir « jamais pire que la durée par défaut » *sur l'historique de l'utilisateur lui-même* :
 
-- Candidats : les `GATE_SIZE` = 30 derniers échantillons du corpus (par `taskId`) qui ont au moins `GATE_PREFIX_MIN` = 8
-  échantillons plus anciens. Chacun est estimé par le modèle **construit sur les seuls échantillons plus anciens** (index,
-  idf et régression compris : aucune information future), sa durée réelle n'est jamais lue avant le calcul.
+- Candidats (`ModelGate.candidates`) : les `GATE_SIZE` = 30 derniers échantillons du corpus (par `taskId`) qui ont au moins
+  `GATE_PREFIX_MIN` = 8 échantillons plus anciens. Chacun est estimé par le modèle **construit sur les seuls échantillons
+  plus anciens** (index, idf et régression compris : aucune information future), sa durée réelle n'est jamais lue avant le
+  calcul. Ne comptent que les estimations **à base suffisante** (assez de voisins, ou régression admise) : celles qui seraient
+  appliquées.
 - Erreur : **erreur relative symétrique** `e(p, r) = |p − r| / max(p, r)` ∈ [0 ; 1[, pour une prédiction `p` et un réel `r`
   (bornée et indifférente au sens de l'erreur, contrairement à `|p − r| / r`, qui pardonne les sous-estimations).
 - La garde réussit si au moins `GATE_MIN` = 10 candidats ont pu être estimés **et** si la médiane de `e` du modèle est
-  `≤ GATE_RATIO` = 0,9 × la médiane de `e` de la durée par défaut (`defaultTaskDurationMinutes`) sur les mêmes candidats.
+  `≤ GATE_RATIO` = 0,8 × la médiane de `e` de la durée par défaut (`defaultTaskDurationMinutes`) sur les mêmes candidats.
   Un modèle qui ne fait pas nettement mieux que 30 min ne sert à rien et ne mérite pas de bouger le planning.
 - `ModelGate.Result(evaluated, modelError, defaultError, passed, reason)` avec `reason` ∈ {`OK`, `TOO_FEW_SAMPLES`,
-  `NOT_BETTER`} ; il est rendu dans `Evidence` et dans l'état de la carte des Réglages.
+  `NOT_BETTER`} ; il est rendu dans `Evidence` et dans l'état de la carte des Réglages. Les médianes sont **basses** (la valeur
+  de rang ⌈n/2⌉, `ModelGate.lowMedian`) ; `ModelGate.fromErrors` décide à partir des erreurs déjà mesurées (le rétro-test
+  s'en sert).
 
 Une estimation de source `MODEL` non fiable (garde échouée, corpus trop court, trop peu de voisins) est **exposée** avec
 `reliable = false` quand elle existe : affichée « pas encore fiable », jamais appliquée.
 
 **Paramètres** : toutes les constantes vivent dans `ModelParams` (valeurs de départ ci-dessus, arbitrées par le rétro-test) :
-`MAX_CORPUS` 500, `MIN_CORPUS` 20, `NEIGHBOURS_MAX` 9, `SIMILARITY_MIN` 0,25, `MIN_NEIGHBOURS` max(3, `minSamples`),
+`MAX_CORPUS` 500, `MIN_CORPUS` 20, `NEIGHBOURS_MAX` 5, `SIMILARITY_MIN` 0,25, `MIN_NEIGHBOURS` max(3, `minSamples`),
 poids 0,5 / 0,2 / 0,2 / 0,1, quantiles 0,10 et 0,90, `RIDGE_LAMBDA` 1,0, `GATE_SIZE` 30, `GATE_PREFIX_MIN` 8, `GATE_MIN` 10,
-`GATE_RATIO` 0,9, facteur d'aberrant 3,0 (partagé avec `HistoryEstimators`). Ce ne sont **pas** des réglages utilisateur
+`GATE_RATIO` 0,8, facteur d'aberrant 3,0 (partagé avec `HistoryEstimators`). Ce ne sont **pas** des réglages utilisateur
 (un seul interrupteur : § Réglage). `learning.history` ne concerne que séries et titres ; `learning.minSamples` fixe aussi
 le nombre minimal de voisins, avec un plancher à 3.
 
@@ -313,11 +319,14 @@ le nombre minimal de voisins, avec un plancher à 3.
 ### Cache de l'index et performance
 
 - `DayScreen` recalcule `DayView.build` à chaque minute et à chaque changement de données : l'index ne doit pas être reconstruit
-  chaque fois. `ModelCache` (`engine/model/ModelCache.kt`) est une **mémoïsation explicite à une case**, passée en paramètre :
-  clé = `ModelIndex.fingerprint(samples)`, un FNV-1a 64 écrit à la main (jamais `String.hashCode()`, comme
-  `ForecastRandom.fnv1a64`) sur (`taskId`, minutes, type, points, priorité, étiquette, récurrence, titre) des échantillons
-  retenus. La garde dépend en plus de `defaultTaskDurationMinutes` : elle est recalculée, seule, quand ce réglage change.
-  `ModelCache.NONE` ne mémorise rien (tests, prévisions). L'instance de l'interface vit dans `AppServices` et est passée à
+  chaque fois. `ModelCache` (`engine/model/ModelCache.kt`) est une **mémoïsation explicite à une case par espace** (la vue
+  Jour estime des tâches perso et des tâches d'équipe qui me sont assignées : une seule case se viderait à chaque alternance),
+  passée en paramètre (`DurationEstimator.History.cache`) ; elle garde `ModelEstimator.State` (index, régression, garde).
+  Clé = `ModelIndex.fingerprint(corpus)`, un FNV-1a 64 écrit dans `ModelIndex` (jamais `String.hashCode()` ; pas celui de
+  `ForecastRandom`, qui vit dans `core/team`) sur (`taskId`, minutes, type, points, priorité, étiquette, récurrence, titre)
+  des échantillons retenus, plus la taille du corpus et les réglages que lit la garde (durée par défaut, fenêtre de travail,
+  `minSamples`) : modèle et garde sont recalculés ensemble quand l'un change (rare ; plus simple que deux clés).
+  `ModelCache.NONE` ne mémorise rien (tests, prévisions), `ModelCache.memo()` crée le cache d'une instance d'application. L'instance de l'interface vit dans `AppServices` et est passée à
   `DayView.build` (Jour et Semaine).
 - Coût de référence (500 échantillons) : construction de l'index et garde, l'ordre de 15 puis 20 ms sur JVM (30 constructions
   sur des préfixes) ; une estimation = `n` produits scalaires creux (quelques dizaines de caractéristiques chacun) soit moins de
@@ -336,17 +345,31 @@ L'évaluation vit dans les tests (aucun code de production) :
 - **`SimulatedHistory.generate(seed, profile, n = 200)`** : historique synthétique (`kotlin.random.Random(seed)`, bruit en
   `sqrt` seulement) dont la vérité est connue ; identifiants croissants = ordre de réalisation. Profils : `RECURRING` (6 titres
   répétés), `NOVEL` (chaque titre nouveau, mais un lexique propre à chaque type : durée = base du type × facteur du palier de
-  points × bruit triangulaire 0,7-1,5), `NOISE` (durées indépendantes de toute caractéristique), `SPARSE` (12 tâches faites).
+  points × bruit triangulaire 0,7-1,5), `NOISE` (durées indépendantes de toute caractéristique, **uniformes entre 15 et
+  45 min, centrées sur la durée par défaut**), `SPARSE` (12 tâches faites). Fichiers `SimulatedHistory.kt` et `Backtest.kt`
+  (`core/src/commonTest/.../engine/model/`).
 - **Découpage temporel (walk-forward)** : les 30 % premiers échantillons servent de départ ; pour chaque suivant `i`, on estime
   avec `samples[0 until i]` seuls, **sans** sa durée, puis on mesure l'erreur. Jamais de découpage aléatoire (il laisserait
   fuir l'avenir) ni de validation croisée.
 - **Comparaisons** sur les mêmes tâches testées : durée par défaut ; médiane par titre (`TitleEstimator`, sinon défaut) ;
   chaîne sans modèle ; chaîne complète ; modèle seul. Métrique : médiane de `e(p, r)` (voir la garde), couverture de
   l'intervalle `[low ; high]`.
-- **`NoFutureInfoTest`** (propriété) : pour un historique et un indice `i`, remplacer arbitrairement les durées et les titres
-  des échantillons d'indice > `i` laisse l'estimation de `i` strictement égale.
+- **Raccourci du rétro-test** : l'estimation du modèle pour `i` est celle du modèle ajusté à `samples[0 until i]`, exactement
+  ce que la garde calcule pour chaque candidat ; `Backtest` la calcule donc une fois par échantillon et tire la garde de chaque
+  pas de la même fenêtre (`ModelGate.fromErrors`). `BacktestConsistencyTest` vérifie que ce raccourci rend la même durée
+  appliquée et la même garde que la vraie chaîne (`EstimatorChain(série, titre, modèle)`, `ModelGate.evaluate`).
+- **`NoFutureInfoTest`** (propriété) : pour un candidat `j` de la garde, remplacer arbitrairement les durées et les titres
+  des échantillons d'indice > `j`, ou la durée de `j` lui-même, laisse son estimation strictement égale.
 - Les seuils sont ceux des critères de succès. Graines 1 à 20 en dur. Les valeurs attendues en dur de
-  `ModelReproducibilityTest` couvrent l'index (idf), une ressemblance, une médiane pondérée, la régression et un intervalle.
+  `ModelReproducibilityTest` couvrent l'index (idf), une ressemblance, une médiane pondérée, la régression, un intervalle et
+  l'empreinte. Elles sont vérifiées sur la JVM ; les tests de `core` sur wasm (`wasmJsBrowserTest`, Karma) ne tournent ni en
+  CI ni dans l'environnement de développement (le téléchargement de Karma y est refusé) : la cible wasm est vérifiée à
+  l'étape 3, par la mesure dans Chromium.
+- **Résultats mesurés** (2026-11-03, 20 graines par profil, réglages ci-dessus) : `NOVEL`, erreur médiane de la chaîne de
+  0,30 à 0,46 × celle de la chaîne sans modèle sur les 20 graines (seuil 0,8), modèle fiable sur au moins 137 tâches testées
+  sur 140 ; `RECURRING`, le modèle égale la médiane par titre sur chaque graine (rapport 1,00) ; `NOISE`, la garde coupe le
+  modèle sur 19 graines sur 20 (seuil 18), chaîne au plus 1,07 × la durée par défaut (seuil 1,1) ; `SPARSE`, jamais
+  appliqué ; couverture de l'intervalle 87 % sur `NOVEL` (2 800 tâches, cible 70-90 %).
 
 ### Prévisions : de l'intervalle à une loi d'effort
 
@@ -456,8 +479,17 @@ Décidées le 2026-10-26 à la rédaction de la spec ; **l'activation par défau
   pour qui a un historique riche. Atténuations : garde sur l'historique personnel, jamais sur une durée explicite, série ou
   titre fiables passent avant, provenance et fourchette visibles partout, annoncé par la visite, interrupteur dans les Réglages,
   version majeure.
-- **Garde ≤ 0,9 × l'erreur de la durée par défaut** : à égalité le modèle ne justifie pas de déplacer le planning ; la marge
-  de 10 % évite une bascule entre deux valeurs au gré d'une tâche de plus. Erreur relative symétrique plutôt que `|p − r| / r`,
+- **Garde ≤ 0,8 × l'erreur de la durée par défaut** : à égalité le modèle ne justifie pas de déplacer le planning ; la marge
+  évite une bascule entre deux valeurs au gré d'une tâche de plus. **Rouvert au premier rétro-test (2026-11-03)** : à 0,9, la
+  garde ne coupait le modèle que sur 14 graines sur 20 de `NOISE` (critère : 18) ; 0,85 en donnait 18, 0,8 en donne 19, et
+  `NOVEL` reste appliqué à 98 % : 0,8 retenu, pour une marge d'une graine. Fenêtre de 50 candidats essayée, écartée (13 à 17
+  graines sur 20).
+- **5 voisins au plus, et non 9** (rétro-test du 2026-11-03) : à 9, le modèle seul dépassait la médiane par titre de 15 % sur
+  deux graines de `RECURRING` (critère : 10 %), car il mélangeait des titres proches aux occurrences du même titre ; à 5, il
+  l'égale sur chaque graine, et `NOVEL` passe d'au plus 0,44 à au plus 0,46 (seuil 0,8).
+- **Profil `NOISE` centré sur la durée par défaut** (2026-11-03) : avec des durées de 10 à 120 min, le modèle battait les
+  30 min par défaut en apprenant le seul niveau moyen de l'utilisateur, une amélioration réelle que la garde n'a pas à couper ;
+  le critère vise le cas où il n'y a rien à apprendre au-delà de la durée par défaut, d'où des durées de 15 à 45 min. Erreur relative symétrique plutôt que `|p − r| / r`,
   qui récompense les sous-estimations.
 - **Médiane pondérée basse** (pas de moyenne des deux valeurs centrales) : sans égalité de poids garantie, la moyenne
   exigerait une comparaison de flottants à 0,5 exact ; la médiane basse est reproductible et l'arrondi à 5 min absorbe l'écart

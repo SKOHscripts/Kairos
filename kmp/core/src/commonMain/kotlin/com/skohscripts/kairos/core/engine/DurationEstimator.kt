@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.core.engine
 
+import com.skohscripts.kairos.core.engine.model.ModelCache
+import com.skohscripts.kairos.core.engine.model.ModelGate
 import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.LearningSettings
 import com.skohscripts.kairos.core.model.Settings
@@ -17,14 +19,42 @@ import kotlin.time.Instant
  * d'avant l'extraction de l'interface (4.0.0, issue #99).
  */
 interface DurationEstimator {
-    /** D'où vient la durée : les occurrences de la même série, ou à défaut les tâches de même titre. */
-    enum class Source { SERIES, TITLE }
+    /** D'où vient la durée : les occurrences de la même série, les tâches de même titre, ou le modèle (tâches proches). */
+    enum class Source { SERIES, TITLE, MODEL }
 
     /**
      * La durée apprise : [minutes] (arrondie à 5 min), le nombre d'occurrences retenues [samples] et si elle est [reliable]
      * (au moins [LearningSettings.minSamples] occurrences retenues). Une durée peu fiable s'affiche mais ne s'applique pas.
+     * [low], [high] et [evidence] : source [Source.MODEL] seulement (intervalle et preuve), nuls pour la série et le titre.
      */
-    data class Estimate(val minutes: Int, val source: Source, val samples: Int, val reliable: Boolean)
+    data class Estimate(
+        val minutes: Int,
+        val source: Source,
+        val samples: Int,
+        val reliable: Boolean,
+        val low: Int? = null,
+        val high: Int? = null,
+        val evidence: Evidence? = null,
+    )
+
+    /** La base d'une estimation du modèle : des tâches proches, ou la régression sur le type et les points. */
+    enum class Basis { NEIGHBOURS, REGRESSION }
+
+    /** Une tâche proche : sa durée réelle et sa ressemblance en pour cent entier. */
+    data class Neighbour(val taskId: Long, val title: String, val minutes: Int, val similarityPercent: Int)
+
+    /**
+     * La preuve d'une estimation du modèle : [neighbours] (les plus proches d'abord ; vide pour la régression), ou le type et
+     * les points qu'a lus la régression et la taille du [corpus] ; [gate], la vérification sur l'historique.
+     */
+    data class Evidence(
+        val basis: Basis,
+        val neighbours: List<Neighbour>,
+        val taskType: String?,
+        val points: Int?,
+        val corpus: Int,
+        val gate: ModelGate.Result,
+    )
 
     /**
      * Une occurrence passée : tâche terminée et le temps réellement passé dessus, avec les caractéristiques que le modèle
@@ -44,8 +74,11 @@ interface DurationEstimator {
         val recurring: Boolean = false,
     )
 
-    /** L'historique qu'un niveau consulte : les occurrences du **même espace** que la tâche, hors la tâche elle-même. */
-    class History(val samples: List<Sample>)
+    /**
+     * L'historique qu'un niveau consulte : les occurrences du **même espace** que la tâche, hors la tâche elle-même, et le
+     * cache du modèle ([ModelCache.NONE] : aucun).
+     */
+    class History(val samples: List<Sample>, val cache: ModelCache = ModelCache.NONE)
 
     /** Au plus une estimation, ou `null` : ce niveau ne sait rien de [task]. */
     fun estimate(task: Task, history: History, settings: Settings): Estimate?
