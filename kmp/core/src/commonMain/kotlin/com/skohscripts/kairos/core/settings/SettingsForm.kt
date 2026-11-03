@@ -327,6 +327,8 @@ object SettingsForm {
         learning("learning.enabled", FieldKind.BOOL, get = { it.enabled.toString() }) { l, v -> l.copy(enabled = v == "true") },
         learning("learning.history", FieldKind.INT, 3.0, get = { it.history.toString() }) { l, v -> l.copy(history = v.toInt()) },
         learning("learning.minSamples", FieldKind.INT, 2.0, get = { it.minSamples.toString() }) { l, v -> l.copy(minSamples = v.toInt()) },
+        // Estimer par modèle (docs/spec/estimateur-modele.md) : nul = actif ; seul « non » s'écrit (`false`).
+        learning("learning.model", FieldKind.BOOL, get = { (it.model != false).toString() }) { l, v -> l.copy(model = if (v == "true") null else false) },
     )
 
     /**

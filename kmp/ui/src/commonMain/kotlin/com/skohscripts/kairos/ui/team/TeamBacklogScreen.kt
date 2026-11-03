@@ -228,10 +228,10 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
                     onOpen = { openId = card.task.id }, onToggle = { toggle(card.task.id) },
                     onAssign = { member -> scope.launch { repository.assign(listOf(card.task.id), member) } },
                     onDelete = { deleteId = card.task.id },
-                    onPriority = { scope.launch { repository.setPriority(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope) } },
-                    onPoints = { scope.launch { repository.setPoints(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope) } },
+                    onPriority = { scope.launch { repository.setPriority(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope, services.clock.now()) } },
+                    onPoints = { scope.launch { repository.setPoints(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope, services.clock.now()) } },
                     categories = categories,
-                    onCategory = { scope.launch { repository.setTaskType(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope) } },
+                    onCategory = { scope.launch { repository.setTaskType(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope, services.clock.now()) } },
                 )
             }
 

@@ -1,6 +1,8 @@
 package com.skohscripts.kairos.core.engine.model
 
 import com.skohscripts.kairos.core.engine.DurationEstimator
+import com.skohscripts.kairos.core.engine.EstimatorChain
+import com.skohscripts.kairos.core.engine.SeriesEstimator
 import com.skohscripts.kairos.core.engine.TitleEstimator
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
@@ -62,7 +64,7 @@ class Backtest(val history: List<DurationEstimator.Sample>, val settings: Settin
             val truth = history[i]
             val task = task(truth)
             val title = TitleEstimator.estimate(task, prefix, settings)?.takeIf { it.reliable }?.minutes
-            val withoutModel = DurationEstimator.estimate(task, prefix.samples, settings)?.takeIf { it.reliable }?.minutes
+            val withoutModel = WITHOUT_MODEL.estimate(task, prefix, settings)?.takeIf { it.reliable }?.minutes
             val p = prefixPredictions[i]
             val reliable = p != null && i >= ModelParams.MIN_CORPUS && p.sufficient && gate(i).passed
             Step(
@@ -75,6 +77,9 @@ class Backtest(val history: List<DurationEstimator.Sample>, val settings: Settin
     }
 
     companion object {
+        /** La chaîne d'avant le modèle : série, puis titre. */
+        val WITHOUT_MODEL = EstimatorChain(listOf(SeriesEstimator, TitleEstimator))
+
         fun medianError(steps: List<Step>, pick: (Step) -> Int): Double = ModelGate.lowMedian(steps.map { ModelGate.error(pick(it), it.real) })
     }
 }

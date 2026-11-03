@@ -53,7 +53,7 @@ d'ensemble dans le README. On veut une liste unique, complète, qui s'enrichit �
   une entrée dans le README : le catalogue, la liste de l'application et le README ont **le même ensemble** (`FeatureCatalogTest`).
 - Le tableau récapitulatif du README (anglais, puis français) porte exactement les cartes du catalogue, dans l'ordre, avec leur
   chapitre, leur version et leurs plateformes (`FeatureCatalogTest.readmeTableMatchesCatalog`).
-- Aucune carte n'a une version postérieure à la mineure suivante de l'application, celle en préparation
+- Aucune carte n'a une version postérieure à la mineure suivante de l'application, ou à sa majeure suivante (`X+1.0.0`), celle en préparation
   (`FeatureCatalogTest.noCardIsNewerThanTheApp`) ; toute fonctionnalité nouvelle a une carte et une ligne du tableau
   (même test que ci-dessus : l'oubli fait échouer la CI).
 - L'écran : le bouton est sur l'Accueil quelle que soit la version ; la liste groupe par chapitre ; Équipe n'apparaît pas sans l'espace
@@ -193,7 +193,9 @@ Résultat : **61 cartes pour 61 fonctionnalités du README**, une à une.
 - **Aucune persistance** : la liste est une consultation, pas un état à retenir.
 - **Une carte peut annoncer la mineure suivante** (2026-10-28, à l'arrivée de la première carte 3.13.0, #111) : le passage
   de version vient en dernière PR d'un cycle (`docs/ROADMAP.md`), après les fonctionnalités qui portent déjà
-  `since = "3.13.0"` ; `noCardIsNewerThanTheApp` admet donc la mineure de l'application + 1, jamais au-delà. Écarté : bumper
+  `since = "3.13.0"` ; `noCardIsNewerThanTheApp` admet donc la mineure de l'application + 1, jamais au-delà. **Étendu le
+  2026-11-03** (première carte 4.0.0, estimateur par modèle, #99) : la majeure suivante (`X+1.0.0`) est admise aussi, le cycle
+  préparant une version majeure après la dernière mineure. Écarté : bumper
   la version dans la première PR du cycle (une version « 3.13.0 » construite sans ses fonctionnalités).
 
 ### Impacts sur les specs existantes

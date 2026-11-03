@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.generated.resources.estimate_filled_model_regression
+import com.skohscripts.kairos.ui.generated.resources.estimate_filled_model
+import com.skohscripts.kairos.ui.generated.resources.estimate_filled_learned
+import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.ui.generated.resources.action_revert
 import com.skohscripts.kairos.ui.generated.resources.estimate_filled_points
 import com.skohscripts.kairos.ui.generated.resources.estimate_filled_type
@@ -138,13 +142,32 @@ private fun Small(text: String) {
  * si la tâche [taskId] est désormais entièrement qualifiée et sans durée, lui pose la médiane d'[estimates] et l'annonce
  * avec « Annuler » ([undo], `LocalUndoMessages`).
  */
-internal suspend fun fillInboxEstimate(repository: KairosRepository, estimates: Estimates, taskId: Long, undo: (String, String, () -> Unit) -> Unit, scope: CoroutineScope) {
-    val qualified = repository.snapshot.value.tasks.firstOrNull { it.id == taskId } ?: return
-    val fill = estimates.inboxFill(qualified) ?: return
+internal suspend fun fillInboxEstimate(
+    repository: KairosRepository,
+    estimates: Estimates,
+    taskId: Long,
+    undo: (String, String, () -> Unit) -> Unit,
+    scope: CoroutineScope,
+    now: Instant,
+) {
+    val snapshot = repository.snapshot.value
+    val qualified = snapshot.tasks.firstOrNull { it.id == taskId } ?: return
+    // La durée apprise fiable de la chaîne (série, titre, modèle) passe avant les médianes (docs/spec/estimateur-modele.md,
+    // besoin 9) ; la chaîne ne lit que l'espace de la tâche (backlog d'équipe : les tâches d'équipe faites).
+    val learned = DurationEstimator.estimate(
+        qualified, DurationEstimator.samples(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks)), snapshot.settings,
+    )?.takeIf { it.reliable }
+    val fill = estimates.inboxFill(qualified, learned) ?: return
     repository.setEstimate(taskId, fill.minutes)
     val text = durationText(fill.minutes)
-    val message = fill.type?.let { getString(Res.string.estimate_filled_type, text, it) }
-        ?: getString(Res.string.estimate_filled_points, text, qualified.fibonacciPoints ?: 0)
+    val source = fill.learned
+    val message = when {
+        source == null -> fill.type?.let { getString(Res.string.estimate_filled_type, text, it) }
+            ?: getString(Res.string.estimate_filled_points, text, qualified.fibonacciPoints ?: 0)
+        source.source != DurationEstimator.Source.MODEL -> getString(Res.string.estimate_filled_learned, text, source.samples)
+        source.evidence?.basis == DurationEstimator.Basis.REGRESSION -> getString(Res.string.estimate_filled_model_regression, text, source.samples)
+        else -> getString(Res.string.estimate_filled_model, text, source.samples)
+    }
     undo(message, getString(Res.string.action_revert)) { scope.launch { repository.setEstimate(taskId, null) } }
 }
 
@@ -153,17 +176,22 @@ internal data class Estimates(
     val minutesByPoints: Map<Int, Int> = emptyMap(),
     val minutesByType: Map<String, Int> = emptyMap(),
 ) {
-    /** Une durée proposée pour une tâche qualifiée dans « À traiter » : [minutes] et le type d'où elle vient (`null` : ses points). */
-    data class Fill(val minutes: Int, val type: String?)
+    /**
+     * Une durée proposée pour une tâche qualifiée dans « À traiter » : [minutes] et d'où elle vient, la durée apprise [learned]
+     * (série, titre ou modèle), sinon le [type] (`null` : ses points).
+     */
+    data class Fill(val minutes: Int, val type: String?, val learned: DurationEstimator.Estimate? = null)
 
     /**
      * Durée à poser quand une tâche de « À traiter » vient d'être entièrement qualifiée (3.14.0, issue #166, choix du
      * propriétaire) : priorité, points et type tous renseignés, **et** aucune durée encore (une durée saisie n'est jamais
-     * touchée). La médiane fiable de son type d'abord, sinon celle de son palier de points ; `null` sans médiane fiable.
+     * touchée). La durée apprise fiable [learned] d'abord (4.0.0, docs/spec/estimateur-modele.md), puis la médiane fiable de
+     * son type, sinon celle de son palier de points ; `null` sans rien de fiable.
      */
-    fun inboxFill(task: Task): Fill? {
+    fun inboxFill(task: Task, learned: DurationEstimator.Estimate? = null): Fill? {
         if (task.priority == null || (task.fibonacciPoints ?: 0) == 0 || task.taskType.isEmpty()) return null
         if ((task.estimatedMinutes ?: 0) != 0) return null
+        learned?.takeIf { it.reliable }?.let { return Fill(it.minutes, null, it) }
         minutesByType[task.taskType]?.let { return Fill(it, task.taskType) }
         return minutesByPoints[task.fibonacciPoints]?.let { Fill(it, null) }
     }

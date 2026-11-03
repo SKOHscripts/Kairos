@@ -116,6 +116,7 @@ import com.skohscripts.kairos.ui.generated.resources.task_rec_weekly
 import com.skohscripts.kairos.ui.generated.resources.time_invalid
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.core.engine.DurationEstimator
+import com.skohscripts.kairos.core.model.LearningSettings
 import com.skohscripts.kairos.ui.guide.CoachPanel
 import com.skohscripts.kairos.ui.guide.CoachSession
 import com.skohscripts.kairos.ui.guide.coachField
@@ -177,6 +178,8 @@ internal fun EditTaskDialog(
     countInTeam: Boolean? = null,
     /** Durée apprise de la tâche (docs/spec/durees-apprises.md) : proposée dans le champ des minutes quand il est vide. */
     learned: DurationEstimator.Estimate? = null,
+    /** Réglages des durées apprises : le nombre de tâches proches nécessaires que dit la provenance du modèle. */
+    learning: LearningSettings = LearningSettings(),
     /**
      * Accompagnement de la première tâche (docs/spec/premiere-tache.md) : le panneau d'explication en bas de la fiche, le champ expliqué
      * mis en évidence ; `null` : la fiche habituelle, qui n'est alors pas modifiée.
@@ -344,7 +347,9 @@ internal fun EditTaskDialog(
                         // Durée apprise : une puce qui ne remplit le champ que sur action (on ne remplit que ce qui est vide) ; peu
                         // fiable, elle est dite mais pas proposée.
                         if (learned != null && minutes.isBlank()) {
-                            if (learned.reliable) {
+                            if (learned.source == DurationEstimator.Source.MODEL) {
+                                ModelSuggestion(learned, learning) { minutes = it.toString() }
+                            } else if (learned.reliable) {
                                 KairosTextButton(onClick = { minutes = learned.minutes.toString() }, contentPadding = KairosButtonIconPadding) {
                                     Icon(KairosIcons.Schedule, contentDescription = null, modifier = Modifier.size(18.dp))
                                     Text(stringResource(Res.string.learned_use, duration(learned.minutes), learned.samples), modifier = Modifier.padding(start = 6.dp))

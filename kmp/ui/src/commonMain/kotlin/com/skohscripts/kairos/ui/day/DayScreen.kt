@@ -460,7 +460,7 @@ fun DayScreen(
                     TaskRow(task, ctx) {
                         // Une tâche qu'on finit de qualifier ici (priorité, points et type) reçoit une durée si elle n'en a pas
                         // (issue #166) : la médiane de son type, sinon de ses points, annoncée avec « Annuler ».
-                        suspend fun fillEstimate() = fillInboxEstimate(repository, estimates, task.id, undo, scope)
+                        suspend fun fillEstimate() = fillInboxEstimate(repository, estimates, task.id, undo, scope, services.clock.now())
                         InboxQualify(
                             task,
                             onPriority = { scope.launch { repository.setPriority(task.id, it); fillEstimate() } },
@@ -637,6 +637,7 @@ fun DayScreen(
                 day = day,
                 today = today,
                 learned = view.learned[id],
+                learning = snapshot.settings.learning ?: LearningSettings(),
                 taskTypes = snapshot.settings.taskTypeList,
                 candidates = view.openTasks,
                 blockerIds = view.blockersOf[id].orEmpty().toSet(),

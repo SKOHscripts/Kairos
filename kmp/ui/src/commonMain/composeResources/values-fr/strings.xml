@@ -1760,4 +1760,31 @@
     <string name="estimate_filled_points">Estimée à %1$s (médiane des tâches à %2$d points)</string>
     <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
     <string name="event_estimate">Durée estimée %1$s → %2$s</string>
+    <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
+    <string name="setting_learning_model">Estimer par modèle</string>
+    <string name="setting_learning_model_help">Compare le titre, le type et les points d’une tâche à tes tâches déjà faites. Rien ne quitte cet appareil.</string>
+    <string name="learning_model_status_few">Pas encore assez de tâches chronométrées (%1$d sur %2$d).</string>
+    <string name="learning_model_status_unverified">Pas encore assez de tâches comparables pour le vérifier (%1$d sur %2$d).</string>
+    <string name="learning_model_status_ok">Sur tes %1$d dernières tâches : erreur médiane %2$d %, contre %3$d % pour la durée par défaut.</string>
+    <string name="learning_model_status_not_better">Ne fait pas mieux que la durée par défaut sur tes %1$d dernières tâches (%2$d % contre %3$d %) : non appliqué.</string>
+    <string name="learned_model_badge_description">Estimée par le modèle d’après %1$d tâches proches, entre %2$s et %3$s</string>
+    <string name="learned_model_badge_description_regression">Estimée par le modèle d’après tes %1$d tâches faites, entre %2$s et %3$s</string>
+    <string name="why_learned_model">Durée : ~%1$s (entre %2$s et %3$s), estimée par le modèle d’après %4$d tâches proches : %5$s.</string>
+    <string name="why_learned_model_neighbour">« %1$s » (%2$s)</string>
+    <string name="why_learned_model_regression">Durée : ~%1$s (entre %2$s et %3$s), estimée par le modèle d’après tes %4$d tâches faites (%5$s).</string>
+    <string name="model_basis_type_points">type « %1$s », %2$d points</string>
+    <string name="model_basis_type">type « %1$s »</string>
+    <string name="model_basis_points">%1$d points</string>
+    <string name="why_learned_model_not_better">Durée : le modèle ne fait pas encore mieux que la durée par défaut sur tes dernières tâches (non appliqué).</string>
+    <string name="why_learned_model_few_tasks">Durée : pas encore assez de tâches faites pour le modèle (%1$d sur %2$d nécessaires).</string>
+    <string name="why_learned_model_few_neighbours">Durée : pas assez de tâches proches pour le modèle (%1$d, %2$d nécessaires).</string>
+    <string name="learned_model_use">Utiliser %1$s (entre %2$s et %3$s)</string>
+    <string name="learned_model_neighbours">Tâches proches (%1$d)</string>
+    <string name="learned_model_neighbour">%1$s : %2$s, proche à %3$d %</string>
+    <string name="estimate_filled_learned">Estimée à %1$s (tes %2$d dernières fois)</string>
+    <string name="estimate_filled_model">Estimée à %1$s par le modèle (%2$d tâches proches)</string>
+    <string name="estimate_filled_model_regression">Estimée à %1$s par le modèle (tes %2$d tâches faites)</string>
+    <!-- Carte « Estimer par modèle » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
+    <string name="card_model_title">Estimer par modèle</string>
+    <string name="card_model_body">Une tâche au titre nouveau reçoit une durée d’après tes tâches faites qui lui ressemblent (titre, type, points), avec une fourchette et la liste de ces tâches. Elle ne s’applique qu’une fois qu’elle fait mieux que la durée par défaut sur ton propre historique ; rien ne quitte l’appareil.</string>
 </resources>

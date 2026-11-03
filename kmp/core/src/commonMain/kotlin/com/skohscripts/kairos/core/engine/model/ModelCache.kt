@@ -18,8 +18,15 @@ interface ModelCache {
             override fun state(corpus: List<DurationEstimator.Sample>, settings: Settings, build: () -> ModelEstimator.State) = build()
         }
 
-        /** Un cache à une case par espace, pour une instance d'application (`AppServices`). */
+        /** Un cache à une case par espace. */
         fun memo(): ModelCache = MemoModelCache()
+
+        /**
+         * Le cache de la façade (`DurationEstimator.estimate`, `estimates`, `effectiveMinutes`, `withLearnedEstimates`) quand
+         * l'appelant n'en passe pas : vue Jour et Semaine, rappels, widgets, chrono et calculs d'équipe en profitent sans
+         * changer. Il ne change aucun résultat (`ModelEstimatorTest.theCacheGivesTheSameResultAndIsKeptPerSpace`).
+         */
+        val shared: ModelCache = MemoModelCache()
     }
 }
 

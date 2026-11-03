@@ -124,7 +124,9 @@ internal fun ScoreBadge(
                 Term(stringResource(Res.string.why_score), "= $score", bold = true)
                 // Durée apprise (docs/spec/durees-apprises.md) : d'où vient la durée de placement d'une tâche sans estimation.
                 learned?.let {
-                    val text = if (it.reliable) {
+                    val text = if (it.source == DurationEstimator.Source.MODEL) {
+                        modelProvenance(it, learning)
+                    } else if (it.reliable) {
                         stringResource(Res.string.why_learned, duration(it.minutes), it.samples)
                     } else {
                         stringResource(Res.string.why_learned_weak, it.samples, learning.minSamples)

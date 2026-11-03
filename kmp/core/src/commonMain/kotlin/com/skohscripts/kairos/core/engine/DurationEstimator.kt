@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.core.engine
 
 import com.skohscripts.kairos.core.engine.model.ModelCache
+import com.skohscripts.kairos.core.engine.model.ModelEstimator
 import com.skohscripts.kairos.core.engine.model.ModelGate
 import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.LearningSettings
@@ -87,8 +88,8 @@ interface DurationEstimator {
         /** Temps minimal pour qu'une occurrence compte : un démarrage-arrêt accidentel (1 minute ou moins) est ignoré. */
         const val MIN_SAMPLE_MINUTES = 2
 
-        /** La chaîne de repli : série, puis titre (docs/spec/durees-apprises.md). */
-        val chain: DurationEstimator = EstimatorChain(listOf(SeriesEstimator, TitleEstimator))
+        /** La chaîne de repli : série, puis titre (docs/spec/durees-apprises.md), puis modèle (docs/spec/estimateur-modele.md). */
+        val chain: DurationEstimator = EstimatorChain(listOf(SeriesEstimator, TitleEstimator, ModelEstimator))
 
         /**
          * Les occurrences passées : tâches **terminées**, au temps passé (chrono et saisie manuelle) d'au moins
@@ -114,8 +115,8 @@ interface DurationEstimator {
          * [samples] vient de [samples] ; l'ordre n'a pas d'importance (on retient les plus récentes par identifiant, jamais par
          * date de modification).
          */
-        fun estimate(task: Task, samples: List<Sample>, settings: Settings): Estimate? =
-            chain.estimate(task, History(samples), settings)
+        fun estimate(task: Task, samples: List<Sample>, settings: Settings, cache: ModelCache = ModelCache.shared): Estimate? =
+            chain.estimate(task, History(samples, cache), settings)
 
         /**
          * Les durées apprises de toutes les tâches **à faire** du [snapshot] sans estimation explicite (fiables ou non), au
@@ -155,6 +156,23 @@ interface DurationEstimator {
             if (snapshot.settings.learning?.enabled == false) return null
             val past = samples(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks))
             return estimate(task, past, snapshot.settings)?.takeIf { it.reliable }?.minutes
+        }
+
+        /** Où en est le modèle d'un espace : la taille de son corpus et sa garde (carte « Durées apprises » des Réglages). */
+        data class ModelStatus(val corpus: Int, val gate: ModelGate.Result)
+
+        /**
+         * L'état du modèle pour l'espace [space] du [snapshot] au temps [now], ou `null` s'il est coupé (durées apprises ou
+         * modèle désactivés). Même corpus et même cache que les estimations.
+         */
+        fun modelStatus(snapshot: KairosSnapshot, now: Instant, space: TaskSpace = TaskSpace.PERSONAL, cache: ModelCache = ModelCache.shared): ModelStatus? {
+            val settings = snapshot.settings
+            val learning = settings.learning ?: LearningSettings()
+            if (!learning.enabled || learning.model == false) return null
+            val past = samples(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks))
+            val corpus = ModelEstimator.corpus(past.filter { it.space == space })
+            if (corpus.isEmpty()) return ModelStatus(0, ModelGate.fromErrors(emptyList(), emptyList()))
+            return ModelStatus(corpus.size, cache.state(corpus, settings) { ModelEstimator.build(corpus, settings) }.gate)
         }
 
         /** Les durées apprises **fiables**, en minutes : ce que le planning, les alertes et les projections appliquent. */

@@ -1757,4 +1757,31 @@
     <string name="estimate_filled_points">Auf %1$s geschätzt (Median der Aufgaben mit %2$d Punkten)</string>
     <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
     <string name="event_estimate">Geschätzte Dauer %1$s → %2$s</string>
+    <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
+    <string name="setting_learning_model">Mit dem Modell schätzen</string>
+    <string name="setting_learning_model_help">Vergleicht Titel, Typ und Punkte einer Aufgabe mit deinen erledigten Aufgaben. Nichts verlässt dieses Gerät.</string>
+    <string name="learning_model_status_few">Noch nicht genug gestoppte Aufgaben (%1$d von %2$d).</string>
+    <string name="learning_model_status_unverified">Noch nicht genug vergleichbare Aufgaben, um es zu prüfen (%1$d von %2$d).</string>
+    <string name="learning_model_status_ok">Bei deinen letzten %1$d Aufgaben: mittlerer Fehler %2$d%, gegenüber %3$d% mit der Standarddauer.</string>
+    <string name="learning_model_status_not_better">Nicht besser als die Standarddauer bei deinen letzten %1$d Aufgaben (%2$d% gegenüber %3$d%): nicht angewendet.</string>
+    <string name="learned_model_badge_description">Vom Modell geschätzt anhand von %1$d ähnlichen Aufgaben, zwischen %2$s und %3$s</string>
+    <string name="learned_model_badge_description_regression">Vom Modell geschätzt anhand deiner %1$d erledigten Aufgaben, zwischen %2$s und %3$s</string>
+    <string name="why_learned_model">Dauer: ~%1$s (zwischen %2$s und %3$s), vom Modell geschätzt anhand von %4$d ähnlichen Aufgaben: %5$s.</string>
+    <string name="why_learned_model_neighbour">„%1$s“ (%2$s)</string>
+    <string name="why_learned_model_regression">Dauer: ~%1$s (zwischen %2$s und %3$s), vom Modell geschätzt anhand deiner %4$d erledigten Aufgaben (%5$s).</string>
+    <string name="model_basis_type_points">Typ „%1$s“, %2$d Punkte</string>
+    <string name="model_basis_type">Typ „%1$s“</string>
+    <string name="model_basis_points">%1$d Punkte</string>
+    <string name="why_learned_model_not_better">Dauer: Das Modell ist bei deinen letzten Aufgaben noch nicht besser als die Standarddauer (nicht angewendet).</string>
+    <string name="why_learned_model_few_tasks">Dauer: noch nicht genug erledigte Aufgaben für das Modell (%1$d von %2$d nötig).</string>
+    <string name="why_learned_model_few_neighbours">Dauer: nicht genug ähnliche Aufgaben für das Modell (%1$d, %2$d nötig).</string>
+    <string name="learned_model_use">%1$s übernehmen (zwischen %2$s und %3$s)</string>
+    <string name="learned_model_neighbours">Ähnliche Aufgaben (%1$d)</string>
+    <string name="learned_model_neighbour">%1$s: %2$s, zu %3$d% ähnlich</string>
+    <string name="estimate_filled_learned">Auf %1$s geschätzt (deine letzten %2$d Male)</string>
+    <string name="estimate_filled_model">Vom Modell auf %1$s geschätzt (%2$d ähnliche Aufgaben)</string>
+    <string name="estimate_filled_model_regression">Vom Modell auf %1$s geschätzt (deine %2$d erledigten Aufgaben)</string>
+    <!-- Carte « Estimer par modèle » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
+    <string name="card_model_title">Mit dem Modell schätzen</string>
+    <string name="card_model_body">Eine Aufgabe mit neuem Titel erhält eine Dauer aus deinen erledigten Aufgaben, die ihr ähneln (Titel, Typ, Punkte), mit einer Spanne und der Liste dieser Aufgaben. Sie gilt erst, wenn sie bei deinem eigenen Verlauf besser ist als die Standarddauer; nichts verlässt das Gerät.</string>
 </resources>

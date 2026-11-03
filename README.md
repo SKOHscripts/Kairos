@@ -188,6 +188,12 @@ only.
   title) once there are enough of them. It shows as `~45 min` with its source
   in “Why this position?”, and an estimate you type always wins. It can be
   switched off, or tuned, in Settings.
+- **Estimate by model**: a task with a new title gets a duration from your
+  finished tasks that look like it (words of the title, type, points), with a
+  range (“between 30 and 60 min”) and the list of those tasks with their real
+  time. It only applies once it does better than the default duration on your
+  own last tasks, which Settings shows. Everything is computed on the device,
+  from your history only.
 - **Working days and holidays**: built-in French calendar, with extra dates
   in Settings.
 
@@ -450,6 +456,7 @@ version that brought it and the platforms it exists on.
 | Follow | Track time | 3.0.0 | All |
 | Follow | Three timer alerts | 3.0.0 | All |
 | Follow | Learned durations | 3.4.0 | All |
+| Follow | Estimate by model | 4.0.0 | All |
 | Follow | When you work on each type | 3.5.0 | All |
 | Follow | Your most efficient hours | 3.9.0 | All |
 | Follow | Your day on the home screen | 3.12.0 | Android |
@@ -519,7 +526,7 @@ you press "Save").
 | Planning | Task types | List of types | |
 | | Level names | A name for each priority and each points level (16 characters at most) | default names |
 | | Best hours | Prefer my usual hours, strength, measure by (frequency, efficiency, both), preferred hour per type | off, medium, frequency |
-| | Learned durations | On/off, occurrences considered, occurrences needed | on, 5, 3 |
+| | Learned durations | On/off, occurrences considered, occurrences needed, estimate with the model | on, 5, 3, on |
 | | Safeguards | "Lingering" thresholds (overdue, undated), P0 overload | 7 d, 14 d, 5 |
 | | Priority score (WSJF), advanced | Value base, urgency horizon and weight, default points | 4, 14 d, 8, 3 |
 | | Afternoon dip, advanced | On/off, start, trough, end, strength | on, 1 pm – 3 pm – 4 pm, 1 |

@@ -15,14 +15,19 @@ Fichiers couverts (prévus, 4.0.0) : `kmp/core/.../engine/DurationEstimator.kt` 
 
 État : **issue #99**, spécifiée le 2026-10-26, **en cours d'implémentation (4.0.0)**, en PR empilées par étape (choix du
 propriétaire du 2026-11-02) : 1) interface extraite et chaîne de repli, sans changement de comportement ; 2) le modèle et ses
-rétro-tests dans `core` ; 3) l'interface, les Réglages, l'estimation au tri et la mesure web ; 4) les prévisions d'équipe.
+rétro-tests dans `core` ; 3) l'interface, les Réglages, l'estimation au tri et la mesure web ; 4) les prévisions d'équipe ;
+5) le facteur jour et heure ; 6) la notification groupée et les propositions sur les estimations saisies (5 et 6 ajoutées
+le 2026-11-03).
 **Étape 1 livrée** : `DurationEstimator.kt` (interface et façade), `HistoryEstimators.kt` (`SeriesEstimator`,
 `TitleEstimator`), `EstimatorChain.kt`, `Sample` enrichi ; test `EstimatorChainTest`. **Étape 2 livrée** : `engine/model/`
 (`ModelParams`, `TextFeatures`, `ModelIndex`, `Similarity`, `RidgePrior`, `ModelGate`, `ModelCache`, `ModelEstimator`),
 `Source.MODEL`, `Estimate.low`/`high`/`evidence`, `History.cache`, `LearningSettings.model` ; le rétro-test et ses tests.
-**Le modèle n'est pas encore branché** dans la chaîne de la façade (`DurationEstimator.chain` reste série puis titre) : il
-le sera à l'étape 3, avec l'interface qui sait l'afficher ; d'ici là, aucun comportement de l'application ne change. Les
-effets sur les autres specs sont listés en fin de document (« Impacts sur les specs existantes ») et reportés à mesure.
+**Étape 3 livrée** : le modèle est branché dans la chaîne de la façade (`DurationEstimator.chain` : série, titre, modèle),
+avec la pastille, « Pourquoi », la fiche, la carte des Réglages et son état (`ModelStatusLine`, `DurationEstimator.
+modelStatus`), l'estimation au tri (besoin 9), la carte du catalogue et le README ; test `ModelEstimateUiTest`. L'effort
+d'une tâche d'équipe estimée par le modèle se lit encore « apprise des occurrences passées » dans la fiche d'équipe jusqu'à
+l'étape 4 (`EffortSource.MODEL`). Les effets sur les autres specs sont listés en fin de document (« Impacts sur les specs
+existantes ») et reportés à mesure.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -78,6 +83,26 @@ façon dont la durée est obtenue.
 10. **Isolation.** Une tâche d'un espace n'apprend que de son espace ; une tâche reçue d'un manager n'apprend ni n'enseigne
    rien ; le mode solo ne dépend d'aucune donnée d'équipe et son fichier d'export reste identique octet pour octet.
 
+Ajouts du 2026-11-03 (demande du propriétaire, qui rouvre trois points du hors-périmètre ; détail technique écrit à
+l'implémentation de chaque étape, dans cette spec) :
+
+11. **Rythme selon le jour et l'heure** (étape 5). Kairos apprend des séances chronométrées des tâches faites si tu vas plus
+    vite ou plus lentement selon le **jour de la semaine** et la **tranche de la journée** où tu as commencé (matin,
+    après-midi, soir) : un **facteur de correction** (« le lundi matin, tes tâches prennent 20 % de plus »). Il ne s'applique
+    qu'à une tâche **planifiée** sur un jour (ou un créneau, pour la tranche), seulement s'il est fondé sur assez de séances
+    et s'il améliore l'erreur sur ton historique (même principe que la garde), et il apparaît dans la preuve (« dont +20 %
+    le lundi matin »). Une tâche sans jour ni créneau garde l'estimation sans facteur.
+12. **Prévenir quand les estimations changent** (étape 6). Quand le modèle a appris (une tâche terminée, une durée
+    corrigée) et que la durée appliquée de tâches **à faire** change nettement (au moins 15 min **ou** 25 %), Kairos envoie
+    **une seule notification groupée** (« 3 estimations ont changé »), qui ouvre la liste avant/après ; au plus une par jour,
+    désactivable dans la carte « Durées apprises ». Pas de calcul en arrière-plan, application fermée (choix du
+    propriétaire) : le modèle est recalculé à chaque changement de l'historique, application ouverte, et la notification
+    part à ce moment-là.
+13. **Proposer de revoir les estimations saisies** (étape 6). Quand l'estimation **fiable** du modèle s'écarte nettement
+    (même seuil) d'une durée **saisie à la main** sur une tâche à faire, Kairos le propose : « Passer à 45 min ? » dans la
+    fiche, et « Revoir n estimations » depuis la liste de la notification (une par une ou toutes), avec « Annuler ». Rien
+    n'est jamais changé sans accord : l'estimation explicite garde la priorité.
+
 ### Critères de succès
 
 Les critères chiffrés sont mesurés par un **rétro-test** (§ 2, « Évaluation ») sur des historiques simulés à graines fixes.
@@ -128,10 +153,14 @@ on ne relâche jamais un seuil en silence.
   apprend de son historique ; la synchronisation éventuelle (#88) transporte des tâches, pas un modèle.
 - **Effet du membre** dans l'espace Équipe (un même type de tâche prend plus de temps à tel membre) : différé ; la garde
   baisse la confiance d'elle-même quand l'historique mélange des profils.
-- **Description de la tâche, jour de la semaine, heure de la journée, durée des sous-tâches** comme caractéristiques : écartés
-  pour la première version (voir « Décisions »).
-- **Réentraînement automatique en arrière-plan, notifications** de changement d'estimation.
-- **Modifier rétroactivement** des estimations : inchangé (`statistiques.md`, « Corriger les estimations… »).
+- **Description de la tâche, durée des sous-tâches** comme caractéristiques : écartés pour la première version (voir
+  « Décisions »). Le jour de la semaine et l'heure de la journée, d'abord écartés, sont **rouverts le 2026-11-03** sous forme
+  de facteur de correction (besoin 11), pas de caractéristiques de ressemblance.
+- **Calcul en arrière-plan, application fermée** (Android `WorkManager`, ou autre) : écarté le 2026-11-03 par le
+  propriétaire ; le modèle n'étant jamais stocké, il est déjà à jour à chaque ouverture. Les notifications de changement
+  sont rouvertes (besoin 12).
+- **Réécrire des estimations sans accord** : jamais. Les estimations saisies des tâches à faire peuvent être revues sur
+  proposition (besoin 13) ; celles des tâches faites restent du ressort de « Corriger les estimations » (`statistiques.md`).
 - **Remplacer l'écart historique de l'équipe** pour les tâches estimées par série ou titre (voir « Décisions », prévisions).
 
 ## 2. Solution technique
@@ -179,7 +208,7 @@ interface DurationEstimator {
   niveaux dans l'ordre, **le premier fiable gagne** ; à défaut, le premier qui a quelque chose à dire est rendu avec
   `reliable = false` (affiché, jamais appliqué). Le niveau modèle est sauté si `learning.enabled` est faux ou
   `learning.model == false`. Les garde-fous communs restent en tête : désactivé, tâche reçue, estimation explicite → `null`.
-- La façade `DurationEstimator.estimate(task, samples, settings, cache = ModelCache.NONE)` délègue à la chaîne ; les
+- La façade `DurationEstimator.estimate(task, samples, settings, cache = ModelCache.shared)` délègue à la chaîne ; les
   signatures de `samples`, `estimates`, `appliedMinutes`, `effectiveMinutes` et `withLearnedEstimates` sont **inchangées**
   (paramètre `cache` facultatif ajouté à celles qui calculent), donc les tests actuels compilent tels quels.
   `appliedMinutes` garde les estimations fiables, modèle compris.
@@ -326,8 +355,10 @@ le nombre minimal de voisins, avec un plancher à 3.
   `ForecastRandom`, qui vit dans `core/team`) sur (`taskId`, minutes, type, points, priorité, étiquette, récurrence, titre)
   des échantillons retenus, plus la taille du corpus et les réglages que lit la garde (durée par défaut, fenêtre de travail,
   `minSamples`) : modèle et garde sont recalculés ensemble quand l'un change (rare ; plus simple que deux clés).
-  `ModelCache.NONE` ne mémorise rien (tests, prévisions), `ModelCache.memo()` crée le cache d'une instance d'application. L'instance de l'interface vit dans `AppServices` et est passée à
-  `DayView.build` (Jour et Semaine).
+  `ModelCache.NONE` ne mémorise rien (tests, prévisions), `ModelCache.memo()` crée un cache. La façade utilise par défaut **`ModelCache.shared`**, un cache partagé du processus : vue Jour et Semaine
+  (`DayView.build`), rappels, widgets, chrono et calculs d'équipe en profitent sans changer de signature (écart à la spec
+  d'origine, qui le plaçait dans `AppServices` et le passait à `DayView.build` : le cache ne change aucun résultat, testé,
+  et un seul point évite de l'oublier chez un appelant).
 - Coût de référence (500 échantillons) : construction de l'index et garde, l'ordre de 15 puis 20 ms sur JVM (30 constructions
   sur des préfixes) ; une estimation = `n` produits scalaires creux (quelques dizaines de caractéristiques chacun) soit moins de
   0,5 ms ; 200 estimations en dessous de 100 ms. Budget de test : **1 s** pour 500 échantillons et 200 tâches
@@ -431,7 +462,13 @@ La provenance est visible partout où la durée l'est, avec les mêmes règles q
   « Estimer par modèle » avec son aide (« Compare le titre, le type et les points d'une tâche à tes tâches déjà faites. Rien ne
   quitte cet appareil. ») et, dessous, **l'état de la vérification** : « Sur tes 30 dernières tâches : erreur médiane 25 %,
   contre 48 % pour la durée par défaut » / « Pas encore assez de tâches chronométrées (12 sur 20) » / « Ne fait pas mieux que la
-  durée par défaut : non appliqué ». Interrupteur grisé, avec l'explication, quand les durées apprises sont coupées.
+  durée par défaut : non appliqué ». Quand les durées apprises sont coupées, l'interrupteur et son état **disparaissent**
+  (règle `SHOWN_WITH` des Réglages, comme l'heure du récapitulatif), plutôt que d'être grisés : écart décidé à
+  l'implémentation, une seule règle pour tous les champs qui dépendent d'un interrupteur. L'état (`ModelStatusLine`, lu par
+  `DurationEstimator.modelStatus` sur les données enregistrées de l'espace Perso) n'apparaît qu'avec l'interrupteur actif.
+- Les phrases de provenance sont dans `ui/day/ModelTexts.kt` (`modelProvenance`, `regressionBasis`, `ModelSuggestion`),
+  partagées par « Pourquoi » et la fiche ; la pastille choisit son icône (`KairosIcons.Model`, symbole `model_training`)
+  et sa description selon la source et la base.
 - Une icône ajoutée dans `kmp/tools/make_icons.py` (jamais à la main), textes `learned_model_*`, `why_learned_model*`,
   `setting_learning_model*`, `effort_model` dans **toutes** les langues de l'application (`StringsParityTest`, apostrophe
   typographique), rien en dur ; 360 dp sans débordement ; pas de raccourci clavier annoncé sur Android.

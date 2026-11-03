@@ -1758,4 +1758,31 @@
     <string name="estimate_filled_points">Estimated at %1$s (median of %2$d-point tasks)</string>
     <!-- Journal d'équipe : durée estimée (docs/spec/equipe-backlog-suivi.md § Journal, issue #166) -->
     <string name="event_estimate">Estimated duration %1$s → %2$s</string>
+    <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
+    <string name="setting_learning_model">Estimate with the model</string>
+    <string name="setting_learning_model_help">Compares a task’s title, type and points with your finished tasks. Nothing leaves this device.</string>
+    <string name="learning_model_status_few">Not enough timed tasks yet (%1$d of %2$d).</string>
+    <string name="learning_model_status_unverified">Not enough comparable tasks to check it yet (%1$d of %2$d).</string>
+    <string name="learning_model_status_ok">On your last %1$d tasks: median error %2$d%, against %3$d% for the default duration.</string>
+    <string name="learning_model_status_not_better">Not better than the default duration on your last %1$d tasks (%2$d% against %3$d%): not applied.</string>
+    <string name="learned_model_badge_description">Estimated by the model from %1$d similar tasks, between %2$s and %3$s</string>
+    <string name="learned_model_badge_description_regression">Estimated by the model from your %1$d finished tasks, between %2$s and %3$s</string>
+    <string name="why_learned_model">Duration: ~%1$s (between %2$s and %3$s), estimated by the model from %4$d similar tasks: %5$s.</string>
+    <string name="why_learned_model_neighbour">“%1$s” (%2$s)</string>
+    <string name="why_learned_model_regression">Duration: ~%1$s (between %2$s and %3$s), estimated by the model from your %4$d finished tasks (%5$s).</string>
+    <string name="model_basis_type_points">type “%1$s”, %2$d points</string>
+    <string name="model_basis_type">type “%1$s”</string>
+    <string name="model_basis_points">%1$d points</string>
+    <string name="why_learned_model_not_better">Duration: the model does not do better than the default duration on your last tasks yet (not applied).</string>
+    <string name="why_learned_model_few_tasks">Duration: not enough finished tasks for the model yet (%1$d of %2$d needed).</string>
+    <string name="why_learned_model_few_neighbours">Duration: not enough similar tasks for the model (%1$d, %2$d needed).</string>
+    <string name="learned_model_use">Use %1$s (between %2$s and %3$s)</string>
+    <string name="learned_model_neighbours">Similar tasks (%1$d)</string>
+    <string name="learned_model_neighbour">%1$s: %2$s, %3$d% similar</string>
+    <string name="estimate_filled_learned">Estimated at %1$s (your last %2$d times)</string>
+    <string name="estimate_filled_model">Estimated at %1$s by the model (%2$d similar tasks)</string>
+    <string name="estimate_filled_model_regression">Estimated at %1$s by the model (your %2$d finished tasks)</string>
+    <!-- Carte « Estimer par modèle » (docs/spec/liste-fonctionnalites.md, issue #99, 4.0.0) -->
+    <string name="card_model_title">Estimate by model</string>
+    <string name="card_model_body">A task with a new title gets a duration from your finished tasks that look like it (title, type, points), with a range and the list of those tasks. It only applies once it does better than the default duration on your own history; nothing leaves the device.</string>
 </resources>

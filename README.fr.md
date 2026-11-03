@@ -199,6 +199,12 @@ son estimation vient des seules tâches d’équipe terminées.
   s’affiche `~45 min` avec sa source dans « Pourquoi à cette place ? », et une
   estimation saisie l’emporte toujours. On peut la couper ou la régler dans les
   Réglages.
+- **Estimer par modèle** : une tâche au titre nouveau reçoit une durée d’après
+  tes tâches faites qui lui ressemblent (mots du titre, type, points), avec une
+  fourchette (« entre 30 et 60 min ») et la liste de ces tâches avec leur temps
+  réel. Elle ne s’applique qu’une fois qu’elle fait mieux que la durée par défaut
+  sur tes dernières tâches, ce que montrent les Réglages. Tout se calcule sur
+  l’appareil, à partir de ton seul historique.
 - **Jours ouvrés et fériés** : calendrier français intégré, dates
   supplémentaires dans les Réglages.
 
@@ -481,6 +487,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Suivre le temps | 3.0.0 | Toutes |
 | Suivre | Trois alertes du chrono | 3.0.0 | Toutes |
 | Suivre | Durées apprises | 3.4.0 | Toutes |
+| Suivre | Estimer par modèle | 4.0.0 | Toutes |
 | Suivre | Quand tu travailles chaque type | 3.5.0 | Toutes |
 | Suivre | Tes heures les plus efficaces | 3.9.0 | Toutes |
 | Suivre | Ta journée sur l’écran d’accueil | 3.12.0 | Android |
@@ -551,7 +558,7 @@ touché ; rien n’est enregistré avant « Enregistrer »).
 | Planification | Types de tâches | Liste des types | |
 | | Noms des niveaux | Un nom par priorité et par palier de points (16 caractères au plus) | noms par défaut |
 | | Meilleures heures | Préférer mes heures habituelles, force, mesurer par (fréquence, efficacité, les deux), heure préférée par type | désactivé, moyenne, fréquence |
-| | Durées apprises | Activé, occurrences considérées, occurrences nécessaires | activé, 5, 3 |
+| | Durées apprises | Activé, occurrences considérées, occurrences nécessaires, estimer par modèle | activé, 5, 3, activé |
 | | Garde-fous | Seuils « traîne » (en retard, sans date), surcharge P0 | 7 j, 14 j, 5 |
 | | Score de priorité (WSJF), avancé | Base de valeur, horizon et poids de l’urgence, points par défaut | 4, 14 j, 8, 3 |
 | | Creux de l’après-midi, avancé | Activé, début, creux, fin, force | activé, 13 h – 15 h – 16 h, 1 |
