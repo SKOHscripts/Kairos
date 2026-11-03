@@ -488,27 +488,36 @@ propre dispersion, apprise de tâches qui lui ressemblent. On la substitue au fa
 - **Changements** (`EstimateChanges.diff(avant, après)`) : les tâches présentes dans les deux relevés dont la durée
   appliquée a changé nettement, triées par `taskId`. Le relevé est `DurationEstimator.appliedMinutes(estimates(…))` de
   l'instantané **perso** (les tâches à faire sans estimation saisie).
-- **Propositions** (`EstimateChanges.proposals(instantané, maintenant, fuseau)`) : les tâches à faire **avec** une durée
-  saisie dont la durée apprise **fiable du modèle** (chaîne interrogée sur la tâche sans sa durée saisie) s'en écarte
+- **Propositions** (`EstimateChanges.proposals(instantané, maintenant, fuseau)`) : les tâches **perso** à faire **avec** une
+  durée saisie (jamais une tâche d'équipe : sa durée est celle du manager, et une donnée d'équipe n'a pas à paraître dans
+  l'espace Perso ; la carte des Réglages et la revue lisent l'instantané perso) dont la durée apprise **fiable du modèle** (chaîne interrogée sur la tâche sans sa durée saisie) s'en écarte
   nettement ; la série et le titre ne proposent rien (leur médiane ne s'applique déjà qu'aux tâches sans durée, on ne les
   oppose pas à une durée saisie). Triées par écart décroissant, puis `taskId`.
 - **Veille** (`EstimateWatcher`, `ui/app/`, dans la coquille comme `ReminderWatcher`) : au premier relevé de la session, il
   prend la **référence** sans rien dire (ce qui a changé application fermée n'est pas annoncé : pas de calcul en
-  arrière-plan, choix du propriétaire) ; à chaque changement de l'instantané perso, il compare le relevé à la référence ; des
-  changements nets → le bandeau et, si le système ne s'en charge pas (`ChronoNotifier.systemHandlesAlerts` faux), une
+  arrière-plan, choix du propriétaire) ; à chaque changement de l'instantané perso, il compare le relevé à la référence,
+  **seulement si l'historique a bougé** (`EstimateChanges.historyKey`, l'empreinte des tâches faites et de leur temps) :
+  retoucher une tâche à faire ou un réglage change aussi des durées, mais ce n'est pas « le modèle a appris », et la
+  référence suit sans rien dire ; des changements nets → le bandeau et, si le système ne s'en charge pas (`ChronoNotifier.systemHandlesAlerts` faux), une
   notification « n estimations ont changé » (`tag` `estimates`) ; **au plus une par jour et par session** (garde en
-  mémoire : la référence repart du relevé du lancement, rien n'est stocké) ; puis la référence devient le relevé.
+  mémoire : la référence repart du relevé du lancement, rien n'est stocké) ; puis la référence devient le relevé. Un
+  second changement le même jour n'est donc **pas** annoncé (la référence avance quand même) : voulu, une annonce par jour
+  suffit. Le bandeau ne compte que les tâches encore à faire (`EstimateChanges.stillOpen`) et disparaît s'il n'en reste
+  aucune.
   Réglage `learning.notifyChanges` (`Boolean?`, nul = actif, seul `false` s'écrit), dans la carte « Durées apprises »,
-  affiché seulement si le modèle l'est (`SHOWN_WITH` suivi de proche en proche : durées apprises → modèle → prévenir) ;
-  coupé, ni bandeau ni notification (`EstimateChanges.applied` rend un relevé vide).
+  affiché avec les durées apprises (`SHOWN_WITH`, suivi de proche en proche) et **non** sous le modèle : la veille annonce
+  aussi les durées des séries et des titres, il doit rester coupable modèle coupé ; coupé, ni bandeau ni notification
+  (`EstimateChanges.applied` rend un relevé vide).
 - **Bandeau** (`EstimateChangesBanner`, neutre comme celui des mises à jour, sous lui) : « 3 estimations ont changé »,
   « Voir » ouvre la revue, « Plus tard » le ferme.
 - **Revue** (`EstimateReviewDialog`) : « Ce qui a changé » (titre, avant → après) et « Estimations saisies à revoir »
   (titre, saisie → modèle avec son intervalle, « Passer à 45 min » par ligne, « Tout appliquer ») ; chaque application
-  écrit par `KairosRepository.setEstimate` et propose « Annuler » (`LocalUndoMessages`), qui remet l'ancienne valeur. Les
-  écritures et l'annulation passent par la **portée de coroutines de l'hôte** (coquille, carte des Réglages), jamais celle
-  du dialogue : « Annuler » vit dans la snackbar de la coquille, sert après la fermeture du dialogue (un clic hors d'un
-  dialogue modal le ferme), et une portée du dialogue l'aurait perdue (bug trouvé par `EstimateReviewUiTest`).
+  écrit par `KairosRepository.setEstimate` et propose « Annuler » (`LocalUndoMessages`), qui remet la durée saisie, **sauf**
+  sur une tâche retouchée depuis (sa durée n'est plus celle du modèle : l'annulation ne l'écrase pas). Les écritures et
+  l'annulation passent par la **portée de la coquille** (`LocalShellScope`, `ui/app/Messages.kt`), jamais celle du dialogue
+  ni de l'écran : « Annuler » vit dans la snackbar de la coquille et peut servir après la fermeture du dialogue (un clic
+  hors d'un dialogue modal le ferme) ou de l'écran des Réglages ; ces portées l'auraient perdue (bug trouvé par
+  `EstimateReviewUiTest`, puis par la seconde relecture pour les Réglages).
   Ouverte aussi depuis la carte « Durées apprises » (« Revoir les estimations saisies (n) », affiché s'il y en a).
 - **Fiche** : une durée saisie dont le modèle s'écarte nettement montre « Le modèle estime 45 min (entre 30 et 60) » et
   la puce « Passer à 45 min », qui remplit le champ **sur action** (rien n'est changé sans accord).
@@ -571,8 +580,8 @@ La provenance est visible partout où la durée l'est, avec les mêmes règles q
 
 ### Décisions et pièges tracés
 
-**Passe de robustesse du 2026-11-03** (deux relectures indépendantes, en lecture seule, du moteur et de l'interface ; test
-`RobustnessTest`, `EstimateReviewUiTest`) :
+**Passe de robustesse du 2026-11-03** (trois relectures indépendantes, en lecture seule : le moteur, l'interface, puis
+l'étape 6 et les corrections ; tests `RobustnessTest`, `EstimateChangesTest`, `EstimateReviewUiTest`) :
 
 - **Plafond de `MIN_NEIGHBOURS`** à `NEIGHBOURS_MAX` (§ Paramètres) : sinon un `minSamples` élevé éteignait le modèle.
 - **Types de la régression par fréquence** : par ordre alphabétique, un type lourd en fin d'alphabet perdait sa variable

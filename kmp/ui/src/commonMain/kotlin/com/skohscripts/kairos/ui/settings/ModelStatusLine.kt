@@ -1,6 +1,5 @@
 package com.skohscripts.kairos.ui.settings
 
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.datetime.TimeZone
@@ -45,11 +44,12 @@ internal fun ModelStatusLine(services: AppServices) {
     }
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     // Estimations saisies que le modèle conteste (besoin 13) : la revue, depuis la carte.
-    val proposals = remember(snapshot) { EstimateChanges.proposals(snapshot, services.clock.now(), TimeZone.currentSystemDefault()) }
+    // L'espace Perso seulement, comme le dialogue : une tâche d'équipe n'y paraît jamais.
+    val personal by services.repository.personalSnapshot.collectAsState()
+    val proposals = remember(personal) { EstimateChanges.proposals(personal, services.clock.now(), TimeZone.currentSystemDefault()) }
     var review by remember { mutableStateOf(false) }
     if (proposals.isNotEmpty()) {
         KairosOutlinedButton(onClick = { review = true }) { Text(stringResource(Res.string.settings_review_button, proposals.size)) }
     }
-    val scope = rememberCoroutineScope()
-    if (review) EstimateReviewDialog(services, emptyList(), scope) { review = false }
+    if (review) EstimateReviewDialog(services, emptyList()) { review = false }
 }

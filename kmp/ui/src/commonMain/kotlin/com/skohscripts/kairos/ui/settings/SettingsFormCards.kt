@@ -349,7 +349,7 @@ internal fun SettingsFormCards(
             GuideSpot(GuideSection.SETTINGS_BEST_HOURS) { BestHoursCard(values, errors, onChange) }
             GuideSpot(GuideSection.SETTINGS_LEARNED) {
                 SectionCard(LEARNING, values, errors, onChange) {
-                    if (values["learning.enabled"] == "true" && values["learning.model"] == "true") learningStatus()
+                    if (values["learning.enabled"] == "true") learningStatus()
                 }
             }
             SectionCard(GUARDS, values, errors, onChange)
@@ -389,7 +389,8 @@ private fun SectionCard(
 private val SHOWN_WITH = mapOf(
     "reminders.dailySummaryTime" to "reminders.dailySummary",
     "learning.model" to "learning.enabled",
-    "learning.notifyChanges" to "learning.model",
+    // La veille annonce aussi les durées des séries et des titres : elle dépend des durées apprises, pas du modèle.
+    "learning.notifyChanges" to "learning.enabled",
 )
 
 /** Visible si chaque interrupteur dont il dépend, de proche en proche, est actif. */

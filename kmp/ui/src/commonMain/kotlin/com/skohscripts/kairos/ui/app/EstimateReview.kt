@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -42,7 +43,6 @@ import com.skohscripts.kairos.ui.generated.resources.review_typed_row
 import com.skohscripts.kairos.ui.generated.resources.update_later
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.theme.KairosTextButton
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -55,6 +55,7 @@ import org.jetbrains.compose.resources.stringResource
 /** Ce que la veille retient d'une session à l'autre du même écran : la référence et le jour de la dernière annonce. */
 private class WatchState {
     var baseline: Map<Long, Int>? = null
+    var history: Long? = null
     var announcedOn: LocalDate? = null
 }
 
@@ -71,10 +72,15 @@ fun EstimateWatcher(services: AppServices, onChanges: (List<EstimateChanges.Chan
     LaunchedEffect(snapshot) {
         val timeZone = TimeZone.currentSystemDefault()
         val now = services.clock.now()
-        val after = withContext(Dispatchers.Default) { EstimateChanges.applied(snapshot, now, timeZone) }
+        val (after, history) = withContext(Dispatchers.Default) {
+            EstimateChanges.applied(snapshot, now, timeZone) to EstimateChanges.historyKey(snapshot, now)
+        }
         val before = state.baseline
+        val learned = state.history != null && state.history != history
         state.baseline = after
-        if (before == null) return@LaunchedEffect
+        state.history = history
+        // Rien n'est annoncé si l'historique n'a pas bougé : une tâche modifiée ou un réglage changé n'est pas « appris ».
+        if (before == null || !learned) return@LaunchedEffect
         val changes = EstimateChanges.diff(before, after)
         if (changes.isEmpty()) return@LaunchedEffect
         val today = now.toLocalDateTime(timeZone).date
@@ -110,9 +116,10 @@ fun EstimateChangesBanner(count: Int, onView: () -> Unit, onDismiss: () -> Unit,
  * ligne avec « Passer à … », plus « Tout appliquer » ; chaque application propose « Annuler », qui remet la durée saisie.
  */
 @Composable
-fun EstimateReviewDialog(services: AppServices, changes: List<EstimateChanges.Change>, scope: CoroutineScope, onDismiss: () -> Unit) {
-    // [scope] est celui de l'hôte : « Annuler » vit dans la snackbar de la coquille et peut servir après la fermeture du
-    // dialogue (cliquer dessus le ferme) ; une portée du dialogue serait annulée avec lui, et l'annulation perdue.
+fun EstimateReviewDialog(services: AppServices, changes: List<EstimateChanges.Change>, onDismiss: () -> Unit) {
+    // Les écritures et « Annuler » passent par la portée de la coquille : la snackbar peut jouer l'annulation après la
+    // fermeture du dialogue (cliquer dessus le ferme) ou de l'écran qui l'a ouvert ; leurs portées l'auraient perdue.
+    val scope = LocalShellScope.current ?: rememberCoroutineScope()
     val snapshot by services.repository.personalSnapshot.collectAsState()
     val undo = LocalUndoMessages.current
     val titles = remember(snapshot) { snapshot.tasks.associate { it.id to it.title } }
@@ -122,7 +129,7 @@ fun EstimateReviewDialog(services: AppServices, changes: List<EstimateChanges.Ch
         title = { Text(stringResource(Res.string.estimates_changed_title)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                val shown = changes.filter { it.taskId in titles }
+                val shown = EstimateChanges.stillOpen(changes, snapshot.tasks)
                 if (shown.isNotEmpty()) {
                     Text(stringResource(Res.string.review_changed_header), style = MaterialTheme.typography.titleSmall)
                     shown.forEach { c ->
@@ -146,7 +153,7 @@ fun EstimateReviewDialog(services: AppServices, changes: List<EstimateChanges.Ch
                             scope.launch {
                                 services.repository.setEstimate(p.taskId, e.minutes)
                                 undo(getString(Res.string.review_applied, durationText(e.minutes)), getString(Res.string.action_revert)) {
-                                    scope.launch { services.repository.setEstimate(p.taskId, p.typed) }
+                                    scope.launch { revert(services, listOf(p)) }
                                 }
                             }
                         }) { Text(stringResource(Res.string.review_apply, duration(e.minutes))) }
@@ -156,7 +163,7 @@ fun EstimateReviewDialog(services: AppServices, changes: List<EstimateChanges.Ch
                         scope.launch {
                             applied.forEach { services.repository.setEstimate(it.taskId, it.estimate.minutes) }
                             undo(getString(Res.string.review_applied_all, applied.size), getString(Res.string.action_revert)) {
-                                scope.launch { applied.forEach { services.repository.setEstimate(it.taskId, it.typed) } }
+                                scope.launch { revert(services, applied) }
                             }
                         }
                     }) { Text(stringResource(Res.string.review_apply_all)) }
@@ -165,4 +172,16 @@ fun EstimateReviewDialog(services: AppServices, changes: List<EstimateChanges.Ch
         },
         confirmButton = { KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_ok)) } },
     )
+}
+
+/**
+ * Remet la durée saisie des [proposals] appliquées, **sauf** celles modifiées depuis (une durée qui n'est plus celle du modèle
+ * a été retouchée par l'utilisateur : l'annulation ne l'écrase pas).
+ */
+private suspend fun revert(services: AppServices, proposals: List<EstimateChanges.Proposal>) {
+    val current = services.repository.snapshot.value.tasks.associateBy { it.id }
+    for (p in proposals) {
+        if (current[p.taskId]?.estimatedMinutes != p.estimate.minutes) continue
+        services.repository.setEstimate(p.taskId, p.typed)
+    }
 }

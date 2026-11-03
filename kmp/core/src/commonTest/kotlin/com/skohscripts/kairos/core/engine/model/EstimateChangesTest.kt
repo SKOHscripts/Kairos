@@ -67,4 +67,34 @@ class EstimateChangesTest {
         assertEquals(emptyMap(), EstimateChanges.applied(snapshot(typed = null, learning = LearningSettings(notifyChanges = false)), now, null))
         assertNull(EstimateChanges.proposalFor(snapshot(typed = 120).tasks.first(), snapshot(typed = 120), now, null), "une tâche faite n'est jamais proposée")
     }
+
+    @Test
+    fun aTeamTaskIsNeverProposedInThePersonalSpace() {
+        val base = snapshot(typed = 120)
+        val team = base.copy(tasks = base.tasks.map { if (it.id == 100L) it.copy(space = com.skohscripts.kairos.core.model.TaskSpace.TEAM) else it })
+        assertEquals(emptyList(), EstimateChanges.proposals(team, now, null))
+        assertNull(EstimateChanges.proposalFor(team.tasks.last(), team, now, null))
+    }
+
+    @Test
+    fun theHistoryKeyMovesWithFinishedTasksOnly() {
+        val base = snapshot(typed = null)
+        val key = EstimateChanges.historyKey(base, now)
+        // Une tâche à faire retouchée, un réglage changé : même historique.
+        val edited = base.copy(tasks = base.tasks.map { if (it.id == 100L) it.copy(title = "Something else", fibonacciPoints = 8) else it })
+        assertEquals(key, EstimateChanges.historyKey(edited.copy(settings = Settings(defaultTaskDurationMinutes = 60)), now))
+        // Une tâche faite de plus : l'historique a bougé.
+        val more = base.copy(tasks = base.tasks + Task(200, "Quarterly report zeta", status = TaskStatus.DONE, fibonacciPoints = 3, taskType = "Writing", manualTimeSpentMinutes = 90, createdAt = now, updatedAt = now))
+        assertTrue(key != EstimateChanges.historyKey(more, now))
+    }
+
+    @Test
+    fun onlyChangesOfTasksStillToDoAreKept() {
+        val changes = listOf(Change(1, 30, 60), Change(2, 30, 60), Change(3, 30, 60))
+        val tasks = listOf(
+            Task(1, "a", createdAt = now, updatedAt = now),
+            Task(2, "b", status = TaskStatus.DONE, createdAt = now, updatedAt = now),
+        )
+        assertEquals(listOf(Change(1, 30, 60)), EstimateChanges.stillOpen(changes, tasks))
+    }
 }

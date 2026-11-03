@@ -349,8 +349,6 @@ internal fun EditTaskDialog(
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth().coachField(EditField.MINUTES, coach),
                         )
-                        // Durée apprise : une puce qui ne remplit le champ que sur action (on ne remplit que ce qui est vide) ; peu
-                        // fiable, elle est dite mais pas proposée.
                         // Le modèle s'écarte nettement de la durée saisie : il le dit, et la puce la remplace sur action.
                         if (proposal != null && minutes == proposal.typed.toString()) {
                             val e = proposal.estimate
@@ -364,6 +362,8 @@ internal fun EditTaskDialog(
                                 Text(stringResource(Res.string.review_apply, duration(e.minutes)), modifier = Modifier.padding(start = 6.dp))
                             }
                         }
+                        // Durée apprise : une puce qui ne remplit le champ que sur action (on ne remplit que ce qui est vide) ; peu
+                        // fiable, elle est dite mais pas proposée.
                         if (learned != null && minutes.isBlank()) {
                             if (learned.source == DurationEstimator.Source.MODEL) {
                                 ModelSuggestion(learned, learning) { minutes = it.toString() }

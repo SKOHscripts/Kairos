@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.navigation
 
+import com.skohscripts.kairos.ui.app.LocalShellScope
 import com.skohscripts.kairos.ui.app.EstimateReviewDialog
 import com.skohscripts.kairos.ui.app.EstimateChangesBanner
 import com.skohscripts.kairos.ui.app.EstimateWatcher
@@ -192,6 +193,7 @@ fun AppShell(
     var estimateChanges by remember { mutableStateOf<List<EstimateChanges.Change>?>(null) }
     var estimateReview by remember { mutableStateOf(false) }
     EstimateWatcher(services) { estimateChanges = it }
+    val personal by services.repository.personalSnapshot.collectAsState()
     val scope = rememberCoroutineScope()
     // Ce que le guide a retenu (docs/spec/visite-guidee.md § Persistance, issue #94).
     val stored by services.repository.snapshot.collectAsState()
@@ -353,17 +355,19 @@ fun AppShell(
         Column(modifier.fillMaxSize()) {
             if (demo != null) DemoBanner(onExitDemo)
             CompositionLocalProvider(LocalMessages provides showMessage) { UpdateBanner(services) }
-            estimateChanges?.let { changes ->
-                EstimateChangesBanner(changes.size, onView = { estimateReview = true }, onDismiss = { estimateChanges = null })
+            // Seules les tâches encore à faire comptent : une tâche supprimée ou faite depuis l'annonce n'y est plus.
+            val pendingChanges = estimateChanges?.let { EstimateChanges.stillOpen(it, personal.tasks) }.orEmpty()
+            if (pendingChanges.isNotEmpty()) {
+                EstimateChangesBanner(pendingChanges.size, onView = { estimateReview = true }, onDismiss = { estimateChanges = null })
             }
             CompositionLocalProvider(LocalMessages provides showMessage) { ShortcutBanner(services) }
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 CompositionLocalProvider(
-                    LocalMessages provides showMessage, LocalUndoMessages provides showUndo, LocalGuideSpot provides nav.guideSpot,
+                    LocalMessages provides showMessage, LocalUndoMessages provides showUndo, LocalShellScope provides scope, LocalGuideSpot provides nav.guideSpot,
                     LocalDemoTour provides demo,
                 ) {
                     if (estimateReview) {
-                        EstimateReviewDialog(services, estimateChanges.orEmpty(), scope) { estimateReview = false; estimateChanges = null }
+                        EstimateReviewDialog(services, estimateChanges.orEmpty()) { estimateReview = false; estimateChanges = null }
                     }
                     val home: @Composable () -> Unit = {
                         HomeScreen(
