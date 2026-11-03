@@ -84,7 +84,8 @@ object SnapshotMerge {
         val tSeen = theirs.data.seen
         val conflicts = ArrayList<Conflict>()
         val kept = ArrayList<KeptAfterDeletion>()
-        val merged = sortedMapOf<RecordRef, Rec>()
+        // Rempli dans l'ordre des références (genre puis uid) : l'abaissement attribue les identifiants dans cet ordre.
+        val merged = LinkedHashMap<RecordRef, Rec>()
         for (ref in (o.keys + t.keys).sorted()) {
             val a = o[ref]
             val b = t[ref]
@@ -334,15 +335,18 @@ object SnapshotMerge {
         for ((ref, r) in after) {
             val old = before[ref]
             when {
-                old == null -> added.merge(ref.kind, 1, Int::plus)
-                old.lifted.fields != r.lifted.fields -> modified.merge(ref.kind, 1, Int::plus)
+                old == null -> added.inc(ref.kind)
+                old.lifted.fields != r.lifted.fields -> modified.inc(ref.kind)
             }
         }
-        for (ref in before.keys) if (ref !in after) removed.merge(ref.kind, 1, Int::plus)
+        for (ref in before.keys) if (ref !in after) removed.inc(ref.kind)
         return LocalChanges(added, modified, removed, settings = SyncScope.SHARED_SETTINGS.any { settingsBefore[it] != settingsAfter[it] })
     }
 
     private const val NULL = "null"
+
+    /** `Map.merge` n'existe que sur la JVM : `core` compile aussi pour le web (wasm). */
+    private fun HashMap<RecordKind, Int>.inc(kind: RecordKind) { this[kind] = (this[kind] ?: 0) + 1 }
 
     private class Built {
         val calendars = ArrayList<CalendarSource>()
