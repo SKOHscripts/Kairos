@@ -163,7 +163,7 @@ où elle est placée » et « Découvrir Kairos » (hub), ou « Fermer ».
 
 « Me montrer où elle est placée » lance trois étapes sur la vue Jour (`FirstTaskCoach.placement(placed)`), dans un panneau
 en bas d'écran : son rang (le score, « Pourquoi à cette place ? ») ; son créneau (la frise) ; la ligne (coche, chrono,
-« Décaler », crayon, badges). Une tâche absente de l'agenda du jour (« À traiter » faute de priorité ou de points, ou « Plus
+« Décaler », crayon, badges). Une tâche absente de l'agenda du jour (« À traiter » faute de priorité, de points ou de type, ou « Plus
 tard ») remplace la première étape par « Pas encore placée » qui dit pourquoi. Pendant ces étapes, `RowContext.highlight`
 cerne la ligne de la tâche (2 dp primaire) et la liste défile jusqu'à elle (`ListBuilder` retient la place de chaque ligne,
 `rowPositions`).

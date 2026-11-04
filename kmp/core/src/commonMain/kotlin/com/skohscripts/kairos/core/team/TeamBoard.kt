@@ -72,7 +72,7 @@ data class MemberLane(
 data class TeamBoard(
     val keyFigures: TeamKeyFigures,
     val lanes: List<MemberLane>,
-    /** Backlog à qualifier : il manque la priorité ou les points (`needsProcessing`), dans l'ordre des identifiants. */
+    /** Backlog à qualifier : il manque la priorité, les points ou la catégorie (`needsProcessing`), dans l'ordre des identifiants. */
     val toQualify: List<TeamCard>,
     /** Backlog prêt : trié par `Scheduling.sortKey` (en retard d'abord), urgence héritée des dépendances. */
     val ready: List<TeamCard>,
@@ -160,8 +160,8 @@ data class TeamBoard(
                     watched = open.count { it.signals.isNotEmpty() },
                 ),
                 lanes = lanes,
-                toQualify = backlog.filter { it.task.needsProcessing }.sortedBy { it.task.id },
-                ready = backlog.filter { !it.task.needsProcessing }.sortedWith(byUrgency),
+                toQualify = backlog.filter { it.task.needsProcessing(settings.typeRequired) }.sortedBy { it.task.id },
+                ready = backlog.filter { !it.task.needsProcessing(settings.typeRequired) }.sortedWith(byUrgency),
             )
         }
 

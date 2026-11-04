@@ -24,7 +24,7 @@ class TeamBoardTest {
     private val day = LocalDate(2026, 9, 30)
     private val utc = TimeZone.UTC
     private val fresh = Instant.parse("2026-09-29T08:00:00Z")
-    private val enabled = Settings(team = TeamSettings(enabled = true))
+    private val enabled = Settings(taskTypes = "", team = TeamSettings(enabled = true))
 
     private fun task(
         id: Long,
@@ -95,6 +95,15 @@ class TeamBoardTest {
         assertEquals(listOf(1L, 2L, 3L), board.toQualify.map { it.task.id })
         assertEquals(listOf(4L), board.ready.map { it.task.id })
         assertTrue(board.toQualify.all { it.state == TeamState.BACKLOG })
+    }
+
+    @Test
+    fun withCategoriesDefinedAnUncategorisedTaskStaysToQualify() {
+        // 2026-11-03 : la catégorie qualifie comme le type de « À traiter » (docs/spec/equipe-backlog-suivi.md).
+        val tasks = listOf(task(1, type = ""), task(2, type = "Dev"))
+        val board = build(snapshot(tasks, settings = enabled.copy(taskTypes = "Dev, Doc")))
+        assertEquals(listOf(1L), board.toQualify.map { it.task.id })
+        assertEquals(listOf(2L), board.ready.map { it.task.id })
     }
 
     @Test
@@ -320,6 +329,6 @@ class TeamBoardTest {
     fun aDisabledSpaceChangesNothingForTheBoard() {
         // Le tableau lit la base complète : l'activation ne filtre pas (c'est l'affaire de l'interface).
         val s = filterScenario()
-        assertEquals(ids(build(s)), ids(build(s.copy(settings = Settings()))))
+        assertEquals(ids(build(s)), ids(build(s.copy(settings = Settings(taskTypes = "")))))
     }
 }

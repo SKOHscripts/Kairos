@@ -19,7 +19,7 @@ import kotlin.time.Instant
 /** Durées apprises (docs/spec/durees-apprises.md). */
 class DurationEstimatorTest {
     private val t0 = Instant.parse("2026-09-28T07:00:00Z")
-    private val settings = Settings()
+    private val settings = Settings(taskTypes = "")
 
     private fun sample(id: Long, minutes: Int, title: String = "Courrier", series: Long? = 1, space: TaskSpace = TaskSpace.PERSONAL) =
         DurationEstimator.Sample(id, series, title, space, minutes)
@@ -131,7 +131,7 @@ class DurationEstimatorTest {
         val learned = DurationEstimator.estimates(snapshot, t0)
         assertEquals(setOf(10L), learned.keys)
         assertEquals(40, learned.getValue(10L).minutes)
-        assertEquals(emptyMap(), DurationEstimator.estimates(snapshot.copy(settings = Settings(learning = LearningSettings(enabled = false))), t0))
+        assertEquals(emptyMap(), DurationEstimator.estimates(snapshot.copy(settings = Settings(taskTypes = "", learning = LearningSettings(enabled = false))), t0))
     }
 
     @Test

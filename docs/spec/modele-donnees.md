@@ -70,10 +70,11 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   - Dates et heures « métier » **locales naïves** (`LocalDate`,
     `LocalDateTime`) ; horodatages techniques en instants UTC (`Instant`).
     Convention de Kairos.
-  - `needsProcessing` : il manque la priorité **ou** les points (règle du
-    code, `Task.needsProcessing`).
-  - `missingQualification` : `PRIORITY`, `POINTS` ou `BOTH`, pour le libellé
-    de la boîte de réception.
+  - `needsProcessing(typeRequired)` : il manque la priorité, les points **ou**, si
+    `typeRequired`, le type (règle du code, `Task.needsProcessing`, 2026-11-03 ; avant, priorité ou points seulement).
+    `typeRequired` = `Settings.typeRequired` : la liste des types n'est pas vide.
+  - `missing(typeRequired)` : ce qui manque (`Missing(priority, points, type)`), pour le libellé
+    de la boîte de réception ; `null` si rien.
   - `archived` n'est jamais produit par Kairos ; la valeur reste lisible, et
     une tâche archivée n'est ni affichée ni basculée.
 - `TimeBlock` : `id`, `title`, `start`, `end` (locales), `kind`

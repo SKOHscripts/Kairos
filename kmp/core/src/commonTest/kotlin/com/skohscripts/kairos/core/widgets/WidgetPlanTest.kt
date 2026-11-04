@@ -44,7 +44,7 @@ class WidgetPlanTest {
         assignee: Long? = null,
     ) = Task(
         id, "T$id", priority = p, fibonacciPoints = 3, estimatedMinutes = minutes, pinnedStart = pinned, status = status,
-        deadline = deadline, createdAt = t0, updatedAt = updated, space = space, assigneeId = assignee,
+        deadline = deadline, taskType = "Dev", createdAt = t0, updatedAt = updated, space = space, assigneeId = assignee,
     )
 
     private fun block(id: Long, from: Int, to: Int, kind: BlockKind = BlockKind.BUSY) =

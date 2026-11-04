@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
@@ -75,6 +78,13 @@ class DayScreenUiTest {
         AppServices(repository, files, { _, _ -> }, clock = clock)
     }
 
+    /** Choisit [option] dans le champ type (ou catégorie) encore vide : la valeur affichée est « Uncategorised ». */
+    private fun ComposeUiTest.pickType(option: String = "Développement") {
+        onNode(hasText("Uncategorised") and SemanticsMatcher.keyIsDefined(SemanticsProperties.EditableText)).performScrollTo().performClick()
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText(option).fetchSemanticsNodes().isNotEmpty() }
+        onAllNodesWithText(option).onFirst().performClick()
+    }
+
     @Test
     fun captureQualifyThenFinish() = runComposeUiTest {
         val services = services()
@@ -87,9 +97,13 @@ class DayScreenUiTest {
         onNodeWithText("Add").performClick()
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("To process (1)").fetchSemanticsNodes().isNotEmpty() }
 
-        // Un clic par valeur : elle quitte la boîte de réception et entre dans l'agenda à 9 h.
+        // Un clic par valeur : priorité et points ne suffisent pas, il manque encore le type (2026-11-03).
         onNodeWithText("P1 Important").performClick()
         onNodeWithText("3 moderate").performClick()
+        onNodeWithText("Missing: type").assertExists()
+        assertTrue(onAllNodesWithText("To process (1)").fetchSemanticsNodes().isNotEmpty())
+        // Le type posé : elle quitte la boîte de réception et entre dans l'agenda à 9 h.
+        pickType()
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("To process (0)").fetchSemanticsNodes().isNotEmpty() }
         onNodeWithText("Up next:", substring = true).assertExists()
         onAllNodesWithText("09:00", substring = true).onFirst().assertExists()
@@ -129,6 +143,7 @@ class DayScreenUiTest {
             val id = repository.createTask("Call back")!!
             repository.setPriority(id, 1)
             repository.setPoints(id, 2)
+            repository.setTaskType(id, "Development")
         }
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Snooze").fetchSemanticsNodes().isNotEmpty() }
@@ -145,6 +160,7 @@ class DayScreenUiTest {
             val id = repository.createTask("Call back")!!
             repository.setPriority(id, 1)
             repository.setPoints(id, 2)
+            repository.setTaskType(id, "Development")
         }
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithContentDescription("Move to another day…").fetchSemanticsNodes().isNotEmpty() }
@@ -168,6 +184,7 @@ class DayScreenUiTest {
             val id = repository.createTask("Call back")!!
             repository.setPriority(id, 1)
             repository.setPoints(id, 2)
+            repository.setTaskType(id, "Development")
             // Le test tourne un mardi (29 septembre 2026) : le mardi est libre.
             repository.updateSettings(repository.snapshot.value.settings.copy(schedule = com.skohscripts.kairos.core.model.ScheduleSettings(mapOf(1 to com.skohscripts.kairos.core.model.DaySchedule(free = true)))))
         }
@@ -229,7 +246,7 @@ class DayScreenUiTest {
         val (a, b) = runBlocking {
             val a = repository.createTask("Alpha")!!
             val b = repository.createTask("Beta")!!
-            listOf(a, b).forEach { repository.setPriority(it, 2); repository.setPoints(it, 3) }
+            listOf(a, b).forEach { repository.setPriority(it, 2); repository.setPoints(it, 3); repository.setTaskType(it, "Development") }
             a to b
         }
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
@@ -284,6 +301,7 @@ class DayScreenUiTest {
             val id = repository.createTask("Write the report")!!
             repository.setPriority(id, 1)
             repository.setPoints(id, 3)
+            repository.setTaskType(id, "Development")
             repository.updateSettings(repository.snapshot.value.settings.copy(pomodoroFocusMinutes = 1, timerAlertSound = true))
             AppServices(repository, object : FileService {
                 override suspend fun saveText(suggestedName: String, text: String) = false

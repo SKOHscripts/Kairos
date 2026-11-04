@@ -102,7 +102,7 @@ class InlineTypeUiTest {
         waitText("To process (1)")
         pick("Uncategorised", "Writing")
         waitUntil(timeoutMillis = 15_000) { services.task().taskType == "Writing" }
-        // Le type n'écrase pas la durée saisie et n'est pas un critère de qualification.
+        // Le type n'écrase pas la durée saisie ; sans priorité ni points, la tâche reste « À traiter ».
         assertEquals(30, services.task().estimatedMinutes)
         assertNull(services.task().priority)
         waitText("To process (1)")

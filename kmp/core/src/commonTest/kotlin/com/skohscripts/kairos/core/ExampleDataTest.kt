@@ -42,7 +42,7 @@ class ExampleDataTest {
         val dep = fr.dependencies.single()
         assertTrue(fr.tasks.single { it.id == dep.taskId }.title.endsWith("Déployer en production"))
         assertTrue(fr.tasks.single { it.id == dep.blockerId }.title.endsWith("Obtenir la validation du client"))
-        assertEquals(1, fr.tasks.count { it.needsProcessing })
+        assertEquals(1, fr.tasks.count { it.needsProcessing(fr.settings.typeRequired) })
         assertEquals(1, fr.tasks.count { it.scheduledDate == LocalDate(2026, 10, 5) })
     }
 

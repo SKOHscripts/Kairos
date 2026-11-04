@@ -201,9 +201,11 @@ Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt.
 ### Critères de succès
 
 - Une tâche capturée apparaît aussitôt dans « À traiter », jamais dans le
-  planning tant qu'il lui manque la priorité ou les points ; qualifiée d'un
-  clic chacune, elle entre dans l'agenda (`DayScreenUiTest`).
-- Un type choisi dans « À traiter » est enregistré, ne change pas la durée saisie et laisse la tâche à qualifier ;
+  planning tant qu'il lui manque la priorité, les points ou le type (liste des types non vide) : priorité et points
+  posés, la ligne dit « Manque : type » et la tâche reste ; le type choisi, elle entre dans l'agenda (`DayScreenUiTest`,
+  `DayViewTest.a_task_without_type_stays_in_the_inbox_unless_the_type_list_is_empty`, `QualificationTest`).
+- Un type choisi dans « À traiter » est enregistré, ne change pas la durée saisie et, sans priorité ni points, laisse la
+  tâche à qualifier ;
   « Non classé » le vide ; dans le backlog d'équipe, la catégorie de « À qualifier » de même ; à 360 dp, le champ tient
   dans la largeur avec une cible d'au moins 48 dp (`InlineTypeUiTest`, 3.14.0, issue #166).
 - La facette « Incomplètes » garde les tâches à qui manque l'un des champs cochés, « ou » entre eux, et réduit les listes
@@ -434,9 +436,13 @@ chaque entrée une case (rôle et état lus par le lecteur d'écran), le champ a
   une durée qu'un autre contredirait aussitôt). Le type avant les points : il dit la nature du travail, les points sa
   taille relative. Le message avec « Annuler » rend la durée visible et réversible. Écartés : remplacer la durée comme les
   points dans la fiche (contraire à #166) ; poser la durée au premier geste (elle changerait à chaque pastille).
-- **Le type n'est pas un critère de qualification** (issue #166) : « À traiter » reste défini par la priorité et les
-  points (`needsProcessing`, `modele-donnees.md`) ; un type manquant ne retient pas la tâche dans la section, qui
-  resterait sinon pleine des tâches qu'on ne type jamais.
+- **Le type est un critère de qualification** (décision **rouverte** le 2026-11-03 à la demande de l'utilisateur ; elle
+  disait l'inverse depuis #166) : depuis que le type se choisit dans « À traiter », renseigner les points d'abord faisait
+  sortir la tâche sans type. Une tâche reste donc dans « À traiter » tant qu'il manque la priorité, les points **ou le
+  type** (`Task.needsProcessing(typeRequired)`, `modele-donnees.md`). Les tâches existantes sans type y reviennent après la
+  mise à jour (règle unique ; la facette « Sans type » aide à les typer). **Garde** : si la liste des types des Réglages est
+  vide, le type n'est pas exigé (`Settings.typeRequired`), sans quoi aucune tâche ne pourrait sortir. Le libellé dit ce qui
+  manque : « Manque : priorité, points, type » (`missing_label` et un nom par élément, dans l'ordre des contrôles).
 - **Guide replié par défaut**, dans le dialogue comme dans « À traiter » :
   il est long, et la phrase d'aide courte reste visible.
 - **Jour et heures saisis à part** pour un créneau : un champ

@@ -53,12 +53,14 @@
     <string name="capture_add">Aggiungi</string>
 
     <string name="inbox_title">Da elaborare</string>
-    <string name="inbox_help">Dai a ogni attività una priorità e una dimensione in punti: è ciò che permette a Kairos di ordinarla.</string>
+    <string name="inbox_help">Dai a ogni attività una priorità, una dimensione in punti e un tipo: è ciò che permette a Kairos di ordinarla.</string>
     <string name="inbox_empty">Niente da elaborare: tutto è già chiarito.</string>
     <string name="inbox_empty_filtered">Nessuna attività da elaborare corrisponde al filtro.</string>
-    <string name="missing_both">mancano priorità e punti</string>
-    <string name="missing_priority">manca la priorità</string>
-    <string name="missing_points">mancano i punti</string>
+    <string name="missing_label">Manca: %1$s</string>
+    <string name="missing_item_priority">priorità</string>
+    <string name="missing_item_points">punti</string>
+    <string name="missing_item_type">tipo</string>
+    <string name="missing_item_category">categoria</string>
 
     <string name="todo_empty">Niente da fare per ora.</string>
     <string name="done_title">Fatto</string>
@@ -457,7 +459,7 @@
     <string name="points_13_example">da suddividere in sottoattività</string>
     <string name="points_21_example">da suddividere in sottoattività</string>
     <string name="inbox_help_title">Come qualificare?</string>
-    <string name="inbox_help_why">L’acquisizione imposta solo un titolo, di proposito. Un’attività entra nell’agenda ordinata solo una volta chiarita: priorità e punti impostati, proprio qui, con un clic ciascuno.</string>
+    <string name="inbox_help_why">L’acquisizione imposta solo un titolo, di proposito. Un’attività entra nell’agenda ordinata solo una volta chiarita: priorità, punti e tipo impostati, proprio qui, con un clic ciascuno.</string>
     <string name="inbox_help_priority">Priorità: l’importanza dell’attività. La scadenza conta già a parte.</string>
     <string name="settings_intro">Tutte le impostazioni di Kairos, salvate su questo dispositivo. Un campo non valido è segnalato sotto il campo; non viene salvato nulla finché ne resta uno.</string>
     <string name="settings_section_day">Giornata lavorativa</string>
@@ -649,7 +651,7 @@
     <string name="forecast_histogram_week">settimana del %1$s: %2$s</string>
     <string name="forecast_histogram_lt1">&lt;1</string>
     <string name="forecast_nothing">Niente da prevedere: nessuna attività in questo ambito.</string>
-    <string name="forecast_nothing_qualify">%1$d attività del backlog sono ancora da qualificare (né priorità né punti) e non vengono contate.</string>
+    <string name="forecast_nothing_qualify">%1$d attività del backlog sono ancora da qualificare (mancano priorità, punti o categoria) e non vengono contate.</string>
     <string name="forecast_honesty_draws">%1$s estrazioni</string>
     <string name="forecast_honesty_seed">seme %1$s</string>
     <string name="forecast_source_history">Storico: %1$d attività completate in %2$d settimane</string>
@@ -878,7 +880,7 @@
     <string name="keep_in_progress_yes">Sì</string>
     <string name="keep_in_progress_no">No</string>
     <string name="backlog_to_qualify_title">Da qualificare</string>
-    <string name="backlog_to_qualify_hint">Mancano la priorità o i punti: li scelga per rendere pronta l’attività.</string>
+    <string name="backlog_to_qualify_hint">Mancano la priorità, i punti o la categoria: li scelga per rendere pronta l’attività.</string>
     <string name="backlog_to_qualify_empty">Niente da qualificare.</string>
     <string name="backlog_ready_title">Pronte</string>
     <string name="backlog_ready_hint">Pronte da distribuire, ordinate per punteggio: prima quelle in ritardo.</string>
@@ -1041,7 +1043,7 @@
     <string name="suggest_manual">%1$s: scelto manualmente</string>
     <string name="suggest_over_wip">limite di attività in corso raggiunto per %1$s</string>
     <string name="suggest_excluded_title">Escluse dal suggerimento</string>
-    <string name="suggest_excluded_qualify">Da qualificare (%1$d): mancano la priorità o i punti.</string>
+    <string name="suggest_excluded_qualify">Da qualificare (%1$d): mancano la priorità, i punti o la categoria.</string>
     <string name="suggest_excluded_unplaceable">Impossibili da collocare (%1$d): nessun membro disponibile sull’orizzonte.</string>
     <string name="suggest_excluded_archived_one">1 membro archiviato ignorato.</string>
     <string name="suggest_excluded_archived_many">%1$d membri archiviati ignorati.</string>
@@ -1187,7 +1189,7 @@
     <string name="help_open_team_tour">Tour dello spazio Team</string>
     <string name="help_open_team_tour_hint">Membri, backlog, monitoraggio, previsioni e scambi</string>
     <string name="help_notes">Annota qui un’idea, una cosa da fare, un messaggio, senza pensarci. Più tardi trasforma una nota in attività: arriva nella vista Giorno, da elaborare.</string>
-    <string name="help_day">«Prossima» ti dice cosa fare. Le attività da elaborare aspettano priorità, punti e scadenza; il punteggio (valore diviso per impegno) stabilisce l’ordine. Avvia il timer per misurare il tempo reale.</string>
+    <string name="help_day">«Prossima» ti dice cosa fare. Le attività da elaborare aspettano priorità, punti e tipo; il punteggio (valore diviso per impegno) stabilisce l’ordine. Avvia il timer per misurare il tempo reale.</string>
     <string name="help_week">I sette giorni della settimana: scadenze, attività fatte, fasce orarie e tempo reale. «Mese» mostra l’intero mese: attività previste, scadenze, giorni troppo carichi, festivi e giorni liberi. Tocca un giorno per aprirlo nella vista Giorno.</string>
     <string name="help_stats">Ciò che fai davvero: produttività, tempo impiegato per tipo di attività e calibrazione delle tue stime (i tuoi punti a confronto con il tempo reale).</string>
     <string name="help_settings">Le impostazioni sono raggruppate per categoria: generale, giornata e orari, pianificazione, timer e statistiche, team, dati. Una modifica viene mantenuta da una categoria all’altra finché non premi «Salva», in basso.</string>
@@ -1228,7 +1230,7 @@
     <string name="guide_you_capture_title">Catturare senza pensarci</string>
     <string name="guide_you_capture_body">In Note, scrivi tutto ciò che ti passa per la testa, senza ordinare. Una nota diventa un’attività quando vuoi.</string>
     <string name="guide_you_qualify_title">Qualificare con un clic</string>
-    <string name="guide_you_qualify_body">Un’attività da elaborare aspetta priorità, punti di impegno e scadenza; anche il tipo si sceglie lì. «Come qualificare?» ti aiuta a scegliere; Kairos ne ricava un punteggio.</string>
+    <string name="guide_you_qualify_body">Un’attività da elaborare aspetta priorità, punti di impegno e tipo, scelti lì. «Come qualificare?» ti aiuta a scegliere; Kairos ne ricava un punteggio.</string>
     <string name="guide_you_do_title">Fare in ordine</string>
     <string name="guide_you_do_body">«Prossima» mostra l’attività da fare, le successive sono ordinate per punteggio attorno alle tue riunioni. «Perché in questa posizione?» spiega ogni posizione.</string>
     <string name="guide_you_time_title">Tracciare il tempo</string>
@@ -1424,7 +1426,7 @@
     <string name="coach_deadline_title">Date: scadenza e giorno previsto</string>
     <string name="coach_deadline_body">La scadenza fa salire il punteggio man mano che si avvicina. «Programmata per», nelle opzioni avanzate, tiene l’attività per il giorno in cui puoi iniziarla.</string>
     <string name="coach_type_title">Tipo: a cosa serve</string>
-    <string name="coach_type_body">Il tipo raggruppa le tue statistiche e può suggerire una durata. Si sceglie anche direttamente in «Da elaborare». I tipi si gestiscono nelle Impostazioni.</string>
+    <string name="coach_type_body">Il tipo raggruppa le tue statistiche e può suggerire una durata. Con la priorità e i punti, fa uscire l’attività da «Da elaborare» (si sceglie anche lì). I tipi si gestiscono nelle Impostazioni.</string>
     <string name="coach_more_title">Per approfondire</string>
     <string name="coach_more_body">Progetto, ora fissa, ricorrenza, sottoattività e bloccanti sono qui. Potrai tornarci più tardi dalla scheda dell’attività.</string>
     <string name="coach_save_title">Salva l’attività</string>
@@ -1432,7 +1434,7 @@
     <string name="coach_placed_rank_title">Il suo posto nella giornata</string>
     <string name="coach_placed_rank_body">Il punteggio classifica le tue attività: il valore diviso per lo sforzo. Tocca il punteggio per leggere «Perché in questa posizione?».</string>
     <string name="coach_placed_inbox_title">Non ancora collocata</string>
-    <string name="coach_placed_inbox_body">Questa attività non è nell’agenda di oggi: aspetta in «Da elaborare» finché non ha una priorità e dei punti, o in «Più tardi» se il suo giorno non è oggi.</string>
+    <string name="coach_placed_inbox_body">Questa attività non è nell’agenda di oggi: aspetta in «Da elaborare» finché non ha una priorità, dei punti e un tipo, o in «Più tardi» se il suo giorno non è oggi.</string>
     <string name="coach_placed_slot_title">La sua fascia oraria</string>
     <string name="coach_placed_slot_body">Kairos dispone l’attività in uno spazio libero della giornata, con la sua durata. La linea del tempo mostra dove, tra le tue fasce orarie e le attività fissate.</string>
     <string name="coach_placed_row_title">La riga dell’attività</string>
@@ -1730,7 +1732,7 @@
     <string name="demo_priority_title">Qualificare: la priorità</string>
     <string name="demo_priority_body">Scegli una priorità sulla sua riga: quanto è importante. La scadenza conta a parte.</string>
     <string name="demo_points_title">Qualificare: i punti</string>
-    <string name="demo_points_body">Scegli i punti: la sua dimensione. Riceve un punteggio e prende il suo posto nella giornata.</string>
+    <string name="demo_points_body">Scegli i punti: la sua dimensione. Ancora una scelta e prende il suo posto nella giornata.</string>
     <string name="demo_timer_start_title">Avviare il timer</string>
     <string name="demo_timer_start_body">Avvia il timer sulla sua riga: «In questo momento» mostra su cosa stai lavorando.</string>
     <string name="demo_timer_stop_title">Fermare il timer</string>
@@ -1751,7 +1753,7 @@
     <string name="filter_missing_duration">Senza durata</string>
     <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
     <string name="demo_type_title">Qualificare: il tipo</string>
-    <string name="demo_type_body">Scegli un tipo sulla sua riga: raggruppa le tue statistiche. Con priorità, punti e tipo, Kairos può stimare la durata dalle tue attività completate.</string>
+    <string name="demo_type_body">Scegli un tipo sulla sua riga: raggruppa le tue statistiche. Con priorità, punti e tipo, l’attività riceve un punteggio e prende il suo posto nella giornata; Kairos può anche stimarne la durata dalle tue attività completate.</string>
     <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
     <string name="estimate_filled_type">Stimata in %1$s (mediana di «%2$s»)</string>
     <string name="estimate_filled_points">Stimata in %1$s (mediana delle attività da %2$d punti)</string>

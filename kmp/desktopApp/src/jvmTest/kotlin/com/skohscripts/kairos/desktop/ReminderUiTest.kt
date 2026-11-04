@@ -54,7 +54,7 @@ class ReminderUiTest {
         repository.replaceAll(
             KairosSnapshot(
                 tasks = listOf(
-                    Task(1, "Call Marc", priority = 1, fibonacciPoints = 2, estimatedMinutes = 30, pinnedStart = LocalDateTime(2026, 9, 29, 14, 0), createdAt = now, updatedAt = now),
+                    Task(1, "Call Marc", priority = 1, fibonacciPoints = 2, taskType = "Development", estimatedMinutes = 30, pinnedStart = LocalDateTime(2026, 9, 29, 14, 0), createdAt = now, updatedAt = now),
                 ),
                 settings = Settings(reminders = reminders),
             ),

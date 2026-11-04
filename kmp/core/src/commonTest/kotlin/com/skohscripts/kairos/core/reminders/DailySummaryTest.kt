@@ -31,7 +31,7 @@ class DailySummaryTest {
     private fun busy(id: Long, from: Int, to: Int, kind: BlockKind = BlockKind.BUSY) = TimeBlock(id, "B$id", at(from), at(to), kind, createdAt = t0)
 
     private fun snapshot(reminders: ReminderSettings?, tasks: List<Task> = emptyList(), blocks: List<TimeBlock> = emptyList(), deps: List<TaskDependency> = emptyList()) =
-        KairosSnapshot(tasks = tasks, timeBlocks = blocks, dependencies = deps, settings = Settings(reminders = reminders))
+        KairosSnapshot(tasks = tasks, timeBlocks = blocks, dependencies = deps, settings = Settings(taskTypes = "", reminders = reminders))
 
     @Test
     fun nothing_when_disabled_or_never_set() {

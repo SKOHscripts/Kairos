@@ -163,7 +163,7 @@ class MonteCarlo private constructor(
             val open = snapshot.tasks.filter { it.space == TaskSpace.TEAM && it.status == TaskStatus.TODO }
             val assigned = open.filter { it.assigneeId != null && it.assigneeId in activeIds }
             val backlog = open.filter { it.assigneeId == null || it.assigneeId !in activeIds }
-            val ready = backlog.filter { !it.needsProcessing }
+            val ready = backlog.filter { !it.needsProcessing(settings.typeRequired) }
             val toQualify = backlog.size - ready.size
 
             // Backlog à placer : tout (option ou périmètre « + backlog »), ou seulement la sélection de tâches.

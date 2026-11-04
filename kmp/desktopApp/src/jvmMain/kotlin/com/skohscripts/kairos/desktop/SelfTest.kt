@@ -138,7 +138,7 @@ object SelfTest {
         // Seconde base avec un chrono en marche sur la première tâche qualifiée.
         val timed = runBlocking {
             DesktopServices.open(dataDir, inMemory = true).also { s ->
-                s.repository.snapshot.value.tasks.firstOrNull { !it.needsProcessing }?.let { s.repository.startTimer(it.id) }
+                s.repository.snapshot.value.tasks.firstOrNull { !it.needsProcessing(s.repository.snapshot.value.settings.typeRequired) }?.let { s.repository.startTimer(it.id) }
             }
         }
         val chrono: @Composable () -> Unit = { KairosApp(Platform.DESKTOP, Destination.DAY) { timed } }

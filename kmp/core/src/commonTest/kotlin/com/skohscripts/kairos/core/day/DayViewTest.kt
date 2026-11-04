@@ -28,10 +28,10 @@ class DayViewTest {
     private fun task(
         id: Long, p: Int? = 1, pts: Int? = 3, status: TaskStatus = TaskStatus.TODO, deadline: LocalDate? = null,
         scheduled: LocalDate? = null, parent: Long? = null, project: String = "", minutes: Int? = 60, updated: Instant = t0,
-        title: String = "T$id",
+        title: String = "T$id", type: String = "Dev",
     ) = Task(
         id, title, priority = p, fibonacciPoints = pts, status = status, deadline = deadline, scheduledDate = scheduled,
-        parentId = parent, projectTag = project, estimatedMinutes = minutes, createdAt = t0, updatedAt = updated,
+        parentId = parent, projectTag = project, estimatedMinutes = minutes, taskType = type, createdAt = t0, updatedAt = updated,
     )
 
     private fun build(snapshot: KairosSnapshot, now: LocalDateTime? = null, filter: DayFilter = DayFilter()) =
@@ -45,6 +45,19 @@ class DayViewTest {
         // Le bloqueur terminé ne bloque plus rien : plus de badge.
         val done = build(KairosSnapshot(tasks = listOf(task(1, status = TaskStatus.DONE), task(2), task(3)), dependencies = deps))
         assertEquals(null, done.blocking[1L])
+    }
+
+    @Test
+    fun a_task_without_type_stays_in_the_inbox_unless_the_type_list_is_empty() {
+        // 2026-11-03 : priorité, points et type (docs/spec/vue-jour.md § Décisions) ; points posés d'abord, la tâche reste.
+        val tasks = listOf(task(1), task(2, type = ""), task(3, p = null, type = ""))
+        val view = build(KairosSnapshot(tasks = tasks))
+        assertEquals(listOf(2L, 3L), view.inbox.map { it.id }.sorted())
+        assertEquals(listOf(1L), view.agenda.map { it.task.id })
+        // Sans liste des types, le type n'est pas exigé : sinon aucune tâche ne sortirait.
+        val untyped = build(KairosSnapshot(tasks = tasks, settings = Settings(taskTypes = "")))
+        assertEquals(listOf(3L), untyped.inbox.map { it.id })
+        assertEquals(listOf(1L, 2L), untyped.agenda.map { it.task.id }.sorted())
     }
 
     @Test
@@ -186,7 +199,7 @@ class DayViewTest {
     fun the_incomplete_facet_keeps_tasks_missing_any_chosen_field() {
         // Issue #166 : sans type, sans points ou sans durée, comme la carte « Complétude » des statistiques.
         val typed = task(1).copy(taskType = "Admin")
-        val noType = task(2)
+        val noType = task(2, type = "")
         val noDuration = task(3, minutes = null).copy(taskType = "Admin")
         val zeroDuration = task(4, minutes = 0).copy(taskType = "Admin")
         val noPoints = task(5, pts = null).copy(taskType = "Admin")
