@@ -43,8 +43,8 @@ savoir.
   (la catégorie Général dit alors « Langue, apparence ») ; c'est le gestionnaire de paquets qui met à jour, comme un
   magasin sur Android. Le `.deb` installé à la main, l'installeur Windows, le DMG et les copies portables vérifient
   comme avant.
-- Android : **aucune vérification** jusqu'à la 3.x (aucune permission réseau ; les mises à jour passent par le magasin ou l'APK).
-  **Rouvert le 2026-10-26 par `connexions-en-ligne.md`** (4.0.0, issue #144, à implémenter) : un APK installé à la main peut vérifier, par un
+- Android : **aucune vérification** jusqu'à la 4.0 (aucune permission réseau ; les mises à jour passent par le magasin ou l'APK).
+  **Rouvert le 2026-10-26 par `connexions-en-ligne.md`** (4.1.0, issue #144, à implémenter) : un APK installé à la main peut vérifier, par un
   interrupteur **désactivé par défaut** (état propre à Android, distinct de `updateCheckEnabled`), seulement application ouverte ; la
   vérification remplace alors « Voir la dernière version » ; installé par un magasin, rien ne change.
   Pour un APK **installé à la main** (3.9.0, issue #143), Réglages → Général montre une carte « Mises à jour » :
@@ -79,7 +79,7 @@ savoir.
   (plan § 6.2) : l'installeur du système remplace l'application.
 - Notification système d'une nouvelle version : le bandeau suffit.
 - Source ou jeton configurables : Kairos est publié sur GitHub seulement.
-- Vérification automatique sur Android : il faudrait la permission `INTERNET` (issue #144, 4.0.0, rouvre « sans
+- Vérification automatique sur Android : il faudrait la permission `INTERNET` (issue #144, 4.1.0, rouvre « sans
   permission réseau »). **Décidée le 2026-10-26** : voir `connexions-en-ligne.md` § Nouvelles versions sur Android (jamais application
   fermée, jamais de notification).
 
@@ -118,8 +118,8 @@ savoir.
 - **Android : un lien, pas une vérification** (2026-10-24, issue #143, choix du propriétaire) : garder « sans
   permission réseau » (`connexions-externes.md`) ; la page de téléchargement (GitHub Pages) plutôt que la page des
   releases : elle choisit le bon fichier et dit la version. La vérification réseau, facultative et désactivée par
-  défaut (étiquette F-Droid « Tracking » sinon), est l'issue #144 (4.0.0). **Rouvert le 2026-10-26** : « sans permission réseau »
-  vaut jusqu'à la 3.x ; la 4.0.0 ajoute `INTERNET` et cette vérification, désactivée par défaut, remplaçant la page « Voir la dernière
+  défaut (étiquette F-Droid « Tracking » sinon), est l'issue #144 (4.1.0). **Rouvert le 2026-10-26** : « sans permission réseau »
+  vaut jusqu'à la 4.0 ; la 4.1.0 ajoute `INTERNET` et cette vérification, désactivée par défaut, remplaçant la page « Voir la dernière
   version » quand elle est active (`connexions-en-ligne.md`).
 - **« À la main » défini par l'installateur du système** plutôt que par une liste de magasins : un magasin inconnu
   cache la carte (sans dommage), alors qu'une liste de magasins à tenir l'aurait montrée à tort dans F-Droid.

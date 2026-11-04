@@ -111,7 +111,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   description courte (« … par machine learning local », ≤ 80) ; la description ouvre ensuite sur **« Nouveau en 4.0 : du
   machine learning sur l'appareil »** (l'estimateur par modèle, qui finit sur « Une IA ? Non, du machine learning : … »,
   `estimateur-modele.md`, fonctionnalité majeure de la 4.0, demande du propriétaire du 2026-11-03), puis présente la
-  formule du score, le placement dans la journée, le chrono et ses alertes, les statistiques, et l'absence de compte et de réseau (jusqu'à la 3.x : la 4.0.0 devra dire les connexions en ligne facultatives,
+  formule du score, le placement dans la journée, le chrono et ses alertes, les statistiques, et l'absence de compte et de réseau (jusqu'à la 4.0 : la 4.1.0 devra dire les connexions en ligne facultatives,
   désactivées par défaut, et la permission réseau, `connexions-en-ligne.md`) ; depuis la 3.10.0, le fichier lié et les
   calendriers (fichier `.ics`, ou calendriers du téléphone avec l'autorisation **facultative** de lecture du
   calendrier, `connexions-externes.md`).
@@ -195,8 +195,8 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   `v%v`) et `AllowedAPKSigningKeys` (SHA-256 du certificat de signature, inchangé,
   `3885399c…2111`). F-Droid reconstruit l'APK, le compare à celui de GitHub
   signature ôtée, et publie le nôtre s'ils sont identiques.
-- **Anti-fonctionnalités** : aucune déclarée jusqu'à la 3.x (APK sans permission réseau). **Rouvert le 2026-10-26 par
-  `connexions-en-ligne.md`** : la 4.0.0 ajoute `INTERNET` (pas d'étiquette en soi) et déclare `AntiFeatures: NonFreeNet` dans la version qui
+- **Anti-fonctionnalités** : aucune déclarée jusqu'à la 4.0 (APK sans permission réseau). **Rouvert le 2026-10-26 par
+  `connexions-en-ligne.md`** : la 4.1.0 ajoute `INTERNET` (pas d'étiquette en soi) et déclare `AntiFeatures: NonFreeNet` dans la version qui
   embarque un connecteur dédié à Microsoft 365 ou à Google Agenda (service non libre, étiquette par application et non par fonction) ; jamais
   d'anti-fonctionnalité non déclarée. À implémenter dans cette recette, avec `fdroid lint` et `rewritemeta` (§ Vérification continue).
 - Mises à jour : `UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$` (tags finals
@@ -344,9 +344,9 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   sans désinstaller, donc sans perdre ses données.
   Contrepartie : la construction doit être reproductible, ce que la CI vérifie
   à chaque release finale.
-- **Aucune anti-fonctionnalité jusqu'à la 3.x ; rouvert pour la 4.0.0** (2026-10-26, `connexions-en-ligne.md`) : ce qui était vrai parce que
+- **Aucune anti-fonctionnalité jusqu'à la 4.0 ; rouvert pour la 4.1.0** (2026-10-26, `connexions-en-ligne.md`) : ce qui était vrai parce que
   l'APK n'avait pas `INTERNET` ne l'est plus automatiquement ; la fiche, la description et la page de téléchargement cessent de dire « aucune
-  permission réseau » à la 4.0.0, et la recette déclare ce que le code embarque.
+  permission réseau » à la 4.1.0, et la recette déclare ce que le code embarque.
 - **Jamais `releases/latest/download`** : « latest » désigne la dernière
   release stable du dépôt, qui n'existe pas tant qu'aucune version stable n'est
   sortie (préversions seules). La page vise un tag v3 nommé.

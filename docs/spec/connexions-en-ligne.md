@@ -16,10 +16,11 @@ encore) : `kmp/core/.../core/connections/` (`ConnectionKind.kt`, `SyncSchedule.k
 `kmp/webApp/.../kairos-web.js` (`fetchText`) ; `fdroid/com.skohscripts.kairos.yml`, `fastlane/metadata/android/`. Tests :
 voir § Critères de succès._
 
-État : décidée le 2026-10-26, **à implémenter (4.0.0)**. Issues #139 (connexion en ligne à un calendrier), #144 (vérification
+État : décidée le 2026-10-26, **à implémenter (4.1.0)** : prévue d'abord pour la 4.0.0, reportée à la 4.1.0 par le
+propriétaire le 2026-11-04 (la 4.0.0 sort avec la synchronisation et l'estimateur par modèle, toujours sans permission réseau). Issues #139 (connexion en ligne à un calendrier), #144 (vérification
 des nouvelles versions sur Android), parent #140. Choix du propriétaire du 2026-10-26 : **un seul APK avec la permission
 `INTERNET`** (celui de F-Droid et des releases GitHub), **toutes les fonctions en ligne désactivées par défaut**, activées une
-par une dans les Réglages. Rien n'est encore écrit : le code et les autres specs décrivent la 3.x (sans `INTERNET`), voir
+par une dans les Réglages. Rien n'est encore écrit : le code et les autres specs décrivent la 4.0 (sans `INTERNET`), voir
 § Impacts sur les specs existantes.
 
 ## 1. Besoin métier (cahier des charges)
@@ -51,7 +52,7 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 #### Principes visibles
 
 - **Aucune activité réseau tant qu'aucune connexion n'est active** : à l'installation, après une mise à jour, après un import
-  de données. Une installation de la 4.0.0 qui n'ouvre pas les Réglages se comporte comme la 3.x.
+  de données. Une installation de la 4.1.0 qui n'ouvre pas les Réglages se comporte comme la 4.0.
 - **Une permission d'installation, une garantie dans l'application.** La permission réseau d'Android est accordée à
   l'installation et ne se demande pas ensuite : le consentement se donne donc dans Kairos, connexion par connexion. Qui veut
   une garantie au niveau du système peut restreindre le réseau de l'application (pare-feu, réglage de son appareil).
@@ -158,7 +159,7 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 - `core` reste pur : aucune requête, aucune horloge, aucun secret (`architecture.md`).
 - Dépendances libres seulement ; **aucune dépendance ajoutée** (§ Décisions).
 - **F-Droid** : `INTERNET`, comptes et OAuth ne sont pas interdits ; une anti-fonctionnalité **non déclarée** entraîne un refus
-  (`connexions-externes.md` § Décisions). La 4.0.0 déclare `NonFreeNet` dès qu'elle embarque un connecteur dédié à un service
+  (`connexions-externes.md` § Décisions). La 4.1.0 déclare `NonFreeNet` dès qu'elle embarque un connecteur dédié à un service
   non libre (Microsoft, Google). Voir § Solution technique, F-Droid.
 - Mode solo et espace Équipe intacts (§ Isolation).
 
@@ -166,7 +167,7 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 
 Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n'a **aucun accès réseau**, tout passe par un client simulé) :
 
-- **Rien sans geste.** Sur une base neuve, sur une base migrée de la 3.x et après un import d'export (même un export de bureau dont
+- **Rien sans geste.** Sur une base neuve, sur une base migrée de la 4.0 et après un import d'export (même un export de bureau dont
   `updateCheckEnabled` vaut vrai), le client simulé ne reçoit **aucune requête** (`NoConnectionNoRequestTest`). Seul le code de
   `ui/app/` et des modules de plateforme touche au réseau (`NetworkIsolationTest`, analyse des sources).
 - **Politique d'adresse** : `https` exigé ; `http` refusé sauf lien ICS sans identifiant confirmé ; `webcal` lu comme `https` ;
@@ -386,7 +387,7 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
   fixes de `Providers.kt` ; toute `nextLink`/`nextPageToken` qui sort de cet hôte est refusée.
 - **Retour** : Android, schéma propre à l'application (`MainActivity.onNewIntent`) ; bureau, **boucle locale** (`127.0.0.1`, port libre,
   `com.sun.net.httpserver`, module `jdk.httpserver` ajouté au runtime) ouverte **le temps de la connexion seulement** (5 minutes au
-  plus, une requête, chemin et `state` vérifiés, page de fin dans la langue de l'interface). L'instance unique de la 3.x n'ouvre aucun
+  plus, une requête, chemin et `state` vérifiés, page de fin dans la langue de l'interface). L'instance unique de la 4.0 n'ouvre aucun
   port (`distribution.md`) ; cette boucle est la seule exception, et ne vit que pendant une connexion.
 - **Autorisations minimales, lecture seule, aucun jeton d'identité** (`openid` non demandé) :
 
@@ -485,7 +486,7 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
   `KeyboardType.Password`), choix des calendriers (cases, aucune cochée), aperçu (`CalendarImportDialog` étendu, bouton « Ajouter »), erreurs.
 - Couleurs par `MaterialTheme.colorScheme` seulement ; l'erreur est une ligne de texte avec icône (`Warning`, ajoutée à `make_icons.py` si absente),
   **pas** de conteneur d'erreur : ce sont des incidents attendus, pas des échecs de l'application (`DESIGN_SYSTEM.md`). Cibles de 48 dp.
-- Carte du guide `online_connections` (chapitre Organiser, `since = "4.0.0"`, ouvre Réglages → Données) ; carte `FeatureCatalog` et
+- Carte du guide `online_connections` (chapitre Organiser, `since = "4.1.0"`, ouvre Réglages → Données) ; carte `FeatureCatalog` et
   `README_FEATURES` à l'implémentation (`FeatureCatalogTest.readmeFeaturesAreCovered`).
 - Textes dans les six langues (`values*/strings.xml`), apostrophe typographique `’`.
 
@@ -515,18 +516,19 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
     entraîne un refus ») s'applique à chaque version.
   `fdroid_check.sh` fait passer `fdroid lint` et `rewritemeta` sur la recette canonique avec l'étiquette ; la fiche Fastlane et la page
   de téléchargement cessent de dire « aucune permission réseau » (§ Impacts).
-- **Jalons** (dans la 4.0.0) : O1 socle (permission, `OnlineGate`, secrets, schéma 13) + lien ICS + nouvelles versions d'Android ; O2 CalDAV ;
-  O3 Microsoft ; O4 Google. O3 et O4 attendent l'inscription du fournisseur (ci-dessus) : si elle n'est pas prête, la 4.0.0 sort avec O1 et O2
-  (sans `NonFreeNet`) et O3/O4 suivent en 4.1.0 ; la permission, elle, ne reviendra jamais en arrière dans une version mineure.
-- **Version** : prévue `4.0.0` (`kairos.versionCode` 40000, formule de `distribution.md`) : elle change une décision fondatrice. Note de version
-  Fastlane `40000.txt` dans les six langues, qui **dit** l'ajout de la permission réseau et que tout est désactivé par défaut. README anglais et
+- **Jalons** (dans la 4.1.0) : O1 socle (permission, `OnlineGate`, secrets, schéma 13) + lien ICS + nouvelles versions d'Android ; O2 CalDAV ;
+  O3 Microsoft ; O4 Google. O3 et O4 attendent l'inscription du fournisseur (ci-dessus) : si elle n'est pas prête, la 4.1.0 sort avec O1 et O2
+  (sans `NonFreeNet`) et O3/O4 suivent en 4.2.0 ; la permission, elle, ne reviendra jamais en arrière dans une version mineure.
+- **Version** : prévue `4.1.0` (`kairos.versionCode` 40100, formule de `distribution.md`) : elle change une décision fondatrice, mais arrive dans une version mineure : la 4.0.0 a déjà ouvert la série majeure
+  (choix du 2026-11-04 ; la règle « jamais en arrière dans une version mineure » vaut à partir de la 4.1.0). Note de version
+  Fastlane `40100.txt` dans les six langues, qui **dit** l'ajout de la permission réseau et que tout est désactivé par défaut. README anglais et
   français (feature) à l'implémentation.
 
 ### Décisions et pièges tracés
 
 - **Rouvrir « sans permission réseau »** (propriétaire, 2026-10-26, #139, #144) : remplace la décision du 2026-10-24 de
   `connexions-externes.md` ; contreparties acceptées : la fiche F-Droid et les textes de publication ne disent plus « aucune permission
-  réseau », `NonFreeNet` apparaît avec les connecteurs Microsoft et Google, la 4.0.0 est une version majeure. Le calendrier du téléphone (3.10.0)
+  réseau », `NonFreeNet` apparaît avec les connecteurs Microsoft et Google, la permission arrive avec la 4.1.0 (prévue pour la 4.0.0, report du 2026-11-04). Le calendrier du téléphone (3.10.0)
   et le fichier `.ics` restent, hors ligne, la voie de qui ne veut pas du réseau.
 - **Un seul APK avec `INTERNET`**, plutôt que deux APK (un « sans réseau », un « en ligne »). Écarté : deux identifiants d'application ou deux
   signatures, donc des données non partagées, une fiche F-Droid double, une reproductibilité à prouver deux fois, et des utilisateurs qui ne savent
@@ -585,17 +587,17 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 
-Déjà reportés **le 2026-10-26** (une phrase « rouvert le 2026-10-26 par `connexions-en-ligne.md` » qui précise « jusqu'à la 3.x ») :
+Déjà reportés **le 2026-10-26** (une phrase « rouvert le 2026-10-26 par `connexions-en-ligne.md` » qui précise « jusqu'à la 4.0 ») :
 `connexions-externes.md` (§ Contraintes, § Paliers, § Hors périmètre, § Décisions), `distribution.md` (§ Comportement attendu et
 § Android, manifeste), `publication.md` (description des fiches, recette et anti-fonctionnalités, § Décisions), `architecture.md`
 (dépendances et invariants), `mises-a-jour.md` (§ Comportement attendu, § Hors périmètre, § Décisions), `fdroid/README.md` (permissions et
-anti-fonctionnalités). Ces phrases décrivent la décision ; le code reste celui de la 3.x jusqu'à l'implémentation, et **chaque phrase est
+anti-fonctionnalités). Ces phrases décrivent la décision ; le code reste celui de la 4.0 jusqu'à l'implémentation, et **chaque phrase est
 à passer au présent (jalon livré) quand le code existe**.
 
 Restent à reporter **à l'implémentation**, hors du périmètre de la rédaction de cette spec :
 
 - `README.md` et `README.fr.md` (feature : connexions en ligne, nouvelles versions d'Android ; les affirmations « sans réseau »), `docs/ROADMAP.md`
-  (ligne 4.0.0 : #139 et #144 spécifiées), `docs/spec/README.md` (index : ajouter `connexions-en-ligne.md`, ajuster la ligne de
+  (ligne 4.1.0 : #139 et #144 spécifiées), `docs/spec/README.md` (index : ajouter `connexions-en-ligne.md`, ajuster la ligne de
   `connexions-externes.md`) ;
 - `soutien.md` (« Aucune permission réseau ajoutée à l'APK », « l'APK reste sans permission réseau » : vrai de la fonction de don, pas de
   l'APK), `equipe.md` (décision 1 « sans permission réseau » et hors périmètre : l'espace Équipe reste sans réseau ni échange automatique ; la
@@ -608,6 +610,6 @@ Restent à reporter **à l'implémentation**, hors du périmètre de la rédacti
   `accessibilite.md` (cibles et libellés de la carte), `visite-guidee.md` (carte du guide) ;
 - `docs/plan-v3-kotlin.md` : **historique**, conservé tel quel (il dit « pas de `INTERNET` » au jalon M0) ; une phrase renvoie à cette spec ;
 - `fdroid/com.skohscripts.kairos.yml` (`AntiFeatures: NonFreeNet`, dans la version qui embarque Microsoft ou Google), `fastlane/metadata/android/*/full_description.txt`
-  (retirer « aucune permission réseau », dire les connexions facultatives et désactivées par défaut), `changelogs/40000.txt` (six langues),
+  (retirer « aucune permission réseau », dire les connexions facultatives et désactivées par défaut), `changelogs/40100.txt` (six langues),
   `site/` (accroche « sans compte, sans réseau »), `AndroidManifest.xml` (commentaire de tête et permission), `kmp/gradle.properties`
   (version), `kmp/desktopApp/build.gradle.kts` (`jdk.httpserver`).

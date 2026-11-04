@@ -90,7 +90,7 @@ bureau Windows/Linux/macOS (JVM), web (Kotlin/Wasm).
   vit dans `ui` ; `androidApp`, `desktopApp` et `webApp` ne fournissent que la
   plateforme. Dépendances **libres** uniquement (Maven Central, Google),
   versions figées dans `kmp/gradle/libs.versions.toml` : l'APK doit rester
-  acceptable par F-Droid, **sans permission réseau** (jusqu'à la 3.x : la 4.0.0 ajoute
+  acceptable par F-Droid, **sans permission réseau** (jusqu'à la 4.0 : la 4.1.0 ajoute
   `INTERNET` avec des connexions en ligne facultatives, désactivées par défaut,
   `docs/spec/connexions-en-ligne.md`, décision du 2026-10-26), et reproductible
   (`docs/spec/publication.md`).

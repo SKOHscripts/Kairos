@@ -13,7 +13,7 @@ Fichiers couverts (prévus, 4.0.0) : `kmp/core/.../engine/DurationEstimator.kt` 
 `IntervalCoverageTest`, `ModelPerformanceTest`, `EffortSpreadTest`, `LearnedModelTeamLoadTest`, `DurationEstimatorTest`,
 `TeamIsolationTest`, `LearnedDurationsUiTest`, `StringsParityTest`._
 
-État : **issue #99**, spécifiée le 2026-10-26, **en cours d'implémentation (4.0.0)**, en PR empilées par étape (choix du
+État : **issue #99**, spécifiée le 2026-10-26, **implémentée, livrée en 4.0.0**, en PR empilées par étape (choix du
 propriétaire du 2026-11-02) : 1) interface extraite et chaîne de repli, sans changement de comportement ; 2) le modèle et ses
 rétro-tests dans `core` ; 3) l'interface, les Réglages, l'estimation au tri et la mesure web ; 4) les prévisions d'équipe ;
 5) le facteur jour et heure ; 6) la notification groupée et les propositions sur les estimations saisies (5 et 6 ajoutées

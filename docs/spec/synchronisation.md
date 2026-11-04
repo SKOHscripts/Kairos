@@ -13,7 +13,7 @@ perdre en silence ce qu'un appareil a fait. Fichiers couverts (à créer ou à m
 `SyncCodecTest`, `SyncRepositoryTest`, `SyncMigrationTest`, `SyncIsolationTest`, `LinkedFileSyncTest` (étendu),
 `SyncUiTest`, `LearnedDurationsSyncTest`._
 
-État : **décidée le 2026-10-26, en cours d'implémentation (4.0.0)** (issues #88 et #100), en PR empilées, une par étape :
+État : **décidée le 2026-10-26, implémentée, livrée en 4.0.0** (issues #88 et #100, passe de QA du 2026-11-04 comprise), en PR empilées, une par étape :
 1) cœur pur (`core/sync` : horloge, portée, enregistrements, réconciliation) ; 2) fusion et réparations ; 3) base, format 3 et
 dépôt ; 4) cycle du fichier lié ; 5) interface ; 6) durées apprises partagées (#100) ; 7) passe de robustesse.
 **Étape 1 livrée** : `Hlc.kt` (`Hlc`, `Stamp`, `Context`, `Drift`), `SyncScope.kt` (`RecordKind`, `RecordRef`, portée),
