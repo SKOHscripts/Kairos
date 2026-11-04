@@ -282,9 +282,9 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   des fiches Fastlane sous `screens/fr/` et `screens/en/` (une seule source),
   la version web stable sous `app/`.
 - Cible des liens :
-  - une release stable `v3.*` existe : `releases/download/<son tag>`, pas de
+  - une release stable de la version 3 ou plus récente (`v3.*`, `v4.*`…) existe : `releases/download/<son tag>`, pas de
     bandeau, « Utiliser Kairos en ligne » vers `app/` ;
-  - sinon, la dernière préversion `v3.*` : `releases/download/<son tag>`,
+  - sinon, la dernière préversion de ces versions : `releases/download/<son tag>`,
     bandeau « Préversion X » (installée à côté de la version stable sous le nom
     « Kairos Preview »), lien web vers `preview/`.
 - Déclenchement : push sur `main` touchant `kmp/**`, `site/**`, `fastlane/**`

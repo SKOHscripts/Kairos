@@ -367,7 +367,7 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 
 - Construit toujours depuis `main` ; `/preview/` : la version web construite
   depuis `main` (préversion) ; `/app/` : la version web (`Kairos-web.zip`) de
-  la dernière release **stable** `v3.*` (jamais une préversion), absente tant
+  la dernière release **stable** `v3.*` ou plus récente (`v4.*`…, jamais une préversion), absente tant
   qu'il n'y en a pas ; `/` : la page de téléchargement. Déclencheurs,
   assemblage et liens : `publication.md` § Page de téléchargement.
 - Déploiement : `actions/upload-pages-artifact` puis `actions/deploy-pages`
