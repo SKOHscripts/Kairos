@@ -506,6 +506,6 @@ internal fun errorMessage(error: FieldError, minExclusive: Boolean): String = wh
     FieldErrorKind.INVALID_DATE -> stringResource(Res.string.settings_error_date, error.bound.orEmpty())
     FieldErrorKind.INVALID_COLOR -> stringResource(Res.string.settings_error_color, error.bound.orEmpty())
     FieldErrorKind.INVALID_TIME -> stringResource(Res.string.settings_error_time, error.bound.orEmpty())
-    FieldErrorKind.DUPLICATE -> stringResource(Res.string.settings_error_duplicate, error.bound.orEmpty())
+    FieldErrorKind.DUPLICATE, FieldErrorKind.DUPLICATE_ARCHIVED -> stringResource(Res.string.settings_error_duplicate, error.bound.orEmpty())
     FieldErrorKind.UNKNOWN_CONTEXT -> stringResource(Res.string.settings_error_context, error.bound.orEmpty())
 }

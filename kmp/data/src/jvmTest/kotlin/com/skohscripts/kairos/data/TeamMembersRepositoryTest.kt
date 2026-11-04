@@ -74,6 +74,21 @@ class TeamMembersRepositoryTest {
     }
 
     @Test
+    fun aNameAlreadyTakenIsRefusedEvenByAnArchivedMember() = runTest {
+        // QA du 2026-11-04 : le dépôt acceptait deux « Alice » (seule la fiche vérifiait).
+        val repo = emptyRepo()
+        val alice = repo.createMember("Alice", "", 100, 7.0, false)!!
+        val bob = repo.createMember("Bob", "", 100, 7.0, false)!!
+        assertNull(repo.createMember(" alice ", "", 100, 7.0, false))
+        repo.archiveMember(alice)
+        assertNull(repo.createMember("ALICE", "", 100, 7.0, false))
+        assertFalse(repo.updateMember(bob, "alice", "", 100, 7.0, false))
+        // Changer la casse de son propre nom reste possible ; les espaces en trop sont retirés.
+        assertTrue(repo.updateMember(bob, "  BOB   le  bricoleur ", "", 100, 7.0, false))
+        assertEquals(listOf("Alice", "BOB le bricoleur"), repo.snapshot.value.members.map { it.name }.sorted())
+    }
+
+    @Test
     fun aBlankNameCreatesNothing() = runTest {
         val repo = emptyRepo()
         assertNull(repo.createMember("   ", "Dev", 100, 7.0, false))

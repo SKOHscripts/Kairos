@@ -866,6 +866,7 @@
     <string name="member_error_name">The name is required.</string>
     <string name="member_error_name_long">The name is %1$s characters at most.</string>
     <string name="member_error_name_taken">A member is already called “%1$s”: pick another name (an initial, a role).</string>
+    <string name="member_error_name_archived">“%1$s” is an archived member: restore them from “Former members”, or pick another name.</string>
     <string name="member_absences_title">Absences</string>
     <string name="member_absences_help">Absence days are removed from the member’s capacity. Each absence is saved right away.</string>
     <string name="member_absences_empty">No absence recorded.</string>

@@ -865,6 +865,7 @@
     <string name="member_error_name">Il nome è obbligatorio.</string>
     <string name="member_error_name_long">Il nome può avere al massimo %1$s caratteri.</string>
     <string name="member_error_name_taken">Esiste già un membro di nome «%1$s»: scelga un altro nome (un’iniziale, un ruolo).</string>
+    <string name="member_error_name_archived">«%1$s» è un ex membro: lo riattivi da «Ex membri» oppure scelga un altro nome.</string>
     <string name="member_absences_title">Assenze</string>
     <string name="member_absences_help">I giorni di assenza vengono tolti dalla capacità del membro. Ogni assenza viene salvata subito.</string>
     <string name="member_absences_empty">Nessuna assenza registrata.</string>

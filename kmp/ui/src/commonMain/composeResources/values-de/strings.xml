@@ -865,6 +865,7 @@
     <string name="member_error_name">Der Name ist erforderlich.</string>
     <string name="member_error_name_long">Der Name darf höchstens %1$s Zeichen lang sein.</string>
     <string name="member_error_name_taken">Ein Mitglied heißt bereits „%1$s“: Wählen Sie einen anderen Namen (einen Anfangsbuchstaben, eine Rolle).</string>
+    <string name="member_error_name_archived">„%1$s“ ist ein ehemaliges Mitglied: Reaktivieren Sie es unter „Ehemalige Mitglieder“ oder wählen Sie einen anderen Namen.</string>
     <string name="member_absences_title">Abwesenheiten</string>
     <string name="member_absences_help">Abwesenheitstage werden von der Kapazität des Mitglieds abgezogen. Jede Abwesenheit wird sofort gespeichert.</string>
     <string name="member_absences_empty">Keine Abwesenheit erfasst.</string>

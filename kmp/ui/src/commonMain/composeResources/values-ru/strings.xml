@@ -865,6 +865,7 @@
     <string name="member_error_name">Укажите имя.</string>
     <string name="member_error_name_long">Имя — не больше %1$s символов.</string>
     <string name="member_error_name_taken">Участник с именем «%1$s» уже есть: выберите другое имя (инициал, роль).</string>
+    <string name="member_error_name_archived">«%1$s» — бывший участник: верните его в разделе «Бывшие участники» или выберите другое имя.</string>
     <string name="member_absences_title">Отсутствия</string>
     <string name="member_absences_help">Дни отсутствия вычитаются из вместимости участника. Каждое отсутствие сохраняется сразу.</string>
     <string name="member_absences_empty">Отсутствий нет.</string>

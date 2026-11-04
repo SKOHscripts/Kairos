@@ -29,6 +29,23 @@ class MemberFormTest {
     }
 
     @Test
+    fun innerSpacesDoNotMakeANewNameAndAnArchivedNameInvitesToRestore() {
+        // QA du 2026-11-04 : « Alice  Martin » doublait « Alice Martin » ; un ancien membre garde son nom.
+        val taken = listOf("Alice Martin")
+        assertEquals(
+            FieldError(FieldErrorKind.DUPLICATE, "alice martin"),
+            MemberForm.validate(ok.copy(name = "  alice   martin "), taken).errors[MemberForm.NAME],
+        )
+        assertEquals(
+            FieldError(FieldErrorKind.DUPLICATE_ARCHIVED, "Bob"),
+            MemberForm.validate(ok.copy(name = "Bob"), taken, archivedNames = listOf("BOB")).errors[MemberForm.NAME],
+        )
+        // Les accents comptent ; le nom validé est nettoyé.
+        assertNull(MemberForm.validate(ok.copy(name = "Hélène"), listOf("Helene")).errors[MemberForm.NAME])
+        assertEquals("Ana Lima", MemberForm.validate(ok.copy(name = " Ana \t Lima ")).valid?.name)
+    }
+
+    @Test
     fun aValidFormIsCleanedAndConverted() {
         val r = MemberForm.validate(ok.copy(name = "  Alex  ", role = " Dev back ", hoursPerDay = " 7 "))
         assertEquals(MemberForm.Valid("Alex", "Dev back", 80, 7.0), r.valid)

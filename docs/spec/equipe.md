@@ -148,10 +148,15 @@ rien changer pour qui ne l'active pas.
 
 - Destination Équipe → « Ajouter un membre » : **nom** (obligatoire, 60 caractères
   au plus, différent de celui de tout autre membre, archivés compris, sans
-  tenir compte de la casse : deux « Bob » ne se distinguent plus dans les menus
-  d'assignation ni dans la charge ; un doublon déjà en base, venu d'un import,
-  ne bloque pas la modification d'un autre champ, seul un changement de nom est
-  vérifié),
+  tenir compte de la casse ni des espaces en trop (« alice  martin » = « Alice
+  Martin » ; les accents comptent) : deux « Bob » ne se distinguent plus dans
+  les menus d'assignation ni dans la charge. Le nom d'un ancien membre (archivé)
+  appelle « … est un ancien membre : réactivez-le depuis « Anciens membres », ou
+  choisissez un autre nom. » Un doublon déjà en base, venu d'un import, ne
+  bloque pas la modification d'un autre champ, seul un changement de nom est
+  vérifié ; les doublons existants ne sont **pas fusionnés** (décision du
+  2026-11-04 : refuser seulement). Les espaces en trop sont retirés à
+  l'enregistrement),
   **rôle** (texte libre, facultatif), **quotité** (en %, 100 par défaut,
   de 1 à 100), **heures par jour** (défaut : journée de travail des
   Réglages, `workdayEndHour − workdayStartHour` moins une heure, bornée à
@@ -381,10 +386,13 @@ aussi son événement de journal dans la même transaction,
 `equipe-backlog-suivi.md` § Journal) :
 
 - membres :
-  - `createMember(nom, rôle, quotité, heures, moi): Long?` : nom nettoyé,
-    vide → `null` ; `uid` tiré ici (`Uuid.random()`) ; quotité et heures
+  - `createMember(nom, rôle, quotité, heures, moi): Long?` : nom nettoyé
+    (`MemberForm.cleanName`), vide ou déjà porté par un membre, archivé
+    compris (`MemberForm.nameKey`), → `null` (garde-fou : la fiche valide
+    avant ; QA du 2026-11-04, le dépôt acceptait les homonymes) ; `uid` tiré ici (`Uuid.random()`) ; quotité et heures
     ramenées dans leurs bornes (garde-fou, la fiche valide avant) ;
-  - `updateMember(id, …): Boolean` ; « C'est moi » passe par ces deux
+  - `updateMember(id, …): Boolean` (`false` aussi si le nom **change** pour
+    celui d'un autre membre) ; « C'est moi » passe par ces deux
     opérations (pas de `setSelf` séparé) : le poser sur un membre le
     retire aux autres dans la même transaction ; ignoré pour un archivé ;
   - `archiveMember(id)` : ses tâches **à faire** repassent au backlog
@@ -498,8 +506,10 @@ aussi son événement de journal dans la même transaction,
   `clearTeamDataWithBackup`. Les écrans d'équipe lisent `snapshot` (base
   complète). Calcul pur : `core/team/MemberForm` (validation par champ,
   `FieldError` des Réglages réutilisé, heures par jour par défaut ; nom :
-  `MAX_NAME` et `validate(saisie, nomsPris)` → `TOO_LARGE` / `DUPLICATE`, les
-  noms pris étant ceux des autres membres, passés par `MemberSheet`),
+  `MAX_NAME`, `cleanName`, `nameKey` et `validate(saisie, nomsPris,
+  nomsArchivés)` → `TOO_LARGE` / `DUPLICATE` / `DUPLICATE_ARCHIVED`, les
+  noms étant ceux des autres membres, actifs puis archivés, passés par
+  `MemberSheet` ; nom inchangé à la clé près : aucune vérification),
   `TeamMembers` (ordre, actifs, archivés, prochaine absence,
   `hasHadTask`, tâches ouvertes), `MemberAbsence`. Accords au singulier et
   au pluriel par des clés `_one` / `_many` (le dépôt n'a pas de ressources

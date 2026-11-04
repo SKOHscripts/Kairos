@@ -792,16 +792,19 @@ class KairosRepository(
      * Crée un membre. Le nom est nettoyé ; un nom vide, des heures non finies
      * ou un membre refusé rendent `null`. La quotité et les heures par jour sont
      * ramenées dans leurs bornes (1-100, 1-24) : la validation de saisie est
-     * celle de `MemberForm`, ceci n'est qu'un garde-fou. L'`uid` (identité des
+     * celle de `MemberForm`, ceci n'est qu'un garde-fou ; de même, un nom déjà
+     * porté par un autre membre, archivé compris (`MemberForm.nameKey`), rend
+     * `null` (QA du 2026-11-04). L'`uid` (identité des
      * échanges) est tiré ici : `core` reste sans hasard. [isSelf] retire « C'est
      * moi » aux autres membres dans la même transaction. [weekHours] : semaine type (issue #104), écartée si elle est mal formée.
      */
     @OptIn(ExperimentalUuidApi::class)
     suspend fun createMember(name: String, role: String, availabilityPercent: Int, hoursPerDay: Double, isSelf: Boolean, weekHours: List<Double>? = null): Long? {
-        val clean = name.trim()
+        val clean = MemberForm.cleanName(name)
         if (clean.isEmpty() || !hoursPerDay.isFinite()) return null
         var id: Long? = null
         write {
+            if (state.value.members.any { MemberForm.nameKey(it.name) == MemberForm.nameKey(clean) }) return@write
             queries.insertTeamMember(
                 Uuid.random().toString(), clean, role.trim(), boundedAvailability(availabilityPercent), boundedHours(hoursPerDay),
                 if (isSelf) 1L else 0L, now(), now(), TeamMember.encodeWeekHours(weekHours?.takeIf { TeamMember.isValidWeek(it) }),
@@ -814,16 +817,20 @@ class KairosRepository(
 
     /**
      * Modifie les champs d'un membre (mêmes règles que [createMember]) ; `false`
-     * si le membre est inconnu ou si le nom est vide. Poser [isSelf] retire « C'est
+     * si le membre est inconnu, si le nom est vide, ou s'il **change** pour celui
+     * d'un autre membre (un doublon déjà en base, venu d'un import, ne bloque pas
+     * la modification des autres champs). Poser [isSelf] retire « C'est
      * moi » aux autres, dans la même transaction ; un membre archivé n'est jamais
      * « moi ».
      */
     suspend fun updateMember(id: Long, name: String, role: String, availabilityPercent: Int, hoursPerDay: Double, isSelf: Boolean, weekHours: List<Double>? = null): Boolean {
-        val clean = name.trim()
+        val clean = MemberForm.cleanName(name)
         if (clean.isEmpty() || !hoursPerDay.isFinite()) return false
         var done = false
         write {
             val member = state.value.members.firstOrNull { it.id == id } ?: return@write
+            val key = MemberForm.nameKey(clean)
+            if (key != MemberForm.nameKey(member.name) && state.value.members.any { it.id != id && MemberForm.nameKey(it.name) == key }) return@write
             val self = isSelf && !member.archived
             queries.updateTeamMember(
                 clean, role.trim(), boundedAvailability(availabilityPercent), boundedHours(hoursPerDay),
