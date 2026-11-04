@@ -105,8 +105,14 @@ data class TeamBoard(
             val own = tasks.filter { it.status == TaskStatus.TODO }.associate { it.id to Scheduling.sortKey(it, day, settings) }
             val effective = Dependencies.derivedUrgency(edges, own)
 
+            // Une tâche ouverte d'un membre inactif (archivé après coup, rouverte, importée) est du backlog, comme pour la charge et
+            // la suggestion : sinon elle ne paraissait nulle part, ni réaffectable ni qualifiable (QA du 2026-11-04).
+            val activeIds = TeamMembers.active(snapshot.members).mapTo(HashSet()) { it.id }
+
             fun card(task: Task): TeamCard {
-                val state = checkNotNull(TeamStates.of(task))
+                val raw = checkNotNull(TeamStates.of(task))
+                val orphan = (raw == TeamState.TODO || raw == TeamState.IN_PROGRESS) && task.assigneeId !in activeIds
+                val state = if (orphan) TeamState.BACKLOG else raw
                 return TeamCard(
                     task = task,
                     state = state,

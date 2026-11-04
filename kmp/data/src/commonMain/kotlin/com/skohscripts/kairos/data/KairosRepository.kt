@@ -436,7 +436,10 @@ class KairosRepository(
                 updated = updated.copy(deadline = deadline, scheduledDate = updated.scheduledDate ?: deadline, recurrencePeriod = Recurrence.period(month))
             }
             val reassigned = edit.reassign?.let { reassigned(updated, it.memberId, it.keepInProgress) }
-            if (reassigned != null) updated = reassigned
+            if (reassigned != null) {
+                updated = reassigned
+                stopTimerIfNotMine(reassigned)
+            }
             updateRow(updated)
             if (task.space == TaskSpace.TEAM) {
                 val src = source ?: defaultSource(task)
@@ -690,6 +693,7 @@ class KairosRepository(
                 val next = reassigned(task, memberId, keepInProgress) ?: continue
                 updateRow(next)
                 journalAssignment(task, next, source)
+                stopTimerIfNotMine(next)
                 changed++
             }
         }
@@ -844,12 +848,25 @@ class KairosRepository(
             // Chaque tâche remise au backlog est journalisée (`assigned`, de ce membre vers personne).
             state.value.tasks.filter { TeamMembers.isOpenTeamTaskOf(it, member.id) }.forEach {
                 journal(it, TeamEventKind.ASSIGNED, member.id.toString(), null, TeamEventSource.MANUAL, memberId = null)
+                // Remise au backlog : un chrono de « moi » sur elle s'arrête (QA du 2026-11-04).
+                queries.closeOpenSessionsOf(now(), it.id)
             }
             queries.unassignTasksOf(now(), member.id)
             queries.setMemberArchived(1L, now(), member.id)
             done = true
         }
         return done
+    }
+
+    /**
+     * Le chrono ne tourne que sur une tâche de « moi » : une tâche d'équipe réaffectée à un autre membre ou remise au backlog
+     * ferme sa session ouverte, sinon elle quitterait la vue Perso en continuant de compter, sans moyen de l'arrêter (QA du
+     * 2026-11-04). Dans la transaction de l'écriture.
+     */
+    private suspend fun stopTimerIfNotMine(task: Task) {
+        if (task.space != TaskSpace.TEAM) return
+        val self = state.value.members.firstOrNull { it.isSelf && !it.archived }?.id
+        if (task.assigneeId == null || task.assigneeId != self) queries.closeOpenSessionsOf(now(), task.id)
     }
 
     /** Réactive un membre archivé ; `false` s'il est inconnu ou déjà actif. Ses anciennes tâches ne lui reviennent pas. */

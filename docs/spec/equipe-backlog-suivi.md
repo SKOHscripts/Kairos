@@ -198,6 +198,9 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   `TeamStates.of(task): TeamState?` selon le tableau ci-dessus (`null` pour
   une tâche archivée) ; `TeamStates.blockedIds(snapshot)` par
   `Dependencies.blockedTaskIds` sur les arêtes d'équipe.
+- **Tâche ouverte d'un membre inactif** (archivé après coup puis tâche rouverte, ou base importée) : le tableau la range au
+  **backlog**, comme la charge et la suggestion (`assigneeId !in` membres actifs) ; avant, elle ne paraissait nulle part (QA du
+  2026-11-04, `TeamRepositoryTest.aReopenedTaskOfAnArchivedMemberShowsInTheBacklogOfTheBoard`).
 - `TeamBoard.build(snapshot, day, timeZone, filter)` lit la base complète
   (il n'y a pas de type `TeamSnapshot` séparé : les tâches d'équipe sont
   filtrées sur `space`). Il rend `keyFigures` (`TeamKeyFigures` : en
@@ -293,7 +296,9 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   commencement vides, et son événement `created`. Sous-tâches créées en lot
   par `updateTask` : espace et assigné de la mère.
 - `archiveMember` (E2) journalise chaque retour au backlog (et vide
-  `startedOn`) ; `deleteMember` est refusé aussi si le membre est le
+  `startedOn`), et ferme la session ouverte d'une tâche ainsi remise au backlog ; de même `assign` et la réaffectation de la
+  fiche ferment la session ouverte d'une tâche qui n'est plus à « moi » (QA du 2026-11-04 : le chrono continuait sur une tâche
+  sortie de la vue Perso, sans moyen de l'arrêter ; `TeamRepositoryTest.aTimerOnATaskThatIsNoLongerMineStops`) ; `deleteMember` est refusé aussi si le membre est le
   titulaire (`memberId`) d'un événement (pas s'il n'apparaît qu'en
   `fromValue` : l'archivage l'y écrit toujours) ; `clearTeamData` supprime
   le journal.
