@@ -1762,10 +1762,10 @@
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
     <string name="setting_learning_model">Mit maschinellem Lernen schätzen</string>
     <string name="setting_learning_model_help">Maschinelles Lernen auf dem Gerät: vergleicht Titel, Typ und Punkte einer Aufgabe mit deinen erledigten Aufgaben. Nichts verlässt dieses Gerät.</string>
-    <string name="learning_model_status_few">Noch nicht genug gestoppte Aufgaben (%1$d von %2$d).</string>
-    <string name="learning_model_status_unverified">Noch nicht genug vergleichbare Aufgaben, um es zu prüfen (%1$d von %2$d).</string>
+    <string name="learning_model_status_few">Das maschinelle Lernen startet nach %3$d gestoppten Aufgaben: noch %1$d (%2$d von %3$d).</string>
+    <string name="learning_model_status_unverified">Das maschinelle Lernen wird an deinen eigenen Aufgaben geprüft: noch %1$d vergleichbare gestoppte Aufgabe(n) nötig (%2$d von %3$d).</string>
     <string name="learning_model_status_ok">Bei deinen letzten %1$d Aufgaben: mittlerer Fehler %2$d%, gegenüber %3$d% mit der Standarddauer.</string>
-    <string name="learning_model_status_not_better">Nicht deutlich besser als die Standarddauer bei deinen letzten %1$d Aufgaben (%2$d% gegenüber %3$d%): nicht angewendet.</string>
+    <string name="learning_model_status_not_better">Nicht deutlich besser als die Standarddauer bei deinen letzten %1$d Aufgaben (%2$d% gegenüber %3$d%): nicht angewendet. Es wird nach jeder gestoppten Aufgabe erneut geprüft.</string>
     <string name="learned_model_badge_description">Durch maschinelles Lernen geschätzt anhand von %1$d ähnlichen Aufgaben, zwischen %2$s und %3$s</string>
     <string name="learned_model_badge_description_regression">Durch maschinelles Lernen geschätzt anhand deiner %1$d erledigten Aufgaben, zwischen %2$s und %3$s</string>
     <string name="why_learned_model">Dauer: ~%1$s (zwischen %2$s und %3$s), durch maschinelles Lernen geschätzt anhand von %4$d ähnlichen Aufgaben: %5$s.</string>

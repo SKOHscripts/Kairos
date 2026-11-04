@@ -1763,10 +1763,10 @@
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
     <string name="setting_learning_model">Estimate with machine learning</string>
     <string name="setting_learning_model_help">On-device machine learning: compares a task’s title, type and points with your finished tasks. Nothing leaves this device.</string>
-    <string name="learning_model_status_few">Not enough timed tasks yet (%1$d of %2$d).</string>
-    <string name="learning_model_status_unverified">Not enough comparable tasks to check it yet (%1$d of %2$d).</string>
+    <string name="learning_model_status_few">Machine learning starts after %3$d timed tasks: %1$d more to go (%2$d of %3$d).</string>
+    <string name="learning_model_status_unverified">Machine learning is being checked on your own tasks: %1$d more comparable timed task(s) needed (%2$d of %3$d).</string>
     <string name="learning_model_status_ok">On your last %1$d tasks: median error %2$d%, against %3$d% for the default duration.</string>
-    <string name="learning_model_status_not_better">Not clearly better than the default duration on your last %1$d tasks (%2$d% against %3$d%): not applied.</string>
+    <string name="learning_model_status_not_better">Not clearly better than the default duration on your last %1$d tasks (%2$d% against %3$d%): not applied. It is checked again after each timed task.</string>
     <string name="learned_model_badge_description">Estimated by machine learning from %1$d similar tasks, between %2$s and %3$s</string>
     <string name="learned_model_badge_description_regression">Estimated by machine learning from your %1$d finished tasks, between %2$s and %3$s</string>
     <string name="why_learned_model">Duration: ~%1$s (between %2$s and %3$s), estimated by machine learning from %4$d similar tasks: %5$s.</string>

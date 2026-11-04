@@ -1762,10 +1762,10 @@
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
     <string name="setting_learning_model">Stima con il machine learning</string>
     <string name="setting_learning_model_help">Machine learning sul dispositivo: confronta titolo, tipo e punti di un’attività con le tue attività completate. Nulla lascia questo dispositivo.</string>
-    <string name="learning_model_status_few">Non ci sono ancora abbastanza attività cronometrate (%1$d su %2$d).</string>
-    <string name="learning_model_status_unverified">Non ci sono ancora abbastanza attività confrontabili per verificarlo (%1$d su %2$d).</string>
+    <string name="learning_model_status_few">Il machine learning parte dopo %3$d attività cronometrate: ne mancano %1$d (%2$d su %3$d).</string>
+    <string name="learning_model_status_unverified">Il machine learning si verifica sulle tue attività: mancano %1$d attività cronometrate confrontabili (%2$d su %3$d).</string>
     <string name="learning_model_status_ok">Sulle tue ultime %1$d attività: errore mediano %2$d%, contro %3$d% della durata predefinita.</string>
-    <string name="learning_model_status_not_better">Non fa nettamente meglio della durata predefinita sulle tue ultime %1$d attività (%2$d% contro %3$d%): non applicato.</string>
+    <string name="learning_model_status_not_better">Non fa nettamente meglio della durata predefinita sulle tue ultime %1$d attività (%2$d% contro %3$d%): non applicato. Viene ricontrollato dopo ogni attività cronometrata.</string>
     <string name="learned_model_badge_description">Stimata dal machine learning in base a %1$d attività simili, tra %2$s e %3$s</string>
     <string name="learned_model_badge_description_regression">Stimata dal machine learning in base alle tue %1$d attività completate, tra %2$s e %3$s</string>
     <string name="why_learned_model">Durata: ~%1$s (tra %2$s e %3$s), stimata dal machine learning in base a %4$d attività simili: %5$s.</string>

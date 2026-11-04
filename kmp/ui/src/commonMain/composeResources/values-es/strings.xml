@@ -1762,10 +1762,10 @@
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
     <string name="setting_learning_model">Estimar con aprendizaje automático</string>
     <string name="setting_learning_model_help">Aprendizaje automático en el dispositivo: compara el título, el tipo y los puntos de una tarea con tus tareas terminadas. Nada sale de este dispositivo.</string>
-    <string name="learning_model_status_few">Aún no hay suficientes tareas cronometradas (%1$d de %2$d).</string>
-    <string name="learning_model_status_unverified">Aún no hay suficientes tareas comparables para comprobarlo (%1$d de %2$d).</string>
+    <string name="learning_model_status_few">El aprendizaje automático empieza tras %3$d tareas cronometradas: faltan %1$d (%2$d de %3$d).</string>
+    <string name="learning_model_status_unverified">El aprendizaje automático se comprueba con tus propias tareas: faltan %1$d tarea(s) cronometrada(s) comparable(s) (%2$d de %3$d).</string>
     <string name="learning_model_status_ok">En tus últimas %1$d tareas: error mediano del %2$d%, frente al %3$d% de la duración por defecto.</string>
-    <string name="learning_model_status_not_better">No mejora claramente la duración por defecto en tus últimas %1$d tareas (%2$d% frente a %3$d%): no se aplica.</string>
+    <string name="learning_model_status_not_better">No mejora claramente la duración por defecto en tus últimas %1$d tareas (%2$d% frente a %3$d%): no se aplica. Se vuelve a comprobar tras cada tarea cronometrada.</string>
     <string name="learned_model_badge_description">Estimada por aprendizaje automático a partir de %1$d tareas parecidas, entre %2$s y %3$s</string>
     <string name="learned_model_badge_description_regression">Estimada por aprendizaje automático a partir de tus %1$d tareas terminadas, entre %2$s y %3$s</string>
     <string name="why_learned_model">Duración: ~%1$s (entre %2$s y %3$s), estimada por aprendizaje automático a partir de %4$d tareas parecidas: %5$s.</string>

@@ -1765,10 +1765,10 @@
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
     <string name="setting_learning_model">Estimer par machine learning</string>
     <string name="setting_learning_model_help">Machine learning sur l’appareil : compare le titre, le type et les points d’une tâche à tes tâches déjà faites. Rien ne quitte cet appareil.</string>
-    <string name="learning_model_status_few">Pas encore assez de tâches chronométrées (%1$d sur %2$d).</string>
-    <string name="learning_model_status_unverified">Pas encore assez de tâches comparables pour le vérifier (%1$d sur %2$d).</string>
+    <string name="learning_model_status_few">Le machine learning démarre après %3$d tâches chronométrées : encore %1$d (%2$d sur %3$d).</string>
+    <string name="learning_model_status_unverified">Le machine learning se vérifie sur tes propres tâches : encore %1$d tâche(s) chronométrée(s) comparable(s) (%2$d sur %3$d).</string>
     <string name="learning_model_status_ok">Sur tes %1$d dernières tâches : erreur médiane %2$d %, contre %3$d % pour la durée par défaut.</string>
-    <string name="learning_model_status_not_better">Ne fait pas nettement mieux que la durée par défaut sur tes %1$d dernières tâches (%2$d % contre %3$d %) : non appliqué.</string>
+    <string name="learning_model_status_not_better">Ne fait pas nettement mieux que la durée par défaut sur tes %1$d dernières tâches (%2$d % contre %3$d %) : non appliqué. Il est revérifié après chaque tâche chronométrée.</string>
     <string name="learned_model_badge_description">Estimée par machine learning d’après %1$d tâches proches, entre %2$s et %3$s</string>
     <string name="learned_model_badge_description_regression">Estimée par machine learning d’après tes %1$d tâches faites, entre %2$s et %3$s</string>
     <string name="why_learned_model">Durée : ~%1$s (entre %2$s et %3$s), estimée par machine learning d’après %4$d tâches proches : %5$s.</string>
