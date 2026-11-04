@@ -32,25 +32,25 @@ import com.skohscripts.kairos.data.ImportException
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_cancel
 import com.skohscripts.kairos.ui.generated.resources.import_confirm_action
-import com.skohscripts.kairos.ui.generated.resources.import_confirm_title
 import com.skohscripts.kairos.ui.generated.resources.import_done
 import com.skohscripts.kairos.ui.generated.resources.import_error_corrupted
 import com.skohscripts.kairos.ui.generated.resources.import_error_not_export
 import com.skohscripts.kairos.ui.generated.resources.import_error_too_new
 import com.skohscripts.kairos.ui.generated.resources.linked_unlink
 import com.skohscripts.kairos.ui.generated.resources.linked_intro
-import com.skohscripts.kairos.ui.generated.resources.linked_changed
 import com.skohscripts.kairos.ui.generated.resources.linked_overwrite
-import com.skohscripts.kairos.ui.generated.resources.linked_import
-import com.skohscripts.kairos.ui.generated.resources.linked_import_confirm_body
-import com.skohscripts.kairos.ui.generated.resources.linked_open_confirm_body
+import com.skohscripts.kairos.ui.generated.resources.sync_clock
+import com.skohscripts.kairos.ui.generated.resources.sync_first_contact
+import com.skohscripts.kairos.ui.generated.resources.sync_merge
+import com.skohscripts.kairos.ui.generated.resources.sync_open_body
+import com.skohscripts.kairos.ui.generated.resources.sync_open_title
+import com.skohscripts.kairos.ui.generated.resources.sync_too_new
+import com.skohscripts.kairos.ui.generated.resources.sync_unreadable
 import com.skohscripts.kairos.ui.generated.resources.linked_write_failed
 import com.skohscripts.kairos.ui.generated.resources.linked_retry
-import com.skohscripts.kairos.ui.generated.resources.file_error
 import com.skohscripts.kairos.ui.generated.resources.web_authorize
 import com.skohscripts.kairos.ui.generated.resources.web_link_create
 import com.skohscripts.kairos.ui.generated.resources.web_link_open
-import com.skohscripts.kairos.ui.generated.resources.web_link_open_confirm_body
 import com.skohscripts.kairos.ui.generated.resources.web_linked
 import com.skohscripts.kairos.ui.generated.resources.web_not_linked
 import com.skohscripts.kairos.ui.generated.resources.web_reauthorize
@@ -72,11 +72,11 @@ internal suspend fun importErrorMessage(e: ImportException): String = getString(
 )
 
 /**
- * Bandeau du fichier lié (docs/spec/export-import.md § Version web et § Fichier lié du bureau et d'Android). Version web :
+ * Bandeau du fichier lié (docs/spec/export-import.md § Version web, docs/spec/synchronisation.md § Interface). Version web :
  * vue Jour seulement quand il y a quelque chose à faire ([showWhenLinked] faux), Réglages toujours. Bureau et Android : la
- * carte Données propose et montre le lien ; la vue Jour ne montre qu'un fichier modifié ailleurs ou une écriture en échec.
- * Bandeau neutre (une dégradation n'est pas un danger), sauf les échecs d'enregistrement, en conteneur d'erreur (charte
- * § Bannières).
+ * carte Données propose et montre le lien ; la vue Jour ne montre que le premier rapprochement à confirmer, un fichier
+ * illisible ou une écriture en échec. Bandeau neutre (une dégradation n'est pas un danger), sauf les échecs, en conteneur
+ * d'erreur (charte § Bannières).
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -85,7 +85,7 @@ fun StorageBanner(services: AppServices, showWhenLinked: Boolean) {
     val state by storage.state.collectAsState()
     val scope = rememberCoroutineScope()
     val messages = LocalMessages.current
-    // Fichier à importer après confirmation : ouvert (« Ouvrir un fichier Kairos ») ou modifié ailleurs (« L'importer »).
+    // Fichier ouvert (« Ouvrir un fichier Kairos ») : « Fusionner » ou « Remplacer » quand cet appareil a déjà des données.
     var opened by remember { mutableStateOf<Pending?>(null) }
 
     val text: String
@@ -95,11 +95,13 @@ fun StorageBanner(services: AppServices, showWhenLinked: Boolean) {
     val openAction = stringResource(Res.string.web_link_open) to {
         scope.launch {
             val file = storage.openFile() ?: return@launch
-            try {
-                opened = Pending(file, ExportCodec.decode(file.text), changed = false)
+            val snapshot = try {
+                ExportCodec.decode(file.text)
             } catch (e: ImportException) {
-                messages(importErrorMessage(e))
+                return@launch messages(importErrorMessage(e))
             }
+            // Un appareil neuf (exemples intacts seulement) reçoit le fichier sans qu'on lui demande.
+            if (services.repository.hasOwnData()) opened = Pending(file, snapshot) else storage.adoptOpened(merge = true)
         }
         Unit
     }
@@ -129,20 +131,25 @@ fun StorageBanner(services: AppServices, showWhenLinked: Boolean) {
             text = stringResource(Res.string.web_save_failed, s.detail)
             error = true
         }
-        is LinkedFileState.Changed -> {
-            text = stringResource(Res.string.linked_changed, s.name)
-            actions += stringResource(Res.string.linked_overwrite) to { scope.launch { storage.overwrite() }; Unit }
-            actions += stringResource(Res.string.linked_import) to {
-                scope.launch {
-                    val file = storage.readLinked() ?: return@launch messages(getString(Res.string.file_error))
-                    try {
-                        opened = Pending(file, ExportCodec.decode(file.text), changed = true)
-                    } catch (e: ImportException) {
-                        messages(importErrorMessage(e))
-                    }
-                }
-                Unit
-            }
+        is LinkedFileState.NeedsConfirmation -> {
+            val c = s.summary
+            text = stringResource(Res.string.sync_first_contact, s.name, c.hereOnly, c.fileOnly, c.different, c.others)
+            actions += stringResource(Res.string.sync_merge) to { scope.launch { storage.confirmMerge() }; Unit }
+            actions += stringResource(Res.string.action_cancel) to { scope.launch { storage.cancelMerge() }; Unit }
+        }
+        is LinkedFileState.Unreadable -> {
+            text = stringResource(
+                when (s.reason) {
+                    UnreadableReason.NOT_READABLE -> Res.string.sync_unreadable
+                    UnreadableReason.TOO_NEW -> Res.string.sync_too_new
+                    UnreadableReason.CLOCK -> Res.string.sync_clock
+                },
+                s.name,
+            )
+            error = true
+            actions += stringResource(Res.string.linked_retry) to { scope.launch { storage.retry() }; Unit }
+            // Écraser un fichier d'une version plus récente perdrait ce que cette version ne sait pas lire.
+            if (s.reason != UnreadableReason.TOO_NEW) actions += stringResource(Res.string.linked_overwrite) to { scope.launch { storage.overwrite() }; Unit }
             actions += unlinkAction
         }
         is LinkedFileState.WriteFailed -> {
@@ -176,32 +183,34 @@ fun StorageBanner(services: AppServices, showWhenLinked: Boolean) {
     }
 
     opened?.let { pending ->
-        val body = when {
-            pending.changed -> Res.string.linked_import_confirm_body
-            storage.browser -> Res.string.web_link_open_confirm_body
-            else -> Res.string.linked_open_confirm_body
-        }
         AlertDialog(
             onDismissRequest = { opened = null },
-            title = { Text(stringResource(Res.string.import_confirm_title)) },
-            text = { Text(stringResource(body, pending.file.name)) },
+            title = { Text(stringResource(Res.string.sync_open_title, pending.file.name)) },
+            text = { Text(stringResource(Res.string.sync_open_body)) },
             confirmButton = {
                 KairosTextButton(onClick = {
                     opened = null
-                    scope.launch {
-                        // Comme « Importer » : sauvegarde d'abord ; le fichier devient ensuite la référence du lien.
-                        if (!pending.changed && !storage.adoptOpened()) return@launch
-                        if (replaceWithBackup(services, pending.snapshot, messages)) {
-                            if (pending.changed) storage.acknowledge(pending.file.text)
-                            messages(getString(Res.string.import_done, pending.snapshot.tasks.size))
-                        }
-                    }
-                }) { Text(stringResource(Res.string.import_confirm_action)) }
+                    scope.launch { storage.adoptOpened(merge = true) }
+                }) { Text(stringResource(Res.string.sync_merge)) }
             },
-            dismissButton = { KairosTextButton(onClick = { opened = null }) { Text(stringResource(Res.string.action_cancel)) } },
+            dismissButton = {
+                Row {
+                    KairosTextButton(onClick = { opened = null }) { Text(stringResource(Res.string.action_cancel)) }
+                    KairosTextButton(onClick = {
+                        opened = null
+                        scope.launch {
+                            // Comme « Importer » : sauvegarde d'abord ; le fichier devient ensuite la référence du lien.
+                            if (!storage.adoptOpened(merge = false)) return@launch
+                            if (replaceWithBackup(services, pending.snapshot, messages)) {
+                                messages(getString(Res.string.import_done, pending.snapshot.tasks.size))
+                            }
+                        }
+                    }) { Text(stringResource(Res.string.import_confirm_action)) }
+                }
+            },
         )
     }
 }
 
-/** Un fichier lu et décodé, en attente de confirmation ; [changed] : le fichier lié modifié ailleurs (« L'importer »). */
-private class Pending(val file: OpenedFile, val snapshot: KairosSnapshot, val changed: Boolean)
+/** Un fichier ouvert et décodé, en attente du choix « Fusionner » ou « Remplacer ». */
+private class Pending(val file: OpenedFile, val snapshot: KairosSnapshot)

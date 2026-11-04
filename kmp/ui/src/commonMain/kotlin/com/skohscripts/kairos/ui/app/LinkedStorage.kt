@@ -1,11 +1,12 @@
 package com.skohscripts.kairos.ui.app
 
+import com.skohscripts.kairos.core.sync.SyncSummary
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Fichier lié (docs/spec/export-import.md § Version web et § Fichier lié du bureau et d'Android) : une copie des
- * données, au format d'export, tenue à jour dans un vrai fichier choisi par l'utilisateur. Sur le web, elle protège d'un
- * nettoyage du navigateur ; sur le bureau et Android ([LinkedFileSync]), elle sert un dossier synchronisé.
+ * Fichier lié (docs/spec/export-import.md, docs/spec/synchronisation.md § Fichier lié : cycle) : une copie des données, au
+ * format d'export, tenue à jour dans un vrai fichier choisi par l'utilisateur et **fusionnée** à chaque lecture avec les
+ * données de l'appareil. Sur le web, elle protège aussi d'un nettoyage du navigateur.
  */
 interface LinkedStorage {
     val state: StateFlow<LinkedFileState>
@@ -17,13 +18,16 @@ interface LinkedStorage {
     suspend fun createFile(): Boolean
 
     /**
-     * Choisit un fichier Kairos existant : rend son contenu (le nom avant),
-     * sans rien changer encore ; `null` si annulé. [adoptOpened] le lie ensuite,
-     * une fois le remplacement des données confirmé.
+     * Choisit un fichier Kairos existant : rend son contenu (le nom avant), sans rien changer encore ; `null` si annulé.
+     * L'interface demande ensuite « Fusionner » ou « Remplacer » ([adoptOpened]) si cet appareil a déjà des données.
      */
     suspend fun openFile(): OpenedFile?
 
-    suspend fun adoptOpened(): Boolean
+    /**
+     * Lie le fichier ouvert. [merge] : le fusionner aussitôt (choix « Fusionner », ou appareil neuf), sans autre confirmation ;
+     * sinon (« Remplacer ») il devient la référence : le remplacement des données qui suit y sera écrit.
+     */
+    suspend fun adoptOpened(merge: Boolean): Boolean
 
     /**
      * Redonne l'accès au fichier lié (geste de l'utilisateur requis). Si le
@@ -34,16 +38,19 @@ interface LinkedStorage {
     /** Cesse d'écrire dans le fichier, qui reste tel quel. */
     suspend fun unlink()
 
-    /** Modifié ailleurs ([LinkedFileState.Changed]) : écrit quand même les données de cet appareil. */
+    /** Fichier illisible ([LinkedFileState.Unreadable]) : y écrit les données de cet appareil. */
     suspend fun overwrite()
 
-    /** Le contenu actuel du fichier lié (« L'importer »), `null` s'il est illisible. */
-    suspend fun readLinked(): OpenedFile?
+    /** Premier rapprochement accepté ([LinkedFileState.NeedsConfirmation]) : fusionne et écrit. */
+    suspend fun confirmMerge()
 
-    /** Les données de [text] viennent d'être importées : il redevient la référence, l'écriture reprend. */
-    suspend fun acknowledge(text: String)
+    /** Premier rapprochement refusé : rien n'est fusionné ni écrit, et le fichier n'est plus lié. */
+    suspend fun cancelMerge()
 
-    /** Après un échec d'écriture : réessaie tout de suite. */
+    /** Relit et fusionne tout de suite (bouton, retour au premier plan). */
+    suspend fun mergeNow()
+
+    /** Après un échec d'écriture ou une lecture illisible : réessaie tout de suite. */
     suspend fun retry()
 }
 
@@ -66,8 +73,14 @@ sealed interface LinkedFileState {
     /** L'enregistrement dans le navigateur a échoué (espace plein, stockage refusé). */
     data class SaveFailed(val detail: String) : LinkedFileState
 
-    /** Le fichier lié a été modifié ailleurs : plus rien n'y est écrit avant un choix (« Écraser », « L'importer », « Délier »). */
-    data class Changed(val name: String) : LinkedFileState
+    /**
+     * Premier rapprochement (docs/spec/synchronisation.md § Premier rapprochement) : le fichier vient d'un autre appareil et la
+     * fusion changerait le fichier ou des éléments diffèrent ; rien n'est fusionné ni écrit avant « Fusionner » ou « Annuler ».
+     */
+    data class NeedsConfirmation(val name: String, val summary: SyncSummary) : LinkedFileState
+
+    /** Le fichier lié est illisible (trois lectures), d'une version plus récente ou trop en avance : plus rien n'y est écrit. */
+    data class Unreadable(val name: String, val reason: UnreadableReason) : LinkedFileState
 
     /** Écrire dans le fichier lié a échoué (dossier disparu, accès retiré) ; les données restent dans la base. */
     data class WriteFailed(val name: String) : LinkedFileState

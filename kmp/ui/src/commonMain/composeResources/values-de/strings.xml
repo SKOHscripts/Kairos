@@ -140,16 +140,18 @@
     <string name="web_reauthorize">Kairos darf nicht mehr in „%1$s“ schreiben. Erlaube den Zugriff, um weiter dort zu speichern.</string>
     <string name="web_authorize">Zugriff erlauben</string>
     <string name="web_save_failed">Das Speichern im Browser ist fehlgeschlagen: %1$s. Exportiere deine Daten.</string>
-    <string name="web_link_open_confirm_body">Die Daten in diesem Browser werden durch die aus „%1$s“ ersetzt, die danach aktuell gehalten wird.</string>
-    <string name="linked_intro">Kairos kann eine aktuelle Kopie deiner Daten in einer Datei deiner Wahl führen, zum Beispiel in einem Syncthing- oder Nextcloud-Ordner. Sie lässt sich überall mit Importieren öffnen.</string>
+    <string name="linked_intro">Kairos kann eine aktuelle Kopie deiner Daten in einer Datei deiner Wahl führen, zum Beispiel in einem Syncthing- oder Nextcloud-Ordner. Jedes Gerät, das sie öffnet, führt sie mit seinen Daten zusammen.</string>
     <string name="linked_unlink">Trennen</string>
-    <string name="linked_changed">Die verknüpfte Datei „%1$s“ wurde anderswo geändert (anderes Gerät?). Kairos schreibt nicht mehr hinein, bis du dich entschieden hast.</string>
     <string name="linked_overwrite">Überschreiben</string>
-    <string name="linked_import">Importieren</string>
     <string name="linked_write_failed">Kairos kann nicht mehr in „%1$s“ schreiben; deine Daten sind in Kairos sicher.</string>
     <string name="linked_retry">Erneut versuchen</string>
-    <string name="linked_open_confirm_body">Die Daten auf diesem Gerät werden durch die aus „%1$s“ ersetzt, die danach aktuell gehalten wird. Unmittelbar davor wird eine Sicherung erstellt.</string>
-    <string name="linked_import_confirm_body">Die Daten auf diesem Gerät werden durch die aus „%1$s“ ersetzt, die anderswo geändert wurde. Unmittelbar davor wird eine Sicherung erstellt.</string>
+    <string name="sync_open_title">„%1$s“ öffnen</string>
+    <string name="sync_open_body">Dieses Gerät hat bereits Daten. Zusammenführen behält alles, was auf beiden Seiten existiert (empfohlen). Ersetzen setzt die Daten der Datei an ihre Stelle, nach einer automatischen Sicherung.</string>
+    <string name="sync_merge">Zusammenführen</string>
+    <string name="sync_first_contact">„%1$s“ wurde von einem anderen Gerät geschrieben. Zusammenführen behält alles, was auf beiden Seiten existiert. Aufgaben nur hier: %2$d · nur in der Datei: %3$d · verschieden: %4$d. Andere Elemente: %5$d.</string>
+    <string name="sync_unreadable">Die verknüpfte Datei „%1$s“ ist nicht lesbar. Kairos schreibt nicht mehr hinein, solange das so bleibt.</string>
+    <string name="sync_too_new">„%1$s“ stammt aus einer neueren Version von Kairos: Aktualisiere die App. Bis dahin schreibt Kairos nicht hinein.</string>
+    <string name="sync_clock">„%1$s“ trägt ein Datum mehr als 30 Tage in der Zukunft: Prüfe die Uhr des Geräts, das sie geschrieben hat. Nichts wird zusammengeführt.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Erfassen</string>

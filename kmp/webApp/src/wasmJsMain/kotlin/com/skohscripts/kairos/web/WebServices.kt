@@ -14,12 +14,21 @@ import com.skohscripts.kairos.data.KairosStore
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.BackupStore
 import com.skohscripts.kairos.ui.app.FileService
+import com.skohscripts.kairos.core.sync.Stamp
 import com.skohscripts.kairos.ui.app.LinkHash
+import com.skohscripts.kairos.ui.app.LinkedFileSync
+import com.skohscripts.kairos.ui.app.LinkedMerge
 import com.skohscripts.kairos.ui.app.LinkedFileState
 import com.skohscripts.kairos.ui.app.LinkedStorage
 import com.skohscripts.kairos.ui.app.OpenedFile
 import com.skohscripts.kairos.ui.app.mimeOf
 import kotlinx.browser.window
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,6 +53,7 @@ import kotlin.time.Clock
  */
 object WebServices {
     private const val DATA_FILE = "kairos.json"
+    private val BACKUPS = BackupStore { name, text -> KairosWeb.opfsBackup(name, text, 10).await<JsAny?>() }
 
     suspend fun open(): AppServices {
         runCatching { KairosWeb.persist().await<JsBoolean>() }
@@ -55,20 +65,26 @@ object WebServices {
         if (stored == null && link.startsWith("granted:")) stored = KairosWeb.linkRead().await<JsString?>()?.toString()
         // Un instantané illisible fait échouer l'ouverture (écran d'erreur) plutôt que
         // de repartir de zéro et d'écraser les données au premier changement.
-        val snapshot: KairosSnapshot? = stored?.let { ExportCodec.decode(it) }
+        val synced = stored?.let { ExportCodec.decodeSynced(it) }
+        val snapshot: KairosSnapshot? = synced?.snapshot
         val restorePending = snapshot == null && link.startsWith("prompt:")
 
         val opened = KairosStore.open(WebWorkerDriver(Worker("kairos-sqljs.worker.js")))
         val repository = KairosRepository(opened.database, clock) { storage.persist(it) }
-        storage.repository = repository
+        storage.attach(repository, BACKUPS)
         val language = window.navigator.language
-        repository.replaceAll(snapshot ?: ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language))
+        when {
+            // L'instantané porte l'état de synchronisation de ce navigateur (identité, marques) : il le garde d'un chargement à l'autre.
+            synced != null && synced.data.device != Stamp.LEGACY_DEVICE -> repository.restoreSynced(synced)
+            snapshot != null -> repository.replaceAll(snapshot)
+            else -> repository.replaceAll(ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language))
+        }
         storage.start(link, restorePending, repository.snapshot.value)
 
         return AppServices(
             repository = repository,
             files = BrowserFiles,
-            backups = BackupStore { name, text -> KairosWeb.opfsBackup(name, text, 10).await<JsAny?>() },
+            backups = BACKUPS,
             dataLocation = null,
             linkedStorage = storage,
             clock = clock,
@@ -106,15 +122,30 @@ private object BrowserFiles : FileService {
     override suspend fun openText(): String? = KairosWeb.pickText().await<JsString?>()?.toString()
 }
 
+/**
+ * Fichier lié du navigateur (docs/spec/synchronisation.md § Fichier lié : cycle) : même contrat et même passe ([LinkedMerge])
+ * que le bureau et Android, par l'API File System Access. L'instantané de l'OPFS (`kairos.json`) reste la persistance complète
+ * du navigateur, avec son état de synchronisation, et ne se fusionne jamais : seul le fichier lié se fusionne.
+ */
 private class WebLinkedStorage(private val clock: Clock, private val dataFile: String) : LinkedStorage {
-    lateinit var repository: KairosRepository
+    private lateinit var repository: KairosRepository
+    private lateinit var engine: LinkedMerge
     private val mutable = MutableStateFlow<LinkedFileState>(LinkedFileState.NotLinked)
     override val state: StateFlow<LinkedFileState> = mutable.asStateFlow()
     override val browser: Boolean = true
 
+    private val scope = MainScope()
+    private val lock = Mutex()
+
     /** Faux tant que des données attendent d'être rechargées du fichier lié : rien n'est écrit. */
     private var persisting = false
+    private var dirty = false
     private var pendingName: String? = null
+
+    fun attach(repository: KairosRepository, backups: BackupStore) {
+        this.repository = repository
+        engine = LinkedMerge(repository, clock, "Web", backups)
+    }
 
     suspend fun start(link: String, restorePending: Boolean, current: KairosSnapshot) {
         mutable.value = when {
@@ -125,49 +156,83 @@ private class WebLinkedStorage(private val clock: Clock, private val dataFile: S
         }
         persisting = !restorePending
         if (persisting) persist(current)
+        // Relecture toutes les minutes, l'onglet visible seulement (aucun calcul dans un onglet caché).
+        scope.launch {
+            while (isActive) {
+                delay(LinkedFileSync.POLL_MS)
+                if (pageVisible()) lock.withLock { pass() }
+            }
+        }
     }
 
-    fun encode(snapshot: KairosSnapshot) = ExportCodec.encode(snapshot, KairosBuild.VERSION_NAME, clock.now())
+    private fun encodeLocal(snapshot: KairosSnapshot) = ExportCodec.encode(snapshot, KairosBuild.VERSION_NAME, clock.now(), repository.sync.value)
 
+    /** Chaque nouvel état : l'instantané de l'OPFS, puis une passe sur le fichier lié (sauf l'état publié par une fusion). */
     suspend fun persist(snapshot: KairosSnapshot) {
         if (!persisting) return
-        val text = encode(snapshot)
         try {
-            KairosWeb.opfsWrite(dataFile, text).await<JsAny?>()
+            KairosWeb.opfsWrite(dataFile, encodeLocal(snapshot)).await<JsAny?>()
         } catch (e: Throwable) {
             mutable.value = LinkedFileState.SaveFailed(e.message ?: e.toString())
             return
         }
         val current = mutable.value
         if (current is LinkedFileState.SaveFailed) mutable.value = LinkedFileState.NotLinked
-        if (current is LinkedFileState.Linked) writeLinked(current.name, text, force = false)
+        if (snapshot === repository.mergedSnapshot) return
+        dirty = true
+        // Hors du verrou : une fusion en cours publie elle-même un état, qui repasse ici.
+        if (current is LinkedFileState.Linked) scope.launch { lock.withLock { pass() } }
     }
 
-    /**
-     * Écrit [text] dans le fichier lié, sauf s'il a été modifié ailleurs (empreinte du dernier texte écrit, gardée avec la
-     * poignée) : alors [LinkedFileState.Changed], rien n'est écrit. [force] : « Écraser ».
-     */
-    private suspend fun writeLinked(name: String, text: String, force: Boolean): Boolean {
-        if (!force) {
-            val onDisk = KairosWeb.linkRead().await<JsString?>()?.toString()
-            val known = KairosWeb.linkHashGet().await<JsString?>()?.toString()
-            // Première écriture après la mise à jour (aucune empreinte gardée) : le fichier est celui de cet appareil.
-            if (onDisk != null && known != null && LinkHash.of(onDisk) != known) {
-                mutable.value = LinkedFileState.Changed(name)
-                return false
+    /** Une passe (sous [lock]) : lire le fichier lié, fusionner, écrire si besoin ; même logique que `LinkedFileSync`. */
+    private suspend fun pass(confirmed: Boolean = false, force: Boolean = false) {
+        val name = when (val s = mutable.value) {
+            is LinkedFileState.Linked -> s.name
+            is LinkedFileState.NeedsConfirmation -> if (confirmed) s.name else return
+            is LinkedFileState.Unreadable -> if (force) s.name else return
+            else -> return
+        }
+        val text = KairosWeb.linkRead().await<JsString?>()?.toString()
+        if (text == null) {
+            mutable.value = LinkedFileState.NeedsPermission(name, restore = false)
+            return
+        }
+        val known = KairosWeb.linkHashGet().await<JsString?>()?.toString()
+        val pending = dirty
+        dirty = false
+        when (val step = engine.pass(text, known, pending, confirmed)) {
+            is LinkedMerge.Step.Done -> {
+                val write = step.write
+                if (write != null) {
+                    if (!KairosWeb.linkWrite(write).await<JsBoolean>().toBoolean()) {
+                        dirty = true
+                        mutable.value = LinkedFileState.NeedsPermission(name, restore = false)
+                        return
+                    }
+                    KairosWeb.linkHashSet(LinkHash.of(write)).await<JsAny?>()
+                } else {
+                    KairosWeb.linkHashSet(step.seenHash).await<JsAny?>()
+                }
+                mutable.value = LinkedFileState.Linked(name)
+            }
+            is LinkedMerge.Step.Confirm -> {
+                dirty = dirty || pending
+                mutable.value = LinkedFileState.NeedsConfirmation(name, step.summary)
+            }
+            LinkedMerge.Step.Retry -> dirty = dirty || pending
+            is LinkedMerge.Step.Unreadable -> {
+                dirty = dirty || pending
+                mutable.value = LinkedFileState.Unreadable(name, step.reason)
+            }
+            LinkedMerge.Step.BackupFailed -> {
+                dirty = dirty || pending
+                mutable.value = LinkedFileState.SaveFailed("backup")
             }
         }
-        if (!KairosWeb.linkWrite(text).await<JsBoolean>().toBoolean()) {
-            mutable.value = LinkedFileState.NeedsPermission(name, restore = false)
-            return false
-        }
-        KairosWeb.linkHashSet(LinkHash.of(text)).await<JsAny?>()
-        mutable.value = LinkedFileState.Linked(name)
-        return true
     }
 
     override suspend fun createFile(): Boolean {
-        val text = encode(repository.snapshot.value)
+        val text = engine.encode()
         val name = KairosWeb.linkCreate("kairos.json", text).await<JsString?>()?.toString()
             ?: return false
         KairosWeb.linkHashSet(LinkHash.of(text)).await<JsAny?>()
@@ -181,12 +246,18 @@ private class WebLinkedStorage(private val clock: Clock, private val dataFile: S
         return OpenedFile(raw.substringBefore('\n'), raw.substringAfter('\n'))
     }
 
-    override suspend fun adoptOpened(): Boolean {
-        if (!KairosWeb.linkAdopt().await<JsBoolean>().toBoolean()) return false
-        KairosWeb.linkRead().await<JsString?>()?.toString()?.let { KairosWeb.linkHashSet(LinkHash.of(it)).await<JsAny?>() }
+    override suspend fun adoptOpened(merge: Boolean): Boolean = lock.withLock {
+        if (!KairosWeb.linkAdopt().await<JsBoolean>().toBoolean()) return@withLock false
+        // « Fusionner » : aucune empreinte connue, la passe fusionne le fichier ; « Remplacer » : il est la référence.
+        val text = KairosWeb.linkRead().await<JsString?>()?.toString()
+        KairosWeb.linkHashSet(if (merge || text == null) "" else LinkHash.of(text)).await<JsAny?>()
         mutable.value = LinkedFileState.Linked(pendingName ?: "kairos.json")
         persisting = true
-        return true
+        if (merge) {
+            engine.resetFailures()
+            pass(confirmed = true)
+        }
+        true
     }
 
     override suspend fun authorize(): Boolean {
@@ -210,23 +281,29 @@ private class WebLinkedStorage(private val clock: Clock, private val dataFile: S
     }
 
     override suspend fun overwrite() {
-        val current = mutable.value as? LinkedFileState.Changed ?: return
-        writeLinked(current.name, encode(repository.snapshot.value), force = true)
-    }
-
-    override suspend fun readLinked(): OpenedFile? {
-        val name = (mutable.value as? LinkedFileState.Changed)?.name ?: (mutable.value as? LinkedFileState.Linked)?.name ?: return null
-        val text = KairosWeb.linkRead().await<JsString?>()?.toString() ?: return null
-        return OpenedFile(name, text)
-    }
-
-    override suspend fun acknowledge(text: String) {
-        val current = mutable.value as? LinkedFileState.Changed ?: return
+        val current = mutable.value as? LinkedFileState.Unreadable ?: return
+        val text = engine.encode()
+        if (!KairosWeb.linkWrite(text).await<JsBoolean>().toBoolean()) return
         KairosWeb.linkHashSet(LinkHash.of(text)).await<JsAny?>()
         mutable.value = LinkedFileState.Linked(current.name)
-        persist(repository.snapshot.value)
     }
 
-    /** Sur le web, un échec d'écriture du fichier lié devient « accès à redonner » ([authorize]) : rien à réessayer ici. */
-    override suspend fun retry() = Unit
+    override suspend fun confirmMerge() {
+        lock.withLock { if (mutable.value is LinkedFileState.NeedsConfirmation) pass(confirmed = true) }
+    }
+
+    override suspend fun cancelMerge() {
+        if (mutable.value is LinkedFileState.NeedsConfirmation) unlink()
+    }
+
+    override suspend fun mergeNow() {
+        lock.withLock { pass() }
+    }
+
+    override suspend fun retry() {
+        lock.withLock {
+            engine.resetFailures()
+            pass(force = true)
+        }
+    }
 }

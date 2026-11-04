@@ -250,4 +250,34 @@ class SyncRepositoryTest {
         assertEquals("en", b.snapshot.value.settings.language)
         assertEquals(7, b.snapshot.value.settings.workdayStartHour)
     }
+
+    @Test
+    fun theWebSnapshotKeepsItsIdentityAndMarksAcrossReloads() = runTest {
+        // Version web : l'instantané de l'OPFS est un export de format 3 de ce navigateur, rechargé à chaque ouverture.
+        val (a, b) = pair()
+        val saved = a.export()
+        val reloaded = open(posed = { KairosSnapshot() })
+        reloaded.restoreSynced(ExportCodec.decodeSynced(saved))
+        assertEquals(a.sync.value!!.device, reloaded.sync.value!!.device)
+        assertEquals(a.sync.value!!.marks, reloaded.sync.value!!.marks)
+        assertEquals(a.snapshot.value.tasks.map { it.title }, reloaded.snapshot.value.tasks.map { it.title })
+        // Toujours le même appareil : une fusion avec B ne change rien et n'est pas un premier rapprochement.
+        val out = assertIs<MergeResult.Applied>(reloaded.pull(b)).outcome
+        assertTrue(out.changes.isEmpty)
+        assertTrue(out.conflicts.isEmpty())
+    }
+
+    @Test
+    fun aNewDeviceWithIntactExamplesHasNoDataOfItsOwn() = runTest {
+        val fresh = open()
+        assertFalse(fresh.hasOwnData())
+        fresh.enableSync("PC")
+        assertFalse(fresh.hasOwnData())
+        fresh.createTask("Rapport")
+        assertTrue(fresh.hasOwnData())
+        val edited = open()
+        val example = edited.snapshot.value.tasks.first()
+        edited.updateTitle(example.id, "Modifiée")
+        assertTrue(edited.hasOwnData())
+    }
 }

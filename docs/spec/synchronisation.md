@@ -24,9 +24,12 @@ dépôt ; 4) cycle du fichier lié ; 5) interface ; 6) durées apprises partagé
 `SyncRepairTest`. **Étape 3 livrée** : format 3 (`ExportCodec.encode(…, sync)`, `ExportCodec.decodeSynced`), schéma 13
 (`12.sqm`, tables `sync_*`), `SyncStore.kt`, `SyncTypes.kt` (`SyncReviewItem`, `LastMerge`, `MergeResult`), dépôt
 (`sync`, `syncReview`, `lastMerge`, `enableSync`, `renameDevice`, `merge`, `resolveReview`, `deleteKept`, `clearReview`,
-`replaceAll(snapshot, uids)`) ; tests `SyncCodecTest`, `SyncRepositoryTest`, `SyncMigrationTest`. Rien n'est encore branché
-à l'interface ni au fichier lié (étapes 4 et 5) : le reste du document décrit les étapes suivantes (voir aussi « Impacts sur
-les specs existantes »). La moitié « écriture » de #88, le fichier lié et sa garde
+`replaceAll(snapshot, uids)`) ; tests `SyncCodecTest`, `SyncRepositoryTest`, `SyncMigrationTest`. **Étape 4 livrée** : le
+fichier lié fusionne (`LinkedMerge`, `LinkedFileSync`, `WebLinkedStorage`, `SyncSummary`), états `NeedsConfirmation` et
+`Unreadable`, bandeau du premier rapprochement et du fichier illisible, choix « Fusionner » / « Remplacer » à l'ouverture,
+relecture au premier plan et chaque minute ; dépôt `restoreSynced`, `hasOwnData`, `mergedSnapshot` ; tests `LinkedFileSyncTest`,
+`LinkedFileUiTest`, `SyncSummaryTest` (voir « Précisions de l'implémentation (étape 4) »). Restent l'interface de l'étape 5
+(carte Données, message de fusion, « Fusionner un fichier Kairos… », « À revoir ») et les étapes 6 et 7. La moitié « écriture » de #88, le fichier lié et sa garde
 contre une modification faite ailleurs, est **implémentée en 3.10.0** (`export-import.md`) : cette spec la remplace.
 
 ## 1. Besoin métier (cahier des charges)
@@ -551,10 +554,11 @@ pour qui ne synchronise pas, **sans toucher à aucune table existante** (donc sa
   `SyncReconcile.activate` avec les exemples restés tels que posés (`sync_state.examples` : `genre|id|empreinte` de leurs champs,
   écrit par `open` sur une base neuve, `ExampleMarks`). Conséquence voulue de la marque d'origine : un appareil **sans** les
   exemples (base vidée, importée) les supprime chez l'autre à la première fusion, comme une suppression ordinaire ; deux
-  appareils neufs les partagent sans doublon.
+  appareils neufs les partagent sans doublon. **Confirmé par l'utilisateur le 2026-11-04.**
 - **Première rencontre et réglages** : à l'activation, chaque appareil date ses réglages `Stamp(0, appareil)`. Deux appareils
   dont un réglage diffère donnent donc un **conflit** à leur première fusion (la plus grande identité l'emporte, l'autre valeur
-  va dans « À revoir ») : c'est le comportement voulu du premier rapprochement, pas une préférence silencieuse.
+  va dans « À revoir ») : c'est le comportement voulu du premier rapprochement, pas une préférence silencieuse. **Confirmé
+  par l'utilisateur le 2026-11-04.**
 - **« À revoir »** : `resolveReview(id, takeOther)` écrit la valeur écartée (`SyncEdit.setField`, ou `setSetting` pour un
   réglage) comme une modification locale ; `deleteKept` supprime à nouveau (`SyncEdit.remove`, une tâche emporte ses
   dépendances) ; `clearReview` vide la liste. À chaque relecture, un conflit dont le champ porte désormais une autre marque que
@@ -591,16 +595,55 @@ est visible (lecture et empreinte seulement ; on ne décode que si l'empreinte a
   (parfois une copie en conflit) ; l'état qui n'y figure plus **n'est pas supprimé** à la fusion suivante (une absence ne
   supprime que si le contexte de l'autre a vu l'élément) : chacun remet ses données dans le fichier. C'est la raison
   principale de la fusion d'états (voir « Décisions »).
-- États : `LinkedFileState.Changed` est **retiré** ; ajouts `NeedsConfirmation(name, preview)` et `Unreadable(name, reason)`
+- États : `LinkedFileState.Changed` est **retiré** ; ajouts `NeedsConfirmation(name, summary)` et `Unreadable(name, reason)`
   (`reason` : `NOT_READABLE`, `TOO_NEW`, `CLOCK`) ; `WriteFailed`, `Linked`, `NotLinked`, `NeedsPermission`, `SaveFailed`,
-  `Unsupported` inchangés. Un flux séparé `SyncStatus(lastMerge, reviewCount, clockNote)` porte le reste.
+  `Unsupported` inchangés. Un flux séparé `SyncStatus(lastMerge, reviewCount, clockNote)` porte le reste (étape 5).
 - `LinkedStorage` : `overwrite()` ne sert plus qu'à `Unreadable` ; `readLinked()` et `acknowledge()` disparaissent (plus
-  d'« L'importer ») ; nouveaux `mergeNow()` et `mergeFile()` ; `openFile()` rend le contenu et l'interface demande
+  d'« L'importer ») ; nouveaux `mergeNow()` et `mergeFile()` (étape 5) ; `openFile()` rend le contenu et l'interface demande
   « Fusionner » ou « Remplacer ».
 - Le web (`WebLinkedStorage`) suit le même contrat : `linkRead` avant `linkWrite` à chaque passe, la minuterie ne tourne que
   l'onglet visible ; l'instantané de l'OPFS (`kairos.json`) reste la persistance complète du navigateur et ne se fusionne
   jamais (seul le fichier lié se fusionne).
 - Android : aucune permission de plus ; la fusion tourne au premier plan seulement (pas de `WorkManager`, pas d'alarme).
+
+#### Précisions de l'implémentation (étape 4)
+
+- **Une passe commune** (`ui/app/LinkedMerge.kt`) pour le bureau, Android et le web : elle reçoit le texte lu et rend
+  `Done(write, seenHash, outcome)`, `Confirm(summary)`, `Retry`, `Unreadable(reason)` ou `BackupFailed` ; la lecture,
+  l'écriture et le verrou restent à l'appelant (`LinkedFileSync`, `WebLinkedStorage`). Elle active la synchronisation au premier
+  besoin (`enableSync`, puis le nom « Android · 3f9c » : nom de la plateforme et 4 caractères de l'identité ; « Windows »,
+  « macOS », « Linux » sur le bureau, « Web » dans le navigateur).
+- **Écrire ou non** : après une fusion, on compare la forme canonique de l'état d'ici (réparations comprises) à celle du
+  fichier lu (`Canonical.of`), plutôt que `outcome.writeNeeded` seul, qui ignore les réparations faites après la fusion ; une
+  écriture locale en attente (`dirty`) s'écrit toujours. Le signal `onChanged` qu'émet la fusion elle-même n'est pas une
+  écriture locale : le dépôt garde l'état publié (`mergedSnapshot`) et le fichier lié l'ignore (comparaison d'identité).
+- **Premier rapprochement** : le contexte de l'appareil ne connaît aucun autre appareil (identités réservées exclues) et le
+  fichier a été écrit par une autre identité. **« Annuler » délie** le fichier, qui reste tel quel : un état « lié mais en
+  attente » relancerait la question à chaque relecture. Pendant l'attente (et pendant `Unreadable`), ni les relectures ni les
+  écritures programmées n'agissent ; les modifications locales attendent la réponse.
+- **Ouvrir un fichier Kairos** : sur un appareil qui a des données à lui (`KairosRepository.hasOwnData` : un enregistrement de la
+  portée qui n'est pas un exemple resté tel que posé), dialogue « Fusionner » (recommandé), « Remplacer » (comme l'import :
+  sauvegarde `avant-import-…`, puis le fichier est la référence du lien) ou « Annuler » ; sur un appareil neuf, fusion directe.
+  Choisir « Fusionner » vaut confirmation : pas de second aperçu.
+- **Illisible** : trois lectures non décodables d'affilée → `Unreadable(NOT_READABLE)` ; `TOO_NEW` tout de suite ; une marque à
+  plus de 30 jours dans le futur → `Unreadable(CLOCK)` (rien n'est fusionné). Le bandeau propose « Réessayer », « Écraser »
+  (sauf `TOO_NEW` : écraser perdrait ce que cette version ne sait pas lire) et « Délier ».
+- **Sauvegarde avant fusion** : `avant-fusion-<date>.json` dans les sauvegardes de l'appareil, **une par heure au plus**
+  (sinon la rotation à 10 fichiers ne garderait que celles de fusions rapprochées) ; un échec de sauvegarde n'applique rien
+  (`WriteFailed` sur le bureau et Android, `SaveFailed` sur le web).
+- **Relecture** : `LinkedFileSync.setVisible` (bureau : fenêtre non réduite, `DesktopServices` la rend visible à l'ouverture ;
+  Android : `onResume` / `onStop`) lance une passe puis une toutes les `POLL_MS` ; `resume()` au retour du focus de la fenêtre.
+  Web : minuterie de `POLL_MS`, onglet visible seulement (`pageVisible`, `document.visibilityState`).
+- **Web** : l'instantané de l'OPFS est écrit au format 3 **avec l'état de synchronisation du navigateur** et rechargé par
+  `KairosRepository.restoreSynced` (identité, contexte, marques), sans quoi chaque rechargement de la page ferait un nouvel
+  appareil. Un instantané d'avant la 4.0 (format 1 ou 2) se recharge comme avant (`replaceAll`). « À revoir » n'est pas dans
+  l'instantané : le web la perd au rechargement (étape 7). La restauration depuis le fichier lié (données du navigateur
+  perdues) reste un remplacement (`replaceAll`), le fichier devenant la référence.
+- **Textes** : `sync_first_contact` (sans pluriel : « Tâches ici seulement : 12 · … »), `sync_open_title`, `sync_open_body`,
+  `sync_merge`, `sync_unreadable`, `sync_too_new`, `sync_clock`, six langues ; `linked_intro` dit la fusion ; retirés :
+  `linked_changed`, `linked_import`, `linked_import_confirm_body`, `linked_open_confirm_body`, `web_link_open_confirm_body`.
+- **Contrat** `LinkedStorage` : `adoptOpened(merge)`, `confirmMerge`, `cancelMerge`, `mergeNow`, `retry`, `overwrite` (fichier
+  illisible seulement) ; `readLinked`, `acknowledge` et l'état `Changed` sont retirés.
 
 ### Interface (`ui`)
 
@@ -686,8 +729,10 @@ Dans `data` : `SyncCodecTest` (formats 1, 2 et 3, octet pour octet sans synchron
 `SyncRepositoryTest` (entonnoir, rattrapage après arrêt, import = modifications locales, sauvegarde avant fusion, fiche ouverte
 pendant une fusion, `sync_review`), `SyncMigrationTest` (11 → 12 sans rien modifier), `SyncIsolationTest`.
 
-Dans `ui` et `desktopApp` : `LinkedFileSyncTest` (étendu : minuterie, premier rapprochement, `Unreadable`, pas de ping-pong,
-écritures simultanées), `SyncUiTest` (aperçu, « À revoir », bandeau, fusion manuelle, 360 dp), `LearnedDurationsSyncTest`.
+Dans `ui` et `desktopApp` : `LinkedFileSyncTest` (livré à l'étape 4 : deux appareils réels autour d'un même fichier,
+convergence, pas de ping-pong, suppression propagée, premier rapprochement confirmé ou annulé, `Unreadable`, `TOO_NEW`, échec
+d'écriture, « Remplacer »), `LinkedFileUiTest` (bandeau du premier rapprochement, « Fusionner » / « Remplacer » à l'ouverture),
+`SyncSummaryTest` (`core`), `SyncUiTest` (aperçu, « À revoir », bandeau, fusion manuelle, 360 dp), `LearnedDurationsSyncTest`.
 
 ### Décisions et alternatives écartées
 
@@ -757,7 +802,7 @@ Dans `ui` et `desktopApp` : `LinkedFileSyncTest` (étendu : minuterie, premier r
 - `export-import.md` : format 3 (`sync`, `uid`, marques), `FORMAT_VERSION` = 3, lecture 1 à 3 ; « Fichier lié » : la garde
   `Changed` et « L'importer » remplacées par la fusion (états `NeedsConfirmation` et `Unreadable`, minuterie, `mergeNow`,
   `mergeFile`), « Ouvrir un fichier Kairos » propose « Fusionner » ; « Hors périmètre » (fusion, 4.0.0) ; carte Données.
-  (La seule modification faite maintenant : une phrase de renvoi vers cette spec.)
+  (Fait à l'étape 4 pour le fichier lié et « Ouvrir un fichier Kairos » ; le reste avec l'étape 5.)
 - `modele-donnees.md` : schéma 13 et ses tables `sync_*`, marqueur, `replaceAll(snapshot, uids)`, entonnoir de réconciliation ;
   « Hors périmètre » : la synchronisation n'en est plus.
 - `connexions-externes.md` : `uid` déterministes des calendriers, créneaux, journées ; « réimporter » vu comme une suppression

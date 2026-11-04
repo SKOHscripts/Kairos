@@ -55,21 +55,26 @@ object DesktopServices {
         val clock = Clock.System
         val language = Locale.getDefault().language
         val opened = KairosStore.open(JdbcSqliteDriver(url))
-        // Fichier lié (docs/spec/export-import.md § Fichier lié du bureau et d'Android) : branché sur chaque nouvel état.
-        val linked = LinkedFileSync(DesktopLinkedFile(dataDir), CoroutineScope(SupervisorJob() + Dispatchers.IO), clock)
+        val backups = FolderBackups(File(dataDir, "backups"))
+        // Fichier lié (docs/spec/synchronisation.md § Fichier lié : cycle) : branché sur chaque nouvel état, fusionné à chaque lecture.
+        val linked = LinkedFileSync(DesktopLinkedFile(dataDir), CoroutineScope(SupervisorJob() + Dispatchers.IO), clock, osLabel(), backups)
         val repository = KairosRepository.open(
             opened,
             examples = { ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language) },
             clock = clock,
             onChanged = { linked.changed(it) },
         )
-        linked.start(repository.snapshot.value)
-        if (!inMemory) current = linked
+        // L'auto-test (base en mémoire) ne lit ni n'écrit jamais le fichier lié d'un utilisateur.
+        if (!inMemory) {
+            linked.start(repository)
+            linked.setVisible(true)
+            current = linked
+        }
         diagnostics?.log("db.open ${if (opened.created) "created" else "schema ${KairosDatabase.Schema.version}"} tasks=${repository.snapshot.value.tasks.size}")
         AppServices(
             repository = repository,
             files = DialogFiles,
-            backups = FolderBackups(File(dataDir, "backups")),
+            backups = backups,
             dataLocation = dataDir.absolutePath,
             clock = clock,
             notifier = notifier,
@@ -98,6 +103,16 @@ object DesktopServices {
     @Volatile
     var current: LinkedFileSync? = null
         private set
+}
+
+/** Le nom de la plateforme dans le nom de l'appareil (« Windows · 3f9c »). */
+private fun osLabel(): String {
+    val os = System.getProperty("os.name").orEmpty().lowercase()
+    return when {
+        "win" in os -> "Windows"
+        "mac" in os -> "macOS"
+        else -> "Linux"
+    }
 }
 
 /** Boîtes de dialogue AWT natives (Windows, macOS ; GTK sous Linux). */

@@ -140,16 +140,18 @@
     <string name="web_reauthorize">Kairos non ha più il permesso di scrivere in «%1$s». Consenti l’accesso per continuare a salvare lì.</string>
     <string name="web_authorize">Consenti l’accesso</string>
     <string name="web_save_failed">Il salvataggio nel browser non è riuscito: %1$s. Esporta i tuoi dati.</string>
-    <string name="web_link_open_confirm_body">I dati di questo browser saranno sostituiti da quelli di «%1$s», che poi verrà tenuto aggiornato.</string>
-    <string name="linked_intro">Kairos può tenere aggiornata una copia dei tuoi dati in un file a tua scelta, per esempio in una cartella Syncthing o Nextcloud. Si apre ovunque con Importa.</string>
+    <string name="linked_intro">Kairos può tenere aggiornata una copia dei tuoi dati in un file a tua scelta, per esempio in una cartella Syncthing o Nextcloud. Ogni dispositivo che lo apre lo unisce ai propri dati.</string>
     <string name="linked_unlink">Scollega</string>
-    <string name="linked_changed">Il file collegato «%1$s» è stato modificato altrove (un altro dispositivo?). Kairos non ci scrive più finché non scegli.</string>
     <string name="linked_overwrite">Sovrascrivi</string>
-    <string name="linked_import">Importalo</string>
     <string name="linked_write_failed">Kairos non riesce più a scrivere in «%1$s»; i tuoi dati sono al sicuro in Kairos.</string>
     <string name="linked_retry">Riprova</string>
-    <string name="linked_open_confirm_body">I dati di questo dispositivo saranno sostituiti da quelli di «%1$s», che poi verrà tenuto aggiornato. Subito prima viene fatto un backup.</string>
-    <string name="linked_import_confirm_body">I dati di questo dispositivo saranno sostituiti da quelli di «%1$s», modificato altrove. Subito prima viene fatto un backup.</string>
+    <string name="sync_open_title">Apri «%1$s»</string>
+    <string name="sync_open_body">Questo dispositivo ha già dei dati. Unisci conserva tutto ciò che esiste da entrambe le parti (consigliato). Sostituisci mette al loro posto i dati del file, dopo un backup automatico.</string>
+    <string name="sync_merge">Unisci</string>
+    <string name="sync_first_contact">«%1$s» è stato scritto da un altro dispositivo. Unire conserva tutto ciò che esiste da entrambe le parti. Attività solo qui: %2$d · solo nel file: %3$d · diverse: %4$d. Altri elementi: %5$d.</string>
+    <string name="sync_unreadable">Il file collegato «%1$s» non è leggibile. Kairos non ci scrive più finché resta così.</string>
+    <string name="sync_too_new">«%1$s» viene da una versione più recente di Kairos: aggiorna l’app. Fino ad allora Kairos non ci scrive.</string>
+    <string name="sync_clock">«%1$s» porta una data a più di 30 giorni nel futuro: controlla l’orologio del dispositivo che l’ha scritto. Non viene unito nulla.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Cattura</string>

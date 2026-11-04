@@ -140,16 +140,18 @@
     <string name="web_reauthorize">Kairos больше не может записывать в «%1$s». Разреши доступ, чтобы продолжить сохранение туда.</string>
     <string name="web_authorize">Разрешить доступ</string>
     <string name="web_save_failed">Не удалось сохранить в браузере: %1$s. Экспортируй свои данные.</string>
-    <string name="web_link_open_confirm_body">Данные в этом браузере будут заменены данными из «%1$s», после чего файл будет поддерживаться в актуальном состоянии.</string>
-    <string name="linked_intro">Kairos может поддерживать актуальную копию твоих данных в выбранном тобой файле, например в папке Syncthing или Nextcloud. Ее можно открыть где угодно через Импорт.</string>
+    <string name="linked_intro">Kairos может поддерживать актуальную копию твоих данных в выбранном тобой файле, например в папке Syncthing или Nextcloud. Каждое устройство, которое его открывает, объединяет его со своими данными.</string>
     <string name="linked_unlink">Отвязать</string>
-    <string name="linked_changed">Связанный файл «%1$s» был изменен в другом месте (на другом устройстве?). Kairos больше не пишет в него, пока ты не сделаешь выбор.</string>
     <string name="linked_overwrite">Перезаписать</string>
-    <string name="linked_import">Импортировать</string>
     <string name="linked_write_failed">Kairos больше не может писать в «%1$s»; твои данные в безопасности в Kairos.</string>
     <string name="linked_retry">Повторить</string>
-    <string name="linked_open_confirm_body">Данные на этом устройстве будут заменены данными из «%1$s», после чего файл будет поддерживаться в актуальном состоянии. Непосредственно перед этим создается резервная копия.</string>
-    <string name="linked_import_confirm_body">Данные на этом устройстве будут заменены данными из «%1$s», измененного в другом месте. Непосредственно перед этим создается резервная копия.</string>
+    <string name="sync_open_title">Открыть «%1$s»</string>
+    <string name="sync_open_body">На этом устройстве уже есть данные. Объединить — сохранить всё, что есть с обеих сторон (рекомендуется). Заменить — поставить на их место данные файла после автоматической резервной копии.</string>
+    <string name="sync_merge">Объединить</string>
+    <string name="sync_first_contact">«%1$s» записан другим устройством. Объединение сохраняет всё, что есть с обеих сторон. Задач только здесь: %2$d · только в файле: %3$d · различающихся: %4$d. Других элементов: %5$d.</string>
+    <string name="sync_unreadable">Связанный файл «%1$s» не читается. Kairos не пишет в него, пока это так.</string>
+    <string name="sync_too_new">«%1$s» создан более новой версией Kairos: обнови приложение. До тех пор Kairos в него не пишет.</string>
+    <string name="sync_clock">В «%1$s» есть дата более чем на 30 дней в будущем: проверь часы устройства, которое его записало. Ничего не объединяется.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Запись</string>

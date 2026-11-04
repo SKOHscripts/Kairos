@@ -132,6 +132,13 @@ class KairosRepository(
     /** La dernière fusion qui a changé quelque chose ici (carte Données). */
     val lastMerge: StateFlow<LastMerge?> = lastMergeState.asStateFlow()
 
+    /**
+     * L'état publié par la dernière fusion : le fichier lié reconnaît ainsi le signal `onChanged` qu'elle émet et ne le prend pas
+     * pour une modification locale à écrire (docs/spec/synchronisation.md § Fichier lié : pas de ping-pong).
+     */
+    var mergedSnapshot: KairosSnapshot? = null
+        private set
+
     /** Relit la base et publie l'état (à l'ouverture) ; une base synchronisée est réconciliée en entier (rattrapage). */
     suspend fun load(): KairosSnapshot = mutex.withLock {
         val all = readAll()
@@ -1661,6 +1668,35 @@ class KairosRepository(
         d
     }
 
+    /**
+     * Version web (docs/spec/synchronisation.md § Fichier lié) : recharge l'instantané de l'OPFS **avec** l'état de
+     * synchronisation qu'il porte (identité, contexte, marques), écrit par ce navigateur. Sans lui, chaque rechargement de la
+     * page ferait de ce navigateur un nouvel appareil. Rien n'est signalé à `onChanged` (comme [load]).
+     */
+    suspend fun restoreSynced(synced: Synced) = mutex.withLock {
+        database.transaction {
+            replaceRows(synced.snapshot)
+            syncStore.clear()
+            syncStore.save(null, synced.data)
+        }
+        val all = readAll()
+        syncState.value = synced.data
+        reconcileAfter(previous = null, all = all)
+        refreshSyncExtras(all)
+        publish(all)
+    }
+
+    /**
+     * Cet appareil a des données à lui (docs/spec/synchronisation.md § Brancher un deuxième appareil) : un enregistrement de la
+     * portée qui n'est pas un exemple resté tel que posé. Faux pour une base neuve, qui reçoit un fichier sans qu'on demande.
+     */
+    suspend fun hasOwnData(): Boolean {
+        val all = state.value
+        val d = syncState.value
+        val intact = if (d == null) examplePresets(all).second.size else d.marks.values.count { it.born == Stamp.ORIGIN }
+        return SyncScope.of(all).size > intact
+    }
+
     /** Renomme cet appareil (« Android · 3f9c »), tel qu'il apparaît dans « À revoir » sur les autres. */
     suspend fun renameDevice(label: String) = mutex.withLock {
         val d = syncState.value ?: return
@@ -1702,7 +1738,10 @@ class KairosRepository(
             publish(all)
             all to out
         }
-        if (!result.second.changes.isEmpty) onChanged(result.first)
+        if (!result.second.changes.isEmpty) {
+            mergedSnapshot = result.first
+            onChanged(result.first)
+        }
         return MergeResult.Applied(result.second)
     }
 

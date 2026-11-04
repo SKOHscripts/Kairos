@@ -141,16 +141,18 @@
     <string name="web_reauthorize">Kairos is no longer allowed to write to “%1$s”. Allow access to keep saving there.</string>
     <string name="web_authorize">Allow access</string>
     <string name="web_save_failed">Saving in the browser failed: %1$s. Export your data.</string>
-    <string name="web_link_open_confirm_body">The data in this browser will be replaced by that of “%1$s”, which will then be kept up to date.</string>
-    <string name="linked_intro">Kairos can keep an up-to-date copy of your data in a file of your choice, for example in a Syncthing or Nextcloud folder. It opens anywhere with Import.</string>
+    <string name="linked_intro">Kairos can keep an up-to-date copy of your data in a file of your choice, for example in a Syncthing or Nextcloud folder. Each device that opens it merges it with its own data.</string>
     <string name="linked_unlink">Unlink</string>
-    <string name="linked_changed">The linked file “%1$s” was changed elsewhere (another device?). Kairos no longer writes to it until you choose.</string>
     <string name="linked_overwrite">Overwrite</string>
-    <string name="linked_import">Import it</string>
     <string name="linked_write_failed">Kairos can no longer write to “%1$s”; your data is safe in Kairos.</string>
     <string name="linked_retry">Retry</string>
-    <string name="linked_open_confirm_body">The data on this device will be replaced by that of “%1$s”, which will then be kept up to date. A backup is made just before.</string>
-    <string name="linked_import_confirm_body">The data on this device will be replaced by that of “%1$s”, changed elsewhere. A backup is made just before.</string>
+    <string name="sync_open_title">Open “%1$s”</string>
+    <string name="sync_open_body">This device already has data. Merge keeps everything that exists on both sides (recommended). Replace puts the file’s data in its place, after an automatic backup.</string>
+    <string name="sync_merge">Merge</string>
+    <string name="sync_first_contact">“%1$s” was written by another device. Merging keeps everything that exists on both sides. Tasks only here: %2$d · only in the file: %3$d · different: %4$d. Other items: %5$d.</string>
+    <string name="sync_unreadable">The linked file “%1$s” cannot be read. Kairos no longer writes to it while it stays that way.</string>
+    <string name="sync_too_new">“%1$s” comes from a newer version of Kairos: update the app. Kairos does not write to it until then.</string>
+    <string name="sync_clock">“%1$s” carries a date more than 30 days in the future: check the clock of the device that wrote it. Nothing is merged.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Capture</string>

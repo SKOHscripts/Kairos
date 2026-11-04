@@ -140,16 +140,18 @@
     <string name="web_reauthorize">Kairos ya no tiene permiso para escribir en «%1$s». Permite el acceso para seguir guardando allí.</string>
     <string name="web_authorize">Permitir el acceso</string>
     <string name="web_save_failed">Falló el guardado en el navegador: %1$s. Exporta tus datos.</string>
-    <string name="web_link_open_confirm_body">Los datos de este navegador se reemplazarán por los de «%1$s», que después se mantendrá actualizado.</string>
-    <string name="linked_intro">Kairos puede mantener al día una copia de tus datos en un archivo de tu elección, por ejemplo en una carpeta de Syncthing o Nextcloud. Se abre en cualquier parte con Importar.</string>
+    <string name="linked_intro">Kairos puede mantener al día una copia de tus datos en un archivo de tu elección, por ejemplo en una carpeta de Syncthing o Nextcloud. Cada dispositivo que lo abre lo fusiona con sus datos.</string>
     <string name="linked_unlink">Desvincular</string>
-    <string name="linked_changed">El archivo vinculado «%1$s» se modificó en otro lugar (¿otro dispositivo?). Kairos no vuelve a escribir en él hasta que elijas.</string>
     <string name="linked_overwrite">Sobrescribir</string>
-    <string name="linked_import">Importarlo</string>
     <string name="linked_write_failed">Kairos ya no puede escribir en «%1$s»; tus datos están a salvo en Kairos.</string>
     <string name="linked_retry">Reintentar</string>
-    <string name="linked_open_confirm_body">Los datos de este dispositivo se reemplazarán por los de «%1$s», que después se mantendrá actualizado. Justo antes se hace una copia de seguridad.</string>
-    <string name="linked_import_confirm_body">Los datos de este dispositivo se reemplazarán por los de «%1$s», modificado en otro lugar. Justo antes se hace una copia de seguridad.</string>
+    <string name="sync_open_title">Abrir «%1$s»</string>
+    <string name="sync_open_body">Este dispositivo ya tiene datos. Fusionar conserva todo lo que existe en ambos lados (recomendado). Reemplazar pone en su lugar los datos del archivo, tras una copia de seguridad automática.</string>
+    <string name="sync_merge">Fusionar</string>
+    <string name="sync_first_contact">«%1$s» lo escribió otro dispositivo. Fusionar conserva todo lo que existe en ambos lados. Tareas solo aquí: %2$d · solo en el archivo: %3$d · distintas: %4$d. Otros elementos: %5$d.</string>
+    <string name="sync_unreadable">El archivo vinculado «%1$s» no se puede leer. Kairos ya no escribe en él mientras siga así.</string>
+    <string name="sync_too_new">«%1$s» viene de una versión más reciente de Kairos: actualiza la aplicación. Hasta entonces, Kairos no escribe en él.</string>
+    <string name="sync_clock">«%1$s» lleva una fecha a más de 30 días en el futuro: revisa el reloj del dispositivo que lo escribió. No se fusiona nada.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Capturar</string>

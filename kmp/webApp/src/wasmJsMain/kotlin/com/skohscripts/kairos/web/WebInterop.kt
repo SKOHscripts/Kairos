@@ -33,3 +33,8 @@ external object KairosWeb : JsAny {
     fun beep()
     fun setLanguage(language: String)
 }
+
+/** L'onglet est visible : le fichier lié n'est relu que dans ce cas (docs/spec/synchronisation.md § Fichier lié : cycle). */
+@OptIn(ExperimentalWasmJsInterop::class)
+@JsFun("() => document.visibilityState === 'visible'")
+external fun pageVisible(): Boolean

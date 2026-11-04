@@ -36,12 +36,14 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
 /**
  * Fichier lié du bureau (issue #137, docs/spec/export-import.md § Fichier lié du bureau et d'Android) : proposé dans la
- * carte Données seulement, « Créer un fichier », « Délier » ; un fichier modifié ailleurs met un bandeau dans la vue Jour,
- * et « L'importer » remplace les données après une sauvegarde.
+ * carte Données seulement, « Créer un fichier », « Délier » ; un fichier écrit par un autre appareil met un bandeau dans la
+ * vue Jour et se fusionne après confirmation (docs/spec/synchronisation.md § Premier rapprochement) ; ouvrir un fichier sur
+ * un appareil qui a des données propose « Fusionner » ou « Remplacer ».
  */
 @OptIn(ExperimentalTestApi::class)
 class LinkedFileUiTest {
@@ -76,14 +78,15 @@ class LinkedFileUiTest {
     private val backups = mutableMapOf<String, String>()
 
     private fun setUp(io: FakeIo): Pair<AppServices, LinkedFileSync> = runBlocking {
-        val sync = LinkedFileSync(io, CoroutineScope(SupervisorJob() + Dispatchers.Default), clock)
+        val store = BackupStore { name, text -> backups[name] = text }
+        val sync = LinkedFileSync(io, CoroutineScope(SupervisorJob() + Dispatchers.Default), clock, "Test", store)
         val repo = KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock, onChanged = { sync.changed(it) })
-        sync.start(repo.snapshot.value)
+        sync.start(repo)
         val files = object : FileService {
             override suspend fun saveText(suggestedName: String, text: String) = true
             override suspend fun openText(): String? = null
         }
-        AppServices(repo, files, BackupStore { name, text -> backups[name] = text }, linkedStorage = sync, clock = clock) to sync
+        AppServices(repo, files, store, linkedStorage = sync, clock = clock) to sync
     }
 
     private fun ComposeUiTest.waitText(text: String, substring: Boolean = false) =
@@ -108,25 +111,69 @@ class LinkedFileUiTest {
         assertEquals(LinkedFileState.NotLinked, sync.state.value)
     }
 
+    /**
+     * Le fichier d'un autre appareil d'avant la 4.0 (format 1) : deux tâches, créées une heure plus tôt (sinon la tâche 1 des deux
+     * appareils, née à la même milliseconde, aurait le même `uid` de migration).
+     */
+    private suspend fun otherDevicesFile(): String {
+        val earlier = object : Clock {
+            override fun now() = now - 1.hours
+        }
+        val other = KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, earlier)
+        other.createTask("Venue d'ailleurs")
+        other.createTask("Elle aussi")
+        return ExportCodec.encode(other.snapshot.value, "3.10.0", now)
+    }
+
     @Test
-    fun aFileChangedElsewhereShowsABannerAndCanBeImported() = runComposeUiTest {
+    fun aFileWrittenByAnotherDeviceAsksBeforeMergingThenKeepsBothSides() = runComposeUiTest {
         val io = FakeIo()
         val (services, sync) = setUp(io)
         runBlocking {
-            sync.createFile()
-            // Un autre appareil a écrit le fichier : deux tâches.
-            val other = KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock)
-            other.createTask("Venue d'ailleurs")
-            other.createTask("Elle aussi")
-            io.files["/sync/kairos.json"] = ExportCodec.encode(other.snapshot.value, "3.10.0", now)
             services.repository.createTask("Locale")
-            sync.flush()
+            sync.createFile()
+            io.files["/sync/kairos.json"] = otherDevicesFile()
+            sync.mergeNow()
         }
-        assertEquals(LinkedFileState.Changed("kairos.json"), sync.state.value)
+        assertTrue(sync.state.value is LinkedFileState.NeedsConfirmation)
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
-        waitText("was changed elsewhere", substring = true)
-        onNodeWithText("Import it").performScrollTo().performClick()
-        waitText("Replace all data?", substring = true)
+        waitText("was written by another device", substring = true)
+        waitText("Tasks only here: 1 · only in the file: 2 · different: 0", substring = true)
+        onNodeWithText("Merge").performScrollTo().performClick()
+        waitUntil(timeoutMillis = 10_000) { services.repository.snapshot.value.tasks.map { it.title }.toSet() == setOf("Locale", "Venue d'ailleurs", "Elle aussi") }
+        waitUntil(timeoutMillis = 10_000) { sync.state.value == LinkedFileState.Linked("kairos.json") }
+        // Le fichier a reçu la tâche d'ici, au format synchronisé.
+        assertEquals(3, ExportCodec.decodeSynced(io.files.getValue("/sync/kairos.json")).snapshot.tasks.size)
+    }
+
+    @Test
+    fun openingAFileOnADeviceWithDataOffersMergeOrReplace() = runComposeUiTest {
+        val io = FakeIo()
+        val (services, _) = setUp(io)
+        runBlocking {
+            services.repository.createTask("Locale")
+            io.files["/sync/kairos.json"] = otherDevicesFile()
+        }
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        openSettings(SettingsCategory.DATA)
+        onNodeWithText("Open a Kairos file").performScrollTo().performClick()
+        waitText("Open “kairos.json”")
+        onAllNodesWithText("Merge").onLast().performClick()
+        waitUntil(timeoutMillis = 10_000) { services.repository.snapshot.value.tasks.map { it.title }.toSet() == setOf("Locale", "Venue d'ailleurs", "Elle aussi") }
+    }
+
+    @Test
+    fun replacingWithAnOpenedFileBacksUpFirst() = runComposeUiTest {
+        val io = FakeIo()
+        val (services, sync) = setUp(io)
+        runBlocking {
+            services.repository.createTask("Locale")
+            io.files["/sync/kairos.json"] = otherDevicesFile()
+        }
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        openSettings(SettingsCategory.DATA)
+        onNodeWithText("Open a Kairos file").performScrollTo().performClick()
+        waitText("Open “kairos.json”")
         onAllNodesWithText("Replace").onLast().performClick()
         waitUntil(timeoutMillis = 10_000) { services.repository.snapshot.value.tasks.map { it.title }.toSet() == setOf("Venue d'ailleurs", "Elle aussi") }
         waitUntil(timeoutMillis = 10_000) { sync.state.value == LinkedFileState.Linked("kairos.json") }

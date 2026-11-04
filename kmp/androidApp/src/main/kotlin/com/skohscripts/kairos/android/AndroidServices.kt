@@ -47,14 +47,16 @@ object AndroidServices {
         val driver = AndroidSqliteDriver(DeferredSchema, context, DATABASE_NAME)
         val opened = KairosStore.open(driver)
         val examples = { ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language) }
-        // Fichier lié (docs/spec/export-import.md § Fichier lié du bureau et d'Android) : branché sur chaque nouvel état.
-        val linked = LinkedFileSync(AndroidLinkedFile(context), KairosProcess.scope, clock)
+        val backups = FolderBackups(File(context.filesDir, "backups"))
+        // Fichier lié (docs/spec/synchronisation.md § Fichier lié : cycle) : branché sur chaque nouvel état, fusionné à chaque
+        // lecture ; relu au premier plan seulement (`MainActivity`), sans travail en arrière-plan.
+        val linked = LinkedFileSync(AndroidLinkedFile(context), KairosProcess.scope, clock, "Android", backups)
         val repository = KairosRepository.open(opened, examples = examples, clock = clock, onChanged = { linked.changed(it) })
-        linked.start(repository.snapshot.value)
+        linked.start(repository)
         AppServices(
             repository = repository,
             files = files,
-            backups = FolderBackups(File(context.filesDir, "backups")),
+            backups = backups,
             dataLocation = null,
             linkedStorage = linked,
             // Calendriers du téléphone (docs/spec/connexions-externes.md § Android) : lus en direct, jamais stockés.

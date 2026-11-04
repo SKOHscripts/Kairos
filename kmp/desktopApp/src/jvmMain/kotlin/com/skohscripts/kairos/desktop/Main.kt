@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
@@ -75,6 +76,17 @@ fun main(args: Array<String>) {
         ) {
             window.minimumSize = java.awt.Dimension(360, 480)
             val awtWindow: AwtWindow = window
+            // Fichier lié (docs/spec/synchronisation.md § Fichier lié : cycle) : relu au retour du focus, et toutes les minutes
+            // tant que la fenêtre n'est pas réduite.
+            DisposableEffect(awtWindow) {
+                val listener = object : java.awt.event.WindowAdapter() {
+                    override fun windowIconified(e: java.awt.event.WindowEvent) { DesktopServices.current?.setVisible(false) }
+                    override fun windowDeiconified(e: java.awt.event.WindowEvent) { DesktopServices.current?.setVisible(true) }
+                    override fun windowActivated(e: java.awt.event.WindowEvent) { DesktopServices.current?.resume() }
+                }
+                awtWindow.addWindowListener(listener)
+                onDispose { awtWindow.removeWindowListener(listener) }
+            }
             instance.watchActivations {
                 SwingUtilities.invokeLater {
                     if (state.isMinimized) state.isMinimized = false
