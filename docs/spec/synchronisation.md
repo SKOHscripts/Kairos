@@ -261,6 +261,8 @@ Pur. Une seule définition, utilisée par la réconciliation, la fusion et l'exp
   saisies, créneaux saisis, notes, sessions de travail.
 - **Déterministe** quand deux appareils peuvent créer « la même chose » chacun de leur côté, pour que la fusion les confonde :
   - occurrence suivante d'une récurrente terminée : `next:<uid de la tâche terminée>` ;
+  - tâche née de la conversion d'une note : `conv:<uid de la note>` (QA du 2026-11-04 : la même note convertie sur deux
+    appareils avant qu'ils se voient donnait deux tâches ; `SyncRepositoryTest.aNoteConvertedOnTwoDevicesGivesOneTask`) ;
   - occurrence « le N du mois » : `cal:<uid de la série>:<AAAA-MM>` ;
   - calendrier importé : `cal:<nom en minuscules, espaces retirés>` (l'identité d'un calendrier est son nom, `connexions-externes.md`) ;
     créneau importé : `ics:<uid du calendrier>:<UID iCalendar>:<début>` ; journée entière : `mark:<uid du calendrier>:<UID>:<début>` ;

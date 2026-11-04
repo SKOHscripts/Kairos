@@ -231,13 +231,18 @@ object SyncReconcile {
             if (kind == RecordKind.TASK) for (id in softTargets(scoped, data)) known[id]?.let { m[id] = it; taken += it }
             val fresh = ids.filter { it !in m }.sorted()
             if (kind == RecordKind.TASK) {
-                // Deux passes : les tâches ordinaires d'abord, puis celles dont l'uid dérive d'une autre (série, terminée).
+                // Deux passes : les tâches ordinaires d'abord, puis celles dont l'uid dérive d'une autre (série, terminée) ou de
+                // la note qu'elles convertissent : `conv:<uid de la note>`, pour qu'une note convertie sur deux appareils avant
+                // qu'ils se voient donne **une** tâche (QA du 2026-11-04).
                 val byId = scoped.tasks.associateBy { it.id }
-                val derived = fresh.filter { byId.getValue(it).let(::mayDerive) }
+                val noteUids = data.uids[RecordKind.NOTE].orEmpty()
+                val convertedFrom = scoped.notes.mapNotNull { n -> n.convertedTaskId?.let { t -> noteUids[n.id]?.let { t to it } } }.toMap()
+                val derived = fresh.filter { it in convertedFrom || byId.getValue(it).let(::mayDerive) }
                 for (id in fresh - derived.toSet()) m[id] = newUid().also { taken += it }
                 out[kind] = m
                 for (id in derived) {
-                    val candidate = taskUid(byId.getValue(id), scoped, previous) { tid -> m[tid] }
+                    val candidate = convertedFrom[id]?.let { bounded("conv:$it") }
+                        ?: taskUid(byId.getValue(id), scoped, previous) { tid -> m[tid] }
                     m[id] = candidate?.takeIf { it !in taken } ?: newUid()
                     taken += m.getValue(id)
                 }

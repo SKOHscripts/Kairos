@@ -101,4 +101,13 @@ class ScheduleTest {
         val withEmpty = Scheduling.buildDaySchedule(tasks, emptyList(), monday, null, Settings(schedule = ScheduleSettings()))
         assertEquals(plain, withEmpty)
     }
+
+    @Test
+    fun aNonPositiveEstimateIsNotExplicit() {
+        // QA du 2026-11-04 : -30 donnait une durée de placement négative ; seule une estimation positive est explicite.
+        val s = Settings()
+        assertEquals(s.defaultTaskDurationMinutes, Scheduling.durationMinutes(task(1).copy(estimatedMinutes = -30), s))
+        assertEquals(s.defaultTaskDurationMinutes, Scheduling.durationMinutes(task(1).copy(estimatedMinutes = 0), s))
+        assertEquals(45, Scheduling.durationMinutes(task(1).copy(estimatedMinutes = -30), s, mapOf(1L to 45)))
+    }
 }

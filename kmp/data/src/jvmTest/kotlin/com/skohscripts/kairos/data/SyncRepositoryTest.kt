@@ -338,4 +338,18 @@ class SyncRepositoryTest {
         // Sans synchronisation, rien à garder.
         assertNull(open().exportSyncExtras())
     }
+
+    @Test
+    fun aNoteConvertedOnTwoDevicesGivesOneTask() = runTest {
+        // QA du 2026-11-04 : la même note convertie des deux côtés avant échange donnait deux tâches.
+        val (a, b) = pair()
+        a.createNote("Appeler le notaire")
+        b.pull(a)
+        a.convertNote(a.snapshot.value.notes.single().id)
+        b.convertNote(b.snapshot.value.notes.single().id)
+        a.pull(b)
+        b.pull(a)
+        a.pull(b)
+        for (r in listOf(a, b)) assertEquals(1, r.snapshot.value.tasks.count { it.title == "Appeler le notaire" })
+    }
 }
