@@ -152,6 +152,7 @@
     <string name="sync_unreadable">Die verknüpfte Datei „%1$s“ ist nicht lesbar. Kairos schreibt nicht mehr hinein, solange das so bleibt.</string>
     <string name="sync_too_new">„%1$s“ stammt aus einer neueren Version von Kairos: Aktualisiere die App. Bis dahin schreibt Kairos nicht hinein.</string>
     <string name="sync_clock">„%1$s“ trägt ein Datum mehr als 30 Tage in der Zukunft: Prüfe die Uhr des Geräts, das sie geschrieben hat. Nichts wird zusammengeführt.</string>
+    <string name="sync_clock_ahead">Ein Gerät hat die Datei mit einer Uhr geschrieben, die mehr als einen Tag vorgeht: Prüfe sein Datum und seine Uhrzeit, sonst setzen sich seine Änderungen weiter durch.</string>
     <string name="sync_status">Kairos führt diese Datei bei jeder Änderung mit deinen Daten zusammen.</string>
     <string name="sync_last_merge">Letzte Zusammenführung: %1$s um %2$s. Hinzugefügt: %3$d · geändert: %4$d · entfernt: %5$d.</string>
     <string name="sync_device">Dieses Gerät: %1$s</string>

@@ -33,8 +33,10 @@ relecture au premier plan et chaque minute ; dépôt `restoreSynced`, `hasOwnDat
 aperçu, message après une fusion), fiche ouverte pendant une fusion (`EditBase`), carte du guide `sync`, README ; tests
 `SyncUiTest`, `SyncRepositoryTest.formOpenedDuringMergeKeepsMergedFields` (voir « Précisions de l'implémentation (étape 5) »).
 **Étape 6 livrée** (#100) : ordre commun des occurrences (`SyncOrder`, `KairosSnapshot.sampleOrder`, `Sample.order`) pour les
-durées apprises et le modèle ; test `LearnedDurationsSyncTest` (voir « Durées apprises partagées » § Implémentation). Reste
-l'étape 7 (robustesse). La moitié « écriture » de #88, le fichier lié et sa garde
+durées apprises et le modèle ; test `LearnedDurationsSyncTest` (voir « Durées apprises partagées » § Implémentation).
+**Étape 7 livrée** (robustesse) : « Remplacer » et « Importer » reprennent les identités du fichier, note d'horloge en avance
+(`Drift.ahead`), « À revoir » gardée par le web, borne de taille du fichier lié, test de vitesse insensible à la charge (voir
+« Précisions de l'implémentation (étape 7) »). La moitié « écriture » de #88, le fichier lié et sa garde
 contre une modification faite ailleurs, est **implémentée en 3.10.0** (`export-import.md`) : cette spec la remplace.
 
 ## 1. Besoin métier (cahier des charges)
@@ -183,8 +185,8 @@ Chacun est prouvé par un test (à créer ; nom entre parenthèses).
 - **Sauvegarde avant fusion qui modifie ou supprime** ; sans elle, la fusion n'a pas lieu (`SyncRepositoryTest`).
 - **Durées apprises identiques sur les deux appareils après fusion** (`LearnedDurationsSyncTest`, voir la dernière section).
 - **Performances** : fusion de 5 000 tâches de chaque côté en moins de 1 s sur le bureau, hors du fil d'interface ;
-  réconciliation après une écriture d'un seul élément en moins de 20 ms sur 5 000 tâches (`SnapshotMergeTest`,
-  `SyncReconcileTest`).
+  réconciliation après une écriture d'un seul élément au moins deux fois plus rapide qu'un rattrapage complet, et sous 200 ms,
+  sur 5 000 tâches (`SnapshotMergeTest`, `SyncReconcileTest` ; seuil relatif depuis l'étape 7).
 - Textes dans les six langues (`StringsParityTest`) ; 360 dp sans débordement, cibles de 48 dp (captures `sync-*` de
   l'auto-test). Vérifié à la main (ce que la CI ne voit pas) : deux appareils réels avec Syncthing, avec Nextcloud
   (fournisseur de documents d'Android), copie en conflit, et le web dans Edge ou Chrome (sélecteurs du navigateur, que
@@ -376,7 +378,7 @@ Pur et idempotent (une seconde passe ne change rien). Pour chaque enregistrement
   l'horloge démarre au plus grand de ces instants et de l'heure courante, et `seen[device]` vaut cette horloge.
 - **Coût d'une passe** : avec `previous`, seuls les enregistrements dont le modèle a changé, ou qui référencent un
   enregistrement entré ou sorti de la portée, sont levés et hachés : 5,6 ms pour une écriture sur 5 000 tâches (bureau, à
-  chaud ; borne du test : 20 ms).
+  chaud ; le test compare depuis l'étape 7 l'écriture au rattrapage complet, voir « Précisions (étape 7) »).
 
 ### Fusion (`SnapshotMerge`, pure, dans `core`)
 
@@ -642,8 +644,8 @@ est visible (lecture et empreinte seulement ; on ne décode que si l'empreinte a
 - **Web** : l'instantané de l'OPFS est écrit au format 3 **avec l'état de synchronisation du navigateur** et rechargé par
   `KairosRepository.restoreSynced` (identité, contexte, marques), sans quoi chaque rechargement de la page ferait un nouvel
   appareil. Un instantané d'avant la 4.0 (format 1 ou 2) se recharge comme avant (`replaceAll`). « À revoir » n'est pas dans
-  l'instantané : le web la perd au rechargement (étape 7). La restauration depuis le fichier lié (données du navigateur
-  perdues) reste un remplacement (`replaceAll`), le fichier devenant la référence.
+  l'instantané : depuis l'étape 7 elle a son propre fichier de l'OPFS. La restauration depuis le fichier lié (données du
+  navigateur perdues) reste un remplacement, le fichier devenant la référence, avec ses identités (étape 7).
 - **Textes** : `sync_first_contact` (sans pluriel : « Tâches ici seulement : 12 · … »), `sync_open_title`, `sync_open_body`,
   `sync_merge`, `sync_unreadable`, `sync_too_new`, `sync_clock`, six langues ; `linked_intro` dit la fusion ; retirés :
   `linked_changed`, `linked_import`, `linked_import_confirm_body`, `linked_open_confirm_body`, `web_link_open_confirm_body`.
@@ -715,10 +717,40 @@ Voir la skill `kairos-ecran` ; couleurs par rôles, aucun `Color(0x…)`.
   `make_icons.py`, cible Réglages → Données), donc dans « Nouveau dans cette version » ; le texte dit de mettre d'abord tous les
   appareils à jour. La carte `linked_file` dit désormais la fusion. README (anglais et français) : ligne « Nouveau en 4.0 »,
   puce « Synchronisation entre appareils », puce « Fichier lié » corrigée, ligne du tableau.
-- **Différé** (étape 7) : la note d'horloge en avance (`MergeOutcome.clockAhead`) et le flux `SyncStatus` ; la carte Données
-  n'affiche pas encore d'avertissement d'horloge.
+- **Note d'horloge** : ajoutée à l'étape 7 (dérivée, `Drift.ahead`) ; le flux `SyncStatus` prévu n'est pas créé : la carte lit
+  directement `lastMerge`, `syncReview` et le contexte.
 - **Captures** de l'auto-test : `desktop-sync-data[-narrow]`, `desktop-sync-review[-narrow]`, `desktop-sync-day-narrow` (deux
   bases d'exemple rapprochées, un conflit de priorité).
+
+#### Précisions de l'implémentation (étape 7)
+
+- **Doublons après « Remplacer » ou « Importer »** (défaut trouvé à la relecture) : remplacer les données d'une base
+  synchronisée par un fichier de format 3 leur donnait des identités de migration (`legacy:…`) au lieu de celles du fichier ;
+  un enregistrement créé ailleurs une fois la synchronisation active (`uid` aléatoire) revenait alors **en double** chez
+  l'autre appareil à la fusion suivante. Désormais : `ImportedFile.Full` et le choix « Remplacer » gardent les identités du
+  fichier (`decodeSynced(...).data.uids`, celles de migration pour un format 1 ou 2), `replaceWithBackup(…, uids)` les passe à
+  `replaceAll`, et `adoptOpened(merge = false)` active la synchronisation **avant** le remplacement (bureau, Android, web) ;
+  la restauration web depuis le fichier lié fait de même (`ensureSync` puis `replaceAll(snapshot, uids)`). Test
+  `LinkedFileSyncTest.replacingThenEditingNeverDuplicatesTheOtherDevicesData` (une note créée après l'activation : en double
+  avant la correction).
+- **Horloge en avance** : `Drift.ahead(data, maintenant)` (pur) dit si le contexte ou l'horloge de la base porte une marque à plus
+  de `WARN_MILLIS` (24 h) dans le futur ; la carte Données montre alors « Un appareil a écrit le fichier avec une horloge en
+  avance de plus d'un jour : vérifie sa date et son heure… » (icône `Warning` et texte, `sync_clock_ahead`, six langues).
+  **Dérivé, jamais stocké** : essayé d'abord dans `LastMerge`, la trace était réécrite par chaque fusion suivante (le fichier
+  garde la marque future) et masquait la vraie dernière fusion ; la note disparaît d'elle-même quand l'heure rattrape la marque.
+  Test `SyncRepositoryTest.aFileFromAClockAheadIsSeenUntilTimeCatchesUp`.
+- **« À revoir » sur le web** : `KairosRepository.exportSyncExtras()` / `importSyncExtras(texte)` (« À revoir » et la dernière
+  fusion, `SyncExtrasJson`), écrits par le navigateur dans `kairos-sync.json` de l'OPFS à chaque changement de la liste ou de la
+  dernière fusion, relus après `restoreSynced`. Locaux : jamais dans le fichier lié ni dans un export. Test
+  `SyncRepositoryTest.theWebReviewListSurvivesAReload`.
+- **Taille du fichier lié** : au-delà de `LinkedMerge.MAX_CHARS` (64 Mi caractères), le fichier n'est pas décodé :
+  `Unreadable(NOT_READABLE)`, rien n'est écrit (`LinkedFileSyncTest.anOversizedFileIsNeverDecoded`).
+- **Fils** : les drapeaux de `LinkedFileSync` lus depuis plusieurs fils (`link`, `dirty`, `visible`, `inPass`) sont
+  `@Volatile` (`kotlin.concurrent`, commun aux trois plateformes).
+- **Test de vitesse** : `SyncReconcileTest.aSingleWriteOnFiveThousandTasksIsFast` dépassait sa borne de 20 ms sous la charge de
+  la suite entière (33 et 35 ms), seul il passait (vérifié trois fois). Il compare désormais l'écriture incrémentale au
+  rattrapage complet, mesurés en alternance (même charge) : au moins deux fois plus rapide (environ trois fois mesuré : 4 à 5 ms
+  contre 14), avec un plafond absolu large de 200 ms contre une régression quadratique.
 
 ### Chrono et sessions (technique)
 

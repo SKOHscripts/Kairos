@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.app
 
+import com.skohscripts.kairos.core.sync.RecordKind
 import com.skohscripts.kairos.core.KairosBuild
 import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.data.ExportCodec
@@ -45,13 +46,21 @@ suspend fun saveBackup(services: AppServices, prefix: String, messages: (String)
 /**
  * Remplace toutes les données par [snapshot], après une sauvegarde des
  * données actuelles (`avant-import-…json`). Sans sauvegarde réussie, rien
- * n'est remplacé et le message d'erreur est affiché : `false`.
+ * n'est remplacé et le message d'erreur est affiché : `false`. [uids] : les
+ * identités de synchronisation du fichier (`ExportCodec.decodeSynced`) ; une
+ * base synchronisée les reprend, sans quoi un enregistrement créé ailleurs
+ * changerait d'identité et reviendrait en double à la fusion suivante.
  */
-suspend fun replaceWithBackup(services: AppServices, snapshot: KairosSnapshot, messages: (String) -> Unit): Boolean {
+suspend fun replaceWithBackup(
+    services: AppServices,
+    snapshot: KairosSnapshot,
+    messages: (String) -> Unit,
+    uids: Map<RecordKind, Map<Long, String>>? = null,
+): Boolean {
     if (!saveBackup(services, "avant-import", messages)) return false
     // Filet : une écriture refusée par la base (contrainte, disque) annule la transaction ; l'application le dit au
     // lieu de quitter sur l'erreur SQLite brute (constaté avant que l'import ne valide les identifiants).
-    if (runCatching { services.repository.replaceAll(snapshot) }.isFailure) {
+    if (runCatching { services.repository.replaceAll(snapshot, uids) }.isFailure) {
         services.diagnostics?.log("import full failed")
         messages(getString(Res.string.file_error))
         return false

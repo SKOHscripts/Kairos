@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.skohscripts.kairos.core.sync.Drift
 import com.skohscripts.kairos.core.sync.MergeOutcome
 import com.skohscripts.kairos.core.sync.RecordKind
 import com.skohscripts.kairos.core.sync.SnapshotMerge
@@ -64,6 +65,7 @@ import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.generated.resources.file_error
 import com.skohscripts.kairos.ui.generated.resources.points_label
 import com.skohscripts.kairos.ui.generated.resources.priority_label
+import com.skohscripts.kairos.ui.generated.resources.sync_clock_ahead
 import com.skohscripts.kairos.ui.generated.resources.sync_device
 import com.skohscripts.kairos.ui.generated.resources.sync_last_merge
 import com.skohscripts.kairos.ui.generated.resources.sync_merge
@@ -191,6 +193,14 @@ fun SyncDataSection(services: AppServices) {
                 style = MaterialTheme.typography.bodySmall,
                 color = muted,
             )
+        }
+        // Horloge en avance d'un appareil (une marque reçue à plus d'un jour dans le futur) : dérivé du contexte, tant que l'heure
+        // ne l'a pas rattrapée. À surveiller, donc icône et texte (jamais une teinte).
+        if (d != null && Drift.ahead(d, services.clock.now().toEpochMilliseconds())) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Top) {
+                Icon(KairosIcons.Warning, contentDescription = null, modifier = Modifier.size(16.dp))
+                Text(stringResource(Res.string.sync_clock_ahead), style = MaterialTheme.typography.bodySmall)
+            }
         }
         if (d != null) {
             Row(verticalAlignment = Alignment.CenterVertically) {

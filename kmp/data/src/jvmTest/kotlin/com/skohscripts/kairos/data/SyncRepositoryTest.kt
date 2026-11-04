@@ -301,4 +301,41 @@ class SyncRepositoryTest {
         a.updateTask(id, TaskEdit(title = opened.title, priority = 0, points = opened.fibonacciPoints, deadline = null, pinDay = day))
         assertNull(a.snapshot.value.tasks.first { it.id == id }.deadline)
     }
+
+    @Test
+    fun aFileFromAClockAheadIsSeenUntilTimeCatchesUp() = runTest {
+        val (a, b) = pair()
+        assertFalse(com.skohscripts.kairos.core.sync.Drift.ahead(a.sync.value!!, now.toEpochMilliseconds()))
+        // B écrit avec une horloge en avance de deux jours, puis A fusionne à l'heure juste.
+        val real = now
+        now += (2 * 24 * 60).minutes
+        b.createTask("Depuis le futur")
+        val file = ExportCodec.decodeSynced(b.export())
+        now = real
+        assertIs<MergeResult.Applied>(a.merge(file) { true })
+        // Dérivé du contexte : vrai tant que l'heure n'a pas rattrapé la marque, faux ensuite.
+        assertTrue(com.skohscripts.kairos.core.sync.Drift.ahead(a.sync.value!!, now.toEpochMilliseconds()))
+        assertFalse(com.skohscripts.kairos.core.sync.Drift.ahead(a.sync.value!!, (now + (3 * 24 * 60).minutes).toEpochMilliseconds()))
+    }
+
+    @Test
+    fun theWebReviewListSurvivesAReload() = runTest {
+        val (a, b) = pair()
+        val id = a.task("Rapport")!!.id
+        a.setPriority(id, 0)
+        b.setPriority(b.task("Rapport")!!.id, 2)
+        a.pull(b)
+        assertEquals(1, a.syncReview.value.size)
+        // Rechargement de la page : l'instantané (restoreSynced), puis « À revoir » et la dernière fusion à part.
+        val snapshot = a.export()
+        val extras = assertNotNull(a.exportSyncExtras())
+        val reloaded = open(posed = { KairosSnapshot() })
+        reloaded.restoreSynced(ExportCodec.decodeSynced(snapshot))
+        reloaded.importSyncExtras(extras)
+        fun KairosRepository.review() = syncReview.value.map { listOf(it.ref, it.field, it.lostValue, it.keptValue, it.lost, it.winner, it.kept) }
+        assertEquals(a.review(), reloaded.review())
+        assertEquals(a.lastMerge.value, reloaded.lastMerge.value)
+        // Sans synchronisation, rien à garder.
+        assertNull(open().exportSyncExtras())
+    }
 }

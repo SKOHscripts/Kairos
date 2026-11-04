@@ -154,6 +154,7 @@
     <string name="sync_unreadable">Le fichier lié « %1$s » est illisible. Kairos n’y écrit plus tant qu’il l’est.</string>
     <string name="sync_too_new">« %1$s » vient d’une version plus récente de Kairos : mets à jour l’application. Kairos n’y écrit plus d’ici là.</string>
     <string name="sync_clock">« %1$s » porte une date à plus de 30 jours dans le futur : vérifie l’horloge de l’appareil qui l’a écrit. Rien n’est fusionné.</string>
+    <string name="sync_clock_ahead">Un appareil a écrit le fichier avec une horloge en avance de plus d’un jour : vérifie sa date et son heure, sans quoi ses modifications continueront de l’emporter.</string>
     <string name="sync_status">Kairos fusionne ce fichier avec tes données à chaque changement.</string>
     <string name="sync_last_merge">Dernière fusion : %1$s à %2$s. Ajoutés : %3$d · modifiés : %4$d · supprimés : %5$d.</string>
     <string name="sync_device">Cet appareil : %1$s</string>

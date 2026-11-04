@@ -1806,6 +1806,31 @@ class KairosRepository(
         dropReview(id)
     }
 
+    /**
+     * Version web : ce que la synchronisation garde **pour cet appareil seul** hors des données (« À revoir » et la dernière
+     * fusion), en texte, pour un fichier de l'OPFS à côté de l'instantané ; `null` si la base ne synchronise pas. Jamais dans
+     * le fichier lié ni dans un export : c'est local (docs/spec/synchronisation.md § Précisions (étape 7)).
+     */
+    suspend fun exportSyncExtras(): String? {
+        if (syncState.value == null) return null
+        val rows = queries.allSyncReview().awaitAsList().map { r ->
+            SyncExtrasJson.Row(r.kind, r.uid, r.field_, r.title, r.loser_value, r.loser_stamp, r.winner_value, r.winner_stamp, r.kept != 0L, r.created_at)
+        }
+        return SyncExtrasJson.encode(SyncExtrasJson(rows, syncStore.read(SyncStore.LAST_MERGE)))
+    }
+
+    /** Recharge [exportSyncExtras] (version web, après `restoreSynced`) ; un texte illisible est ignoré. */
+    suspend fun importSyncExtras(text: String) = mutex.withLock {
+        val extras = SyncExtrasJson.decode(text) ?: return@withLock
+        if (syncState.value == null) return@withLock
+        database.transaction {
+            queries.clearSyncReview()
+            for (r in extras.review) queries.insertSyncReview(r.kind, r.uid, r.field, r.title, r.loserValue, r.loserStamp, r.winnerValue, r.winnerStamp, if (r.kept) 1L else 0L, r.createdAt)
+            extras.lastMerge?.let { syncStore.write(SyncStore.LAST_MERGE, it) }
+        }
+        refreshSyncExtras(state.value)
+    }
+
     /** « Tout garder le plus récent » : vide la liste. */
     suspend fun clearReview() = mutex.withLock {
         database.transaction { queries.clearSyncReview() }

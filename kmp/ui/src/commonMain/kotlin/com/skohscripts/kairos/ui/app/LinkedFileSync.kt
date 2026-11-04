@@ -15,6 +15,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.Volatile
 import kotlin.time.Clock
 
 /** Le lien gardé par l'appareil : la cible (chemin ou URI), le nom affiché, l'empreinte du dernier texte écrit ou vu. */
@@ -67,13 +68,15 @@ class LinkedFileSync(
     private val lock = Mutex()
     private lateinit var repository: KairosRepository
     private lateinit var engine: LinkedMerge
-    private var link: SavedLink? = null
-    private var dirty = false
+    // Lus et écrits depuis plusieurs fils (écritures du dépôt, minuterie, interface) : toujours la dernière valeur.
+    @Volatile private var link: SavedLink? = null
+
+    @Volatile private var dirty = false
     private var timer: Job? = null
     private var poll: Job? = null
-    private var visible = false
+    @Volatile private var visible = false
     private var pendingTarget: String? = null
-    private var inPass = false
+    @Volatile private var inPass = false
 
     /** Relit le lien gardé et fait une première passe (ouverture de l'application). */
     suspend fun start(repository: KairosRepository) {
@@ -213,7 +216,9 @@ class LinkedFileSync(
     override suspend fun adoptOpened(merge: Boolean): Boolean = lock.withLock {
         val target = pendingTarget ?: return@withLock false
         val text = runCatching { io.read(target) }.getOrElse { return@withLock false }
-        // « Fusionner » : aucune empreinte connue, la passe fusionne le fichier ; « Remplacer » : il est la référence.
+        // « Fusionner » : aucune empreinte connue, la passe fusionne le fichier ; « Remplacer » : il est la référence, et la base
+        // synchronise dès maintenant pour que le remplacement qui suit reprenne les identités du fichier (sinon, doublons ailleurs).
+        if (!merge) engine.ensureSync()
         val saved = SavedLink(target, io.displayName(target), if (merge) "" else LinkHash.of(text))
         remember(saved)
         pendingTarget = null

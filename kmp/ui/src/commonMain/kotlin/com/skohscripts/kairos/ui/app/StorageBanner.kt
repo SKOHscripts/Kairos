@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.app
 
+import com.skohscripts.kairos.core.sync.Synced
 import com.skohscripts.kairos.ui.theme.KairosButton
 import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import com.skohscripts.kairos.ui.theme.KairosTextButton
@@ -26,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.data.ExportCodec
 import com.skohscripts.kairos.data.ImportException
 import com.skohscripts.kairos.ui.generated.resources.Res
@@ -95,13 +95,13 @@ fun StorageBanner(services: AppServices, showWhenLinked: Boolean) {
     val openAction = stringResource(Res.string.web_link_open) to {
         scope.launch {
             val file = storage.openFile() ?: return@launch
-            val snapshot = try {
-                ExportCodec.decode(file.text)
+            val synced = try {
+                ExportCodec.decodeSynced(file.text)
             } catch (e: ImportException) {
                 return@launch messages(importErrorMessage(e))
             }
             // Un appareil neuf (exemples intacts seulement) reçoit le fichier sans qu'on lui demande.
-            if (services.repository.hasOwnData()) opened = Pending(file, snapshot) else storage.adoptOpened(merge = true)
+            if (services.repository.hasOwnData()) opened = Pending(file, synced) else storage.adoptOpened(merge = true)
         }
         Unit
     }
@@ -201,8 +201,9 @@ fun StorageBanner(services: AppServices, showWhenLinked: Boolean) {
                         scope.launch {
                             // Comme « Importer » : sauvegarde d'abord ; le fichier devient ensuite la référence du lien.
                             if (!storage.adoptOpened(merge = false)) return@launch
-                            if (replaceWithBackup(services, pending.snapshot, messages)) {
-                                messages(getString(Res.string.import_done, pending.snapshot.tasks.size))
+                            // Les identités du fichier : la base, synchronisée par `adoptOpened`, les reprend (aucun doublon ailleurs).
+                            if (replaceWithBackup(services, pending.synced.snapshot, messages, pending.synced.data.uids)) {
+                                messages(getString(Res.string.import_done, pending.synced.snapshot.tasks.size))
                             }
                         }
                     }) { Text(stringResource(Res.string.import_confirm_action)) }
@@ -212,5 +213,5 @@ fun StorageBanner(services: AppServices, showWhenLinked: Boolean) {
     }
 }
 
-/** Un fichier ouvert et décodé, en attente du choix « Fusionner » ou « Remplacer ». */
-private class Pending(val file: OpenedFile, val snapshot: KairosSnapshot)
+/** Un fichier ouvert et décodé (avec ses identités de synchronisation), en attente du choix « Fusionner » ou « Remplacer ». */
+private class Pending(val file: OpenedFile, val synced: Synced)

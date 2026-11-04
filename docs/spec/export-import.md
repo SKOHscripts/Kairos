@@ -235,6 +235,10 @@ JSON UTF-8 indenté :
   échoue, message d'erreur et **pas d'import** ; sinon `replaceAll` puis
   message « Import terminé : n tâches. ». Sauvegarde puis remplacement :
   `replaceWithBackup` (`ui/app/Replace.kt`) ; horodatage des noms : `fileStamp`.
+  Depuis la 4.0.0, le fichier est lu par `decodeSynced` et ses identités de
+  synchronisation sont passées au remplacement : une base synchronisée les
+  reprend, sans doublon à la fusion suivante (`synchronisation.md`
+  § Précisions (étape 7)) ; une base qui ne synchronise pas les ignore.
 - Messages : snackbar de la coquille (`LocalMessages`).
 
 ### Fichiers et sauvegardes par plateforme

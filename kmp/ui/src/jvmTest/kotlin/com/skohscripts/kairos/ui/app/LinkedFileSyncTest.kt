@@ -282,4 +282,41 @@ class LinkedFileSyncTest {
         assertIs<LinkedFileState.Linked>(b.sync.state.value)
         assertEquals(listOf("de A"), b.notes())
     }
+
+    @Test
+    fun replacingThenEditingNeverDuplicatesTheOtherDevicesData() = runTest {
+        val disk = Disk()
+        val a = device(disk)
+        a.note("de A")
+        a.sync.createFile()
+        // Créée une fois la synchronisation active : un `uid` aléatoire, que B ne peut pas recalculer.
+        a.note("encore de A")
+        a.sync.flush()
+        // B remplace ses données par le fichier de A (« Remplacer »), puis modifie quelque chose.
+        val b = device(disk)
+        b.note("de B, remplacée")
+        val opened = assertNotNull(b.sync.openFile())
+        assertTrue(b.sync.adoptOpened(merge = false))
+        val synced = ExportCodec.decodeSynced(opened.text)
+        // Comme l'interface (`replaceWithBackup`) : les identités du fichier.
+        b.repository.replaceAll(synced.snapshot, synced.data.uids)
+        b.note("de B, après")
+        b.sync.flush()
+        a.sync.mergeNow()
+        a.sync.confirmMerge()
+        // Aucun doublon chez A : ses deux notes une seule fois, plus celle de B.
+        assertEquals(listOf("de A", "de B, après", "encore de A"), a.notes())
+    }
+
+    @Test
+    fun anOversizedFileIsNeverDecoded() = runTest {
+        val disk = Disk()
+        val a = device(disk)
+        a.sync.createFile()
+        val writes = disk.writes
+        disk.files[path] = " ".repeat(LinkedMerge.MAX_CHARS + 1)
+        a.sync.mergeNow()
+        assertEquals(LinkedFileState.Unreadable("kairos.json", UnreadableReason.NOT_READABLE), a.sync.state.value)
+        assertEquals(writes, disk.writes)
+    }
 }

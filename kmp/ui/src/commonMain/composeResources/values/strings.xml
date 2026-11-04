@@ -153,6 +153,7 @@
     <string name="sync_unreadable">The linked file “%1$s” cannot be read. Kairos no longer writes to it while it stays that way.</string>
     <string name="sync_too_new">“%1$s” comes from a newer version of Kairos: update the app. Kairos does not write to it until then.</string>
     <string name="sync_clock">“%1$s” carries a date more than 30 days in the future: check the clock of the device that wrote it. Nothing is merged.</string>
+    <string name="sync_clock_ahead">A device wrote the file with a clock more than a day ahead: check its date and time, or its changes will keep winning.</string>
     <string name="sync_status">Kairos merges this file with your data at every change.</string>
     <string name="sync_last_merge">Last merge: %1$s at %2$s. Added: %3$d · changed: %4$d · removed: %5$d.</string>
     <string name="sync_device">This device: %1$s</string>

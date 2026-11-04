@@ -24,6 +24,7 @@ import com.skohscripts.kairos.ui.app.OpenedFile
 import com.skohscripts.kairos.ui.app.mimeOf
 import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -53,6 +54,9 @@ import kotlin.time.Clock
  */
 object WebServices {
     private const val DATA_FILE = "kairos.json"
+
+    /** « À revoir » et la dernière fusion de ce navigateur (docs/spec/synchronisation.md § Précisions (étape 7)). */
+    internal const val EXTRAS_FILE = "kairos-sync.json"
     private val BACKUPS = BackupStore { name, text -> KairosWeb.opfsBackup(name, text, 10).await<JsAny?>() }
 
     suspend fun open(): AppServices {
@@ -75,7 +79,11 @@ object WebServices {
         val language = window.navigator.language
         when {
             // L'instantané porte l'état de synchronisation de ce navigateur (identité, marques) : il le garde d'un chargement à l'autre.
-            synced != null && synced.data.device != Stamp.LEGACY_DEVICE -> repository.restoreSynced(synced)
+            synced != null && synced.data.device != Stamp.LEGACY_DEVICE -> {
+                repository.restoreSynced(synced)
+                // « À revoir » et la dernière fusion : locaux, dans leur propre fichier de l'OPFS.
+                KairosWeb.opfsRead(EXTRAS_FILE).await<JsString?>()?.toString()?.let { repository.importSyncExtras(it) }
+            }
             snapshot != null -> repository.replaceAll(snapshot)
             else -> repository.replaceAll(ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language))
         }
@@ -147,6 +155,14 @@ private class WebLinkedStorage(private val clock: Clock, private val dataFile: S
     fun attach(repository: KairosRepository, backups: BackupStore) {
         this.repository = repository
         engine = LinkedMerge(repository, clock, "Web", backups)
+        // « À revoir » change aussi sans nouvel état (« Garder celle-ci », « Tout garder ») : son fichier suit la liste.
+        scope.launch {
+            combine(repository.syncReview, repository.lastMerge) { _, _ -> }.collect {
+                if (!persisting) return@collect
+                val text = repository.exportSyncExtras() ?: return@collect
+                runCatching { KairosWeb.opfsWrite(WebServices.EXTRAS_FILE, text).await<JsAny?>() }
+            }
+        }
     }
 
     suspend fun start(link: String, restorePending: Boolean, current: KairosSnapshot) {
@@ -256,7 +272,9 @@ private class WebLinkedStorage(private val clock: Clock, private val dataFile: S
 
     override suspend fun adoptOpened(merge: Boolean): Boolean = lock.withLock {
         if (!KairosWeb.linkAdopt().await<JsBoolean>().toBoolean()) return@withLock false
-        // « Fusionner » : aucune empreinte connue, la passe fusionne le fichier ; « Remplacer » : il est la référence.
+        // « Fusionner » : aucune empreinte connue, la passe fusionne le fichier ; « Remplacer » : il est la référence, et la base
+        // synchronise dès maintenant pour que le remplacement qui suit reprenne les identités du fichier.
+        if (!merge) engine.ensureSync()
         val text = KairosWeb.linkRead().await<JsString?>()?.toString()
         KairosWeb.linkHashSet(if (merge || text == null) "" else LinkHash.of(text)).await<JsAny?>()
         mutable.value = LinkedFileState.Linked(pendingName ?: "kairos.json")
@@ -276,7 +294,11 @@ private class WebLinkedStorage(private val clock: Clock, private val dataFile: S
             val text = KairosWeb.linkRead().await<JsString?>()?.toString() ?: return false
             KairosWeb.linkHashSet(LinkHash.of(text)).await<JsAny?>()
             persisting = true
-            repository.replaceAll(ExportCodec.decode(text))
+            // Données du navigateur perdues : il repart du fichier lié en reprenant ses identités (une nouvelle identité
+            // d'appareil, synchronisée), sans quoi ses prochaines écritures dupliqueraient tout chez les autres appareils.
+            val synced = ExportCodec.decodeSynced(text)
+            engine.ensureSync()
+            repository.replaceAll(synced.snapshot, synced.data.uids)
         } else {
             persist(repository.snapshot.value)
         }

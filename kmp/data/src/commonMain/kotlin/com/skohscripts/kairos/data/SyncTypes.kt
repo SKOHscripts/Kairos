@@ -87,3 +87,27 @@ internal object ExampleMarks {
 
 /** La même table, clés triées (ordre d'insertion conservé) : `toSortedMap` n'existe que sur la JVM, `data` compile aussi pour le web. */
 internal fun <V> Map<String, V>.sortedByKey(): Map<String, V> = entries.sortedBy { it.key }.associate { it.key to it.value }
+
+/** « À revoir » et la dernière fusion en texte ([KairosRepository.exportSyncExtras], version web). */
+@Serializable
+internal data class SyncExtrasJson(val review: List<Row>, val lastMerge: String? = null) {
+    @Serializable
+    data class Row(
+        val kind: String?,
+        val uid: String?,
+        val field: String,
+        val title: String,
+        val loserValue: String,
+        val loserStamp: String,
+        val winnerValue: String,
+        val winnerStamp: String,
+        val kept: Boolean,
+        val createdAt: String,
+    )
+
+    companion object {
+        private val json = Json { ignoreUnknownKeys = true }
+        fun encode(e: SyncExtrasJson): String = json.encodeToString(serializer(), e)
+        fun decode(text: String): SyncExtrasJson? = runCatching { json.decodeFromString(serializer(), text) }.getOrNull()
+    }
+}

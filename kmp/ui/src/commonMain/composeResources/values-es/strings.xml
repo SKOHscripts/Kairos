@@ -152,6 +152,7 @@
     <string name="sync_unreadable">El archivo vinculado «%1$s» no se puede leer. Kairos ya no escribe en él mientras siga así.</string>
     <string name="sync_too_new">«%1$s» viene de una versión más reciente de Kairos: actualiza la aplicación. Hasta entonces, Kairos no escribe en él.</string>
     <string name="sync_clock">«%1$s» lleva una fecha a más de 30 días en el futuro: revisa el reloj del dispositivo que lo escribió. No se fusiona nada.</string>
+    <string name="sync_clock_ahead">Un dispositivo escribió el archivo con un reloj adelantado más de un día: revisa su fecha y hora, o sus cambios seguirán imponiéndose.</string>
     <string name="sync_status">Kairos fusiona este archivo con tus datos en cada cambio.</string>
     <string name="sync_last_merge">Última fusión: %1$s a las %2$s. Añadidos: %3$d · modificados: %4$d · eliminados: %5$d.</string>
     <string name="sync_device">Este dispositivo: %1$s</string>

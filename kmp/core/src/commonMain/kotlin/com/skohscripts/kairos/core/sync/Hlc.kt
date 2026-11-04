@@ -109,6 +109,13 @@ object Drift {
 
     /** À plus de 30 jours : le fichier est refusé comme illisible (marque corrompue ou horloge absurde). */
     const val MAX_MILLIS: Long = 30L * 86_400_000
+
+    /**
+     * La base porte une marque à plus de [WARN_MILLIS] dans le futur de [nowMillis] (contexte et horloge) : un appareil a écrit
+     * avec une horloge en avance. Dérivé, jamais stocké : la note de la carte Données disparaît quand l'heure l'a rattrapée.
+     */
+    fun ahead(data: SyncData, nowMillis: Long): Boolean =
+        (data.seen.values.maxOfOrNull { it.wall } ?: 0L).coerceAtLeast(data.clock.wall) - nowMillis > WARN_MILLIS
 }
 
 /** Entier décimal sans signe ni espace (un `+` ou des zéros de tête restent permis, comme `toLong`). */

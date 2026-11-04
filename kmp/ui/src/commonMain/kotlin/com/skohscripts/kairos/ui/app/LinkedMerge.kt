@@ -81,6 +81,8 @@ class LinkedMerge(
      * à l'ouverture du fichier).
      */
     suspend fun pass(text: String, knownHash: String?, dirty: Boolean, confirmed: Boolean): Step {
+        // Un fichier démesuré (copie ratée, mauvais fichier) n'est pas décodé en mémoire : illisible, rien n'est écrit.
+        if (text.length > MAX_CHARS) return Step.Unreadable(UnreadableReason.NOT_READABLE)
         val hash = LinkHash.of(text)
         val d = ensureSync()
         if (hash == knownHash) {
@@ -153,6 +155,9 @@ class LinkedMerge(
 
     companion object {
         const val MAX_FAILURES = 3
+
+        /** Taille maximale du fichier lié (caractères) : 64 Mi, cent fois un historique de dix ans. */
+        const val MAX_CHARS = 64 * 1024 * 1024
         val BACKUP_EVERY = 1.hours
 
         /** Caractères de l'identité ajoutés au nom de la plateforme (« Android · 3f9c »). */
