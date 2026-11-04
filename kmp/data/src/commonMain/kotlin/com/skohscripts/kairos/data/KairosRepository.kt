@@ -24,6 +24,7 @@ import com.skohscripts.kairos.core.sync.SnapshotMerge
 import com.skohscripts.kairos.core.sync.Stamp
 import com.skohscripts.kairos.core.sync.SyncData
 import com.skohscripts.kairos.core.sync.SyncEdit
+import com.skohscripts.kairos.core.sync.SyncOrder
 import com.skohscripts.kairos.core.sync.SyncReconcile
 import com.skohscripts.kairos.core.sync.SyncRecords
 import com.skohscripts.kairos.core.sync.SyncRepair
@@ -145,12 +146,18 @@ class KairosRepository(
         syncState.value = syncStore.load()
         reconcileAfter(previous = null, all = all)
         refreshSyncExtras(all)
-        all.also(::publish)
+        publish(all)
     }
 
-    private fun publish(all: KairosSnapshot) {
-        state.value = all
-        personal.value = Workspaces.personalView(all)
+    /**
+     * Publie l'état lu ; une base synchronisée y joint l'ordre commun des tâches (`sampleOrder`, `SyncOrder`) que lisent les
+     * durées apprises et le modèle (docs/spec/synchronisation.md § Durées apprises partagées). Rend l'état publié.
+     */
+    private fun publish(all: KairosSnapshot): KairosSnapshot {
+        val shown = syncState.value?.let { all.copy(sampleOrder = SyncOrder.of(all, it)) } ?: all
+        state.value = shown
+        personal.value = Workspaces.personalView(shown)
+        return shown
     }
 
     /**
@@ -1666,7 +1673,7 @@ class KairosRepository(
             database.transaction { block() }
             val all = readAll()
             reconcileAfter(before, all, rebase)
-            all.also(::publish)
+            publish(all)
         }
         onChanged(updated)
     }
@@ -1697,6 +1704,8 @@ class KairosRepository(
         val d = SyncReconcile.activate(all, device, clock.now().toEpochMilliseconds(), presets, origin, label.trim().take(LABEL_MAX))
         database.transaction { syncStore.save(null, d) }
         syncState.value = d
+        // L'ordre commun des tâches existe dès l'activation (durées apprises partagées).
+        publish(all)
         d
     }
 
@@ -1767,8 +1776,7 @@ class KairosRepository(
                 reconcileAfter(prev, all)
             }
             refreshSyncExtras(all)
-            publish(all)
-            all to out
+            publish(all) to out
         }
         if (!result.second.changes.isEmpty) {
             mergedSnapshot = result.first

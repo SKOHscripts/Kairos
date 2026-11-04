@@ -233,7 +233,10 @@ Pour une tâche à estimer, les mêmes caractéristiques sont lues sur la `Task`
 
 Le modèle est un **index calculé de l'historique** (`ModelIndex.build(samples)`), jamais stocké : pas de colonne, pas
 d'export, pas de migration, pas de poids à versionner. Il retient au plus `MAX_CORPUS` = 500 échantillons **du même espace**
-que la tâche, les plus récents par `taskId` (jamais `updatedAt`), hors la tâche elle-même.
+que la tâche, les plus récents par `Sample.order` (jamais `updatedAt`), hors la tâche elle-même. `order` est l'identifiant, ou
+dans une base synchronisée le rang commun `createdAt` puis `uid` (`KairosSnapshot.sampleOrder`, `synchronisation.md` § Durées
+apprises partagées) : deux appareils fusionnés construisent ainsi le même modèle. Partout ci-dessous, « par `taskId` » se lit
+« par `order` » (corpus, garde, index, départages) ; sans synchronisation `order` = `taskId`, rien ne change.
 
 **1. Caractéristiques textuelles** (`TextFeatures.kt`, du titre seul) :
 
@@ -347,8 +350,9 @@ modèle sans le dire ; `RobustnessTest.manyRequiredSamplesNeverSilenceTheModel`)
   `ln`, `exp`, `pow` ni trigonométrie (leurs derniers chiffres divergent selon les moteurs) ; c'est pourquoi l'idf est une
   racine et la cible de la régression une racine, pas des logarithmes.
 - Aucune itération sur `HashMap` / `HashSet` pour produire un résultat : tableaux triés, `LinkedHashMap` au besoin ; les
-  échantillons sont **triés par `taskId` avant tout calcul** (l'ordre d'entrée est sans effet) ; toutes les égalités ont un
-  départage explicite (`taskId`).
+  échantillons sont **triés par `order` avant tout calcul** (l'ordre d'entrée est sans effet) ; toutes les égalités ont un
+  départage explicite (`order`). L'empreinte du cache (`ModelIndex.fingerprint`) mêle `order` seulement quand il diffère de
+  l'identifiant : sans synchronisation, elle est celle d'avant (`ModelReproducibilityTest`).
 - La normalisation du texte n'appelle que `lowercaseChar()` et `isLetterOrDigit()` du standard, après la table de repli
   explicite ; `ModelReproducibilityTest` fige des valeurs sur des titres accentués (« É », « ß », « Ё », « ñ ») pour détecter
   toute divergence de tables Unicode entre cibles.
@@ -627,7 +631,7 @@ l'étape 6 et les corrections ; tests `RobustnessTest`, `EstimateChangesTest`, `
   cache sont `@Volatile` (publication sûre entre la vue Jour en arrière-plan, les Réglages et les prévisions ; une course
   ne coûte qu'une reconstruction).
 - **Accents décomposés** (NFD, U+0300 à U+036F) ignorés dans le mot au lieu de le couper (« re\u0301diger » = « rédiger »).
-- **La garde trie elle-même** son corpus : un préfixe n'est le passé que dans l'ordre des `taskId`, même si un appelant
+- **La garde trie elle-même** son corpus : un préfixe n'est le passé que dans l'ordre des `order`, même si un appelant
   futur oublie `corpus()`.
 - **Rythme** : le produit jour × tranche est borné comme chaque facteur ([0,5 ; 2]) ; la validation d'un facteur arrondit
   et borne comme la production (multiple de 5, fenêtre de travail). Le laisser-un-dehors ne retire la tâche que des voisins

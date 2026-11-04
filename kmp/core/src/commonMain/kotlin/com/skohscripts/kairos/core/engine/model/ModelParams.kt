@@ -6,7 +6,7 @@ package com.skohscripts.kairos.core.engine.model
  * seul interrupteur, `LearningSettings.model`.
  */
 object ModelParams {
-    /** Échantillons retenus au plus (les plus récents par `taskId`) : borne le coût de l'index, du cache et du web. */
+    /** Échantillons retenus au plus (les plus récents par `order`) : borne le coût de l'index, du cache et du web. */
     const val MAX_CORPUS = 500
 
     /** Échantillons minimaux du corpus pour qu'une estimation du modèle soit fiable, et pour la régression. */

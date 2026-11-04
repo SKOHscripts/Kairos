@@ -14,7 +14,7 @@ import kotlin.math.floor
  * médiane pondérée de leurs durées réelles, avec un intervalle (quantiles 10 et 90 %, élargis), et la liste de ces tâches pour
  * preuve ; faute de voisins assez nombreux, une régression légère sur le type et les points ([RidgePrior]). Fiable seulement si
  * le corpus est assez grand, la base suffisante et la garde ([ModelGate]) réussie ; sinon rendue peu fiable (affichée, jamais
- * appliquée). Pur et déterministe : aucune graine, `+ − × ÷` et `sqrt` seulement, égalités départagées par `taskId`.
+ * appliquée). Pur et déterministe : aucune graine, `+ − × ÷` et `sqrt` seulement, égalités départagées par `Sample.order` (l'identifiant, ou le rang commun d'une base synchronisée).
  */
 object ModelEstimator : DurationEstimator {
     /** Ce que le modèle lit d'une tâche à estimer (jamais son temps, qu'elle n'a pas). */
@@ -62,9 +62,9 @@ object ModelEstimator : DurationEstimator {
         val corpus: Int,
     )
 
-    /** Le corpus : les [ModelParams.MAX_CORPUS] échantillons les plus récents par `taskId`, triés par `taskId` croissant. */
+    /** Le corpus : les [ModelParams.MAX_CORPUS] échantillons les plus récents par `order`, triés par `order` croissant. */
     fun corpus(samples: List<DurationEstimator.Sample>): List<DurationEstimator.Sample> =
-        samples.sortedBy { it.taskId }.takeLast(ModelParams.MAX_CORPUS)
+        samples.sortedBy { it.order }.takeLast(ModelParams.MAX_CORPUS)
 
     fun fit(corpus: List<DurationEstimator.Sample>): Fit = Fit(ModelIndex.build(corpus), RidgePrior.fit(corpus))
 
@@ -135,12 +135,12 @@ object ModelEstimator : DurationEstimator {
             if (s >= ModelParams.SIMILARITY_MIN) scored.add(i to s)
         }
         val chosen = scored.sortedWith(
-            compareByDescending<Pair<Int, Double>> { it.second }.thenByDescending { index.samples[it.first].taskId },
+            compareByDescending<Pair<Int, Double>> { it.second }.thenByDescending { index.samples[it.first].order },
         ).take(ModelParams.NEIGHBOURS_MAX)
         if (chosen.isEmpty()) return emptyList()
         // Récence : 2 − rang / n, le plus récent (rang 0) compte au plus deux fois le plus ancien.
         val n = chosen.size
-        val byRecency = chosen.sortedByDescending { index.samples[it.first].taskId }
+        val byRecency = chosen.sortedByDescending { index.samples[it.first].order }
         val all = byRecency.mapIndexed { rank, (i, s) -> Neighbour(index.samples[i], s, s * s * (2.0 - rank.toDouble() / n)) }
         val first = weightedQuantile(all, 0.5)
         // Un chrono oublié (plus de trois fois la médiane pondérée) est écarté, puis la médiane est recalculée.
@@ -156,17 +156,17 @@ object ModelEstimator : DurationEstimator {
         val minutes = round(m, cap)
         val low = minOf(round(m - (m - q10) * widen, cap), minutes)
         val high = maxOf(round(m + (q90 - m) * widen, cap), minutes)
-        val evidence = neighbours.sortedWith(compareByDescending<Neighbour> { it.similarity }.thenByDescending { it.sample.taskId })
+        val evidence = neighbours.sortedWith(compareByDescending<Neighbour> { it.similarity }.thenByDescending { it.sample.order })
             .map { DurationEstimator.Neighbour(it.sample.taskId, it.sample.title, it.sample.minutes, floor(it.similarity * 100.0 + 0.5).toInt()) }
         return Prediction(minutes, low, high, neighbours.size, sufficient, DurationEstimator.Basis.NEIGHBOURS, evidence, null, null, corpus)
     }
 
     /**
-     * Quantile pondéré (bas) : les durées triées croissantes (égalités par `taskId`), la première dont le poids cumulé atteint
+     * Quantile pondéré (bas) : les durées triées croissantes (égalités par `order`), la première dont le poids cumulé atteint
      * [q] du poids total.
      */
     private fun weightedQuantile(neighbours: List<Neighbour>, q: Double): Double {
-        val sorted = neighbours.sortedWith(compareBy<Neighbour> { it.sample.minutes }.thenBy { it.sample.taskId })
+        val sorted = neighbours.sortedWith(compareBy<Neighbour> { it.sample.minutes }.thenBy { it.sample.order })
         var total = 0.0
         for (n in sorted) total += n.weight
         var cumulative = 0.0

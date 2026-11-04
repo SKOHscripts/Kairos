@@ -32,7 +32,9 @@ relecture au premier plan et chaque minute ; dépôt `restoreSynced`, `hasOwnDat
 (`ui/sync/SyncUi.kt` : section de la carte Données, bandeau et dialogue « À revoir », « Fusionner un fichier Kairos… » et son
 aperçu, message après une fusion), fiche ouverte pendant une fusion (`EditBase`), carte du guide `sync`, README ; tests
 `SyncUiTest`, `SyncRepositoryTest.formOpenedDuringMergeKeepsMergedFields` (voir « Précisions de l'implémentation (étape 5) »).
-Restent les étapes 6 (#100) et 7. La moitié « écriture » de #88, le fichier lié et sa garde
+**Étape 6 livrée** (#100) : ordre commun des occurrences (`SyncOrder`, `KairosSnapshot.sampleOrder`, `Sample.order`) pour les
+durées apprises et le modèle ; test `LearnedDurationsSyncTest` (voir « Durées apprises partagées » § Implémentation). Reste
+l'étape 7 (robustesse). La moitié « écriture » de #88, le fichier lié et sa garde
 contre une modification faite ailleurs, est **implémentée en 3.10.0** (`export-import.md`) : cette spec la remplace.
 
 ## 1. Besoin métier (cahier des charges)
@@ -914,6 +916,25 @@ titre, jamais au-dessus d'une estimation explicite, provenance visible.
 - Sans synchronisation, rien ne change (`DurationEstimatorTest`, `DifferentialTest` inchangés).
 - En attendant la fusion, chaque appareil calcule sur ses seules données : c'est attendu, pas un défaut.
 
+#### Implémentation (étape 6)
+
+- `core/sync/SyncOrder.of(snapshot, data)` : le rang de chaque tâche de la portée, `createdAt` croissant puis `uid` (0 = la plus
+  ancienne) ; les tâches sans `uid` n'en ont pas. Le dépôt d'une base synchronisée le joint à chaque état publié
+  (`KairosSnapshot.sampleOrder`, `publish`, et dès `enableSync`) ; il n'est ni stocké, ni exporté, ni comparé par la fusion.
+  Sans synchronisation, `sampleOrder` est `null`.
+- `DurationEstimator.Sample.order` : le rang commun, sinon l'identifiant (une tâche sans rang dans une base synchronisée passe
+  après, par identifiant). `HistoryEstimators` (série, titre), `ModelEstimator` (corpus, voisins, départages, quantiles),
+  `ModelIndex` (tri, empreinte), `ModelGate` (préfixes) ordonnent par `order` au lieu de `taskId` ; l'identité d'une occurrence
+  (exclure la tâche elle-même, nommer les voisins) reste `taskId`.
+- **Choix** : un champ du snapshot plutôt qu'un paramètre de plus aux quatorze appels de `DurationEstimator` (vue Jour, équipe,
+  chrono, widgets…) : l'ordre suit les données partout où elles vont, sans rien changer aux appelants.
+- **Choix** : le modèle (#99) suit le même ordre (il n'a pas de poids à synchroniser : un index recalculé des données, comme
+  les durées apprises) ; deux appareils fusionnés construisent le même corpus, la même garde et les mêmes estimations.
+- `LearnedDurationsSyncTest` (`data`) : 20 graines, deux appareils qui chronomètrent chacun à leur tour (identifiants locaux
+  dans des ordres différents), fusionnés dans les deux sens, donnent les mêmes durées apprises par `uid` ; sans l'ordre commun,
+  le test échoue (vérifié : 40 contre 55 minutes dès la graine 1). Ordre identique des deux côtés et absent sans
+  synchronisation ; occurrence suivante unique d'une série terminée des deux côtés, même `seriesId` logique.
+
 #### Hors périmètre / différé
 
 - **Apprentissage entre les membres d'une équipe** : différé, justifié. (1) Les données d'équipe ne sont pas dans la
@@ -923,7 +944,7 @@ titre, jamais au-dessus d'une estimation explicite, provenance visible.
   parvient au manager que par les rapports, en **total par tâche** (`reportedMinutes`), jamais en sessions : il manque la matière
   de l'échantillon, et en demander plus change le format des échanges (`equipe-echanges.md`) et l'étendue de ce qu'un membre
   accepte de partager. À rouvrir, avec le modèle appris (#99), si une demande précise apparaît.
-- **L'estimateur appris (#99)** : ses poids seront des données ; les synchroniser ou les recalculer est une décision de cette
-  spec-là.
+- **L'estimateur appris (#99)** : tranché à l'étape 6, il n'a pas de poids (un index recalculé des données) et suit l'ordre
+  commun (§ Implémentation ci-dessus).
 - **Corriger les estimations** (`statistiques.md`) : action explicite, inchangée ; ses modifications de tâches se synchronisent
   comme toute modification.

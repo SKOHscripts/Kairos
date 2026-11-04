@@ -27,21 +27,21 @@ object ModelGate {
     class Candidate(val index: Int, val prediction: ModelEstimator.Prediction?)
 
     /**
-     * Les candidats du [corpus] (trié par `taskId`) : chacun est estimé par le modèle ajusté à `corpus[0 until j]`, d'après ses
+     * Les candidats du [corpus] (trié par `order`) : chacun est estimé par le modèle ajusté à `corpus[0 until j]`, d'après ses
      * seules caractéristiques (jamais sa durée).
      */
     fun candidates(samples: List<DurationEstimator.Sample>, settings: Settings): List<Candidate> {
-        // Trié ici aussi : un préfixe n'est « le passé » que si le corpus est dans l'ordre des `taskId`.
-        val corpus = samples.sortedBy { it.taskId }
+        // Trié ici aussi : un préfixe n'est « le passé » que si le corpus est dans l'ordre des `order`.
+        val corpus = samples.sortedBy { it.order }
         val start = maxOf(ModelParams.GATE_PREFIX_MIN, corpus.size - ModelParams.GATE_SIZE)
         return (start until corpus.size).map { j ->
             Candidate(j, ModelEstimator.predict(ModelEstimator.fit(corpus.subList(0, j)), ModelEstimator.Features.of(corpus[j]), settings))
         }
     }
 
-    /** La garde du [corpus] (trié par `taskId`) avec les réglages [settings]. */
+    /** La garde du [corpus] (trié par `order`) avec les réglages [settings]. */
     fun evaluate(samples: List<DurationEstimator.Sample>, settings: Settings): Result {
-        val corpus = samples.sortedBy { it.taskId }
+        val corpus = samples.sortedBy { it.order }
         val model = ArrayList<Double>()
         val default = ArrayList<Double>()
         for (c in candidates(corpus, settings)) {

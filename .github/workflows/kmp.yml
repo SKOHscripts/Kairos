@@ -48,6 +48,7 @@ jobs:
           --tests 'com.skohscripts.kairos.core.sync.SyncRecordsTest'
           --tests 'com.skohscripts.kairos.core.sync.SyncRepairTest'
           --tests 'com.skohscripts.kairos.core.sync.SyncSummaryTest'
+          --tests 'com.skohscripts.kairos.core.sync.SyncOrderTest'
 
       - name: Builds (APK, bureau, web)
         run: >

@@ -131,7 +131,9 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
 - `KairosSnapshot` : toutes les tables (membres, absences et journal
   compris, exceptions de créneaux `blockExceptions` depuis la 3.8.0) et les
   réglages. C'est la forme commune de l'export, de l'import, des exemples et
-  de la sauvegarde web.
+  de la sauvegarde web. Un champ dérivé, jamais écrit ni exporté :
+  `sampleOrder` (4.0.0), le rang commun des tâches d'une base synchronisée
+  (`synchronisation.md` § Durées apprises partagées), `null` sinon.
 
 ### Exemples (`ExampleData.snapshot(aujourd'hui, maintenant, langue)`)
 

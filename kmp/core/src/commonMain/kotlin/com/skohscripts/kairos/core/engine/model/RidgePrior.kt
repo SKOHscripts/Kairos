@@ -48,7 +48,7 @@ class RidgePrior private constructor(
     private fun typeLabel(taskType: String) = taskType.trim()
 
     companion object {
-        /** La régression du corpus (trié par `taskId`), ou `null` sous [ModelParams.MIN_CORPUS] échantillons. */
+        /** La régression du corpus (trié par `order`), ou `null` sous [ModelParams.MIN_CORPUS] échantillons. */
         fun fit(samples: List<DurationEstimator.Sample>): RidgePrior? {
             if (samples.size < ModelParams.MIN_CORPUS) return null
             val counts = LinkedHashMap<String, Int>()

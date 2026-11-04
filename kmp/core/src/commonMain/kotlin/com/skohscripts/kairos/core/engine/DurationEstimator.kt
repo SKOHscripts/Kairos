@@ -83,6 +83,11 @@ interface DurationEstimator {
         /** Jour ISO (1 = lundi) et tranche de la première séance, à l'heure locale ; nuls sans séance ou sans fuseau (rythme). */
         val weekday: Int? = null,
         val band: Rhythm.Band? = null,
+        /**
+         * Clé d'ordre des occurrences (« les plus récentes ») : le rang commun d'une base synchronisée
+         * (`KairosSnapshot.sampleOrder`), sinon l'identifiant ; jamais `updatedAt`, modifiable après coup.
+         */
+        val order: Long = taskId,
     )
 
     /**
@@ -95,6 +100,9 @@ interface DurationEstimator {
     fun estimate(task: Task, history: History, settings: Settings): Estimate?
 
     companion object {
+        /** Rang d'une occurrence sans rang commun (base synchronisée) : après toutes les autres, par identifiant. */
+        private const val UNRANKED = 1L shl 40
+
         /** Temps minimal pour qu'une occurrence compte : un démarrage-arrêt accidentel (1 minute ou moins) est ignoré. */
         const val MIN_SAMPLE_MINUTES = 2
 
@@ -105,7 +113,13 @@ interface DurationEstimator {
          * Les occurrences passées : tâches **terminées**, au temps passé (chrono et saisie manuelle) d'au moins
          * [MIN_SAMPLE_MINUTES]. Une tâche reçue d'un manager n'en est jamais (isolation d'espace).
          */
-        fun samples(tasks: List<Task>, spentByTask: Map<Long, Int>, firstStarts: Map<Long, LocalDateTime> = emptyMap()): List<Sample> =
+        fun samples(
+            tasks: List<Task>,
+            spentByTask: Map<Long, Int>,
+            firstStarts: Map<Long, LocalDateTime> = emptyMap(),
+            /** Rang commun d'une base synchronisée ([KairosSnapshot.sampleOrder]) ; une tâche sans rang passe après, par identifiant. */
+            order: Map<Long, Long>? = null,
+        ): List<Sample> =
             tasks.filter { it.status == TaskStatus.DONE && it.origin == null }.mapNotNull { t ->
                 val spent = spentByTask[t.id] ?: return@mapNotNull null
                 if (spent < MIN_SAMPLE_MINUTES) {
@@ -117,6 +131,7 @@ interface DurationEstimator {
                         taskType = t.taskType, points = t.fibonacciPoints, priority = t.priority,
                         projectTag = t.projectTag, recurring = t.recurrence != TaskRecurrence.NONE,
                         weekday = start?.first, band = start?.second,
+                        order = if (order == null) t.id else order[t.id] ?: (UNRANKED + t.id),
                     )
                 }
             }
@@ -136,13 +151,14 @@ interface DurationEstimator {
             snapshot.tasks,
             TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks),
             firstStarts(snapshot.workSessions, timeZone),
+            snapshot.sampleOrder,
         )
 
         /**
          * La durée apprise de [task], ou `null` : désactivée, tâche reçue, estimation explicite, ou aucune occurrence passée.
          * Voir [EstimatorChain] : le premier niveau fiable gagne, à défaut le premier qui a des occurrences (peu fiable).
-         * [samples] vient de [samples] ; l'ordre n'a pas d'importance (on retient les plus récentes par identifiant, jamais par
-         * date de modification).
+         * [samples] vient de [samples] ; l'ordre de la liste n'a pas d'importance (on retient les plus récentes par [Sample.order],
+         * jamais par date de modification).
          */
         fun estimate(task: Task, samples: List<Sample>, settings: Settings, cache: ModelCache = ModelCache.shared): Estimate? =
             chain.estimate(task, History(samples, cache), settings)
