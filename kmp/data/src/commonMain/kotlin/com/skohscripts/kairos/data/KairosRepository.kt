@@ -395,7 +395,7 @@ class KairosRepository(
             val weekly = edit.recurrence == TaskRecurrence.WEEKLY
             val onDay = edit.recurrence == TaskRecurrence.MONTHLY_ON_DAY
             fun applied(task: Task) = task.copy(
-                    title = edit.title.trim().ifEmpty { task.title },
+                    title = edit.title.trim().ifEmpty { task.title }.take(ExportCodec.MAX_TITLE),
                     description = edit.description,
                     priority = edit.priority?.takeIf { it in PRIORITY_VALUES },
                     fibonacciPoints = edit.points?.takeIf { it in FIBONACCI_SCALE },
@@ -490,10 +490,11 @@ class KairosRepository(
         val child = state.value.tasks.firstOrNull { it.id == edit.id && it.parentId == parentId && it.status != TaskStatus.ARCHIVED } ?: return
         if (edit.delete) {
             queries.deleteDependenciesOf(child.id)
+            queries.closeOpenSessionsOf(now(), child.id)
             queries.deleteTask(child.id)
             return
         }
-        val title = edit.title.trim().ifEmpty { child.title }
+        val title = edit.title.trim().ifEmpty { child.title }.take(ExportCodec.MAX_TITLE)
         var current = child
         if (title != child.title) {
             current = child.copy(title = title)
@@ -641,6 +642,9 @@ class KairosRepository(
         // Tâche d'équipe : l'événement `deleted` recopie le titre, et ceux de la tâche restent.
         find(taskId)?.takeIf { it.space == TaskSpace.TEAM }?.let { journal(it, TeamEventKind.DELETED, null, null, source ?: defaultSource(it)) }
         queries.deleteDependenciesOf(taskId)
+        // Un chrono en cours sur la tâche s'arrête maintenant : ses sessions restent (temps passé), mais une session ouverte sur
+        // une tâche disparue compterait sans fin et ferait sonner les alertes du chrono (QA du 2026-11-04).
+        queries.closeOpenSessionsOf(now(), taskId)
         queries.deleteTask(taskId)
     }
 
@@ -1549,8 +1553,12 @@ class KairosRepository(
 
     private fun today(): LocalDate = clock.todayIn(timeZone)
 
+    /**
+     * Une tâche neuve. Le titre est borné à [ExportCodec.MAX_TITLE], comme à l'import : sinon une tâche saisie ici rendait
+     * illisible l'export qui la contient (QA du 2026-11-04).
+     */
     private fun newTask(title: String, parentId: Long?) = Task(
-        id = 0, title = title, parentId = parentId, createdAt = clock.now(), updatedAt = clock.now(),
+        id = 0, title = title.take(ExportCodec.MAX_TITLE), parentId = parentId, createdAt = clock.now(), updatedAt = clock.now(),
     )
 
     /**

@@ -614,4 +614,33 @@ class KairosRepositoryTest {
         repo.deleteNote(other.id)
         assertEquals(1, repo.snapshot.value.notes.size)
     }
+
+    @Test
+    fun aTitleTooLongForTheExportIsCappedAtEntrySoTheExportStillImports() = runTest {
+        // QA du 2026-11-04 : un titre de 10 001 caractères était accepté à la saisie puis refusé à l'import de son export.
+        val repo = empty()
+        val long = "x".repeat(ExportCodec.MAX_TITLE + 1)
+        val id = repo.createTask(long)!!
+        assertEquals(ExportCodec.MAX_TITLE, repo.snapshot.value.tasks.single().title.length)
+        repo.updateTask(id, TaskEdit(title = long + "y", pinDay = LocalDate(2026, 9, 29)))
+        assertEquals(ExportCodec.MAX_TITLE, repo.snapshot.value.tasks.single().title.length)
+        repo.createNote(long + "\ndétail")
+        repo.convertNote(repo.snapshot.value.notes.single().id)
+        assertTrue(repo.snapshot.value.tasks.all { it.title.length <= ExportCodec.MAX_TITLE })
+        val text = ExportCodec.encode(repo.snapshot.value, "4.0.0", now)
+        assertEquals(repo.snapshot.value.tasks, ExportCodec.decode(text).tasks)
+    }
+
+    @Test
+    fun deletingTheTimedTaskStopsItsTimer() = runTest {
+        // QA du 2026-11-04 : la session ouverte d'une tâche supprimée comptait sans fin (et les alertes du chrono avec).
+        val repo = empty()
+        val id = repo.createTask("Chronométrée")!!
+        repo.startTimer(id)
+        repo.deleteTask(id)
+        val sessions = repo.snapshot.value.workSessions
+        assertEquals(1, sessions.size)
+        assertNotNull(sessions.single().endedAt)
+        assertNull(com.skohscripts.kairos.core.engine.TimeTracking.runningSession(sessions))
+    }
 }

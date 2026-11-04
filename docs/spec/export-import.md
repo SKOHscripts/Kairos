@@ -209,7 +209,9 @@ JSON UTF-8 indenté :
     remplacement est confirmé et précédé d'une sauvegarde.) Valeur invalide :
     date ou instant illisible, réglages refusés par `SettingsForm.validate`
     (mêmes bornes et règles que le formulaire), identifiant en double dans
-    une table, titre de plus de 10 000 caractères, priorité hors 0-2, points
+    une table, titre de plus de 10 000 caractères (borne appliquée aussi à
+    la saisie : capture, fiche, sous-tâche, note convertie, pour que tout
+    export se réimporte ; QA du 2026-11-04), priorité hors 0-2, points
     hors de l'échelle de Fibonacci, durée négative, dépendance vers une tâche
     absente ou vers elle-même, créneau qui finit avant de commencer ;
   - champs inconnus ignorés, champs absents à leur valeur par défaut
