@@ -95,6 +95,7 @@ object WebServices {
             applyLanguage = { KairosWeb.setLanguage(it) },
             // Démonstration jetable (docs/spec/visite-guidee.md § Visite interactive) : un worker neuf, dont la base sql.js est
             // en mémoire et distincte de celle que l'OPFS conserve ; le fermer termine le worker.
+            deviceLabel = "Web",
             demo = DemoSource { lang ->
                 val driver = WebWorkerDriver(Worker("kairos-sqljs.worker.js"))
                 openDemo(KairosStore.open(driver), lang, close = { driver.close() }, clock = clock)
@@ -141,6 +142,7 @@ private class WebLinkedStorage(private val clock: Clock, private val dataFile: S
     private var persisting = false
     private var dirty = false
     private var pendingName: String? = null
+    private var inPass = false
 
     fun attach(repository: KairosRepository, backups: BackupStore) {
         this.repository = repository
@@ -178,7 +180,7 @@ private class WebLinkedStorage(private val clock: Clock, private val dataFile: S
         }
         val current = mutable.value
         if (current is LinkedFileState.SaveFailed) mutable.value = LinkedFileState.NotLinked
-        if (snapshot === repository.mergedSnapshot) return
+        if (inPass && snapshot === repository.mergedSnapshot) return
         dirty = true
         // Hors du verrou : une fusion en cours publie elle-même un état, qui repasse ici.
         if (current is LinkedFileState.Linked) scope.launch { lock.withLock { pass() } }
@@ -200,7 +202,13 @@ private class WebLinkedStorage(private val clock: Clock, private val dataFile: S
         val known = KairosWeb.linkHashGet().await<JsString?>()?.toString()
         val pending = dirty
         dirty = false
-        when (val step = engine.pass(text, known, pending, confirmed)) {
+        inPass = true
+        val result = try {
+            engine.pass(text, known, pending, confirmed)
+        } finally {
+            inPass = false
+        }
+        when (val step = result) {
             is LinkedMerge.Step.Done -> {
                 val write = step.write
                 if (write != null) {

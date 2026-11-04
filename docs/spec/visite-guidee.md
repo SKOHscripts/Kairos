@@ -253,6 +253,9 @@ partout. La liste complète des fonctionnalités lit le même catalogue.
 - **Cartes de la 3.12.0** : `widgets` (widgets Android, #150 ; vue Jour, section `DAY_NOW`, chapitre « Suivre », icône `Today` ;
   la carte se lit sur toutes les plateformes, son texte dit « Sur Android »), `daily_summary` (récapitulatif du jour, #151 ;
   section `SETTINGS_REMINDERS`, chapitre « Réglages », icône `Alarm`).
+- **Cartes de la 4.0.0** : `model` (estimations par machine learning, #99 ; section `SETTINGS_LEARNED`, chapitre « Suivre »,
+  icône `Model`), `sync` (synchronisation entre appareils, #88 ; section `SETTINGS_DATA`, chapitre « Organiser », icône `Sync` ;
+  le texte dit de mettre d'abord tous les appareils à jour, `synchronisation.md` § Interface).
 - **Comptes de cartes dans les tests** : `M6GuideUiTest` tire les nombres de cartes par chapitre de `FeatureCatalog`
   (une carte ajoutée à une version ne casse plus le test du hub).
 - **Lien avec le README** : `FeatureCatalog.README_FEATURES` associe chaque fonctionnalité en gras de la section
@@ -311,7 +314,8 @@ Fichiers : `ui/app/Demo.kt` (`DemoSource`, `DemoSession`, `openDemo`, `forDemo`)
   - `AppServices.forDemo(session)` (commun) construit les services **champ par champ** : `repository` de la session,
     `files` qui refuse tout (`saveText` rend `false`, `openText` `null`), `backups` sans effet, `clock` reprise,
     `notifier = NoNotifier` (ni notification, ni titre de fenêtre clignotant, ni son), `firstLaunch = false`, `teamUi`
-    neuf, `systemLanguage` et `applyLanguage` repris (même langue) ; tous les autres champs vides : ni `dataLocation`,
+    neuf, `systemLanguage` et `applyLanguage` repris (même langue), `deviceLabel` repris (un nom, la démonstration ne
+    synchronise rien) ; tous les autres champs vides : ni `dataLocation`,
     `linkedStorage`, `updates`, `downloadPage`, `dataFolder`, `diagnostics`, `calendars`, `shortcuts`, ni `demo`. Un champ
     de plus dans `AppServices` doit être décidé là : `DemoStepsTest.demoServicesCarryNothingFromTheRealOnes` compare la
     liste des champs.

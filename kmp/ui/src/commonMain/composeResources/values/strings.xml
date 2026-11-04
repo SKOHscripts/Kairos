@@ -153,6 +153,33 @@
     <string name="sync_unreadable">The linked file “%1$s” cannot be read. Kairos no longer writes to it while it stays that way.</string>
     <string name="sync_too_new">“%1$s” comes from a newer version of Kairos: update the app. Kairos does not write to it until then.</string>
     <string name="sync_clock">“%1$s” carries a date more than 30 days in the future: check the clock of the device that wrote it. Nothing is merged.</string>
+    <string name="sync_status">Kairos merges this file with your data at every change.</string>
+    <string name="sync_last_merge">Last merge: %1$s at %2$s. Added: %3$d · changed: %4$d · removed: %5$d.</string>
+    <string name="sync_device">This device: %1$s</string>
+    <string name="sync_rename">Rename</string>
+    <string name="sync_rename_title">Name of this device</string>
+    <string name="sync_rename_hint">It tells where a value comes from in “To review” on your other devices.</string>
+    <string name="sync_merge_now">Merge now</string>
+    <string name="sync_merge_file">Merge a Kairos file…</string>
+    <string name="sync_review_button">To review (%1$d)</string>
+    <string name="sync_review_banner">To review after a merge: %1$d.</string>
+    <string name="sync_review_see">See</string>
+    <string name="sync_review_title">To review</string>
+    <string name="sync_review_intro">These values were changed on two devices before they met. The most recent one is applied; the other is kept for 30 days.</string>
+    <string name="sync_review_applied">Applied</string>
+    <string name="sync_review_other">Other value</string>
+    <string name="sync_review_value">%1$s: %2$s (%3$s)</string>
+    <string name="sync_review_keep">Keep this one</string>
+    <string name="sync_review_take">Take the other</string>
+    <string name="sync_review_kept">“%1$s” was deleted on %2$s but changed here: kept.</string>
+    <string name="sync_review_delete_again">Delete again</string>
+    <string name="sync_review_keep_all">Keep all the most recent</string>
+    <string name="sync_review_empty">Nothing to review.</string>
+    <string name="sync_review_settings">Settings</string>
+    <string name="sync_merged">Merged. Added: %1$d · changed: %2$d · removed: %3$d.</string>
+    <string name="sync_preview_title">Merge this file?</string>
+    <string name="sync_preview_body">Tasks added: %1$d · changed: %2$d · removed: %3$d. Other items: %4$d. Conflicts: %5$d.</string>
+    <string name="sync_preview_nothing">This file brings nothing new.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Capture</string>
@@ -1465,7 +1492,9 @@
     <string name="card_calendar_import_title">Import your meetings from a calendar</string>
     <string name="card_calendar_import_body">Settings → Data → Calendars imports an .ics file from Outlook, Google Calendar or Thunderbird: each meeting becomes a busy slot, whole-day events a badge on the day. Import it again to update it.</string>
     <string name="card_linked_file_title">A copy of your data in a synced folder</string>
-    <string name="card_linked_file_body">On the desktop and Android, Settings → Data → “Create a file” keeps an up-to-date copy of your data in a folder you choose (Syncthing, Nextcloud…). If another device changed it, Kairos asks before writing.</string>
+    <string name="card_linked_file_body">On the desktop and Android, Settings → Data → “Create a file” keeps an up-to-date copy of your data in a folder you choose (Syncthing, Nextcloud…), and merges it when another device changed it.</string>
+    <string name="card_sync_title">Sync between your devices</string>
+    <string name="card_sync_body">Link the same file on each device (Settings → Data, in a Syncthing or Nextcloud folder…): Kairos merges it with your data, keeps everything from both sides and shows what to review. Update every device to 4.0 first.</string>
     <string name="card_month_title">The month at a glance</string>
     <string name="card_month_body">In the Week view, “Month” shows every day of the month: planned tasks, deadlines, overloaded days, public holidays and days off. Tap a day to open it.</string>
     <string name="card_correct_title">Correct your estimates</string>

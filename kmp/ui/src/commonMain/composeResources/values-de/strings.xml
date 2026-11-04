@@ -152,6 +152,33 @@
     <string name="sync_unreadable">Die verknüpfte Datei „%1$s“ ist nicht lesbar. Kairos schreibt nicht mehr hinein, solange das so bleibt.</string>
     <string name="sync_too_new">„%1$s“ stammt aus einer neueren Version von Kairos: Aktualisiere die App. Bis dahin schreibt Kairos nicht hinein.</string>
     <string name="sync_clock">„%1$s“ trägt ein Datum mehr als 30 Tage in der Zukunft: Prüfe die Uhr des Geräts, das sie geschrieben hat. Nichts wird zusammengeführt.</string>
+    <string name="sync_status">Kairos führt diese Datei bei jeder Änderung mit deinen Daten zusammen.</string>
+    <string name="sync_last_merge">Letzte Zusammenführung: %1$s um %2$s. Hinzugefügt: %3$d · geändert: %4$d · entfernt: %5$d.</string>
+    <string name="sync_device">Dieses Gerät: %1$s</string>
+    <string name="sync_rename">Umbenennen</string>
+    <string name="sync_rename_title">Name dieses Geräts</string>
+    <string name="sync_rename_hint">Er zeigt auf deinen anderen Geräten unter „Zu prüfen“, woher ein Wert stammt.</string>
+    <string name="sync_merge_now">Jetzt zusammenführen</string>
+    <string name="sync_merge_file">Kairos-Datei zusammenführen…</string>
+    <string name="sync_review_button">Zu prüfen (%1$d)</string>
+    <string name="sync_review_banner">Nach einer Zusammenführung zu prüfen: %1$d.</string>
+    <string name="sync_review_see">Ansehen</string>
+    <string name="sync_review_title">Zu prüfen</string>
+    <string name="sync_review_intro">Diese Werte wurden auf zwei Geräten geändert, bevor sie sich trafen. Der neueste wird angewendet; der andere bleibt 30 Tage erhalten.</string>
+    <string name="sync_review_applied">Angewendet</string>
+    <string name="sync_review_other">Anderer Wert</string>
+    <string name="sync_review_value">%1$s: %2$s (%3$s)</string>
+    <string name="sync_review_keep">Diesen behalten</string>
+    <string name="sync_review_take">Den anderen nehmen</string>
+    <string name="sync_review_kept">„%1$s“ wurde auf %2$s gelöscht, aber hier geändert: behalten.</string>
+    <string name="sync_review_delete_again">Erneut löschen</string>
+    <string name="sync_review_keep_all">Überall den neuesten behalten</string>
+    <string name="sync_review_empty">Nichts zu prüfen.</string>
+    <string name="sync_review_settings">Einstellungen</string>
+    <string name="sync_merged">Zusammengeführt. Hinzugefügt: %1$d · geändert: %2$d · entfernt: %3$d.</string>
+    <string name="sync_preview_title">Diese Datei zusammenführen?</string>
+    <string name="sync_preview_body">Aufgaben hinzugefügt: %1$d · geändert: %2$d · entfernt: %3$d. Andere Elemente: %4$d. Konflikte: %5$d.</string>
+    <string name="sync_preview_nothing">Diese Datei bringt nichts Neues.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Erfassen</string>
@@ -1464,7 +1491,9 @@
     <string name="card_calendar_import_title">Besprechungen aus einem Kalender importieren</string>
     <string name="card_calendar_import_body">Einstellungen → Daten → Kalender importiert eine .ics-Datei aus Outlook, Google Kalender oder Thunderbird: Jede Besprechung wird ein belegtes Zeitfenster, ganztägige Ereignisse ein Badge am Tag. Importiere sie erneut, um sie zu aktualisieren.</string>
     <string name="card_linked_file_title">Eine Kopie deiner Daten in einem synchronisierten Ordner</string>
-    <string name="card_linked_file_body">Auf dem Desktop und unter Android hält Einstellungen → Daten → „Datei erstellen“ eine aktuelle Kopie deiner Daten in einem Ordner deiner Wahl (Syncthing, Nextcloud…). Hat ein anderes Gerät sie geändert, fragt Kairos vor dem Schreiben nach.</string>
+    <string name="card_linked_file_body">Auf dem Desktop und unter Android hält Einstellungen → Daten → „Datei erstellen“ eine aktuelle Kopie deiner Daten in einem Ordner deiner Wahl (Syncthing, Nextcloud…) und führt sie zusammen, wenn ein anderes Gerät sie geändert hat.</string>
+    <string name="card_sync_title">Deine Geräte synchronisieren</string>
+    <string name="card_sync_body">Verknüpfe auf jedem Gerät dieselbe Datei (Einstellungen → Daten, in einem Syncthing- oder Nextcloud-Ordner…): Kairos führt sie mit deinen Daten zusammen, behält alles von beiden Seiten und zeigt, was zu prüfen ist. Aktualisiere zuerst alle Geräte auf 4.0.</string>
     <string name="card_month_title">Der Monat auf einen Blick</string>
     <string name="card_month_body">In der Wochenansicht zeigt „Monat“ jeden Tag des Monats: geplante Aufgaben, Fristen, überlastete Tage, Feiertage und freie Tage. Tippe auf einen Tag, um ihn zu öffnen.</string>
     <string name="card_correct_title">Schätzungen korrigieren</string>

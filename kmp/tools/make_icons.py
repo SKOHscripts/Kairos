@@ -136,6 +136,7 @@ ICONS = {
     "CenterFocusStrong": ("center_focus_strong", False),
     "Assignment": ("assignment", False),
     "FormatListBulleted": ("format_list_bulleted", False),
+    "Sync": ("sync", False),
 }
 
 

@@ -36,6 +36,10 @@ network: your data stays on your device.
   that look like it, with a range and the list of those tasks, and only once
   this beats the default duration on your own history.
   [How it works](#on-device-machine-learning-how-long-your-tasks-really-take).
+- **New in 4.0: sync between your devices.** Link the same file on each
+  device, in a Syncthing or Nextcloud folder for example: Kairos merges it with
+  each device's data, keeps everything from both sides, and lists what was
+  changed on two devices at once. No account, no server, no network permission.
 - It ranks the day's tasks with a priority score, shown on each one, and
   explains that score in one tap.
 - It places each task in the gaps of the calendar, around meetings, with a
@@ -365,8 +369,19 @@ order (critical path). Cycles are refused.
 - **Linked file**: on the desktop and Android too, Settings → Data → "Create a
   file" keeps an up-to-date copy of your data (an export, which opens anywhere)
   in a folder of your choice, for example a Syncthing or Nextcloud folder,
-  written 2 seconds after each change. If another device changed the file,
-  Kairos stops writing to it and asks: overwrite, import it, or unlink.
+  written 2 seconds after each change. Since 4.0, when another device changed
+  the file, Kairos merges it with your data instead of stopping.
+- **Sync between devices** (4.0): link the same file on each device (Settings
+  → Data → "Create a file" on the first, "Open a Kairos file" then "Merge" on
+  the others). Every change is merged field by field: two devices that change
+  different fields of a task both keep their change, a task deleted on one
+  device and changed on the other is kept and flagged, and a value changed on
+  both before they met lands in **To review** (keep this one or take the
+  other). The first meeting of two devices asks before merging; the next ones
+  are silent and say in one line what changed. A running timer shows on every
+  device, and backups are made before a merge that changes or removes
+  something. "Merge a Kairos file…" merges any export by hand, on every
+  platform. The team space is never synced. Update every device to 4.0 first.
 - **Web version**: data saved in the browser and, in Edge or Chrome, **linked
   to a file** kept up to date on every change.
 - **Languages**: the interface speaks **English, French, Spanish, German, Russian
@@ -531,6 +546,7 @@ version that brought it and the platforms it exists on.
 | Organize | Monthly slots, and one day apart | 3.8.0 | All |
 | Organize | Import your meetings from a calendar | 3.10.0 | All |
 | Organize | Phone calendars | 3.10.0 | Android |
+| Organize | Sync between your devices | 4.0.0 | All |
 | Team | Guided first team task | 3.8.0 | All |
 | Team | The members | 3.1.0 | All |
 | Team | Your personal work counts | 3.3.0 | All |

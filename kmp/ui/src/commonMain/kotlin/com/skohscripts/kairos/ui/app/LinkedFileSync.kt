@@ -73,6 +73,7 @@ class LinkedFileSync(
     private var poll: Job? = null
     private var visible = false
     private var pendingTarget: String? = null
+    private var inPass = false
 
     /** Relit le lien gardé et fait une première passe (ouverture de l'application). */
     suspend fun start(repository: KairosRepository) {
@@ -85,8 +86,9 @@ class LinkedFileSync(
 
     /** Nouvel état de la base : écriture programmée, une seule pour une rafale. */
     fun changed(snapshot: KairosSnapshot) {
-        // L'état publié par une fusion n'est pas une modification locale : la passe sait déjà s'il faut écrire.
-        if (::repository.isInitialized && snapshot === repository.mergedSnapshot) return
+        // L'état publié par la fusion d'une passe n'est pas une modification locale : la passe sait déjà s'il faut écrire. Une
+        // fusion faite ailleurs (« Fusionner un fichier Kairos… ») en est une pour le fichier lié.
+        if (inPass && ::repository.isInitialized && snapshot === repository.mergedSnapshot) return
         dirty = true
         if (link == null) return
         timer?.cancel()
@@ -142,7 +144,12 @@ class LinkedFileSync(
         }
         val pending = dirty
         dirty = false
-        val step = engine.pass(text, current.hash, pending, confirmed)
+        inPass = true
+        val step = try {
+            engine.pass(text, current.hash, pending, confirmed)
+        } finally {
+            inPass = false
+        }
         when (step) {
             is LinkedMerge.Step.Done -> {
                 step.outcome?.let { if (!it.changes.isEmpty) merges.tryEmit(it) }

@@ -280,4 +280,25 @@ class SyncRepositoryTest {
         edited.updateTitle(example.id, "Modifiée")
         assertTrue(edited.hasOwnData())
     }
+
+    @Test
+    fun formOpenedDuringMergeKeepsMergedFields() = runTest {
+        val (a, b) = pair()
+        val id = a.task("Rapport")!!.id
+        // La fiche s'ouvre sur A ; pendant ce temps, B change l'échéance et A reçoit la fusion.
+        val opened = a.snapshot.value.tasks.first { it.id == id }
+        val base = EditBase(opened, emptySet())
+        val onB = b.task("Rapport")!!
+        b.updateTask(onB.id, TaskEdit(title = "Rapport", priority = onB.priority, points = onB.fibonacciPoints, deadline = LocalDate(2026, 11, 20), pinDay = day))
+        a.pull(b)
+        assertEquals(LocalDate(2026, 11, 20), a.task("Rapport")!!.deadline)
+        // L'utilisateur n'a changé que la priorité dans la fiche : l'échéance fusionnée reste.
+        a.updateTask(id, TaskEdit(title = opened.title, priority = 0, points = opened.fibonacciPoints, deadline = opened.deadline, pinDay = day), opened = base)
+        val saved = a.snapshot.value.tasks.first { it.id == id }
+        assertEquals(0, saved.priority)
+        assertEquals(LocalDate(2026, 11, 20), saved.deadline)
+        // Sans état d'ouverture (création, autres chemins), la fiche s'écrit en entier comme avant.
+        a.updateTask(id, TaskEdit(title = opened.title, priority = 0, points = opened.fibonacciPoints, deadline = null, pinDay = day))
+        assertNull(a.snapshot.value.tasks.first { it.id == id }.deadline)
+    }
 }

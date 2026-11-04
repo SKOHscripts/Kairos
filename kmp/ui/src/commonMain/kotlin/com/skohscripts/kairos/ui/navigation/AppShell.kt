@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.navigation
 
+import com.skohscripts.kairos.ui.sync.SyncMergeMessages
 import com.skohscripts.kairos.ui.app.LocalShellScope
 import com.skohscripts.kairos.ui.app.EstimateReviewDialog
 import com.skohscripts.kairos.ui.app.EstimateChangesBanner
@@ -354,7 +355,11 @@ fun AppShell(
     val content: @Composable (Modifier) -> Unit = { modifier ->
         Column(modifier.fillMaxSize()) {
             if (demo != null) DemoBanner(onExitDemo)
-            CompositionLocalProvider(LocalMessages provides showMessage) { UpdateBanner(services) }
+            CompositionLocalProvider(LocalMessages provides showMessage) {
+                UpdateBanner(services)
+                // Une ligne après chaque fusion qui a changé quelque chose ici (docs/spec/synchronisation.md § Au quotidien).
+                SyncMergeMessages(services)
+            }
             // Seules les tâches encore à faire comptent : une tâche supprimée ou faite depuis l'annonce n'y est plus.
             val pendingChanges = estimateChanges?.let { EstimateChanges.stillOpen(it, personal.tasks) }.orEmpty()
             if (pendingChanges.isNotEmpty()) {

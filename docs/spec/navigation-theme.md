@@ -150,7 +150,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `Image` (image d'une carte) ; carte « Thème sombre » du guide (3.7.0) : `DarkMode` ; 3.8.0 : `Flag` (échéances de la vue Mois),
   `CalendarMonth` (carte « Le mois d'un coup d'œil »), `ShowChart` (temps chronométré au fil du temps), `EditNote`
   (« Corriger les estimations… »), `Alarm` (rappels) ; 3.10.0 : `Event` (calendriers importés : carte « Calendriers »,
-  créneau importé, journée entière, carte du guide).
+  créneau importé, journée entière, carte du guide) ; 4.0.0 : `Sync` (carte du guide « Synchroniser tes appareils »,
+  `synchronisation.md`).
   `Construction` (écran « En construction ») est retiré au
   jalon M5, plus rien n'étant en construction.
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`

@@ -382,12 +382,12 @@ class KairosRepository(
      * que [TaskEdit.reassign] (`assigned`) ; les sous-tâches créées en lot
      * prennent l'espace et l'assigné (après réaffectation) de leur mère.
      */
-    suspend fun updateTask(taskId: Long, edit: TaskEdit, source: TeamEventSource? = null) {
+    suspend fun updateTask(taskId: Long, edit: TaskEdit, source: TeamEventSource? = null, opened: EditBase? = null) {
         val task = find(taskId) ?: return
         write {
             val weekly = edit.recurrence == TaskRecurrence.WEEKLY
             val onDay = edit.recurrence == TaskRecurrence.MONTHLY_ON_DAY
-            var updated = task.copy(
+            fun applied(task: Task) = task.copy(
                     title = edit.title.trim().ifEmpty { task.title },
                     description = edit.description,
                     priority = edit.priority?.takeIf { it in PRIORITY_VALUES },
@@ -409,7 +409,11 @@ class KairosRepository(
                     teamExcluded = edit.teamExcluded?.takeIf { task.space == TaskSpace.PERSONAL } ?: task.teamExcluded,
                     // Note à envoyer (docs/spec/equipe-echanges.md § Notes) : nettoyée, bornée ; `null` = inchangée.
                     noteOut = edit.noteOut?.let { ExchangeNote.clean(it).orEmpty() } ?: task.noteOut,
-            ).let { t -> edit.proposal?.let { proposed(t, it.to) } ?: t }
+            )
+            // Fiche ouverte pendant une fusion (docs/spec/synchronisation.md § Interface) : seuls les champs que l'utilisateur a
+            // changés dans la fiche s'écrivent ; les autres gardent la valeur actuelle, peut-être arrivée d'un autre appareil.
+            var updated = (if (opened == null) applied(task) else keepUnchanged(task, opened.task, applied(opened.task)))
+                .let { t -> edit.proposal?.let { proposed(t, it.to) } ?: t }
             // Série « le N du mois » enregistrée sans échéance : la tâche EST l'occurrence de ce mois. Sans cela, l'affichage
             // suivant en créait une seconde, de même titre, et l'originale restait « sans créneau » (recurrence.md).
             val seriesDay = updated.recurrenceDayOfMonth
@@ -437,8 +441,36 @@ class KairosRepository(
             edit.newSubtasks.lines().map { it.trim() }.filter { it.isNotEmpty() }.forEach {
                 insertNew(newTask(it, taskId).copy(space = updated.space, assigneeId = updated.assigneeId))
             }
-            setBlockers(task, edit.blockerIds)
+            // Bloqueurs : ceux que la fiche a ajoutés ou retirés, appliqués à l'état actuel.
+            val blockers = opened?.let { base ->
+                val current = state.value.dependencies.filter { it.taskId == taskId }.mapTo(HashSet()) { it.blockerId }
+                current - (base.blockers - edit.blockerIds) + (edit.blockerIds - base.blockers)
+            } ?: edit.blockerIds
+            setBlockers(task, blockers)
         }
+    }
+
+    /** Champ par champ : la valeur de la fiche ([mine]) si l'utilisateur l'a changée depuis l'ouverture ([opened]), sinon l'actuelle. */
+    private fun keepUnchanged(current: Task, opened: Task, mine: Task): Task {
+        fun <T> pick(f: (Task) -> T): T = if (f(mine) == f(opened)) f(current) else f(mine)
+        return current.copy(
+            title = pick(Task::title),
+            description = pick(Task::description),
+            priority = pick(Task::priority),
+            fibonacciPoints = pick(Task::fibonacciPoints),
+            deadline = pick(Task::deadline),
+            scheduledDate = pick(Task::scheduledDate),
+            estimatedMinutes = pick(Task::estimatedMinutes),
+            projectTag = pick(Task::projectTag),
+            taskType = pick(Task::taskType),
+            recurrence = pick(Task::recurrence),
+            recurrenceDayOfMonth = pick(Task::recurrenceDayOfMonth),
+            recurrenceDayOfWeek = pick(Task::recurrenceDayOfWeek),
+            pinnedStart = pick(Task::pinnedStart),
+            manualTimeSpentMinutes = pick(Task::manualTimeSpentMinutes),
+            teamExcluded = pick(Task::teamExcluded),
+            noteOut = pick(Task::noteOut),
+        )
     }
 
     /**
@@ -1921,6 +1953,12 @@ class KairosRepository(
  * l'ensemble complet des bloqueurs voulus ; [newSubtasks] : une ligne, une
  * sous-tâche.
  */
+/**
+ * L'état d'une tâche à l'ouverture de sa fiche ([task]) et ses bloqueurs ([blockers]) : [KairosRepository.updateTask] n'écrit
+ * alors que ce que la fiche a changé depuis, sans défaire une fusion survenue entre-temps (docs/spec/synchronisation.md).
+ */
+data class EditBase(val task: Task, val blockers: Set<Long>)
+
 data class TaskEdit(
     val title: String,
     val description: String = "",

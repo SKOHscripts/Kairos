@@ -154,6 +154,33 @@
     <string name="sync_unreadable">Le fichier lié « %1$s » est illisible. Kairos n’y écrit plus tant qu’il l’est.</string>
     <string name="sync_too_new">« %1$s » vient d’une version plus récente de Kairos : mets à jour l’application. Kairos n’y écrit plus d’ici là.</string>
     <string name="sync_clock">« %1$s » porte une date à plus de 30 jours dans le futur : vérifie l’horloge de l’appareil qui l’a écrit. Rien n’est fusionné.</string>
+    <string name="sync_status">Kairos fusionne ce fichier avec tes données à chaque changement.</string>
+    <string name="sync_last_merge">Dernière fusion : %1$s à %2$s. Ajoutés : %3$d · modifiés : %4$d · supprimés : %5$d.</string>
+    <string name="sync_device">Cet appareil : %1$s</string>
+    <string name="sync_rename">Renommer</string>
+    <string name="sync_rename_title">Nom de cet appareil</string>
+    <string name="sync_rename_hint">Il dit d’où vient une valeur dans « À revoir » sur tes autres appareils.</string>
+    <string name="sync_merge_now">Fusionner maintenant</string>
+    <string name="sync_merge_file">Fusionner un fichier Kairos…</string>
+    <string name="sync_review_button">À revoir (%1$d)</string>
+    <string name="sync_review_banner">À revoir après une fusion : %1$d.</string>
+    <string name="sync_review_see">Voir</string>
+    <string name="sync_review_title">À revoir</string>
+    <string name="sync_review_intro">Ces valeurs ont été changées sur deux appareils avant qu’ils se rencontrent. La plus récente est appliquée ; l’autre est gardée 30 jours.</string>
+    <string name="sync_review_applied">Appliquée</string>
+    <string name="sync_review_other">Autre valeur</string>
+    <string name="sync_review_value">%1$s : %2$s (%3$s)</string>
+    <string name="sync_review_keep">Garder celle-ci</string>
+    <string name="sync_review_take">Prendre l’autre</string>
+    <string name="sync_review_kept">« %1$s » a été supprimé sur %2$s mais modifié ici : conservé.</string>
+    <string name="sync_review_delete_again">Supprimer à nouveau</string>
+    <string name="sync_review_keep_all">Tout garder le plus récent</string>
+    <string name="sync_review_empty">Rien à revoir.</string>
+    <string name="sync_review_settings">Réglages</string>
+    <string name="sync_merged">Fusion faite. Ajoutés : %1$d · modifiés : %2$d · supprimés : %3$d.</string>
+    <string name="sync_preview_title">Fusionner ce fichier ?</string>
+    <string name="sync_preview_body">Tâches ajoutées : %1$d · modifiées : %2$d · supprimées : %3$d. Autres éléments : %4$d. Conflits : %5$d.</string>
+    <string name="sync_preview_nothing">Ce fichier n’apporte rien de neuf.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Capturer</string>
@@ -1467,7 +1494,9 @@
     <string name="card_calendar_import_title">Importer tes réunions d’un agenda</string>
     <string name="card_calendar_import_body">Réglages → Données → Calendriers importe un fichier .ics d’Outlook, de Google Agenda ou de Thunderbird : chaque réunion devient un créneau occupé, les journées entières un badge sur le jour. Réimporte-le pour le mettre à jour.</string>
     <string name="card_linked_file_title">Une copie de tes données dans un dossier synchronisé</string>
-    <string name="card_linked_file_body">Sur le bureau et Android, Réglages → Données → « Créer un fichier » tient à jour une copie de tes données dans le dossier de ton choix (Syncthing, Nextcloud…). Si un autre appareil l’a modifiée, Kairos demande avant d’écrire.</string>
+    <string name="card_linked_file_body">Sur le bureau et Android, Réglages → Données → « Créer un fichier » tient à jour une copie de tes données dans le dossier de ton choix (Syncthing, Nextcloud…), et la fusionne quand un autre appareil l’a modifiée.</string>
+    <string name="card_sync_title">Synchroniser tes appareils</string>
+    <string name="card_sync_body">Lie le même fichier sur chaque appareil (Réglages → Données, dans un dossier Syncthing ou Nextcloud…) : Kairos le fusionne avec tes données, garde tout ce qui existe des deux côtés et montre ce qu’il faut revoir. Mets d’abord tous tes appareils à jour en 4.0.</string>
     <string name="card_month_title">Le mois d’un coup d’œil</string>
     <string name="card_month_body">Dans la vue Semaine, « Mois » montre chaque jour du mois : tâches prévues, échéances, journées trop chargées, fériés et jours libres. Touche un jour pour l’ouvrir.</string>
     <string name="card_correct_title">Corriger ses estimations</string>

@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.desktop
 
+import com.skohscripts.kairos.ui.sync.SyncReviewDialog
 import java.util.Locale
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.skohscripts.kairos.data.KairosStore
@@ -142,6 +143,26 @@ object SelfTest {
             }
         }
         val chrono: @Composable () -> Unit = { KairosApp(Platform.DESKTOP, Destination.DAY) { timed } }
+        // Synchronisation (docs/spec/synchronisation.md § Interface) : deux bases d'exemple rapprochées, puis la même tâche
+        // repriorisée des deux côtés avant de se revoir : un conflit « À revoir » et une dernière fusion dans la carte Données.
+        val synced = runBlocking {
+            DesktopServices.open(dataDir, inMemory = true).also { s ->
+                val other = DesktopServices.open(dataDir, inMemory = true).repository
+                fun ExportFrom(r: com.skohscripts.kairos.data.KairosRepository) =
+                    com.skohscripts.kairos.data.ExportCodec.decodeSynced(com.skohscripts.kairos.data.ExportCodec.encode(r.snapshot.value, KairosBuild.VERSION_NAME, kotlin.time.Clock.System.now(), r.sync.value))
+                s.repository.enableSync("Windows · 3f9c")
+                other.enableSync("Android · 8a21")
+                other.createTask("Préparer la démo client")
+                s.repository.merge(ExportFrom(other)) { true }
+                other.merge(ExportFrom(s.repository)) { true }
+                val mine = s.repository.snapshot.value.tasks.first { it.title == "Préparer la démo client" }
+                val theirs = other.snapshot.value.tasks.first { it.title == "Préparer la démo client" }
+                s.repository.setPriority(mine.id, 1)
+                Thread.sleep(5)
+                other.setPriority(theirs.id, 0)
+                s.repository.merge(ExportFrom(other)) { true }
+            }
+        }
         // Quatrième base : plages multiples et contextes (docs/spec/planning-personnalise.md § Lot B2), toute la semaine en plages de matin et d'après-midi.
         val planned = runBlocking {
             DesktopServices.open(dataDir, inMemory = true).also { s ->
@@ -370,6 +391,11 @@ object SelfTest {
             Shot("settings-tracking-narrow", 360, 1200, settingsIn(services, SettingsCategory.TRACKING)),
             // « À propos » : « Revoir le guide depuis le début » (issue #94), inactif sur une base qui n'a rien retenu.
             Shot("settings-about-narrow", 360, 900, settingsIn(services, SettingsCategory.ABOUT)),
+            Shot("sync-data", 900, 1300, settingsIn(synced, SettingsCategory.DATA)),
+            Shot("sync-data-narrow", 360, 1600, settingsIn(synced, SettingsCategory.DATA)),
+            Shot("sync-review", 900, 800, overScrim { SyncReviewDialog(synced) {} }),
+            Shot("sync-review-narrow", 360, 800, overScrim { SyncReviewDialog(synced) {} }),
+            Shot("sync-day-narrow", 360, 900, { KairosApp(Platform.DESKTOP, Destination.DAY) { synced } }),
             Shot("settings-advanced", 900, 2600, settingsIn(services, SettingsCategory.PLANNING)),
             Shot("settings-planning", 900, 5000, plannedSettings),
             Shot("settings-planning-narrow", 360, 8500, plannedSettings),

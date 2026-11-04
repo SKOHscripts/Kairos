@@ -134,6 +134,8 @@ import com.skohscripts.kairos.ui.app.LocalMessages
 import com.skohscripts.kairos.ui.app.fileStamp
 import com.skohscripts.kairos.ui.app.replaceWithBackup
 import com.skohscripts.kairos.ui.app.StorageBanner
+import com.skohscripts.kairos.ui.sync.MergeFileButton
+import com.skohscripts.kairos.ui.sync.SyncDataSection
 import com.skohscripts.kairos.ui.app.importErrorMessage
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_cancel
@@ -566,6 +568,8 @@ private fun DataCard(services: AppServices) {
             )
         }
         StorageBanner(services, showWhenLinked = true)
+        // Synchronisation (docs/spec/synchronisation.md § Interface) : ce que fait le fichier lié, dernière fusion, appareil.
+        SyncDataSection(services)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             KairosOutlinedButton(onClick = {
                 scope.launch {
@@ -599,6 +603,8 @@ private fun DataCard(services: AppServices) {
                 Icon(KairosIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.data_import), modifier = Modifier.padding(start = 6.dp))
             }
+            // Toutes les plateformes, Firefox et Safari compris (où le fichier lié n'existe pas).
+            MergeFileButton(services)
         }
         if (origins.isNotEmpty()) {
             Text(stringResource(Res.string.exchange_report_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

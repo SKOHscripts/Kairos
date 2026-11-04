@@ -69,6 +69,7 @@ object AndroidServices {
             downloadPage = InstallSource.installedByHand(installerOf(context)),
             applyLanguage = { Locale.setDefault(Locale.forLanguageTag(it)) },
             // Démonstration jetable (docs/spec/visite-guidee.md § Visite interactive) : un nom nul, une base en mémoire.
+            deviceLabel = "Android",
             demo = DemoSource { lang ->
                 withContext(Dispatchers.IO) {
                     val memory = AndroidSqliteDriver(DeferredSchema, context, null)

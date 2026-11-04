@@ -90,6 +90,7 @@ object DesktopServices {
             // L'auto-test (base en mémoire) n'écrit jamais dans un fichier de l'utilisateur.
             linkedStorage = if (inMemory) null else linked,
             // Démonstration jetable (docs/spec/visite-guidee.md § Visite interactive) : une base SQLite en mémoire neuve.
+            deviceLabel = osLabel(),
             demo = DemoSource { lang ->
                 withContext(Dispatchers.IO) {
                     val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)

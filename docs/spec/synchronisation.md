@@ -28,8 +28,11 @@ dépôt ; 4) cycle du fichier lié ; 5) interface ; 6) durées apprises partagé
 fichier lié fusionne (`LinkedMerge`, `LinkedFileSync`, `WebLinkedStorage`, `SyncSummary`), états `NeedsConfirmation` et
 `Unreadable`, bandeau du premier rapprochement et du fichier illisible, choix « Fusionner » / « Remplacer » à l'ouverture,
 relecture au premier plan et chaque minute ; dépôt `restoreSynced`, `hasOwnData`, `mergedSnapshot` ; tests `LinkedFileSyncTest`,
-`LinkedFileUiTest`, `SyncSummaryTest` (voir « Précisions de l'implémentation (étape 4) »). Restent l'interface de l'étape 5
-(carte Données, message de fusion, « Fusionner un fichier Kairos… », « À revoir ») et les étapes 6 et 7. La moitié « écriture » de #88, le fichier lié et sa garde
+`LinkedFileUiTest`, `SyncSummaryTest` (voir « Précisions de l'implémentation (étape 4) »). **Étape 5 livrée** : interface
+(`ui/sync/SyncUi.kt` : section de la carte Données, bandeau et dialogue « À revoir », « Fusionner un fichier Kairos… » et son
+aperçu, message après une fusion), fiche ouverte pendant une fusion (`EditBase`), carte du guide `sync`, README ; tests
+`SyncUiTest`, `SyncRepositoryTest.formOpenedDuringMergeKeepsMergedFields` (voir « Précisions de l'implémentation (étape 5) »).
+Restent les étapes 6 (#100) et 7. La moitié « écriture » de #88, le fichier lié et sa garde
 contre une modification faite ailleurs, est **implémentée en 3.10.0** (`export-import.md`) : cette spec la remplace.
 
 ## 1. Besoin métier (cahier des charges)
@@ -673,6 +676,48 @@ Voir la skill `kairos-ecran` ; couleurs par rôles, aucun `Color(0x…)`.
 - Carte du guide `sync` (chapitre Organiser, `since = "4.0.0"`, ouvre Réglages → Données) et « Nouveau dans cette version » :
   **mettre à jour tous les appareils** avant de fusionner (`visite-guidee.md`).
 
+#### Précisions de l'implémentation (étape 5)
+
+- **Composants** (`ui/sync/SyncUi.kt`) : `SyncDataSection` (carte Données, sous le bandeau du fichier lié : « Kairos fusionne ce
+  fichier… » si un fichier est lié, « Dernière fusion : 4/11 à 07:28. Ajoutés : 0 · modifiés : 1 · supprimés : 0. », « Cet
+  appareil : Windows · 3f9c » avec « Renommer » (dialogue, 30 caractères), « Fusionner maintenant » si lié, « À revoir (N) » si
+  N > 0) ; rien tant que la base ne synchronise pas et qu'aucun fichier n'est lié. `MergeFileButton` à côté d'« Exporter » et
+  d'« Importer », sur toutes les plateformes. `SyncReviewBanner` dans la vue Jour, sous celui du fichier lié. `SyncMergeMessages`
+  dans la coquille.
+- **« À revoir »** : `AlertDialog` défilant, une `OutlinedCard` (12 dp, sans ombre) par élément : titre de l'enregistrement
+  (« Réglages » pour un réglage), libellé du champ (ceux des fiches : titre, description, priorité, points, échéance, durée, projet,
+  type, date programmée, récurrence, heure fixe ; un autre champ garde son nom), « Appliquée : 2 (Android · 8a21, 4/11 07:28) »
+  marquée de l'icône `Check`, « Autre valeur : 1 (Windows · 3f9c, …) » de l'icône `History` (jamais la couleur seule). Les valeurs
+  canoniques s'affichent sans guillemets, « — » pour rien. Le nom d'un appareil vient du contexte (`labels`), sinon ses 4
+  premiers caractères. **Le dialogue reste ouvert quand la liste se vide** (« Rien à revoir. », « OK ») ; le bandeau, lui,
+  disparaît : le dialogue appartient à l'écran (vue Jour, carte Données), pas au bandeau, et le bandeau n'est un élément de la
+  liste de la vue Jour que s'il y a quelque chose à revoir (un élément vide garderait son espacement et décalerait la vue, donc
+  les captures des magasins). « Tout garder le plus récent » vide la liste et ferme.
+- **Fusion d'un fichier choisi** : `FileService.openText`, `decodeSynced`, activation au besoin (même nom que le fichier lié,
+  `AppServices.deviceLabel`), aperçu calculé sans rien écrire (`SnapshotMerge.merge`) : « Tâches ajoutées : 1 · modifiées : 0 ·
+  supprimées : 0. Autres éléments : 0. Conflits : 0. » (ou « Ce fichier n'apporte rien de neuf. »), « Fusionner » désactivé et
+  dialogue maintenu pendant l'écriture ; sauvegarde `avant-fusion-…` (`saveBackup`) si la fusion modifie ou supprime. Un fichier
+  dont une marque est à plus de 30 jours dans le futur donne « fichier illisible » (`file_error`), sans aperçu. Le fichier lié,
+  s'il y en a un, reçoit le résultat : une fusion **faite hors d'une passe** est une modification locale pour lui (seule la fusion
+  de sa propre passe est ignorée, drapeau `inPass`).
+- **Message de fusion** : `SyncMergeMessages` lit `lastMerge` et montre « Fusion faite. Ajoutés : 3 · modifiés : 1 ·
+  supprimés : 0. » à chaque nouvelle fusion qui a changé quelque chose ici, fichier lié ou fichier choisi (la valeur présente à
+  l'ouverture ne déclenche rien). Il ne nomme pas le fichier : `lastMerge` ne dit pas d'où vient la fusion. Les comptes sont des
+  enregistrements de toute sorte, comme ceux de la carte Données. Aucun pluriel : des libellés suivis d'un nombre (`i18n.md`).
+- **Fiche ouverte pendant une fusion** : `updateTask(…, opened = EditBase(tâche, bloqueurs))` ; chaque champ de la tâche prend
+  la valeur de la fiche si l'utilisateur l'a changée depuis l'ouverture, sinon la valeur actuelle ; les bloqueurs ajoutés ou
+  retirés dans la fiche s'appliquent à l'ensemble actuel. Branché sur la fiche de la vue Jour (et la fiche d'une tâche reçue) ;
+  la fiche d'une tâche d'équipe n'en a pas besoin (hors portée). Sans `opened`, tout s'écrit comme avant (création, autres
+  chemins).
+- **Carte du guide** `sync` (`FeatureCatalog`, chapitre Organiser, 4.0.0, toutes plateformes, icône `Sync` ajoutée à
+  `make_icons.py`, cible Réglages → Données), donc dans « Nouveau dans cette version » ; le texte dit de mettre d'abord tous les
+  appareils à jour. La carte `linked_file` dit désormais la fusion. README (anglais et français) : ligne « Nouveau en 4.0 »,
+  puce « Synchronisation entre appareils », puce « Fichier lié » corrigée, ligne du tableau.
+- **Différé** (étape 7) : la note d'horloge en avance (`MergeOutcome.clockAhead`) et le flux `SyncStatus` ; la carte Données
+  n'affiche pas encore d'avertissement d'horloge.
+- **Captures** de l'auto-test : `desktop-sync-data[-narrow]`, `desktop-sync-review[-narrow]`, `desktop-sync-day-narrow` (deux
+  bases d'exemple rapprochées, un conflit de priorité).
+
 ### Chrono et sessions (technique)
 
 - `WorkSession` : `uid` aléatoire, `taskId` et `startedAt` immuables, `endedAt` = plus petite fin non nulle (registre `min`).
@@ -732,7 +777,8 @@ pendant une fusion, `sync_review`), `SyncMigrationTest` (11 → 12 sans rien mod
 Dans `ui` et `desktopApp` : `LinkedFileSyncTest` (livré à l'étape 4 : deux appareils réels autour d'un même fichier,
 convergence, pas de ping-pong, suppression propagée, premier rapprochement confirmé ou annulé, `Unreadable`, `TOO_NEW`, échec
 d'écriture, « Remplacer »), `LinkedFileUiTest` (bandeau du premier rapprochement, « Fusionner » / « Remplacer » à l'ouverture),
-`SyncSummaryTest` (`core`), `SyncUiTest` (aperçu, « À revoir », bandeau, fusion manuelle, 360 dp), `LearnedDurationsSyncTest`.
+`SyncSummaryTest` (`core`), `SyncUiTest` (livré à l'étape 5 : un conflit revu depuis la vue Jour et « Prendre l'autre », un
+fichier fusionné à la main après son aperçu, nom de l'appareil et dernière fusion dans la carte Données) (aperçu, « À revoir », bandeau, fusion manuelle, 360 dp), `LearnedDurationsSyncTest`.
 
 ### Décisions et alternatives écartées
 

@@ -152,6 +152,33 @@
     <string name="sync_unreadable">Связанный файл «%1$s» не читается. Kairos не пишет в него, пока это так.</string>
     <string name="sync_too_new">«%1$s» создан более новой версией Kairos: обнови приложение. До тех пор Kairos в него не пишет.</string>
     <string name="sync_clock">В «%1$s» есть дата более чем на 30 дней в будущем: проверь часы устройства, которое его записало. Ничего не объединяется.</string>
+    <string name="sync_status">Kairos объединяет этот файл с твоими данными при каждом изменении.</string>
+    <string name="sync_last_merge">Последнее объединение: %1$s в %2$s. Добавлено: %3$d · изменено: %4$d · удалено: %5$d.</string>
+    <string name="sync_device">Это устройство: %1$s</string>
+    <string name="sync_rename">Переименовать</string>
+    <string name="sync_rename_title">Имя этого устройства</string>
+    <string name="sync_rename_hint">По нему на других устройствах в «Проверить» видно, откуда значение.</string>
+    <string name="sync_merge_now">Объединить сейчас</string>
+    <string name="sync_merge_file">Объединить файл Kairos…</string>
+    <string name="sync_review_button">Проверить (%1$d)</string>
+    <string name="sync_review_banner">Проверить после объединения: %1$d.</string>
+    <string name="sync_review_see">Открыть</string>
+    <string name="sync_review_title">Проверить</string>
+    <string name="sync_review_intro">Эти значения изменили на двух устройствах до того, как они встретились. Применено самое новое; другое хранится 30 дней.</string>
+    <string name="sync_review_applied">Применено</string>
+    <string name="sync_review_other">Другое значение</string>
+    <string name="sync_review_value">%1$s: %2$s (%3$s)</string>
+    <string name="sync_review_keep">Оставить это</string>
+    <string name="sync_review_take">Взять другое</string>
+    <string name="sync_review_kept">«%1$s» удалён на %2$s, но изменён здесь: сохранён.</string>
+    <string name="sync_review_delete_again">Удалить снова</string>
+    <string name="sync_review_keep_all">Везде оставить самое новое</string>
+    <string name="sync_review_empty">Проверять нечего.</string>
+    <string name="sync_review_settings">Настройки</string>
+    <string name="sync_merged">Объединено. Добавлено: %1$d · изменено: %2$d · удалено: %3$d.</string>
+    <string name="sync_preview_title">Объединить этот файл?</string>
+    <string name="sync_preview_body">Задач добавлено: %1$d · изменено: %2$d · удалено: %3$d. Других элементов: %4$d. Конфликтов: %5$d.</string>
+    <string name="sync_preview_nothing">Этот файл не приносит ничего нового.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Запись</string>
@@ -1464,7 +1491,9 @@
     <string name="card_calendar_import_title">Импорт встреч из календаря</string>
     <string name="card_calendar_import_body">Настройки → Данные → Календари импортирует файл .ics из Outlook, Google Calendar или Thunderbird: каждая встреча становится занятым интервалом, события на весь день — значком на дне. Импортируй файл снова, чтобы обновить.</string>
     <string name="card_linked_file_title">Копия данных в синхронизируемой папке</string>
-    <string name="card_linked_file_body">На компьютере и Android Настройки → Данные → «Создать файл» хранит актуальную копию твоих данных в выбранной папке (Syncthing, Nextcloud…). Если другое устройство изменило ее, Kairos спросит перед записью.</string>
+    <string name="card_linked_file_body">На компьютере и Android Настройки → Данные → «Создать файл» хранит актуальную копию твоих данных в выбранной папке (Syncthing, Nextcloud…) и объединяет её, когда другое устройство её изменило.</string>
+    <string name="card_sync_title">Синхронизация устройств</string>
+    <string name="card_sync_body">Привяжи один и тот же файл на каждом устройстве (Настройки → Данные, в папке Syncthing или Nextcloud…): Kairos объединяет его с твоими данными, сохраняет всё с обеих сторон и показывает, что проверить. Сначала обнови все устройства до 4.0.</string>
     <string name="card_month_title">Месяц с первого взгляда</string>
     <string name="card_month_body">В виде «Неделя» кнопка «Месяц» показывает все дни месяца: запланированные задачи, сроки, перегруженные дни, праздники и выходные. Коснись дня, чтобы открыть его.</string>
     <string name="card_correct_title">Поправь свои оценки</string>

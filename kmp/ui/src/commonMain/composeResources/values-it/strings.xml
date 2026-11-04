@@ -152,6 +152,33 @@
     <string name="sync_unreadable">Il file collegato «%1$s» non è leggibile. Kairos non ci scrive più finché resta così.</string>
     <string name="sync_too_new">«%1$s» viene da una versione più recente di Kairos: aggiorna l’app. Fino ad allora Kairos non ci scrive.</string>
     <string name="sync_clock">«%1$s» porta una data a più di 30 giorni nel futuro: controlla l’orologio del dispositivo che l’ha scritto. Non viene unito nulla.</string>
+    <string name="sync_status">Kairos unisce questo file ai tuoi dati a ogni modifica.</string>
+    <string name="sync_last_merge">Ultima unione: %1$s alle %2$s. Aggiunti: %3$d · modificati: %4$d · rimossi: %5$d.</string>
+    <string name="sync_device">Questo dispositivo: %1$s</string>
+    <string name="sync_rename">Rinomina</string>
+    <string name="sync_rename_title">Nome di questo dispositivo</string>
+    <string name="sync_rename_hint">Indica da dove viene un valore in «Da rivedere» sugli altri dispositivi.</string>
+    <string name="sync_merge_now">Unisci ora</string>
+    <string name="sync_merge_file">Unisci un file Kairos…</string>
+    <string name="sync_review_button">Da rivedere (%1$d)</string>
+    <string name="sync_review_banner">Da rivedere dopo un’unione: %1$d.</string>
+    <string name="sync_review_see">Vedi</string>
+    <string name="sync_review_title">Da rivedere</string>
+    <string name="sync_review_intro">Questi valori sono stati cambiati su due dispositivi prima che si incontrassero. Si applica il più recente; l’altro è conservato 30 giorni.</string>
+    <string name="sync_review_applied">Applicato</string>
+    <string name="sync_review_other">Altro valore</string>
+    <string name="sync_review_value">%1$s: %2$s (%3$s)</string>
+    <string name="sync_review_keep">Tieni questo</string>
+    <string name="sync_review_take">Prendi l’altro</string>
+    <string name="sync_review_kept">«%1$s» è stato eliminato su %2$s ma modificato qui: conservato.</string>
+    <string name="sync_review_delete_again">Elimina di nuovo</string>
+    <string name="sync_review_keep_all">Tieni tutto il più recente</string>
+    <string name="sync_review_empty">Niente da rivedere.</string>
+    <string name="sync_review_settings">Impostazioni</string>
+    <string name="sync_merged">Unione fatta. Aggiunti: %1$d · modificati: %2$d · rimossi: %3$d.</string>
+    <string name="sync_preview_title">Unire questo file?</string>
+    <string name="sync_preview_body">Attività aggiunte: %1$d · modificate: %2$d · rimosse: %3$d. Altri elementi: %4$d. Conflitti: %5$d.</string>
+    <string name="sync_preview_nothing">Questo file non porta nulla di nuovo.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Cattura</string>
@@ -1464,7 +1491,9 @@
     <string name="card_calendar_import_title">Importa le tue riunioni da un calendario</string>
     <string name="card_calendar_import_body">Impostazioni → Dati → Calendari importa un file .ics da Outlook, Google Calendar o Thunderbird: ogni riunione diventa una fascia occupata, gli eventi di un’intera giornata un badge sul giorno. Reimportalo per aggiornarlo.</string>
     <string name="card_linked_file_title">Una copia dei tuoi dati in una cartella sincronizzata</string>
-    <string name="card_linked_file_body">Su desktop e Android, Impostazioni → Dati → «Crea un file» mantiene aggiornata una copia dei tuoi dati in una cartella a tua scelta (Syncthing, Nextcloud…). Se un altro dispositivo l’ha modificata, Kairos chiede prima di scrivere.</string>
+    <string name="card_linked_file_body">Su desktop e Android, Impostazioni → Dati → «Crea un file» mantiene aggiornata una copia dei tuoi dati in una cartella a tua scelta (Syncthing, Nextcloud…) e la unisce quando un altro dispositivo l’ha modificata.</string>
+    <string name="card_sync_title">Sincronizza i tuoi dispositivi</string>
+    <string name="card_sync_body">Collega lo stesso file su ogni dispositivo (Impostazioni → Dati, in una cartella Syncthing o Nextcloud…): Kairos lo unisce ai tuoi dati, conserva tutto da entrambe le parti e mostra cosa rivedere. Aggiorna prima tutti i dispositivi alla 4.0.</string>
     <string name="card_month_title">Il mese a colpo d’occhio</string>
     <string name="card_month_body">Nella vista Settimana, «Mese» mostra ogni giorno del mese: attività previste, scadenze, giornate troppo cariche, festivi e giorni liberi. Tocca un giorno per aprirlo.</string>
     <string name="card_correct_title">Correggi le tue stime</string>
