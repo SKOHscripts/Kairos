@@ -2,11 +2,13 @@
 #
 # - /          : page de téléchargement, versionnée dans site/ (FR, et en/ es/ de/ ru/ it/) ;
 # - /preview/  : version web construite depuis main (préversion, change à chaque push) ;
-# - /app/      : version web de la dernière release stable v3 (Kairos-web.zip de la
-#                release), absente tant qu'aucune 3.x finale n'est publiée.
+# - /app/      : version web de la dernière release stable v3 ou plus récente (Kairos-web.zip
+#                de la release), absente tant qu'aucune version finale n'est publiée.
 #
-# Les liens de téléchargement visent une release v3 nommée par son tag, jamais
-# releases/latest : une release est toujours désignée par son tag.
+# Les liens de téléchargement visent une release nommée par son tag, jamais
+# releases/latest : une release est toujours désignée par son tag. Seuls les tags
+# v3 et au-delà comptent (les v2.* sont ceux de l'ancienne version) : le filtre
+# « v3. » seul laissait la page sur la 3.14.0 après la sortie de la 4.0.0.
 #
 # Prérequis, une fois : Settings → Pages → Source : « GitHub Actions ».
 name: Pages
@@ -63,8 +65,9 @@ jobs:
           cp fastlane/metadata/android/en-US/images/phoneScreenshots/*.png "$out/screens/en/"
 
           releases=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --limit 100 --json tagName,isPrerelease)
-          stable=$(jq -r '[.[] | select(.tagName | startswith("v3.")) | select(.isPrerelease | not) | .tagName][0] // empty' <<<"$releases")
-          pre=$(jq -r '[.[] | select(.tagName | startswith("v3.")) | .tagName][0] // empty' <<<"$releases")
+          current='select(.tagName | test("^v([3-9]|[1-9][0-9]+)\\."))'
+          stable=$(jq -r "[.[] | $current | select(.isPrerelease | not) | .tagName][0] // empty" <<<"$releases")
+          pre=$(jq -r "[.[] | $current | .tagName][0] // empty" <<<"$releases")
           base="https://github.com/$GITHUB_REPOSITORY/releases"
           preview="" web="preview/"
           if [ -n "$stable" ]; then
