@@ -53,12 +53,14 @@
     <string name="capture_add">Aggiungi</string>
 
     <string name="inbox_title">Da elaborare</string>
-    <string name="inbox_help">Dai a ogni attività una priorità e una dimensione in punti: è ciò che permette a Kairos di ordinarla.</string>
+    <string name="inbox_help">Dai a ogni attività una priorità, una dimensione in punti e un tipo: è ciò che permette a Kairos di ordinarla.</string>
     <string name="inbox_empty">Niente da elaborare: tutto è già chiarito.</string>
     <string name="inbox_empty_filtered">Nessuna attività da elaborare corrisponde al filtro.</string>
-    <string name="missing_both">mancano priorità e punti</string>
-    <string name="missing_priority">manca la priorità</string>
-    <string name="missing_points">mancano i punti</string>
+    <string name="missing_label">Manca: %1$s</string>
+    <string name="missing_item_priority">priorità</string>
+    <string name="missing_item_points">punti</string>
+    <string name="missing_item_type">tipo</string>
+    <string name="missing_item_category">categoria</string>
 
     <string name="todo_empty">Niente da fare per ora.</string>
     <string name="done_title">Fatto</string>
@@ -140,16 +142,46 @@
     <string name="web_reauthorize">Kairos non ha più il permesso di scrivere in «%1$s». Consenti l’accesso per continuare a salvare lì.</string>
     <string name="web_authorize">Consenti l’accesso</string>
     <string name="web_save_failed">Il salvataggio nel browser non è riuscito: %1$s. Esporta i tuoi dati.</string>
-    <string name="web_link_open_confirm_body">I dati di questo browser saranno sostituiti da quelli di «%1$s», che poi verrà tenuto aggiornato.</string>
-    <string name="linked_intro">Kairos può tenere aggiornata una copia dei tuoi dati in un file a tua scelta, per esempio in una cartella Syncthing o Nextcloud. Si apre ovunque con Importa.</string>
+    <string name="linked_intro">Kairos può tenere aggiornata una copia dei tuoi dati in un file a tua scelta, per esempio in una cartella Syncthing o Nextcloud. Ogni dispositivo che lo apre lo unisce ai propri dati.</string>
     <string name="linked_unlink">Scollega</string>
-    <string name="linked_changed">Il file collegato «%1$s» è stato modificato altrove (un altro dispositivo?). Kairos non ci scrive più finché non scegli.</string>
     <string name="linked_overwrite">Sovrascrivi</string>
-    <string name="linked_import">Importalo</string>
     <string name="linked_write_failed">Kairos non riesce più a scrivere in «%1$s»; i tuoi dati sono al sicuro in Kairos.</string>
     <string name="linked_retry">Riprova</string>
-    <string name="linked_open_confirm_body">I dati di questo dispositivo saranno sostituiti da quelli di «%1$s», che poi verrà tenuto aggiornato. Subito prima viene fatto un backup.</string>
-    <string name="linked_import_confirm_body">I dati di questo dispositivo saranno sostituiti da quelli di «%1$s», modificato altrove. Subito prima viene fatto un backup.</string>
+    <string name="sync_open_title">Apri «%1$s»</string>
+    <string name="sync_open_body">Questo dispositivo ha già dei dati. Unisci conserva tutto ciò che esiste da entrambe le parti (consigliato). Sostituisci mette al loro posto i dati del file, dopo un backup automatico.</string>
+    <string name="sync_merge">Unisci</string>
+    <string name="sync_first_contact">«%1$s» è stato scritto da un altro dispositivo. Unire conserva tutto ciò che esiste da entrambe le parti. Attività solo qui: %2$d · solo nel file: %3$d · diverse: %4$d. Altri elementi: %5$d.</string>
+    <string name="sync_unreadable">Il file collegato «%1$s» non è leggibile. Kairos non ci scrive più finché resta così.</string>
+    <string name="sync_too_new">«%1$s» viene da una versione più recente di Kairos: aggiorna l’app. Fino ad allora Kairos non ci scrive.</string>
+    <string name="sync_clock">«%1$s» porta una data a più di 30 giorni nel futuro: controlla l’orologio del dispositivo che l’ha scritto. Non viene unito nulla.</string>
+    <string name="sync_clock_ahead">Un dispositivo ha scritto il file con un orologio avanti di più di un giorno: controlla data e ora, altrimenti le sue modifiche continueranno a prevalere.</string>
+    <string name="sync_status">Kairos unisce questo file ai tuoi dati a ogni modifica.</string>
+    <string name="sync_last_merge">Ultima unione: %1$s alle %2$s. Aggiunti: %3$d · modificati: %4$d · rimossi: %5$d.</string>
+    <string name="sync_device">Questo dispositivo: %1$s</string>
+    <string name="sync_rename">Rinomina</string>
+    <string name="sync_rename_title">Nome di questo dispositivo</string>
+    <string name="sync_rename_hint">Indica da dove viene un valore in «Da rivedere» sugli altri dispositivi.</string>
+    <string name="sync_merge_now">Unisci ora</string>
+    <string name="sync_merge_file">Unisci un file Kairos…</string>
+    <string name="sync_review_button">Da rivedere (%1$d)</string>
+    <string name="sync_review_banner">Da rivedere dopo un’unione: %1$d.</string>
+    <string name="sync_review_see">Vedi</string>
+    <string name="sync_review_title">Da rivedere</string>
+    <string name="sync_review_intro">Questi valori sono stati cambiati su due dispositivi prima che si incontrassero. Si applica il più recente; l’altro è conservato 30 giorni.</string>
+    <string name="sync_review_applied">Applicato</string>
+    <string name="sync_review_other">Altro valore</string>
+    <string name="sync_review_value">%1$s: %2$s (%3$s)</string>
+    <string name="sync_review_keep">Tieni questo</string>
+    <string name="sync_review_take">Prendi l’altro</string>
+    <string name="sync_review_kept">«%1$s» è stato eliminato su %2$s ma modificato qui: conservato.</string>
+    <string name="sync_review_delete_again">Elimina di nuovo</string>
+    <string name="sync_review_keep_all">Tieni tutto il più recente</string>
+    <string name="sync_review_empty">Niente da rivedere.</string>
+    <string name="sync_review_settings">Impostazioni</string>
+    <string name="sync_merged">Unione fatta. Aggiunti: %1$d · modificati: %2$d · rimossi: %3$d.</string>
+    <string name="sync_preview_title">Unire questo file?</string>
+    <string name="sync_preview_body">Attività aggiunte: %1$d · modificate: %2$d · rimosse: %3$d. Altri elementi: %4$d. Conflitti: %5$d.</string>
+    <string name="sync_preview_nothing">Questo file non porta nulla di nuovo.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Cattura</string>
@@ -457,7 +489,7 @@
     <string name="points_13_example">da suddividere in sottoattività</string>
     <string name="points_21_example">da suddividere in sottoattività</string>
     <string name="inbox_help_title">Come qualificare?</string>
-    <string name="inbox_help_why">L’acquisizione imposta solo un titolo, di proposito. Un’attività entra nell’agenda ordinata solo una volta chiarita: priorità e punti impostati, proprio qui, con un clic ciascuno.</string>
+    <string name="inbox_help_why">L’acquisizione imposta solo un titolo, di proposito. Un’attività entra nell’agenda ordinata solo una volta chiarita: priorità, punti e tipo impostati, proprio qui, con un clic ciascuno.</string>
     <string name="inbox_help_priority">Priorità: l’importanza dell’attività. La scadenza conta già a parte.</string>
     <string name="settings_intro">Tutte le impostazioni di Kairos, salvate su questo dispositivo. Un campo non valido è segnalato sotto il campo; non viene salvato nulla finché ne resta uno.</string>
     <string name="settings_section_day">Giornata lavorativa</string>
@@ -649,7 +681,7 @@
     <string name="forecast_histogram_week">settimana del %1$s: %2$s</string>
     <string name="forecast_histogram_lt1">&lt;1</string>
     <string name="forecast_nothing">Niente da prevedere: nessuna attività in questo ambito.</string>
-    <string name="forecast_nothing_qualify">%1$d attività del backlog sono ancora da qualificare (né priorità né punti) e non vengono contate.</string>
+    <string name="forecast_nothing_qualify">%1$d attività del backlog sono ancora da qualificare (mancano priorità, punti o categoria) e non vengono contate.</string>
     <string name="forecast_honesty_draws">%1$s estrazioni</string>
     <string name="forecast_honesty_seed">seme %1$s</string>
     <string name="forecast_source_history">Storico: %1$d attività completate in %2$d settimane</string>
@@ -835,6 +867,7 @@
     <string name="member_error_name">Il nome è obbligatorio.</string>
     <string name="member_error_name_long">Il nome può avere al massimo %1$s caratteri.</string>
     <string name="member_error_name_taken">Esiste già un membro di nome «%1$s»: scelga un altro nome (un’iniziale, un ruolo).</string>
+    <string name="member_error_name_archived">«%1$s» è un ex membro: lo riattivi da «Ex membri» oppure scelga un altro nome.</string>
     <string name="member_absences_title">Assenze</string>
     <string name="member_absences_help">I giorni di assenza vengono tolti dalla capacità del membro. Ogni assenza viene salvata subito.</string>
     <string name="member_absences_empty">Nessuna assenza registrata.</string>
@@ -878,7 +911,7 @@
     <string name="keep_in_progress_yes">Sì</string>
     <string name="keep_in_progress_no">No</string>
     <string name="backlog_to_qualify_title">Da qualificare</string>
-    <string name="backlog_to_qualify_hint">Mancano la priorità o i punti: li scelga per rendere pronta l’attività.</string>
+    <string name="backlog_to_qualify_hint">Mancano la priorità, i punti o la categoria: li scelga per rendere pronta l’attività.</string>
     <string name="backlog_to_qualify_empty">Niente da qualificare.</string>
     <string name="backlog_ready_title">Pronte</string>
     <string name="backlog_ready_hint">Pronte da distribuire, ordinate per punteggio: prima quelle in ritardo.</string>
@@ -1041,7 +1074,7 @@
     <string name="suggest_manual">%1$s: scelto manualmente</string>
     <string name="suggest_over_wip">limite di attività in corso raggiunto per %1$s</string>
     <string name="suggest_excluded_title">Escluse dal suggerimento</string>
-    <string name="suggest_excluded_qualify">Da qualificare (%1$d): mancano la priorità o i punti.</string>
+    <string name="suggest_excluded_qualify">Da qualificare (%1$d): mancano la priorità, i punti o la categoria.</string>
     <string name="suggest_excluded_unplaceable">Impossibili da collocare (%1$d): nessun membro disponibile sull’orizzonte.</string>
     <string name="suggest_excluded_archived_one">1 membro archiviato ignorato.</string>
     <string name="suggest_excluded_archived_many">%1$d membri archiviati ignorati.</string>
@@ -1187,7 +1220,7 @@
     <string name="help_open_team_tour">Tour dello spazio Team</string>
     <string name="help_open_team_tour_hint">Membri, backlog, monitoraggio, previsioni e scambi</string>
     <string name="help_notes">Annota qui un’idea, una cosa da fare, un messaggio, senza pensarci. Più tardi trasforma una nota in attività: arriva nella vista Giorno, da elaborare.</string>
-    <string name="help_day">«Prossima» ti dice cosa fare. Le attività da elaborare aspettano priorità, punti e scadenza; il punteggio (valore diviso per impegno) stabilisce l’ordine. Avvia il timer per misurare il tempo reale.</string>
+    <string name="help_day">«Prossima» ti dice cosa fare. Le attività da elaborare aspettano priorità, punti e tipo; il punteggio (valore diviso per impegno) stabilisce l’ordine. Avvia il timer per misurare il tempo reale.</string>
     <string name="help_week">I sette giorni della settimana: scadenze, attività fatte, fasce orarie e tempo reale. «Mese» mostra l’intero mese: attività previste, scadenze, giorni troppo carichi, festivi e giorni liberi. Tocca un giorno per aprirlo nella vista Giorno.</string>
     <string name="help_stats">Ciò che fai davvero: produttività, tempo impiegato per tipo di attività e calibrazione delle tue stime (i tuoi punti a confronto con il tempo reale).</string>
     <string name="help_settings">Le impostazioni sono raggruppate per categoria: generale, giornata e orari, pianificazione, timer e statistiche, team, dati. Una modifica viene mantenuta da una categoria all’altra finché non premi «Salva», in basso.</string>
@@ -1228,7 +1261,7 @@
     <string name="guide_you_capture_title">Catturare senza pensarci</string>
     <string name="guide_you_capture_body">In Note, scrivi tutto ciò che ti passa per la testa, senza ordinare. Una nota diventa un’attività quando vuoi.</string>
     <string name="guide_you_qualify_title">Qualificare con un clic</string>
-    <string name="guide_you_qualify_body">Un’attività da elaborare aspetta priorità, punti di impegno e scadenza; anche il tipo si sceglie lì. «Come qualificare?» ti aiuta a scegliere; Kairos ne ricava un punteggio.</string>
+    <string name="guide_you_qualify_body">Un’attività da elaborare aspetta priorità, punti di impegno e tipo, scelti lì. «Come qualificare?» ti aiuta a scegliere; Kairos ne ricava un punteggio.</string>
     <string name="guide_you_do_title">Fare in ordine</string>
     <string name="guide_you_do_body">«Prossima» mostra l’attività da fare, le successive sono ordinate per punteggio attorno alle tue riunioni. «Perché in questa posizione?» spiega ogni posizione.</string>
     <string name="guide_you_time_title">Tracciare il tempo</string>
@@ -1424,7 +1457,7 @@
     <string name="coach_deadline_title">Date: scadenza e giorno previsto</string>
     <string name="coach_deadline_body">La scadenza fa salire il punteggio man mano che si avvicina. «Programmata per», nelle opzioni avanzate, tiene l’attività per il giorno in cui puoi iniziarla.</string>
     <string name="coach_type_title">Tipo: a cosa serve</string>
-    <string name="coach_type_body">Il tipo raggruppa le tue statistiche e può suggerire una durata. Si sceglie anche direttamente in «Da elaborare». I tipi si gestiscono nelle Impostazioni.</string>
+    <string name="coach_type_body">Il tipo raggruppa le tue statistiche e può suggerire una durata. Con la priorità e i punti, fa uscire l’attività da «Da elaborare» (si sceglie anche lì). I tipi si gestiscono nelle Impostazioni.</string>
     <string name="coach_more_title">Per approfondire</string>
     <string name="coach_more_body">Progetto, ora fissa, ricorrenza, sottoattività e bloccanti sono qui. Potrai tornarci più tardi dalla scheda dell’attività.</string>
     <string name="coach_save_title">Salva l’attività</string>
@@ -1432,7 +1465,7 @@
     <string name="coach_placed_rank_title">Il suo posto nella giornata</string>
     <string name="coach_placed_rank_body">Il punteggio classifica le tue attività: il valore diviso per lo sforzo. Tocca il punteggio per leggere «Perché in questa posizione?».</string>
     <string name="coach_placed_inbox_title">Non ancora collocata</string>
-    <string name="coach_placed_inbox_body">Questa attività non è nell’agenda di oggi: aspetta in «Da elaborare» finché non ha una priorità e dei punti, o in «Più tardi» se il suo giorno non è oggi.</string>
+    <string name="coach_placed_inbox_body">Questa attività non è nell’agenda di oggi: aspetta in «Da elaborare» finché non ha una priorità, dei punti e un tipo, o in «Più tardi» se il suo giorno non è oggi.</string>
     <string name="coach_placed_slot_title">La sua fascia oraria</string>
     <string name="coach_placed_slot_body">Kairos dispone l’attività in uno spazio libero della giornata, con la sua durata. La linea del tempo mostra dove, tra le tue fasce orarie e le attività fissate.</string>
     <string name="coach_placed_row_title">La riga dell’attività</string>
@@ -1462,7 +1495,9 @@
     <string name="card_calendar_import_title">Importa le tue riunioni da un calendario</string>
     <string name="card_calendar_import_body">Impostazioni → Dati → Calendari importa un file .ics da Outlook, Google Calendar o Thunderbird: ogni riunione diventa una fascia occupata, gli eventi di un’intera giornata un badge sul giorno. Reimportalo per aggiornarlo.</string>
     <string name="card_linked_file_title">Una copia dei tuoi dati in una cartella sincronizzata</string>
-    <string name="card_linked_file_body">Su desktop e Android, Impostazioni → Dati → «Crea un file» mantiene aggiornata una copia dei tuoi dati in una cartella a tua scelta (Syncthing, Nextcloud…). Se un altro dispositivo l’ha modificata, Kairos chiede prima di scrivere.</string>
+    <string name="card_linked_file_body">Su desktop e Android, Impostazioni → Dati → «Crea un file» mantiene aggiornata una copia dei tuoi dati in una cartella a tua scelta (Syncthing, Nextcloud…) e la unisce quando un altro dispositivo l’ha modificata.</string>
+    <string name="card_sync_title">Sincronizza i tuoi dispositivi</string>
+    <string name="card_sync_body">Collega lo stesso file su ogni dispositivo (Impostazioni → Dati, in una cartella Syncthing o Nextcloud…): Kairos lo unisce ai tuoi dati, conserva tutto da entrambe le parti e mostra cosa rivedere. Aggiorna prima tutti i dispositivi alla 4.0.</string>
     <string name="card_month_title">Il mese a colpo d’occhio</string>
     <string name="card_month_body">Nella vista Settimana, «Mese» mostra ogni giorno del mese: attività previste, scadenze, giornate troppo cariche, festivi e giorni liberi. Tocca un giorno per aprirlo.</string>
     <string name="card_correct_title">Correggi le tue stime</string>
@@ -1730,7 +1765,7 @@
     <string name="demo_priority_title">Qualificare: la priorità</string>
     <string name="demo_priority_body">Scegli una priorità sulla sua riga: quanto è importante. La scadenza conta a parte.</string>
     <string name="demo_points_title">Qualificare: i punti</string>
-    <string name="demo_points_body">Scegli i punti: la sua dimensione. Riceve un punteggio e prende il suo posto nella giornata.</string>
+    <string name="demo_points_body">Scegli i punti: la sua dimensione. Ancora una scelta e prende il suo posto nella giornata.</string>
     <string name="demo_timer_start_title">Avviare il timer</string>
     <string name="demo_timer_start_body">Avvia il timer sulla sua riga: «In questo momento» mostra su cosa stai lavorando.</string>
     <string name="demo_timer_stop_title">Fermare il timer</string>
@@ -1751,7 +1786,7 @@
     <string name="filter_missing_duration">Senza durata</string>
     <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
     <string name="demo_type_title">Qualificare: il tipo</string>
-    <string name="demo_type_body">Scegli un tipo sulla sua riga: raggruppa le tue statistiche. Con priorità, punti e tipo, Kairos può stimare la durata dalle tue attività completate.</string>
+    <string name="demo_type_body">Scegli un tipo sulla sua riga: raggruppa le tue statistiche. Con priorità, punti e tipo, l’attività riceve un punteggio e prende il suo posto nella giornata; Kairos può anche stimarne la durata dalle tue attività completate.</string>
     <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
     <string name="estimate_filled_type">Stimata in %1$s (mediana di «%2$s»)</string>
     <string name="estimate_filled_points">Stimata in %1$s (mediana delle attività da %2$d punti)</string>
@@ -1760,10 +1795,10 @@
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
     <string name="setting_learning_model">Stima con il machine learning</string>
     <string name="setting_learning_model_help">Machine learning sul dispositivo: confronta titolo, tipo e punti di un’attività con le tue attività completate. Nulla lascia questo dispositivo.</string>
-    <string name="learning_model_status_few">Non ci sono ancora abbastanza attività cronometrate (%1$d su %2$d).</string>
-    <string name="learning_model_status_unverified">Non ci sono ancora abbastanza attività confrontabili per verificarlo (%1$d su %2$d).</string>
+    <string name="learning_model_status_few">Il machine learning parte dopo %3$d attività cronometrate: ne mancano %1$d (%2$d su %3$d).</string>
+    <string name="learning_model_status_unverified">Il machine learning si verifica sulle tue attività: mancano %1$d attività cronometrate confrontabili (%2$d su %3$d).</string>
     <string name="learning_model_status_ok">Sulle tue ultime %1$d attività: errore mediano %2$d%, contro %3$d% della durata predefinita.</string>
-    <string name="learning_model_status_not_better">Non fa nettamente meglio della durata predefinita sulle tue ultime %1$d attività (%2$d% contro %3$d%): non applicato.</string>
+    <string name="learning_model_status_not_better">Non fa nettamente meglio della durata predefinita sulle tue ultime %1$d attività (%2$d% contro %3$d%): non applicato. Viene ricontrollato dopo ogni attività cronometrata.</string>
     <string name="learned_model_badge_description">Stimata dal machine learning in base a %1$d attività simili, tra %2$s e %3$s</string>
     <string name="learned_model_badge_description_regression">Stimata dal machine learning in base alle tue %1$d attività completate, tra %2$s e %3$s</string>
     <string name="why_learned_model">Durata: ~%1$s (tra %2$s e %3$s), stimata dal machine learning in base a %4$d attività simili: %5$s.</string>

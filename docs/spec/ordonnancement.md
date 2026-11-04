@@ -128,7 +128,7 @@ créneau** : une plage réservée à un contexte n'accueille que ses tâches et 
 dans aucune plage qui l'accueille est « Sans créneau » ; si son contexte n'a aucune plage ce jour-là, `ScheduledDay.noWindow` le dit. Jamais `sortKey` ni le
 score affiché. Détail : `planning-personnalise.md` § Lot B2.
 
-**Durée de placement** (3.4, `durees-apprises.md`) : `durationMinutes(tâche, réglages, learned)` = les minutes de la tâche (≠ 0), sinon
+**Durée de placement** (3.4, `durees-apprises.md`) : `durationMinutes(tâche, réglages, learned)` = les minutes de la tâche (> 0 ; ≠ 0 jusqu'au 2026-11-04, une valeur négative, que la saisie et l'import refusent, donnait une durée négative), sinon
 `learned[id]` (la durée apprise **fiable** que `DayView` calcule par `DurationEstimator`, celle du modèle comprise depuis la 4.0.0,
 `estimateur-modele.md`), sinon `defaultTaskDurationMinutes`.
 `buildDaySchedule` reçoit `learned` (vide par défaut : comportement d'avant, octet pour octet) et le passe à chaque calcul de
@@ -243,3 +243,6 @@ type, tous deux indexés par le nom du type en minuscules.
   « remplie ». Les fichiers d'or portent des
   fenêtres déjà rognées : ils décrivent le comportement voulu (31 scénarios
   sur 480 ont changé, tous avec une heure courante).
+- **Tâche en aval d'un cycle de dépendances bloquée** (2026-11-04) : 10
+  scénarios sur 480 de `scheduling.json` ont changé (bloquées, urgence héritée,
+  placement), voir `dependances.md` § Décisions.

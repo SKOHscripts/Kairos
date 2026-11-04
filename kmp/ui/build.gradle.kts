@@ -35,6 +35,10 @@ kotlin {
             // Temps virtuel : le délai du fichier lié (LinkedFileSyncTest).
             implementation(libs.kotlinx.coroutines.test)
         }
+        jvmTest.dependencies {
+            // Deux appareils réels (bases en mémoire) autour d'un même fichier lié (LinkedFileSyncTest).
+            implementation(libs.sqldelight.sqlite.driver)
+        }
     }
 }
 

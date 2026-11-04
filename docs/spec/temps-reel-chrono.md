@@ -121,6 +121,11 @@ Depuis le jalon E1 de l'espace Équipe, la veille du chrono (`ChronoWatcher`) et
 `startTimer(tâche)` : refusé si la tâche n'est pas à faire ; ferme toutes
 les sessions ouvertes puis en insère une (même instant). `stopTimer()` :
 ferme toute session ouverte ; n'écrit rien s'il n'y en a pas.
+`deleteTask` (et la suppression d'une sous-tâche depuis la fiche) ferme la
+session ouverte de la tâche à l'instant de la suppression : ses sessions
+restent (temps passé), mais une session ouverte sur une tâche disparue
+compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
+`KairosRepositoryTest.deletingTheTimedTaskStopsItsTimer`).
 
 ### Interface commune
 

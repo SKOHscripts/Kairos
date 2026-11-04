@@ -136,7 +136,7 @@ object AssignmentSuggestion {
         val open = snapshot.tasks.filter { it.space == TaskSpace.TEAM && it.status == TaskStatus.TODO }
         val backlog = open.filter { it.assigneeId == null || it.assigneeId !in activeIds }
         val selected = backlog.filter { taskIds == null || it.id in taskIds }
-        val toQualify = selected.filter { it.needsProcessing }.map { it.id }.sorted()
+        val toQualify = selected.filter { it.needsProcessing(settings.typeRequired) }.map { it.id }.sorted()
 
         val openIds = open.mapTo(HashSet()) { it.id }
         val edges = snapshot.dependencies
@@ -144,7 +144,7 @@ object AssignmentSuggestion {
             .map { Dependencies.Edge(blocked = it.taskId, blocker = it.blockerId) }
         val own = open.associate { it.id to Scheduling.sortKey(it, day, settings) }
         val effective = Dependencies.derivedUrgency(edges, own)
-        val ready = selected.filter { !it.needsProcessing }.sortedBy { effective[it.id] ?: own.getValue(it.id) }
+        val ready = selected.filter { !it.needsProcessing(settings.typeRequired) }.sortedBy { effective[it.id] ?: own.getValue(it.id) }
 
         if (candidates.isEmpty()) return Result(emptyList(), toQualify, ready.map { it.id }, archived)
 

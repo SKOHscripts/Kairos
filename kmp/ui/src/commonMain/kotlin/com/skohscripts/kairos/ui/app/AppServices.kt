@@ -55,6 +55,11 @@ class AppServices(
      * mémoire. `null` (tests, captures) : pas d'entrée « Essayer en démonstration ».
      */
     val demo: DemoSource? = null,
+    /**
+     * Nom de la plateforme pour le nom de l'appareil synchronisé (« Windows », « Android », « Web » ; docs/spec/synchronisation.md
+     * § Précisions de l'implémentation (étape 4)) : l'appareil s'appelle ensuite « Android · 3f9c ».
+     */
+    val deviceLabel: String = "Kairos",
 )
 
 /** Choix d'un fichier par l'utilisateur (boîtes de dialogue du système). */

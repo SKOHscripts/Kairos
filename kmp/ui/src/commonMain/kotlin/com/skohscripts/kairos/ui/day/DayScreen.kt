@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.sync.SyncReviewBanner
+import com.skohscripts.kairos.ui.sync.SyncReviewDialog
+import com.skohscripts.kairos.data.EditBase
 import com.skohscripts.kairos.core.engine.model.EstimateChanges
 import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.guide.demo.LocalDemoTour
@@ -106,6 +109,8 @@ import com.skohscripts.kairos.ui.Platform
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.StorageBanner
 import com.skohscripts.kairos.ui.generated.resources.Res
+import com.skohscripts.kairos.ui.generated.resources.missing_item_type
+import com.skohscripts.kairos.ui.generated.resources.missing_label
 import com.skohscripts.kairos.ui.generated.resources.skipped_ignored
 import com.skohscripts.kairos.ui.generated.resources.skipped_recreated_many
 import com.skohscripts.kairos.ui.generated.resources.skipped_recreated_one
@@ -211,6 +216,8 @@ fun DayScreen(
     val undo = LocalUndoMessages.current
     val showMessage = LocalMessages.current
     val language = uiLanguage()
+    val syncReview by services.repository.syncReview.collectAsState()
+    var syncReviewing by remember { mutableStateOf(false) }
     val showShortcuts = LocalPlatform.current != Platform.ANDROID
 
     // Séries « le N du mois » : l'occurrence du mois courant (n'écrit que s'il y a lieu).
@@ -392,6 +399,8 @@ fun DayScreen(
                     list.section(key, title, hint, count, sectionOpen, showEmpty, DAY_SPOT_SECTIONS.entries.firstOrNull { it.value == key }?.key, content)
 
                 one("storage") { StorageBanner(services, showWhenLinked = false) }
+                // Un élément de liste vide prendrait quand même son espacement : rien sans élément à revoir.
+                if (syncReview.isNotEmpty()) one("sync-review") { SyncReviewBanner(services) { syncReviewing = true } }
                 if (day != today) {
                     one("back-today") {
                         KairosOutlinedButton(onClick = onBackToToday, contentPadding = KairosButtonIconPadding) {
@@ -467,6 +476,7 @@ fun DayScreen(
                         suspend fun fillEstimate() = fillInboxEstimate(repository, estimates, task.id, undo, scope, services.clock.now())
                         InboxQualify(
                             task,
+                            typeRequired = snapshot.settings.typeRequired,
                             onPriority = { scope.launch { repository.setPriority(task.id, it); fillEstimate() } },
                             onPoints = { scope.launch { repository.setPoints(task.id, it); fillEstimate() } },
                             types = snapshot.settings.taskTypeList,
@@ -631,11 +641,14 @@ fun DayScreen(
             onClose = { congrats = false; placedId = null },
         )
     }
+    if (syncReviewing) SyncReviewDialog(services) { syncReviewing = false }
     editingId?.let { id ->
         val task = snapshot.tasks.firstOrNull { it.id == id }
         if (task == null) {
             editingId = null
         } else {
+            // La fiche à son ouverture : une fusion survenue pendant l'édition n'est pas défaite à l'enregistrement.
+            val base = remember(id) { EditBase(task, view.blockersOf[id].orEmpty().toSet()) }
             EditTaskDialog(
                 task = task,
                 day = day,
@@ -658,7 +671,7 @@ fun DayScreen(
                     val openIds = view.openTasks.mapTo(HashSet()) { it.id }
                     val added = edit.blockerIds.filter { it !in before && it in openIds }
                     scope.launch {
-                        repository.updateTask(id, edit)
+                        repository.updateTask(id, edit, opened = base)
                         if (added.isNotEmpty() && task.status == TaskStatus.TODO) {
                             val names = added.mapNotNull { blocker -> snapshot.tasks.firstOrNull { it.id == blocker }?.title }
                             sectionOpen["blocked"] = true
@@ -678,7 +691,7 @@ fun DayScreen(
                 received = ReceivedTasks.originOf(task)?.let { origin ->
                     ReceivedTaskSheet(origin, task.originRemoved, onKeep = { scope.launch { repository.detachOrigin(id) }; editingId = null }) { edit, percent ->
                         scope.launch {
-                            repository.updateTask(id, edit)
+                            repository.updateTask(id, edit, opened = base)
                             percent?.let { repository.setReceivedProgress(id, it) }
                         }
                         editingId = null
@@ -880,18 +893,22 @@ private fun OverloadBanner(count: Int) {
 @Composable
 internal fun InboxQualify(
     task: Task,
+    typeRequired: Boolean,
     onPriority: (Int?) -> Unit,
     onPoints: (Int?) -> Unit,
     types: List<String>,
     typeLabel: StringResource,
     onType: (String) -> Unit,
+    /** Le type manquant nommé dans « Manque : … » (« type », ou « catégorie » dans le backlog d'équipe). */
+    missingType: StringResource = Res.string.missing_item_type,
     start: Dp = 48.dp,
 ) {
     Column(Modifier.padding(start = start, end = 16.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        task.missingQualification?.let { missing ->
+        task.missing(typeRequired)?.let { missing ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(KairosIcons.Warning, contentDescription = null, modifier = Modifier.size(16.dp))
-                Text(stringResource(Levels.missing(missing)), style = MaterialTheme.typography.labelMedium)
+                val items = Levels.missing(missing, missingType).map { stringResource(it) }
+                Text(stringResource(Res.string.missing_label, items.joinToString(", ")), style = MaterialTheme.typography.labelMedium)
             }
         }
         DemoMark(DemoSpot.PRIORITY, task.id) { PriorityPills(task.priority, onPriority) }

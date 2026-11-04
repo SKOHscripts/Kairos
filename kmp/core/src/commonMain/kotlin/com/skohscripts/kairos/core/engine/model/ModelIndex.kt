@@ -5,13 +5,13 @@ import kotlin.math.sqrt
 
 /**
  * L'index du modèle (docs/spec/estimateur-modele.md § Le modèle), calculé de l'historique, jamais stocké : les échantillons
- * **triés par `taskId`** (l'ordre d'entrée est sans effet), et pour chacun ses vecteurs de mots et de trigrammes pondérés par
+ * **triés par `order`** (l'identifiant, ou le rang commun d'une base synchronisée ; l'ordre d'entrée est sans effet), et pour chacun ses vecteurs de mots et de trigrammes pondérés par
  * l'idf `sqrt((N + 1) / (df + 1))` puis normalisés (L2). Les identifiants de caractéristiques sont attribués dans l'ordre
  * d'apparition en parcourant les échantillons ; un vecteur est un tableau trié par identifiant, et le produit scalaire une
  * fusion de deux tableaux triés : ordre de sommation fixe, résultat identique au bit près sur toutes les cibles.
  */
 class ModelIndex private constructor(
-    /** Le corpus, trié par `taskId` croissant. */
+    /** Le corpus, trié par `order` croissant. */
     val samples: List<DurationEstimator.Sample>,
     private val words: Family,
     private val trigrams: Family,
@@ -73,7 +73,7 @@ class ModelIndex private constructor(
     companion object {
         /** L'index de [samples] (déjà réduits au corpus : même espace, au plus `MAX_CORPUS`). */
         fun build(samples: List<DurationEstimator.Sample>): ModelIndex {
-            val sorted = samples.sortedBy { it.taskId }
+            val sorted = samples.sortedBy { it.order }
             val features = sorted.map { TextFeatures.of(it.title) }
             return ModelIndex(sorted, family(features.map { it.words }), family(features.map { it.trigrams }))
         }
@@ -110,7 +110,7 @@ class ModelIndex private constructor(
         private const val FNV_PRIME = 0x100000001b3L
 
         /**
-         * Empreinte FNV-1a 64 bits (écrite à la main, jamais `hashCode`) des échantillons triés par `taskId` : la clé du cache
+         * Empreinte FNV-1a 64 bits (écrite à la main, jamais `hashCode`) des échantillons triés par `order` (identifiant et rang compris) : la clé du cache
          * ([ModelCache]). Couvre tout ce que le modèle lit : identifiant, minutes, type, points, priorité, étiquette,
          * récurrence, titre, jour et tranche (rythme).
          */
@@ -127,8 +127,10 @@ class ModelIndex private constructor(
                 mix(text.length.toLong())
                 for (c in text) mix(c.code.toLong())
             }
-            for (s in samples.sortedBy { it.taskId }) {
+            for (s in samples.sortedBy { it.order }) {
                 mix(s.taskId)
+                // Le rang commun d'une base synchronisée ; sans synchronisation (rang = identifiant), l'empreinte reste celle d'avant.
+                if (s.order != s.taskId) mix(s.order)
                 mix(s.minutes.toLong())
                 mix(s.taskType)
                 mix((s.points ?: -1).toLong())

@@ -134,6 +134,8 @@ import com.skohscripts.kairos.ui.app.LocalMessages
 import com.skohscripts.kairos.ui.app.fileStamp
 import com.skohscripts.kairos.ui.app.replaceWithBackup
 import com.skohscripts.kairos.ui.app.StorageBanner
+import com.skohscripts.kairos.ui.sync.MergeFileButton
+import com.skohscripts.kairos.ui.sync.SyncDataSection
 import com.skohscripts.kairos.ui.app.importErrorMessage
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_cancel
@@ -548,7 +550,7 @@ private fun RestoreDefaultsCard(onRestore: () -> Unit) {
 private fun DataCard(services: AppServices) {
     val scope = rememberCoroutineScope()
     val messages = LocalMessages.current
-    var pending by remember { mutableStateOf<KairosSnapshot?>(null) }
+    var pending by remember { mutableStateOf<ImportedFile.Full?>(null) }
     // Paquet ou rapport d'équipe reconnu par « Importer » : aperçu avant toute écriture (docs/spec/equipe-echanges.md).
     var exchange by remember { mutableStateOf<ExchangePreview?>(null) }
     var calendar by remember { mutableStateOf<CalendarPlan?>(null) }
@@ -566,6 +568,8 @@ private fun DataCard(services: AppServices) {
             )
         }
         StorageBanner(services, showWhenLinked = true)
+        // Synchronisation (docs/spec/synchronisation.md § Interface) : ce que fait le fichier lié, dernière fusion, appareil.
+        SyncDataSection(services)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             KairosOutlinedButton(onClick = {
                 scope.launch {
@@ -586,7 +590,7 @@ private fun DataCard(services: AppServices) {
                     } ?: return@launch
                     try {
                         when (val file = withContext(Dispatchers.Default) { readImportedFile(services, text) }) {
-                            is ImportedFile.Full -> pending = file.snapshot
+                            is ImportedFile.Full -> pending = file
                             is ImportedFile.Exchange -> exchange = file.preview
                             is ImportedFile.Calendar -> calendar = file.plan
                         }
@@ -599,6 +603,8 @@ private fun DataCard(services: AppServices) {
                 Icon(KairosIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.data_import), modifier = Modifier.padding(start = 6.dp))
             }
+            // Toutes les plateformes, Firefox et Safari compris (où le fichier lié n'existe pas).
+            MergeFileButton(services)
         }
         if (origins.isNotEmpty()) {
             Text(stringResource(Res.string.exchange_report_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -616,7 +622,8 @@ private fun DataCard(services: AppServices) {
         }
     }
 
-    pending?.let { snapshot ->
+    pending?.let { file ->
+        val snapshot = file.snapshot
         AlertDialog(
             onDismissRequest = { pending = null },
             title = { Text(stringResource(Res.string.import_confirm_title)) },
@@ -625,7 +632,7 @@ private fun DataCard(services: AppServices) {
                 KairosTextButton(onClick = {
                     pending = null
                     scope.launch {
-                        if (replaceWithBackup(services, snapshot, messages)) {
+                        if (replaceWithBackup(services, snapshot, messages, file.uids)) {
                             messages(getString(Res.string.import_done, snapshot.tasks.size))
                         }
                     }

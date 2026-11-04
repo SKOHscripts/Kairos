@@ -79,21 +79,21 @@ base. Il faut donc pouvoir :
   - **« Créer un fichier »** (`kairos.json` proposé) : le fichier est écrit
     tout de suite, puis tenu à jour ;
   - **« Ouvrir un fichier Kairos »** : un export ou un fichier lié existant ;
-    ses données remplacent celles de l'appareil après confirmation et une
-    sauvegarde automatique, exactement comme « Importer » ; il est ensuite
-    tenu à jour ;
+    depuis la 4.0.0, si l'appareil a déjà des données, Kairos propose
+    **« Fusionner »** (recommandé) ou **« Remplacer »** (après une sauvegarde
+    automatique, exactement comme « Importer ») ; un appareil neuf le fusionne
+    sans demander (`synchronisation.md`) ; il est ensuite tenu à jour ;
   - une fois lié : « Enregistré aussi dans le fichier « kairos.json ». » et
     **« Délier »** (le fichier reste tel quel, Kairos cesse d'y écrire).
   - Écriture 2 secondes après le dernier changement, et aussitôt quand
     l'application passe en arrière-plan ou se ferme.
-- **Partout (bureau, Android, web) : modification faite ailleurs.** Si le
-  fichier lié n'est plus celui que cet appareil a écrit en dernier (un autre
-  appareil l'a changé), Kairos **n'écrit plus** et un bandeau (vue Jour et
-  carte Données) dit : « Le fichier lié « … » a été modifié ailleurs (un autre
-  appareil ?). Kairos n'y écrit plus tant que tu n'as pas choisi. », avec
-  **« Écraser »** (y écrire les données de cet appareil), **« L'importer »**
-  (ses données remplacent celles de l'appareil, avec confirmation et
-  sauvegarde, comme « Importer ») et **« Délier »**.
+- **Partout (bureau, Android, web) : modification faite ailleurs.** Depuis
+  la 4.0.0, un fichier lié modifié par un autre appareil est **fusionné** avec
+  les données de l'appareil, en demandant la première fois
+  (`synchronisation.md` § Comportement attendu) ; la garde « modifié ailleurs »
+  de la 3.10.0 (« Écraser », « L'importer », « Délier ») est retirée. Un
+  fichier illisible, d'une version plus récente ou trop en avance arrête
+  l'écriture, avec « Réessayer », « Écraser » et « Délier ».
 - **Échec d'écriture** (dossier disparu, accès retiré, carte mémoire
   retirée) : bandeau d'erreur « Kairos n'arrive plus à écrire dans « … » ; tes
   données sont à l'abri dans Kairos. » avec « Réessayer » et « Délier » ;
@@ -118,7 +118,7 @@ base. Il faut donc pouvoir :
   écriture 2 s après une rafale de changements, écriture aussitôt à la mise en
   arrière-plan, écriture atomique sur le bureau (jamais de fichier à moitié
   écrit), fichier écrit = export valide qui redonne la même base, fichier
-  modifié ailleurs jamais écrasé sans choix, échec d'écriture signalé puis
+  modifié ailleurs fusionné, jamais écrasé (4.0.0, `synchronisation.md`), échec d'écriture signalé puis
   levé par une écriture réussie, lien retrouvé au lancement ; carte Données
   et bandeau (`LinkedFileUiTest`). Android vérifié à la main (dossier
   Syncthing et fournisseur de documents Nextcloud ; accès retiré → bandeau).
@@ -208,8 +208,15 @@ JSON UTF-8 indenté :
     `CORRUPTED`. (Une liste absente reste vide, `tasks` comprise : le
     remplacement est confirmé et précédé d'une sauvegarde.) Valeur invalide :
     date ou instant illisible, réglages refusés par `SettingsForm.validate`
-    (mêmes bornes et règles que le formulaire), identifiant en double dans
-    une table, titre de plus de 10 000 caractères, priorité hors 0-2, points
+    (mêmes bornes et règles que le formulaire ; les réglages **d'équipe** sont
+    d'abord ramenés dans leurs bornes par `TeamSettings.bounded`, une borne
+    exclue ou un nombre non fini reprenant la valeur par défaut : un seuil
+    d'équipe hors bornes se corrige sans risque et ne fait plus refuser tout
+    le fichier, QA du 2026-11-04, `KairosRepositoryTest.outOfRangeTeamSettingsAreBoundedOnImport`),
+    identifiant en double dans
+    une table, titre de plus de 10 000 caractères (borne appliquée aussi à
+    la saisie : capture, fiche, sous-tâche, note convertie, pour que tout
+    export se réimporte ; QA du 2026-11-04), priorité hors 0-2, points
     hors de l'échelle de Fibonacci, durée négative, dépendance vers une tâche
     absente ou vers elle-même, créneau qui finit avant de commencer ;
   - champs inconnus ignorés, champs absents à leur valeur par défaut
@@ -235,6 +242,10 @@ JSON UTF-8 indenté :
   échoue, message d'erreur et **pas d'import** ; sinon `replaceAll` puis
   message « Import terminé : n tâches. ». Sauvegarde puis remplacement :
   `replaceWithBackup` (`ui/app/Replace.kt`) ; horodatage des noms : `fileStamp`.
+  Depuis la 4.0.0, le fichier est lu par `decodeSynced` et ses identités de
+  synchronisation sont passées au remplacement : une base synchronisée les
+  reprend, sans doublon à la fusion suivante (`synchronisation.md`
+  § Précisions (étape 7)) ; une base qui ne synchronise pas les ignore.
 - Messages : snackbar de la coquille (`LocalMessages`).
 
 ### Fichiers et sauvegardes par plateforme
@@ -290,11 +301,13 @@ n'écrit qu'un fichier de lecture, jamais relu par Kairos (`statistiques.md` § 
 
 - `LinkedStorage` (`ui/app`) devient le contrat commun aux trois plateformes :
   `state`, `createFile`, `openFile` / `adoptOpened`, `authorize` (web),
-  `unlink`, `overwrite` (écrire malgré une modification faite ailleurs),
-  `readLinked` (contenu actuel du fichier, pour « L'importer ») puis
-  `acknowledge(texte)` (le contenu importé devient la référence), `retry` ;
-  `browser` (vrai sur le web : bandeau d'incitation et textes du
-  navigateur). Nouveaux états : `Changed(nom)`, `WriteFailed(nom)`.
+  `unlink`, `overwrite`, `retry` ; `browser` (vrai sur le web : bandeau
+  d'incitation et textes du navigateur). Nouvel état : `WriteFailed(nom)`.
+  **4.0.0** : la passe de fusion remplace la garde ci-dessous ; contrat,
+  états (`NeedsConfirmation`, `Unreadable`) et déclencheurs dans
+  `synchronisation.md` § Fichier lié et § Précisions de l'implémentation
+  (étape 4) ; `Changed`, `readLinked`, `acknowledge` et « L'importer » sont
+  retirés.
 - `LinkedFileSync` (`ui/app`, commun au bureau et à Android) met en œuvre
   `LinkedStorage` sur un `LinkedFileIo` de plateforme (choisir un fichier à
   créer ou à ouvrir, lire, écrire, nom affiché, lien gardé) :
@@ -302,10 +315,11 @@ n'écrit qu'un fichier de lecture, jamais relu par Kairos (`statistiques.md` § 
     instantané et programme l'écriture `DEBOUNCE` = 2 s plus tard (une
     rafale = une écriture) ; `flush()` écrit tout de suite ce qui attend
     (arrière-plan, fermeture) ;
-  - avant d'écrire, le fichier est relu : si son **empreinte**
-    (`LinkHash.of` : longueur et FNV-1a 64 bits du texte) diffère de celle du
-    dernier texte écrit ou adopté, état `Changed`, rien n'est écrit ; lecture
-    ou écriture impossible → `WriteFailed` (l'écriture suivante réessaie) ;
+  - avant d'écrire, le fichier est relu : son **empreinte** (`LinkHash.of` :
+    longueur et FNV-1a 64 bits du texte) comparée à celle du dernier texte
+    écrit ou vu dit s'il a changé ; s'il a changé, il est fusionné (4.0.0,
+    `synchronisation.md`) ; lecture ou écriture impossible → `WriteFailed`
+    (l'écriture suivante réessaie) ;
   - le lien (`SavedLink` : cible, nom, empreinte) est gardé par la plateforme
     à chaque écriture réussie et relu au lancement.
 - Bureau (`DesktopLinkedFile`) : `FileDialog` ; écriture dans un fichier
@@ -319,14 +333,15 @@ n'écrit qu'un fichier de lecture, jamais relu par Kairos (`statistiques.md` § 
   fournisseurs ignorent la troncature en `"w"` et laissent des octets en
   trop) ; nom affiché par `OpenableColumns.DISPLAY_NAME` ; lien dans les
   préférences de l'application ; `flush` dans `onStop`.
-- Web (`WebLinkedStorage`) : même garde (empreinte du dernier texte écrit,
+- Web (`WebLinkedStorage`) : même passe (empreinte du dernier texte écrit,
   gardée dans IndexedDB avec la poignée, `linkRead` avant `linkWrite`),
   `unlink` oublie la poignée (`linkForget`). Écriture à chaque changement,
   sans délai, comme avant.
 - Interface : `StorageBanner` sert les trois plateformes. Carte Données :
   toujours (lié, pas lié, à résoudre). Vue Jour : sur le web comme avant ;
-  sur le bureau et Android seulement `Changed` et `WriteFailed`. « Ouvrir un
-  fichier Kairos » et « L'importer » passent par `replaceWithBackup`.
+  sur le bureau et Android seulement ce qui attend une réponse
+  (`NeedsConfirmation`, `Unreadable`, `WriteFailed`). « Ouvrir un fichier
+  Kairos » puis « Remplacer » passe par `replaceWithBackup`.
 
 ### Décisions et pièges tracés
 

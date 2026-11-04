@@ -28,7 +28,7 @@ class ScheduleWindowsTest {
     private val contexts = listOf(WorkContext("Work", listOf("dev", "Réunion")), WorkContext("Home", listOf("maison")))
 
     private fun settings(windows: List<WorkWindow>, day: Int = 5, contexts: List<WorkContext> = emptyList()) =
-        Settings(schedule = ScheduleSettings(mapOf(day to DaySchedule(windows = windows)), contexts))
+        Settings(taskTypes = "", schedule = ScheduleSettings(mapOf(day to DaySchedule(windows = windows)), contexts))
 
     private fun place(tasks: List<Task>, s: Settings, day: LocalDate = saturday) = Scheduling.buildDaySchedule(tasks, emptyList(), day, null, s)
 
@@ -45,7 +45,7 @@ class ScheduleWindowsTest {
     @Test
     fun aSingleWindowListIsTheSameDayAsTheThreeFourRange() {
         val tasks = (1L..4L).map { task(it, minutes = 45 + it.toInt()) }
-        val old = place(tasks, Settings(schedule = ScheduleSettings(mapOf(5 to DaySchedule(startHour = 10, endHour = 13)))))
+        val old = place(tasks, Settings(taskTypes = "", schedule = ScheduleSettings(mapOf(5 to DaySchedule(startHour = 10, endHour = 13)))))
         val list = place(tasks, settings(listOf(WorkWindow(10, 13))))
         assertEquals(old, list)
     }
@@ -83,7 +83,7 @@ class ScheduleWindowsTest {
     @Test
     fun theUsualDayAndALegacyRangeStayOpenToEveryContext() {
         // « Tout doit fonctionner comme avant » : définir des contextes ne prive aucun jour sans plages propres de ses tâches.
-        val s = Settings(schedule = ScheduleSettings(mapOf(5 to DaySchedule(startHour = 10, endHour = 12)), contexts))
+        val s = Settings(taskTypes = "", schedule = ScheduleSettings(mapOf(5 to DaySchedule(startHour = 10, endHour = 12)), contexts))
         assertEquals(1, place(listOf(task(1, "maison")), s, monday).scheduled.size)
         assertEquals(1, place(listOf(task(1, "maison")), s, saturday).scheduled.size)
     }
@@ -100,8 +100,8 @@ class ScheduleWindowsTest {
     @Test
     fun theContextFilterNeverChangesTheOrderOrTheScore() {
         val plain = task(1, "dev")
-        val without = Settings()
-        val with = Settings(schedule = ScheduleSettings(contexts = contexts))
+        val without = Settings(taskTypes = "")
+        val with = Settings(taskTypes = "", schedule = ScheduleSettings(contexts = contexts))
         assertEquals(Scheduling.sortKey(plain, saturday, without), Scheduling.sortKey(plain, saturday, with))
         assertEquals(Scheduling.wsjfScore(plain, saturday, without), Scheduling.wsjfScore(plain, saturday, with))
     }
@@ -126,18 +126,18 @@ class ScheduleWindowsTest {
         // Aucune plage valable : la journée des réglages.
         assertEquals(listOf(9 to 18), Schedule.windowsFor(saturday, settings(listOf(WorkWindow(15, 15)))).map { it.startHour to it.endHour })
         // Un jour libre n'a aucune plage.
-        assertEquals(emptyList(), Schedule.windowsFor(saturday, Settings(schedule = ScheduleSettings(mapOf(5 to DaySchedule(free = true))))))
+        assertEquals(emptyList(), Schedule.windowsFor(saturday, Settings(taskTypes = "", schedule = ScheduleSettings(mapOf(5 to DaySchedule(free = true))))))
     }
 
     @Test
     fun aTaskContextComesFromItsTypeOnly() {
-        val s = Settings(schedule = ScheduleSettings(contexts = contexts))
+        val s = Settings(taskTypes = "", schedule = ScheduleSettings(contexts = contexts))
         assertEquals("Work", Schedule.contextOf("DEV", s))
         assertEquals("Work", Schedule.contextOf(" Réunion ", s))
         assertEquals("Home", Schedule.contextOf("maison", s))
         assertNull(Schedule.contextOf("", s))
         assertNull(Schedule.contextOf("inconnu", s))
-        assertNull(Schedule.contextOf("dev", Settings()))
+        assertNull(Schedule.contextOf("dev", Settings(taskTypes = "")))
     }
 
     @Test
@@ -156,8 +156,8 @@ class ScheduleWindowsTest {
     fun withoutAScheduleNothingChangesForTheEngine() {
         val tasks = (1L..4L).map { task(it, "dev", minutes = 30 + it.toInt()) }
         assertEquals(
-            Scheduling.buildDaySchedule(tasks, emptyList(), monday, null, Settings()),
-            Scheduling.buildDaySchedule(tasks, emptyList(), monday, null, Settings(schedule = ScheduleSettings(contexts = contexts))),
+            Scheduling.buildDaySchedule(tasks, emptyList(), monday, null, Settings(taskTypes = "")),
+            Scheduling.buildDaySchedule(tasks, emptyList(), monday, null, Settings(taskTypes = "", schedule = ScheduleSettings(contexts = contexts))),
         )
     }
 }

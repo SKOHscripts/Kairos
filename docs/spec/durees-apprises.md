@@ -141,7 +141,9 @@ moins `MIN_SAMPLE_MINUTES` = 2 minutes.
   autour). Seuls les échantillons du **même espace** (Perso / Équipe) comptent,
   hors la tâche elle-même.
 - **Statistique** : médiane des `history` (5 par défaut) derniers échantillons
-  par `taskId` décroissant (**jamais `updatedAt`**, modifiable après coup),
+  par `Sample.order` décroissant : l'identifiant, ou dans une base synchronisée le
+  rang commun `createdAt` puis `uid` (`synchronisation.md` § Durées apprises
+  partagées, 4.0.0) ; **jamais `updatedAt`**, modifiable après coup,
   `TaskStats.median` réutilisée. Fiable si au moins `minSamples` (3) échantillons
   **retenus** ; en dessous, l'estimation est exposée avec `reliable = false` et
   n'est jamais appliquée.

@@ -85,19 +85,17 @@ data class Task(
     val proposedTo: String? = null,
 ) {
     /**
-     * Pas encore clarifiée (GTD) : il manque la priorité **ou** les points. Elle
-     * reste dans « À traiter » et n'entre dans aucun tri (règle : `priority == null || fibonacciPoints == null`).
+     * Pas encore clarifiée (GTD, docs/spec/vue-jour.md § Décisions) : il manque la priorité, les points **ou**, si
+     * [typeRequired] ([Settings.typeRequired] : la liste des types n'est pas vide), le type. Elle reste dans « À traiter »
+     * (« À qualifier » pour une tâche d'équipe) et n'entre dans aucun tri.
      */
-    val needsProcessing: Boolean get() = priority == null || fibonacciPoints == null
+    fun needsProcessing(typeRequired: Boolean): Boolean = missing(typeRequired) != null
 
-    /** Ce qui manque pour qualifier la tâche (libellé de la boîte de réception). */
-    val missingQualification: MissingQualification?
-        get() = when {
-            priority == null && fibonacciPoints == null -> MissingQualification.BOTH
-            priority == null -> MissingQualification.PRIORITY
-            fibonacciPoints == null -> MissingQualification.POINTS
-            else -> null
-        }
+    /** Ce qui manque pour qualifier la tâche (libellé de la boîte de réception) ; `null` si rien. */
+    fun missing(typeRequired: Boolean): Missing? {
+        val m = Missing(priority = priority == null, points = fibonacciPoints == null, type = typeRequired && taskType.isBlank())
+        return m.takeIf { it.priority || it.points || it.type }
+    }
 }
 
 /**
@@ -115,7 +113,8 @@ enum class TaskSpace(val code: Int) {
     }
 }
 
-enum class MissingQualification { PRIORITY, POINTS, BOTH }
+/** Ce qui manque pour qualifier une tâche ([Task.missing]). */
+data class Missing(val priority: Boolean, val points: Boolean, val type: Boolean)
 
 /** Statut d'une tâche ; [code] = valeur stockée (valeur stockée, figée). */
 enum class TaskStatus(val code: String) {

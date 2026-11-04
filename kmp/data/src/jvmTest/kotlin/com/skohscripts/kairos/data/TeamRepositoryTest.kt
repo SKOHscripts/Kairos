@@ -78,7 +78,7 @@ class TeamRepositoryTest {
         assertNull(t.startedOn)
         assertNull(t.progressPercent)
         assertTrue(t.teamUid!!.length >= 32)
-        assertTrue(t.needsProcessing)
+        assertTrue(t.needsProcessing(typeRequired = true))
         val e = f.events.single()
         assertEquals(TeamEvent(e.id, id, "Migrer la base", null, TeamEventKind.CREATED, null, "Migrer la base", TeamEventSource.MANUAL, now), e)
         // Deux tâches : deux identités.
@@ -825,5 +825,44 @@ class TeamRepositoryTest {
         val f = Files.createTempFile("kairos-fresh", ".db").toFile().also { it.delete() }
         kotlinx.coroutines.runBlocking { KairosStore.open(driver(f)) }
         return f
+    }
+
+    /** Une tâche d'équipe qualifiée, assignée à [to]. */
+    private suspend fun Fixture.qualified(title: String, to: Long): Long {
+        val id = repo.createTeamTask(title)!!
+        repo.updateTask(id, TaskEdit(title = title, priority = 1, points = 3, taskType = "Dev", estimatedMinutes = 120, pinDay = day))
+        repo.assign(listOf(id), to)
+        return id
+    }
+
+    @Test
+    fun aReopenedTaskOfAnArchivedMemberShowsInTheBacklogOfTheBoard() = runTest {
+        // QA du 2026-11-04 : faite par Alex, Alex archivé, la tâche rouverte n'était plus nulle part sur le tableau.
+        val f = fixture()
+        val id = f.qualified("Faite par un ancien", f.alex)
+        f.repo.toggleDone(id)
+        f.repo.archiveMember(f.alex)
+        f.repo.toggleDone(id)
+        assertEquals(TaskStatus.TODO, f.task(id).status)
+        val board = com.skohscripts.kairos.core.team.TeamBoard.build(f.repo.snapshot.value, day, TimeZone.UTC)
+        assertTrue(id in (board.ready + board.toQualify).map { it.task.id })
+        assertTrue(board.lanes.none { lane -> (lane.inProgress + lane.todo).any { it.task.id == id } })
+    }
+
+    @Test
+    fun aTimerOnATaskThatIsNoLongerMineStops() = runTest {
+        // QA du 2026-11-04 : réaffectée à Alex ou « moi » archivé, le chrono continuait sur une tâche hors de la vue Perso.
+        val f = fixture()
+        val reassigned = f.qualified("Réaffectée", f.me)
+        f.repo.startTimer(reassigned)
+        f.repo.assign(listOf(reassigned), f.alex)
+        assertTrue(f.repo.snapshot.value.workSessions.none { it.endedAt == null })
+        // Réaffectée à « moi » : le chrono continue (rien à arrêter).
+        val mine = f.qualified("À moi", f.me)
+        f.repo.startTimer(mine)
+        f.repo.assign(listOf(mine), f.me)
+        assertEquals(1, f.repo.snapshot.value.workSessions.count { it.endedAt == null })
+        f.repo.archiveMember(f.me)
+        assertTrue(f.repo.snapshot.value.workSessions.none { it.endedAt == null })
     }
 }

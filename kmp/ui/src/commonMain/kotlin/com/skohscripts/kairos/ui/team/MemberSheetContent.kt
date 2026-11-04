@@ -78,6 +78,7 @@ import com.skohscripts.kairos.ui.generated.resources.member_delete_title
 import com.skohscripts.kairos.ui.generated.resources.member_error_name
 import com.skohscripts.kairos.ui.generated.resources.member_error_name_long
 import com.skohscripts.kairos.ui.generated.resources.member_error_name_taken
+import com.skohscripts.kairos.ui.generated.resources.member_error_name_archived
 import com.skohscripts.kairos.ui.generated.resources.member_field_availability
 import com.skohscripts.kairos.ui.generated.resources.member_field_availability_help
 import com.skohscripts.kairos.ui.generated.resources.member_field_hours
@@ -154,6 +155,8 @@ fun MemberSheetContent(
     onSendTasks: () -> Unit = {},
     /** Noms des autres membres (archivés compris) : un doublon est refusé. */
     takenNames: List<String> = emptyList(),
+    /** Noms des membres archivés : un homonyme invite à le réactiver plutôt qu'à créer un doublon. */
+    archivedNames: List<String> = emptyList(),
 ) {
     // Heures par jour à la virgule hors anglais (« 7,5 », comme la carte du membre) ; la saisie accepte les deux.
     val english = !UiLanguage.dayFirst(uiLanguage())
@@ -176,7 +179,9 @@ fun MemberSheetContent(
 
     fun save() {
         // Un doublon déjà en base (import) ne bloque pas la modification d'un autre champ : seul un changement de nom est vérifié.
-        val result = MemberForm.validate(input, if (member != null && input.name.trim() == member.name) emptyList() else takenNames)
+        // Nom inchangé (à la casse et aux espaces près) : un doublon déjà en base, venu d'un import, ne bloque pas les autres champs.
+        val unchanged = member != null && MemberForm.nameKey(input.name) == MemberForm.nameKey(member.name)
+        val result = if (unchanged) MemberForm.validate(input) else MemberForm.validate(input, takenNames, archivedNames)
         errors = result.errors
         result.valid?.let { onSave(it, isSelf && !archived) }
     }
@@ -496,6 +501,7 @@ private fun memberErrorMessage(key: String, error: FieldError): String = when {
     key == MemberForm.NAME -> when (error.kind) {
         FieldErrorKind.TOO_LARGE -> stringResource(Res.string.member_error_name_long, error.bound.orEmpty())
         FieldErrorKind.DUPLICATE -> stringResource(Res.string.member_error_name_taken, error.bound.orEmpty())
+        FieldErrorKind.DUPLICATE_ARCHIVED -> stringResource(Res.string.member_error_name_archived, error.bound.orEmpty())
         else -> stringResource(Res.string.member_error_name)
     }
     else -> when (error.kind) {
@@ -505,6 +511,6 @@ private fun memberErrorMessage(key: String, error: FieldError): String = when {
         FieldErrorKind.TOO_SMALL -> stringResource(Res.string.settings_error_min, error.bound.orEmpty())
         FieldErrorKind.TOO_LARGE -> stringResource(Res.string.settings_error_max, error.bound.orEmpty())
         // Sans objet pour ce formulaire (dates, couleurs, heures des Réglages).
-        FieldErrorKind.INVALID_DATE, FieldErrorKind.INVALID_COLOR, FieldErrorKind.INVALID_TIME, FieldErrorKind.DUPLICATE, FieldErrorKind.UNKNOWN_CONTEXT -> stringResource(Res.string.settings_error_required)
+        FieldErrorKind.INVALID_DATE, FieldErrorKind.INVALID_COLOR, FieldErrorKind.INVALID_TIME, FieldErrorKind.DUPLICATE, FieldErrorKind.DUPLICATE_ARCHIVED, FieldErrorKind.UNKNOWN_CONTEXT -> stringResource(Res.string.settings_error_required)
     }
 }

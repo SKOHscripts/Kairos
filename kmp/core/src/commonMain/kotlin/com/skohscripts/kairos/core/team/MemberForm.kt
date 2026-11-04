@@ -78,20 +78,35 @@ object MemberForm {
         if (weekly && input.weekHours.all { it.isBlank() }) input.copy(weekly = true, weekHours = List(TeamMember.WEEK_DAYS) { input.hoursPerDay })
         else input.copy(weekly = weekly)
 
+    private val SPACES = Regex("\\s+")
+
+    /** Nom enregistré : sans espaces autour, chaque suite d'espaces réduite à une seule (« Alice  Martin » → « Alice Martin »). */
+    fun cleanName(name: String): String = name.trim().replace(SPACES, " ")
+
+    /**
+     * Clé de comparaison de deux noms de membre : [cleanName] sans la casse. Les accents comptent (« Hélène » ≠ « Helene ») :
+     * deux noms qui ne diffèrent que par un accent se distinguent à l'écran (décision du 2026-11-04).
+     */
+    fun nameKey(name: String): String = cleanName(name).lowercase()
+
     /** « 7 » plutôt que « 7.0 », « 7.5 » sinon. */
     fun formatHours(hours: Double): String = SettingsForm.formatDecimal(hours)
 
     /**
-     * [takenNames] : les noms des **autres** membres, archivés compris. Deux membres de même nom (sans tenir compte de
-     * la casse) ne se distinguent plus dans les menus d'assignation ni dans la charge : refusé ([FieldErrorKind.DUPLICATE]).
+     * [takenNames] : les noms des **autres** membres actifs ; [archivedNames] : ceux des membres archivés. Deux membres de
+     * même nom ([nameKey] : sans casse ni espaces en trop) ne se distinguent plus dans les menus d'assignation, la charge ni
+     * le journal : refusé, [FieldErrorKind.DUPLICATE] (actif) ou [FieldErrorKind.DUPLICATE_ARCHIVED] (archivé : le message
+     * invite à le réactiver). Le nom validé est [cleanName].
      */
-    fun validate(input: Input, takenNames: Collection<String> = emptyList()): Result {
+    fun validate(input: Input, takenNames: Collection<String> = emptyList(), archivedNames: Collection<String> = emptyList()): Result {
         val errors = LinkedHashMap<String, FieldError>()
-        val name = input.name.trim()
+        val name = cleanName(input.name)
+        val key = nameKey(name)
         when {
             name.isEmpty() -> errors[NAME] = FieldError(FieldErrorKind.REQUIRED)
             name.length > MAX_NAME -> errors[NAME] = FieldError(FieldErrorKind.TOO_LARGE, MAX_NAME.toString())
-            takenNames.any { it.trim().equals(name, ignoreCase = true) } -> errors[NAME] = FieldError(FieldErrorKind.DUPLICATE, name)
+            takenNames.any { nameKey(it) == key } -> errors[NAME] = FieldError(FieldErrorKind.DUPLICATE, name)
+            archivedNames.any { nameKey(it) == key } -> errors[NAME] = FieldError(FieldErrorKind.DUPLICATE_ARCHIVED, name)
         }
 
         var availability = 0

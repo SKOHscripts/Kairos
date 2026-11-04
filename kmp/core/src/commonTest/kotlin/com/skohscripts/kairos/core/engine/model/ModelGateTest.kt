@@ -33,13 +33,14 @@ class ModelGateTest {
     }
 
     @Test
-    fun theGateNeedsTenCandidatesAndAClearWin() {
-        assertEquals(ModelGate.Reason.TOO_FEW_SAMPLES, ModelGate.fromErrors(List(9) { 0.1 }, List(9) { 0.5 }).reason)
-        val win = ModelGate.fromErrors(List(10) { 0.2 }, List(10) { 0.5 })
+    fun theGateNeedsSixCandidatesAndAClearWin() {
+        assertEquals(ModelGate.Reason.TOO_FEW_SAMPLES, ModelGate.fromErrors(List(5) { 0.1 }, List(5) { 0.5 }).reason)
+        val win = ModelGate.fromErrors(List(6) { 0.2 }, List(6) { 0.5 })
         assertTrue(win.passed)
         assertEquals(ModelGate.Reason.OK, win.reason)
-        // 0,45 > 0,8 × 0,5 : pas assez nettement meilleur.
-        assertEquals(ModelGate.Reason.NOT_BETTER, ModelGate.fromErrors(List(10) { 0.45 }, List(10) { 0.5 }).reason)
+        // 0,42 ≤ 0,85 × 0,5 : assez nettement meilleur ; 0,45 > 0,425 : non.
+        assertEquals(ModelGate.Reason.OK, ModelGate.fromErrors(List(6) { 0.42 }, List(6) { 0.5 }).reason)
+        assertEquals(ModelGate.Reason.NOT_BETTER, ModelGate.fromErrors(List(6) { 0.45 }, List(6) { 0.5 }).reason)
     }
 
     @Test

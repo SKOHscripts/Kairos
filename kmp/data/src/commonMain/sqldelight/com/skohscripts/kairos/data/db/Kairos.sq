@@ -212,6 +212,51 @@ CREATE TABLE migration_mark (
     name TEXT NOT NULL PRIMARY KEY
 );
 
+-- Synchronisation par fichier (docs/spec/synchronisation.md § Stockage, schéma 13) : vides tant que la base ne synchronise pas.
+-- État de l'installation : `device` (sa présence seule dit que la base est synchronisée), `label`, `clock`, `seen` (JSON),
+-- `labels` (JSON), `settings` (marques des réglages partagés), `lastMerge` (JSON), `examples` (exemples posés, JSON).
+CREATE TABLE sync_state (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+-- `uid` de chaque enregistrement de la portée (et des identités fantômes), par genre.
+CREATE TABLE sync_identity (
+    kind TEXT NOT NULL,
+    local_id INTEGER NOT NULL,
+    uid TEXT NOT NULL,
+    PRIMARY KEY (kind, local_id)
+);
+CREATE UNIQUE INDEX sync_identity_uid ON sync_identity(kind, uid);
+
+-- Marques d'un enregistrement, une ligne par enregistrement (écart à la spec d'origine, une ligne par champ : 5 000 tâches
+-- feraient 100 000 lignes) : `born`, `base`, `stamps` (« champ=marque » séparés par des tabulations) et `hashes` (« champ=empreinte »).
+CREATE TABLE sync_mark (
+    kind TEXT NOT NULL,
+    uid TEXT NOT NULL,
+    born TEXT NOT NULL,
+    base TEXT NOT NULL,
+    stamps TEXT NOT NULL,
+    hashes TEXT NOT NULL,
+    PRIMARY KEY (kind, uid)
+);
+
+-- « À revoir » : conflits et éléments conservés, **locaux** (ni fichier, ni export). `kept` = 1 pour un élément conservé après une
+-- suppression faite ailleurs ; sinon la valeur écartée d'un conflit (`loser_*`) et la gagnante appliquée (`winner_*`).
+CREATE TABLE sync_review (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT,
+    uid TEXT,
+    field TEXT NOT NULL,
+    title TEXT NOT NULL,
+    loser_value TEXT NOT NULL,
+    loser_stamp TEXT NOT NULL,
+    winner_value TEXT NOT NULL,
+    winner_stamp TEXT NOT NULL,
+    kept INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+);
+
 -- Tâches ---------------------------------------------------------------------
 
 allTasks:
@@ -517,3 +562,60 @@ INSERT OR REPLACE INTO settings (id, json) VALUES (1, ?);
 
 deleteSettings:
 DELETE FROM settings;
+
+-- Synchronisation ------------------------------------------------------------
+
+allSyncState:
+SELECT key, value FROM sync_state;
+
+writeSyncState:
+INSERT OR REPLACE INTO sync_state (key, value) VALUES (?, ?);
+
+deleteSyncState:
+DELETE FROM sync_state WHERE key = ?;
+
+clearSyncState:
+DELETE FROM sync_state;
+
+allSyncIdentities:
+SELECT kind, local_id, uid FROM sync_identity;
+
+insertSyncIdentity:
+INSERT OR REPLACE INTO sync_identity (kind, local_id, uid) VALUES (?, ?, ?);
+
+deleteSyncIdentity:
+DELETE FROM sync_identity WHERE kind = ? AND local_id = ?;
+
+clearSyncIdentities:
+DELETE FROM sync_identity;
+
+allSyncMarks:
+SELECT kind, uid, born, base, stamps, hashes FROM sync_mark;
+
+writeSyncMark:
+INSERT OR REPLACE INTO sync_mark (kind, uid, born, base, stamps, hashes) VALUES (?, ?, ?, ?, ?, ?);
+
+deleteSyncMark:
+DELETE FROM sync_mark WHERE kind = ? AND uid = ?;
+
+clearSyncMarks:
+DELETE FROM sync_mark;
+
+allSyncReview:
+SELECT * FROM sync_review ORDER BY id;
+
+insertSyncReview:
+INSERT INTO sync_review (kind, uid, field, title, loser_value, loser_stamp, winner_value, winner_stamp, kept, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteSyncReview:
+DELETE FROM sync_review WHERE id = ?;
+
+deleteSyncReviewBefore:
+DELETE FROM sync_review WHERE created_at < ?;
+
+trimSyncReview:
+DELETE FROM sync_review WHERE id NOT IN (SELECT id FROM sync_review ORDER BY id DESC LIMIT ?);
+
+clearSyncReview:
+DELETE FROM sync_review;

@@ -35,7 +35,7 @@ class RemindersTest {
     )
     private val deps = listOf(TaskDependency(1, taskId = 4, blockerId = 5, createdAt = t0))
 
-    private fun snapshot(reminders: ReminderSettings?) = KairosSnapshot(tasks = tasks, dependencies = deps, settings = Settings(reminders = reminders))
+    private fun snapshot(reminders: ReminderSettings?) = KairosSnapshot(tasks = tasks, dependencies = deps, settings = Settings(taskTypes = "", reminders = reminders))
 
     @Test
     fun nothing_when_disabled_or_never_set() {

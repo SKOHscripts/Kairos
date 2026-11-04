@@ -18,6 +18,7 @@ import kotlinx.coroutines.test.runTest
 import com.skohscripts.kairos.core.model.BlockKind
 import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.TaskRecurrence
+import com.skohscripts.kairos.core.model.TeamSettings
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -67,7 +68,7 @@ class KairosRepositoryTest {
         val task = repo.snapshot.value.tasks.single { it.id == id }
         assertEquals("Appeler le client", task.title)
         assertEquals(TaskStatus.TODO, task.status)
-        assertTrue(task.needsProcessing)
+        assertTrue(task.needsProcessing(typeRequired = true))
         assertEquals(now, task.createdAt)
     }
 
@@ -77,7 +78,7 @@ class KairosRepositoryTest {
         val id = repo.createTask("T")!!
         repo.setPriority(id, 1)
         repo.setPoints(id, 5)
-        assertTrue(!repo.snapshot.value.tasks.single().needsProcessing)
+        assertTrue(!repo.snapshot.value.tasks.single().needsProcessing(typeRequired = false))
         repo.setPriority(id, 7)
         repo.setPoints(id, 4)
         val task = repo.snapshot.value.tasks.single()
@@ -313,6 +314,21 @@ class KairosRepositoryTest {
         assertEquals(ImportException.Reason.CORRUPTED, reason(export(""""tasks":[{"id":"abc"}]""")))
         // Marque d'ordre des octets (Bloc-notes de Windows) : l'export reste lisible.
         assertEquals(listOf("x"), ExportCodec.decode("\uFEFF" + export(""""tasks":[$task]""")).tasks.map { it.title })
+    }
+
+    @Test
+    fun outOfRangeTeamSettingsAreBoundedOnImport() {
+        // QA du 2026-11-04 : un seuil d'équipe hors bornes faisait refuser tout le fichier ; il est ramené dans sa borne.
+        val team = """"team":{"enabled":true,"horizonWeeks":0,"focusFactor":0.0,"hoursPerPoint":-1.0,"simulationRuns":10,"deadlineRiskPercent":150,"wipLimit":-2}"""
+        val text = """{"format":"kairos-export","formatVersion":2,"settings":{$team}}"""
+        val bounded = assertNotNull(ExportCodec.decode(text).settings.team)
+        assertEquals(1, bounded.horizonWeeks)
+        assertEquals(TeamSettings.DEFAULT_FOCUS_FACTOR, bounded.focusFactor)
+        assertEquals(TeamSettings.DEFAULT_HOURS_PER_POINT, bounded.hoursPerPoint)
+        assertEquals(500, bounded.simulationRuns)
+        assertEquals(99, bounded.deadlineRiskPercent)
+        assertEquals(0, bounded.wipLimit)
+        assertTrue(bounded.enabled)
     }
 
     @Test
@@ -602,7 +618,7 @@ class KairosRepositoryTest {
         val task = repo.snapshot.value.tasks.single()
         assertEquals(taskId, task.id)
         assertEquals("Idée" to "  - détail\n  - autre", task.title to task.description)
-        assertTrue(task.needsProcessing)
+        assertTrue(task.needsProcessing(typeRequired = true))
         val converted = repo.snapshot.value.notes.single()
         assertEquals(com.skohscripts.kairos.core.model.NoteStatus.ARCHIVED, converted.status)
         assertEquals(taskId, converted.convertedTaskId)
@@ -613,5 +629,34 @@ class KairosRepositoryTest {
         assertEquals(com.skohscripts.kairos.core.model.NoteStatus.ARCHIVED, repo.snapshot.value.notes.single { it.id == other.id }.status)
         repo.deleteNote(other.id)
         assertEquals(1, repo.snapshot.value.notes.size)
+    }
+
+    @Test
+    fun aTitleTooLongForTheExportIsCappedAtEntrySoTheExportStillImports() = runTest {
+        // QA du 2026-11-04 : un titre de 10 001 caractères était accepté à la saisie puis refusé à l'import de son export.
+        val repo = empty()
+        val long = "x".repeat(ExportCodec.MAX_TITLE + 1)
+        val id = repo.createTask(long)!!
+        assertEquals(ExportCodec.MAX_TITLE, repo.snapshot.value.tasks.single().title.length)
+        repo.updateTask(id, TaskEdit(title = long + "y", pinDay = LocalDate(2026, 9, 29)))
+        assertEquals(ExportCodec.MAX_TITLE, repo.snapshot.value.tasks.single().title.length)
+        repo.createNote(long + "\ndétail")
+        repo.convertNote(repo.snapshot.value.notes.single().id)
+        assertTrue(repo.snapshot.value.tasks.all { it.title.length <= ExportCodec.MAX_TITLE })
+        val text = ExportCodec.encode(repo.snapshot.value, "4.0.0", now)
+        assertEquals(repo.snapshot.value.tasks, ExportCodec.decode(text).tasks)
+    }
+
+    @Test
+    fun deletingTheTimedTaskStopsItsTimer() = runTest {
+        // QA du 2026-11-04 : la session ouverte d'une tâche supprimée comptait sans fin (et les alertes du chrono avec).
+        val repo = empty()
+        val id = repo.createTask("Chronométrée")!!
+        repo.startTimer(id)
+        repo.deleteTask(id)
+        val sessions = repo.snapshot.value.workSessions
+        assertEquals(1, sessions.size)
+        assertNotNull(sessions.single().endedAt)
+        assertNull(com.skohscripts.kairos.core.engine.TimeTracking.runningSession(sessions))
     }
 }

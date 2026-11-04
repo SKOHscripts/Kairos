@@ -29,10 +29,11 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 - Capture en tête, comme dans la vue Jour : un titre, Entrée, la tâche naît
   dans le backlog « À qualifier ».
 - Deux sections, comme la vue Jour :
-  - **À qualifier** : il manque la priorité ou les points (règle
-    `needsProcessing` de `modele-donnees.md`) ; mêmes chips de
+  - **À qualifier** : il manque la priorité, les points ou la catégorie (règle
+    `needsProcessing` de `modele-donnees.md`, la catégorie exigée depuis le 2026-11-03 comme le type dans « À traiter »,
+    sauf liste des types vide) ; mêmes chips de
     qualification que « À traiter », puis la **catégorie** choisie sur place (3.14.0, issue #166 : même champ que le
-    type de la vue Jour, enregistré aussitôt, sans faire sortir la tâche). Comme dans « À traiter », une tâche qui y
+    type de la vue Jour, enregistré aussitôt ; la tâche sort une fois les trois posés). Comme dans « À traiter », une tâche qui y
     devient entièrement qualifiée (priorité, points, catégorie) et n'a pas de durée reçoit sa durée apprise fiable (série,
     titre ou modèle, sur les seules tâches d'équipe : la chaîne ne lit que l'espace de la tâche, 4.0.0), sinon la médiane
     fiable de sa catégorie, sinon de ses points, avec « Annuler » ; mais ces médianes viennent des **seules tâches d'équipe
@@ -173,6 +174,11 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   (`TeamRepositoryTest.reassignmentIsJournaled`).
 - Le tri des Prêtes est celui de `Scheduling.sortKey` sur les mêmes
   réglages (`TeamBoardTest.backlogUsesTheWsjfOrder`).
+- Avec une liste des catégories, une tâche sans catégorie reste dans « À
+  qualifier » même avec priorité et points (« Manque : catégorie »), et en
+  sort à la catégorie choisie ; sans liste, priorité et points suffisent
+  (`TeamBoardTest.withCategoriesDefinedAnUncategorisedTaskStaysToQualify`,
+  `TeamBacklogBoardUiTest.aCapturedTaskWaitsToBeQualifiedThenBecomesReadyAndNeverReachesTheDay`, 2026-11-03).
 - Qualifier entièrement une tâche de « À qualifier » sans durée pose la
   médiane des tâches d'équipe terminées, jamais celle des tâches perso, et
   le journal en garde un `qualified` `estimate:`
@@ -198,6 +204,9 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   `TeamStates.of(task): TeamState?` selon le tableau ci-dessus (`null` pour
   une tâche archivée) ; `TeamStates.blockedIds(snapshot)` par
   `Dependencies.blockedTaskIds` sur les arêtes d'équipe.
+- **Tâche ouverte d'un membre inactif** (archivé après coup puis tâche rouverte, ou base importée) : le tableau la range au
+  **backlog**, comme la charge et la suggestion (`assigneeId !in` membres actifs) ; avant, elle ne paraissait nulle part (QA du
+  2026-11-04, `TeamRepositoryTest.aReopenedTaskOfAnArchivedMemberShowsInTheBacklogOfTheBoard`).
 - `TeamBoard.build(snapshot, day, timeZone, filter)` lit la base complète
   (il n'y a pas de type `TeamSnapshot` séparé : les tâches d'équipe sont
   filtrées sur `space`). Il rend `keyFigures` (`TeamKeyFigures` : en
@@ -293,7 +302,9 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   commencement vides, et son événement `created`. Sous-tâches créées en lot
   par `updateTask` : espace et assigné de la mère.
 - `archiveMember` (E2) journalise chaque retour au backlog (et vide
-  `startedOn`) ; `deleteMember` est refusé aussi si le membre est le
+  `startedOn`), et ferme la session ouverte d'une tâche ainsi remise au backlog ; de même `assign` et la réaffectation de la
+  fiche ferment la session ouverte d'une tâche qui n'est plus à « moi » (QA du 2026-11-04 : le chrono continuait sur une tâche
+  sortie de la vue Perso, sans moyen de l'arrêter ; `TeamRepositoryTest.aTimerOnATaskThatIsNoLongerMineStops`) ; `deleteMember` est refusé aussi si le membre est le
   titulaire (`memberId`) d'un événement (pas s'il n'apparaît qu'en
   `fromValue` : l'archivage l'y écrit toujours) ; `clearTeamData` supprime
   le journal.

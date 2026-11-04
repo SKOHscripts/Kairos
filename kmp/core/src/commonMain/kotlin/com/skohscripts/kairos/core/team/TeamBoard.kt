@@ -72,7 +72,7 @@ data class MemberLane(
 data class TeamBoard(
     val keyFigures: TeamKeyFigures,
     val lanes: List<MemberLane>,
-    /** Backlog à qualifier : il manque la priorité ou les points (`needsProcessing`), dans l'ordre des identifiants. */
+    /** Backlog à qualifier : il manque la priorité, les points ou la catégorie (`needsProcessing`), dans l'ordre des identifiants. */
     val toQualify: List<TeamCard>,
     /** Backlog prêt : trié par `Scheduling.sortKey` (en retard d'abord), urgence héritée des dépendances. */
     val ready: List<TeamCard>,
@@ -105,8 +105,14 @@ data class TeamBoard(
             val own = tasks.filter { it.status == TaskStatus.TODO }.associate { it.id to Scheduling.sortKey(it, day, settings) }
             val effective = Dependencies.derivedUrgency(edges, own)
 
+            // Une tâche ouverte d'un membre inactif (archivé après coup, rouverte, importée) est du backlog, comme pour la charge et
+            // la suggestion : sinon elle ne paraissait nulle part, ni réaffectable ni qualifiable (QA du 2026-11-04).
+            val activeIds = TeamMembers.active(snapshot.members).mapTo(HashSet()) { it.id }
+
             fun card(task: Task): TeamCard {
-                val state = checkNotNull(TeamStates.of(task))
+                val raw = checkNotNull(TeamStates.of(task))
+                val orphan = (raw == TeamState.TODO || raw == TeamState.IN_PROGRESS) && task.assigneeId !in activeIds
+                val state = if (orphan) TeamState.BACKLOG else raw
                 return TeamCard(
                     task = task,
                     state = state,
@@ -160,8 +166,8 @@ data class TeamBoard(
                     watched = open.count { it.signals.isNotEmpty() },
                 ),
                 lanes = lanes,
-                toQualify = backlog.filter { it.task.needsProcessing }.sortedBy { it.task.id },
-                ready = backlog.filter { !it.task.needsProcessing }.sortedWith(byUrgency),
+                toQualify = backlog.filter { it.task.needsProcessing(settings.typeRequired) }.sortedBy { it.task.id },
+                ready = backlog.filter { !it.task.needsProcessing(settings.typeRequired) }.sortedWith(byUrgency),
             )
         }
 

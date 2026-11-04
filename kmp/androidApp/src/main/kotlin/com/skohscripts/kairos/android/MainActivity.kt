@@ -127,6 +127,8 @@ class MainActivity : ComponentActivity(), FileService {
             val services = KairosProcess.services(this@MainActivity).await()
             (services.notifier as? AndroidNotifier)?.refresh()
             (services.calendars as? AndroidCalendarService)?.refresh()
+            // Premier plan : le fichier lié est relu tout de suite, puis toutes les minutes (docs/spec/synchronisation.md).
+            (services.linkedStorage as? LinkedFileSync)?.setVisible(true)
         }
     }
 
@@ -134,7 +136,11 @@ class MainActivity : ComponentActivity(), FileService {
     override fun onStop() {
         super.onStop()
         if (crashReport != null) return
-        KairosProcess.scope.launch { (KairosProcess.services(this@MainActivity).await().linkedStorage as? LinkedFileSync)?.flush() }
+        KairosProcess.scope.launch {
+            val linked = KairosProcess.services(this@MainActivity).await().linkedStorage as? LinkedFileSync ?: return@launch
+            linked.setVisible(false)
+            linked.flush()
+        }
     }
 
     override fun onDestroy() {

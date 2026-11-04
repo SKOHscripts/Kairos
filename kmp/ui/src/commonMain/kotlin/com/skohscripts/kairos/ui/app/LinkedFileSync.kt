@@ -1,20 +1,24 @@
 package com.skohscripts.kairos.ui.app
 
-import com.skohscripts.kairos.core.KairosBuild
 import com.skohscripts.kairos.core.model.KairosSnapshot
-import com.skohscripts.kairos.data.ExportCodec
+import com.skohscripts.kairos.data.KairosRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.Volatile
 import kotlin.time.Clock
 
-/** Le lien gardé par l'appareil : la cible (chemin ou URI), le nom affiché, l'empreinte du dernier texte écrit ou adopté. */
+/** Le lien gardé par l'appareil : la cible (chemin ou URI), le nom affiché, l'empreinte du dernier texte écrit ou vu. */
 data class SavedLink(val target: String, val name: String, val hash: String)
 
 /** Ce que la plateforme fournit au fichier lié : choisir, lire, écrire, garder le lien (docs/spec/export-import.md). */
@@ -39,73 +43,141 @@ interface LinkedFileIo {
 }
 
 /**
- * Fichier lié du bureau et d'Android (docs/spec/export-import.md § Fichier lié du bureau et d'Android) : écrit l'export
- * [DEBOUNCE_MS] après le dernier changement, jamais par-dessus une modification faite ailleurs (empreinte [LinkHash]).
- * [changed] se branche sur `onChanged` du dépôt ; [flush] à la mise en arrière-plan et à la fermeture.
+ * Fichier lié du bureau et d'Android (docs/spec/synchronisation.md § Fichier lié : cycle de synchronisation). Chaque **passe**,
+ * sous un verrou, relit le fichier et le **fusionne** avec la base ([LinkedMerge]) avant d'y écrire, et n'écrit que si le
+ * fichier n'a pas déjà tout. Déclencheurs : [changed] (écriture [DEBOUNCE_MS] après le dernier changement), [flush]
+ * (arrière-plan, fermeture), [start] (ouverture), [setVisible] (retour au premier plan, puis relecture toutes les [POLL_MS]
+ * tant que l'application est visible), [mergeNow].
  */
 class LinkedFileSync(
     private val io: LinkedFileIo,
     private val scope: CoroutineScope,
     private val clock: Clock = Clock.System,
+    /** Nom de la plateforme, pour le nom de l'appareil (« Android · 3f9c »). */
+    private val platformLabel: String = "Kairos",
+    private val backups: BackupStore? = null,
 ) : LinkedStorage {
     private val mutable = MutableStateFlow<LinkedFileState>(LinkedFileState.NotLinked)
     override val state: StateFlow<LinkedFileState> = mutable.asStateFlow()
 
-    private val lock = Mutex()
-    private var link: SavedLink? = null
-    private var latest: KairosSnapshot? = null
-    private var dirty = false
-    private var timer: Job? = null
-    private var pendingTarget: String? = null
+    private val merges = MutableSharedFlow<com.skohscripts.kairos.core.sync.MergeOutcome>(extraBufferCapacity = 4)
 
-    /** Relit le lien gardé ; [current] = l'état de la base à l'ouverture (rien n'est écrit tant qu'il n'a pas changé). */
-    suspend fun start(current: KairosSnapshot) {
-        latest = current
+    /** Chaque fusion faite par une passe (le message « Fusionné avec … » de l'interface). */
+    val merged: SharedFlow<com.skohscripts.kairos.core.sync.MergeOutcome> = merges.asSharedFlow()
+
+    private val lock = Mutex()
+    private lateinit var repository: KairosRepository
+    private lateinit var engine: LinkedMerge
+    // Lus et écrits depuis plusieurs fils (écritures du dépôt, minuterie, interface) : toujours la dernière valeur.
+    @Volatile private var link: SavedLink? = null
+
+    @Volatile private var dirty = false
+    private var timer: Job? = null
+    private var poll: Job? = null
+    @Volatile private var visible = false
+    private var pendingTarget: String? = null
+    @Volatile private var inPass = false
+
+    /** Relit le lien gardé et fait une première passe (ouverture de l'application). */
+    suspend fun start(repository: KairosRepository) {
+        this.repository = repository
+        engine = LinkedMerge(repository, clock, platformLabel, backups)
         link = runCatching { io.loadLink() }.getOrNull()
         mutable.value = link?.let { LinkedFileState.Linked(it.name) } ?: LinkedFileState.NotLinked
+        if (link != null) lock.withLock { pass() }
     }
 
     /** Nouvel état de la base : écriture programmée, une seule pour une rafale. */
     fun changed(snapshot: KairosSnapshot) {
-        latest = snapshot
+        // L'état publié par la fusion d'une passe n'est pas une modification locale : la passe sait déjà s'il faut écrire. Une
+        // fusion faite ailleurs (« Fusionner un fichier Kairos… ») en est une pour le fichier lié.
+        if (inPass && ::repository.isInitialized && snapshot === repository.mergedSnapshot) return
         dirty = true
         if (link == null) return
         timer?.cancel()
         timer = scope.launch {
             delay(DEBOUNCE_MS)
-            writeIfDirty()
+            lock.withLock { pass() }
         }
     }
 
     /** Écrit tout de suite ce qui attend (arrière-plan, fermeture). */
     suspend fun flush() {
         timer?.cancel()
-        writeIfDirty()
+        if (dirty) lock.withLock { pass() }
     }
 
-    private suspend fun writeIfDirty() = lock.withLock {
-        if (!dirty) return@withLock
-        if (guardedWrite()) dirty = false
+    /**
+     * L'application devient visible (premier plan, focus de la fenêtre) ou ne l'est plus. Visible : une passe aussitôt, puis
+     * une relecture toutes les [POLL_MS] ; cachée : plus de relecture (aucun calcul en arrière-plan).
+     */
+    fun setVisible(value: Boolean) {
+        if (value == visible) return
+        visible = value
+        poll?.cancel()
+        if (!value) return
+        poll = scope.launch {
+            while (isActive) {
+                if (link != null) lock.withLock { pass() }
+                delay(POLL_MS)
+            }
+        }
     }
 
-    private fun encode(snapshot: KairosSnapshot) = ExportCodec.encode(snapshot, KairosBuild.VERSION_NAME, clock.now())
+    /** Retour au premier plan (focus de la fenêtre) : une passe tout de suite, sans attendre la minuterie. */
+    fun resume() {
+        if (link == null) return
+        scope.launch { lock.withLock { pass() } }
+    }
 
-    /** Relit le fichier, écrit si c'est encore celui écrit en dernier ; `true` si écrit. Appelé sous [lock]. */
-    private suspend fun guardedWrite(force: Boolean = false): Boolean {
-        val current = link ?: return false
-        val snapshot = latest ?: return false
-        if (!force && mutable.value is LinkedFileState.Changed) return false
-        val onDisk = try {
+    /**
+     * Une passe (sous [lock]) : lire, fusionner, écrire si besoin. Un état d'attente (confirmation, illisible) arrête les
+     * passes automatiques jusqu'à la réponse de l'utilisateur. [confirmed] : premier rapprochement accepté.
+     */
+    private suspend fun pass(confirmed: Boolean = false, force: Boolean = false) {
+        val current = link ?: return
+        if (!::repository.isInitialized) return
+        val waiting = mutable.value is LinkedFileState.NeedsConfirmation || mutable.value is LinkedFileState.Unreadable
+        if (waiting && !confirmed && !force) return
+        val text = try {
             io.read(current.target)
         } catch (e: Throwable) {
             mutable.value = LinkedFileState.WriteFailed(current.name)
-            return false
+            return
         }
-        if (!force && LinkHash.of(onDisk) != current.hash) {
-            mutable.value = LinkedFileState.Changed(current.name)
-            return false
+        val pending = dirty
+        dirty = false
+        inPass = true
+        val step = try {
+            engine.pass(text, current.hash, pending, confirmed)
+        } finally {
+            inPass = false
         }
-        return write(current, encode(snapshot))
+        when (step) {
+            is LinkedMerge.Step.Done -> {
+                step.outcome?.let { if (!it.changes.isEmpty) merges.tryEmit(it) }
+                val text = step.write
+                if (text != null) {
+                    if (!write(current, text)) dirty = true
+                } else {
+                    remember(current.copy(hash = step.seenHash))
+                    mutable.value = LinkedFileState.Linked(current.name)
+                }
+            }
+            is LinkedMerge.Step.Confirm -> {
+                dirty = dirty || pending
+                mutable.value = LinkedFileState.NeedsConfirmation(current.name, step.summary)
+            }
+            LinkedMerge.Step.Retry -> dirty = dirty || pending
+            is LinkedMerge.Step.Unreadable -> {
+                dirty = dirty || pending
+                mutable.value = LinkedFileState.Unreadable(current.name, step.reason)
+            }
+            LinkedMerge.Step.BackupFailed -> {
+                dirty = dirty || pending
+                mutable.value = LinkedFileState.WriteFailed(current.name)
+            }
+        }
     }
 
     private suspend fun write(target: SavedLink, text: String): Boolean {
@@ -115,18 +187,22 @@ class LinkedFileSync(
             mutable.value = LinkedFileState.WriteFailed(target.name)
             return false
         }
-        val saved = target.copy(hash = LinkHash.of(text))
+        remember(target.copy(hash = LinkHash.of(text)))
+        mutable.value = LinkedFileState.Linked(target.name)
+        return true
+    }
+
+    private suspend fun remember(saved: SavedLink) {
+        if (saved == link) return
         link = saved
         runCatching { io.saveLink(saved) }
-        mutable.value = LinkedFileState.Linked(saved.name)
-        return true
     }
 
     override suspend fun createFile(): Boolean {
         val target = io.pickCreate(SUGGESTED_NAME) ?: return false
-        val snapshot = latest ?: return false
+        if (!::repository.isInitialized) return false
         return lock.withLock {
-            write(SavedLink(target, io.displayName(target), ""), encode(snapshot)).also { if (it) dirty = false }
+            write(SavedLink(target, io.displayName(target), ""), engine.encode()).also { if (it) dirty = false }
         }
     }
 
@@ -137,15 +213,20 @@ class LinkedFileSync(
         return OpenedFile(io.displayName(target), text)
     }
 
-    /** Lie le fichier ouvert ; son contenu est la référence : le remplacement des données qui suit y est écrit. */
-    override suspend fun adoptOpened(): Boolean = lock.withLock {
+    override suspend fun adoptOpened(merge: Boolean): Boolean = lock.withLock {
         val target = pendingTarget ?: return@withLock false
         val text = runCatching { io.read(target) }.getOrElse { return@withLock false }
-        val saved = SavedLink(target, io.displayName(target), LinkHash.of(text))
-        link = saved
-        runCatching { io.saveLink(saved) }
-        mutable.value = LinkedFileState.Linked(saved.name)
+        // « Fusionner » : aucune empreinte connue, la passe fusionne le fichier ; « Remplacer » : il est la référence, et la base
+        // synchronise dès maintenant pour que le remplacement qui suit reprenne les identités du fichier (sinon, doublons ailleurs).
+        if (!merge) engine.ensureSync()
+        val saved = SavedLink(target, io.displayName(target), if (merge) "" else LinkHash.of(text))
+        remember(saved)
         pendingTarget = null
+        mutable.value = LinkedFileState.Linked(saved.name)
+        if (merge) {
+            engine.resetFailures()
+            pass(confirmed = true)
+        }
         true
     }
 
@@ -156,35 +237,43 @@ class LinkedFileSync(
         mutable.value = LinkedFileState.NotLinked
     }
 
+    /** « Écraser » un fichier illisible : les données de cet appareil, sans fusion. */
     override suspend fun overwrite() {
-        lock.withLock { if (guardedWrite(force = true)) dirty = false }
-    }
-
-    override suspend fun readLinked(): OpenedFile? {
-        val current = link ?: return null
-        return runCatching { OpenedFile(current.name, io.read(current.target)) }.getOrNull()
-    }
-
-    override suspend fun acknowledge(text: String) {
         lock.withLock {
             val current = link ?: return@withLock
-            link = current.copy(hash = LinkHash.of(text))
-            mutable.value = LinkedFileState.Linked(current.name)
+            if (write(current, engine.encode())) dirty = false
         }
-        flush()
+    }
+
+    override suspend fun confirmMerge() {
+        lock.withLock {
+            if (mutable.value !is LinkedFileState.NeedsConfirmation) return@withLock
+            pass(confirmed = true)
+        }
+    }
+
+    override suspend fun cancelMerge() {
+        if (mutable.value is LinkedFileState.NeedsConfirmation) unlink()
+    }
+
+    override suspend fun mergeNow() {
+        lock.withLock { pass() }
     }
 
     override suspend fun retry() {
         lock.withLock {
-            dirty = true
-            if (mutable.value is LinkedFileState.WriteFailed) link?.let { mutable.value = LinkedFileState.Linked(it.name) }
-            if (guardedWrite()) dirty = false
+            engine.resetFailures()
+            link?.let { mutable.value = LinkedFileState.Linked(it.name) }
+            pass(force = true)
         }
     }
 
     companion object {
         /** Délai entre le dernier changement et l'écriture. */
         const val DEBOUNCE_MS = 2_000L
+
+        /** Relecture du fichier tant que l'application est visible. */
+        const val POLL_MS = 60_000L
 
         const val SUGGESTED_NAME = "kairos.json"
     }

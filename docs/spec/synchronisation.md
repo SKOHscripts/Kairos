@@ -13,9 +13,30 @@ perdre en silence ce qu'un appareil a fait. Fichiers couverts (à créer ou à m
 `SyncCodecTest`, `SyncRepositoryTest`, `SyncMigrationTest`, `SyncIsolationTest`, `LinkedFileSyncTest` (étendu),
 `SyncUiTest`, `LearnedDurationsSyncTest`._
 
-État : **décidée le 2026-10-26, à implémenter (4.0.0)** (issues #88 et #100, décision du propriétaire du 2026-10-26) ;
-spécifiée le 2026-10-26, **non implémentée** : rien de ce document n'existe encore dans le code, et les specs existantes ne
-sont pas modifiées (voir « Impacts sur les specs existantes »). La moitié « écriture » de #88, le fichier lié et sa garde
+État : **décidée le 2026-10-26, implémentée, livrée en 4.0.0** (issues #88 et #100, passe de QA du 2026-11-04 comprise), en PR empilées, une par étape :
+1) cœur pur (`core/sync` : horloge, portée, enregistrements, réconciliation) ; 2) fusion et réparations ; 3) base, format 3 et
+dépôt ; 4) cycle du fichier lié ; 5) interface ; 6) durées apprises partagées (#100) ; 7) passe de robustesse.
+**Étape 1 livrée** : `Hlc.kt` (`Hlc`, `Stamp`, `Context`, `Drift`), `SyncScope.kt` (`RecordKind`, `RecordRef`, portée),
+`SyncRecords.kt` (levée et reconstruction), `SyncData.kt` (`Marks`, `SyncData`), `SyncReconcile.kt` (`activate`,
+`reconcile`) ; tests `HlcTest`, `SyncScopeTest`, `SyncRecordsTest`, `SyncReconcileTest`. **Étape 2 livrée** :
+`SnapshotMerge.kt` (`merge`, `Synced`, `Rec`, `Conflict`, `KeptAfterDeletion`, `LocalChanges`, `MergeOutcome`), `SyncRepair.kt`,
+`Canonical.kt`, `SyncReconcile.legacy` ; tests `SnapshotMergeTest`, `SnapshotMergePropertiesTest` (simulateur `SyncSim`),
+`SyncRepairTest`. **Étape 3 livrée** : format 3 (`ExportCodec.encode(…, sync)`, `ExportCodec.decodeSynced`), schéma 13
+(`12.sqm`, tables `sync_*`), `SyncStore.kt`, `SyncTypes.kt` (`SyncReviewItem`, `LastMerge`, `MergeResult`), dépôt
+(`sync`, `syncReview`, `lastMerge`, `enableSync`, `renameDevice`, `merge`, `resolveReview`, `deleteKept`, `clearReview`,
+`replaceAll(snapshot, uids)`) ; tests `SyncCodecTest`, `SyncRepositoryTest`, `SyncMigrationTest`. **Étape 4 livrée** : le
+fichier lié fusionne (`LinkedMerge`, `LinkedFileSync`, `WebLinkedStorage`, `SyncSummary`), états `NeedsConfirmation` et
+`Unreadable`, bandeau du premier rapprochement et du fichier illisible, choix « Fusionner » / « Remplacer » à l'ouverture,
+relecture au premier plan et chaque minute ; dépôt `restoreSynced`, `hasOwnData`, `mergedSnapshot` ; tests `LinkedFileSyncTest`,
+`LinkedFileUiTest`, `SyncSummaryTest` (voir « Précisions de l'implémentation (étape 4) »). **Étape 5 livrée** : interface
+(`ui/sync/SyncUi.kt` : section de la carte Données, bandeau et dialogue « À revoir », « Fusionner un fichier Kairos… » et son
+aperçu, message après une fusion), fiche ouverte pendant une fusion (`EditBase`), carte du guide `sync`, README ; tests
+`SyncUiTest`, `SyncRepositoryTest.formOpenedDuringMergeKeepsMergedFields` (voir « Précisions de l'implémentation (étape 5) »).
+**Étape 6 livrée** (#100) : ordre commun des occurrences (`SyncOrder`, `KairosSnapshot.sampleOrder`, `Sample.order`) pour les
+durées apprises et le modèle ; test `LearnedDurationsSyncTest` (voir « Durées apprises partagées » § Implémentation).
+**Étape 7 livrée** (robustesse) : « Remplacer » et « Importer » reprennent les identités du fichier, note d'horloge en avance
+(`Drift.ahead`), « À revoir » gardée par le web, borne de taille du fichier lié, test de vitesse insensible à la charge (voir
+« Précisions de l'implémentation (étape 7) »). La moitié « écriture » de #88, le fichier lié et sa garde
 contre une modification faite ailleurs, est **implémentée en 3.10.0** (`export-import.md`) : cette spec la remplace.
 
 ## 1. Besoin métier (cahier des charges)
@@ -164,8 +185,8 @@ Chacun est prouvé par un test (à créer ; nom entre parenthèses).
 - **Sauvegarde avant fusion qui modifie ou supprime** ; sans elle, la fusion n'a pas lieu (`SyncRepositoryTest`).
 - **Durées apprises identiques sur les deux appareils après fusion** (`LearnedDurationsSyncTest`, voir la dernière section).
 - **Performances** : fusion de 5 000 tâches de chaque côté en moins de 1 s sur le bureau, hors du fil d'interface ;
-  réconciliation après une écriture d'un seul élément en moins de 20 ms sur 5 000 tâches (`SnapshotMergeTest`,
-  `SyncReconcileTest`).
+  réconciliation après une écriture d'un seul élément au moins deux fois plus rapide qu'un rattrapage complet, et sous 200 ms,
+  sur 5 000 tâches (`SnapshotMergeTest`, `SyncReconcileTest` ; seuil relatif depuis l'étape 7).
 - Textes dans les six langues (`StringsParityTest`) ; 360 dp sans débordement, cibles de 48 dp (captures `sync-*` de
   l'auto-test). Vérifié à la main (ce que la CI ne voit pas) : deux appareils réels avec Syncthing, avec Nextcloud
   (fournisseur de documents d'Android), copie en conflit, et le web dans Edge ou Chrome (sélecteurs du navigateur, que
@@ -240,6 +261,8 @@ Pur. Une seule définition, utilisée par la réconciliation, la fusion et l'exp
   saisies, créneaux saisis, notes, sessions de travail.
 - **Déterministe** quand deux appareils peuvent créer « la même chose » chacun de leur côté, pour que la fusion les confonde :
   - occurrence suivante d'une récurrente terminée : `next:<uid de la tâche terminée>` ;
+  - tâche née de la conversion d'une note : `conv:<uid de la note>` (QA du 2026-11-04 : la même note convertie sur deux
+    appareils avant qu'ils se voient donnait deux tâches ; `SyncRepositoryTest.aNoteConvertedOnTwoDevicesGivesOneTask`) ;
   - occurrence « le N du mois » : `cal:<uid de la série>:<AAAA-MM>` ;
   - calendrier importé : `cal:<nom en minuscules, espaces retirés>` (l'identité d'un calendrier est son nom, `connexions-externes.md`) ;
     créneau importé : `ics:<uid du calendrier>:<UID iCalendar>:<début>` ; journée entière : `mark:<uid du calendrier>:<UID>:<début>` ;
@@ -321,6 +344,44 @@ Pur et idempotent (une seconde passe ne change rien). Pour chaque enregistrement
 - Un changement qui ne vient pas d'une écriture locale (une référence devenue vide parce que la mère a été supprimée ailleurs)
   est consigné comme une modification locale au passage suivant ; tous les appareils le font à l'identique, sans conflit.
 
+#### Précisions de l'implémentation (étape 1)
+
+- **Empreinte de chaque champ** : `Marks.hashes` garde l'empreinte de la valeur de **tous** les champs synchronisés, pas
+  seulement des champs marqués : c'est elle qui permet à une passe sans `previous` (ouverture) de voir une modification.
+  `Marks.stamps` ne porte que les champs modifiés depuis la naissance ou la migration. Un champ jamais haché (ajouté par une
+  version suivante) reçoit son empreinte **sans** marque : sa valeur garde `base`.
+- **Champs levés**, par genre (noms du JSON d'export, références en `uid`, `SyncRecords.REFERENCES`) : tâche (`title`,
+  `description`, `priority`, `deadline`, `projectTag`, `status`, `estimatedMinutes`, `pinnedStart`, `parentId`, `recurrence`,
+  `scheduledDate`, `recurrenceDayOfMonth`, `recurrenceDayOfWeek`, `recurrencePeriod`, `taskType`, `fibonacciPoints`,
+  `manualTimeSpentMinutes`, `seriesId`) ; créneau (`title`, `start`, `end`, `kind`, `recurrence`, `sourceId`, `sourceUid`) ;
+  exception (`blockId`, `date`, `skipped`, `title`, `start`, `end`) ; dépendance (`taskId`, `blockerId`) ; session (`taskId`,
+  `startedAt`, `endedAt`) ; note (`body`, `status`, `convertedTaskId`) ; calendrier (`name`, `hideTitles`, `importedAt`) ;
+  journée entière (`title`, `start`, `end`, `sourceId`, `sourceUid`). `createdAt` et `updatedAt` (tâche, note) sont les deux
+  registres particuliers, hors des champs. Valeur : texte JSON compact (`SyncRecords.canonicalJson`, défauts et `null` écrits).
+  Réglages : un registre par champ de premier niveau, même texte.
+- **Portée** : une session de travail n'est dans la portée que si sa tâche l'est ; un créneau importé ou une journée entière,
+  que si son calendrier est stocké. Conséquence assumée : supprimer une tâche fait sortir ses sessions de la portée ; elles
+  restent dans la base de l'appareil qui a supprimé (comme aujourd'hui, `modele-donnees.md`) et disparaissent des autres, ce
+  qui garde la portée identique partout.
+- **Identités fantômes** (étape 2) : une tâche supprimée que référence encore une **référence molle** de la portée (`parentId`,
+  `seriesId` d'une tâche, `convertedTaskId` d'une note) garde son `uid` dans `sync_identity`, **sans marques**. Sans cela, la
+  même référence se lèverait `uid` sur un appareil et vide sur un autre, sous la même marque : la fusion dépendrait de l'ordre
+  des échanges (trouvé par `SnapshotMergePropertiesTest`). À la fusion, une référence vers un `uid` inconnu ici reçoit un
+  identifiant local **négatif** (jamais attribué par la base, `AUTOINCREMENT`, donc jamais repris par une tâche créée ensuite) :
+  la référence molle pointe vers une tâche absente, ce qu'elle sait déjà faire (elle se lit vide). L'identité disparaît quand
+  plus rien ne la référence.
+- **`uid` déterministes** : occurrence « le N du mois » = `cal:<uid de la série>:<recurrencePeriod>` ; occurrence suivante =
+  `next:<uid de la terminée>`, reconnue quand **une seule** tâche de la même série est passée à « Faite » dans la même écriture
+  (comparaison avec `previous`) ; sans `previous`, ou si plusieurs candidates, l'`uid` est aléatoire. Calendrier :
+  `cal:` + nom en minuscules **sans aucun blanc**. Un `uid` déterministe de plus de 100 caractères devient
+  `<préfixe>:#<empreinte hexadécimale>` (`SyncReconcile.bounded`), lui aussi déterministe. Un `uid` déterministe déjà pris par
+  un autre enregistrement du même genre retombe sur l'aléatoire. Les nouveaux reçoivent leur `uid` par identifiant croissant.
+- **Activation** : `born = Stamp(createdAt, device)`, `base = Stamp(max(updatedAt ?? createdAt, createdAt), device)` ;
+  l'horloge démarre au plus grand de ces instants et de l'heure courante, et `seen[device]` vaut cette horloge.
+- **Coût d'une passe** : avec `previous`, seuls les enregistrements dont le modèle a changé, ou qui référencent un
+  enregistrement entré ou sorti de la portée, sont levés et hachés : 5,6 ms pour une écriture sur 5 000 tâches (bureau, à
+  chaud ; le test compare depuis l'étape 7 l'écriture au rattrapage complet, voir « Précisions (étape 7) »).
+
 ### Fusion (`SnapshotMerge`, pure, dans `core`)
 
 ```kotlin
@@ -370,6 +431,38 @@ La règle de survie (étape 3) est celle des ensembles « ajout gagnant » à co
 les registres de champs sont des « dernier écrivain gagnant ». Les propriétés ci-dessus sont des **tests**, pas des
 affirmations : si l'associativité ne tenait pas sur un cas, la règle de survie serait à revoir avant tout code d'interface.
 
+#### Précisions de l'implémentation (étape 2)
+
+- **Les réparations ne font pas partie de la fusion** : `SnapshotMerge.merge` est la jointure pure (commutative, idempotente) ;
+  `SyncRepair.repair` se calcule ensuite sur l'état installé et s'applique comme une écriture locale (une marque de cet
+  appareil). Les mêmes valeurs étant calculées partout, les marques différentes ne font aucun conflit.
+- **Après la fusion, le dépôt réconcilie sans état précédent** (passe complète) : c'est elle qui consigne, comme écriture
+  locale identique sur tous les appareils, ce que l'abaissement a changé (dépendance tombée avec son bloqueur…).
+- **Fichier d'avant la synchronisation** : `SyncReconcile.legacy` donne ses `uid` de migration et ses marques `legacy`. Comme
+  personne ne couvre `legacy`, ses éléments ne pourraient plus jamais être supprimés ailleurs : la fusion **adopte** toute
+  marque `legacy` de l'état fusionné comme une écriture locale de cette fusion (une seule marque fraîche, le contexte de
+  l'appareil avance).
+- **Valeurs égales** : la plus grande des deux marques ; **base** fusionnée = la plus petite des deux bases, chaque champ dont la
+  marque effective en diffère garde la sienne. **`endedAt`** : la plus petite fin non nulle, avec la marque de la valeur retenue.
+- **Associativité** : vraie sauf dans un cas, prouvé et accepté. Un élément supprimé d'un côté (la suppression avait vu
+  certaines de ses valeurs) et conservé grâce à une modification non vue ailleurs revient avec la copie qui l'a gardé : selon
+  l'ordre des échanges, ses autres champs peuvent être ceux d'avant la suppression. Corriger demanderait des pierres tombales
+  (écartées). La **convergence** reste garantie dans tous les cas (`SnapshotMergePropertiesTest.convergence`) ;
+  l'associativité est vérifiée sur chaque histoire sans élément conservé (88 sur 120).
+- **Abaissement** : identifiants neufs au-delà du plus grand identifiant du genre **et** des identifiants connus de
+  `sync_identity` ; une référence molle levée vide ici parce qu'elle vise **hors de la portée** (note convertie en tâche
+  d'équipe) garde sa valeur locale tant que la fusion ne l'a pas changée ; une dépendance hors portée vers une tâche que la fusion
+  retire tombe avec elle.
+- **`writeNeeded` et le résumé** se calculent sur les enregistrements déjà levés (`Canonical.from`) : 5 000 tâches de chaque côté,
+  toutes différentes, fusionnent en 0,2 s sur le bureau (borne du test : 1 s).
+- `Conflict(ref, champ, valeur perdue, marque perdue, marque gagnante, valeur gardée)` ; `ref` nul pour un réglage partagé.
+- Tests de propriétés : `SyncSim`, trois appareils, 120 histoires à graine fixe de 45 à 60 opérations (création, modification,
+  suppression, récurrente terminée, chrono, dépendance, note, réglage) entremêlées d'échanges ; identifiants jamais réutilisés,
+  comme la base. « Rien de perdu en silence » : chaque écriture est appliquée, dépassée par une écriture qui l'a vue (elle ou une
+  valeur égale), supprimée avec son élément par une suppression qui l'a vue, ou listée dans un conflit.
+- CI : `HlcTest`, `SyncRecordsTest` et `SyncRepairTest` tournent aussi dans Chrome (wasm) : horloge, empreintes et texte
+  canonique y sont les mêmes au bit près.
+
 ### Réparations (`SyncRepair`)
 
 Invariants que la saisie garantit et que deux appareils indépendants peuvent casser. Fonctions pures de l'état fusionné ; leur
@@ -392,8 +485,11 @@ tour suivant les valeurs sont égales, donc sans conflit.
   { "base": "<stamp>", "stamps": { "<champ>": "<stamp>" } } }`.
 - Par enregistrement synchronisé : `"uid"`, `"born"` (marque), `"base"` (omis s'il vaut `born`) et `"stamps": { "<champ>":
   "<stamp>" }` (omis s'il est vide). Les noms de champs sont ceux du JSON d'export.
-- **Déterministe** : enregistrements triés par `uid`, clés triées. Deux appareils qui ont convergé écrivent les mêmes octets, à
-  `exportedAt`, `appVersion` et réglages locaux près.
+- **Déterministe** : enregistrements dans l'ordre des identifiants locaux (comme les formats 1 et 2), clés de `stamps` triées.
+  Deux appareils convergés n'écrivent **pas** les mêmes octets (les identifiants locaux diffèrent) : c'est `writeNeeded`, calculé
+  sur la forme canonique, qui évite le ping-pong, pas la comparaison des octets.
+- **Identités fantômes** : `"sync": { …, "phantoms": { "<identifiant local>": "<uid>" } }` (omis s'il n'y en a pas), pour que les
+  références molles vers une tâche supprimée se lisent ailleurs comme ici.
 - **Tout le reste du fichier est inchangé** : champs des enregistrements (les `id` restent, les références aussi), réglages
   complets, données d'équipe de l'appareil qui écrit (`hasTeamData`, version 2). Le fichier lié reste donc **un export complet
   et valide** de l'appareil qui l'a écrit en dernier ; seule la portée est fusionnée, le reste est « écrit tel quel par le
@@ -420,10 +516,15 @@ pour qui ne synchronise pas, **sans toucher à aucune table existante** (donc sa
   résumé), `since`, `examples` (identifiants des exemples posés, voir « Identité »). **La clé `device` seule dit que la base est
   synchronisée.**
 - `sync_identity(kind TEXT, local_id INTEGER, uid TEXT NOT NULL, PRIMARY KEY (kind, local_id))`, index unique `(kind, uid)`.
-- `sync_mark(kind TEXT, uid TEXT, field TEXT, wall INTEGER, counter INTEGER, device TEXT, hash TEXT, PRIMARY KEY (kind, uid,
-  field))` ; `field` vaut `@born`, `@base` ou le nom d'un champ ; `hash` est l'empreinte de la valeur marquée.
-- `sync_review(id INTEGER PRIMARY KEY AUTOINCREMENT, kind, uid, field, title, loser_value, loser_wall, loser_counter,
-  loser_device, kept INTEGER, created_at)` : « À revoir », **locale** (ni fichier, ni export).
+- `sync_mark(kind TEXT, uid TEXT, born TEXT, base TEXT, stamps TEXT, hashes TEXT, PRIMARY KEY (kind, uid))` : **une ligne par
+  enregistrement** (implémentation, étape 3 ; la première version de cette spec prévoyait une ligne par champ, soit 100 000
+  lignes pour 5 000 tâches). `stamps` : `champ=marque` séparés par des tabulations ; `hashes` : `champ=empreinte hexadécimale`
+  pour chaque champ. Réécrite seulement quand ses marques changent (`SyncStore.save`, par différence).
+- `sync_review(id INTEGER PRIMARY KEY AUTOINCREMENT, kind, uid, field, title, loser_value, loser_stamp, winner_value,
+  winner_stamp, kept INTEGER, created_at)` : « À revoir », **locale** (ni fichier, ni export) ; `kind` et `uid` nuls pour un
+  réglage partagé, `kept = 1` pour un élément conservé.
+- `sync_state` porte aussi `clock`, `seen`, `labels` et `settings` (marques des réglages partagés, même codage qu'une ligne de
+  `sync_mark`).
 
 ### Dépôt (`KairosRepository`)
 
@@ -445,6 +546,37 @@ pour qui ne synchronise pas, **sans toucher à aucune table existante** (donc sa
 - Entrée : `restoreConflict(reviewId, chooseOther)` : prendre l'autre valeur = écrire la valeur perdue comme une modification
   locale (marque fraîche) ; garder = classer l'item. Un item dont le champ a depuis reçu une autre marque que la gagnante est
   retiré tout seul. Rétention : 30 jours, 200 items (les plus vieux partent d'abord).
+
+#### Précisions de l'implémentation (étape 3)
+
+- **Entonnoir** : `write` garde l'état publié avant la transaction, relit la base, puis `reconcileAfter` réconcilie et
+  enregistre la différence dans sa propre transaction. `load` (ouverture) réconcilie sans état précédent : rattrapage.
+- **Import** : `replaceAll(snapshot, uids)` prend les `uid` du fichier (`decodeSynced(...).data.uids`) ou, à défaut, ceux de
+  migration (`SyncReconcile.legacy`), puis réconcilie **sans état précédent** : un `uid` connu dont une valeur diffère reçoit une
+  marque fraîche, un `uid` absent disparaît, un nouveau naît. Une base qui ne synchronise pas n'en garde aucune trace.
+- **Fusion** : `merge(theirs, backup)` calcule `SnapshotMerge.merge` sur `Dispatchers.Default`, appelle `backup(état d'avant)`
+  si la fusion modifie ou supprime (échec : `MergeResult.BackupFailed`, rien n'est écrit), installe dans **une** transaction
+  (lignes, `sync_*`, « À revoir », `lastMerge` si quelque chose a changé ici), réconcilie sans état précédent, puis applique les
+  réparations comme une écriture locale. Le nommage et la rotation des sauvegardes (`avant-fusion-…`) appartiennent à
+  l'appelant (étape 4), qui a le `BackupStore`.
+- **Activation** : `enableSync(label)` tire l'identité (12 caractères hexadécimaux d'un `Uuid` aléatoire), applique
+  `SyncReconcile.activate` avec les exemples restés tels que posés (`sync_state.examples` : `genre|id|empreinte` de leurs champs,
+  écrit par `open` sur une base neuve, `ExampleMarks`). Conséquence voulue de la marque d'origine : un appareil **sans** les
+  exemples (base vidée, importée) les supprime chez l'autre à la première fusion, comme une suppression ordinaire ; deux
+  appareils neufs les partagent sans doublon. **Confirmé par l'utilisateur le 2026-11-04.**
+- **Première rencontre et réglages** : à l'activation, chaque appareil date ses réglages `Stamp(0, appareil)`. Deux appareils
+  dont un réglage diffère donnent donc un **conflit** à leur première fusion (la plus grande identité l'emporte, l'autre valeur
+  va dans « À revoir ») : c'est le comportement voulu du premier rapprochement, pas une préférence silencieuse. **Confirmé
+  par l'utilisateur le 2026-11-04.**
+- **« À revoir »** : `resolveReview(id, takeOther)` écrit la valeur écartée (`SyncEdit.setField`, ou `setSetting` pour un
+  réglage) comme une modification locale ; `deleteKept` supprime à nouveau (`SyncEdit.remove`, une tâche emporte ses
+  dépendances) ; `clearReview` vide la liste. À chaque relecture, un conflit dont le champ porte désormais une autre marque que
+  la gagnante est retiré, comme un élément conservé qui n'existe plus ; rétention 30 jours et 200 éléments.
+- **Tests d'isolation** : `SyncRepositoryTest.nothingIsStoredBeforeActivation` (aucune donnée `sync_*`, export en format 1 sans
+  champ de synchronisation) et `noTeamDataEntersASoloBase` (fichier d'un manager : ses tâches perso arrivent, ni membre, ni tâche
+  d'équipe, ni réglage d'équipe) ; `SyncCodecTest.anExportWithoutSyncIsUnchanged`. Ils remplacent le `SyncIsolationTest` prévu.
+- Les tests de migration qui simulent un schéma antérieur retirent aussi les tables `sync_*` (sinon le marqueur du schéma 13
+  les dispense de migrer) ; « format plus récent » se teste désormais avec le format 4.
 
 ### Fichier lié : cycle de synchronisation (`LinkedFileSync`)
 
@@ -472,16 +604,55 @@ est visible (lecture et empreinte seulement ; on ne décode que si l'empreinte a
   (parfois une copie en conflit) ; l'état qui n'y figure plus **n'est pas supprimé** à la fusion suivante (une absence ne
   supprime que si le contexte de l'autre a vu l'élément) : chacun remet ses données dans le fichier. C'est la raison
   principale de la fusion d'états (voir « Décisions »).
-- États : `LinkedFileState.Changed` est **retiré** ; ajouts `NeedsConfirmation(name, preview)` et `Unreadable(name, reason)`
+- États : `LinkedFileState.Changed` est **retiré** ; ajouts `NeedsConfirmation(name, summary)` et `Unreadable(name, reason)`
   (`reason` : `NOT_READABLE`, `TOO_NEW`, `CLOCK`) ; `WriteFailed`, `Linked`, `NotLinked`, `NeedsPermission`, `SaveFailed`,
-  `Unsupported` inchangés. Un flux séparé `SyncStatus(lastMerge, reviewCount, clockNote)` porte le reste.
+  `Unsupported` inchangés. Un flux séparé `SyncStatus(lastMerge, reviewCount, clockNote)` porte le reste (étape 5).
 - `LinkedStorage` : `overwrite()` ne sert plus qu'à `Unreadable` ; `readLinked()` et `acknowledge()` disparaissent (plus
-  d'« L'importer ») ; nouveaux `mergeNow()` et `mergeFile()` ; `openFile()` rend le contenu et l'interface demande
+  d'« L'importer ») ; nouveaux `mergeNow()` et `mergeFile()` (étape 5) ; `openFile()` rend le contenu et l'interface demande
   « Fusionner » ou « Remplacer ».
 - Le web (`WebLinkedStorage`) suit le même contrat : `linkRead` avant `linkWrite` à chaque passe, la minuterie ne tourne que
   l'onglet visible ; l'instantané de l'OPFS (`kairos.json`) reste la persistance complète du navigateur et ne se fusionne
   jamais (seul le fichier lié se fusionne).
 - Android : aucune permission de plus ; la fusion tourne au premier plan seulement (pas de `WorkManager`, pas d'alarme).
+
+#### Précisions de l'implémentation (étape 4)
+
+- **Une passe commune** (`ui/app/LinkedMerge.kt`) pour le bureau, Android et le web : elle reçoit le texte lu et rend
+  `Done(write, seenHash, outcome)`, `Confirm(summary)`, `Retry`, `Unreadable(reason)` ou `BackupFailed` ; la lecture,
+  l'écriture et le verrou restent à l'appelant (`LinkedFileSync`, `WebLinkedStorage`). Elle active la synchronisation au premier
+  besoin (`enableSync`, puis le nom « Android · 3f9c » : nom de la plateforme et 4 caractères de l'identité ; « Windows »,
+  « macOS », « Linux » sur le bureau, « Web » dans le navigateur).
+- **Écrire ou non** : après une fusion, on compare la forme canonique de l'état d'ici (réparations comprises) à celle du
+  fichier lu (`Canonical.of`), plutôt que `outcome.writeNeeded` seul, qui ignore les réparations faites après la fusion ; une
+  écriture locale en attente (`dirty`) s'écrit toujours. Le signal `onChanged` qu'émet la fusion elle-même n'est pas une
+  écriture locale : le dépôt garde l'état publié (`mergedSnapshot`) et le fichier lié l'ignore (comparaison d'identité).
+- **Premier rapprochement** : le contexte de l'appareil ne connaît aucun autre appareil (identités réservées exclues) et le
+  fichier a été écrit par une autre identité. **« Annuler » délie** le fichier, qui reste tel quel : un état « lié mais en
+  attente » relancerait la question à chaque relecture. Pendant l'attente (et pendant `Unreadable`), ni les relectures ni les
+  écritures programmées n'agissent ; les modifications locales attendent la réponse.
+- **Ouvrir un fichier Kairos** : sur un appareil qui a des données à lui (`KairosRepository.hasOwnData` : un enregistrement de la
+  portée qui n'est pas un exemple resté tel que posé), dialogue « Fusionner » (recommandé), « Remplacer » (comme l'import :
+  sauvegarde `avant-import-…`, puis le fichier est la référence du lien) ou « Annuler » ; sur un appareil neuf, fusion directe.
+  Choisir « Fusionner » vaut confirmation : pas de second aperçu.
+- **Illisible** : trois lectures non décodables d'affilée → `Unreadable(NOT_READABLE)` ; `TOO_NEW` tout de suite ; une marque à
+  plus de 30 jours dans le futur → `Unreadable(CLOCK)` (rien n'est fusionné). Le bandeau propose « Réessayer », « Écraser »
+  (sauf `TOO_NEW` : écraser perdrait ce que cette version ne sait pas lire) et « Délier ».
+- **Sauvegarde avant fusion** : `avant-fusion-<date>.json` dans les sauvegardes de l'appareil, **une par heure au plus**
+  (sinon la rotation à 10 fichiers ne garderait que celles de fusions rapprochées) ; un échec de sauvegarde n'applique rien
+  (`WriteFailed` sur le bureau et Android, `SaveFailed` sur le web).
+- **Relecture** : `LinkedFileSync.setVisible` (bureau : fenêtre non réduite, `DesktopServices` la rend visible à l'ouverture ;
+  Android : `onResume` / `onStop`) lance une passe puis une toutes les `POLL_MS` ; `resume()` au retour du focus de la fenêtre.
+  Web : minuterie de `POLL_MS`, onglet visible seulement (`pageVisible`, `document.visibilityState`).
+- **Web** : l'instantané de l'OPFS est écrit au format 3 **avec l'état de synchronisation du navigateur** et rechargé par
+  `KairosRepository.restoreSynced` (identité, contexte, marques), sans quoi chaque rechargement de la page ferait un nouvel
+  appareil. Un instantané d'avant la 4.0 (format 1 ou 2) se recharge comme avant (`replaceAll`). « À revoir » n'est pas dans
+  l'instantané : depuis l'étape 7 elle a son propre fichier de l'OPFS. La restauration depuis le fichier lié (données du
+  navigateur perdues) reste un remplacement, le fichier devenant la référence, avec ses identités (étape 7).
+- **Textes** : `sync_first_contact` (sans pluriel : « Tâches ici seulement : 12 · … »), `sync_open_title`, `sync_open_body`,
+  `sync_merge`, `sync_unreadable`, `sync_too_new`, `sync_clock`, six langues ; `linked_intro` dit la fusion ; retirés :
+  `linked_changed`, `linked_import`, `linked_import_confirm_body`, `linked_open_confirm_body`, `web_link_open_confirm_body`.
+- **Contrat** `LinkedStorage` : `adoptOpened(merge)`, `confirmMerge`, `cancelMerge`, `mergeNow`, `retry`, `overwrite` (fichier
+  illisible seulement) ; `readLinked`, `acknowledge` et l'état `Changed` sont retirés.
 
 ### Interface (`ui`)
 
@@ -511,6 +682,78 @@ Voir la skill `kairos-ecran` ; couleurs par rôles, aucun `Color(0x…)`.
 - Carte du guide `sync` (chapitre Organiser, `since = "4.0.0"`, ouvre Réglages → Données) et « Nouveau dans cette version » :
   **mettre à jour tous les appareils** avant de fusionner (`visite-guidee.md`).
 
+#### Précisions de l'implémentation (étape 5)
+
+- **Composants** (`ui/sync/SyncUi.kt`) : `SyncDataSection` (carte Données, sous le bandeau du fichier lié : « Kairos fusionne ce
+  fichier… » si un fichier est lié, « Dernière fusion : 4/11 à 07:28. Ajoutés : 0 · modifiés : 1 · supprimés : 0. », « Cet
+  appareil : Windows · 3f9c » avec « Renommer » (dialogue, 30 caractères), « Fusionner maintenant » si lié, « À revoir (N) » si
+  N > 0) ; rien tant que la base ne synchronise pas et qu'aucun fichier n'est lié. `MergeFileButton` à côté d'« Exporter » et
+  d'« Importer », sur toutes les plateformes. `SyncReviewBanner` dans la vue Jour, sous celui du fichier lié. `SyncMergeMessages`
+  dans la coquille.
+- **« À revoir »** : `AlertDialog` défilant, une `OutlinedCard` (12 dp, sans ombre) par élément : titre de l'enregistrement
+  (« Réglages » pour un réglage), libellé du champ (ceux des fiches : titre, description, priorité, points, échéance, durée, projet,
+  type, date programmée, récurrence, heure fixe ; un autre champ garde son nom), « Appliquée : 2 (Android · 8a21, 4/11 07:28) »
+  marquée de l'icône `Check`, « Autre valeur : 1 (Windows · 3f9c, …) » de l'icône `History` (jamais la couleur seule). Les valeurs
+  canoniques s'affichent sans guillemets, « — » pour rien. Le nom d'un appareil vient du contexte (`labels`), sinon ses 4
+  premiers caractères. **Le dialogue reste ouvert quand la liste se vide** (« Rien à revoir. », « OK ») ; le bandeau, lui,
+  disparaît : le dialogue appartient à l'écran (vue Jour, carte Données), pas au bandeau, et le bandeau n'est un élément de la
+  liste de la vue Jour que s'il y a quelque chose à revoir (un élément vide garderait son espacement et décalerait la vue, donc
+  les captures des magasins). « Tout garder le plus récent » vide la liste et ferme.
+- **Fusion d'un fichier choisi** : `FileService.openText`, `decodeSynced`, activation au besoin (même nom que le fichier lié,
+  `AppServices.deviceLabel`), aperçu calculé sans rien écrire (`SnapshotMerge.merge`) : « Tâches ajoutées : 1 · modifiées : 0 ·
+  supprimées : 0. Autres éléments : 0. Conflits : 0. » (ou « Ce fichier n'apporte rien de neuf. »), « Fusionner » désactivé et
+  dialogue maintenu pendant l'écriture ; sauvegarde `avant-fusion-…` (`saveBackup`) si la fusion modifie ou supprime. Un fichier
+  dont une marque est à plus de 30 jours dans le futur donne « fichier illisible » (`file_error`), sans aperçu. Le fichier lié,
+  s'il y en a un, reçoit le résultat : une fusion **faite hors d'une passe** est une modification locale pour lui (seule la fusion
+  de sa propre passe est ignorée, drapeau `inPass`).
+- **Message de fusion** : `SyncMergeMessages` lit `lastMerge` et montre « Fusion faite. Ajoutés : 3 · modifiés : 1 ·
+  supprimés : 0. » à chaque nouvelle fusion qui a changé quelque chose ici, fichier lié ou fichier choisi (la valeur présente à
+  l'ouverture ne déclenche rien). Il ne nomme pas le fichier : `lastMerge` ne dit pas d'où vient la fusion. Les comptes sont des
+  enregistrements de toute sorte, comme ceux de la carte Données. Aucun pluriel : des libellés suivis d'un nombre (`i18n.md`).
+- **Fiche ouverte pendant une fusion** : `updateTask(…, opened = EditBase(tâche, bloqueurs))` ; chaque champ de la tâche prend
+  la valeur de la fiche si l'utilisateur l'a changée depuis l'ouverture, sinon la valeur actuelle ; les bloqueurs ajoutés ou
+  retirés dans la fiche s'appliquent à l'ensemble actuel. Branché sur la fiche de la vue Jour (et la fiche d'une tâche reçue) ;
+  la fiche d'une tâche d'équipe n'en a pas besoin (hors portée). Sans `opened`, tout s'écrit comme avant (création, autres
+  chemins).
+- **Carte du guide** `sync` (`FeatureCatalog`, chapitre Organiser, 4.0.0, toutes plateformes, icône `Sync` ajoutée à
+  `make_icons.py`, cible Réglages → Données), donc dans « Nouveau dans cette version » ; le texte dit de mettre d'abord tous les
+  appareils à jour. La carte `linked_file` dit désormais la fusion. README (anglais et français) : ligne « Nouveau en 4.0 »,
+  puce « Synchronisation entre appareils », puce « Fichier lié » corrigée, ligne du tableau.
+- **Note d'horloge** : ajoutée à l'étape 7 (dérivée, `Drift.ahead`) ; le flux `SyncStatus` prévu n'est pas créé : la carte lit
+  directement `lastMerge`, `syncReview` et le contexte.
+- **Captures** de l'auto-test : `desktop-sync-data[-narrow]`, `desktop-sync-review[-narrow]`, `desktop-sync-day-narrow` (deux
+  bases d'exemple rapprochées, un conflit de priorité).
+
+#### Précisions de l'implémentation (étape 7)
+
+- **Doublons après « Remplacer » ou « Importer »** (défaut trouvé à la relecture) : remplacer les données d'une base
+  synchronisée par un fichier de format 3 leur donnait des identités de migration (`legacy:…`) au lieu de celles du fichier ;
+  un enregistrement créé ailleurs une fois la synchronisation active (`uid` aléatoire) revenait alors **en double** chez
+  l'autre appareil à la fusion suivante. Désormais : `ImportedFile.Full` et le choix « Remplacer » gardent les identités du
+  fichier (`decodeSynced(...).data.uids`, celles de migration pour un format 1 ou 2), `replaceWithBackup(…, uids)` les passe à
+  `replaceAll`, et `adoptOpened(merge = false)` active la synchronisation **avant** le remplacement (bureau, Android, web) ;
+  la restauration web depuis le fichier lié fait de même (`ensureSync` puis `replaceAll(snapshot, uids)`). Test
+  `LinkedFileSyncTest.replacingThenEditingNeverDuplicatesTheOtherDevicesData` (une note créée après l'activation : en double
+  avant la correction).
+- **Horloge en avance** : `Drift.ahead(data, maintenant)` (pur) dit si le contexte ou l'horloge de la base porte une marque à plus
+  de `WARN_MILLIS` (24 h) dans le futur ; la carte Données montre alors « Un appareil a écrit le fichier avec une horloge en
+  avance de plus d'un jour : vérifie sa date et son heure… » (icône `Warning` et texte, `sync_clock_ahead`, six langues).
+  **Dérivé, jamais stocké** : essayé d'abord dans `LastMerge`, la trace était réécrite par chaque fusion suivante (le fichier
+  garde la marque future) et masquait la vraie dernière fusion ; la note disparaît d'elle-même quand l'heure rattrape la marque.
+  Test `SyncRepositoryTest.aFileFromAClockAheadIsSeenUntilTimeCatchesUp`.
+- **« À revoir » sur le web** : `KairosRepository.exportSyncExtras()` / `importSyncExtras(texte)` (« À revoir » et la dernière
+  fusion, `SyncExtrasJson`), écrits par le navigateur dans `kairos-sync.json` de l'OPFS à chaque changement de la liste ou de la
+  dernière fusion, relus après `restoreSynced`. Locaux : jamais dans le fichier lié ni dans un export. Test
+  `SyncRepositoryTest.theWebReviewListSurvivesAReload`.
+- **Taille du fichier lié** : au-delà de `LinkedMerge.MAX_CHARS` (64 Mi caractères), le fichier n'est pas décodé :
+  `Unreadable(NOT_READABLE)`, rien n'est écrit (`LinkedFileSyncTest.anOversizedFileIsNeverDecoded`).
+- **Fils** : les drapeaux de `LinkedFileSync` lus depuis plusieurs fils (`link`, `dirty`, `visible`, `inPass`) sont
+  `@Volatile` (`kotlin.concurrent`, commun aux trois plateformes).
+- **Test de vitesse** : `SyncReconcileTest.aSingleWriteOnFiveThousandTasksIsFast` dépassait sa borne de 20 ms sous la charge de
+  la suite entière (33 et 35 ms), seul il passait (vérifié trois fois). Il compare désormais l'écriture incrémentale au
+  rattrapage complet, mesurés en alternance (même charge) : au moins deux fois plus rapide (environ trois fois mesuré : 4 à 5 ms
+  contre 14), avec un plafond absolu large de 200 ms contre une régression quadratique.
+
 ### Chrono et sessions (technique)
 
 - `WorkSession` : `uid` aléatoire, `taskId` et `startedAt` immuables, `endedAt` = plus petite fin non nulle (registre `min`).
@@ -519,6 +762,11 @@ Voir la skill `kairos-ecran` ; couleurs par rôles, aucun `Color(0x…)`.
   session ouverte venue d'un autre appareil est une session ouverte comme une autre.
 - Le temps passé (`TimeTracking.spentMinutesByTask`) est la somme des sessions de l'état fusionné et de
   `manualTimeSpentMinutes` : la réunion des appareils, sans double compte puisque les sessions ont un `uid`.
+- **Limite connue, différée (#193, consignée le 2026-11-04)** : les sessions d'une tâche **supprimée** divergent entre
+  appareils. L'appareil qui supprime les garde, l'autre les retire après fusion, et le temps travaillé n'est plus le même des
+  deux côtés. Un essai de correction (la session suit la portée de sa tâche dans `SyncScope`) cassait l'associativité et
+  « aucune perte silencieuse » de `SnapshotMergePropertiesTest` ; il a été retiré. À trancher : garder les sessions partout, ou
+  les retirer partout avec une pierre tombale qui garde la fusion associative.
 
 ### Isolation du mode solo
 
@@ -567,8 +815,11 @@ Dans `data` : `SyncCodecTest` (formats 1, 2 et 3, octet pour octet sans synchron
 `SyncRepositoryTest` (entonnoir, rattrapage après arrêt, import = modifications locales, sauvegarde avant fusion, fiche ouverte
 pendant une fusion, `sync_review`), `SyncMigrationTest` (11 → 12 sans rien modifier), `SyncIsolationTest`.
 
-Dans `ui` et `desktopApp` : `LinkedFileSyncTest` (étendu : minuterie, premier rapprochement, `Unreadable`, pas de ping-pong,
-écritures simultanées), `SyncUiTest` (aperçu, « À revoir », bandeau, fusion manuelle, 360 dp), `LearnedDurationsSyncTest`.
+Dans `ui` et `desktopApp` : `LinkedFileSyncTest` (livré à l'étape 4 : deux appareils réels autour d'un même fichier,
+convergence, pas de ping-pong, suppression propagée, premier rapprochement confirmé ou annulé, `Unreadable`, `TOO_NEW`, échec
+d'écriture, « Remplacer »), `LinkedFileUiTest` (bandeau du premier rapprochement, « Fusionner » / « Remplacer » à l'ouverture),
+`SyncSummaryTest` (`core`), `SyncUiTest` (livré à l'étape 5 : un conflit revu depuis la vue Jour et « Prendre l'autre », un
+fichier fusionné à la main après son aperçu, nom de l'appareil et dernière fusion dans la carte Données) (aperçu, « À revoir », bandeau, fusion manuelle, 360 dp), `LearnedDurationsSyncTest`.
 
 ### Décisions et alternatives écartées
 
@@ -629,6 +880,11 @@ Dans `ui` et `desktopApp` : `LinkedFileSyncTest` (étendu : minuterie, premier r
   (3) le besoin (un manager sur deux appareils) est plus rare, et touche la même identité que « plusieurs équipes par base » (#118) ;
   (4) tout ce qui est hors portée **ne peut pas fuir** dans une base solo : l'invariant central de `equipe.md` se teste sur une
   liste fermée. La portée est une constante (`SyncScope`) : la rouvrir est une décision explicite.
+- **Deux comportements confirmés après la QA d'avant 4.0** (2026-11-04) : (1) tant que la confirmation du premier
+  rapprochement n'a pas de réponse, le fichier lié n'est ni fusionné ni réécrit (les passes automatiques attendent, les
+  modifications locales restent en attente) : c'est voulu, rien ne se fusionne sans accord au premier contact ; (2) le fichier
+  lié d'un manager contient ses données d'équipe en clair, comme tout export complet : la fusion les ignore chez les autres
+  (`SyncScope`), et le chiffrement reste hors périmètre.
 - **Chrono visible sur tous les appareils** (décision de conception) : une session ouverte appartient à la base, non à
   l'appareil qui l'a lancée ; arrêtée de n'importe où, elle est arrêtée partout. Écarté : un chrono propre à l'appareil (le temps
   passé serait faux et deux chronos tourneraient pour la même personne).
@@ -638,7 +894,7 @@ Dans `ui` et `desktopApp` : `LinkedFileSyncTest` (étendu : minuterie, premier r
 - `export-import.md` : format 3 (`sync`, `uid`, marques), `FORMAT_VERSION` = 3, lecture 1 à 3 ; « Fichier lié » : la garde
   `Changed` et « L'importer » remplacées par la fusion (états `NeedsConfirmation` et `Unreadable`, minuterie, `mergeNow`,
   `mergeFile`), « Ouvrir un fichier Kairos » propose « Fusionner » ; « Hors périmètre » (fusion, 4.0.0) ; carte Données.
-  (La seule modification faite maintenant : une phrase de renvoi vers cette spec.)
+  (Fait à l'étape 4 pour le fichier lié et « Ouvrir un fichier Kairos » ; le reste avec l'étape 5.)
 - `modele-donnees.md` : schéma 13 et ses tables `sync_*`, marqueur, `replaceAll(snapshot, uids)`, entonnoir de réconciliation ;
   « Hors périmètre » : la synchronisation n'en est plus.
 - `connexions-externes.md` : `uid` déterministes des calendriers, créneaux, journées ; « réimporter » vu comme une suppression
@@ -704,6 +960,25 @@ titre, jamais au-dessus d'une estimation explicite, provenance visible.
 - Sans synchronisation, rien ne change (`DurationEstimatorTest`, `DifferentialTest` inchangés).
 - En attendant la fusion, chaque appareil calcule sur ses seules données : c'est attendu, pas un défaut.
 
+#### Implémentation (étape 6)
+
+- `core/sync/SyncOrder.of(snapshot, data)` : le rang de chaque tâche de la portée, `createdAt` croissant puis `uid` (0 = la plus
+  ancienne) ; les tâches sans `uid` n'en ont pas. Le dépôt d'une base synchronisée le joint à chaque état publié
+  (`KairosSnapshot.sampleOrder`, `publish`, et dès `enableSync`) ; il n'est ni stocké, ni exporté, ni comparé par la fusion.
+  Sans synchronisation, `sampleOrder` est `null`.
+- `DurationEstimator.Sample.order` : le rang commun, sinon l'identifiant (une tâche sans rang dans une base synchronisée passe
+  après, par identifiant). `HistoryEstimators` (série, titre), `ModelEstimator` (corpus, voisins, départages, quantiles),
+  `ModelIndex` (tri, empreinte), `ModelGate` (préfixes) ordonnent par `order` au lieu de `taskId` ; l'identité d'une occurrence
+  (exclure la tâche elle-même, nommer les voisins) reste `taskId`.
+- **Choix** : un champ du snapshot plutôt qu'un paramètre de plus aux quatorze appels de `DurationEstimator` (vue Jour, équipe,
+  chrono, widgets…) : l'ordre suit les données partout où elles vont, sans rien changer aux appelants.
+- **Choix** : le modèle (#99) suit le même ordre (il n'a pas de poids à synchroniser : un index recalculé des données, comme
+  les durées apprises) ; deux appareils fusionnés construisent le même corpus, la même garde et les mêmes estimations.
+- `LearnedDurationsSyncTest` (`data`) : 20 graines, deux appareils qui chronomètrent chacun à leur tour (identifiants locaux
+  dans des ordres différents), fusionnés dans les deux sens, donnent les mêmes durées apprises par `uid` ; sans l'ordre commun,
+  le test échoue (vérifié : 40 contre 55 minutes dès la graine 1). Ordre identique des deux côtés et absent sans
+  synchronisation ; occurrence suivante unique d'une série terminée des deux côtés, même `seriesId` logique.
+
 #### Hors périmètre / différé
 
 - **Apprentissage entre les membres d'une équipe** : différé, justifié. (1) Les données d'équipe ne sont pas dans la
@@ -713,7 +988,7 @@ titre, jamais au-dessus d'une estimation explicite, provenance visible.
   parvient au manager que par les rapports, en **total par tâche** (`reportedMinutes`), jamais en sessions : il manque la matière
   de l'échantillon, et en demander plus change le format des échanges (`equipe-echanges.md`) et l'étendue de ce qu'un membre
   accepte de partager. À rouvrir, avec le modèle appris (#99), si une demande précise apparaît.
-- **L'estimateur appris (#99)** : ses poids seront des données ; les synchroniser ou les recalculer est une décision de cette
-  spec-là.
+- **L'estimateur appris (#99)** : tranché à l'étape 6, il n'a pas de poids (un index recalculé des données) et suit l'ordre
+  commun (§ Implémentation ci-dessus).
 - **Corriger les estimations** (`statistiques.md`) : action explicite, inchangée ; ses modifications de tâches se synchronisent
   comme toute modification.

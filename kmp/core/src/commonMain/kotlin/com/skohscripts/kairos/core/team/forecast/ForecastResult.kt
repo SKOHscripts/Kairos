@@ -140,7 +140,7 @@ data class ForecastResult(
     val expectedLate: Double,
     /** Probabilité qu'aucune échéance ne soit manquée. */
     val allOnTimeProbability: Double,
-    /** Tâches du backlog à qualifier, écartées du périmètre (ni priorité ni points : pas de plan possible). */
+    /** Tâches du backlog à qualifier, écartées du périmètre (priorité, points ou catégorie manquants : `needsProcessing`). */
     val toQualify: Int,
     /** Tâches du périmètre dont l'effort est tiré dans l'intervalle du modèle (docs/spec/estimateur-modele.md § Prévisions). */
     val modelEstimated: Int = 0,

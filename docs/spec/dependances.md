@@ -45,7 +45,9 @@ urgente : il doit en hériter l'urgence pour passer plus tôt.
   libre ; terminer C libère B, puis terminer B libère A.
 - Un bloqueur fait ou archivé ne bloque plus ; une tâche faite ou archivée
   n'est jamais « bloquée ».
-- Un cycle ne masque aucune tâche : ses arêtes sont neutralisées.
+- Un cycle ne masque aucune tâche : ses arêtes internes sont neutralisées.
+- Une tâche **en aval** d'un cycle (C attend A, A et B s'attendent l'un
+  l'autre) reste bloquée tant que A est à faire (2026-11-04, voir § Décisions).
 - Les sous-tâches d'une tâche bloquée sont bloquées aussi (de proche en proche) :
   jamais planifiées, listées dans « Bloquées » avec « en attente de : Mère »
   (2026-10-12, demande explicite : elles étaient planifiées malgré leur mère
@@ -65,9 +67,14 @@ urgente : il doit en hériter l'urgence pour passer plus tôt.
 
 ## 2. Solution technique
 
-- `Edge(blocked, blocker)`. `cycleNodes` : algorithme de Kahn (les nœuds
-  jamais libérés sont dans un cycle). `acyclicEdges` : arêtes hors cycle,
-  sans doublon.
+- `Edge(blocked, blocker)`. Les cycles sont les **composantes fortement
+  connexes** (algorithme de Tarjan, itératif : pas de récursion, une chaîne de
+  20 000 tâches ne déborde pas la pile, wasm compris). `cycleNodes` : nœuds
+  d'une composante de plus d'un nœud, ou portant une auto-arête.
+  `acyclicEdges` : arêtes sans doublon ni auto-boucle dont les deux bouts sont
+  dans des composantes **différentes** ; l'arête qui relie une tâche en aval à
+  un cycle, ou deux cycles entre eux, reste. Le graphe qui reste est sans
+  cycle. Tests : `DependencyCyclesTest`.
 - `blockedTaskIds(edges, isTodo)` : tâches à faire ayant un bloqueur direct à
   faire sur une arête hors cycle (la transitivité vient d'elle-même : un
   bloqueur bloqué reste à faire). `openBlockers` : bloqueurs directs à faire
@@ -89,6 +96,18 @@ urgente : il doit en hériter l'urgence pour passer plus tôt.
   supprime les arêtes où la tâche figure des deux côtés.
 
 ### Décisions et pièges tracés
+
+- **L'aval d'un cycle reste bloqué** (2026-11-04, décision rouverte après la
+  QA d'avant 4.0) : l'algorithme de Kahn rangeait dans les « nœuds du cycle »
+  toute tâche jamais libérée, donc aussi celles **en aval** ; leurs arêtes
+  étaient neutralisées et la tâche passait au planning avant son bloqueur.
+  Comportement hérité de l'ancienne version et figé jusque-là par les fichiers
+  d'or ; ceux-ci ont été mis à jour (86 cas de `dependencies.json` sur 300,
+  10 de `scheduling.json` sur 480, tous avec une tâche en aval d'un cycle ;
+  sorties recalculées par le moteur corrigé, les 470 autres cas vérifiés
+  identiques). Aucun cas n'a débloqué de tâche : l'ensemble des bloquées ne
+  fait que grandir. Le plan de charge de l'équipe (`LoadPlan`) suit
+  (`LoadPlanTest.dependencyCyclesTerminate`).
 
 - **Une tâche archivée ne bloque pas** : `DayView.build` donne le statut réel
   de chaque tâche, archivées comprises ; une archivée n'est donc jamais « à

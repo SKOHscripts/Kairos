@@ -69,12 +69,14 @@ class TeamBacklogBoardUiTest {
     fun restore() = Locale.setDefault(saved)
 
     private val enabledTeam = KairosSnapshot(
-        settings = Settings(team = TeamSettings(enabled = true, name = "Platform", identity = "id-1", lastSpace = TeamSettings.SPACE_TEAM)),
+        // Sans liste des catégories : une tâche est prête dès sa priorité et ses points (`typeRequired`), sauf au test de la
+        // capture qui en définit pour exiger la catégorie.
+        settings = Settings(taskTypes = "", team = TeamSettings(enabled = true, name = "Platform", identity = "id-1", lastSpace = TeamSettings.SPACE_TEAM)),
     )
 
-    private fun services(seed: (suspend (KairosRepository) -> Unit)? = null): AppServices = runBlocking {
+    private fun services(team: KairosSnapshot = enabledTeam, seed: (suspend (KairosRepository) -> Unit)? = null): AppServices = runBlocking {
         val repository = KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock)
-        repository.replaceAll(enabledTeam)
+        repository.replaceAll(team)
         seed?.invoke(repository)
         val files = object : FileService {
             override suspend fun saveText(suggestedName: String, text: String) = false
@@ -121,9 +123,16 @@ class TeamBacklogBoardUiTest {
         return id
     }
 
+    /** Choisit [option] dans le champ type (ou catégorie) encore vide : la valeur affichée est « Uncategorised ». */
+    private fun ComposeUiTest.pickType(option: String = "Développement") {
+        onNode(hasText("Uncategorised") and SemanticsMatcher.keyIsDefined(SemanticsProperties.EditableText)).performScrollTo().performClick()
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText(option).fetchSemanticsNodes().isNotEmpty() }
+        onAllNodesWithText(option).onFirst().performClick()
+    }
+
     @Test
     fun aCapturedTaskWaitsToBeQualifiedThenBecomesReadyAndNeverReachesTheDay() = runComposeUiTest {
-        val services = services()
+        val services = services(enabledTeam.copy(settings = enabledTeam.settings.copy(taskTypes = "Backend,Frontend")))
         val repository = services.repository
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         openBacklog()
@@ -139,6 +148,9 @@ class TeamBacklogBoardUiTest {
 
         onNodeWithText("P1 Important").performClick()
         onNodeWithText("3 moderate").performClick()
+        // La catégorie qualifie aussi (2026-11-03) : la tâche attend encore.
+        waitText("Missing: category")
+        pickType("Backend")
         waitText("Ready (1)")
         waitText("To qualify (0)")
 

@@ -29,7 +29,7 @@ internal object HistoryEstimates {
     ): DurationEstimator.Estimate? {
         if (candidates.isEmpty()) return null
         val learning = settings.learning ?: LearningSettings()
-        val recent = candidates.sortedByDescending { it.taskId }.take(maxOf(1, learning.history)).map { it.minutes.toDouble() }
+        val recent = candidates.sortedByDescending { it.order }.take(maxOf(1, learning.history)).map { it.minutes.toDouble() }
         val first = TaskStats.median(recent) ?: return null
         // Un chrono oublié (plus de trois fois la médiane) ne tire pas la durée vers le haut.
         val kept = recent.filter { it <= first * OUTLIER_FACTOR }

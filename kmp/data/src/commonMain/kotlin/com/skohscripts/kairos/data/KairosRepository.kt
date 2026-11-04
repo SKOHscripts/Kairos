@@ -17,6 +17,21 @@ import com.skohscripts.kairos.core.model.BlockKind
 import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.FIBONACCI_SCALE
 import com.skohscripts.kairos.core.model.KairosSnapshot
+import com.skohscripts.kairos.core.sync.MergeOutcome
+import com.skohscripts.kairos.core.sync.RecordKind
+import com.skohscripts.kairos.core.sync.RecordRef
+import com.skohscripts.kairos.core.sync.SnapshotMerge
+import com.skohscripts.kairos.core.sync.Stamp
+import com.skohscripts.kairos.core.sync.SyncData
+import com.skohscripts.kairos.core.sync.SyncEdit
+import com.skohscripts.kairos.core.sync.SyncOrder
+import com.skohscripts.kairos.core.sync.SyncReconcile
+import com.skohscripts.kairos.core.sync.SyncRecords
+import com.skohscripts.kairos.core.sync.SyncRepair
+import com.skohscripts.kairos.core.sync.SyncScope
+import com.skohscripts.kairos.core.sync.Synced
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.skohscripts.kairos.core.model.NoteStatus
 import com.skohscripts.kairos.core.notes.NoteConversion
 import com.skohscripts.kairos.core.model.PRIORITY_VALUES
@@ -67,6 +82,7 @@ import kotlinx.datetime.toInstant
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -102,14 +118,46 @@ class KairosRepository(
      */
     val personalSnapshot: StateFlow<KairosSnapshot> = personal.asStateFlow()
 
-    /** Relit la base et publie l'état (à l'ouverture). */
+    // --- Synchronisation par fichier (docs/spec/synchronisation.md § Dépôt) ---------------------------------------------
+    private val syncStore = SyncStore(queries)
+    private val syncState = MutableStateFlow<SyncData?>(null)
+    private val reviewState = MutableStateFlow<List<SyncReviewItem>>(emptyList())
+    private val lastMergeState = MutableStateFlow<LastMerge?>(null)
+
+    /** État de synchronisation ; `null` tant que la base ne synchronise pas (aucune donnée `sync_*`). */
+    val sync: StateFlow<SyncData?> = syncState.asStateFlow()
+
+    /** « À revoir » : conflits et éléments conservés, les plus anciens d'abord. */
+    val syncReview: StateFlow<List<SyncReviewItem>> = reviewState.asStateFlow()
+
+    /** La dernière fusion qui a changé quelque chose ici (carte Données). */
+    val lastMerge: StateFlow<LastMerge?> = lastMergeState.asStateFlow()
+
+    /**
+     * L'état publié par la dernière fusion : le fichier lié reconnaît ainsi le signal `onChanged` qu'elle émet et ne le prend pas
+     * pour une modification locale à écrire (docs/spec/synchronisation.md § Fichier lié : pas de ping-pong).
+     */
+    var mergedSnapshot: KairosSnapshot? = null
+        private set
+
+    /** Relit la base et publie l'état (à l'ouverture) ; une base synchronisée est réconciliée en entier (rattrapage). */
     suspend fun load(): KairosSnapshot = mutex.withLock {
-        readAll().also(::publish)
+        val all = readAll()
+        syncState.value = syncStore.load()
+        reconcileAfter(previous = null, all = all)
+        refreshSyncExtras(all)
+        publish(all)
     }
 
-    private fun publish(all: KairosSnapshot) {
-        state.value = all
-        personal.value = Workspaces.personalView(all)
+    /**
+     * Publie l'état lu ; une base synchronisée y joint l'ordre commun des tâches (`sampleOrder`, `SyncOrder`) que lisent les
+     * durées apprises et le modèle (docs/spec/synchronisation.md § Durées apprises partagées). Rend l'état publié.
+     */
+    private fun publish(all: KairosSnapshot): KairosSnapshot {
+        val shown = syncState.value?.let { all.copy(sampleOrder = SyncOrder.of(all, it)) } ?: all
+        state.value = shown
+        personal.value = Workspaces.personalView(shown)
+        return shown
     }
 
     /**
@@ -341,13 +389,13 @@ class KairosRepository(
      * que [TaskEdit.reassign] (`assigned`) ; les sous-tâches créées en lot
      * prennent l'espace et l'assigné (après réaffectation) de leur mère.
      */
-    suspend fun updateTask(taskId: Long, edit: TaskEdit, source: TeamEventSource? = null) {
+    suspend fun updateTask(taskId: Long, edit: TaskEdit, source: TeamEventSource? = null, opened: EditBase? = null) {
         val task = find(taskId) ?: return
         write {
             val weekly = edit.recurrence == TaskRecurrence.WEEKLY
             val onDay = edit.recurrence == TaskRecurrence.MONTHLY_ON_DAY
-            var updated = task.copy(
-                    title = edit.title.trim().ifEmpty { task.title },
+            fun applied(task: Task) = task.copy(
+                    title = edit.title.trim().ifEmpty { task.title }.take(ExportCodec.MAX_TITLE),
                     description = edit.description,
                     priority = edit.priority?.takeIf { it in PRIORITY_VALUES },
                     fibonacciPoints = edit.points?.takeIf { it in FIBONACCI_SCALE },
@@ -368,7 +416,11 @@ class KairosRepository(
                     teamExcluded = edit.teamExcluded?.takeIf { task.space == TaskSpace.PERSONAL } ?: task.teamExcluded,
                     // Note à envoyer (docs/spec/equipe-echanges.md § Notes) : nettoyée, bornée ; `null` = inchangée.
                     noteOut = edit.noteOut?.let { ExchangeNote.clean(it).orEmpty() } ?: task.noteOut,
-            ).let { t -> edit.proposal?.let { proposed(t, it.to) } ?: t }
+            )
+            // Fiche ouverte pendant une fusion (docs/spec/synchronisation.md § Interface) : seuls les champs que l'utilisateur a
+            // changés dans la fiche s'écrivent ; les autres gardent la valeur actuelle, peut-être arrivée d'un autre appareil.
+            var updated = (if (opened == null) applied(task) else keepUnchanged(task, opened.task, applied(opened.task)))
+                .let { t -> edit.proposal?.let { proposed(t, it.to) } ?: t }
             // Série « le N du mois » enregistrée sans échéance : la tâche EST l'occurrence de ce mois. Sans cela, l'affichage
             // suivant en créait une seconde, de même titre, et l'originale restait « sans créneau » (recurrence.md).
             val seriesDay = updated.recurrenceDayOfMonth
@@ -384,7 +436,10 @@ class KairosRepository(
                 updated = updated.copy(deadline = deadline, scheduledDate = updated.scheduledDate ?: deadline, recurrencePeriod = Recurrence.period(month))
             }
             val reassigned = edit.reassign?.let { reassigned(updated, it.memberId, it.keepInProgress) }
-            if (reassigned != null) updated = reassigned
+            if (reassigned != null) {
+                updated = reassigned
+                stopTimerIfNotMine(reassigned)
+            }
             updateRow(updated)
             if (task.space == TaskSpace.TEAM) {
                 val src = source ?: defaultSource(task)
@@ -396,8 +451,36 @@ class KairosRepository(
             edit.newSubtasks.lines().map { it.trim() }.filter { it.isNotEmpty() }.forEach {
                 insertNew(newTask(it, taskId).copy(space = updated.space, assigneeId = updated.assigneeId))
             }
-            setBlockers(task, edit.blockerIds)
+            // Bloqueurs : ceux que la fiche a ajoutés ou retirés, appliqués à l'état actuel.
+            val blockers = opened?.let { base ->
+                val current = state.value.dependencies.filter { it.taskId == taskId }.mapTo(HashSet()) { it.blockerId }
+                current - (base.blockers - edit.blockerIds) + (edit.blockerIds - base.blockers)
+            } ?: edit.blockerIds
+            setBlockers(task, blockers)
         }
+    }
+
+    /** Champ par champ : la valeur de la fiche ([mine]) si l'utilisateur l'a changée depuis l'ouverture ([opened]), sinon l'actuelle. */
+    private fun keepUnchanged(current: Task, opened: Task, mine: Task): Task {
+        fun <T> pick(f: (Task) -> T): T = if (f(mine) == f(opened)) f(current) else f(mine)
+        return current.copy(
+            title = pick(Task::title),
+            description = pick(Task::description),
+            priority = pick(Task::priority),
+            fibonacciPoints = pick(Task::fibonacciPoints),
+            deadline = pick(Task::deadline),
+            scheduledDate = pick(Task::scheduledDate),
+            estimatedMinutes = pick(Task::estimatedMinutes),
+            projectTag = pick(Task::projectTag),
+            taskType = pick(Task::taskType),
+            recurrence = pick(Task::recurrence),
+            recurrenceDayOfMonth = pick(Task::recurrenceDayOfMonth),
+            recurrenceDayOfWeek = pick(Task::recurrenceDayOfWeek),
+            pinnedStart = pick(Task::pinnedStart),
+            manualTimeSpentMinutes = pick(Task::manualTimeSpentMinutes),
+            teamExcluded = pick(Task::teamExcluded),
+            noteOut = pick(Task::noteOut),
+        )
     }
 
     /**
@@ -410,10 +493,11 @@ class KairosRepository(
         val child = state.value.tasks.firstOrNull { it.id == edit.id && it.parentId == parentId && it.status != TaskStatus.ARCHIVED } ?: return
         if (edit.delete) {
             queries.deleteDependenciesOf(child.id)
+            queries.closeOpenSessionsOf(now(), child.id)
             queries.deleteTask(child.id)
             return
         }
-        val title = edit.title.trim().ifEmpty { child.title }
+        val title = edit.title.trim().ifEmpty { child.title }.take(ExportCodec.MAX_TITLE)
         var current = child
         if (title != child.title) {
             current = child.copy(title = title)
@@ -561,6 +645,9 @@ class KairosRepository(
         // Tâche d'équipe : l'événement `deleted` recopie le titre, et ceux de la tâche restent.
         find(taskId)?.takeIf { it.space == TaskSpace.TEAM }?.let { journal(it, TeamEventKind.DELETED, null, null, source ?: defaultSource(it)) }
         queries.deleteDependenciesOf(taskId)
+        // Un chrono en cours sur la tâche s'arrête maintenant : ses sessions restent (temps passé), mais une session ouverte sur
+        // une tâche disparue compterait sans fin et ferait sonner les alertes du chrono (QA du 2026-11-04).
+        queries.closeOpenSessionsOf(now(), taskId)
         queries.deleteTask(taskId)
     }
 
@@ -606,6 +693,7 @@ class KairosRepository(
                 val next = reassigned(task, memberId, keepInProgress) ?: continue
                 updateRow(next)
                 journalAssignment(task, next, source)
+                stopTimerIfNotMine(next)
                 changed++
             }
         }
@@ -704,16 +792,19 @@ class KairosRepository(
      * Crée un membre. Le nom est nettoyé ; un nom vide, des heures non finies
      * ou un membre refusé rendent `null`. La quotité et les heures par jour sont
      * ramenées dans leurs bornes (1-100, 1-24) : la validation de saisie est
-     * celle de `MemberForm`, ceci n'est qu'un garde-fou. L'`uid` (identité des
+     * celle de `MemberForm`, ceci n'est qu'un garde-fou ; de même, un nom déjà
+     * porté par un autre membre, archivé compris (`MemberForm.nameKey`), rend
+     * `null` (QA du 2026-11-04). L'`uid` (identité des
      * échanges) est tiré ici : `core` reste sans hasard. [isSelf] retire « C'est
      * moi » aux autres membres dans la même transaction. [weekHours] : semaine type (issue #104), écartée si elle est mal formée.
      */
     @OptIn(ExperimentalUuidApi::class)
     suspend fun createMember(name: String, role: String, availabilityPercent: Int, hoursPerDay: Double, isSelf: Boolean, weekHours: List<Double>? = null): Long? {
-        val clean = name.trim()
+        val clean = MemberForm.cleanName(name)
         if (clean.isEmpty() || !hoursPerDay.isFinite()) return null
         var id: Long? = null
         write {
+            if (state.value.members.any { MemberForm.nameKey(it.name) == MemberForm.nameKey(clean) }) return@write
             queries.insertTeamMember(
                 Uuid.random().toString(), clean, role.trim(), boundedAvailability(availabilityPercent), boundedHours(hoursPerDay),
                 if (isSelf) 1L else 0L, now(), now(), TeamMember.encodeWeekHours(weekHours?.takeIf { TeamMember.isValidWeek(it) }),
@@ -726,16 +817,20 @@ class KairosRepository(
 
     /**
      * Modifie les champs d'un membre (mêmes règles que [createMember]) ; `false`
-     * si le membre est inconnu ou si le nom est vide. Poser [isSelf] retire « C'est
+     * si le membre est inconnu, si le nom est vide, ou s'il **change** pour celui
+     * d'un autre membre (un doublon déjà en base, venu d'un import, ne bloque pas
+     * la modification des autres champs). Poser [isSelf] retire « C'est
      * moi » aux autres, dans la même transaction ; un membre archivé n'est jamais
      * « moi ».
      */
     suspend fun updateMember(id: Long, name: String, role: String, availabilityPercent: Int, hoursPerDay: Double, isSelf: Boolean, weekHours: List<Double>? = null): Boolean {
-        val clean = name.trim()
+        val clean = MemberForm.cleanName(name)
         if (clean.isEmpty() || !hoursPerDay.isFinite()) return false
         var done = false
         write {
             val member = state.value.members.firstOrNull { it.id == id } ?: return@write
+            val key = MemberForm.nameKey(clean)
+            if (key != MemberForm.nameKey(member.name) && state.value.members.any { it.id != id && MemberForm.nameKey(it.name) == key }) return@write
             val self = isSelf && !member.archived
             queries.updateTeamMember(
                 clean, role.trim(), boundedAvailability(availabilityPercent), boundedHours(hoursPerDay),
@@ -760,12 +855,25 @@ class KairosRepository(
             // Chaque tâche remise au backlog est journalisée (`assigned`, de ce membre vers personne).
             state.value.tasks.filter { TeamMembers.isOpenTeamTaskOf(it, member.id) }.forEach {
                 journal(it, TeamEventKind.ASSIGNED, member.id.toString(), null, TeamEventSource.MANUAL, memberId = null)
+                // Remise au backlog : un chrono de « moi » sur elle s'arrête (QA du 2026-11-04).
+                queries.closeOpenSessionsOf(now(), it.id)
             }
             queries.unassignTasksOf(now(), member.id)
             queries.setMemberArchived(1L, now(), member.id)
             done = true
         }
         return done
+    }
+
+    /**
+     * Le chrono ne tourne que sur une tâche de « moi » : une tâche d'équipe réaffectée à un autre membre ou remise au backlog
+     * ferme sa session ouverte, sinon elle quitterait la vue Perso en continuant de compter, sans moyen de l'arrêter (QA du
+     * 2026-11-04). Dans la transaction de l'écriture.
+     */
+    private suspend fun stopTimerIfNotMine(task: Task) {
+        if (task.space != TaskSpace.TEAM) return
+        val self = state.value.members.firstOrNull { it.isSelf && !it.archived }?.id
+        if (task.assigneeId == null || task.assigneeId != self) queries.closeOpenSessionsOf(now(), task.id)
     }
 
     /** Réactive un membre archivé ; `false` s'il est inconnu ou déjà actif. Ses anciennes tâches ne lui reviennent pas. */
@@ -1387,7 +1495,11 @@ class KairosRepository(
      * compris (import, exemples d'une base neuve, rechargement de la version
      * web). Transaction unique : en cas d'erreur, la base reste intacte.
      */
-    suspend fun replaceAll(snapshot: KairosSnapshot) = write {
+    suspend fun replaceAll(snapshot: KairosSnapshot, uids: Map<RecordKind, Map<Long, String>>? = null) =
+        // Synchronisée, la base prend les uid du fichier (sinon ceux de migration) : importer = une série de modifications locales.
+        write(rebase = if (syncState.value != null) uids ?: SyncReconcile.legacy(snapshot).uids else null) { replaceRows(snapshot) }
+
+    private suspend fun replaceRows(snapshot: KairosSnapshot) {
         queries.deleteAllTasks()
         queries.deleteAllTimeBlocks()
         queries.deleteAllDependencies()
@@ -1465,8 +1577,12 @@ class KairosRepository(
 
     private fun today(): LocalDate = clock.todayIn(timeZone)
 
+    /**
+     * Une tâche neuve. Le titre est borné à [ExportCodec.MAX_TITLE], comme à l'import : sinon une tâche saisie ici rendait
+     * illisible l'export qui la contient (QA du 2026-11-04).
+     */
     private fun newTask(title: String, parentId: Long?) = Task(
-        id = 0, title = title, parentId = parentId, createdAt = clock.now(), updatedAt = clock.now(),
+        id = 0, title = title.take(ExportCodec.MAX_TITLE), parentId = parentId, createdAt = clock.now(), updatedAt = clock.now(),
     )
 
     /**
@@ -1583,12 +1699,250 @@ class KairosRepository(
 
     private fun roundProgress(percent: Int): Int = (percent.coerceIn(0, 100) + 5) / 10 * 10
 
-    private suspend fun write(block: suspend () -> Unit) {
+    private suspend fun write(rebase: Map<RecordKind, Map<Long, String>>? = null, block: suspend () -> Unit) {
         val updated = mutex.withLock {
+            val before = state.value
             database.transaction { block() }
-            readAll().also(::publish)
+            val all = readAll()
+            reconcileAfter(before, all, rebase)
+            publish(all)
         }
         onChanged(updated)
+    }
+
+    /**
+     * L'entonnoir de la synchronisation (docs/spec/synchronisation.md § Réconciliation locale) : après chaque écriture, les
+     * marques se déduisent de la différence, dans leur propre transaction. [rebase] : les `uid` à prendre d'abord (import).
+     */
+    private suspend fun reconcileAfter(previous: KairosSnapshot?, all: KairosSnapshot, rebase: Map<RecordKind, Map<Long, String>>? = null) {
+        val d = syncState.value ?: return
+        val start = rebase?.let { d.copy(uids = it) } ?: d
+        val r = SyncReconcile.reconcile(all, start, if (rebase != null) null else previous, clock.now().toEpochMilliseconds()) { Uuid.random().toString() }
+        if (!r.changed && rebase == null) return
+        database.transaction { syncStore.save(d, r.data) }
+        syncState.value = r.data
+    }
+
+    /**
+     * Active la synchronisation (premier lien, première fusion) : identité de l'appareil (12 caractères hexadécimaux), `uid`
+     * de migration, marques d'après les dates des enregistrements ; les exemples posés sur une base neuve et restés tels quels
+     * prennent leur `uid` d'exemple et la marque d'origine. Sans effet si la base synchronise déjà.
+     */
+    suspend fun enableSync(label: String): SyncData = mutex.withLock {
+        syncState.value?.let { return it }
+        val all = state.value
+        val (presets, origin) = examplePresets(all)
+        val device = Uuid.random().toHexString().take(DEVICE_LENGTH)
+        val d = SyncReconcile.activate(all, device, clock.now().toEpochMilliseconds(), presets, origin, label.trim().take(LABEL_MAX))
+        database.transaction { syncStore.save(null, d) }
+        syncState.value = d
+        // L'ordre commun des tâches existe dès l'activation (durées apprises partagées).
+        publish(all)
+        d
+    }
+
+    /**
+     * Version web (docs/spec/synchronisation.md § Fichier lié) : recharge l'instantané de l'OPFS **avec** l'état de
+     * synchronisation qu'il porte (identité, contexte, marques), écrit par ce navigateur. Sans lui, chaque rechargement de la
+     * page ferait de ce navigateur un nouvel appareil. Rien n'est signalé à `onChanged` (comme [load]).
+     */
+    suspend fun restoreSynced(synced: Synced) = mutex.withLock {
+        database.transaction {
+            replaceRows(synced.snapshot)
+            syncStore.clear()
+            syncStore.save(null, synced.data)
+        }
+        val all = readAll()
+        syncState.value = synced.data
+        reconcileAfter(previous = null, all = all)
+        refreshSyncExtras(all)
+        publish(all)
+    }
+
+    /**
+     * Cet appareil a des données à lui (docs/spec/synchronisation.md § Brancher un deuxième appareil) : un enregistrement de la
+     * portée qui n'est pas un exemple resté tel que posé. Faux pour une base neuve, qui reçoit un fichier sans qu'on demande.
+     */
+    suspend fun hasOwnData(): Boolean {
+        val all = state.value
+        val d = syncState.value
+        val intact = if (d == null) examplePresets(all).second.size else d.marks.values.count { it.born == Stamp.ORIGIN }
+        return SyncScope.of(all).size > intact
+    }
+
+    /** Renomme cet appareil (« Android · 3f9c »), tel qu'il apparaît dans « À revoir » sur les autres. */
+    suspend fun renameDevice(label: String) = mutex.withLock {
+        val d = syncState.value ?: return
+        val updated = d.copy(label = label.trim().take(LABEL_MAX))
+        database.transaction { syncStore.save(d, updated) }
+        syncState.value = updated
+    }
+
+    /**
+     * Fusionne [theirs] (le fichier lié, ou un fichier choisi) dans la base (docs/spec/synchronisation.md § Dépôt). La fusion
+     * se calcule hors du fil d'interface ; si elle modifie ou supprime quelque chose, [backup] doit d'abord réussir (sinon rien
+     * n'est fusionné, `BackupFailed`). Une seule transaction installe le résultat et « À revoir » ; suivent la réconciliation
+     * complète et les réparations (une seule session ouverte, boucles de mères), écrites comme des modifications locales.
+     */
+    suspend fun merge(theirs: Synced, backup: suspend (KairosSnapshot) -> Boolean): MergeResult {
+        val result = mutex.withLock {
+            val d = syncState.value ?: return MergeResult.NotSynced
+            val before = state.value
+            val now = clock.now()
+            val out = withContext(Dispatchers.Default) { SnapshotMerge.merge(Synced(before, d), theirs, now.toEpochMilliseconds()) }
+            if (out.changes.destructive && !backup(before)) return MergeResult.BackupFailed
+            database.transaction {
+                if (!out.changes.isEmpty) replaceRows(out.merged.snapshot)
+                syncStore.save(d, out.merged.data)
+                recordReview(out, now)
+                if (!out.changes.isEmpty) syncStore.write(SyncStore.LAST_MERGE, LastMerge.encode(LastMerge(now, out.changes.added.values.sum(), out.changes.modified.values.sum(), out.changes.removed.values.sum())))
+            }
+            syncState.value = out.merged.data
+            var all = readAll()
+            reconcileAfter(previous = null, all = all)
+            val repaired = SyncRepair.repair(all, syncState.value)
+            if (repaired.repairs.isNotEmpty()) {
+                val prev = all
+                database.transaction { replaceRows(repaired.snapshot) }
+                all = readAll()
+                reconcileAfter(prev, all)
+            }
+            refreshSyncExtras(all)
+            publish(all) to out
+        }
+        if (!result.second.changes.isEmpty) {
+            mergedSnapshot = result.first
+            onChanged(result.first)
+        }
+        return MergeResult.Applied(result.second)
+    }
+
+    /** « Garder celle-ci » ([takeOther] faux) ou « Prendre l'autre » : la valeur écartée, écrite comme une modification locale. */
+    suspend fun resolveReview(id: Long, takeOther: Boolean) {
+        val item = reviewState.value.firstOrNull { it.id == id } ?: return
+        if (takeOther && !item.kept) {
+            val d = syncState.value ?: return
+            val snapshot = state.value
+            val changed = if (item.ref == null) SyncEdit.setSetting(snapshot, item.field, item.lostValue) else SyncEdit.setField(snapshot, d, item.ref, item.field, item.lostValue)
+            if (changed != null) write { replaceRows(changed) }
+        }
+        dropReview(id)
+    }
+
+    /** « Supprimer à nouveau » un élément conservé après une suppression faite ailleurs. */
+    suspend fun deleteKept(id: Long) {
+        val item = reviewState.value.firstOrNull { it.id == id && it.kept } ?: return
+        val d = syncState.value
+        val changed = if (item.ref != null && d != null) SyncEdit.remove(state.value, d, item.ref) else null
+        if (changed != null) write { replaceRows(changed) }
+        dropReview(id)
+    }
+
+    /**
+     * Version web : ce que la synchronisation garde **pour cet appareil seul** hors des données (« À revoir » et la dernière
+     * fusion), en texte, pour un fichier de l'OPFS à côté de l'instantané ; `null` si la base ne synchronise pas. Jamais dans
+     * le fichier lié ni dans un export : c'est local (docs/spec/synchronisation.md § Précisions (étape 7)).
+     */
+    suspend fun exportSyncExtras(): String? {
+        if (syncState.value == null) return null
+        val rows = queries.allSyncReview().awaitAsList().map { r ->
+            SyncExtrasJson.Row(r.kind, r.uid, r.field_, r.title, r.loser_value, r.loser_stamp, r.winner_value, r.winner_stamp, r.kept != 0L, r.created_at)
+        }
+        return SyncExtrasJson.encode(SyncExtrasJson(rows, syncStore.read(SyncStore.LAST_MERGE)))
+    }
+
+    /** Recharge [exportSyncExtras] (version web, après `restoreSynced`) ; un texte illisible est ignoré. */
+    suspend fun importSyncExtras(text: String) = mutex.withLock {
+        val extras = SyncExtrasJson.decode(text) ?: return@withLock
+        if (syncState.value == null) return@withLock
+        database.transaction {
+            queries.clearSyncReview()
+            for (r in extras.review) queries.insertSyncReview(r.kind, r.uid, r.field, r.title, r.loserValue, r.loserStamp, r.winnerValue, r.winnerStamp, if (r.kept) 1L else 0L, r.createdAt)
+            extras.lastMerge?.let { syncStore.write(SyncStore.LAST_MERGE, it) }
+        }
+        refreshSyncExtras(state.value)
+    }
+
+    /** « Tout garder le plus récent » : vide la liste. */
+    suspend fun clearReview() = mutex.withLock {
+        database.transaction { queries.clearSyncReview() }
+        reviewState.value = emptyList()
+    }
+
+    private suspend fun dropReview(id: Long) = mutex.withLock {
+        database.transaction { queries.deleteSyncReview(id) }
+        reviewState.value = reviewState.value.filter { it.id != id }
+    }
+
+    /** Consigne conflits et éléments conservés dans « À revoir » (dans la transaction de la fusion). */
+    private suspend fun recordReview(out: MergeOutcome, now: kotlin.time.Instant) {
+        val merged = out.merged
+        for (c in out.conflicts) {
+            val title = c.ref?.let { SyncEdit.title(merged.snapshot, merged.data, it) }.orEmpty()
+            queries.insertSyncReview(c.ref?.kind?.code, c.ref?.uid, c.field, title, c.lostValue, c.loser.toString(), c.keptValue, c.winner.toString(), 0L, now.toString())
+        }
+        for (k in out.kept) {
+            val title = SyncEdit.title(merged.snapshot, merged.data, k.ref)
+            queries.insertSyncReview(k.ref.kind.code, k.ref.uid, "", title, "", "", "", "", 1L, now.toString())
+        }
+    }
+
+    /**
+     * Relit « À revoir » et la dernière fusion. Un conflit dont le champ a reçu depuis une autre marque que la gagnante (quelqu'un
+     * a tranché ailleurs, ou modifié) est retiré tout seul ; rétention : 30 jours, 200 éléments.
+     */
+    private suspend fun refreshSyncExtras(all: KairosSnapshot) {
+        val d = syncState.value ?: run { reviewState.value = emptyList(); lastMergeState.value = null; return }
+        val now = clock.now()
+        database.transaction {
+            queries.deleteSyncReviewBefore((now - REVIEW_DAYS.days).toString())
+            queries.trimSyncReview(REVIEW_MAX.toLong())
+        }
+        val rows = queries.allSyncReview().awaitAsList().map { r ->
+            SyncReviewItem(
+                id = r.id,
+                ref = r.kind?.let(RecordKind::fromCode)?.let { k -> r.uid?.let { RecordRef(k, it) } },
+                field = r.field_,
+                title = r.title,
+                lostValue = r.loser_value,
+                lost = Stamp.parse(r.loser_stamp),
+                keptValue = r.winner_value,
+                winner = Stamp.parse(r.winner_stamp),
+                kept = r.kept != 0L,
+                at = runCatching { kotlin.time.Instant.parse(r.created_at) }.getOrNull() ?: now,
+            )
+        }
+        val stale = rows.filter { it.isStale(d) }
+        if (stale.isNotEmpty()) database.transaction { stale.forEach { queries.deleteSyncReview(it.id) } }
+        reviewState.value = rows - stale.toSet()
+        lastMergeState.value = syncStore.read(SyncStore.LAST_MERGE)?.let(LastMerge::decode)
+    }
+
+    private fun SyncReviewItem.isStale(d: SyncData): Boolean {
+        if (kept) return ref != null && d.marks[ref] == null
+        val current = if (ref == null) d.settings.of(field) else d.marks[ref]?.of(field) ?: return true
+        return winner != null && current != winner
+    }
+
+    /**
+     * Exemples posés sur une base neuve (`sync_state.examples`) restés tels quels : `uid` `example:<n>` et marque d'origine,
+     * pour que les exemples de deux appareils soient les mêmes et ne ressuscitent jamais une suppression.
+     */
+    private suspend fun examplePresets(all: KairosSnapshot): Pair<Map<RecordKind, Map<Long, String>>, Set<Pair<RecordKind, Long>>> {
+        val recorded = syncStore.read(SyncStore.EXAMPLES)?.let(ExampleMarks::decode).orEmpty()
+        if (recorded.isEmpty()) return emptyMap<RecordKind, Map<Long, String>>() to emptySet()
+        val current = ExampleMarks.of(all)
+        val presets = HashMap<RecordKind, HashMap<Long, String>>()
+        val origin = HashSet<Pair<RecordKind, Long>>()
+        for ((kind, entries) in recorded.groupBy { it.kind }) {
+            entries.forEachIndexed { i, e ->
+                if (current[kind to e.id] == e.hash) {
+                    presets.getOrPut(kind) { HashMap() }[e.id] = "example:${i + 1}"
+                    origin += kind to e.id
+                }
+            }
+        }
+        return presets to origin
     }
 
     private suspend fun readAll(): KairosSnapshot = KairosSnapshot(
@@ -1609,7 +1963,21 @@ class KairosRepository(
             ?: Settings(),
     )
 
+    private suspend fun recordExamples(posed: KairosSnapshot) = mutex.withLock {
+        database.transaction { syncStore.write(SyncStore.EXAMPLES, ExampleMarks.encode(posed)) }
+    }
+
     companion object {
+        /** Longueur de l'identité d'un appareil (caractères hexadécimaux). */
+        private const val DEVICE_LENGTH = 12
+
+        /** Longueur maximale du nom d'un appareil. */
+        const val LABEL_MAX = 30
+
+        /** Rétention de « À revoir ». */
+        private const val REVIEW_DAYS = 30
+        private const val REVIEW_MAX = 200
+
         /** Avancement d'une tâche d'équipe terminée. */
         private const val DONE_PROGRESS = 100
 
@@ -1630,7 +1998,12 @@ class KairosRepository(
             val repository = KairosRepository(opened.database, clock, timeZone, onChanged)
             if (opened.created) {
                 // Une erreur de pose des exemples ne doit jamais empêcher le démarrage.
-                runCatching { repository.replaceAll(examples()) }
+                runCatching {
+                    val posed = examples()
+                    repository.replaceAll(posed)
+                    // Les exemples tels que posés : à l'activation de la synchronisation, ceux restés intacts deviennent example:<n>.
+                    repository.recordExamples(posed)
+                }
             }
             repository.load()
             return repository
@@ -1645,6 +2018,12 @@ class KairosRepository(
  * l'ensemble complet des bloqueurs voulus ; [newSubtasks] : une ligne, une
  * sous-tâche.
  */
+/**
+ * L'état d'une tâche à l'ouverture de sa fiche ([task]) et ses bloqueurs ([blockers]) : [KairosRepository.updateTask] n'écrit
+ * alors que ce que la fiche a changé depuis, sans défaire une fusion survenue entre-temps (docs/spec/synchronisation.md).
+ */
+data class EditBase(val task: Task, val blockers: Set<Long>)
+
 data class TaskEdit(
     val title: String,
     val description: String = "",

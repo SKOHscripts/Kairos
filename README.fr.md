@@ -38,6 +38,11 @@ restent sur ton appareil.
   fourchette et la liste de ces tâches, et seulement une fois que cela fait
   mieux que la durée par défaut sur ton propre historique.
   [Comment ça marche](#machine-learning-sur-lappareil-pour-la-vraie-durée-de-tes-tâches).
+- **Nouveau en 4.0 : la synchronisation entre tes appareils.** Lie le même
+  fichier sur chaque appareil, dans un dossier Syncthing ou Nextcloud par
+  exemple : Kairos le fusionne avec les données de chaque appareil, garde tout
+  ce qui existe des deux côtés, et liste ce qui a été changé sur deux appareils
+  à la fois. Sans compte, sans serveur, sans permission réseau.
 - Il classe les tâches du jour par un score de priorité, affiché sur chacune,
   et explique ce score en un toucher.
 - Il pose chaque tâche dans les trous de l’agenda, autour des réunions, avec
@@ -385,9 +390,22 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 - **Fichier lié** : sur le bureau et Android aussi, Réglages → Données →
   « Créer un fichier » tient à jour une copie de tes données (un export, qui
   s’ouvre partout) dans le dossier de ton choix, par exemple un dossier
-  Syncthing ou Nextcloud, écrite 2 secondes après chaque changement. Si un autre
-  appareil a modifié le fichier, Kairos n’y écrit plus et te demande : écraser,
-  l’importer ou délier.
+  Syncthing ou Nextcloud, écrite 2 secondes après chaque changement. Depuis la
+  4.0, quand un autre appareil a modifié le fichier, Kairos le fusionne avec tes
+  données au lieu de s’arrêter.
+- **Synchronisation entre appareils** (4.0) : lie le même fichier sur chaque
+  appareil (Réglages → Données → « Créer un fichier » sur le premier, « Ouvrir
+  un fichier Kairos » puis « Fusionner » sur les autres). Chaque changement est
+  fusionné champ par champ : deux appareils qui changent des champs différents
+  d’une tâche gardent chacun le leur, une tâche supprimée sur l’un et modifiée
+  sur l’autre est conservée et signalée, et une valeur changée des deux côtés
+  avant qu’ils se rencontrent va dans **À revoir** (garder celle-ci ou prendre
+  l’autre). La première rencontre de deux appareils demande avant de fusionner ;
+  les suivantes sont silencieuses et disent en une ligne ce qui a changé. Un
+  chrono lancé se voit sur chaque appareil, et une sauvegarde précède une fusion
+  qui modifie ou supprime. « Fusionner un fichier Kairos… » fusionne n’importe
+  quel export à la main, sur toutes les plateformes. L’espace Équipe n’est
+  jamais synchronisé. Mets d’abord tous tes appareils à jour en 4.0.
 - **Version web** : données enregistrées dans le navigateur, et, dans Edge ou
   Chrome, **liées à un fichier** tenu à jour à chaque modification.
 - **Langues** : l’interface parle **anglais, français, espagnol, allemand, russe
@@ -566,6 +584,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Organiser | Créneaux mensuels, et un seul jour à part | 3.8.0 | Toutes |
 | Organiser | Importer tes réunions d’un agenda | 3.10.0 | Toutes |
 | Organiser | Calendriers du téléphone | 3.10.0 | Android |
+| Organiser | Synchroniser tes appareils | 4.0.0 | Toutes |
 | Équipe | Première tâche d’équipe guidée | 3.8.0 | Toutes |
 | Équipe | Les membres | 3.1.0 | Toutes |
 | Équipe | Ton travail perso compte | 3.3.0 | Toutes |

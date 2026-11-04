@@ -36,7 +36,7 @@ class SettingField internal constructor(
     internal val validate: ((String) -> FieldError?)? = null,
 )
 
-enum class FieldErrorKind { REQUIRED, NOT_INTEGER, NOT_NUMBER, TOO_SMALL, TOO_LARGE, INVALID_DATE, INVALID_COLOR, INVALID_TIME, DUPLICATE, UNKNOWN_CONTEXT }
+enum class FieldErrorKind { REQUIRED, NOT_INTEGER, NOT_NUMBER, TOO_SMALL, TOO_LARGE, INVALID_DATE, INVALID_COLOR, INVALID_TIME, DUPLICATE, DUPLICATE_ARCHIVED, UNKNOWN_CONTEXT }
 
 /** Erreur d'un champ ; [bound] est la borne franchie (« 0 », « 23 ») ou la date illisible. */
 data class FieldError(val kind: FieldErrorKind, val bound: String? = null)

@@ -70,10 +70,11 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   - Dates et heures « métier » **locales naïves** (`LocalDate`,
     `LocalDateTime`) ; horodatages techniques en instants UTC (`Instant`).
     Convention de Kairos.
-  - `needsProcessing` : il manque la priorité **ou** les points (règle du
-    code, `Task.needsProcessing`).
-  - `missingQualification` : `PRIORITY`, `POINTS` ou `BOTH`, pour le libellé
-    de la boîte de réception.
+  - `needsProcessing(typeRequired)` : il manque la priorité, les points **ou**, si
+    `typeRequired`, le type (règle du code, `Task.needsProcessing`, 2026-11-03 ; avant, priorité ou points seulement).
+    `typeRequired` = `Settings.typeRequired` : la liste des types n'est pas vide.
+  - `missing(typeRequired)` : ce qui manque (`Missing(priority, points, type)`), pour le libellé
+    de la boîte de réception ; `null` si rien.
   - `archived` n'est jamais produit par Kairos ; la valeur reste lisible, et
     une tâche archivée n'est ni affichée ni basculée.
 - `TimeBlock` : `id`, `title`, `start`, `end` (locales), `kind`
@@ -131,7 +132,9 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
 - `KairosSnapshot` : toutes les tables (membres, absences et journal
   compris, exceptions de créneaux `blockExceptions` depuis la 3.8.0) et les
   réglages. C'est la forme commune de l'export, de l'import, des exemples et
-  de la sauvegarde web.
+  de la sauvegarde web. Un champ dérivé, jamais écrit ni exporté :
+  `sampleOrder` (4.0.0), le rang commun des tâches d'une base synchronisée
+  (`synchronisation.md` § Durées apprises partagées), `null` sinon.
 
 ### Exemples (`ExampleData.snapshot(aujourd'hui, maintenant, langue)`)
 

@@ -61,6 +61,8 @@ fun AppServices.forDemo(session: DemoSession): AppServices = AppServices(
     shortcuts = null,
     teamUi = TeamUiState(),
     systemLanguage = systemLanguage,
+    // Un nom, rien de plus : la démonstration ne synchronise rien (pas de fichier lié, pas de fichiers).
+    deviceLabel = deviceLabel,
     applyLanguage = applyLanguage,
     demo = null,
 )

@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -143,6 +146,13 @@ class FirstTaskCoachUiTest {
         assertEquals(0, count("Create your first task"))
     }
 
+    /** Choisit [option] dans le champ type (ou catégorie) encore vide : la valeur affichée est « Uncategorised ». */
+    private fun ComposeUiTest.pickType(option: String = "Développement") {
+        onNode(hasText("Uncategorised") and SemanticsMatcher.keyIsDefined(SemanticsProperties.EditableText)).performScrollTo().performClick()
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText(option).fetchSemanticsNodes().isNotEmpty() }
+        onAllNodesWithText(option).onFirst().performClick()
+    }
+
     @Test
     fun aQualifiedTaskIsPlacedInTheDayAndItsPlaceExplained() = runComposeUiTest {
         val services = services()
@@ -152,12 +162,13 @@ class FirstTaskCoachUiTest {
         type("Title", "Plan the sprint")
         onNodeWithText("P1 Important", substring = true).performScrollTo().performClick()
         onNodeWithText("3 moderate", substring = true).performScrollTo().performClick()
+        pickType()
         onNodeWithText("Save").performClick()
         waitText("Your first task is created!")
         val task = repository.snapshot.value.tasks.single()
         assertEquals(1 to 3, task.priority to task.fibonacciPoints)
         onNodeWithText("Show me where it is placed").performClick()
-        // Priorité et points posés : la tâche a une place, et le coach explique son rang.
+        // Priorité, points et type posés : la tâche a une place, et le coach explique son rang.
         waitText("Its place in the day")
         assertEquals(0, count("Not placed yet"))
     }

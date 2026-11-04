@@ -108,7 +108,7 @@ class TeamSpaceUiTest {
     )
 
     private fun task(id: Long, title: String, space: TaskSpace = TaskSpace.PERSONAL, assignee: Long? = null) = Task(
-        id, title, priority = 1, fibonacciPoints = 3, estimatedMinutes = 30, space = space, assigneeId = assignee,
+        id, title, priority = 1, fibonacciPoints = 3, taskType = "Development", estimatedMinutes = 30, space = space, assigneeId = assignee,
         createdAt = now, updatedAt = now,
     )
 

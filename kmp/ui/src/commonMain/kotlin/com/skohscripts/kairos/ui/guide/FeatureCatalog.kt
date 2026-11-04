@@ -46,6 +46,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_calendar_import_body
 import com.skohscripts.kairos.ui.generated.resources.card_calendar_import_title
 import com.skohscripts.kairos.ui.generated.resources.card_linked_file_body
 import com.skohscripts.kairos.ui.generated.resources.card_linked_file_title
+import com.skohscripts.kairos.ui.generated.resources.card_sync_body
+import com.skohscripts.kairos.ui.generated.resources.card_sync_title
 import com.skohscripts.kairos.ui.generated.resources.card_month_body
 import com.skohscripts.kairos.ui.generated.resources.card_correct_body
 import com.skohscripts.kairos.ui.generated.resources.card_trends_body
@@ -234,6 +236,8 @@ object FeatureCatalog {
         FeatureCard("slots_month", GuideChapter.ORGANIZE, { KairosIcons.Repeat }, Res.string.card_slots_month_title, Res.string.card_slots_month_body, GuideTarget.Personal(Destination.DAY), since = "3.8.0"),
         FeatureCard("calendar_import", GuideChapter.ORGANIZE, { KairosIcons.Event }, Res.string.card_calendar_import_title, Res.string.card_calendar_import_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "3.10.0"),
         FeatureCard("phone_calendars", GuideChapter.ORGANIZE, { KairosIcons.Mobile }, Res.string.card_phone_calendars_title, Res.string.card_phone_calendars_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "3.10.0", platforms = setOf(Platform.ANDROID)),
+        // Synchronisation par fichier (docs/spec/synchronisation.md) : la carte mène à Réglages → Données.
+        FeatureCard("sync", GuideChapter.ORGANIZE, { KairosIcons.Sync }, Res.string.card_sync_title, Res.string.card_sync_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "4.0.0"),
         // --- Équipe
         FeatureCard("team_first_task", GuideChapter.TEAM, { KairosIcons.Assignment }, Res.string.card_team_first_task_title, Res.string.card_team_first_task_body, GuideTarget.Team(TeamDestination.BACKLOG), since = "3.8.0"),
         FeatureCard("team_members", GuideChapter.TEAM, { KairosIcons.Groups }, Res.string.guide_team_members_title, Res.string.guide_team_members_body, GuideTarget.Team(TeamDestination.MEMBERS), since = "3.1.0", tour = true),
@@ -347,6 +351,7 @@ object FeatureCatalog {
         "Best hours" to "besthours_apply",
         "Export and import" to "data",
         "Linked file" to "linked_file",
+        "Sync between devices" to "sync",
         "Web version" to "web_version",
         "Languages" to "languages",
         "Settings" to "settings",

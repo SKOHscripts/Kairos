@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.core.sync.RecordKind
 import com.skohscripts.kairos.core.calendar.CalendarImport
 import com.skohscripts.kairos.core.calendar.CalendarPlan
 import com.skohscripts.kairos.core.calendar.IcsParser
@@ -150,7 +151,11 @@ import org.jetbrains.compose.resources.stringResource
 /** Ce que le bouton « Importer » a reconnu dans le fichier choisi. */
 sealed interface ImportedFile {
     /** Export complet : il remplace toutes les données, après confirmation (comportement historique). */
-    class Full(val snapshot: KairosSnapshot) : ImportedFile
+    /**
+     * Un export complet ; [uids] : les identités de synchronisation qu'il porte (format 3) ou celles de migration (formats 1 et
+     * 2), que reprend une base synchronisée qui l'importe (docs/spec/synchronisation.md § Précisions (étape 7)).
+     */
+    class Full(val snapshot: KairosSnapshot, val uids: Map<RecordKind, Map<Long, String>>) : ImportedFile
 
     /** Paquet ou rapport d'équipe : fusion ciblée, après aperçu. */
     class Exchange(val preview: ExchangePreview) : ImportedFile
@@ -195,7 +200,7 @@ fun readImportedFile(services: AppServices, text: String): ImportedFile {
 }
 
 private fun readKairosFile(services: AppServices, text: String): ImportedFile = when (TeamExchangeCodec.detect(text)) {
-    TeamExchangeCodec.Kind.EXPORT -> ImportedFile.Full(ExportCodec.decode(text))
+    TeamExchangeCodec.Kind.EXPORT -> ExportCodec.decodeSynced(text).let { ImportedFile.Full(it.snapshot, it.data.uids) }
     TeamExchangeCodec.Kind.PACK -> ImportedFile.Exchange(ExchangePreview.Pack(text, services.repository.previewPack(text)))
     TeamExchangeCodec.Kind.REPORT -> {
         val plan = services.repository.previewReport(text)

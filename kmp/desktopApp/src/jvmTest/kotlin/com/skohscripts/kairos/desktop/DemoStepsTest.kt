@@ -113,7 +113,7 @@ class DemoStepsTest {
             assertNull(demo.files.openText())
             // Chaque champ d'AppServices est décidé dans forDemo : un champ nouveau fait échouer ce test.
             val fields = AppServices::class.java.declaredFields.map { it.name }.filterNot { it.startsWith("$") }.toSet()
-            val carried = setOf("repository", "files", "backups", "clock", "notifier", "teamUi", "systemLanguage", "applyLanguage")
+            val carried = setOf("repository", "files", "backups", "clock", "notifier", "teamUi", "systemLanguage", "applyLanguage", "deviceLabel")
             val empty = setOf("dataLocation", "linkedStorage", "firstLaunch", "updates", "downloadPage", "dataFolder", "diagnostics", "calendars", "shortcuts", "demo")
             assertEquals(carried + empty, fields)
             for (name in empty) {

@@ -54,12 +54,14 @@
     <string name="capture_add">Add</string>
 
     <string name="inbox_title">To process</string>
-    <string name="inbox_help">Give each task a priority and a size in points: that is what lets Kairos rank it.</string>
+    <string name="inbox_help">Give each task a priority, a size in points and a type: that is what lets Kairos rank it.</string>
     <string name="inbox_empty">Nothing to process: everything is already clarified.</string>
     <string name="inbox_empty_filtered">No task to process matches the filter.</string>
-    <string name="missing_both">priority and points missing</string>
-    <string name="missing_priority">priority missing</string>
-    <string name="missing_points">points missing</string>
+    <string name="missing_label">Missing: %1$s</string>
+    <string name="missing_item_priority">priority</string>
+    <string name="missing_item_points">points</string>
+    <string name="missing_item_type">type</string>
+    <string name="missing_item_category">category</string>
 
     <string name="todo_empty">Nothing to do for now.</string>
     <string name="done_title">Done</string>
@@ -141,16 +143,46 @@
     <string name="web_reauthorize">Kairos is no longer allowed to write to “%1$s”. Allow access to keep saving there.</string>
     <string name="web_authorize">Allow access</string>
     <string name="web_save_failed">Saving in the browser failed: %1$s. Export your data.</string>
-    <string name="web_link_open_confirm_body">The data in this browser will be replaced by that of “%1$s”, which will then be kept up to date.</string>
-    <string name="linked_intro">Kairos can keep an up-to-date copy of your data in a file of your choice, for example in a Syncthing or Nextcloud folder. It opens anywhere with Import.</string>
+    <string name="linked_intro">Kairos can keep an up-to-date copy of your data in a file of your choice, for example in a Syncthing or Nextcloud folder. Each device that opens it merges it with its own data.</string>
     <string name="linked_unlink">Unlink</string>
-    <string name="linked_changed">The linked file “%1$s” was changed elsewhere (another device?). Kairos no longer writes to it until you choose.</string>
     <string name="linked_overwrite">Overwrite</string>
-    <string name="linked_import">Import it</string>
     <string name="linked_write_failed">Kairos can no longer write to “%1$s”; your data is safe in Kairos.</string>
     <string name="linked_retry">Retry</string>
-    <string name="linked_open_confirm_body">The data on this device will be replaced by that of “%1$s”, which will then be kept up to date. A backup is made just before.</string>
-    <string name="linked_import_confirm_body">The data on this device will be replaced by that of “%1$s”, changed elsewhere. A backup is made just before.</string>
+    <string name="sync_open_title">Open “%1$s”</string>
+    <string name="sync_open_body">This device already has data. Merge keeps everything that exists on both sides (recommended). Replace puts the file’s data in its place, after an automatic backup.</string>
+    <string name="sync_merge">Merge</string>
+    <string name="sync_first_contact">“%1$s” was written by another device. Merging keeps everything that exists on both sides. Tasks only here: %2$d · only in the file: %3$d · different: %4$d. Other items: %5$d.</string>
+    <string name="sync_unreadable">The linked file “%1$s” cannot be read. Kairos no longer writes to it while it stays that way.</string>
+    <string name="sync_too_new">“%1$s” comes from a newer version of Kairos: update the app. Kairos does not write to it until then.</string>
+    <string name="sync_clock">“%1$s” carries a date more than 30 days in the future: check the clock of the device that wrote it. Nothing is merged.</string>
+    <string name="sync_clock_ahead">A device wrote the file with a clock more than a day ahead: check its date and time, or its changes will keep winning.</string>
+    <string name="sync_status">Kairos merges this file with your data at every change.</string>
+    <string name="sync_last_merge">Last merge: %1$s at %2$s. Added: %3$d · changed: %4$d · removed: %5$d.</string>
+    <string name="sync_device">This device: %1$s</string>
+    <string name="sync_rename">Rename</string>
+    <string name="sync_rename_title">Name of this device</string>
+    <string name="sync_rename_hint">It tells where a value comes from in “To review” on your other devices.</string>
+    <string name="sync_merge_now">Merge now</string>
+    <string name="sync_merge_file">Merge a Kairos file…</string>
+    <string name="sync_review_button">To review (%1$d)</string>
+    <string name="sync_review_banner">To review after a merge: %1$d.</string>
+    <string name="sync_review_see">See</string>
+    <string name="sync_review_title">To review</string>
+    <string name="sync_review_intro">These values were changed on two devices before they met. The most recent one is applied; the other is kept for 30 days.</string>
+    <string name="sync_review_applied">Applied</string>
+    <string name="sync_review_other">Other value</string>
+    <string name="sync_review_value">%1$s: %2$s (%3$s)</string>
+    <string name="sync_review_keep">Keep this one</string>
+    <string name="sync_review_take">Take the other</string>
+    <string name="sync_review_kept">“%1$s” was deleted on %2$s but changed here: kept.</string>
+    <string name="sync_review_delete_again">Delete again</string>
+    <string name="sync_review_keep_all">Keep all the most recent</string>
+    <string name="sync_review_empty">Nothing to review.</string>
+    <string name="sync_review_settings">Settings</string>
+    <string name="sync_merged">Merged. Added: %1$d · changed: %2$d · removed: %3$d.</string>
+    <string name="sync_preview_title">Merge this file?</string>
+    <string name="sync_preview_body">Tasks added: %1$d · changed: %2$d · removed: %3$d. Other items: %4$d. Conflicts: %5$d.</string>
+    <string name="sync_preview_nothing">This file brings nothing new.</string>
 
     <!-- Vue Jour complète (M2) -->
     <string name="capture_title">Capture</string>
@@ -458,7 +490,7 @@
     <string name="points_13_example">to split into subtasks</string>
     <string name="points_21_example">to split into subtasks</string>
     <string name="inbox_help_title">How to qualify?</string>
-    <string name="inbox_help_why">Capture only sets a title, on purpose. A task enters the ordered schedule once clarified: priority and points set, right here, one click each.</string>
+    <string name="inbox_help_why">Capture only sets a title, on purpose. A task enters the ordered schedule once clarified: priority, points and type set, right here, one click each.</string>
     <string name="inbox_help_priority">Priority: how important the task is. The deadline already counts on its own.</string>
     <string name="settings_intro">All of Kairos’ settings, saved on this device. An invalid field is flagged under it; nothing is saved while one remains.</string>
     <string name="settings_section_day">Working day</string>
@@ -650,7 +682,7 @@
     <string name="forecast_histogram_week">week of %1$s: %2$s</string>
     <string name="forecast_histogram_lt1">&lt;1</string>
     <string name="forecast_nothing">Nothing to forecast: no task in this scope.</string>
-    <string name="forecast_nothing_qualify">%1$d backlog tasks still need qualifying (no priority or points) and are not counted.</string>
+    <string name="forecast_nothing_qualify">%1$d backlog tasks still need qualifying (priority, points or category missing) and are not counted.</string>
     <string name="forecast_honesty_draws">%1$s draws</string>
     <string name="forecast_honesty_seed">seed %1$s</string>
     <string name="forecast_source_history">History: %1$d finished task(s) over %2$d weeks</string>
@@ -836,6 +868,7 @@
     <string name="member_error_name">The name is required.</string>
     <string name="member_error_name_long">The name is %1$s characters at most.</string>
     <string name="member_error_name_taken">A member is already called “%1$s”: pick another name (an initial, a role).</string>
+    <string name="member_error_name_archived">“%1$s” is an archived member: restore them from “Former members”, or pick another name.</string>
     <string name="member_absences_title">Absences</string>
     <string name="member_absences_help">Absence days are removed from the member’s capacity. Each absence is saved right away.</string>
     <string name="member_absences_empty">No absence recorded.</string>
@@ -879,7 +912,7 @@
     <string name="keep_in_progress_yes">Yes</string>
     <string name="keep_in_progress_no">No</string>
     <string name="backlog_to_qualify_title">To qualify</string>
-    <string name="backlog_to_qualify_hint">Priority or points are missing: pick them to make the task ready.</string>
+    <string name="backlog_to_qualify_hint">Priority, points or category are missing: pick them to make the task ready.</string>
     <string name="backlog_to_qualify_empty">Nothing to qualify.</string>
     <string name="backlog_ready_title">Ready</string>
     <string name="backlog_ready_hint">Ready to hand out, sorted by score: overdue first.</string>
@@ -1042,7 +1075,7 @@
     <string name="suggest_manual">%1$s: chosen by you</string>
     <string name="suggest_over_wip">in-progress limit reached for %1$s</string>
     <string name="suggest_excluded_title">Left out of the suggestion</string>
-    <string name="suggest_excluded_qualify">To qualify (%1$d): priority or points are missing.</string>
+    <string name="suggest_excluded_qualify">To qualify (%1$d): priority, points or category are missing.</string>
     <string name="suggest_excluded_unplaceable">Cannot be placed (%1$d): no member is available over the horizon.</string>
     <string name="suggest_excluded_archived_one">1 archived member ignored.</string>
     <string name="suggest_excluded_archived_many">%1$d archived members ignored.</string>
@@ -1188,7 +1221,7 @@
     <string name="help_open_team_tour">Team space tour</string>
     <string name="help_open_team_tour_hint">Members, backlog, tracking, forecasts and exchanges</string>
     <string name="help_notes">Jot down an idea, a to-do, a message here, without thinking. Later, turn a note into a task: it lands in the Day view, to be processed.</string>
-    <string name="help_day">“Up next” tells you what to do. Tasks to process are waiting for their priority, points and deadline; the score (value divided by effort) sets the order. Start the timer to measure real time.</string>
+    <string name="help_day">“Up next” tells you what to do. Tasks to process are waiting for their priority, points and type; the score (value divided by effort) sets the order. Start the timer to measure real time.</string>
     <string name="help_week">The seven days of the week: deadlines, finished tasks, time slots and real time. “Month” shows the whole month: planned tasks, deadlines, overloaded days, public holidays and days off. Tap a day to open it in the Day view.</string>
     <string name="help_stats">What you really do: throughput, time spent by task type, and the calibration of your estimates (your points against real time).</string>
     <string name="help_settings">Settings are grouped by category: general, day and hours, planning, timer and statistics, team, data. A change is kept from one category to the next until you press “Save” at the bottom.</string>
@@ -1229,7 +1262,7 @@
     <string name="guide_you_capture_title">Capture without thinking</string>
     <string name="guide_you_capture_body">In Notes, write down whatever comes to mind, without sorting. A note becomes a task whenever you want.</string>
     <string name="guide_you_qualify_title">Qualify in one click</string>
-    <string name="guide_you_qualify_body">A task to process is waiting for its priority, effort points and deadline; its type can be picked on the spot too. “How to qualify?” helps you choose; Kairos derives a score.</string>
+    <string name="guide_you_qualify_body">A task to process is waiting for its priority, effort points and type, picked on the spot. “How to qualify?” helps you choose; Kairos derives a score.</string>
     <string name="guide_you_do_title">Do things in order</string>
     <string name="guide_you_do_body">“Up next” shows the task to do, the next ones are ranked by score around your meetings. “Why this position?” explains each rank.</string>
     <string name="guide_you_time_title">Track time</string>
@@ -1425,7 +1458,7 @@
     <string name="coach_deadline_title">Dates: deadline and planned day</string>
     <string name="coach_deadline_body">The deadline raises the score as it gets close. “Scheduled for”, in the more options, keeps the task for the day you can start it.</string>
     <string name="coach_type_title">Type: what it is for</string>
-    <string name="coach_type_body">The type groups your statistics and can suggest a duration. You can also pick it right from “To process”. Types are managed in the Settings.</string>
+    <string name="coach_type_body">The type groups your statistics and can suggest a duration. With the priority and the points, it takes the task out of “To process” (you can also pick it there). Types are managed in the Settings.</string>
     <string name="coach_more_title">Going further</string>
     <string name="coach_more_body">Project, fixed time, recurrence, subtasks and blockers are here. You can come back to them later from the task’s sheet.</string>
     <string name="coach_save_title">Save the task</string>
@@ -1433,7 +1466,7 @@
     <string name="coach_placed_rank_title">Its place in the day</string>
     <string name="coach_placed_rank_body">The score ranks your tasks: value divided by effort. Tap the score to read “Why this position?”.</string>
     <string name="coach_placed_inbox_title">Not placed yet</string>
-    <string name="coach_placed_inbox_body">This task is not in today’s agenda: it waits in “To process” until it has a priority and points, or in “Later” if its day is not today.</string>
+    <string name="coach_placed_inbox_body">This task is not in today’s agenda: it waits in “To process” until it has a priority, points and a type, or in “Later” if its day is not today.</string>
     <string name="coach_placed_slot_title">Its slot</string>
     <string name="coach_placed_slot_body">Kairos lays the task into a gap of the day, with its duration. The timeline shows where, among your slots and pinned tasks.</string>
     <string name="coach_placed_row_title">The task row</string>
@@ -1463,7 +1496,9 @@
     <string name="card_calendar_import_title">Import your meetings from a calendar</string>
     <string name="card_calendar_import_body">Settings → Data → Calendars imports an .ics file from Outlook, Google Calendar or Thunderbird: each meeting becomes a busy slot, whole-day events a badge on the day. Import it again to update it.</string>
     <string name="card_linked_file_title">A copy of your data in a synced folder</string>
-    <string name="card_linked_file_body">On the desktop and Android, Settings → Data → “Create a file” keeps an up-to-date copy of your data in a folder you choose (Syncthing, Nextcloud…). If another device changed it, Kairos asks before writing.</string>
+    <string name="card_linked_file_body">On the desktop and Android, Settings → Data → “Create a file” keeps an up-to-date copy of your data in a folder you choose (Syncthing, Nextcloud…), and merges it when another device changed it.</string>
+    <string name="card_sync_title">Sync between your devices</string>
+    <string name="card_sync_body">Link the same file on each device (Settings → Data, in a Syncthing or Nextcloud folder…): Kairos merges it with your data, keeps everything from both sides and shows what to review. Update every device to 4.0 first.</string>
     <string name="card_month_title">The month at a glance</string>
     <string name="card_month_body">In the Week view, “Month” shows every day of the month: planned tasks, deadlines, overloaded days, public holidays and days off. Tap a day to open it.</string>
     <string name="card_correct_title">Correct your estimates</string>
@@ -1731,7 +1766,7 @@
     <string name="demo_priority_title">Qualify: priority</string>
     <string name="demo_priority_body">Pick a priority on its line: how important it is. The deadline counts separately.</string>
     <string name="demo_points_title">Qualify: points</string>
-    <string name="demo_points_body">Pick points: its size. It now has a score and takes its place in the day.</string>
+    <string name="demo_points_body">Pick points: its size. One more choice and it takes its place in the day.</string>
     <string name="demo_timer_start_title">Start the timer</string>
     <string name="demo_timer_start_body">Start the timer on its line: “Right now” shows what you are working on.</string>
     <string name="demo_timer_stop_title">Stop the timer</string>
@@ -1752,7 +1787,7 @@
     <string name="filter_missing_duration">No duration</string>
     <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
     <string name="demo_type_title">Qualify: type</string>
-    <string name="demo_type_body">Pick a type on its line: it groups your statistics. With priority, points and type set, Kairos can estimate the duration from your finished tasks.</string>
+    <string name="demo_type_body">Pick a type on its line: it groups your statistics. With priority, points and type set, the task has a score and takes its place in the day; Kairos can also estimate its duration from your finished tasks.</string>
     <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
     <string name="estimate_filled_type">Estimated at %1$s (median of “%2$s”)</string>
     <string name="estimate_filled_points">Estimated at %1$s (median of %2$d-point tasks)</string>
@@ -1761,10 +1796,10 @@
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
     <string name="setting_learning_model">Estimate with machine learning</string>
     <string name="setting_learning_model_help">On-device machine learning: compares a task’s title, type and points with your finished tasks. Nothing leaves this device.</string>
-    <string name="learning_model_status_few">Not enough timed tasks yet (%1$d of %2$d).</string>
-    <string name="learning_model_status_unverified">Not enough comparable tasks to check it yet (%1$d of %2$d).</string>
+    <string name="learning_model_status_few">Machine learning starts after %3$d timed tasks: %1$d more to go (%2$d of %3$d).</string>
+    <string name="learning_model_status_unverified">Machine learning is being checked on your own tasks: %1$d more comparable timed task(s) needed (%2$d of %3$d).</string>
     <string name="learning_model_status_ok">On your last %1$d tasks: median error %2$d%, against %3$d% for the default duration.</string>
-    <string name="learning_model_status_not_better">Not clearly better than the default duration on your last %1$d tasks (%2$d% against %3$d%): not applied.</string>
+    <string name="learning_model_status_not_better">Not clearly better than the default duration on your last %1$d tasks (%2$d% against %3$d%): not applied. It is checked again after each timed task.</string>
     <string name="learned_model_badge_description">Estimated by machine learning from %1$d similar tasks, between %2$s and %3$s</string>
     <string name="learned_model_badge_description_regression">Estimated by machine learning from your %1$d finished tasks, between %2$s and %3$s</string>
     <string name="why_learned_model">Duration: ~%1$s (between %2$s and %3$s), estimated by machine learning from %4$d similar tasks: %5$s.</string>

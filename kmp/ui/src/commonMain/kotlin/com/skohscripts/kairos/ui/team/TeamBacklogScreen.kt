@@ -4,6 +4,7 @@ import com.skohscripts.kairos.ui.app.LocalUndoMessages
 import com.skohscripts.kairos.ui.day.fillInboxEstimate
 import com.skohscripts.kairos.ui.day.Estimates
 import com.skohscripts.kairos.ui.generated.resources.field_category
+import com.skohscripts.kairos.ui.generated.resources.missing_item_category
 import com.skohscripts.kairos.ui.day.Levels
 import com.skohscripts.kairos.ui.app.uiLanguage
 import com.skohscripts.kairos.ui.theme.KairosListBlockExtra
@@ -203,7 +204,7 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
                     )
                 }
             }
-            if (!selecting && snapshot.tasks.any { it.space == TaskSpace.TEAM && it.status == TaskStatus.TODO && it.assigneeId == null && !it.needsProcessing }) {
+            if (!selecting && snapshot.tasks.any { it.space == TaskSpace.TEAM && it.status == TaskStatus.TODO && it.assigneeId == null && !it.needsProcessing(snapshot.settings.typeRequired) }) {
                 item(key = "suggest") {
                     SuggestButton { suggestIds = null; suggestOpen = true }
                 }
@@ -230,7 +231,7 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
                     onDelete = { deleteId = card.task.id },
                     onPriority = { scope.launch { repository.setPriority(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope, services.clock.now()) } },
                     onPoints = { scope.launch { repository.setPoints(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope, services.clock.now()) } },
-                    categories = categories,
+                    categories = categories, typeRequired = snapshot.settings.typeRequired,
                     onCategory = { scope.launch { repository.setTaskType(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope, services.clock.now()) } },
                 )
             }
@@ -244,7 +245,7 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
                     onOpen = { openId = card.task.id }, onToggle = { toggle(card.task.id) },
                     onAssign = { member -> scope.launch { repository.assign(listOf(card.task.id), member) } },
                     onDelete = { deleteId = card.task.id },
-                    onPriority = {}, onPoints = {}, categories = categories, onCategory = {},
+                    onPriority = {}, onPoints = {}, categories = categories, typeRequired = snapshot.settings.typeRequired, onCategory = {},
                 )
             }
             if (board.toQualify.isEmpty() && board.ready.isEmpty()) {
@@ -366,12 +367,14 @@ private fun BacklogRow(
     /** Catégories proposées à la qualification en ligne (issue #166) et l'enregistrement de celle choisie. */
     categories: List<String>,
     onCategory: (String) -> Unit,
+    /** La catégorie est exigée pour qualifier ([com.skohscripts.kairos.core.model.Settings.typeRequired]). */
+    typeRequired: Boolean,
 ) {
     val task = card.task
     val scheme = MaterialTheme.colorScheme
     val errorColor = scheme.error
     val checkbox = wide || selecting
-    val qualify = task.needsProcessing
+    val qualify = task.needsProcessing(typeRequired)
     val selectLabel = stringResource(Res.string.backlog_select)
     var menu by remember { mutableStateOf(false) }
     var assign by remember { mutableStateOf(false) }
@@ -432,7 +435,7 @@ private fun BacklogRow(
                     }
                 }
             }
-            if (qualify) InboxQualify(task, onPriority, onPoints, categories, Res.string.field_category, onCategory, start = if (checkbox) 48.dp else 16.dp)
+            if (qualify) InboxQualify(task, typeRequired, onPriority, onPoints, categories, Res.string.field_category, onCategory, missingType = Res.string.missing_item_category, start = if (checkbox) 48.dp else 16.dp)
         }
     }
 }

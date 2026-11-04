@@ -150,7 +150,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   `Image` (image d'une carte) ; carte « Thème sombre » du guide (3.7.0) : `DarkMode` ; 3.8.0 : `Flag` (échéances de la vue Mois),
   `CalendarMonth` (carte « Le mois d'un coup d'œil »), `ShowChart` (temps chronométré au fil du temps), `EditNote`
   (« Corriger les estimations… »), `Alarm` (rappels) ; 3.10.0 : `Event` (calendriers importés : carte « Calendriers »,
-  créneau importé, journée entière, carte du guide).
+  créneau importé, journée entière, carte du guide) ; 4.0.0 : `Sync` (carte du guide « Synchroniser tes appareils »,
+  `synchronisation.md`).
   `Construction` (écran « En construction ») est retiré au
   jalon M5, plus rien n'étant en construction.
 - `KairosLogo.kt` : le cadran solaire (cadran `#FFEEDC`, anneau `#FFCC85`
@@ -229,7 +230,16 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
     l'Accueil ou la visite.
   - Quand un écran secondaire est ouvert, aucune destination n'est marquée active.
   - `SnackbarHost` dans chaque `Scaffold` ; `LocalMessages` fournit aux
-    écrans une fonction qui y affiche un message.
+    écrans une fonction qui y affiche un message (durée courte) ;
+    `LocalUndoMessages`, un message avec une action (« Annuler »,
+    « Les recréer »…), jouée seulement si elle est choisie avant la fin du
+    message. Sa durée est **longue** (`SnackbarDuration.Long`, environ 10 s)
+    et toujours explicite : avec un bouton, Material 3 rend le message
+    `Indefinite` par défaut, et il restait en bas de l'écran jusqu'au
+    message suivant (retour d'utilisateur du 2026-11-04,
+    `InlineTypeUiTest.aMessageWithUndoGoesAwayOnItsOwn`). Les alertes du
+    chrono et des rappels (`AlertBanners`) restent, elles, affichées jusqu'à
+    leur fermeture (`rappels.md` § Décisions).
   - Au-dessus du contenu de chaque destination : `UpdateBanner`
     (`mises-a-jour.md`) ; hors des branches de mise en page :
     `WelcomeDialog`, `HelpDialog` et `GuideDialog` (`accueil.md`) ; veilles de toute l'application :

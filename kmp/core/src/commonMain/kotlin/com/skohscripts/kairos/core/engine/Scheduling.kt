@@ -203,7 +203,8 @@ object Scheduling {
      * sinon le réglage par défaut. Une estimation explicite l'emporte toujours ; sans [learned], le code est celui d'avant.
      */
     fun durationMinutes(task: Task, settings: Settings, learned: Map<Long, Int> = emptyMap()): Int =
-        task.estimatedMinutes?.takeIf { it != 0 } ?: learned[task.id] ?: settings.defaultTaskDurationMinutes
+        // Seule une estimation positive est explicite, comme pour la chaîne des durées apprises (QA du 2026-11-04).
+        task.estimatedMinutes?.takeIf { it > 0 } ?: learned[task.id] ?: settings.defaultTaskDurationMinutes
 
     // --- Résultat ----------------------------------------------------------------
 
@@ -287,7 +288,7 @@ object Scheduling {
         val todo = tasks.filter { it.status == TaskStatus.TODO }
         val parentsWithOpenChildren = todo.mapNotNull { it.parentId }.toSet()
         val workUnits = todo.filter { it.id !in parentsWithOpenChildren }
-        val toProcess = workUnits.filter { it.needsProcessing }
+        val toProcess = workUnits.filter { it.needsProcessing(settings.typeRequired) }
         val toProcessIds = toProcess.map { it.id }.toSet()
         val nonBlocked = workUnits.filter { it.id !in toProcessIds && it.id !in blockedIds }
         val pinnedToday = nonBlocked.filter { it.pinnedStart != null && it.pinnedStart.date == day }

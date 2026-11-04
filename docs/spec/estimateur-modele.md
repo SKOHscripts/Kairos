@@ -13,7 +13,7 @@ Fichiers couverts (prévus, 4.0.0) : `kmp/core/.../engine/DurationEstimator.kt` 
 `IntervalCoverageTest`, `ModelPerformanceTest`, `EffortSpreadTest`, `LearnedModelTeamLoadTest`, `DurationEstimatorTest`,
 `TeamIsolationTest`, `LearnedDurationsUiTest`, `StringsParityTest`._
 
-État : **issue #99**, spécifiée le 2026-10-26, **en cours d'implémentation (4.0.0)**, en PR empilées par étape (choix du
+État : **issue #99**, spécifiée le 2026-10-26, **implémentée, livrée en 4.0.0**, en PR empilées par étape (choix du
 propriétaire du 2026-11-02) : 1) interface extraite et chaîne de repli, sans changement de comportement ; 2) le modèle et ses
 rétro-tests dans `core` ; 3) l'interface, les Réglages, l'estimation au tri et la mesure web ; 4) les prévisions d'équipe ;
 5) le facteur jour et heure ; 6) la notification groupée et les propositions sur les estimations saisies (5 et 6 ajoutées
@@ -123,7 +123,8 @@ on ne relâche jamais un seuil en silence.
   caractéristiques), l'erreur médiane de la chaîne complète est ≤ 1,1 × celle de la durée par défaut
   (`ModelBacktestTest.neverWorseThanDefault`). Sur `NOISE`, la garde coupe le modèle (estimation « pas fiable ») sur au moins
   18 graines sur 20 (`ModelGateTest.noiseIsGatedOff`) ; sur `SPARSE` (12 tâches faites), le modèle n'est jamais appliqué
-  (`ModelGateTest.tooLittleHistoryIsNeverApplied`).
+  (`ModelGateTest.tooLittleHistoryIsNeverApplied` : le corpus atteint `MIN_CORPUS`, mais la garde n'a pas encore ses 6
+  candidats estimables).
 - **Intervalle honnête** : l'intervalle nominal à 80 % contient la durée réelle dans 70 % à 90 % des cas (profil `NOVEL`,
   au moins 100 tâches testées) (`IntervalCoverageTest`).
 - **Reproductible** : mêmes tâches, mêmes réglages → mêmes estimations, au bit près, sur JVM, Android et wasm ; l'ordre dans
@@ -233,7 +234,10 @@ Pour une tâche à estimer, les mêmes caractéristiques sont lues sur la `Task`
 
 Le modèle est un **index calculé de l'historique** (`ModelIndex.build(samples)`), jamais stocké : pas de colonne, pas
 d'export, pas de migration, pas de poids à versionner. Il retient au plus `MAX_CORPUS` = 500 échantillons **du même espace**
-que la tâche, les plus récents par `taskId` (jamais `updatedAt`), hors la tâche elle-même.
+que la tâche, les plus récents par `Sample.order` (jamais `updatedAt`), hors la tâche elle-même. `order` est l'identifiant, ou
+dans une base synchronisée le rang commun `createdAt` puis `uid` (`KairosSnapshot.sampleOrder`, `synchronisation.md` § Durées
+apprises partagées) : deux appareils fusionnés construisent ainsi le même modèle. Partout ci-dessous, « par `taskId` » se lit
+« par `order` » (corpus, garde, index, départages) ; sans synchronisation `order` = `taskId`, rien ne change.
 
 **1. Caractéristiques textuelles** (`TextFeatures.kt`, du titre seul) :
 
@@ -298,28 +302,28 @@ urgence, pas une taille ; on la laisse à la régression, qui dira si les donné
   ordre fixe, `+ − × ÷` seulement. Coût `O(n × d²)` avec `d ≤ 14` : négligeable pour 500 échantillons.
 - Estimation : `ŷ = x·β`, `minutes = ŷ²`. Intervalle : quantiles à 10 % et 90 % des résidus du corpus (rang le plus proche),
   élargis de 1,25, soit `low = (ŷ + 1,25 q10)²`, `high = (ŷ + 1,25 q90)²` (bornés par 5 min en bas).
-- **Pas de régression** si le corpus compte moins de `MIN_CORPUS` = 20 échantillons ou si la tâche n'a ni type connu du modèle
+- **Pas de régression** si le corpus compte moins de `MIN_CORPUS` = 12 échantillons ou si la tâche n'a ni type connu du modèle
   ni points : sans caractéristique pour la décrire, la régression ne rendrait que la moyenne des tâches, ce qui n'est pas une
   estimation de *cette* tâche. Le niveau modèle rend alors `null`.
 - `Evidence(REGRESSION, …)` : le type et les points utilisés (ceux qui ont servi) et la taille du corpus.
 
 **5. Fiabilité et garde** (`ModelGate.kt`). L'estimation du modèle est `reliable` si et seulement si :
 
-1. le corpus de l'espace compte au moins `MIN_CORPUS` = 20 échantillons ;
+1. le corpus de l'espace compte au moins `MIN_CORPUS` = 12 échantillons ;
 2. la base est suffisante : voisins retenus ≥ `MIN_NEIGHBOURS`, ou base de régression admise (ci-dessus) ;
 3. la **garde** a réussi.
 
 La garde est le moyen de tenir « jamais pire que la durée par défaut » *sur l'historique de l'utilisateur lui-même* :
 
 - Candidats (`ModelGate.candidates`) : les `GATE_SIZE` = 30 derniers échantillons du corpus (par `taskId`) qui ont au moins
-  `GATE_PREFIX_MIN` = 8 échantillons plus anciens. Chacun est estimé par le modèle **construit sur les seuls échantillons
+  `GATE_PREFIX_MIN` = 6 échantillons plus anciens. Chacun est estimé par le modèle **construit sur les seuls échantillons
   plus anciens** (index, idf et régression compris : aucune information future), sa durée réelle n'est jamais lue avant le
   calcul. Ne comptent que les estimations **à base suffisante** (assez de voisins, ou régression admise) : celles qui seraient
   appliquées.
 - Erreur : **erreur relative symétrique** `e(p, r) = |p − r| / max(p, r)` ∈ [0 ; 1[, pour une prédiction `p` et un réel `r`
   (bornée et indifférente au sens de l'erreur, contrairement à `|p − r| / r`, qui pardonne les sous-estimations).
-- La garde réussit si au moins `GATE_MIN` = 10 candidats ont pu être estimés **et** si la médiane de `e` du modèle est
-  `≤ GATE_RATIO` = 0,8 × la médiane de `e` de la durée par défaut (`defaultTaskDurationMinutes`) sur les mêmes candidats.
+- La garde réussit si au moins `GATE_MIN` = 6 candidats ont pu être estimés **et** si la médiane de `e` du modèle est
+  `≤ GATE_RATIO` = 0,85 × la médiane de `e` de la durée par défaut (`defaultTaskDurationMinutes`) sur les mêmes candidats.
   Un modèle qui ne fait pas nettement mieux que 30 min ne sert à rien et ne mérite pas de bouger le planning.
 - `ModelGate.Result(evaluated, modelError, defaultError, passed, reason)` avec `reason` ∈ {`OK`, `TOO_FEW_SAMPLES`,
   `NOT_BETTER`} ; il est rendu dans `Evidence` et dans l'état de la carte des Réglages. Les médianes sont **basses** (la valeur
@@ -330,10 +334,10 @@ Une estimation de source `MODEL` non fiable (garde échouée, corpus trop court,
 `reliable = false` quand elle existe : affichée « pas encore fiable », jamais appliquée.
 
 **Paramètres** : toutes les constantes vivent dans `ModelParams` (valeurs de départ ci-dessus, arbitrées par le rétro-test) :
-`MAX_CORPUS` 500, `MIN_CORPUS` 20, `NEIGHBOURS_MAX` 5, `SIMILARITY_MIN` 0,25, `MIN_NEIGHBOURS` min(5, max(3, `minSamples`)),
+`MAX_CORPUS` 500, `MIN_CORPUS` 12, `NEIGHBOURS_MAX` 5, `SIMILARITY_MIN` 0,25, `MIN_NEIGHBOURS` min(5, max(3, `minSamples`)),
 poids 0,5 / 0,2 / 0,2 / 0,1, quantiles 0,10 et 0,90, `NEIGHBOUR_WIDEN` 2 (élargissement `1 + 2/k`), `RIDGE_LAMBDA` 1,0,
-`RIDGE_WIDEN` 1,25, `RIDGE_TYPE_MIN` 3, `RIDGE_MAX_TYPES` 8, `GATE_SIZE` 30, `GATE_PREFIX_MIN` 8, `GATE_MIN` 10,
-`GATE_RATIO` 0,8, facteur d'aberrant 3,0 (partagé avec `HistoryEstimators`). Ce ne sont **pas** des réglages utilisateur
+`RIDGE_WIDEN` 1,25, `RIDGE_TYPE_MIN` 3, `RIDGE_MAX_TYPES` 8, `GATE_SIZE` 30, `GATE_PREFIX_MIN` 6, `GATE_MIN` 6,
+`GATE_RATIO` 0,85, facteur d'aberrant 3,0 (partagé avec `HistoryEstimators`). Ce ne sont **pas** des réglages utilisateur
 (un seul interrupteur : § Réglage). `learning.history` ne concerne que séries et titres ; `learning.minSamples` fixe aussi
 le nombre minimal de voisins, avec un plancher à 3 et un **plafond à `NEIGHBOURS_MAX`** (relecture du 2026-11-03 : sans
 plafond, `minSamples` ≥ 6, permis jusqu'à `learning.history`, rendait toute base de voisins insuffisante et éteignait le
@@ -347,8 +351,9 @@ modèle sans le dire ; `RobustnessTest.manyRequiredSamplesNeverSilenceTheModel`)
   `ln`, `exp`, `pow` ni trigonométrie (leurs derniers chiffres divergent selon les moteurs) ; c'est pourquoi l'idf est une
   racine et la cible de la régression une racine, pas des logarithmes.
 - Aucune itération sur `HashMap` / `HashSet` pour produire un résultat : tableaux triés, `LinkedHashMap` au besoin ; les
-  échantillons sont **triés par `taskId` avant tout calcul** (l'ordre d'entrée est sans effet) ; toutes les égalités ont un
-  départage explicite (`taskId`).
+  échantillons sont **triés par `order` avant tout calcul** (l'ordre d'entrée est sans effet) ; toutes les égalités ont un
+  départage explicite (`order`). L'empreinte du cache (`ModelIndex.fingerprint`) mêle `order` seulement quand il diffère de
+  l'identifiant : sans synchronisation, elle est celle d'avant (`ModelReproducibilityTest`).
 - La normalisation du texte n'appelle que `lowercaseChar()` et `isLetterOrDigit()` du standard, après la table de repli
   explicite ; `ModelReproducibilityTest` fige des valeurs sur des titres accentués (« É », « ß », « Ё », « ñ ») pour détecter
   toute divergence de tables Unicode entre cibles.
@@ -558,8 +563,10 @@ La provenance est visible partout où la durée l'est, avec les mêmes règles q
 - `ui/settings/SettingsFormCards.kt` : dans la carte « Durées apprises » (catégorie « Planification »), interrupteur
   « Estimer par machine learning » avec son aide (« Machine learning sur l’appareil : compare le titre, le type et les points
   d'une tâche à tes tâches déjà faites. Rien ne quitte cet appareil. ») et, dessous, **l'état de la vérification** : « Sur tes 30 dernières tâches : erreur médiane 25 %,
-  contre 48 % pour la durée par défaut » / « Pas encore assez de tâches chronométrées (12 sur 20) » / « Ne fait pas mieux que la
-  durée par défaut : non appliqué ». Quand les durées apprises sont coupées, l'interrupteur et son état **disparaissent**
+  contre 48 % pour la durée par défaut » / « Le machine learning démarre après 12 tâches chronométrées : encore 3 (9 sur 12) » / « Le machine learning se vérifie
+  sur tes propres tâches : encore 2 tâche(s) chronométrée(s) comparable(s) (4 sur 6) » / « Ne fait pas mieux que la
+  durée par défaut : non appliqué. Il est revérifié après chaque tâche chronométrée. » L'état dit **ce qui manque** en
+  nombre de tâches (le reste, puis l'avancement), depuis le 2026-11-03. Quand les durées apprises sont coupées, l'interrupteur et son état **disparaissent**
   (règle `SHOWN_WITH` des Réglages, comme l'heure du récapitulatif), plutôt que d'être grisés : écart décidé à
   l'implémentation, une seule règle pour tous les champs qui dépendent d'un interrupteur. L'état (`ModelStatusLine`, lu par
   `DurationEstimator.modelStatus` sur les données enregistrées de l'espace Perso) n'apparaît qu'avec l'interrupteur actif.
@@ -627,7 +634,7 @@ l'étape 6 et les corrections ; tests `RobustnessTest`, `EstimateChangesTest`, `
   cache sont `@Volatile` (publication sûre entre la vue Jour en arrière-plan, les Réglages et les prévisions ; une course
   ne coûte qu'une reconstruction).
 - **Accents décomposés** (NFD, U+0300 à U+036F) ignorés dans le mot au lieu de le couper (« re\u0301diger » = « rédiger »).
-- **La garde trie elle-même** son corpus : un préfixe n'est le passé que dans l'ordre des `taskId`, même si un appelant
+- **La garde trie elle-même** son corpus : un préfixe n'est le passé que dans l'ordre des `order`, même si un appelant
   futur oublie `corpus()`.
 - **Rythme** : le produit jour × tranche est borné comme chaque facteur ([0,5 ; 2]) ; la validation d'un facteur arrondit
   et borne comme la production (multiple de 5, fenêtre de travail). Le laisser-un-dehors ne retire la tâche que des voisins
@@ -636,7 +643,7 @@ l'étape 6 et les corrections ; tests `RobustnessTest`, `EstimateChangesTest`, `
   points ni étiquette) ; c'est voulu (le type est une ressemblance réelle), et la fiche donne le pour cent de chacune.
 - **Interface** : le rythme est dit aussi dans la fiche pour une base de voisins ; « pas encore assez de tâches
   comparables pour vérifier le modèle » quand la garde manque de candidats (et non « pas assez de tâches faites ») ; « ne
-  fait pas **nettement** mieux » (la garde exige 0,8 ×) ; « … » après trois tâches proches nommées ; « points : 1 » plutôt
+  fait pas **nettement** mieux » (la garde exige 0,85 ×) ; « … » après trois tâches proches nommées ; « points : 1 » plutôt
   que « 1 points » ; l'état de la vérification dans les Réglages suit les valeurs **enregistrées** (il apparaît après
   « Enregistrer » quand on vient d'activer le modèle) et passe le fuseau, comme la vue Jour, pour partager sa case de cache.
 
@@ -669,7 +676,16 @@ Décidées le 2026-10-26 à la rédaction de la spec ; **l'activation par défau
   pour qui a un historique riche. Atténuations : garde sur l'historique personnel, jamais sur une durée explicite, série ou
   titre fiables passent avant, provenance et fourchette visibles partout, annoncé par la visite, interrupteur dans les Réglages,
   version majeure.
-- **Garde ≤ 0,8 × l'erreur de la durée par défaut** : à égalité le modèle ne justifie pas de déplacer le planning ; la marge
+- **Garde allégée pour une activation plus rapide** (décision **rouverte** le 2026-11-03 à la demande de l'utilisateur, le
+  modèle ne s'activait pas sur son historique réel) : `MIN_CORPUS` 20 → 12, `GATE_PREFIX_MIN` 8 → 6, `GATE_MIN` 10 → 6,
+  `GATE_RATIO` 0,8 → 0,85. Mesure (20 graines) : `RECURRING` et `NOVEL` s'activent dès 16 tâches sur 9 graines (jamais
+  avant 20 tâches jusque-là), sur 15 à 16 graines à 20 tâches. Le ratio pèse peu sur cette vitesse (à 20 tâches, 15 graines
+  à 0,85 contre 17 à 0,9) mais beaucoup sur le bruit : sur `NOISE` complet, 0,9 laisse passer 6 graines sur 20 (critère :
+  au plus 2), 0,85 en laisse 2, d'où **0,85 et non 0,9** (proposé d'abord). Sur un très court historique de bruit (20
+  tâches), 3 graines sur 20 passent, au seuil ancien comme au nouveau : le compte de candidats n'y change rien. Le
+  minimum de 12 tâches est un seuil d'entrée ; en pratique la garde demande encore 4 à 8 tâches pour réunir 6 candidats
+  estimables, ce que l'état des Réglages dit en clair.
+- **Garde ≤ 0,8 × l'erreur de la durée par défaut** (remplacé par 0,85 le 2026-11-03, ci-dessus) : à égalité le modèle ne justifie pas de déplacer le planning ; la marge
   évite une bascule entre deux valeurs au gré d'une tâche de plus. **Rouvert au premier rétro-test (2026-11-03)** : à 0,9, la
   garde ne coupait le modèle que sur 14 graines sur 20 de `NOISE` (critère : 18) ; 0,85 en donnait 18, 0,8 en donne 19, et
   `NOVEL` reste appliqué à 98 % : 0,8 retenu, pour une marge d'une graine. Fenêtre de 50 candidats essayée, écartée (13 à 17

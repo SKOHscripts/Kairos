@@ -239,7 +239,7 @@ class TeamLoadUiTest {
         waitText("Suggested distribution")
         waitText("3 of 3 kept. Nothing is assigned until “Apply”.")
         // Exclus : la tâche à qualifier.
-        waitText("To qualify (1): priority or points are missing.")
+        waitText("To qualify (1): priority, points or category are missing.")
         assertEquals(0, repository.snapshot.value.tasks.count { it.assigneeId != null })
 
         // Décoche la ligne un, change l'assigné de la ligne deux.

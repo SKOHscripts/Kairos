@@ -33,4 +33,11 @@ data class KairosSnapshot(
     val calendarSources: List<CalendarSource> = emptyList(),
     /** Journées entières des calendriers importés (badges) ; vide tant qu'aucun calendrier n'a été importé. */
     val dayMarks: List<DayMark> = emptyList(),
+    /**
+     * Rang de chaque tâche dans l'ordre **commun** des appareils synchronisés (`createdAt`, puis `uid` ; `SyncOrder`), posé par le
+     * dépôt d'une base synchronisée et jamais écrit ni exporté : les durées apprises et le modèle ordonnent leurs occurrences
+     * par lui plutôt que par l'identifiant local, qui diffère d'un appareil à l'autre (docs/spec/synchronisation.md § Durées
+     * apprises partagées). `null` sans synchronisation : l'ordre reste l'identifiant, comme avant.
+     */
+    val sampleOrder: Map<Long, Long>? = null,
 )
