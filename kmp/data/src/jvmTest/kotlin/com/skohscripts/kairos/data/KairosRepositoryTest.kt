@@ -18,6 +18,7 @@ import kotlinx.coroutines.test.runTest
 import com.skohscripts.kairos.core.model.BlockKind
 import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.TaskRecurrence
+import com.skohscripts.kairos.core.model.TeamSettings
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -313,6 +314,21 @@ class KairosRepositoryTest {
         assertEquals(ImportException.Reason.CORRUPTED, reason(export(""""tasks":[{"id":"abc"}]""")))
         // Marque d'ordre des octets (Bloc-notes de Windows) : l'export reste lisible.
         assertEquals(listOf("x"), ExportCodec.decode("\uFEFF" + export(""""tasks":[$task]""")).tasks.map { it.title })
+    }
+
+    @Test
+    fun outOfRangeTeamSettingsAreBoundedOnImport() {
+        // QA du 2026-11-04 : un seuil d'équipe hors bornes faisait refuser tout le fichier ; il est ramené dans sa borne.
+        val team = """"team":{"enabled":true,"horizonWeeks":0,"focusFactor":0.0,"hoursPerPoint":-1.0,"simulationRuns":10,"deadlineRiskPercent":150,"wipLimit":-2}"""
+        val text = """{"format":"kairos-export","formatVersion":2,"settings":{$team}}"""
+        val bounded = assertNotNull(ExportCodec.decode(text).settings.team)
+        assertEquals(1, bounded.horizonWeeks)
+        assertEquals(TeamSettings.DEFAULT_FOCUS_FACTOR, bounded.focusFactor)
+        assertEquals(TeamSettings.DEFAULT_HOURS_PER_POINT, bounded.hoursPerPoint)
+        assertEquals(500, bounded.simulationRuns)
+        assertEquals(99, bounded.deadlineRiskPercent)
+        assertEquals(0, bounded.wipLimit)
+        assertTrue(bounded.enabled)
     }
 
     @Test

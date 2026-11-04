@@ -189,6 +189,27 @@ data class TeamSettings(
      */
     @EncodeDefault(EncodeDefault.Mode.NEVER) val rejectedProposals: List<String> = emptyList(),
 ) {
+    /**
+     * Les mêmes réglages, chacun ramené dans les bornes du formulaire (`SettingsForm`, champs `team.*`) : à l'import d'un
+     * fichier venu d'ailleurs, un réglage d'équipe hors bornes est corrigé plutôt que de faire refuser tout le fichier (QA du
+     * 2026-11-04). Une borne exclue (part de temps disponible, heures par point : > 0) ou un nombre non fini reprend la valeur
+     * par défaut. `TeamSettingsBoundsTest` vérifie que le résultat passe toujours la validation du formulaire.
+     */
+    fun bounded(): TeamSettings = copy(
+        staleProgressDays = staleProgressDays.coerceAtLeast(1),
+        churnThreshold = churnThreshold.coerceAtLeast(2),
+        wipLimit = wipLimit.coerceAtLeast(0),
+        horizonWeeks = horizonWeeks.coerceIn(1, 26),
+        focusFactor = if (focusFactor.isFinite() && focusFactor > 0.0) focusFactor.coerceAtMost(1.0) else DEFAULT_FOCUS_FACTOR,
+        hoursPerPoint = if (hoursPerPoint.isFinite() && hoursPerPoint > 0.0) hoursPerPoint else DEFAULT_HOURS_PER_POINT,
+        loadWarnPercent = loadWarnPercent.coerceIn(1, 100),
+        affinityDays = affinityDays.coerceAtLeast(0),
+        simulationRuns = simulationRuns.coerceIn(500, 50_000),
+        historyWeeks = historyWeeks.coerceIn(1, 104),
+        minSamples = minSamples.coerceAtLeast(3),
+        deadlineRiskPercent = deadlineRiskPercent.coerceIn(1, 99),
+    )
+
     companion object {
         const val DEFAULT_STALE_PROGRESS_DAYS = 5
         const val DEFAULT_CHURN_THRESHOLD = 3

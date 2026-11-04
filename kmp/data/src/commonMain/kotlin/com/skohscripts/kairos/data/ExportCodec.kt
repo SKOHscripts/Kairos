@@ -125,10 +125,20 @@ object ExportCodec {
         val version = (root["formatVersion"] as? JsonPrimitive)?.intOrNull ?: throw ImportException(ImportException.Reason.NOT_AN_EXPORT)
         if (version > SYNC_FORMAT_VERSION) throw ImportException(ImportException.Reason.TOO_NEW)
         return try {
-            json.decodeFromJsonElement(ExportFile.serializer(), root).toSnapshot().also(::check)
+            json.decodeFromJsonElement(ExportFile.serializer(), root).toSnapshot().let(::withBoundedTeam).also(::check)
         } catch (e: Exception) {
             throw ImportException(ImportException.Reason.CORRUPTED, e)
         }
+    }
+
+    /**
+     * Réglages d'équipe ramenés dans leurs bornes ([TeamSettings.bounded]) avant les contrôles : un seuil d'équipe hors bornes
+     * se corrige sans risque, alors qu'un réglage de planification hors bornes (heure 25) reste refusé (QA du 2026-11-04).
+     */
+    private fun withBoundedTeam(s: KairosSnapshot): KairosSnapshot {
+        val team = s.settings.team ?: return s
+        val bounded = team.bounded()
+        return if (bounded == team) s else s.copy(settings = s.settings.copy(team = bounded))
     }
 
     /** Les règles que la saisie garantit, vérifiées sur un fichier venu d'ailleurs ; `IllegalArgumentException` sinon. */

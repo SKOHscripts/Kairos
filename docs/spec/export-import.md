@@ -208,7 +208,12 @@ JSON UTF-8 indenté :
     `CORRUPTED`. (Une liste absente reste vide, `tasks` comprise : le
     remplacement est confirmé et précédé d'une sauvegarde.) Valeur invalide :
     date ou instant illisible, réglages refusés par `SettingsForm.validate`
-    (mêmes bornes et règles que le formulaire), identifiant en double dans
+    (mêmes bornes et règles que le formulaire ; les réglages **d'équipe** sont
+    d'abord ramenés dans leurs bornes par `TeamSettings.bounded`, une borne
+    exclue ou un nombre non fini reprenant la valeur par défaut : un seuil
+    d'équipe hors bornes se corrige sans risque et ne fait plus refuser tout
+    le fichier, QA du 2026-11-04, `KairosRepositoryTest.outOfRangeTeamSettingsAreBoundedOnImport`),
+    identifiant en double dans
     une table, titre de plus de 10 000 caractères (borne appliquée aussi à
     la saisie : capture, fiche, sous-tâche, note convertie, pour que tout
     export se réimporte ; QA du 2026-11-04), priorité hors 0-2, points
