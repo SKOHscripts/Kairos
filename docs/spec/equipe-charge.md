@@ -258,7 +258,8 @@ uniformes, comme avant.
   tâche a une échéance, `lateDays = 0` ; pour une tâche posée, `lateDays`
   en jours ouvrés, au moins 1.
 - Cycles : `Dependencies.acyclicEdges` (même traitement que la vue Jour :
-  une tâche en aval d'un cycle perd aussi son arête).
+  seules les arêtes internes au cycle sont ignorées, une tâche en aval d'un
+  cycle garde la sienne et attend, depuis le 2026-11-04, `dependances.md`).
 - Sortie : `Result(jour, horizonEnd, members, tasks)` ; `PlannedTask(taskId,
   memberId, start?, end?, late, lateDays, effortSource, unestimated, hours,
   placement)` ; `MemberPlan(memberId, tasks, capacityHours, loadHours,

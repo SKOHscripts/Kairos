@@ -243,3 +243,6 @@ type, tous deux indexés par le nom du type en minuscules.
   « remplie ». Les fichiers d'or portent des
   fenêtres déjà rognées : ils décrivent le comportement voulu (31 scénarios
   sur 480 ont changé, tous avec une heure courante).
+- **Tâche en aval d'un cycle de dépendances bloquée** (2026-11-04) : 10
+  scénarios sur 480 de `scheduling.json` ont changé (bloquées, urgence héritée,
+  placement), voir `dependances.md` § Décisions.

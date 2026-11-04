@@ -3,39 +3,90 @@ package com.skohscripts.kairos.core.engine
 /**
  * Dépendances « bloquée par » (docs/spec/ordonnancement.md § Dépendances). Pur.
  *
- * Arête = `(bloquée, bloquante)`. Les cycles sont neutralisés (arêtes ignorées),
- * jamais de boucle infinie ni de blocage mutuel.
+ * Arête = `(bloquée, bloquante)`. Les arêtes internes à un cycle sont neutralisées (ignorées) : jamais de boucle
+ * infinie ni de blocage mutuel, et une tâche en aval d'un cycle reste bloquée par lui.
  */
 object Dependencies {
     data class Edge(val blocked: Long, val blocker: Long)
 
-    /** Nœuds impliqués dans un cycle (algorithme de Kahn). */
+    /**
+     * Nœuds impliqués dans un cycle : ceux d'une composante fortement connexe de plus d'un nœud, ou portant une auto-arête.
+     * Une tâche **en aval** d'un cycle n'y est pas (2026-11-04, QA : l'algorithme de Kahn l'y mettait, et elle perdait son
+     * blocage).
+     */
     fun cycleNodes(edges: List<Edge>): Set<Long> {
-        val nodes = LinkedHashSet<Long>()
-        edges.forEach { nodes += it.blocked; nodes += it.blocker }
-        val indeg = nodes.associateWith { 0 }.toMutableMap()
-        val adj = nodes.associateWith { mutableListOf<Long>() }
-        for (e in edges) {
-            adj.getValue(e.blocker) += e.blocked
-            indeg[e.blocked] = indeg.getValue(e.blocked) + 1
-        }
-        val queue = ArrayDeque(nodes.filter { indeg.getValue(it) == 0 })
-        while (queue.isNotEmpty()) {
-            val node = queue.removeLast()
-            for (next in adj.getValue(node)) {
-                indeg[next] = indeg.getValue(next) - 1
-                if (indeg.getValue(next) == 0) queue.addLast(next)
-            }
-        }
-        return nodes.filter { indeg.getValue(it) > 0 }.toSet()
+        val component = components(edges)
+        val size = HashMap<Int, Int>()
+        component.values.forEach { size[it] = (size[it] ?: 0) + 1 }
+        val out = LinkedHashSet<Long>()
+        for ((node, c) in component) if (size.getValue(c) > 1) out += node
+        edges.forEach { if (it.blocked == it.blocker) out += it.blocked }
+        return out
     }
 
-    /** Arêtes hors cycle, dédupliquées, sans auto-boucle. */
+    /**
+     * Composante fortement connexe de chaque nœud (Tarjan, **itératif** : pas de récursion, une longue chaîne ne fait pas
+     * déborder la pile, wasm compris). Deux nœuds ont le même numéro si et seulement si chacun atteint l'autre.
+     */
+    private fun components(edges: List<Edge>): Map<Long, Int> {
+        val adj = LinkedHashMap<Long, MutableList<Long>>()
+        for (e in edges) {
+            adj.getOrPut(e.blocker) { mutableListOf() } += e.blocked
+            adj.getOrPut(e.blocked) { mutableListOf() }
+        }
+        val index = HashMap<Long, Int>()
+        val low = HashMap<Long, Int>()
+        val onStack = HashSet<Long>()
+        val stack = ArrayDeque<Long>()
+        val component = HashMap<Long, Int>()
+        var counter = 0
+        var components = 0
+        for (root in adj.keys) {
+            if (root in index) continue
+            // Pile d'appels simulée : (nœud, position du prochain voisin à visiter).
+            val calls = ArrayDeque<Pair<Long, Int>>()
+            index[root] = counter; low[root] = counter; counter++
+            stack.addLast(root); onStack += root
+            calls.addLast(root to 0)
+            while (calls.isNotEmpty()) {
+                val (node, next) = calls.removeLast()
+                val neighbours = adj.getValue(node)
+                if (next < neighbours.size) {
+                    calls.addLast(node to next + 1)
+                    val w = neighbours[next]
+                    if (w !in index) {
+                        index[w] = counter; low[w] = counter; counter++
+                        stack.addLast(w); onStack += w
+                        calls.addLast(w to 0)
+                    } else if (w in onStack) {
+                        low[node] = minOf(low.getValue(node), index.getValue(w))
+                    }
+                    continue
+                }
+                if (low.getValue(node) == index.getValue(node)) {
+                    while (true) {
+                        val w = stack.removeLast()
+                        onStack -= w
+                        component[w] = components
+                        if (w == node) break
+                    }
+                    components++
+                }
+                calls.lastOrNull()?.let { (parent, _) -> low[parent] = minOf(low.getValue(parent), low.getValue(node)) }
+            }
+        }
+        return component
+    }
+
+    /**
+     * Arêtes hors cycle, dédupliquées, sans auto-boucle : seules les arêtes **internes** à un cycle (même composante
+     * fortement connexe) sont neutralisées ; celle qui relie une tâche en aval à un nœud du cycle reste, et la bloque.
+     */
     fun acyclicEdges(edges: List<Edge>): List<Edge> {
-        val cycles = cycleNodes(edges)
+        val component = components(edges)
         val seen = HashSet<Edge>()
         return edges.filter { e ->
-            e.blocked != e.blocker && !(e.blocked in cycles && e.blocker in cycles) && seen.add(e)
+            e.blocked != e.blocker && component[e.blocked] != component[e.blocker] && seen.add(e)
         }
     }
 

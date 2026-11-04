@@ -6129,13 +6129,17 @@
    ]
   ],
   "expected": {
-   "blocked": [],
-   "raised": [],
+   "blocked": [
+    1
+   ],
+   "raised": [
+    2
+   ],
    "scheduled": [
     {
-     "id": 1,
+     "id": 2,
      "start": "2027-01-22T09:00",
-     "duration": 30,
+     "duration": 15,
      "pinned": false,
      "pushedAfter": null,
      "pushedAfterKind": null,
@@ -6145,19 +6149,8 @@
     },
     {
      "id": 6,
-     "start": "2027-01-22T09:30",
+     "start": "2027-01-22T09:15",
      "duration": 240,
-     "pinned": false,
-     "pushedAfter": null,
-     "pushedAfterKind": null,
-     "conflictWith": null,
-     "deepwork": false,
-     "dip": false
-    },
-    {
-     "id": 2,
-     "start": "2027-01-22T13:30",
-     "duration": 15,
      "pinned": false,
      "pushedAfter": null,
      "pushedAfterKind": null,
@@ -6182,26 +6175,20 @@
    "toProcess": [
     4
    ],
-   "required": 525,
+   "required": 495,
    "available": 600,
    "timeline": [
     {
      "kind": "WORK",
-     "title": "Plan 1",
+     "title": "Réunion 2",
      "top": 0,
-     "height": 30
+     "height": 15
     },
     {
      "kind": "WORK",
      "title": "Budget 6",
-     "top": 30,
+     "top": 15,
      "height": 240
-    },
-    {
-     "kind": "WORK",
-     "title": "Réunion 2",
-     "top": 270,
-     "height": 15
     },
     {
      "kind": "PINNED",
@@ -25591,16 +25578,18 @@
    ]
   ],
   "expected": {
-   "blocked": [],
-   "raised": [],
-   "scheduled": [],
-   "unscheduled": [
-    4,
-    2
-   ],
-   "later": [
+   "blocked": [
     3
    ],
+   "raised": [
+    2
+   ],
+   "scheduled": [],
+   "unscheduled": [
+    2,
+    4
+   ],
+   "later": [],
    "toProcess": [
     1
    ],
@@ -37834,16 +37823,18 @@
    ]
   ],
   "expected": {
-   "blocked": [],
-   "raised": [],
+   "blocked": [
+    1
+   ],
+   "raised": [
+    2
+   ],
    "scheduled": [],
    "unscheduled": [
     3,
     2
    ],
-   "later": [
-    1
-   ],
+   "later": [],
    "toProcess": [],
    "required": 210,
    "available": 0,
@@ -39705,8 +39696,12 @@
    ]
   ],
   "expected": {
-   "blocked": [],
-   "raised": [],
+   "blocked": [
+    1
+   ],
+   "raised": [
+    2
+   ],
    "scheduled": [],
    "unscheduled": [],
    "later": [
@@ -47853,10 +47848,13 @@
   "expected": {
    "blocked": [
     3,
+    6,
     8
    ],
    "raised": [
-    4
+    2,
+    4,
+    6
    ],
    "scheduled": [
     {
@@ -55938,8 +55936,12 @@
    ]
   ],
   "expected": {
-   "blocked": [],
-   "raised": [],
+   "blocked": [
+    6
+   ],
+   "raised": [
+    1
+   ],
    "scheduled": [
     {
      "id": 4,
@@ -55953,19 +55955,8 @@
      "dip": false
     },
     {
-     "id": 6,
-     "start": "2027-12-23T09:30",
-     "duration": 15,
-     "pinned": false,
-     "pushedAfter": null,
-     "pushedAfterKind": null,
-     "conflictWith": null,
-     "deepwork": false,
-     "dip": false
-    },
-    {
      "id": 5,
-     "start": "2027-12-23T09:45",
+     "start": "2027-12-23T09:30",
      "duration": 20,
      "pinned": false,
      "pushedAfter": null,
@@ -56002,7 +55993,7 @@
    "toProcess": [
     2
    ],
-   "required": 260,
+   "required": 245,
    "available": 585,
    "timeline": [
     {
@@ -56013,14 +56004,8 @@
     },
     {
      "kind": "WORK",
-     "title": "Revue 6",
-     "top": 90,
-     "height": 15
-    },
-    {
-     "kind": "WORK",
      "title": "Plan 5",
-     "top": 105,
+     "top": 90,
      "height": 20
     },
     {
@@ -63306,22 +63291,23 @@
   ],
   "expected": {
    "blocked": [
+    1,
     2
    ],
    "raised": [
-    3
+    3,
+    4
    ],
    "scheduled": [],
    "unscheduled": [
-    3,
-    1
+    3
    ],
    "later": [],
    "toProcess": [
     4,
     5
    ],
-   "required": 50,
+   "required": 20,
    "available": 0,
    "timeline": [
     {
@@ -81048,7 +81034,8 @@
   "expected": {
    "blocked": [
     6,
-    7
+    7,
+    8
    ],
    "raised": [
     2,
@@ -81079,19 +81066,8 @@
      "dip": false
     },
     {
-     "id": 8,
-     "start": "2026-11-25T15:16",
-     "duration": 20,
-     "pinned": false,
-     "pushedAfter": null,
-     "pushedAfterKind": null,
-     "conflictWith": null,
-     "deepwork": false,
-     "dip": false
-    },
-    {
      "id": 2,
-     "start": "2026-11-25T15:36",
+     "start": "2026-11-25T15:16",
      "duration": 90,
      "pinned": false,
      "pushedAfter": null,
@@ -81102,7 +81078,7 @@
     },
     {
      "id": 3,
-     "start": "2026-11-25T17:06",
+     "start": "2026-11-25T16:46",
      "duration": 15,
      "pinned": false,
      "pushedAfter": null,
@@ -81113,7 +81089,7 @@
     },
     {
      "id": 9,
-     "start": "2026-11-25T17:21",
+     "start": "2026-11-25T17:01",
      "duration": 15,
      "pinned": false,
      "pushedAfter": null,
@@ -81129,7 +81105,7 @@
     1,
     4
    ],
-   "required": 170,
+   "required": 150,
    "available": 254,
    "timeline": [
     {
@@ -81146,26 +81122,20 @@
     },
     {
      "kind": "WORK",
-     "title": "Bug 8",
-     "top": 436,
-     "height": 20
-    },
-    {
-     "kind": "WORK",
      "title": "Budget 2",
-     "top": 456,
+     "top": 436,
      "height": 90
     },
     {
      "kind": "WORK",
      "title": "Réunion 3",
-     "top": 546,
+     "top": 526,
      "height": 15
     },
     {
      "kind": "WORK",
      "title": "Bug 9",
-     "top": 561,
+     "top": 541,
      "height": 15
     }
    ],
@@ -83441,8 +83411,12 @@
    ]
   ],
   "expected": {
-   "blocked": [],
-   "raised": [],
+   "blocked": [
+    1
+   ],
+   "raised": [
+    9
+   ],
    "scheduled": [
     {
      "id": 5,
@@ -83467,9 +83441,9 @@
      "dip": false
     },
     {
-     "id": 1,
+     "id": 9,
      "start": "2027-08-20T09:05",
-     "duration": 240,
+     "duration": 15,
      "pinned": false,
      "pushedAfter": null,
      "pushedAfterKind": null,
@@ -83479,19 +83453,8 @@
     },
     {
      "id": 2,
-     "start": "2027-08-20T13:05",
+     "start": "2027-08-20T09:20",
      "duration": 60,
-     "pinned": false,
-     "pushedAfter": null,
-     "pushedAfterKind": null,
-     "conflictWith": null,
-     "deepwork": false,
-     "dip": false
-    },
-    {
-     "id": 9,
-     "start": "2027-08-20T14:05",
-     "duration": 15,
      "pinned": false,
      "pushedAfter": null,
      "pushedAfterKind": null,
@@ -83508,7 +83471,7 @@
     6,
     10
    ],
-   "required": 380,
+   "required": 140,
    "available": 540,
    "timeline": [
     {
@@ -83525,21 +83488,15 @@
     },
     {
      "kind": "WORK",
-     "title": "Plan 1",
+     "title": "Doc 9",
      "top": 65,
-     "height": 240
+     "height": 15
     },
     {
      "kind": "WORK",
      "title": "Rapport 2",
-     "top": 305,
+     "top": 80,
      "height": 60
-    },
-    {
-     "kind": "WORK",
-     "title": "Doc 9",
-     "top": 365,
-     "height": 15
     }
    ],
    "scores": {
@@ -113066,7 +113023,8 @@
   ],
   "expected": {
    "blocked": [
-    9
+    9,
+    15
    ],
    "raised": [
     14
@@ -113153,7 +113111,6 @@
    "unscheduled": [
     13,
     12,
-    15,
     2,
     5,
     1,
@@ -113161,7 +113118,7 @@
    ],
    "later": [],
    "toProcess": [],
-   "required": 765,
+   "required": 735,
    "available": 375,
    "timeline": [
     {

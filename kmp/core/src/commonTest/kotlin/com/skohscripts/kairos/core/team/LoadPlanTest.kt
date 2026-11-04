@@ -163,13 +163,13 @@ class LoadPlanTest {
             deps = listOf(dep(1, 2), dep(2, 1), dep(3, 1)),
         )
         val p = plan(s)
-        // Les arêtes du cycle sont ignorées (`Dependencies.acyclicEdges`, comme la vue Jour, y compris
-        // celle qui part de la tâche 3 en aval du cycle) : tout est posé, rien ne se bloque.
+        // Les arêtes internes au cycle 1 ⇄ 2 sont ignorées (`Dependencies.acyclicEdges`, comme la vue Jour) : tout est posé.
+        // Celle de la tâche 3, en aval du cycle, reste (2026-11-04) : la tâche 3 attend la fin de la tâche 1.
         assertTrue(p.tasks.all { it.placement == Placement.PLANNED })
         assertEquals(monday, p.t(1).end)
         assertEquals(day(1), p.t(2).end)
-        assertEquals(monday, p.t(3).end)
-        assertEquals(0.0, p.members.sumOf { it.waitHours }, 0.0)
+        assertEquals(day(1), p.t(3).end)
+        assertTrue(p.members.sumOf { it.waitHours } > 0.0)
     }
 
     @Test
