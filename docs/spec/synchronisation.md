@@ -762,6 +762,11 @@ Voir la skill `kairos-ecran` ; couleurs par rôles, aucun `Color(0x…)`.
   session ouverte venue d'un autre appareil est une session ouverte comme une autre.
 - Le temps passé (`TimeTracking.spentMinutesByTask`) est la somme des sessions de l'état fusionné et de
   `manualTimeSpentMinutes` : la réunion des appareils, sans double compte puisque les sessions ont un `uid`.
+- **Limite connue, différée (#193, consignée le 2026-11-04)** : les sessions d'une tâche **supprimée** divergent entre
+  appareils. L'appareil qui supprime les garde, l'autre les retire après fusion, et le temps travaillé n'est plus le même des
+  deux côtés. Un essai de correction (la session suit la portée de sa tâche dans `SyncScope`) cassait l'associativité et
+  « aucune perte silencieuse » de `SnapshotMergePropertiesTest` ; il a été retiré. À trancher : garder les sessions partout, ou
+  les retirer partout avec une pierre tombale qui garde la fusion associative.
 
 ### Isolation du mode solo
 
@@ -875,6 +880,11 @@ fichier fusionné à la main après son aperçu, nom de l'appareil et dernière 
   (3) le besoin (un manager sur deux appareils) est plus rare, et touche la même identité que « plusieurs équipes par base » (#118) ;
   (4) tout ce qui est hors portée **ne peut pas fuir** dans une base solo : l'invariant central de `equipe.md` se teste sur une
   liste fermée. La portée est une constante (`SyncScope`) : la rouvrir est une décision explicite.
+- **Deux comportements confirmés après la QA d'avant 4.0** (2026-11-04) : (1) tant que la confirmation du premier
+  rapprochement n'a pas de réponse, le fichier lié n'est ni fusionné ni réécrit (les passes automatiques attendent, les
+  modifications locales restent en attente) : c'est voulu, rien ne se fusionne sans accord au premier contact ; (2) le fichier
+  lié d'un manager contient ses données d'équipe en clair, comme tout export complet : la fusion les ignore chez les autres
+  (`SyncScope`), et le chiffrement reste hors périmètre.
 - **Chrono visible sur tous les appareils** (décision de conception) : une session ouverte appartient à la base, non à
   l'appareil qui l'a lancée ; arrêtée de n'importe où, elle est arrêtée partout. Écarté : un chrono propre à l'appareil (le temps
   passé serait faux et deux chronos tourneraient pour la même personne).
