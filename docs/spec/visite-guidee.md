@@ -93,8 +93,10 @@ découvrir sans que l'utilisateur ait à lire une documentation.
      crantée (Réglages), le « ? », le cœur « Soutenir Kairos » et le sélecteur d'espace n'y sont pas : il n'y a rien à
      enregistrer ni d'équipe dans une démonstration.
    - **Quatre scénarios courts et scriptés**, enchaînés sur la **même tâche** : (1) **Capturer** : écrire un titre dans
-     la capture de la vue Jour, la tâche arrive dans « À traiter » ; (2) **Qualifier** : choisir une priorité puis des
-     points sur sa ligne, elle reçoit un score et prend sa place, puis son type (3.14.0, issue #166) ; (3) **Lancer le chrono** : le démarrer puis l’arrêter,
+     la capture de la vue Jour, la tâche arrive dans « À traiter » ; (2) **Qualifier** : choisir une priorité, des
+     points puis son type sur sa ligne (le type depuis 3.14.0, issue #166) ; depuis le 2026-11-03 le type qualifie aussi
+     (`vue-jour.md` § Décisions) : la tâche reste dans « À traiter », son champ type à l'écran, et ne reçoit son score et
+     sa place qu'au type posé ; (3) **Lancer le chrono** : le démarrer puis l’arrêter,
      « En ce moment » apparaît ; (4) **Déplacer** : « Déplacer… » puis « Demain », elle quitte « Aujourd'hui » (message
      « Annuler »). Sept étapes en tout (six jusqu'à 3.13.0, avant l'étape du type), puis un dialogue de fin.
    - **Chaque étape** a un texte court (quoi faire, pourquoi), un **repère** sur l'élément concerné (contour et

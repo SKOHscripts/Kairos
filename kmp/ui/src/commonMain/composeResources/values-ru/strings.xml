@@ -53,12 +53,14 @@
     <string name="capture_add">Добавить</string>
 
     <string name="inbox_title">К обработке</string>
-    <string name="inbox_help">Задай каждой задаче приоритет и размер в баллах: по ним Kairos ее ранжирует.</string>
+    <string name="inbox_help">Задай каждой задаче приоритет, размер в баллах и тип: по ним Kairos ее ранжирует.</string>
     <string name="inbox_empty">Обрабатывать нечего: все уже уточнено.</string>
     <string name="inbox_empty_filtered">Ни одна задача к обработке не подходит под фильтр.</string>
-    <string name="missing_both">не заданы приоритет и баллы</string>
-    <string name="missing_priority">не задан приоритет</string>
-    <string name="missing_points">не заданы баллы</string>
+    <string name="missing_label">Не задано: %1$s</string>
+    <string name="missing_item_priority">приоритет</string>
+    <string name="missing_item_points">баллы</string>
+    <string name="missing_item_type">тип</string>
+    <string name="missing_item_category">категория</string>
 
     <string name="todo_empty">Пока делать нечего.</string>
     <string name="done_title">Готово</string>
@@ -487,7 +489,7 @@
     <string name="points_13_example">разбить на подзадачи</string>
     <string name="points_21_example">разбить на подзадачи</string>
     <string name="inbox_help_title">Как уточнить задачу?</string>
-    <string name="inbox_help_why">При захвате задается только название, так задумано. Задача попадает в упорядоченный план, когда она уточнена: приоритет и баллы выставляются прямо здесь, по одному нажатию.</string>
+    <string name="inbox_help_why">При захвате задается только название, так задумано. Задача попадает в упорядоченный план, когда она уточнена: приоритет, баллы и тип выставляются прямо здесь, по одному нажатию.</string>
     <string name="inbox_help_priority">Приоритет: насколько задача важна. Срок учитывается отдельно.</string>
     <string name="settings_intro">Все настройки Kairos, сохраненные на этом устройстве. Неверное поле помечается под ним; пока такое поле есть, ничего не сохраняется.</string>
     <string name="settings_section_day">Рабочий день</string>
@@ -679,7 +681,7 @@
     <string name="forecast_histogram_week">неделя с %1$s: %2$s</string>
     <string name="forecast_histogram_lt1">&lt;1</string>
     <string name="forecast_nothing">Нечего прогнозировать: в этом охвате нет задач.</string>
-    <string name="forecast_nothing_qualify">Задач бэклога, которые еще нужно уточнить (нет ни приоритета, ни баллов): %1$d; они не учитываются.</string>
+    <string name="forecast_nothing_qualify">Задач бэклога, которые еще нужно уточнить (не хватает приоритета, баллов или категории): %1$d; они не учитываются.</string>
     <string name="forecast_honesty_draws">прогонов: %1$s</string>
     <string name="forecast_honesty_seed">начальное значение %1$s</string>
     <string name="forecast_source_history">История: завершено задач: %1$d, недель: %2$d</string>
@@ -909,7 +911,7 @@
     <string name="keep_in_progress_yes">Да</string>
     <string name="keep_in_progress_no">Нет</string>
     <string name="backlog_to_qualify_title">Нужно уточнить</string>
-    <string name="backlog_to_qualify_hint">Не хватает приоритета или баллов: выберите их, чтобы задача стала готовой.</string>
+    <string name="backlog_to_qualify_hint">Не хватает приоритета, баллов или категории: выберите их, чтобы задача стала готовой.</string>
     <string name="backlog_to_qualify_empty">Уточнять нечего.</string>
     <string name="backlog_ready_title">Готовы</string>
     <string name="backlog_ready_hint">Готовы к распределению, по рейтингу: сначала просроченные.</string>
@@ -1072,7 +1074,7 @@
     <string name="suggest_manual">%1$s: выбрано вами</string>
     <string name="suggest_over_wip">достигнут лимит задач в работе: %1$s</string>
     <string name="suggest_excluded_title">Не вошли в предложение</string>
-    <string name="suggest_excluded_qualify">К квалификации (%1$d): не хватает приоритета или баллов.</string>
+    <string name="suggest_excluded_qualify">К квалификации (%1$d): не хватает приоритета, баллов или категории.</string>
     <string name="suggest_excluded_unplaceable">Не удается разместить (%1$d): на горизонте нет доступных участников.</string>
     <string name="suggest_excluded_archived_one">1 архивный участник пропущен.</string>
     <string name="suggest_excluded_archived_many">Пропущено архивных участников: %1$d.</string>
@@ -1218,7 +1220,7 @@
     <string name="help_open_team_tour">Экскурсия по разделу «Команда»</string>
     <string name="help_open_team_tour_hint">Участники, бэклог, ход работ, прогнозы и обмен</string>
     <string name="help_notes">Записывай сюда идею, дело, сообщение, не раздумывая. Позже преврати заметку в задачу: она попадет в представление «День», к обработке.</string>
-    <string name="help_day">«Далее» подсказывает, что делать. Задачи к обработке ждут приоритета, баллов и срока; рейтинг (ценность, деленная на усилия) задает порядок. Запусти таймер, чтобы измерить реальное время.</string>
+    <string name="help_day">«Далее» подсказывает, что делать. Задачи к обработке ждут приоритета, баллов и типа; рейтинг (ценность, деленная на усилия) задает порядок. Запусти таймер, чтобы измерить реальное время.</string>
     <string name="help_week">Семь дней недели: сроки, выполненные задачи, интервалы и реальное время. «Месяц» показывает весь месяц: запланированные задачи, сроки, перегруженные дни, праздники и выходные. Коснись дня, чтобы открыть его в представлении «День».</string>
     <string name="help_stats">Что ты делаешь на самом деле: пропускная способность, время по типам задач и калибровка оценок (твои баллы в сравнении с реальным временем).</string>
     <string name="help_settings">Настройки сгруппированы по категориям: общие, день и часы, планирование, таймер и статистика, команда, данные. Изменение сохраняется при переходе между категориями, пока ты не нажмешь «Сохранить» внизу.</string>
@@ -1259,7 +1261,7 @@
     <string name="guide_you_capture_title">Записывать не раздумывая</string>
     <string name="guide_you_capture_body">В «Заметках» записывай все, что приходит в голову, не сортируя. Заметка становится задачей, когда захочешь.</string>
     <string name="guide_you_qualify_title">Квалифицировать за один клик</string>
-    <string name="guide_you_qualify_body">Задача к обработке ждет приоритета, баллов усилий и срока; её тип можно выбрать прямо там. «Как квалифицировать?» поможет выбрать; Kairos выведет рейтинг.</string>
+    <string name="guide_you_qualify_body">Задача к обработке ждет приоритета, баллов усилий и типа, которые выбираются прямо там. «Как квалифицировать?» поможет выбрать; Kairos выведет рейтинг.</string>
     <string name="guide_you_do_title">Делать по порядку</string>
     <string name="guide_you_do_body">«Далее» показывает задачу, которую нужно делать, следующие выстроены по рейтингу вокруг твоих встреч. «Почему на этом месте?» объясняет каждую позицию.</string>
     <string name="guide_you_time_title">Следить за временем</string>
@@ -1455,7 +1457,7 @@
     <string name="coach_deadline_title">Даты: срок и плановый день</string>
     <string name="coach_deadline_body">Чем ближе срок, тем выше рейтинг. «Запланировано на» в дополнительных параметрах оставляет задачу на день, когда ты сможешь ее начать.</string>
     <string name="coach_type_title">Тип: для чего он нужен</string>
-    <string name="coach_type_body">Тип группирует твою статистику и может подсказать длительность. Его можно выбрать и прямо в «К обработке». Типы настраиваются в Настройках.</string>
+    <string name="coach_type_body">Тип группирует твою статистику и может подсказать длительность. Вместе с приоритетом и баллами он выводит задачу из «К обработке» (его можно выбрать и там). Типы настраиваются в Настройках.</string>
     <string name="coach_more_title">Что еще</string>
     <string name="coach_more_body">Проект, фиксированное время, повтор, подзадачи и блокировки находятся здесь. Вернуться к ним можно позже из карточки задачи.</string>
     <string name="coach_save_title">Сохрани задачу</string>
@@ -1463,7 +1465,7 @@
     <string name="coach_placed_rank_title">Ее место в дне</string>
     <string name="coach_placed_rank_body">Рейтинг упорядочивает задачи: ценность, деленная на усилия. Коснись рейтинга, чтобы прочитать «Почему на этом месте?».</string>
     <string name="coach_placed_inbox_title">Пока не размещена</string>
-    <string name="coach_placed_inbox_body">Этой задачи нет в сегодняшнем расписании: она ждет в «К обработке», пока у нее нет приоритета и баллов, или в «Позже», если ее день не сегодня.</string>
+    <string name="coach_placed_inbox_body">Этой задачи нет в сегодняшнем расписании: она ждет в «К обработке», пока у нее нет приоритета, баллов и типа, или в «Позже», если ее день не сегодня.</string>
     <string name="coach_placed_slot_title">Ее интервал</string>
     <string name="coach_placed_slot_body">Kairos укладывает задачу в промежуток дня с ее длительностью. Шкала показывает где, среди твоих интервалов и закрепленных задач.</string>
     <string name="coach_placed_row_title">Строка задачи</string>
@@ -1763,7 +1765,7 @@
     <string name="demo_priority_title">Оценить: приоритет</string>
     <string name="demo_priority_body">Выбери приоритет в её строке: насколько она важна. Срок учитывается отдельно.</string>
     <string name="demo_points_title">Оценить: баллы</string>
-    <string name="demo_points_body">Выбери баллы: её размер. Она получает оценку и занимает своё место в дне.</string>
+    <string name="demo_points_body">Выбери баллы: её размер. Ещё один выбор, и она займёт своё место в дне.</string>
     <string name="demo_timer_start_title">Запустить таймер</string>
     <string name="demo_timer_start_body">Запусти таймер в её строке: «Прямо сейчас» показывает, над чем ты работаешь.</string>
     <string name="demo_timer_stop_title">Остановить таймер</string>
@@ -1784,7 +1786,7 @@
     <string name="filter_missing_duration">Без длительности</string>
     <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
     <string name="demo_type_title">Оценить: тип</string>
-    <string name="demo_type_body">Выбери тип в её строке: он группирует статистику. Зная приоритет, баллы и тип, Kairos может оценить длительность по твоим завершённым задачам.</string>
+    <string name="demo_type_body">Выбери тип в её строке: он группирует статистику. С приоритетом, баллами и типом задача получает оценку и занимает своё место в дне; Kairos также может оценить её длительность по твоим завершённым задачам.</string>
     <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
     <string name="estimate_filled_type">Оценка: %1$s (медиана типа «%2$s»)</string>
     <string name="estimate_filled_points">Оценка: %1$s (медиана задач на %2$d балл.)</string>
@@ -1793,10 +1795,10 @@
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
     <string name="setting_learning_model">Оценивать с помощью машинного обучения</string>
     <string name="setting_learning_model_help">Машинное обучение на устройстве: сравнивает название, тип и баллы задачи с твоими выполненными задачами. Ничего не покидает это устройство.</string>
-    <string name="learning_model_status_few">Пока недостаточно задач с замером времени (%1$d из %2$d).</string>
-    <string name="learning_model_status_unverified">Пока недостаточно похожих задач, чтобы его проверить (%1$d из %2$d).</string>
+    <string name="learning_model_status_few">Машинное обучение включится после %3$d задач с замером времени: осталось %1$d (%2$d из %3$d).</string>
+    <string name="learning_model_status_unverified">Машинное обучение проверяется на твоих задачах: нужно еще похожих задач с замером времени: %1$d (%2$d из %3$d).</string>
     <string name="learning_model_status_ok">На твоих последних %1$d задачах: медианная ошибка %2$d%, против %3$d% у длительности по умолчанию.</string>
-    <string name="learning_model_status_not_better">Не заметно лучше длительности по умолчанию на твоих последних %1$d задачах (%2$d% против %3$d%): не применяется.</string>
+    <string name="learning_model_status_not_better">Не заметно лучше длительности по умолчанию на твоих последних %1$d задачах (%2$d% против %3$d%): не применяется. Проверка повторяется после каждой задачи с замером времени.</string>
     <string name="learned_model_badge_description">Оценено машинным обучением по похожим задачам (%1$d), от %2$s до %3$s</string>
     <string name="learned_model_badge_description_regression">Оценено машинным обучением по твоим выполненным задачам (%1$d), от %2$s до %3$s</string>
     <string name="why_learned_model">Длительность: ~%1$s (от %2$s до %3$s), оценена машинным обучением по похожим задачам (%4$d): %5$s.</string>

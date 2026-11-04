@@ -54,12 +54,14 @@
     <string name="capture_add">Add</string>
 
     <string name="inbox_title">To process</string>
-    <string name="inbox_help">Give each task a priority and a size in points: that is what lets Kairos rank it.</string>
+    <string name="inbox_help">Give each task a priority, a size in points and a type: that is what lets Kairos rank it.</string>
     <string name="inbox_empty">Nothing to process: everything is already clarified.</string>
     <string name="inbox_empty_filtered">No task to process matches the filter.</string>
-    <string name="missing_both">priority and points missing</string>
-    <string name="missing_priority">priority missing</string>
-    <string name="missing_points">points missing</string>
+    <string name="missing_label">Missing: %1$s</string>
+    <string name="missing_item_priority">priority</string>
+    <string name="missing_item_points">points</string>
+    <string name="missing_item_type">type</string>
+    <string name="missing_item_category">category</string>
 
     <string name="todo_empty">Nothing to do for now.</string>
     <string name="done_title">Done</string>
@@ -488,7 +490,7 @@
     <string name="points_13_example">to split into subtasks</string>
     <string name="points_21_example">to split into subtasks</string>
     <string name="inbox_help_title">How to qualify?</string>
-    <string name="inbox_help_why">Capture only sets a title, on purpose. A task enters the ordered schedule once clarified: priority and points set, right here, one click each.</string>
+    <string name="inbox_help_why">Capture only sets a title, on purpose. A task enters the ordered schedule once clarified: priority, points and type set, right here, one click each.</string>
     <string name="inbox_help_priority">Priority: how important the task is. The deadline already counts on its own.</string>
     <string name="settings_intro">All of Kairos’ settings, saved on this device. An invalid field is flagged under it; nothing is saved while one remains.</string>
     <string name="settings_section_day">Working day</string>
@@ -680,7 +682,7 @@
     <string name="forecast_histogram_week">week of %1$s: %2$s</string>
     <string name="forecast_histogram_lt1">&lt;1</string>
     <string name="forecast_nothing">Nothing to forecast: no task in this scope.</string>
-    <string name="forecast_nothing_qualify">%1$d backlog tasks still need qualifying (no priority or points) and are not counted.</string>
+    <string name="forecast_nothing_qualify">%1$d backlog tasks still need qualifying (priority, points or category missing) and are not counted.</string>
     <string name="forecast_honesty_draws">%1$s draws</string>
     <string name="forecast_honesty_seed">seed %1$s</string>
     <string name="forecast_source_history">History: %1$d finished task(s) over %2$d weeks</string>
@@ -910,7 +912,7 @@
     <string name="keep_in_progress_yes">Yes</string>
     <string name="keep_in_progress_no">No</string>
     <string name="backlog_to_qualify_title">To qualify</string>
-    <string name="backlog_to_qualify_hint">Priority or points are missing: pick them to make the task ready.</string>
+    <string name="backlog_to_qualify_hint">Priority, points or category are missing: pick them to make the task ready.</string>
     <string name="backlog_to_qualify_empty">Nothing to qualify.</string>
     <string name="backlog_ready_title">Ready</string>
     <string name="backlog_ready_hint">Ready to hand out, sorted by score: overdue first.</string>
@@ -1073,7 +1075,7 @@
     <string name="suggest_manual">%1$s: chosen by you</string>
     <string name="suggest_over_wip">in-progress limit reached for %1$s</string>
     <string name="suggest_excluded_title">Left out of the suggestion</string>
-    <string name="suggest_excluded_qualify">To qualify (%1$d): priority or points are missing.</string>
+    <string name="suggest_excluded_qualify">To qualify (%1$d): priority, points or category are missing.</string>
     <string name="suggest_excluded_unplaceable">Cannot be placed (%1$d): no member is available over the horizon.</string>
     <string name="suggest_excluded_archived_one">1 archived member ignored.</string>
     <string name="suggest_excluded_archived_many">%1$d archived members ignored.</string>
@@ -1219,7 +1221,7 @@
     <string name="help_open_team_tour">Team space tour</string>
     <string name="help_open_team_tour_hint">Members, backlog, tracking, forecasts and exchanges</string>
     <string name="help_notes">Jot down an idea, a to-do, a message here, without thinking. Later, turn a note into a task: it lands in the Day view, to be processed.</string>
-    <string name="help_day">“Up next” tells you what to do. Tasks to process are waiting for their priority, points and deadline; the score (value divided by effort) sets the order. Start the timer to measure real time.</string>
+    <string name="help_day">“Up next” tells you what to do. Tasks to process are waiting for their priority, points and type; the score (value divided by effort) sets the order. Start the timer to measure real time.</string>
     <string name="help_week">The seven days of the week: deadlines, finished tasks, time slots and real time. “Month” shows the whole month: planned tasks, deadlines, overloaded days, public holidays and days off. Tap a day to open it in the Day view.</string>
     <string name="help_stats">What you really do: throughput, time spent by task type, and the calibration of your estimates (your points against real time).</string>
     <string name="help_settings">Settings are grouped by category: general, day and hours, planning, timer and statistics, team, data. A change is kept from one category to the next until you press “Save” at the bottom.</string>
@@ -1260,7 +1262,7 @@
     <string name="guide_you_capture_title">Capture without thinking</string>
     <string name="guide_you_capture_body">In Notes, write down whatever comes to mind, without sorting. A note becomes a task whenever you want.</string>
     <string name="guide_you_qualify_title">Qualify in one click</string>
-    <string name="guide_you_qualify_body">A task to process is waiting for its priority, effort points and deadline; its type can be picked on the spot too. “How to qualify?” helps you choose; Kairos derives a score.</string>
+    <string name="guide_you_qualify_body">A task to process is waiting for its priority, effort points and type, picked on the spot. “How to qualify?” helps you choose; Kairos derives a score.</string>
     <string name="guide_you_do_title">Do things in order</string>
     <string name="guide_you_do_body">“Up next” shows the task to do, the next ones are ranked by score around your meetings. “Why this position?” explains each rank.</string>
     <string name="guide_you_time_title">Track time</string>
@@ -1456,7 +1458,7 @@
     <string name="coach_deadline_title">Dates: deadline and planned day</string>
     <string name="coach_deadline_body">The deadline raises the score as it gets close. “Scheduled for”, in the more options, keeps the task for the day you can start it.</string>
     <string name="coach_type_title">Type: what it is for</string>
-    <string name="coach_type_body">The type groups your statistics and can suggest a duration. You can also pick it right from “To process”. Types are managed in the Settings.</string>
+    <string name="coach_type_body">The type groups your statistics and can suggest a duration. With the priority and the points, it takes the task out of “To process” (you can also pick it there). Types are managed in the Settings.</string>
     <string name="coach_more_title">Going further</string>
     <string name="coach_more_body">Project, fixed time, recurrence, subtasks and blockers are here. You can come back to them later from the task’s sheet.</string>
     <string name="coach_save_title">Save the task</string>
@@ -1464,7 +1466,7 @@
     <string name="coach_placed_rank_title">Its place in the day</string>
     <string name="coach_placed_rank_body">The score ranks your tasks: value divided by effort. Tap the score to read “Why this position?”.</string>
     <string name="coach_placed_inbox_title">Not placed yet</string>
-    <string name="coach_placed_inbox_body">This task is not in today’s agenda: it waits in “To process” until it has a priority and points, or in “Later” if its day is not today.</string>
+    <string name="coach_placed_inbox_body">This task is not in today’s agenda: it waits in “To process” until it has a priority, points and a type, or in “Later” if its day is not today.</string>
     <string name="coach_placed_slot_title">Its slot</string>
     <string name="coach_placed_slot_body">Kairos lays the task into a gap of the day, with its duration. The timeline shows where, among your slots and pinned tasks.</string>
     <string name="coach_placed_row_title">The task row</string>
@@ -1764,7 +1766,7 @@
     <string name="demo_priority_title">Qualify: priority</string>
     <string name="demo_priority_body">Pick a priority on its line: how important it is. The deadline counts separately.</string>
     <string name="demo_points_title">Qualify: points</string>
-    <string name="demo_points_body">Pick points: its size. It now has a score and takes its place in the day.</string>
+    <string name="demo_points_body">Pick points: its size. One more choice and it takes its place in the day.</string>
     <string name="demo_timer_start_title">Start the timer</string>
     <string name="demo_timer_start_body">Start the timer on its line: “Right now” shows what you are working on.</string>
     <string name="demo_timer_stop_title">Stop the timer</string>
@@ -1785,7 +1787,7 @@
     <string name="filter_missing_duration">No duration</string>
     <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
     <string name="demo_type_title">Qualify: type</string>
-    <string name="demo_type_body">Pick a type on its line: it groups your statistics. With priority, points and type set, Kairos can estimate the duration from your finished tasks.</string>
+    <string name="demo_type_body">Pick a type on its line: it groups your statistics. With priority, points and type set, the task has a score and takes its place in the day; Kairos can also estimate its duration from your finished tasks.</string>
     <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
     <string name="estimate_filled_type">Estimated at %1$s (median of “%2$s”)</string>
     <string name="estimate_filled_points">Estimated at %1$s (median of %2$d-point tasks)</string>
@@ -1794,10 +1796,10 @@
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
     <string name="setting_learning_model">Estimate with machine learning</string>
     <string name="setting_learning_model_help">On-device machine learning: compares a task’s title, type and points with your finished tasks. Nothing leaves this device.</string>
-    <string name="learning_model_status_few">Not enough timed tasks yet (%1$d of %2$d).</string>
-    <string name="learning_model_status_unverified">Not enough comparable tasks to check it yet (%1$d of %2$d).</string>
+    <string name="learning_model_status_few">Machine learning starts after %3$d timed tasks: %1$d more to go (%2$d of %3$d).</string>
+    <string name="learning_model_status_unverified">Machine learning is being checked on your own tasks: %1$d more comparable timed task(s) needed (%2$d of %3$d).</string>
     <string name="learning_model_status_ok">On your last %1$d tasks: median error %2$d%, against %3$d% for the default duration.</string>
-    <string name="learning_model_status_not_better">Not clearly better than the default duration on your last %1$d tasks (%2$d% against %3$d%): not applied.</string>
+    <string name="learning_model_status_not_better">Not clearly better than the default duration on your last %1$d tasks (%2$d% against %3$d%): not applied. It is checked again after each timed task.</string>
     <string name="learned_model_badge_description">Estimated by machine learning from %1$d similar tasks, between %2$s and %3$s</string>
     <string name="learned_model_badge_description_regression">Estimated by machine learning from your %1$d finished tasks, between %2$s and %3$s</string>
     <string name="why_learned_model">Duration: ~%1$s (between %2$s and %3$s), estimated by machine learning from %4$d similar tasks: %5$s.</string>

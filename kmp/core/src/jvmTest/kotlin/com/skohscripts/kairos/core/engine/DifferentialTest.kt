@@ -79,7 +79,9 @@ class DifferentialTest {
             val seed = case.getValue("seed").jsonPrimitive.int
             val day = case.date("day")!!
             val now = case.dateTime("now")
-            val settings = json.decodeFromJsonElement<Settings>(case.getValue("settings"))
+            // Le référentiel précède le type comme critère de qualification (2026-11-03) : ses tâches n'en ont pas, la liste vide
+            // garde la règle priorité + points qu'il fige.
+            val settings = json.decodeFromJsonElement<Settings>(case.getValue("settings")).copy(taskTypes = "")
             val tasks = case.getValue("tasks").jsonArray.map { task(it.jsonObject) }
             val blocks = case.getValue("blocks").jsonArray.mapIndexed { i, b ->
                 val o = b.jsonObject

@@ -5,11 +5,10 @@ import com.skohscripts.kairos.core.model.PRIORITY_VALUES
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.skohscripts.kairos.core.model.LevelNames
-import com.skohscripts.kairos.core.model.MissingQualification
+import com.skohscripts.kairos.core.model.Missing
 import com.skohscripts.kairos.ui.generated.resources.Res
-import com.skohscripts.kairos.ui.generated.resources.missing_both
-import com.skohscripts.kairos.ui.generated.resources.missing_points
-import com.skohscripts.kairos.ui.generated.resources.missing_priority
+import com.skohscripts.kairos.ui.generated.resources.missing_item_points
+import com.skohscripts.kairos.ui.generated.resources.missing_item_priority
 import com.skohscripts.kairos.ui.generated.resources.level_named_points
 import com.skohscripts.kairos.ui.generated.resources.level_named_priority
 import com.skohscripts.kairos.ui.generated.resources.points_badge
@@ -123,9 +122,13 @@ internal object Levels {
         else -> Res.string.points_21_example
     }
 
-    fun missing(m: MissingQualification): StringResource = when (m) {
-        MissingQualification.BOTH -> Res.string.missing_both
-        MissingQualification.PRIORITY -> Res.string.missing_priority
-        MissingQualification.POINTS -> Res.string.missing_points
+    /**
+     * Les éléments manquants, dans l'ordre des contrôles (priorité, points, type) ; [typeItem] nomme le type (« type » dans
+     * la vue Jour, « catégorie » dans le backlog d'équipe).
+     */
+    fun missing(m: Missing, typeItem: StringResource): List<StringResource> = buildList {
+        if (m.priority) add(Res.string.missing_item_priority)
+        if (m.points) add(Res.string.missing_item_points)
+        if (m.type) add(typeItem)
     }
 }

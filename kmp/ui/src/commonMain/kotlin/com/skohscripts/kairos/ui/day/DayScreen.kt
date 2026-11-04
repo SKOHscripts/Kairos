@@ -109,6 +109,8 @@ import com.skohscripts.kairos.ui.Platform
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.StorageBanner
 import com.skohscripts.kairos.ui.generated.resources.Res
+import com.skohscripts.kairos.ui.generated.resources.missing_item_type
+import com.skohscripts.kairos.ui.generated.resources.missing_label
 import com.skohscripts.kairos.ui.generated.resources.skipped_ignored
 import com.skohscripts.kairos.ui.generated.resources.skipped_recreated_many
 import com.skohscripts.kairos.ui.generated.resources.skipped_recreated_one
@@ -474,6 +476,7 @@ fun DayScreen(
                         suspend fun fillEstimate() = fillInboxEstimate(repository, estimates, task.id, undo, scope, services.clock.now())
                         InboxQualify(
                             task,
+                            typeRequired = snapshot.settings.typeRequired,
                             onPriority = { scope.launch { repository.setPriority(task.id, it); fillEstimate() } },
                             onPoints = { scope.launch { repository.setPoints(task.id, it); fillEstimate() } },
                             types = snapshot.settings.taskTypeList,
@@ -890,18 +893,22 @@ private fun OverloadBanner(count: Int) {
 @Composable
 internal fun InboxQualify(
     task: Task,
+    typeRequired: Boolean,
     onPriority: (Int?) -> Unit,
     onPoints: (Int?) -> Unit,
     types: List<String>,
     typeLabel: StringResource,
     onType: (String) -> Unit,
+    /** Le type manquant nommé dans « Manque : … » (« type », ou « catégorie » dans le backlog d'équipe). */
+    missingType: StringResource = Res.string.missing_item_type,
     start: Dp = 48.dp,
 ) {
     Column(Modifier.padding(start = start, end = 16.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        task.missingQualification?.let { missing ->
+        task.missing(typeRequired)?.let { missing ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(KairosIcons.Warning, contentDescription = null, modifier = Modifier.size(16.dp))
-                Text(stringResource(Levels.missing(missing)), style = MaterialTheme.typography.labelMedium)
+                val items = Levels.missing(missing, missingType).map { stringResource(it) }
+                Text(stringResource(Res.string.missing_label, items.joinToString(", ")), style = MaterialTheme.typography.labelMedium)
             }
         }
         DemoMark(DemoSpot.PRIORITY, task.id) { PriorityPills(task.priority, onPriority) }

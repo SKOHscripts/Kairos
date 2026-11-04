@@ -68,7 +68,7 @@ class KairosRepositoryTest {
         val task = repo.snapshot.value.tasks.single { it.id == id }
         assertEquals("Appeler le client", task.title)
         assertEquals(TaskStatus.TODO, task.status)
-        assertTrue(task.needsProcessing)
+        assertTrue(task.needsProcessing(typeRequired = true))
         assertEquals(now, task.createdAt)
     }
 
@@ -78,7 +78,7 @@ class KairosRepositoryTest {
         val id = repo.createTask("T")!!
         repo.setPriority(id, 1)
         repo.setPoints(id, 5)
-        assertTrue(!repo.snapshot.value.tasks.single().needsProcessing)
+        assertTrue(!repo.snapshot.value.tasks.single().needsProcessing(typeRequired = false))
         repo.setPriority(id, 7)
         repo.setPoints(id, 4)
         val task = repo.snapshot.value.tasks.single()
@@ -618,7 +618,7 @@ class KairosRepositoryTest {
         val task = repo.snapshot.value.tasks.single()
         assertEquals(taskId, task.id)
         assertEquals("Idée" to "  - détail\n  - autre", task.title to task.description)
-        assertTrue(task.needsProcessing)
+        assertTrue(task.needsProcessing(typeRequired = true))
         val converted = repo.snapshot.value.notes.single()
         assertEquals(com.skohscripts.kairos.core.model.NoteStatus.ARCHIVED, converted.status)
         assertEquals(taskId, converted.convertedTaskId)

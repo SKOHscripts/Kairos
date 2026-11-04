@@ -55,12 +55,14 @@
     <string name="capture_add">Ajouter</string>
 
     <string name="inbox_title">À traiter</string>
-    <string name="inbox_help">Donne une priorité et une taille en points à chaque tâche : c’est ce qui permet à Kairos de la classer.</string>
+    <string name="inbox_help">Donne une priorité, une taille en points et un type à chaque tâche : c’est ce qui permet à Kairos de la classer.</string>
     <string name="inbox_empty">Rien à traiter : tout est déjà clarifié.</string>
     <string name="inbox_empty_filtered">Aucune tâche à traiter ne correspond au filtre.</string>
-    <string name="missing_both">priorité et points manquants</string>
-    <string name="missing_priority">priorité manquante</string>
-    <string name="missing_points">points manquants</string>
+    <string name="missing_label">Manque : %1$s</string>
+    <string name="missing_item_priority">priorité</string>
+    <string name="missing_item_points">points</string>
+    <string name="missing_item_type">type</string>
+    <string name="missing_item_category">catégorie</string>
 
     <string name="todo_empty">Rien à faire pour l’instant.</string>
     <string name="done_title">Fait</string>
@@ -489,7 +491,7 @@
     <string name="points_13_example">à découper en sous-tâches</string>
     <string name="points_21_example">à découper en sous-tâches</string>
     <string name="inbox_help_title">Comment qualifier ?</string>
-    <string name="inbox_help_why">La capture ne pose qu’un titre, volontairement. Une tâche n’entre dans l’agenda ordonné qu’une fois clarifiée : priorité et points posés, ici même, en un clic chacun.</string>
+    <string name="inbox_help_why">La capture ne pose qu’un titre, volontairement. Une tâche n’entre dans l’agenda ordonné qu’une fois clarifiée : priorité, points et type posés, ici même, en un clic chacun.</string>
     <string name="inbox_help_priority">Priorité : l’importance de la tâche. Le délai compte déjà à part, par l’échéance.</string>
     <string name="settings_intro">Tous les réglages de Kairos, enregistrés sur cet appareil. Un champ invalide est signalé sous le champ ; rien n’est enregistré tant qu’il en reste un.</string>
     <string name="settings_section_day">Journée de travail</string>
@@ -681,7 +683,7 @@
     <string name="forecast_histogram_week">semaine du %1$s : %2$s</string>
     <string name="forecast_histogram_lt1">&lt;1</string>
     <string name="forecast_nothing">Rien à prévoir : aucune tâche dans ce périmètre.</string>
-    <string name="forecast_nothing_qualify">%1$d tâches du backlog sont à qualifier (ni priorité ni points) et ne sont pas comptées.</string>
+    <string name="forecast_nothing_qualify">%1$d tâches du backlog sont à qualifier (priorité, points ou catégorie manquants) et ne sont pas comptées.</string>
     <string name="forecast_honesty_draws">%1$s tirages</string>
     <string name="forecast_honesty_seed">graine %1$s</string>
     <string name="forecast_source_history">Historique : %1$d tâche(s) faite(s) sur %2$d semaines</string>
@@ -912,7 +914,7 @@
     <string name="keep_in_progress_yes">Oui</string>
     <string name="keep_in_progress_no">Non</string>
     <string name="backlog_to_qualify_title">À qualifier</string>
-    <string name="backlog_to_qualify_hint">Il manque la priorité ou les points : choisissez-les pour la rendre prête.</string>
+    <string name="backlog_to_qualify_hint">Il manque la priorité, les points ou la catégorie : choisissez-les pour la rendre prête.</string>
     <string name="backlog_to_qualify_empty">Rien à qualifier.</string>
     <string name="backlog_ready_title">Prêtes</string>
     <string name="backlog_ready_hint">Prêtes à distribuer, triées par score : en retard d’abord.</string>
@@ -1075,7 +1077,7 @@
     <string name="suggest_manual">%1$s : choisi par vous</string>
     <string name="suggest_over_wip">limite d’en-cours atteinte pour %1$s</string>
     <string name="suggest_excluded_title">Exclues de la suggestion</string>
-    <string name="suggest_excluded_qualify">À qualifier (%1$d) : il manque la priorité ou les points.</string>
+    <string name="suggest_excluded_qualify">À qualifier (%1$d) : il manque la priorité, les points ou la catégorie.</string>
     <string name="suggest_excluded_unplaceable">Impossibles à placer (%1$d) : aucun membre disponible sur l’horizon.</string>
     <string name="suggest_excluded_archived_one">1 membre archivé ignoré.</string>
     <string name="suggest_excluded_archived_many">%1$d membres archivés ignorés.</string>
@@ -1221,7 +1223,7 @@
     <string name="help_open_team_tour">Visite de l’espace Équipe</string>
     <string name="help_open_team_tour_hint">Membres, backlog, suivi, prévisions et échanges</string>
     <string name="help_notes">Note ici une idée, un à-faire, un message, sans réfléchir. Plus tard, transforme une note en tâche : elle arrive dans la vue Jour, à traiter.</string>
-    <string name="help_day">« Maintenant » te dit quoi faire. Les tâches à traiter attendent leur priorité, leurs points et leur échéance ; le score (valeur divisée par effort) règle l’ordre. Lance le chrono pour mesurer le temps réel.</string>
+    <string name="help_day">« Maintenant » te dit quoi faire. Les tâches à traiter attendent leur priorité, leurs points et leur type ; le score (valeur divisée par effort) règle l’ordre. Lance le chrono pour mesurer le temps réel.</string>
     <string name="help_week">Les sept jours de la semaine : échéances, tâches faites, créneaux et temps réel. « Mois » montre le mois entier : tâches prévues, échéances, jours trop chargés, fériés et jours libres. Touche un jour pour l’ouvrir dans la vue Jour.</string>
     <string name="help_stats">Ce que tu fais vraiment : débit, temps passé par type de tâche et calibration de tes estimations (tes points comparés au temps réel).</string>
     <string name="help_settings">Les réglages sont rangés par catégorie : général, journée et horaires, planification, chrono et statistiques, équipe, données. Une modification est gardée d’une catégorie à l’autre jusqu’à « Enregistrer », en bas.</string>
@@ -1262,7 +1264,7 @@
     <string name="guide_you_capture_title">Capturer sans réfléchir</string>
     <string name="guide_you_capture_body">Dans Notes, écris tout ce qui te passe par la tête, sans trier. Une note devient une tâche quand tu veux.</string>
     <string name="guide_you_qualify_title">Qualifier en un clic</string>
-    <string name="guide_you_qualify_body">Une tâche à traiter attend sa priorité, ses points d’effort et son échéance ; son type se choisit aussi sur place. « Comment qualifier ? » t’aide à choisir ; Kairos en tire un score.</string>
+    <string name="guide_you_qualify_body">Une tâche à traiter attend sa priorité, ses points d’effort et son type, choisis sur place. « Comment qualifier ? » t’aide à choisir ; Kairos en tire un score.</string>
     <string name="guide_you_do_title">Faire dans l’ordre</string>
     <string name="guide_you_do_body">« Maintenant » montre la tâche à faire, les suivantes sont rangées par score autour de tes réunions. « Pourquoi à cette place ? » explique chaque position.</string>
     <string name="guide_you_time_title">Suivre le temps</string>
@@ -1458,7 +1460,7 @@
     <string name="coach_deadline_title">Dates  : échéance et jour prévu</string>
     <string name="coach_deadline_body">L’échéance fait monter le score à mesure qu’elle approche. « Programmée pour », dans les options avancées, garde la tâche pour le jour où tu peux la commencer.</string>
     <string name="coach_type_title">Type  : à quoi il sert</string>
-    <string name="coach_type_body">Le type regroupe tes statistiques et peut suggérer une durée. Il se choisit aussi directement dans « À traiter ». Les types se gèrent dans les Réglages.</string>
+    <string name="coach_type_body">Le type regroupe tes statistiques et peut suggérer une durée. Avec la priorité et les points, il fait sortir la tâche de « À traiter » (il s’y choisit aussi). Les types se gèrent dans les Réglages.</string>
     <string name="coach_more_title">Pour aller plus loin</string>
     <string name="coach_more_body">Projet, heure fixe, récurrence, sous-tâches et bloqueurs sont ici. Tu pourras y revenir plus tard depuis la fiche de la tâche.</string>
     <string name="coach_save_title">Enregistrer la tâche</string>
@@ -1466,7 +1468,7 @@
     <string name="coach_placed_rank_title">Sa place dans la journée</string>
     <string name="coach_placed_rank_body">Le score classe tes tâches : la valeur divisée par l’effort. Touche le score pour lire « Pourquoi à cette place  ? ».</string>
     <string name="coach_placed_inbox_title">Pas encore placée</string>
-    <string name="coach_placed_inbox_body">Cette tâche n’est pas dans l’agenda d’aujourd’hui : elle attend dans « À traiter » qu’elle ait une priorité et des points, ou dans « Plus tard » si son jour n’est pas aujourd’hui.</string>
+    <string name="coach_placed_inbox_body">Cette tâche n’est pas dans l’agenda d’aujourd’hui : elle attend dans « À traiter » qu’elle ait une priorité, des points et un type, ou dans « Plus tard » si son jour n’est pas aujourd’hui.</string>
     <string name="coach_placed_slot_title">Son créneau</string>
     <string name="coach_placed_slot_body">Kairos range la tâche dans un trou de la journée, avec sa durée. La frise montre où, parmi tes créneaux et tes tâches épinglées.</string>
     <string name="coach_placed_row_title">La ligne de la tâche</string>
@@ -1766,7 +1768,7 @@
     <string name="demo_priority_title">Qualifier : la priorité</string>
     <string name="demo_priority_body">Choisis une priorité sur sa ligne : son importance. Le délai compte à part, par l’échéance.</string>
     <string name="demo_points_title">Qualifier : les points</string>
-    <string name="demo_points_body">Choisis des points : sa taille. Elle reçoit un score et prend sa place dans la journée.</string>
+    <string name="demo_points_body">Choisis des points : sa taille. Encore un choix et elle prend sa place dans la journée.</string>
     <string name="demo_timer_start_title">Lancer le chrono</string>
     <string name="demo_timer_start_body">Démarre le chrono sur sa ligne : « En ce moment » montre ce sur quoi tu travailles.</string>
     <string name="demo_timer_stop_title">Arrêter le chrono</string>
@@ -1787,7 +1789,7 @@
     <string name="filter_missing_duration">Sans durée</string>
     <!-- Étape « Type » de la démonstration (docs/spec/visite-guidee.md § Visite interactive, issue #166) -->
     <string name="demo_type_title">Qualifier : le type</string>
-    <string name="demo_type_body">Choisis un type sur sa ligne : il regroupe tes statistiques. Avec priorité, points et type, Kairos peut estimer la durée d’après tes tâches terminées.</string>
+    <string name="demo_type_body">Choisis un type sur sa ligne : il regroupe tes statistiques. Priorité, points et type posés, la tâche reçoit un score et prend sa place dans la journée ; Kairos peut aussi estimer sa durée d’après tes tâches terminées.</string>
     <!-- Durée posée en qualifiant dans « À traiter » (docs/spec/vue-jour.md, issue #166) -->
     <string name="estimate_filled_type">Estimée à %1$s (médiane de « %2$s »)</string>
     <string name="estimate_filled_points">Estimée à %1$s (médiane des tâches à %2$d points)</string>
@@ -1796,10 +1798,10 @@
     <!-- Estimateur par modèle (docs/spec/estimateur-modele.md, issue #99, 4.0.0) -->
     <string name="setting_learning_model">Estimer par machine learning</string>
     <string name="setting_learning_model_help">Machine learning sur l’appareil : compare le titre, le type et les points d’une tâche à tes tâches déjà faites. Rien ne quitte cet appareil.</string>
-    <string name="learning_model_status_few">Pas encore assez de tâches chronométrées (%1$d sur %2$d).</string>
-    <string name="learning_model_status_unverified">Pas encore assez de tâches comparables pour le vérifier (%1$d sur %2$d).</string>
+    <string name="learning_model_status_few">Le machine learning démarre après %3$d tâches chronométrées : encore %1$d (%2$d sur %3$d).</string>
+    <string name="learning_model_status_unverified">Le machine learning se vérifie sur tes propres tâches : encore %1$d tâche(s) chronométrée(s) comparable(s) (%2$d sur %3$d).</string>
     <string name="learning_model_status_ok">Sur tes %1$d dernières tâches : erreur médiane %2$d %, contre %3$d % pour la durée par défaut.</string>
-    <string name="learning_model_status_not_better">Ne fait pas nettement mieux que la durée par défaut sur tes %1$d dernières tâches (%2$d % contre %3$d %) : non appliqué.</string>
+    <string name="learning_model_status_not_better">Ne fait pas nettement mieux que la durée par défaut sur tes %1$d dernières tâches (%2$d % contre %3$d %) : non appliqué. Il est revérifié après chaque tâche chronométrée.</string>
     <string name="learned_model_badge_description">Estimée par machine learning d’après %1$d tâches proches, entre %2$s et %3$s</string>
     <string name="learned_model_badge_description_regression">Estimée par machine learning d’après tes %1$d tâches faites, entre %2$s et %3$s</string>
     <string name="why_learned_model">Durée : ~%1$s (entre %2$s et %3$s), estimée par machine learning d’après %4$d tâches proches : %5$s.</string>

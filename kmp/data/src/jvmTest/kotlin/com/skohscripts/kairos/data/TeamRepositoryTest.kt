@@ -78,7 +78,7 @@ class TeamRepositoryTest {
         assertNull(t.startedOn)
         assertNull(t.progressPercent)
         assertTrue(t.teamUid!!.length >= 32)
-        assertTrue(t.needsProcessing)
+        assertTrue(t.needsProcessing(typeRequired = true))
         val e = f.events.single()
         assertEquals(TeamEvent(e.id, id, "Migrer la base", null, TeamEventKind.CREATED, null, "Migrer la base", TeamEventSource.MANUAL, now), e)
         // Deux tâches : deux identités.

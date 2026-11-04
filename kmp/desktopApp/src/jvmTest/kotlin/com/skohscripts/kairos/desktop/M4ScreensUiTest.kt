@@ -143,6 +143,7 @@ class M4ScreensUiTest {
             val id = repository.createTask("Delta")!!
             repository.setPriority(id, 2)
             repository.setPoints(id, 1)
+            repository.setTaskType(id, "Development")
         }
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitText("Delta", substring = true)
@@ -163,6 +164,7 @@ class M4ScreensUiTest {
         val id = repository.createTask(title)!!
         repository.setPriority(id, 2)
         repository.setPoints(id, points)
+        repository.setTaskType(id, "Development")
         repository.startTimer(id)
         clock.now += minutes.minutes
         repository.stopTimer()

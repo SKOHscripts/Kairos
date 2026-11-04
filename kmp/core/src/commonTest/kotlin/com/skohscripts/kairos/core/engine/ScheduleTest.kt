@@ -23,11 +23,11 @@ class ScheduleTest {
 
     private fun task(id: Long) = Task(id, "T$id", priority = 1, fibonacciPoints = 3, estimatedMinutes = 60, createdAt = t0, updatedAt = t0)
 
-    private fun settings(vararg days: Pair<Int, DaySchedule>) = Settings(schedule = ScheduleSettings(days.toMap()))
+    private fun settings(vararg days: Pair<Int, DaySchedule>) = Settings(taskTypes = "", schedule = ScheduleSettings(days.toMap()))
 
     @Test
     fun withoutAScheduleEverySevenDaysHaveTheSettingsWindow() {
-        val s = Settings(workdayStartHour = 8, workdayEndHour = 17)
+        val s = Settings(taskTypes = "", workdayStartHour = 8, workdayEndHour = 17)
         for (offset in 0L..6L) {
             val day = LocalDate.fromEpochDays(monday.toEpochDays() + offset)
             assertEquals(Schedule.Window(LocalDateTime(day.year, day.month, day.day, 8, 0), LocalDateTime(day.year, day.month, day.day, 17, 0)), Schedule.windowFor(day, s))
@@ -97,8 +97,8 @@ class ScheduleTest {
     fun theUsualScheduleIsUnchangedByADefaultScheduleObject() {
         // Un horaire sans aucun jour propre n'est jamais écrit (SettingsForm), mais s'il existe il ne change rien.
         val tasks = listOf(task(1), task(2))
-        val plain = Scheduling.buildDaySchedule(tasks, emptyList(), monday, null, Settings())
-        val withEmpty = Scheduling.buildDaySchedule(tasks, emptyList(), monday, null, Settings(schedule = ScheduleSettings()))
+        val plain = Scheduling.buildDaySchedule(tasks, emptyList(), monday, null, Settings(taskTypes = ""))
+        val withEmpty = Scheduling.buildDaySchedule(tasks, emptyList(), monday, null, Settings(taskTypes = "", schedule = ScheduleSettings()))
         assertEquals(plain, withEmpty)
     }
 

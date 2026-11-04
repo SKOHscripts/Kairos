@@ -59,7 +59,7 @@ class LevelNamesUiTest {
         val repository = KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock)
         repository.replaceAll(
             KairosSnapshot(
-                tasks = listOf(Task(1, "Quarterly report", priority = 0, fibonacciPoints = 3, estimatedMinutes = 60, createdAt = now, updatedAt = now)),
+                tasks = listOf(Task(1, "Quarterly report", priority = 0, fibonacciPoints = 3, taskType = "Development", estimatedMinutes = 60, createdAt = now, updatedAt = now)),
                 settings = Settings(levelNames = names),
             ),
         )

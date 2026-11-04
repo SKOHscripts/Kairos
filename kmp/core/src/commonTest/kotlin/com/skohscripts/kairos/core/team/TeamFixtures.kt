@@ -20,7 +20,9 @@ internal object TeamFixtures {
     val mondayMorning: Instant = Instant.parse("2026-10-05T07:00:00Z")
 
     fun settings(team: TeamSettings = TeamSettings(focusFactor = 1.0)) =
-        Settings(holidaysFr = false, team = team.copy(enabled = true))
+        // Liste des types vide : une tâche sans catégorie reste qualifiée par sa priorité et ses points (`typeRequired`) ;
+        // le critère de la catégorie a ses propres tests.
+        Settings(holidaysFr = false, taskTypes = "", team = team.copy(enabled = true))
 
     fun member(
         id: Long,

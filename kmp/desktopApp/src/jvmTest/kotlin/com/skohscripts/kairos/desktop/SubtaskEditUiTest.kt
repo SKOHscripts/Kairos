@@ -86,7 +86,7 @@ class SubtaskEditUiTest {
         val beta = repository.createTask("Beta", parentId = mother)!!
         val gamma = repository.createTask("Gamma", parentId = mother)!!
         val delta = repository.createTask("Delta", parentId = mother)!!
-        listOf(mother, beta, gamma, delta).forEach { repository.setPriority(it, 2); repository.setPoints(it, 3) }
+        listOf(mother, beta, gamma, delta).forEach { repository.setPriority(it, 2); repository.setPoints(it, 3); repository.setTaskType(it, "Development") }
         Family(mother, beta, gamma, delta)
     }
 
@@ -138,7 +138,7 @@ class SubtaskEditUiTest {
     @Test
     fun aTaskWithoutSubtasksHasNoSubtaskSection() = runComposeUiTest {
         val services = services()
-        runBlocking { services.repository.createTask("Solo").also { services.repository.setPriority(it!!, 2); services.repository.setPoints(it, 3) } }
+        runBlocking { services.repository.createTask("Solo").also { services.repository.setPriority(it!!, 2); services.repository.setPoints(it, 3); services.repository.setTaskType(it, "Development") } }
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Solo", substring = true).fetchSemanticsNodes().isNotEmpty() }
         onAllNodesWithContentDescription("Edit")[0].performClick()

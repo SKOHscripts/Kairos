@@ -37,8 +37,11 @@ internal fun ModelStatusLine(services: AppServices) {
     val gate = status.gate
     fun percent(x: Double) = floor(x * 100.0 + 0.5).toInt()
     val text = when {
-        status.corpus < ModelParams.MIN_CORPUS -> stringResource(Res.string.learning_model_status_few, status.corpus, ModelParams.MIN_CORPUS)
-        gate.reason == ModelGate.Reason.TOO_FEW_SAMPLES -> stringResource(Res.string.learning_model_status_unverified, gate.evaluated, ModelParams.GATE_MIN)
+        // Ce qui manque, en nombre de tâches (2026-11-03) : le compte restant d'abord, puis l'avancement.
+        status.corpus < ModelParams.MIN_CORPUS ->
+            stringResource(Res.string.learning_model_status_few, ModelParams.MIN_CORPUS - status.corpus, status.corpus, ModelParams.MIN_CORPUS)
+        gate.reason == ModelGate.Reason.TOO_FEW_SAMPLES ->
+            stringResource(Res.string.learning_model_status_unverified, ModelParams.GATE_MIN - gate.evaluated, gate.evaluated, ModelParams.GATE_MIN)
         gate.passed -> stringResource(Res.string.learning_model_status_ok, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
         else -> stringResource(Res.string.learning_model_status_not_better, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
     }

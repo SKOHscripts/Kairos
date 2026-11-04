@@ -92,6 +92,12 @@ data class Settings(
     /** Types de tâche, dans l'ordre, sans vides. */
     val taskTypeList: List<String> get() = taskTypes.split(',').map { it.trim() }.filter { it.isNotEmpty() }
 
+    /**
+     * Le type est exigé pour qualifier une tâche ([Task.needsProcessing]) : seulement si la liste des types n'est pas vide,
+     * sans quoi aucune tâche ne pourrait sortir de « À traiter » (docs/spec/vue-jour.md § Décisions).
+     */
+    val typeRequired: Boolean get() = taskTypeList.isNotEmpty()
+
     companion object {
         /** L'océan, graine de la charte (docs/DESIGN_SYSTEM.md, docs/spec/apparence.md) ; avant, le miel. */
         const val DEFAULT_THEME_COLOR = "#2F6FED"
