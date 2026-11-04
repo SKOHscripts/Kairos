@@ -50,6 +50,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -201,9 +202,13 @@ fun AppShell(
     val memory = stored.settings.guide
     val newsKey = FeatureCatalog.newsKey(KairosBuild.VERSION_NAME)
     val showMessage: (String) -> Unit = { message -> scope.launch { snackbar.showSnackbar(message) } }
-    // Message avec une action : l'action n'est jouée que si l'utilisateur la choisit avant la fin du message.
+    // Message avec une action : l'action n'est jouée que si l'utilisateur la choisit avant la fin du message. Durée longue
+    // (environ 10 s) explicite : avec un bouton, Material 3 rend le message `Indefinite` par défaut, et il restait affiché
+    // en bas de l'écran jusqu'au message suivant (retour d'utilisateur, 2026-11-04).
     val showUndo: (String, String, () -> Unit) -> Unit = { message, label, action ->
-        scope.launch { if (snackbar.showSnackbar(message, actionLabel = label) == SnackbarResult.ActionPerformed) action() }
+        scope.launch {
+            if (snackbar.showSnackbar(message, actionLabel = label, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) action()
+        }
     }
     val linkFailure = stringResource(Res.string.link_unavailable)
     // Hors des branches de mise en page : un redimensionnement ne rouvre pas l'accueil.

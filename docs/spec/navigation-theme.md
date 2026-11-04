@@ -230,7 +230,16 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
     l'Accueil ou la visite.
   - Quand un écran secondaire est ouvert, aucune destination n'est marquée active.
   - `SnackbarHost` dans chaque `Scaffold` ; `LocalMessages` fournit aux
-    écrans une fonction qui y affiche un message.
+    écrans une fonction qui y affiche un message (durée courte) ;
+    `LocalUndoMessages`, un message avec une action (« Annuler »,
+    « Les recréer »…), jouée seulement si elle est choisie avant la fin du
+    message. Sa durée est **longue** (`SnackbarDuration.Long`, environ 10 s)
+    et toujours explicite : avec un bouton, Material 3 rend le message
+    `Indefinite` par défaut, et il restait en bas de l'écran jusqu'au
+    message suivant (retour d'utilisateur du 2026-11-04,
+    `InlineTypeUiTest.aMessageWithUndoGoesAwayOnItsOwn`). Les alertes du
+    chrono et des rappels (`AlertBanners`) restent, elles, affichées jusqu'à
+    leur fermeture (`rappels.md` § Décisions).
   - Au-dessus du contenu de chaque destination : `UpdateBanner`
     (`mises-a-jour.md`) ; hors des branches de mise en page :
     `WelcomeDialog`, `HelpDialog` et `GuideDialog` (`accueil.md`) ; veilles de toute l'application :

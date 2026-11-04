@@ -134,6 +134,24 @@ class InlineTypeUiTest {
     }
 
     @Test
+    fun aMessageWithUndoGoesAwayOnItsOwn() = runComposeUiTest {
+        // Retour d'utilisateur (2026-11-04) : un message avec « Annuler » restait en bas de l'écran sans fin.
+        val history = (11L..13L).map {
+            Task(it, "Old $it", priority = 1, fibonacciPoints = 5, taskType = "Writing", status = TaskStatus.DONE, manualTimeSpentMinutes = 45, createdAt = now, updatedAt = now)
+        }
+        val inbox = Task(1, "Draft the newsletter", priority = 1, taskType = "Writing", createdAt = now, updatedAt = now)
+        val services = services(KairosSnapshot(tasks = history + inbox, settings = Settings(taskTypes = "Meeting,Writing")))
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitText("To process (1)")
+        onNodeWithText("3 moderate").performScrollTo().performClick()
+        waitText("Estimated at 45 min (median of “Writing”)")
+        mainClock.advanceTimeBy(11_000)
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Undo").fetchSemanticsNodes().isEmpty() }
+        // Parti sans action : l'estimation reste.
+        assertEquals(45, services.inboxTask().estimatedMinutes)
+    }
+
+    @Test
     fun aCategoryPickedInToQualifyIsSavedOnTheTeamTask() = runComposeUiTest {
         val team = Settings(taskTypes = "Backend,Frontend", team = TeamSettings(enabled = true, name = "Platform", identity = "id-1", lastSpace = TeamSettings.SPACE_TEAM))
         val services = services(KairosSnapshot(tasks = listOf(draft(TaskSpace.TEAM)), settings = team))
