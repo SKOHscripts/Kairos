@@ -324,6 +324,7 @@
     <string name="field_pin_time">Fixed time (HH:MM)</string>
     <string name="field_pin_hint">Applies to the scheduled day, otherwise to today; empty = no fixed time.</string>
     <string name="field_subtasks">New subtasks (one per line)</string>
+    <string name="subtasks_chain">Chain them: each one waits for the previous one</string>
     <string name="subtasks_existing">Subtasks</string>
     <string name="subtasks_existing_hint">Check, rename or delete: everything applies when you save.</string>
     <string name="priority_floor">At least %1$s, like “%2$s”: a subtask is never less important than the task it belongs to.</string>
@@ -1396,7 +1397,7 @@
     <string name="card_week_title">Plan the week</string>
     <string name="card_week_body">Seven days at a glance: deadlines, scheduled tasks, finished tasks and slots. Open a day to see its agenda.</string>
     <string name="card_subtasks_title">Subtasks</string>
-    <string name="card_subtasks_body">Split a task into subtasks: only the leaves are scheduled, each one at least as important as its parent and, without a due date, planned with the parent’s. The parent shows its progress and the sum of their durations.</string>
+    <string name="card_subtasks_body">Split a task into subtasks: only the leaves are scheduled, each one at least as important as its parent and, without a due date, planned with the parent’s. The parent shows its progress and the sum of their durations. New subtasks can be chained: each one waits for the previous one.</string>
     <string name="card_recurrence_title">Recurrence</string>
     <string name="card_recurrence_body">A task can come back daily, on weekdays, weekly or monthly, or on day N of the month (moved to the previous working day on a weekend or holiday).</string>
     <string name="card_dependencies_title">Blockers</string>

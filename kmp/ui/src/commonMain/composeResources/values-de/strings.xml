@@ -323,6 +323,7 @@
     <string name="field_pin_time">Feste Uhrzeit (HH:MM)</string>
     <string name="field_pin_hint">Gilt für den geplanten Tag, sonst für heute; leer = keine feste Uhrzeit.</string>
     <string name="field_subtasks">Neue Unteraufgaben (eine pro Zeile)</string>
+    <string name="subtasks_chain">Verketten: Jede wartet auf die vorherige</string>
     <string name="subtasks_existing">Unteraufgaben</string>
     <string name="subtasks_existing_hint">Abhaken, umbenennen oder löschen: Alles wird beim Speichern übernommen.</string>
     <string name="priority_floor">Mindestens %1$s, wie „%2$s“: Eine Unteraufgabe ist nie weniger wichtig als die Aufgabe, zu der sie gehört.</string>
@@ -1395,7 +1396,7 @@
     <string name="card_week_title">Die Woche planen</string>
     <string name="card_week_body">Sieben Tage auf einen Blick: Fristen, geplante Aufgaben, erledigte Aufgaben und Zeitfenster. Öffne einen Tag, um seine Agenda zu sehen.</string>
     <string name="card_subtasks_title">Unteraufgaben</string>
-    <string name="card_subtasks_body">Teile eine Aufgabe in Unteraufgaben auf: Nur die untersten werden eingeplant, jede mindestens so wichtig wie die übergeordnete und ohne eigene Frist mit deren Frist. Die übergeordnete Aufgabe zeigt ihren Fortschritt und die Summe ihrer Dauern.</string>
+    <string name="card_subtasks_body">Teile eine Aufgabe in Unteraufgaben auf: Nur die untersten werden eingeplant, jede mindestens so wichtig wie die übergeordnete und ohne eigene Frist mit deren Frist. Die übergeordnete Aufgabe zeigt ihren Fortschritt und die Summe ihrer Dauern. Neue Unteraufgaben lassen sich verketten: Jede wartet auf die vorherige.</string>
     <string name="card_recurrence_title">Wiederholung</string>
     <string name="card_recurrence_body">Eine Aufgabe kann täglich, an Arbeitstagen, wöchentlich oder monatlich wiederkehren oder am N. des Monats (an Wochenenden und Feiertagen auf den vorigen Arbeitstag vorgezogen).</string>
     <string name="card_dependencies_title">Blocker</string>

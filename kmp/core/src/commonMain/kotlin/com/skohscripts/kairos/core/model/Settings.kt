@@ -85,6 +85,12 @@ data class Settings(
      * défaut » : c'est une décision sur des données, pas une préférence.
      */
     val recurrence: RecurrenceSettings? = null,
+    /**
+     * Dernier choix de l'interrupteur « Enchaîner » des nouvelles sous-tâches (docs/spec/sous-taches.md § File, issue #209) :
+     * `true` = la fiche le propose actif. `null` = coupé ; même règle que [team], une base qui n'y a jamais touché ne change
+     * pas. Propre à l'appareil (`SyncScope.LOCAL_SETTINGS`).
+     */
+    val subtaskChain: Boolean? = null,
 ) {
     /** L'espace Équipe est activé (valeur enregistrée). */
     val teamModeEnabled: Boolean get() = team?.enabled == true

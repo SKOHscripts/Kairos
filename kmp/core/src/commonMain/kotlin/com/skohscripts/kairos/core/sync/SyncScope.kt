@@ -44,6 +44,8 @@ object SyncScope {
     /** Réglages propres à l'appareil, jamais fusionnés : présentation, notifications, guide et équipe. */
     val LOCAL_SETTINGS: Set<String> = setOf(
         "language", "themeColor", "themeMode", "updateCheckEnabled", "timerAlertSound", "reminders", "guide", "team",
+        // Mémoire d'un interrupteur de la fiche (issue #209) : une habitude de saisie, pas un réglage du planning.
+        "subtaskChain",
     )
 
     /**

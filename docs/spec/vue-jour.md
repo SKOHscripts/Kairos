@@ -137,7 +137,7 @@ différence entre points (l'ordre) et durée (le placement).
 conseil de découpage s'il y a lieu, `sous-taches.md` § Conseil, et le guide des points), type (dans l'essentiel depuis 3.14.0, issue #166 : il qualifie la tâche au même titre que priorité et
 points), échéance, durée ; **« Découpage et enchaînement »** (issue #201, `sous-taches.md` § Section ; repliée,
 ouverte d'emblée si la tâche a des sous-tâches ou des bloqueurs) : une phrase qui dit le rôle de chacun, les
-sous-tâches existantes, nouvelles sous-tâches (une par ligne), « Bloquée par » (cases à cocher, avec une recherche
+sous-tâches existantes, l'interrupteur « Enchaîner » (issue #209, `sous-taches.md` § File : chacune attend la précédente, dernier choix retenu sur l'appareil), nouvelles sous-tâches (une par ligne), « Bloquée par » (cases à cocher, avec une recherche
 au-delà de six cases) ; « Options avancées » : programmée pour, projet, temps passé manuel,
 récurrence (aucune, quotidienne, jours ouvrés, hebdomadaire, mensuelle,
 « le … du mois » avec le jour), heure fixe (HH:MM, vide = aucune).
