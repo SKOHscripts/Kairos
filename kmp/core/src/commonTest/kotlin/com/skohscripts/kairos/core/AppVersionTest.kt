@@ -45,5 +45,20 @@ class AppVersionTest {
         val current = AppVersion.current
         assertEquals(current.versionCode, KairosBuild.VERSION_CODE)
         assertEquals(KairosBuild.VERSION_NAME, current.toString())
+        // Préversions (docs/spec/distribution.md § Cycle des versions) : seulement d'une version en .0, numéro de 1 à 99.
+        // Sinon les codes des préversions ne croissent plus : 4.1.1-beta.1 vaudrait 4.1.0-beta.2, 4.1.0-beta.100 dépasserait
+        // 4.2.0-beta.1.
+        if (current.isPrerelease) {
+            assertEquals(0, current.patch, "une préversion annonce une version X.Y.0")
+            assertTrue(current.stageNumber in 1..AppVersion.MAX_PRERELEASE, "numéro de préversion de 1 à ${AppVersion.MAX_PRERELEASE}")
+        }
+    }
+
+    @Test
+    fun prereleaseCodesGrowFromOneMinorToTheNext() {
+        val codes = listOf("4.0.0", "4.1.0-beta.1", "4.1.0-beta.99", "4.1.0", "4.2.0-beta.1", "5.0.0-beta.1", "5.0.0").map { AppVersion.parse(it)!!.versionCode }
+        // Chaque canal (Preview, stable) croît : une beta reste sous sa finale et au-dessus des betas d'avant.
+        assertEquals(listOf(39601, 39699, 39701, 49501), listOf(codes[1], codes[2], codes[4], codes[5]))
+        assertTrue(codes[2] < codes[4] && codes[1] < codes[3] && codes[0] < codes[3] && codes[3] < codes[6])
     }
 }

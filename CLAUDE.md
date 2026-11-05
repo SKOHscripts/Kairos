@@ -95,13 +95,16 @@ bureau Windows/Linux/macOS (JVM), web (Kotlin/Wasm).
   `docs/spec/connexions-en-ligne.md`, décision du 2026-10-26), et reproductible
   (`docs/spec/publication.md`).
 - **Versions** : `kmp/gradle.properties` est la source unique
-  (`kairos.versionName`, `kairos.versionCode`, formule dans
-  `docs/spec/distribution.md`). Chaque version publiée a sa note de version
-  Fastlane en français et en anglais
-  (`fastlane/metadata/android/*/changelogs/<versionCode>.txt`). Un tag
-  `vX.Y.Z` (ou `vX.Y.Z-beta.N`) déclenche `kmp-release.yml`. L'environnement de
-  développement ne peut pas pousser de tag : le propriétaire du dépôt le pose
-  sur le commit de la version.
+  (`kairos.versionName`, `kairos.versionCode`, posés ensemble par
+  `python3 kmp/tools/set_version.py X.Y.Z[-beta.N]`, formule et cycle dans
+  `docs/spec/distribution.md` § Cycle des versions). Cycle : une ou plusieurs
+  betas `X.Y.0-beta.N`, puis la finale ; `main` porte toujours la prochaine
+  version (juste après une finale, la beta suivante). Chaque version **finale**
+  a sa note de version Fastlane dans les six langues
+  (`fastlane/metadata/android/*/changelogs/<versionCode>.txt`, `ReleaseNotesTest`) ;
+  une beta n'en a pas. Le tag se pose depuis l'onglet Actions (« Kairos tag »,
+  `kmp-tag.yml`), qui vérifie puis lance `kmp-release.yml` ; l'environnement de
+  développement ne peut pas pousser de tag.
 - **Textes** : aucun texte d'interface en dur. Français (`values-fr/`) **et**
   anglais (`values/`, langue de repli) à chaque ajout, apostrophe typographique `’`
   (`StringsParityTest`, `docs/spec/i18n.md`).

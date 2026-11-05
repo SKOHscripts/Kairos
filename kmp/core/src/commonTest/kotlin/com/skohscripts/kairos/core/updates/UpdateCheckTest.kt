@@ -35,6 +35,25 @@ class UpdateCheckTest {
     }
 
     @Test
+    fun a_preview_install_also_sees_prereleases() {
+        // Une installation « Kairos Preview » lit la liste des releases et y prend la plus récente, préversion comprise.
+        val beta = AppVersion.parse("4.1.0-beta.1")!!
+        assertEquals(UpdateCheck.RELEASES_URL, UpdateCheck.urlFor(beta))
+        assertEquals(UpdateCheck.LATEST_URL, UpdateCheck.urlFor(AppVersion.parse("4.0.0")!!))
+        val list = "[" + listOf(
+            release("v4.0.0"), release("v4.1.0-beta.2", prerelease = true), release("v4.1.0-beta.1", prerelease = true),
+            """{"tag_name": "v9.0.0", "html_url": "https://github.com/x", "draft": true}""", release("nightly"),
+        ).joinToString(",") + "]"
+        val newest = UpdateCheck.parseFor(beta, list)!!
+        assertEquals(AppVersion.parse("4.1.0-beta.2"), newest.version)
+        assertTrue(UpdateCheck.isNewer(newest, beta))
+        // La finale qui suit la beta est proposée aussi (elle s'installe en « Kairos », à côté de la Preview).
+        assertEquals(AppVersion.parse("4.1.0"), UpdateCheck.parseNewest("[" + release("v4.1.0") + "," + release("v4.1.0-beta.2", prerelease = true) + "]")!!.version)
+        assertNull(UpdateCheck.parseNewest("""{"message": "Not Found"}"""))
+        assertNull(UpdateCheck.parseNewest("[]"))
+    }
+
+    @Test
     fun at_most_every_six_hours() {
         val t = Instant.parse("2026-09-29T08:00:00Z")
         assertTrue(UpdateCheck.due(null, t))

@@ -50,6 +50,12 @@ data class AppVersion(
     }
 
     companion object {
+        /**
+         * Numéro de préversion le plus haut que Kairos publie (docs/spec/distribution.md § Cycle des versions) : au-delà, le code
+         * d'une beta de X.Y.0 rattraperait celui de la beta de X.(Y+1).0. [parse] accepte plus large (anciens tags).
+         */
+        const val MAX_PRERELEASE = 99
+
         private val PATTERN = Regex("""^v?(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta)\.(\d+))?$""")
 
         /** Analyse `3.0.0`, `v3.0.0`, `3.0.0-alpha.2`… ; `null` pour tout autre format. */

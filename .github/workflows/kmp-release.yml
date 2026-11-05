@@ -1,4 +1,5 @@
-# Release de Kairos (docs/spec/distribution.md § Release) : sur tag v3.* ou v4.*,
+# Release de Kairos (docs/spec/distribution.md § Release) : sur tag vX.Y.Z ou vX.Y.0-beta.N (posé par « Kairos tag »,
+# kmp-tag.yml, ou à la main),
 # APK signé, installeurs et images portables des trois OS de bureau, version
 # web, SHA256SUMS, release GitHub (préversion si le tag a un suffixe), paquet AUR
 # kairos-bin pour une version stable.
@@ -6,7 +7,10 @@ name: Kairos 3 release
 
 on:
   push:
-    tags: ["v3.*", "v4.*"]
+    # Toute version à partir de la 3 (les v2.* sont ceux de l'ancienne version) : une 5.0.0 n'aura rien à changer ici.
+    tags: ["v[3-9].*", "v[1-9][0-9].*"]
+  # Lancement manuel : sur main, une construction de validation ; sur la référence d'un tag (ce que fait kmp-tag.yml),
+  # une vraie release (`github.ref_type == 'tag'`).
   workflow_dispatch:
 
 permissions:
@@ -298,3 +302,22 @@ jobs:
         env:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
         run: bash packaging/aur/publish.sh aur-out
+
+  # Une release lancée par « Kairos tag » (kmp-tag.yml) l'est avec le jeton du workflow : la fin de cette release ne
+  # déclenche pas de façon sûre les workflows qui la suivent (workflow_run). On les lance donc ici : la page de
+  # téléchargement, et, pour une version finale, la comparaison F-Droid à l'APK publié.
+  follow-up:
+    needs: [version, release]
+    if: github.event_name == 'workflow_dispatch' && github.ref_type == 'tag' && needs.release.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Page de téléchargement
+        run: gh workflow run pages.yml --ref main
+      - name: Comparaison F-Droid (version finale)
+        if: needs.version.outputs.prerelease == 'false'
+        run: gh workflow run fdroid-check.yml --ref "${{ github.ref_name }}" -f after_release=true

@@ -7,7 +7,9 @@ Ce script échoue (code 1) si, pour fr-FR, en-US, es-ES, de-DE, ru-RU et it-IT :
 - title.txt (50), short_description.txt (80), full_description.txt (4000)
   manquent, sont vides ou trop longs ;
 - le journal de la version courante (`changelogs/<versionCode>.txt`, 500 au plus)
-  manque — versionCode lu dans kmp/gradle.properties ;
+  manque — versionCode lu dans kmp/gradle.properties ; une préversion (`X.Y.0-beta.N`)
+  n'en a pas besoin : elle ne va ni sur F-Droid ni dans les fiches (docs/spec/distribution.md
+  § Cycle des versions) ;
 - (fr-FR et en-US seulement) images/icon.png n'est pas un PNG de 512 × 512, ou
   images/phoneScreenshots/ ne contient pas au moins deux PNG, numérotés 1, 2… :
   les autres langues n'ont pas d'images, F-Droid reprend celles de en-US.
@@ -30,11 +32,11 @@ IMAGE_LOCALES = ("fr-FR", "en-US")
 LIMITS = {"title.txt": 50, "short_description.txt": 80, "full_description.txt": 4000}
 
 
-def version_code() -> str:
+def version_property(key: str) -> str:
     for line in (ROOT / "kmp" / "gradle.properties").read_text(encoding="utf-8").splitlines():
-        if line.startswith("kairos.versionCode="):
+        if line.startswith(f"kairos.{key}="):
             return line.split("=", 1)[1].strip()
-    raise SystemExit("ERREUR : kairos.versionCode absent de kmp/gradle.properties")
+    raise SystemExit(f"ERREUR : kairos.{key} absent de kmp/gradle.properties")
 
 
 def png_size(path: Path) -> tuple[int, int]:
@@ -45,7 +47,8 @@ def png_size(path: Path) -> tuple[int, int]:
 
 
 def main() -> None:
-    code = version_code()
+    code = version_property("versionCode")
+    prerelease = "-" in version_property("versionName")
     errors: list[str] = []
     for locale in LOCALES:
         folder = META / locale
@@ -57,7 +60,9 @@ def main() -> None:
             elif len(text) > limit:
                 errors.append(f"{path} : {len(text)} caractères (au plus {limit})")
         changelog = folder / "changelogs" / f"{code}.txt"
-        if not changelog.exists():
+        if prerelease and not changelog.exists():
+            pass
+        elif not changelog.exists():
             errors.append(f"journal absent pour versionCode {code} : {changelog}")
         elif len(changelog.read_text(encoding="utf-8").strip()) > 500:
             errors.append(f"{changelog} dépasse 500 caractères")
@@ -79,7 +84,8 @@ def main() -> None:
     if errors:
         print("\n".join(f"ERREUR : {e}" for e in errors))
         sys.exit(1)
-    print(f"Métadonnées Fastlane valides ({', '.join(LOCALES)}, versionCode {code}).")
+    note = " ; préversion : journal non exigé" if prerelease else ""
+    print(f"Métadonnées Fastlane valides ({', '.join(LOCALES)}, versionCode {code}{note}).")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,103 @@
+# Pose le tag d'une version de Kairos depuis l'onglet Actions (docs/spec/distribution.md § Cycle des versions).
+#
+# Actions → « Kairos tag » → « Run workflow » sur main, en recopiant la version de kmp/gradle.properties : le workflow
+# vérifie tout ce qu'un tag tapé à la main pouvait rater, pose le tag sur le dernier commit de main, puis lance la
+# release. Un tag poussé avec le jeton du workflow (GITHUB_TOKEN) ne déclenche pas les autres workflows : la release est
+# donc lancée explicitement (workflow_dispatch sur la référence du tag, qu'elle traite comme un tag poussé).
+name: Kairos tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version à publier, recopiée de kmp/gradle.properties (ex. 4.1.0-beta.1 ou 4.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: kairos-tag
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Vérifier la version
+        id: check
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          name=$(sed -n 's/^kairos.versionName=//p' kmp/gradle.properties)
+          code=$(sed -n 's/^kairos.versionCode=//p' kmp/gradle.properties)
+          wanted="${VERSION#v}"
+          if [ "$wanted" != "$name" ]; then
+            echo "::error::Version demandée $wanted, mais kmp/gradle.properties dit $name : recopie la version de main."
+            exit 1
+          fi
+          # Le cycle (beta puis finale) : X.Y.Z, ou X.Y.0-beta.N avec N de 1 à 99 (alpha toléré, jamais utilisé).
+          if ! [[ "$name" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ || "$name" =~ ^[0-9]+\.[0-9]+\.0-(alpha|beta)\.([1-9]|[1-9][0-9])$ ]]; then
+            echo "::error::$name n'est pas une version du cycle (X.Y.Z ou X.Y.0-beta.N, N de 1 à 99)."
+            exit 1
+          fi
+          # La formule du versionCode (AppVersion) : AppVersionTest la vérifie aussi, mais un tag ne doit pas partir avant.
+          python3 - "$name" "$code" <<'PY'
+          import re, sys
+          name, code = sys.argv[1], int(sys.argv[2])
+          major, minor, patch, stage, n = re.match(r"(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta)\.(\d+))?$", name).groups()
+          expected = int(major) * 10000 + int(minor) * 100 + int(patch)
+          if stage:
+              expected += (-500 if stage == "beta" else -1000) + int(n)
+          if expected != code:
+              sys.exit(f"::error::kairos.versionCode={code}, attendu {expected} pour {name}")
+          PY
+          if git rev-parse -q --verify "refs/tags/v$name" >/dev/null; then
+            echo "::error::Le tag v$name existe déjà : passe main à la version suivante (kmp/tools/set_version.py)."
+            exit 1
+          fi
+          # Une version finale part avec sa note de version dans les six langues des fiches.
+          if [[ "$name" != *-* ]]; then
+            for locale in en-US fr-FR de-DE es-ES it-IT ru-RU; do
+              note="fastlane/metadata/android/$locale/changelogs/$code.txt"
+              if [ ! -s "$note" ]; then
+                echo "::error::$note manque : une version finale a sa note dans les six langues."
+                exit 1
+              fi
+            done
+          fi
+          # La CI de main ne doit pas être rouge sur ce commit (absente : la release refait tous les tests).
+          sha=$(git rev-parse HEAD)
+          state=$(gh run list --workflow kmp.yml --commit "$sha" --json status,conclusion --jq '.[0] | "\(.status) \(.conclusion)"' || true)
+          case "$state" in
+            ""|"completed success") ;;
+            "completed "*) echo "::error::La CI (kmp.yml) a échoué sur $sha : $state."; exit 1 ;;
+            *) echo "::error::La CI (kmp.yml) tourne encore sur $sha ($state) : relance quand elle est verte."; exit 1 ;;
+          esac
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - name: Poser le tag et lancer la release
+        env:
+          NAME: ${{ steps.check.outputs.name }}
+          SHA: ${{ steps.check.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$NAME" "$SHA" -m "Kairos $NAME"
+          git push origin "v$NAME"
+          gh workflow run kmp-release.yml --ref "v$NAME"
+          {
+            echo "### Kairos $NAME"
+            echo "Tag \`v$NAME\` posé sur \`$SHA\`, release lancée (onglet Actions, « Kairos 3 release »)."
+            if [[ "$NAME" == *-* ]]; then echo "Préversion : ni F-Droid, ni AUR, ni vérification des mises à jour des versions stables."; fi
+          } >> "$GITHUB_STEP_SUMMARY"

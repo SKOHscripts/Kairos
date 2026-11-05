@@ -132,6 +132,14 @@ class FeatureCatalogTest {
     }
 
     @Test
+    fun aFeatureArrivesInAMinorOrMajorVersion() {
+        // Règle de numérotation (docs/spec/distribution.md § Quel numéro) : une fonctionnalité nouvelle fait une version
+        // X.Y.0 ; un correctif X.Y.Z n'en apporte jamais.
+        val bad = cards.filter { !Regex("""\d+\.\d+\.0""").matches(it.since) }.map { "${it.id} : ${it.since}" }
+        assertEquals(emptyList(), bad, "cartes annoncées dans un correctif")
+    }
+
+    @Test
     fun noCardIsNewerThanTheApp() {
         // Une carte annonce une version déjà publiée ou celle en préparation, jamais une future. Le passage de version vient
         // en dernière PR d'un cycle (docs/spec/distribution.md) : la version en préparation est la mineure suivante de l'app,
