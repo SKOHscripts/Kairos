@@ -309,6 +309,7 @@
     <string name="field_subtasks">Новые подзадачи (по одной в строке)</string>
     <string name="subtasks_existing">Подзадачи</string>
     <string name="subtasks_existing_hint">Отмечай, переименовывай или удаляй: все применяется при сохранении.</string>
+    <string name="priority_floor">Не ниже %1$s, как у «%2$s»: подзадача никогда не бывает менее важной, чем задача, частью которой она является.</string>
     <string name="subtask_title">Название подзадачи</string>
     <string name="subtask_done_description">Подзадача выполнена: %1$s</string>
     <string name="subtask_delete">Удалить подзадачу</string>

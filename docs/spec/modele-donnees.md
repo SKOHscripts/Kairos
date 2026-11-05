@@ -226,9 +226,15 @@ de SQLDelight.
   système) donne « aujourd'hui » aux opérations qui en dépendent.
 - Opérations :
   - `createTask(titre, parentId?)` : titre nettoyé ; vide → rien (`null`).
-    Ni priorité ni points : la tâche arrive « À traiter ». Une mère inconnue
-    est ignorée (la tâche naît au premier niveau).
-  - `setPriority`, `setPoints` : une valeur hors échelle est vidée.
+    Ni priorité ni points : la tâche arrive « À traiter ». Une sous-tâche prend
+    la priorité de sa mère (la plus forte de ses ancêtres, `sous-taches.md`
+    § Priorité). Une mère inconnue est ignorée (la tâche naît au premier niveau).
+  - `setPriority`, `setPoints` : une valeur hors échelle est vidée. La priorité
+    est **imposée** (`sous-taches.md`) : jamais moins forte que celle des
+    ancêtres (vidée, elle prend leur plancher), et les sous-tâches à faire
+    moins prioritaires montent avec elle, de proche en proche ; même règle dans
+    `updateTask` (sous-tâches créées en lot comprises) et à l'application d'un
+    scénario d'équipe.
   - `toggleDone` : `todo` → `done` en fermant la session de chrono ouverte
     sur la tâche et, pour une récurrente, en créant l'occurrence suivante
     dans la même transaction (`recurrence.md`) ; `done` → `todo` ;

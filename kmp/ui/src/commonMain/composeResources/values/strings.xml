@@ -310,6 +310,7 @@
     <string name="field_subtasks">New subtasks (one per line)</string>
     <string name="subtasks_existing">Subtasks</string>
     <string name="subtasks_existing_hint">Check, rename or delete: everything applies when you save.</string>
+    <string name="priority_floor">At least %1$s, like “%2$s”: a subtask is never less important than the task it belongs to.</string>
     <string name="subtask_title">Subtask title</string>
     <string name="subtask_done_description">Subtask done: %1$s</string>
     <string name="subtask_delete">Delete the subtask</string>

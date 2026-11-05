@@ -10,7 +10,7 @@ Les dépendances elles-mêmes sont dans `dependances.md`, la fiche dans `vue-jou
 État : spécifiée le 2026-11-05 (issue #201, milestone 4.1.0), en PR empilées par lot :
 
 1. **fil d'Ariane complet** (bug) : **livré** ;
-2. priorité imposée : à implémenter ;
+2. **priorité imposée** : **livrée** ;
 3. durées et temps passé additionnés, échéance héritée : à implémenter ;
 4. conseil de découpage : à implémenter ;
 5. section « Découpage et enchaînement » de la fiche, recherche dans « Bloquée par » : à implémenter.
@@ -83,7 +83,33 @@ Kairos conseille de découper une tâche que l'historique montre mal estimée.
 - `DayView.parentTitle` porte désormais ce préfixe complet (« A › C » pour D), utilisé tel quel par `TaskRow` (« A › C ›
   D »), par le motif des tâches bloquées (« en attente de : A › C › D ») et par `BlockerChoices` (libellé des cases).
 
+### Priorité imposée (lot 2)
+
+- `TaskTree.floorTask(id, byId)` : l'ancêtre à la priorité la plus forte (le plus proche à égalité) ;
+  `priorityFloor` : sa priorité. `inheritedPriority(mère, byId)` : la plus forte de la mère et de ses ancêtres, pour une
+  sous-tâche qui naît. `bounded(priorité, plancher)` : jamais moins forte que le plancher ; `null` prend le plancher
+  (« hériter ») ; plus forte que la mère reste permis. `raisedDescendants(id, byId)` : les sous-tâches **à faire** à
+  monter, de proche en proche (largeur d'abord, `descendants`) ; les faites et archivées gardent la leur.
+- Dépôt (`KairosRepository`) : `createTask` et `createTeamTask` (avec mère) prennent `inheritedPriority` ;
+  `setPriority`, `updateTask` (et ses « nouvelles sous-tâches », qui prennent la priorité enregistrée dans la même
+  fiche) et l'application d'un scénario (`SetPriority`) bornent la valeur puis montent les descendants
+  (`raiseSubtasks`, même transaction). Une sous-tâche d'équipe montée est journalisée (`qualified`, `priority`).
+- Interface : `PriorityPills(…, floor)` désactive les pastilles moins prioritaires que le plancher, ne retire pas la
+  valeur au second clic et écrit « Au moins P1, comme « A » : une sous-tâche n'est jamais moins prioritaire que la tâche
+  dont elle fait partie » (`priority_floor`, six langues). Branché dans la fiche (`EditTaskDialog`, Perso et Équipe),
+  « À traiter » (`InboxQualify`) et « À qualifier » du backlog d'équipe.
+- Hors des gestes de l'utilisateur, rien n'est réécrit : un import, une fusion de synchronisation ou un paquet reçu
+  d'un manager peuvent porter une fille moins prioritaire que sa mère ; la prochaine modification de la mère ou de la
+  fille la remet en règle. Le moteur d'ordonnancement lit la priorité stockée (fichiers d'or inchangés).
+- Tests : `TaskTreeTest`, `SubtaskPriorityTest`, `SubtaskPriorityUiTest`.
+
 ### Décisions et pièges tracés
+
+- **Priorité imposée plutôt que signalée** (propriétaire, 2026-11-05) : un avertissement laissait la fille moins
+  prioritaire, donc planifiée après des tâches moins importantes que sa mère. Le plancher est le plus fort des
+  ancêtres, pas seulement la mère directe : une petite-fille d'une tâche P0 est P0 même si sa mère est restée P1.
+- **Pas de réécriture à l'import ou à la fusion** : réécrire des priorités hors d'un geste de l'utilisateur créerait des
+  modifications qu'il n'a pas faites (et, synchronisé, des marques sur l'autre appareil).
 
 - **Fil d'Ariane complet** (2026-11-05, bug de l'issue #201) : D, fille de C elle-même fille de A, se lisait « C › D », et
   C, devenue mère, quittait l'agenda pour « Tâches mères en cours » : le lien vers A semblait perdu jusqu'à ce que D soit

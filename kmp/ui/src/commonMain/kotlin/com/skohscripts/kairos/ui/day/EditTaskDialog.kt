@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.skohscripts.kairos.core.model.Task
+import com.skohscripts.kairos.core.model.TaskTree
 import com.skohscripts.kairos.core.model.TaskDependency
 import com.skohscripts.kairos.core.model.TaskRecurrence
 import com.skohscripts.kairos.core.model.TaskStatus
@@ -323,7 +324,7 @@ internal fun EditTaskDialog(
                             )
                             if (teamEditing && !creating) ExchangeNoteSection(task.noteIn, noteOut, toManager = false) { noteOut = it }
                         }
-                        Column(Modifier.coachField(EditField.PRIORITY, coach)) { PriorityPills(priority, { priority = it }, showMeaning = true) }
+                        Column(Modifier.coachField(EditField.PRIORITY, coach)) { PriorityPills(priority, { priority = it }, showMeaning = true, floor = remember(task.id, tasksById) { TaskTree.floorTask(task.id, tasksById) }) }
                         // Durée suggérée (issue #15.6) : choisir un palier calibré
                         // REMPLACE la durée, même déjà saisie ; on reste libre de la retoucher.
                         Column(Modifier.coachField(EditField.POINTS, coach), verticalArrangement = Arrangement.spacedBy(16.dp)) {

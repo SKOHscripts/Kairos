@@ -309,6 +309,7 @@
     <string name="field_subtasks">Neue Unteraufgaben (eine pro Zeile)</string>
     <string name="subtasks_existing">Unteraufgaben</string>
     <string name="subtasks_existing_hint">Abhaken, umbenennen oder löschen: Alles wird beim Speichern übernommen.</string>
+    <string name="priority_floor">Mindestens %1$s, wie „%2$s“: Eine Unteraufgabe ist nie weniger wichtig als die Aufgabe, zu der sie gehört.</string>
     <string name="subtask_title">Titel der Unteraufgabe</string>
     <string name="subtask_done_description">Unteraufgabe erledigt: %1$s</string>
     <string name="subtask_delete">Unteraufgabe löschen</string>

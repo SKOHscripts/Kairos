@@ -309,6 +309,7 @@
     <string name="field_subtasks">Nuevas subtareas (una por línea)</string>
     <string name="subtasks_existing">Subtareas</string>
     <string name="subtasks_existing_hint">Marca, renombra o elimina: todo se aplica al guardar.</string>
+    <string name="priority_floor">Al menos %1$s, como «%2$s»: una subtarea nunca es menos prioritaria que la tarea a la que pertenece.</string>
     <string name="subtask_title">Título de la subtarea</string>
     <string name="subtask_done_description">Subtarea hecha: %1$s</string>
     <string name="subtask_delete">Eliminar la subtarea</string>

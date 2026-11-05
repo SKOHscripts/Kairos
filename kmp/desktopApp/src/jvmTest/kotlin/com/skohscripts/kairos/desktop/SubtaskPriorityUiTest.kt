@@ -1,0 +1,65 @@
+package com.skohscripts.kairos.desktop
+
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.runComposeUiTest
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.skohscripts.kairos.core.model.KairosSnapshot
+import com.skohscripts.kairos.data.KairosRepository
+import com.skohscripts.kairos.data.KairosStore
+import com.skohscripts.kairos.ui.KairosApp
+import com.skohscripts.kairos.ui.Platform
+import com.skohscripts.kairos.ui.app.AppServices
+import com.skohscripts.kairos.ui.app.FileService
+import com.skohscripts.kairos.ui.navigation.Destination
+import com.skohscripts.kairos.ui.navigation.TeamDestination
+import kotlinx.coroutines.runBlocking
+import java.util.Locale
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Clock
+import kotlin.time.Instant
+
+/** Priorité imposée par la mère dans « À traiter » (docs/spec/sous-taches.md § Priorité, issue #201). */
+@OptIn(ExperimentalTestApi::class)
+class SubtaskPriorityUiTest {
+    private val clock = object : Clock {
+        override fun now() = Instant.parse("2026-11-05T08:00:00Z")
+    }
+    private val saved = Locale.getDefault()
+
+    @BeforeTest
+    fun english() = Locale.setDefault(Locale.ENGLISH)
+
+    @AfterTest
+    fun restore() = Locale.setDefault(saved)
+
+    private fun services(): AppServices = runBlocking {
+        val repository = KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock)
+        val files = object : FileService {
+            override suspend fun saveText(suggestedName: String, text: String) = false
+            override suspend fun openText(): String? = null
+        }
+        AppServices(repository, files, { _, _ -> }, clock = clock)
+    }
+
+    @Test
+    fun aSubtaskOffersNoPriorityBelowItsMother() = runComposeUiTest {
+        val services = services()
+        runBlocking {
+            val mother = services.repository.createTask("Alpha")!!
+            services.repository.setPriority(mother, 0)
+            services.repository.createTask("Beta", parentId = mother)
+        }
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("At least P0, like “Alpha”", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        // Pastilles « P0 Critical », « P1 … », « P2 … » : seule la priorité de la mère (ou plus forte) reste proposée.
+        onNodeWithText("P0 ", substring = true).assertIsEnabled()
+        onNodeWithText("P1 ", substring = true).assertIsNotEnabled()
+        onNodeWithText("P2 ", substring = true).assertIsNotEnabled()
+    }
+}

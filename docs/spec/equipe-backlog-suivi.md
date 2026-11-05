@@ -279,8 +279,10 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 ### Dépôt (`KairosRepository`)
 
 - `createTeamTask(titre, parentId?): Long?` : `space = TEAM`, `teamUid`
-  tiré par le dépôt, sans assigné ; une sous-tâche prend l'assigné de sa
-  mère et n'écrit que `created` (avec ce `memberId`).
+  tiré par le dépôt, sans assigné ; une sous-tâche prend l'assigné et la
+  priorité de sa mère (`sous-taches.md` § Priorité) et n'écrit que `created`
+  (avec ce `memberId`). Une sous-tâche d'équipe montée par la priorité de sa
+  mère est journalisée comme toute qualification (`qualified`, `priority`).
 - `assign(taskIds, memberId?, keepInProgress = false, source): Int` (nombre
   de tâches changées) : seulement des tâches d'équipe à faire (les autres
   sont ignorées) ; membre archivé ou inconnu → rien ; réaffecter une tâche

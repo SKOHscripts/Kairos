@@ -309,6 +309,7 @@
     <string name="field_subtasks">Nuove sottoattività (una per riga)</string>
     <string name="subtasks_existing">Sottoattività</string>
     <string name="subtasks_existing_hint">Spunta, rinomina o elimina: tutto si applica quando salvi.</string>
+    <string name="priority_floor">Almeno %1$s, come «%2$s»: una sottoattività non è mai meno prioritaria dell’attività di cui fa parte.</string>
     <string name="subtask_title">Titolo della sottoattività</string>
     <string name="subtask_done_description">Sottoattività fatta: %1$s</string>
     <string name="subtask_delete">Elimina la sottoattività</string>

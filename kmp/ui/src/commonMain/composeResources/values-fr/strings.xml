@@ -311,6 +311,7 @@
     <string name="field_subtasks">Nouvelles sous-tâches (une par ligne)</string>
     <string name="subtasks_existing">Sous-tâches</string>
     <string name="subtasks_existing_hint">Coche, renomme ou supprime : tout s’applique à « Enregistrer ».</string>
+    <string name="priority_floor">Au moins %1$s, comme « %2$s » : une sous-tâche n’est jamais moins prioritaire que la tâche dont elle fait partie.</string>
     <string name="subtask_title">Titre de la sous-tâche</string>
     <string name="subtask_done_description">Sous-tâche faite : %1$s</string>
     <string name="subtask_delete">Supprimer la sous-tâche</string>

@@ -34,4 +34,27 @@ class TaskTreeTest {
         assertEquals("B", TaskTree.path(1, loop))
         assertEquals(listOf(2L), TaskTree.ancestors(1, loop).map { it.id })
     }
+
+    @Test
+    fun theFloorIsTheStrongestAncestorPriority() {
+        val byId = listOf(t(1, "A").copy(priority = 1), t(2, "B", 1).copy(priority = 0), t(3, "C", 2), t(4, "D", 3).copy(priority = 2))
+            .associateBy { it.id }
+        assertEquals(0, TaskTree.priorityFloor(4, byId))
+        assertEquals("B", TaskTree.floorTask(4, byId)?.title)
+        assertEquals(0, TaskTree.inheritedPriority(3, byId))
+        assertNull(TaskTree.priorityFloor(1, byId))
+        assertEquals(0, TaskTree.bounded(2, 0))
+        assertEquals(0, TaskTree.bounded(null, 0))
+        assertEquals(1, TaskTree.bounded(1, 2)) // plus prioritaire que sa mère : permis
+        assertNull(TaskTree.bounded(null, null))
+    }
+
+    @Test
+    fun raisingCascadesToOpenDescendantsOnly() {
+        val byId = listOf(
+            t(1, "A").copy(priority = 0), t(2, "B", 1).copy(priority = 2), t(3, "C", 2), t(4, "Faite", 1).copy(priority = 2, status = TaskStatus.DONE),
+        ).associateBy { it.id }
+        assertEquals(mapOf(2L to 0, 3L to 0), TaskTree.raisedDescendants(1, byId).associate { it.id to it.priority })
+        assertEquals(listOf(2L, 4L, 3L), TaskTree.descendants(1, byId.values).map { it.id })
+    }
 }
