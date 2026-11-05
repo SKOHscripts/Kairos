@@ -156,6 +156,13 @@ data class DayView(
     val noWindow: Map<Long, String> = emptyMap(),
     /** Journées entières des calendriers importés qui couvrent ce jour (badges, sans effet sur le planning ; issue #136). */
     val dayMarks: List<DayMark> = emptyList(),
+    /**
+     * Sous-tâches planifiées avec l'échéance d'un ancêtre (docs/spec/sous-taches.md § Échéance) : identifiant → titre de
+     * l'ancêtre. Leur `deadline` dans les listes de la vue est déjà celle-là ; la ligne dit d'où elle vient.
+     */
+    val inheritedDeadline: Map<Long, String> = emptyMap(),
+    /** Agrégat de chaque tâche qui a des sous-tâches (docs/spec/sous-taches.md § Agrégation) : nombre, durées, temps passé. */
+    val rollups: Map<Long, TaskTree.Rollup> = emptyMap(),
 ) {
     /** Bandeau de surcharge : plus de P0 non bloquées que le seuil des réglages. */
     val priorityOverload: Boolean get() = priorityOverloadCount > priorityOverloadThreshold
@@ -176,7 +183,11 @@ data class DayView(
         ): DayView {
             val settings = snapshot.settings
             val holidays = Workdays.holidaysFor(day, settings.holidaysFr, settings.extraHolidays)
-            val all = snapshot.tasks.filter { it.status != TaskStatus.ARCHIVED }
+            val stored = snapshot.tasks.filter { it.status != TaskStatus.ARCHIVED }
+            // Échéance héritée (docs/spec/sous-taches.md § Échéance) : une sous-tâche à faire sans échéance, ou plus tardive que
+            // celle d'un ancêtre, est planifiée et listée avec celle de l'ancêtre. La fiche relit la tâche stockée : rien ne s'écrit.
+            val deadlineFrom = TaskTree.inheritedDeadlines(stored, stored.associateBy { it.id })
+            val all = stored.map { t -> deadlineFrom[t.id]?.let { t.copy(deadline = it.deadline) } ?: t }
             val open = all.filter { it.status == TaskStatus.TODO }
             val byId = all.associateBy { it.id }
             val statusById = snapshot.tasks.associate { it.id to it.status }
@@ -269,6 +280,9 @@ data class DayView(
             val typeById = all.associate { it.id to it.taskType }
 
             val shown = Schedule.displayWindow(day, settings)
+            // Agrégat des mères : durée de chaque feuille estimée, sinon apprise, sinon (faite) son temps réel.
+            val minutesOf = { t: Task -> t.estimatedMinutes?.takeIf { it > 0 } ?: learned[t.id]?.minutes ?: spent[t.id]?.takeIf { it > 0 && t.status == TaskStatus.DONE } }
+            val rollups = all.mapNotNull { it.parentId }.toSet().mapNotNull { id -> TaskTree.rollup(id, all, minutesOf, spent)?.let { id to it } }.toMap()
             return DayView(
                 day = day,
                 schedule = schedule,
@@ -301,6 +315,8 @@ data class DayView(
                 timeline = timeline,
                 holidays = holidays,
                 dayMarks = snapshot.dayMarks.filter { it.covers(day) }.sortedBy { it.title },
+                inheritedDeadline = deadlineFrom.mapValues { it.value.title },
+                rollups = rollups,
                 spentByTask = spent,
                 running = running,
                 runningTask = runningTask,

@@ -450,8 +450,12 @@ class KairosRepository(
                 updated = updated.copy(deadline = deadline, scheduledDate = updated.scheduledDate ?: deadline, recurrencePeriod = Recurrence.period(month))
             }
             // Priorité imposée (docs/spec/sous-taches.md) : jamais moins prioritaire que ses ancêtres.
+            // Échéance bornée (§ Échéance) : une sous-tâche ne finit jamais après ses ancêtres.
             val tree = state.value.tasks.associateBy { it.id }
-            updated = updated.copy(priority = TaskTree.bounded(updated.priority, TaskTree.priorityFloor(taskId, tree)))
+            updated = updated.copy(
+                priority = TaskTree.bounded(updated.priority, TaskTree.priorityFloor(taskId, tree)),
+                deadline = TaskTree.boundedDeadline(updated.deadline, TaskTree.deadlineFloorTask(taskId, tree)?.deadline),
+            )
             val reassigned = edit.reassign?.let { reassigned(updated, it.memberId, it.keepInProgress) }
             if (reassigned != null) {
                 updated = reassigned
@@ -1384,10 +1388,12 @@ class KairosRepository(
                         if (task.deadline == mod.date) {
                             skip(Scenario.SkipReason.ALREADY_APPLIED)
                         } else {
-                            val next = task.copy(deadline = mod.date)
+                            // Échéance bornée (docs/spec/sous-taches.md) : jamais après les ancêtres ; les filles plus tardives suivent.
+                            val next = task.copy(deadline = TaskTree.boundedDeadline(mod.date, TaskTree.deadlineFloorTask(task.id, tasks)?.deadline))
                             updateRow(next)
                             journalQualification(task, next, TeamEventSource.SCENARIO)
                             tasks[next.id] = next
+                            raiseSubtasks(next, TeamEventSource.SCENARIO, tasks).forEach { tasks[it.id] = it }
                             applied += mod
                         }
                     }
@@ -1636,17 +1642,21 @@ class KairosRepository(
     private fun find(taskId: Long): Task? = state.value.tasks.firstOrNull { it.id == taskId }
 
     /**
-     * Priorité imposée (docs/spec/sous-taches.md § Priorité) : monte les sous-tâches à faire de [task] moins prioritaires
-     * qu'elle, de proche en proche, dans la transaction de l'écriture ; une tâche d'équipe montée est journalisée
-     * (`qualified`, priorité). [byId] : l'état des tâches, [task] à jour compris. Rend les tâches montées.
+     * Règles des sous-tâches (docs/spec/sous-taches.md) après une écriture de [task], dans sa transaction : ses sous-tâches à
+     * faire moins prioritaires qu'elle montent (§ Priorité), puis celles dont l'échéance la dépasse y sont ramenées
+     * (§ Échéance), de proche en proche ; une tâche d'équipe changée est journalisée (`qualified`). [byId] : l'état des
+     * tâches, [task] à jour compris. Rend les tâches changées.
      */
     private suspend fun raiseSubtasks(task: Task, source: TeamEventSource?, byId: Map<Long, Task>): List<Task> {
-        val raised = TaskTree.raisedDescendants(task.id, byId)
-        for (child in raised) {
+        val current = HashMap(byId)
+        TaskTree.raisedDescendants(task.id, current).forEach { current[it.id] = it }
+        TaskTree.clampedDescendants(task.id, current).forEach { current[it.id] = it }
+        val changed = current.values.filter { it != byId[it.id] }
+        for (child in changed) {
             updateRow(child)
             if (child.space == TaskSpace.TEAM) journalQualification(byId.getValue(child.id), child, source ?: defaultSource(child))
         }
-        return raised
+        return changed
     }
 
     private suspend fun modify(taskId: Long, source: TeamEventSource? = null, change: (Task) -> Task) {

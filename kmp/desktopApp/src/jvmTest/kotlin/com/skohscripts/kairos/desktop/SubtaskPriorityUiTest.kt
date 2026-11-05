@@ -5,6 +5,8 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.runComposeUiTest
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.skohscripts.kairos.core.model.KairosSnapshot
@@ -61,5 +63,26 @@ class SubtaskPriorityUiTest {
         onNodeWithText("P0 ", substring = true).assertIsEnabled()
         onNodeWithText("P1 ", substring = true).assertIsNotEnabled()
         onNodeWithText("P2 ", substring = true).assertIsNotEnabled()
+    }
+
+    @Test
+    fun aChildSaysWhereItsDeadlineComesFromAndTheMotherAddsUp() = runComposeUiTest {
+        val services = services()
+        runBlocking {
+            val r = services.repository
+            val mother = r.createTask("Alpha")!!
+            r.updateTask(mother, com.skohscripts.kairos.data.TaskEdit(title = "Alpha", priority = 1, deadline = kotlinx.datetime.LocalDate(2026, 11, 20), pinDay = kotlinx.datetime.LocalDate(2026, 11, 5)))
+            for ((title, minutes) in listOf("Beta" to 60, "Gamma" to 30)) {
+                val id = r.createTask(title, parentId = mother)!!
+                r.setPoints(id, 3); r.setTaskType(id, "Development"); r.setEstimate(id, minutes)
+            }
+        }
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        // La première sous-tâche de l'agenda : sa lignée, et l'échéance qui vient de sa mère.
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("due Nov 20 (from “Alpha”)", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+        onNode(androidx.compose.ui.test.hasScrollToIndexAction())
+            .performScrollToNode(androidx.compose.ui.test.hasText("Parent tasks in progress", substring = true))
+        onNodeWithText("Parent tasks in progress", substring = true).performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("0/2 subtask(s) · 1 h 30 planned").fetchSemanticsNodes().isNotEmpty() }
     }
 }

@@ -11,7 +11,7 @@ Les dépendances elles-mêmes sont dans `dependances.md`, la fiche dans `vue-jou
 
 1. **fil d'Ariane complet** (bug) : **livré** ;
 2. **priorité imposée** : **livrée** ;
-3. durées et temps passé additionnés, échéance héritée : à implémenter ;
+3. **durées et temps passé additionnés, échéance héritée** : **livrés** ;
 4. conseil de découpage : à implémenter ;
 5. section « Découpage et enchaînement » de la fiche, recherche dans « Bloquée par » : à implémenter.
 
@@ -103,7 +103,45 @@ Kairos conseille de découper une tâche que l'historique montre mal estimée.
   fille la remet en règle. Le moteur d'ordonnancement lit la priorité stockée (fichiers d'or inchangés).
 - Tests : `TaskTreeTest`, `SubtaskPriorityTest`, `SubtaskPriorityUiTest`.
 
+### Échéance héritée et bornée (lot 3)
+
+- `TaskTree.deadlineFloorTask(id, byId)` : l'ancêtre à l'échéance la plus proche (le plus proche dans la lignée à date
+  égale). `boundedDeadline(échéance, plancher)` : jamais après le plancher ; sans échéance, rien n'est posé.
+  `inheritedDeadlines(tâches, byId)` : pour chaque sous-tâche **à faire** sans échéance ou plus tardive, l'ancêtre qui
+  donne la sienne. `clampedDescendants(id, byId)` : les sous-tâches à faire plus tardives que leurs ancêtres, ramenées.
+- Planning : `DayView.build` remplace l'échéance de ces sous-tâches par celle de l'ancêtre **dans la vue seulement**
+  (agenda, sans créneau, plus tard, backlog : datée par sa mère, elle quitte le backlog sans date) ; `inheritedDeadline`
+  (identifiant → titre de l'ancêtre) fait écrire « échéance 20 nov. (de « A ») » sur la ligne
+  (`deadline_inherited_badge`). La fiche relit la tâche stockée : rien n'est écrit. `LoadPlan.build` (charge de l'équipe)
+  fait de même pour les tâches d'équipe. Le moteur reçoit des tâches déjà datées : fichiers d'or inchangés.
+- Écriture : `updateTask` et le scénario `SetDeadline` bornent l'échéance d'une sous-tâche à celle de ses ancêtres, et
+  `raiseSubtasks` ramène ensuite les sous-tâches à faire plus tardives (après la montée des priorités), journalisé côté
+  Équipe (`qualified`, `deadline`). Une sous-tâche sans échéance n'en reçoit jamais : elle l'hérite au planning.
+- Fiche : sous le champ Échéance, « Échéance de « A » : 20 nov. Une sous-tâche ne finit jamais plus tard ; sans
+  échéance propre, elle prend celle-ci. » (`deadline_floor`).
+
+### Durées et temps passé additionnés (lot 3)
+
+- `TaskTree.rollup(id, tâches, durée, temps passé)` → `Rollup(subtasks, done, plannedMinutes, unestimated,
+  spentMinutes)` : les durées des **feuilles** (descendants sans fille : une mère intermédiaire compte par ses filles,
+  pas par sa propre estimation), les feuilles sans durée, et le temps passé sur la mère et tous ses descendants.
+- `DayView.rollups` : celui de chaque tâche qui a des sous-tâches ; durée d'une feuille : estimée, sinon apprise, sinon
+  (faite) son temps réel. Fiche d'équipe : `teamRollup` (estimée ou temps réel, sans durée apprise).
+- Affichage (`rollupText`) : « 1 h 30 prévues · 1 sans durée · 45 min passées », chaque partie omise quand elle est nulle ;
+  dans « Tâches mères en cours » après l'avancement (« 0/2 sous-tâche(s) · 1 h 30 prévues »), et dans la fiche sous la
+  durée (« Ses sous-tâches : … », `rollup_sheet`). La durée propre de la mère reste modifiable (elle ne sert pas au
+  planning, la mère n'étant pas une unité de travail).
+- Tests : `TaskTreeTest`, `DayViewTest.a_child_without_a_deadline_is_planned_with_its_mothers_and_the_mother_adds_up`,
+  `SubtaskPriorityTest.aSubtaskNeverEndsAfterItsMother`, `SubtaskPriorityUiTest.aChildSaysWhereItsDeadlineComesFromAndTheMotherAddsUp`.
+
 ### Décisions et pièges tracés
+
+- **Échéance héritée dans la vue, pas en base** (2026-11-05) : écrire l'échéance de la mère dans chaque fille la
+  figerait (déplacer la mère ne la déplacerait plus) et créerait des modifications que l'utilisateur n'a pas faites.
+  Seule une échéance **plus tardive**, saisie, est ramenée à l'écriture, parce que la promesse « une fille ne finit pas
+  après sa mère » doit se lire aussi dans la fiche.
+- **Feuilles seulement dans la somme** : compter aussi la propre estimation d'une mère intermédiaire compterait deux fois
+  le même travail.
 
 - **Priorité imposée plutôt que signalée** (propriétaire, 2026-11-05) : un avertissement laissait la fille moins
   prioritaire, donc planifiée après des tâches moins importantes que sa mère. Le plancher est le plus fort des

@@ -265,6 +265,13 @@
     <string name="parents_title">Parent tasks in progress</string>
     <string name="parents_hint">Split into subtasks; progress shown here.</string>
     <string name="parents_progress">%1$d/%2$d subtask(s)</string>
+    <string name="deadline_inherited_badge">due %1$s (from “%2$s”)</string>
+    <string name="deadline_floor">Due date of “%2$s”: %1$s. A subtask never ends later; without a due date of its own, it takes this one.</string>
+    <string name="rollup_planned">%1$s planned</string>
+    <string name="rollup_unestimated_one">1 without a duration</string>
+    <string name="rollup_unestimated_many">%1$d without a duration</string>
+    <string name="rollup_spent">%1$s spent</string>
+    <string name="rollup_sheet">Its subtasks: %1$s</string>
     <string name="done_hint">Already finished today.</string>
     <string name="backlog_title">Backlog, no date</string>
     <string name="backlog_hint">Tasks with neither a deadline nor a scheduled date: they fill the gaps of the schedule by score, but no day of the week view shows them. Give them a deadline or a scheduled date to tie them to a day.</string>

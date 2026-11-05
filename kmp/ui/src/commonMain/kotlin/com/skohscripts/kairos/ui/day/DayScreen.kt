@@ -548,7 +548,10 @@ fun DayScreen(
                 section("parents", Res.string.parents_title, Res.string.parents_hint, view.parents.size) {
                     rows("parents", view.parents.map { it.task }) { task ->
                         val progress = view.parents.first { it.task.id == task.id }
-                        TaskRow(task, ctx, before = { Badge(stringResource(Res.string.parents_progress, progress.done, progress.total)) })
+                        // Avancement, puis ce que coûtent les sous-tâches (docs/spec/sous-taches.md § Agrégation).
+                        val cost = view.rollups[task.id]?.let { rollupText(it) }
+                        val count = stringResource(Res.string.parents_progress, progress.done, progress.total)
+                        TaskRow(task, ctx, before = { Badge(cost?.let { "$count · $it" } ?: count) })
                     }
                 }
                 section("done", Res.string.done_title, Res.string.done_hint, view.doneToday.size) {
@@ -656,6 +659,7 @@ fun DayScreen(
                 task = task,
                 day = day,
                 today = today,
+                rollup = view.rollups[id],
                 learned = view.learned[id],
                 learning = snapshot.settings.learning ?: LearningSettings(),
                 proposal = remember(snapshot, id) { EstimateChanges.proposalFor(task, snapshot, services.clock.now(), timeZone) },

@@ -234,7 +234,10 @@ de SQLDelight.
     ancêtres (vidée, elle prend leur plancher), et les sous-tâches à faire
     moins prioritaires montent avec elle, de proche en proche ; même règle dans
     `updateTask` (sous-tâches créées en lot comprises) et à l'application d'un
-    scénario d'équipe.
+    scénario d'équipe. L'échéance d'une sous-tâche est **bornée** à celle de
+    ses ancêtres dans `updateTask` et le scénario `SetDeadline`, et les
+    sous-tâches à faire plus tardives suivent la mère (`sous-taches.md`
+    § Échéance) ; une sous-tâche sans échéance l'hérite au planning, jamais en base.
   - `toggleDone` : `todo` → `done` en fermant la session de chrono ouverte
     sur la tâche et, pour une récurrente, en créant l'occurrence suivante
     dans la même transaction (`recurrence.md`) ; `done` → `todo` ;

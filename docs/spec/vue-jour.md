@@ -81,7 +81,7 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
 7. **Sections secondaires**, chacune avec son compte et une phrase de rôle,
    absentes si vides : « Sans créneau aujourd'hui » (**dépliée**),
    « Bloquées » (« en attente de : … »), « Programmées plus tard »,
-   « Tâches mères en cours » (« 1/2 sous-tâche(s) »), « Fait » (terminées
+   « Tâches mères en cours » (« 1/2 sous-tâche(s) · 1 h 30 prévues », `sous-taches.md` § Agrégation), « Fait » (terminées
    aujourd'hui). Les quatre dernières sont repliées.
 8. **Rechercher / filtrer** (repliée) : recherche dans le titre, la
    description et le projet, facettes priorité, projet, type, points, et

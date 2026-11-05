@@ -11,6 +11,7 @@ import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.team.TeamEvents
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.day.EditTaskDialog
+import com.skohscripts.kairos.ui.day.teamRollup
 import com.skohscripts.kairos.ui.day.Estimates
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
@@ -55,6 +56,7 @@ fun TeamTaskDialog(services: AppServices, taskId: Long, onDismiss: () -> Unit, i
         blockerIds = snapshot.dependencies.filter { it.taskId == taskId }.mapTo(HashSet()) { it.blockerId },
         dependencies = snapshot.dependencies,
         tasksById = remember(snapshot.tasks) { snapshot.tasks.associateBy { it.id } },
+        rollup = remember(taskId, snapshot.tasks, snapshot.workSessions) { teamRollup(taskId, snapshot, now) },
         estimates = estimates,
         onDismiss = onDismiss,
         onSave = {},

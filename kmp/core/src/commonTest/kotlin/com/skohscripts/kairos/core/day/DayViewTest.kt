@@ -137,6 +137,22 @@ class DayViewTest {
     }
 
     @Test
+    fun a_child_without_a_deadline_is_planned_with_its_mothers_and_the_mother_adds_up() {
+        val due = LocalDate(2026, 10, 2)
+        val tasks = listOf(
+            task(1, title = "A", deadline = due), task(2, parent = 1, title = "B", minutes = 60),
+            task(3, parent = 1, title = "C", minutes = 30, deadline = LocalDate(2026, 10, 20)),
+        )
+        val view = build(KairosSnapshot(tasks = tasks))
+        val placed = (view.agenda.map { it.task } + view.unscheduled).associateBy { it.id }
+        assertEquals(due, placed.getValue(2).deadline)
+        assertEquals(due, placed.getValue(3).deadline) // plus tardive que sa mère : celle de la mère
+        assertEquals(mapOf(2L to "A", 3L to "A"), view.inheritedDeadline)
+        assertEquals(90, view.rollups.getValue(1).plannedMinutes)
+        assertTrue(view.backlog.none { it.id == 2L }) // datée par sa mère : plus dans le backlog sans date
+    }
+
+    @Test
     fun a_deep_work_window_only_fills_its_part_to_come() {
         val block = TimeBlock(1, "Deep", LocalDateTime(2026, 9, 29, 10, 0), LocalDateTime(2026, 9, 29, 11, 30), BlockKind.DEEPWORK, createdAt = t0)
         val snapshot = KairosSnapshot(tasks = listOf(task(1)), timeBlocks = listOf(block), settings = Settings(workdayStartHour = 9, workdayEndHour = 18))

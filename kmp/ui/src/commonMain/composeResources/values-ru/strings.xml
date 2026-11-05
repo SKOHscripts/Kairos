@@ -264,6 +264,13 @@
     <string name="parents_title">Родительские задачи в работе</string>
     <string name="parents_hint">Разбиты на подзадачи; ход выполнения показан здесь.</string>
     <string name="parents_progress">Подзадач: %1$d/%2$d</string>
+    <string name="deadline_inherited_badge">срок %1$s (от «%2$s»)</string>
+    <string name="deadline_floor">Срок «%2$s»: %1$s. Подзадача никогда не заканчивается позже; без собственного срока она берёт этот.</string>
+    <string name="rollup_planned">запланировано %1$s</string>
+    <string name="rollup_unestimated_one">1 без длительности</string>
+    <string name="rollup_unestimated_many">%1$d без длительности</string>
+    <string name="rollup_spent">потрачено %1$s</string>
+    <string name="rollup_sheet">Её подзадачи: %1$s</string>
     <string name="done_hint">Уже завершены сегодня.</string>
     <string name="backlog_title">Бэклог, без даты</string>
     <string name="backlog_hint">Задачи без срока и без запланированной даты: они заполняют свободные места в расписании по рейтингу, но ни один день недельного вида их не показывает. Задай срок или запланированную дату, чтобы привязать их к дню.</string>

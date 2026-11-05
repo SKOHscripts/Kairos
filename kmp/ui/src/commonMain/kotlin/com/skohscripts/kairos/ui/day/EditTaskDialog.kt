@@ -87,6 +87,8 @@ import com.skohscripts.kairos.ui.generated.resources.delete_confirm_title
 import com.skohscripts.kairos.ui.generated.resources.edit_title
 import com.skohscripts.kairos.ui.generated.resources.edit_title_first
 import com.skohscripts.kairos.ui.generated.resources.field_deadline
+import com.skohscripts.kairos.ui.generated.resources.rollup_sheet
+import com.skohscripts.kairos.ui.generated.resources.deadline_floor
 import com.skohscripts.kairos.ui.generated.resources.field_description
 import com.skohscripts.kairos.ui.generated.resources.field_minutes
 import com.skohscripts.kairos.ui.generated.resources.field_project
@@ -167,6 +169,8 @@ internal fun EditTaskDialog(
     /** Dépendances existantes et toutes les tâches par identifiant (lignée « A › C › », cycles) : « Bloquée par » ([BlockerChoices]). */
     dependencies: List<TaskDependency>,
     tasksById: Map<Long, Task>,
+    /** Ce que coûtent ses sous-tâches (docs/spec/sous-taches.md § Agrégation), `null` sans sous-tâche. */
+    rollup: TaskTree.Rollup? = null,
     estimates: Estimates,
     onDismiss: () -> Unit,
     onSave: (TaskEdit) -> Unit,
@@ -341,7 +345,18 @@ internal fun EditTaskDialog(
                             type = chosen
                             if (minutes.isBlank()) estimates.minutesByType[chosen]?.let { minutes = it.toString() }
                         }
-                        Column(Modifier.coachField(EditField.DEADLINE, coach)) { DateField(deadline, { deadline = it }, Res.string.field_deadline, deadlineInvalid, today) }
+                        Column(Modifier.coachField(EditField.DEADLINE, coach)) {
+                            DateField(deadline, { deadline = it }, Res.string.field_deadline, deadlineInvalid, today)
+                            // Échéance d'un ancêtre (docs/spec/sous-taches.md § Échéance) : la borne, et ce qu'elle prend sans la sienne.
+                            val floorTask = remember(task.id, tasksById) { TaskTree.deadlineFloorTask(task.id, tasksById) }
+                            floorTask?.deadline?.let { floorDate ->
+                                Text(
+                                    stringResource(Res.string.deadline_floor, Dates.short(floorDate, uiLanguage(), today), floorTask.title),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
                         OutlinedTextField(
                             minutes,
                             { value -> minutes = value.filter(Char::isDigit).take(4) },
@@ -350,6 +365,9 @@ internal fun EditTaskDialog(
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth().coachField(EditField.MINUTES, coach),
                         )
+                        rollup?.let { rollupText(it) }?.let { cost ->
+                            Text(stringResource(Res.string.rollup_sheet, cost), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                         // Le modèle s'écarte nettement de la durée saisie : il le dit, et la puce la remplace sur action.
                         if (proposal != null && minutes == proposal.typed.toString()) {
                             val e = proposal.estimate

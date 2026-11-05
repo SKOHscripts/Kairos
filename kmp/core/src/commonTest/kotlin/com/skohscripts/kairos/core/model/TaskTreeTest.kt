@@ -57,4 +57,29 @@ class TaskTreeTest {
         assertEquals(mapOf(2L to 0, 3L to 0), TaskTree.raisedDescendants(1, byId).associate { it.id to it.priority })
         assertEquals(listOf(2L, 4L, 3L), TaskTree.descendants(1, byId.values).map { it.id })
     }
+
+    @Test
+    fun aChildIsPlannedWithItsAncestorsDeadlineAndNeverEndsLater() {
+        val due = kotlinx.datetime.LocalDate(2026, 11, 15)
+        val byId = listOf(
+            t(1, "A").copy(deadline = due), t(2, "Sans", 1), t(3, "Plus tard", 1).copy(deadline = kotlinx.datetime.LocalDate(2026, 11, 20)),
+            t(4, "Plus tôt", 1).copy(deadline = kotlinx.datetime.LocalDate(2026, 11, 10)), t(5, "Faite", 1).copy(status = TaskStatus.DONE),
+        ).associateBy { it.id }
+        assertEquals(mapOf(2L to "A", 3L to "A"), TaskTree.inheritedDeadlines(byId.values, byId).mapValues { it.value.title })
+        assertEquals(due, TaskTree.boundedDeadline(kotlinx.datetime.LocalDate(2026, 12, 1), due))
+        assertNull(TaskTree.boundedDeadline(null, due)) // héritée au planning, jamais écrite
+        assertEquals(mapOf(3L to due), TaskTree.clampedDescendants(1, byId).associate { it.id to it.deadline })
+    }
+
+    @Test
+    fun aMotherAddsUpTheDurationsOfItsLeavesAndTheTimeSpent() {
+        // A ⊃ {B 60 min, C ⊃ {D 30 min, E sans durée}} ; C est une mère : sa propre estimation ne compte pas.
+        val tasks = listOf(
+            t(1, "A"), t(2, "B", 1).copy(estimatedMinutes = 60), t(3, "C", 1).copy(estimatedMinutes = 999),
+            t(4, "D", 3).copy(estimatedMinutes = 30, status = TaskStatus.DONE), t(5, "E", 3),
+        )
+        val r = TaskTree.rollup(1, tasks, { it.estimatedMinutes }, mapOf(1L to 5, 4L to 25, 5L to 10))!!
+        assertEquals(TaskTree.Rollup(subtasks = 4, done = 1, plannedMinutes = 90, unestimated = 1, spentMinutes = 40), r)
+        assertNull(TaskTree.rollup(2, tasks, { it.estimatedMinutes }, emptyMap()))
+    }
 }

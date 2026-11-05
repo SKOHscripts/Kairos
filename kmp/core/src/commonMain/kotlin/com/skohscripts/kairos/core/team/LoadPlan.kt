@@ -7,6 +7,7 @@ import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
+import com.skohscripts.kairos.core.model.TaskTree
 import com.skohscripts.kairos.core.model.TeamSettings
 import com.skohscripts.kairos.core.stats.TaskStats.Calibration
 import kotlinx.datetime.DatePeriod
@@ -215,7 +216,12 @@ object LoadPlan {
         }
 
         // Tâches et dépendances d'équipe (cycles neutralisés comme dans la vue Jour).
+        // Échéance héritée (docs/spec/sous-taches.md § Échéance) : une sous-tâche sans échéance, ou plus tardive que celle d'un
+        // ancêtre, est planifiée avec celle de l'ancêtre, comme dans la vue Jour.
+        val live = snapshot.tasks.filter { it.status != TaskStatus.ARCHIVED }
+        val deadlineFrom = TaskTree.inheritedDeadlines(live, live.associateBy { it.id })
         val teamTodo = snapshot.tasks.filter { it.space == TaskSpace.TEAM && it.status == TaskStatus.TODO }
+            .map { t -> deadlineFrom[t.id]?.let { t.copy(deadline = it.deadline) } ?: t }
         val teamTodoIds = teamTodo.mapTo(HashSet()) { it.id }
         val edges = Dependencies.acyclicEdges(
             snapshot.dependencies

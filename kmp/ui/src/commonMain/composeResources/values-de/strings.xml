@@ -264,6 +264,13 @@
     <string name="parents_title">Übergeordnete Aufgaben in Arbeit</string>
     <string name="parents_hint">In Unteraufgaben aufgeteilt; der Fortschritt wird hier angezeigt.</string>
     <string name="parents_progress">%1$d/%2$d Unteraufgabe(n)</string>
+    <string name="deadline_inherited_badge">Frist %1$s (von „%2$s“)</string>
+    <string name="deadline_floor">Frist von „%2$s“: %1$s. Eine Unteraufgabe endet nie später; ohne eigene Frist übernimmt sie diese.</string>
+    <string name="rollup_planned">%1$s geplant</string>
+    <string name="rollup_unestimated_one">1 ohne Dauer</string>
+    <string name="rollup_unestimated_many">%1$d ohne Dauer</string>
+    <string name="rollup_spent">%1$s aufgewendet</string>
+    <string name="rollup_sheet">Ihre Unteraufgaben: %1$s</string>
     <string name="done_hint">Heute bereits abgeschlossen.</string>
     <string name="backlog_title">Backlog, ohne Datum</string>
     <string name="backlog_hint">Aufgaben ohne Frist und ohne geplantes Datum: Sie füllen die Lücken des Kalenders nach Score, aber kein Tag der Wochenansicht zeigt sie an. Gib ihnen eine Frist oder ein geplantes Datum, um sie an einen Tag zu binden.</string>

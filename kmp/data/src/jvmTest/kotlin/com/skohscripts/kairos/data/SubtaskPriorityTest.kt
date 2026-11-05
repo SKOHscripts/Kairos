@@ -93,4 +93,19 @@ class SubtaskPriorityTest {
         val raise = repo.snapshot.value.teamEvents.filter { it.taskId == child && it.kind == TeamEventKind.QUALIFIED }
         assertEquals(listOf("priority:1" to "priority:0"), raise.map { it.fromValue to it.toValue }.filter { it.second?.startsWith("priority") == true })
     }
+
+    @Test
+    fun aSubtaskNeverEndsAfterItsMother() = runTest {
+        val repo = empty()
+        val a = repo.createTask("A")!!
+        repo.updateTask(a, edit("A", 1).copy(deadline = LocalDate(2026, 11, 20)))
+        val b = repo.createTask("B", parentId = a)!!
+        repo.updateTask(b, edit("B", 1).copy(deadline = LocalDate(2026, 11, 30)))
+        fun deadline(id: Long) = repo.snapshot.value.tasks.single { it.id == id }.deadline
+        assertEquals(LocalDate(2026, 11, 20), deadline(b)) // ramenée à celle de la mère
+        repo.updateTask(a, edit("A", 1).copy(deadline = LocalDate(2026, 11, 12)))
+        assertEquals(LocalDate(2026, 11, 12), deadline(b)) // la mère avance : la fille suit
+        val c = repo.createTask("C", parentId = a)!!
+        assertEquals(null, deadline(c)) // sans échéance : héritée au planning, jamais écrite
+    }
 }

@@ -66,7 +66,7 @@ class SubtaskEditUiTest {
         // La liste est paresseuse : l'en-tête n'est composé qu'une fois la liste défilée jusqu'à lui.
         onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Parent tasks in progress", substring = true))
         onNodeWithText("Parent tasks in progress", substring = true).performClick()
-        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("0/3 subtask(s)").fetchSemanticsNodes().isNotEmpty() }
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("0/3 subtask(s)", substring = true).fetchSemanticsNodes().isNotEmpty() }
         val count = onAllNodesWithContentDescription("Edit").fetchSemanticsNodes().size
         for (index in 0 until count) {
             onAllNodesWithContentDescription("Edit")[index].performClick()

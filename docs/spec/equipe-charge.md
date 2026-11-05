@@ -257,6 +257,8 @@ uniformes, comme avant.
   (`GUARD_DAYS`) : `OUT_OF_HORIZON`. Pour ces deux placements, `late` = la
   tâche a une échéance, `lateDays = 0` ; pour une tâche posée, `lateDays`
   en jours ouvrés, au moins 1.
+- Échéance héritée (`sous-taches.md` § Échéance) : une sous-tâche d'équipe sans échéance, ou plus tardive que
+  celle d'un ancêtre, est planifiée avec celle de l'ancêtre (`TaskTree.inheritedDeadlines`, comme la vue Jour).
 - Cycles : `Dependencies.acyclicEdges` (même traitement que la vue Jour :
   seules les arêtes internes au cycle sont ignorées, une tâche en aval d'un
   cycle garde la sienne et attend, depuis le 2026-11-04, `dependances.md`).

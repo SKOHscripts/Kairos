@@ -266,6 +266,13 @@
     <string name="parents_title">Tâches mères en cours</string>
     <string name="parents_hint">Découpées en sous-tâches ; avancement affiché ici.</string>
     <string name="parents_progress">%1$d/%2$d sous-tâche(s)</string>
+    <string name="deadline_inherited_badge">échéance %1$s (de « %2$s »)</string>
+    <string name="deadline_floor">Échéance de « %2$s » : %1$s. Une sous-tâche ne finit jamais plus tard ; sans échéance propre, elle prend celle-ci.</string>
+    <string name="rollup_planned">%1$s prévues</string>
+    <string name="rollup_unestimated_one">1 sans durée</string>
+    <string name="rollup_unestimated_many">%1$d sans durée</string>
+    <string name="rollup_spent">%1$s passées</string>
+    <string name="rollup_sheet">Ses sous-tâches : %1$s</string>
     <string name="done_hint">Déjà terminées aujourd’hui.</string>
     <string name="backlog_title">Backlog, sans date</string>
     <string name="backlog_hint">Tâches sans échéance ni date programmée : elles comblent les trous de l’agenda selon leur score, mais aucun jour de la semaine ne les affiche. Pose une échéance ou une date programmée pour les attacher à un jour.</string>

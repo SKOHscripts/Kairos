@@ -264,6 +264,13 @@
     <string name="parents_title">Tareas principales en curso</string>
     <string name="parents_hint">Divididas en subtareas; el avance se muestra aquí.</string>
     <string name="parents_progress">%1$d/%2$d subtarea(s)</string>
+    <string name="deadline_inherited_badge">fecha límite %1$s (de «%2$s»)</string>
+    <string name="deadline_floor">Fecha límite de «%2$s»: %1$s. Una subtarea nunca termina más tarde; sin fecha límite propia, toma esta.</string>
+    <string name="rollup_planned">%1$s previstas</string>
+    <string name="rollup_unestimated_one">1 sin duración</string>
+    <string name="rollup_unestimated_many">%1$d sin duración</string>
+    <string name="rollup_spent">%1$s dedicadas</string>
+    <string name="rollup_sheet">Sus subtareas: %1$s</string>
     <string name="done_hint">Ya terminadas hoy.</string>
     <string name="backlog_title">Backlog, sin fecha</string>
     <string name="backlog_hint">Tareas sin fecha límite ni fecha programada: rellenan los huecos de la agenda según su puntuación, pero ningún día de la vista semanal las muestra. Asígnales una fecha límite o una fecha programada para vincularlas a un día.</string>
