@@ -64,6 +64,7 @@ fun TeamTaskDialog(services: AppServices, taskId: Long, onDismiss: () -> Unit, i
             SplitAdvice.history(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks), TaskSpace.TEAM)
         },
         estimates = estimates,
+        chainSubtasks = snapshot.settings.subtaskChain == true,
         onDismiss = onDismiss,
         onSave = {},
         // Fermer après l'écriture : la portée du dialogue disparaît avec lui.

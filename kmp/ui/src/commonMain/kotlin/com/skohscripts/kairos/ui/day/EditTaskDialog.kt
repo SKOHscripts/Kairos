@@ -53,6 +53,7 @@ import androidx.compose.runtime.remember
 import com.skohscripts.kairos.ui.generated.resources.blockers_search_none
 import com.skohscripts.kairos.ui.generated.resources.blockers_search
 import com.skohscripts.kairos.ui.generated.resources.split_section_hint
+import com.skohscripts.kairos.ui.generated.resources.subtasks_chain
 import com.skohscripts.kairos.ui.generated.resources.split_section_title
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.focus.focusRequester
@@ -210,6 +211,8 @@ internal fun EditTaskDialog(
      * vide : pas de section.
      */
     proposalTargets: List<TeamOrigin> = emptyList(),
+    /** Dernier choix de « Enchaîner » des nouvelles sous-tâches (docs/spec/sous-taches.md § File, `Settings.subtaskChain`). */
+    chainSubtasks: Boolean = false,
 ) {
     var title by remember { mutableStateOf(task.title) }
     var description by remember { mutableStateOf(task.description) }
@@ -225,6 +228,7 @@ internal fun EditTaskDialog(
     var dayOfMonth by remember { mutableStateOf(task.recurrenceDayOfMonth?.toString().orEmpty()) }
     var pin by remember { mutableStateOf(task.pinnedStart?.time?.let(Dates::field).orEmpty()) }
     var newSubtasks by remember { mutableStateOf("") }
+    var chainNew by remember { mutableStateOf(chainSubtasks) }
     // Brouillons des sous-tâches existantes, figés à l'ouverture : la fiche reste stable si la base change dessous.
     val originalSubtasks = remember(task.id) { subtasks }
     var subtaskDrafts by remember(task.id) { mutableStateOf(originalSubtasks.map { SubtaskDraft.of(it) }) }
@@ -429,6 +433,8 @@ internal fun EditTaskDialog(
                             if (subtaskDrafts.isNotEmpty()) {
                                 SubtaskEditor(subtaskDrafts) { changed -> subtaskDrafts = subtaskDrafts.map { if (it.id == changed.id) changed else it } }
                             }
+                            // File (§ File, issue #209) : juste avant le champ qu'elle règle ; chaque ligne attendra la précédente.
+                            SwitchRow(chainNew, stringResource(Res.string.subtasks_chain)) { chainNew = it }
                             OutlinedTextField(
                                 newSubtasks,
                                 { newSubtasks = it },
@@ -596,6 +602,7 @@ internal fun EditTaskDialog(
                                     pinDay = day,
                                     manualTimeSpentMinutes = manual.toIntOrNull(),
                                     newSubtasks = newSubtasks,
+                                    chainNewSubtasks = chainNew,
                                     subtaskEdits = subtaskDrafts.edits(originalSubtasks),
                                     blockerIds = blockers,
                                     reassign = if (teamEditing && assignee != task.assigneeId) Reassignment(assignee, keepInProgress) else null,

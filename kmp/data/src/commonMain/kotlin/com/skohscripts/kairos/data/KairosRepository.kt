@@ -472,8 +472,17 @@ class KairosRepository(
             val withUpdated = tree + (updated.id to updated)
             raiseSubtasks(updated, source, withUpdated)
             val inherited = TaskTree.inheritedPriority(taskId, withUpdated)
+            var previous: Long? = null
             edit.newSubtasks.lines().map { it.trim() }.filter { it.isNotEmpty() }.forEach {
-                insertNew(newTask(it, taskId).copy(space = updated.space, assigneeId = updated.assigneeId, priority = inherited))
+                val id = insertNew(newTask(it, taskId).copy(space = updated.space, assigneeId = updated.assigneeId, priority = inherited))
+                // File (issue #209) : chacune attend la précédente. Nouvelles et du même espace : jamais de cycle.
+                if (edit.chainNewSubtasks && id != null) previous?.let { queries.insertDependency(id, it, now()) }
+                previous = id ?: previous
+            }
+            // Retenir le choix de l'interrupteur (§ File) quand il a servi, c'est-à-dire quand des sous-tâches sont nées.
+            val chain = edit.chainNewSubtasks.takeIf { it }
+            if (previous != null && chain != state.value.settings.subtaskChain) {
+                queries.writeSettings(json.encodeToString(Settings.serializer(), state.value.settings.copy(subtaskChain = chain)))
             }
             // Bloqueurs : ceux que la fiche a ajoutés ou retirés, appliqués à l'état actuel.
             val blockers = opened?.let { base ->
@@ -2087,6 +2096,11 @@ data class TaskEdit(
     val pinDay: LocalDate,
     val manualTimeSpentMinutes: Int? = null,
     val newSubtasks: String = "",
+    /**
+     * Enchaîner les [newSubtasks] (docs/spec/sous-taches.md § File, issue #209) : chaque nouvelle sous-tâche attend la
+     * précédente (« Bloquée par »), dans l'ordre des lignes.
+     */
+    val chainNewSubtasks: Boolean = false,
     val blockerIds: Set<Long> = emptySet(),
     /**
      * Modifications des sous-tâches **existantes** de la tâche (docs/spec/vue-jour.md § Édition), appliquées dans le même

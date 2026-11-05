@@ -195,7 +195,9 @@ supprimée.
   prioritaire que sa mère (monter la mère la monte) et, sans échéance propre,
   est planifiée avec celle de sa mère ; elle ne finit jamais plus tard. La mère
   affiche son avancement n/m et la somme des durées et du temps passé de ses
-  sous-tâches ; les lignes montrent toute la lignée (« A › C › D »).
+  sous-tâches ; les lignes montrent toute la lignée (« A › C › D »). Un
+  interrupteur enchaîne les nouvelles sous-tâches en file, dans l’ordre des
+  lignes : chacune attend la précédente (il retient le dernier choix).
 - **Récurrence** : quotidienne, jours ouvrés, hebdomadaire, mensuelle (terminer
   une occurrence crée la suivante), et « le N du mois » (décalée au jour ouvré
   précédent si week-end ou férié).

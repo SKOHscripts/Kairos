@@ -610,6 +610,7 @@ fun DayScreen(
             dependencies = snapshot.dependencies,
             tasksById = tasksById,
             estimates = estimates,
+            chainSubtasks = snapshot.settings.subtaskChain == true,
             // Fermer la fiche n'écrit rien ; rouvrir recommence au titre.
             onDismiss = { creating = false; coachStep = -1 },
             onSave = { edit ->
@@ -678,6 +679,7 @@ fun DayScreen(
                 dependencies = snapshot.dependencies,
                 tasksById = tasksById,
                 estimates = estimates,
+            chainSubtasks = snapshot.settings.subtaskChain == true,
                 onDismiss = { editingId = null },
                 onSave = { edit ->
                     // Un blocage ajouté : « Bloquées » s'ouvre pour cette fois et un message dit où la tâche est allée.

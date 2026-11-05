@@ -2,7 +2,7 @@
 
 _Rôle : dire ce que sont les sous-tâches (découper un travail) face aux dépendances « Bloquée par » (enchaîner des
 travaux), et fixer les règles qui les relient : fil d'Ariane, priorité, durées et échéances agrégées, conseil de
-découpage, section de la fiche. Issue #201 (retour du propriétaire, 2026-11-05). Fichiers couverts :
+découpage, section de la fiche, file de sous-tâches enchaînées. Issues #201 et #209 (retours du propriétaire, 2026-11-05). Fichiers couverts :
 `core/model/TaskTree.kt` (arbre des tâches, pur), son usage dans `core/day/DayView.kt` et `ui/day/BlockerChoices.kt`.
 Les dépendances elles-mêmes sont dans `dependances.md`, la fiche dans `vue-jour.md`, le stockage (`Task.parentId`) dans
 `modele-donnees.md`._
@@ -14,10 +14,14 @@ Les dépendances elles-mêmes sont dans `dependances.md`, la fiche dans `vue-jou
 3. **durées et temps passé additionnés, échéance héritée** : **livrés** ;
 4. **conseil de découpage** : **livré** ;
 5. **section « Découpage et enchaînement » de la fiche, recherche dans « Bloquée par »** : **livrées** (avec la carte
-   `split_advice` et le README).
+   `split_advice` et le README) ;
+6. **file de sous-tâches enchaînées** (issue #209, ajoutée le 2026-11-05) : **livrée**, en 4.1.0-beta.2 par
+   **exception au gel** des fonctionnalités (`distribution.md` § Quel numéro).
 
 Décisions du propriétaire du 2026-11-05 : priorité **imposée** ; **somme et échéance** ; conseil **selon l'historique**,
-jamais à 1 ou 2 points ; **Perso et Équipe**.
+jamais à 1 ou 2 points ; **Perso et Équipe**. Pour la file (#209) : **dans l'ordre des lignes** ; l'interrupteur
+**retient le dernier choix** (coupé la première fois, propre à l'appareil) ; elle **enrichit la carte « Sous-tâches »**,
+pas de nouvelle carte ; **exception au gel** de la 4.1.0.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -53,6 +57,11 @@ Kairos conseille de découper une tâche que l'historique montre mal estimée.
 - **Une section dédiée** de la fiche, « Découpage et enchaînement », réunit les sous-tâches (existantes et nouvelles) et
   « Bloquée par », avec une phrase qui dit le rôle de chacun. « Bloquée par » a une **recherche** : la liste devient
   impraticable au-delà de quelques tâches.
+- **File de sous-tâches** (issue #209) : juste avant « Nouvelles sous-tâches », un interrupteur « Enchaîner : chacune
+  attend la précédente ». Actif, les nouvelles sous-tâches forment une file **dans l'ordre des lignes** : avec B, C, D,
+  C est bloquée par B et D par C (des dépendances « Bloquée par » ordinaires, qu'on retire dans la fiche de chacune).
+  Coupé, seules les sous-tâches naissent. L'interrupteur **retient le dernier choix** sur l'appareil (coupé la première
+  fois) ; seules les nouvelles lignes s'enchaînent, jamais les sous-tâches existantes.
 - Ces règles valent dans l'espace Perso et dans l'espace Équipe (côté Équipe, le conseil lit l'historique de l'équipe).
 
 ### Critères de succès
@@ -65,12 +74,16 @@ Kairos conseille de découper une tâche que l'historique montre mal estimée.
   elles ont toutes pris de 1 h à 1 h 30 (lot 4).
 - Avec trente tâches à faire, trois lettres dans la recherche de « Bloquée par » ne laissent que les tâches qui les
   contiennent, les cases cochées restant visibles (lot 5).
+- Interrupteur actif, trois lignes B, C, D : C est « Bloquée par » B, D par C, et B n'attend rien ; la fiche suivante
+  propose l'interrupteur actif. Coupé : trois sous-tâches sans dépendance (lot 6).
 
 ### Hors périmètre / différé
 
 - Glisser une tâche sous une autre (changer de mère depuis la vue Jour) : la mère se choisit à la création, comme avant.
 - Dépendances entre une fille et sa propre mère : inutiles (la mère attend déjà ses filles).
 - Un découpage automatique (Kairos ne propose pas de titres de sous-tâches).
+- Enchaîner des sous-tâches existantes, ou la première nouvelle derrière la dernière existante : l'interrupteur ne
+  règle que les lignes saisies ; une file existante se prolonge par « Bloquée par ».
 
 ## 2. Solution technique
 
@@ -179,7 +192,34 @@ Kairos conseille de découper une tâche que l'historique montre mal estimée.
   `SubtasksUiTest.theAdviceOpensTheSectionOnTheNewSubtasksField` ; `DayScreenUiTest` et `TeamMyWorkUiTest` ouvrent
   la section pour atteindre « Bloquée par ».
 
+### File de sous-tâches enchaînées (lot 6, issue #209)
+
+- Fiche (`EditTaskDialog`) : `SwitchRow` « Enchaîner » (`subtasks_chain`) juste avant « Nouvelles sous-tâches », dans la
+  section ; sa valeur initiale est le paramètre `chainSubtasks`, que les quatre appelants (`DayScreen` création et
+  édition, `TeamTaskDialog`, `TeamTaskCoach`) lisent dans `Settings.subtaskChain == true`. Il part dans
+  `TaskEdit.chainNewSubtasks`.
+- Écriture (`KairosRepository.updateTask`, la création passe aussi par lui) : les nouvelles lignes sont insérées dans
+  l'ordre ; interrupteur actif, chaque sous-tâche insérée reçoit `insertDependency(elle, la précédente insérée)`. Pas de
+  contrôle de cycle : les deux tâches viennent de naître, n'ont aucune autre dépendance et partagent l'espace de la mère.
+- Mémoire : `Settings.subtaskChain: Boolean?` (`null` = coupé, la base qui n'y a jamais touché ne change pas), écrite
+  **dans la même transaction**, seulement quand au moins une sous-tâche est née (le choix a servi) et qu'il diffère.
+  Propre à l'appareil : dans `SyncScope.LOCAL_SETTINGS`, jamais synchronisé.
+- Fonctionnalité : enrichit la carte `subtasks` (`card_subtasks_body`, six langues) et les puces « Subtasks » /
+  « Sous-tâches » des deux README ; pas de nouvelle carte ni de ligne de tableau.
+- Tests : `SubtaskChainTest` (données : file dans l'ordre, rien sans l'interrupteur, espace Équipe, mémoire),
+  `SubtasksUiTest.theChainSwitchQueuesNewSubtasksAndIsRemembered`.
+
 ### Décisions et pièges tracés
+
+- **Exception au gel de la 4.1.0** (propriétaire, 2026-11-05) : la 4.1.0-beta.1 était sortie, la règle voulait la
+  file en 4.2.0 ; elle part en 4.1.0-beta.2, la 4.1.0 n'étant pas encore finale et le changement restant local à la
+  fiche. Une exception, pas une nouvelle règle (`distribution.md` § Quel numéro).
+- **Des dépendances ordinaires, pas un mode « file »** : la file est faite de « Bloquée par » que l'on voit et retire
+  comme les autres ; rien de nouveau à stocker, à exporter ni à synchroniser. Écarté : un ordre propre aux filles d'une
+  mère, que l'ordonnancement aurait dû apprendre.
+- **Mémoire à l'enregistrement, pas au basculement** : basculer puis annuler la fiche ne change pas le choix suivant ;
+  seul un choix qui a créé des sous-tâches compte.
+- **Propre à l'appareil** : une habitude de saisie, comme la langue ou le guide, pas un réglage du planning.
 
 - **Une section, deux relations** (issue #201 : « elles se ressemblent, elles servent deux buts ») : réunies parce
   qu'elles font toutes deux le planning, séparées par leurs sous-titres et une phrase qui dit le rôle de chacune.

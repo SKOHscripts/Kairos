@@ -323,6 +323,7 @@
     <string name="field_pin_time">Ora fissa (HH:MM)</string>
     <string name="field_pin_hint">Vale per il giorno programmato, altrimenti per oggi; vuoto = nessuna ora fissa.</string>
     <string name="field_subtasks">Nuove sottoattività (una per riga)</string>
+    <string name="subtasks_chain">Concatena: ognuna attende la precedente</string>
     <string name="subtasks_existing">Sottoattività</string>
     <string name="subtasks_existing_hint">Spunta, rinomina o elimina: tutto si applica quando salvi.</string>
     <string name="priority_floor">Almeno %1$s, come «%2$s»: una sottoattività non è mai meno prioritaria dell’attività di cui fa parte.</string>
@@ -1395,7 +1396,7 @@
     <string name="card_week_title">Pianifica la settimana</string>
     <string name="card_week_body">Sette giorni a colpo d’occhio: scadenze, attività programmate, attività completate e fasce orarie. Apri un giorno per vedere la sua agenda.</string>
     <string name="card_subtasks_title">Sottoattività</string>
-    <string name="card_subtasks_body">Suddividi un’attività in sottoattività: solo le foglie vengono pianificate, ciascuna importante almeno quanto l’attività principale e, senza scadenza, con la sua. L’attività principale mostra i progressi e la somma delle loro durate.</string>
+    <string name="card_subtasks_body">Suddividi un’attività in sottoattività: solo le foglie vengono pianificate, ciascuna importante almeno quanto l’attività principale e, senza scadenza, con la sua. L’attività principale mostra i progressi e la somma delle loro durate. Le nuove sottoattività possono essere concatenate: ognuna attende la precedente.</string>
     <string name="card_recurrence_title">Ricorrenza</string>
     <string name="card_recurrence_body">Un’attività può tornare ogni giorno, nei giorni lavorativi, ogni settimana o ogni mese, oppure il giorno N del mese (anticipato al giorno lavorativo precedente nei weekend e festivi).</string>
     <string name="card_dependencies_title">Bloccanti</string>

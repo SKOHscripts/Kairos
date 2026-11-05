@@ -2,6 +2,8 @@ package com.skohscripts.kairos.desktop
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performScrollTo
@@ -33,7 +35,10 @@ import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-/** Sous-tâches dans l'interface (docs/spec/sous-taches.md, issue #201) : priorité imposée, échéance héritée, agrégat, conseil. */
+/**
+ * Sous-tâches dans l'interface (docs/spec/sous-taches.md, issues #201 et #209) : priorité imposée, échéance héritée, agrégat,
+ * conseil, file enchaînée.
+ */
 @OptIn(ExperimentalTestApi::class)
 class SubtasksUiTest {
     private val clock = object : Clock {
@@ -150,5 +155,43 @@ class SubtasksUiTest {
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Split into subtasks").fetchSemanticsNodes().isNotEmpty() }
         onNodeWithText("Split into subtasks").performScrollTo().performClick()
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasSetTextAction() and hasText("New subtasks (one per line)") and isFocused()).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    @Test
+    fun theChainSwitchQueuesNewSubtasksAndIsRemembered() = runComposeUiTest {
+        val services = services()
+        runBlocking {
+            val r = services.repository
+            listOf("Lancer la campagne", "Autre sujet").forEach { title ->
+                val id = r.createTask(title)!!
+                r.setPriority(id, 2); r.setPoints(id, 3); r.setTaskType(id, "Development")
+            }
+        }
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Lancer la campagne", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        // La mémoire est celle de l'appareil, pas d'une tâche : la première fiche de l'agenda suffit, les deux fois.
+        fun openFirstSheet() {
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithContentDescription("Edit").fetchSemanticsNodes().isNotEmpty() }
+            onAllNodesWithContentDescription("Edit")[0].performClick()
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Edit task").fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithText("Splitting and sequencing").performScrollTo().performClick()
+            waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Chain them", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        }
+        val chain = hasText("Chain them", substring = true) and androidx.compose.ui.test.isToggleable()
+        openFirstSheet()
+        // Coupé la première fois ; activé, il enchaîne les lignes saisies.
+        onNode(chain).performScrollTo().assertIsOff().performClick().assertIsOn()
+        onNode(hasSetTextAction() and hasText("New subtasks (one per line)")).performScrollTo().performTextInput("Brief\nVisuels\nEnvoi")
+        onNodeWithText("Save").performClick()
+        waitUntil(timeoutMillis = 5_000) { services.repository.snapshot.value.dependencies.size == 2 }
+        val title = services.repository.snapshot.value.tasks.associate { it.id to it.title }
+        kotlin.test.assertEquals(
+            setOf("Visuels" to "Brief", "Envoi" to "Visuels"),
+            services.repository.snapshot.value.dependencies.mapTo(HashSet()) { title.getValue(it.taskId) to title.getValue(it.blockerId) },
+        )
+        // La fiche suivante propose le dernier choix.
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Edit task").fetchSemanticsNodes().isEmpty() }
+        openFirstSheet()
+        onNode(chain).performScrollTo().assertIsOn()
     }
 }

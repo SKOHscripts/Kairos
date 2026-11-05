@@ -63,6 +63,7 @@ fun TeamTaskCreateDialog(services: AppServices, step: Int, onStep: (Int) -> Unit
         dependencies = snapshot.dependencies,
         tasksById = remember(snapshot.tasks) { snapshot.tasks.associateBy { it.id } },
         estimates = estimates,
+        chainSubtasks = snapshot.settings.subtaskChain == true,
         onDismiss = onDismiss,
         onSave = {},
         onDelete = {},

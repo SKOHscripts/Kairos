@@ -186,7 +186,8 @@ also be edited, archived without follow-up, or deleted.
   (raising the parent raises it) and, without a due date of its own, is planned
   with the parent's; it never ends later. The parent shows n/m progress and the
   sum of its subtasks' durations and time spent; rows show the whole lineage
-  ("A › C › D").
+  ("A › C › D"). A switch chains new subtasks into a queue, in line order: each
+  one waits for the previous one (the switch remembers your last choice).
 - **Recurrence**: daily, weekdays, weekly, monthly (finishing an occurrence
   creates the next one), and "on day N of the month" (moved to the previous
   working day if it falls on a weekend or holiday).

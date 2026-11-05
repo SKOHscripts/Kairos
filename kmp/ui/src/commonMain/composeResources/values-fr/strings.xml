@@ -325,6 +325,7 @@
     <string name="field_pin_time">Heure fixe (HH:MM)</string>
     <string name="field_pin_hint">le jour programmé, sinon ce jour-ci ; vide = pas d’heure fixe</string>
     <string name="field_subtasks">Nouvelles sous-tâches (une par ligne)</string>
+    <string name="subtasks_chain">Enchaîner : chacune attend la précédente</string>
     <string name="subtasks_existing">Sous-tâches</string>
     <string name="subtasks_existing_hint">Coche, renomme ou supprime : tout s’applique à « Enregistrer ».</string>
     <string name="priority_floor">Au moins %1$s, comme « %2$s » : une sous-tâche n’est jamais moins prioritaire que la tâche dont elle fait partie.</string>
@@ -1398,7 +1399,7 @@
     <string name="card_week_title">Planifier la semaine</string>
     <string name="card_week_body">Sept jours d’un coup d’œil : échéances, tâches programmées, tâches terminées et créneaux. Ouvre un jour pour voir son agenda.</string>
     <string name="card_subtasks_title">Sous-tâches</string>
-    <string name="card_subtasks_body">Découpe une tâche en sous-tâches : seules les feuilles sont planifiées, chacune au moins aussi prioritaire que sa mère et, sans échéance, planifiée avec la sienne. La mère affiche son avancement et la somme de leurs durées.</string>
+    <string name="card_subtasks_body">Découpe une tâche en sous-tâches : seules les feuilles sont planifiées, chacune au moins aussi prioritaire que sa mère et, sans échéance, planifiée avec la sienne. La mère affiche son avancement et la somme de leurs durées. Les nouvelles sous-tâches peuvent s’enchaîner : chacune attend la précédente.</string>
     <string name="card_recurrence_title">Récurrence</string>
     <string name="card_recurrence_body">Une tâche peut revenir chaque jour, les jours ouvrés, chaque semaine ou chaque mois, ou le N du mois (reculé au jour ouvré précédent un week-end ou un jour férié).</string>
     <string name="card_dependencies_title">Bloqueurs</string>

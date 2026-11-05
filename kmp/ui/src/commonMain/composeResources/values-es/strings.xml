@@ -323,6 +323,7 @@
     <string name="field_pin_time">Hora fija (HH:MM)</string>
     <string name="field_pin_hint">Se aplica al día programado; si no, a hoy. Vacío = sin hora fija.</string>
     <string name="field_subtasks">Nuevas subtareas (una por línea)</string>
+    <string name="subtasks_chain">Encadenar: cada una espera a la anterior</string>
     <string name="subtasks_existing">Subtareas</string>
     <string name="subtasks_existing_hint">Marca, renombra o elimina: todo se aplica al guardar.</string>
     <string name="priority_floor">Al menos %1$s, como «%2$s»: una subtarea nunca es menos prioritaria que la tarea a la que pertenece.</string>
@@ -1395,7 +1396,7 @@
     <string name="card_week_title">Planificar la semana</string>
     <string name="card_week_body">Siete días de un vistazo: fechas límite, tareas programadas, tareas terminadas y franjas. Abre un día para ver su agenda.</string>
     <string name="card_subtasks_title">Subtareas</string>
-    <string name="card_subtasks_body">Divide una tarea en subtareas: solo se planifican las hojas, cada una al menos tan prioritaria como su tarea madre y, sin fecha límite, con la de ella. La tarea madre muestra su avance y la suma de sus duraciones.</string>
+    <string name="card_subtasks_body">Divide una tarea en subtareas: solo se planifican las hojas, cada una al menos tan prioritaria como su tarea madre y, sin fecha límite, con la de ella. La tarea madre muestra su avance y la suma de sus duraciones. Las nuevas subtareas pueden encadenarse: cada una espera a la anterior.</string>
     <string name="card_recurrence_title">Repetición</string>
     <string name="card_recurrence_body">Una tarea puede volver cada día, en días laborables, cada semana o cada mes, o el día N del mes (adelantado al día laborable anterior en fin de semana o festivo).</string>
     <string name="card_dependencies_title">Bloqueos</string>
