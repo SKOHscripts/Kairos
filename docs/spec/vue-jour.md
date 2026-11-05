@@ -101,7 +101,7 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
     chronométré ; à droite de la liste en largeur bureau, en bas sinon.
 
 **Ligne de tâche** (toutes sections) : coche ronde ; corps : heure (agenda),
-« Mère › » pour une sous-tâche, titre, puis étiquettes (projet, type,
+la lignée pour une sous-tâche (« A › C › » : tous ses ancêtres, `sous-taches.md`), titre, puis étiquettes (projet, type,
 durée, « échéance 30 sept. », « programmée 2 oct. », icône de récurrence,
 temps passé ou minuteur vivant, « traîne depuis N j ») qui passent à la ligne, puis la description sur une
 ligne, dépliable d'un clic ; colonne « clés » alignée à droite : score (qui

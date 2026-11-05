@@ -9,6 +9,7 @@ import com.skohscripts.kairos.core.engine.Staleness
 import com.skohscripts.kairos.core.engine.TimeTracking
 import com.skohscripts.kairos.core.engine.Workdays
 import com.skohscripts.kairos.core.model.BlockException
+import com.skohscripts.kairos.core.model.TaskTree
 import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.DayMark
 import com.skohscripts.kairos.core.model.KairosSnapshot
@@ -218,8 +219,9 @@ data class DayView(
             val schedule = Scheduling.buildDaySchedule(all, dayBlocks, day, now, settings, blockedIds, effective, DurationEstimator.appliedMinutes(learned), affinity)
             val timeline = Scheduling.buildTimeline(schedule, dayBlocks, day, settings)
 
+            // Lignée complète (« A › C » pour D, docs/spec/sous-taches.md) : la mère directe seule perdait le lien vers A.
             val parentTitle = all.filter { it.parentId != null && it.parentId in byId }
-                .associate { it.id to byId.getValue(it.parentId!!).title }
+                .mapNotNull { t -> TaskTree.path(t.id, byId)?.let { t.id to it } }.toMap()
             val breadcrumb = { id: Long ->
                 val title = byId[id]?.title ?: "#$id"
                 parentTitle[id]?.let { "$it › $title" } ?: title

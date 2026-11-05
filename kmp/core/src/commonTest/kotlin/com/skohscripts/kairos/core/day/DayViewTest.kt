@@ -126,6 +126,17 @@ class DayViewTest {
     }
 
     @Test
+    fun a_grandchild_shows_its_whole_lineage() {
+        // Issue #201 : A ⊃ {B, C}, C ⊃ D. D se lisait « C › D » et C, devenue mère, semblait détachée de A.
+        val tasks = listOf(task(1, title = "A"), task(2, parent = 1, title = "B"), task(3, parent = 1, title = "C"), task(4, parent = 3, title = "D"))
+        val view = build(KairosSnapshot(tasks = tasks))
+        assertEquals("A › C", view.parentTitle[4])
+        assertEquals("A", view.parentTitle[3])
+        assertEquals(listOf(1L, 3L), view.parents.map { it.task.id }.sorted())
+        assertEquals(setOf(2L, 4L), view.agenda.map { it.task.id }.toSet())
+    }
+
+    @Test
     fun a_deep_work_window_only_fills_its_part_to_come() {
         val block = TimeBlock(1, "Deep", LocalDateTime(2026, 9, 29, 10, 0), LocalDateTime(2026, 9, 29, 11, 30), BlockKind.DEEPWORK, createdAt = t0)
         val snapshot = KairosSnapshot(tasks = listOf(task(1)), timeBlocks = listOf(block), settings = Settings(workdayStartHour = 9, workdayEndHour = 18))

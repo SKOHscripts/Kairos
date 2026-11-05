@@ -596,7 +596,7 @@ fun DayScreen(
             candidates = view.openTasks,
             blockerIds = emptySet(),
             dependencies = snapshot.dependencies,
-            titles = remember(snapshot.tasks) { snapshot.tasks.associate { it.id to it.title } },
+            tasksById = remember(snapshot.tasks) { snapshot.tasks.associateBy { it.id } },
             estimates = estimates,
             // Fermer la fiche n'écrit rien ; rouvrir recommence au titre.
             onDismiss = { creating = false; coachStep = -1 },
@@ -662,7 +662,7 @@ fun DayScreen(
                 // Sous-tâches d'une tâche perso modifiables ici ; une tâche d'équipe a ses propres règles (equipe-backlog-suivi.md).
                 subtasks = if (task.space == TaskSpace.PERSONAL) subtasksOf(id, snapshot.tasks) else emptyList(),
                 dependencies = snapshot.dependencies,
-                titles = remember(snapshot.tasks) { snapshot.tasks.associate { it.id to it.title } },
+                tasksById = remember(snapshot.tasks) { snapshot.tasks.associateBy { it.id } },
                 estimates = estimates,
                 onDismiss = { editingId = null },
                 onSave = { edit ->

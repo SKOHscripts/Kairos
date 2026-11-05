@@ -163,9 +163,9 @@ internal fun EditTaskDialog(
     blockerIds: Set<Long>,
     /** Sous-tâches existantes de la tâche (docs/spec/vue-jour.md § Édition, issue #69) ; vide pour une tâche d'équipe ou sans fille. */
     subtasks: List<Task> = emptyList(),
-    /** Dépendances existantes et titres de toutes les tâches : libellés et cycles de « Bloquée par » ([BlockerChoices]). */
+    /** Dépendances existantes et toutes les tâches par identifiant (lignée « A › C › », cycles) : « Bloquée par » ([BlockerChoices]). */
     dependencies: List<TaskDependency>,
-    titles: Map<Long, String>,
+    tasksById: Map<Long, Task>,
     estimates: Estimates,
     onDismiss: () -> Unit,
     onSave: (TaskEdit) -> Unit,
@@ -451,8 +451,8 @@ internal fun EditTaskDialog(
                                 Text(stringResource(Res.string.field_blockers), style = MaterialTheme.typography.labelLarge)
                                 Text(stringResource(Res.string.field_blockers_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 val language = uiLanguage()
-                                val others = remember(task.id, candidates, dependencies, titles, language) {
-                                    BlockerChoices.of(task, candidates, dependencies, titles, language)
+                                val others = remember(task.id, candidates, dependencies, tasksById, language) {
+                                    BlockerChoices.of(task, candidates, dependencies, tasksById, language)
                                 }
                                 if (others.isEmpty()) {
                                     Text(stringResource(Res.string.field_blockers_none), style = MaterialTheme.typography.bodySmall)

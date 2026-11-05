@@ -25,7 +25,7 @@ urgente : il doit en hériter l'urgence pour passer plus tôt.
 
 - Une tâche à faire dont un bloqueur (direct ou transitif) est encore à
   faire sort du planning et apparaît dans « Bloquées », avec les titres des
-  bloqueurs directs encore ouverts (« en attente de : … », « Mère › Fille »
+  bloqueurs directs encore ouverts (« en attente de : … », « Mère › Fille », lignée complète « A › C › D »
   pour une sous-tâche).
 - Terminer, archiver ou supprimer le dernier bloqueur ouvert la remet
   aussitôt dans le planning, sans action de déblocage.
@@ -36,7 +36,7 @@ urgente : il doit en hériter l'urgence pour passer plus tôt.
   attend déjà celle-ci (directement ou non) a sa case grisée, avec « (attend
   déjà cette tâche) » : la cocher fermerait une boucle. Le dépôt ignore de
   toute façon une telle arête sans erreur, le reste s'enregistre. Chaque case
-  porte « Mère › titre » pour une sous-tâche, et deux libellés identiques
+  porte la lignée puis le titre pour une sous-tâche (« A › C › D », `sous-taches.md`), et deux libellés identiques
   (une tâche et sa prochaine occurrence) se distinguent par leur date.
 
 ### Critères de succès

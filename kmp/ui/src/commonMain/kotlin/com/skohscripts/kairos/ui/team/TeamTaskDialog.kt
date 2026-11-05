@@ -54,7 +54,7 @@ fun TeamTaskDialog(services: AppServices, taskId: Long, onDismiss: () -> Unit, i
         candidates = candidates,
         blockerIds = snapshot.dependencies.filter { it.taskId == taskId }.mapTo(HashSet()) { it.blockerId },
         dependencies = snapshot.dependencies,
-        titles = remember(snapshot.tasks) { snapshot.tasks.associate { it.id to it.title } },
+        tasksById = remember(snapshot.tasks) { snapshot.tasks.associateBy { it.id } },
         estimates = estimates,
         onDismiss = onDismiss,
         onSave = {},
