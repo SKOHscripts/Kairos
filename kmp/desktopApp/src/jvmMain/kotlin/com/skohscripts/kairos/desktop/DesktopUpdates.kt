@@ -59,11 +59,13 @@ class DesktopUpdates(
         val now = clock.now()
         if (!force && !UpdateCheck.due(saved.lastCheck?.let(Instant::parse), now)) return@withLock
         status.value = UpdateStatus.Checking
-        val result = withContext(Dispatchers.IO) { runCatching { fetch(UpdateCheck.LATEST_URL) } }
+        // « Kairos Preview » lit aussi les préversions (docs/spec/mises-a-jour.md § Préversions).
+        val url = UpdateCheck.urlFor(installed)
+        val result = withContext(Dispatchers.IO) { runCatching { fetch(url) } }
         val (code, body) = result.getOrNull() ?: (-1 to "")
         saved = when (code) {
             200 -> {
-                val release = UpdateCheck.parseLatest(body)?.takeIf { UpdateCheck.isNewer(it, installed) }
+                val release = UpdateCheck.parseFor(installed, body)?.takeIf { UpdateCheck.isNewer(it, installed) }
                 saved.copy(lastCheck = now.toString(), failed = false, latest = release?.version?.toString(), url = release?.url)
             }
             // Aucune version publiée (que des préversions) : rien de plus récent.
@@ -71,7 +73,7 @@ class DesktopUpdates(
             else -> saved.copy(lastCheck = now.toString(), failed = true)
         }
         status.value = statusOf(saved)
-        log("update ${if (saved.failed) "failed" else "ok"} $code proxy=${if (usesProxy(UpdateCheck.LATEST_URL)) "yes" else "no"}")
+        log("update ${if (saved.failed) "failed" else "ok"} $code proxy=${if (usesProxy(url)) "yes" else "no"}")
         write()
     }
 

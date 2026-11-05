@@ -22,14 +22,21 @@ on:
   workflow_run:
     workflows: ["Kairos 3 release"]
     types: [completed]
+  # Lancé aussi par kmp-release.yml après une release posée par « Kairos tag » (after_release : comparaison à l'APK
+  # publié, comme après workflow_run).
   workflow_dispatch:
+    inputs:
+      after_release:
+        description: "Comparer à l'APK signé de la release de cette référence (tag d'une version finale)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   metadata:
-    if: github.event_name != 'workflow_run'
+    if: github.event_name != 'workflow_run' && !inputs.after_release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,7 +63,7 @@ jobs:
           # Comparaison à l'APK publié : seulement après la release d'une version
           # finale (une préversion porte l'identifiant « .preview », F-Droid ne la
           # distribue pas).
-          BINARIES: ${{ github.event_name == 'workflow_run' && '--binaries' || '' }}
+          BINARIES: ${{ (github.event_name == 'workflow_run' || inputs.after_release) && '--binaries' || '' }}
         run: bash kmp/tools/fdroid_check.sh $BINARIES
       - uses: actions/upload-artifact@v4
         with:
@@ -69,7 +76,7 @@ jobs:
   # signé et sous l'identifiant définitif.
   reproducible:
     needs: build
-    if: github.event_name != 'workflow_run'
+    if: github.event_name != 'workflow_run' && !inputs.after_release
     runs-on: ubuntu-latest
     defaults:
       run:

@@ -27,7 +27,9 @@ savoir.
 
 - **Bureau seulement.** Au plus toutes les 6 heures, tant que le réglage
   « Vérifier les nouvelles versions » est actif (par défaut), Kairos demande
-  à GitHub la dernière version **publiée** (préversions ignorées).
+  à GitHub la dernière version **publiée** (préversions ignorées). Une installation **« Kairos Preview »** (une
+  préversion, `X.Y.0-beta.N`) regarde aussi les préversions : un testeur apprend la beta suivante, puis la version
+  finale (qui s'installe en « Kairos », à côté de la Preview).
 - Plus récente que la version installée : un bandeau neutre en haut de tous
   les écrans, « Kairos X.Y.Z est disponible (tu as A.B.C). », avec
   « Télécharger » (ouvre la page de la version dans le navigateur) et
@@ -57,8 +59,9 @@ savoir.
 
 ### Critères de succès
 
-- Préversions, brouillons, tags qui ne sont pas des versions, liens hors
-  `github.com`, réponses illisibles : ignorés ; une version plus ancienne n'est
+- Préversions (pour une version finale installée), brouillons, tags qui ne sont pas des versions, liens hors
+  `github.com`, réponses illisibles : ignorés ; une préversion installée voit la plus récente des releases,
+  préversions comprises ; une version plus ancienne n'est
   jamais proposée (`UpdateCheckTest`).
 - Une vérification, pas une autre avant 6 heures, même après relance ;
   « Vérifier maintenant » passe outre ; 404 = à jour, autre code ou exception
@@ -89,7 +92,10 @@ savoir.
   `https://api.github.com/repos/SKOHscripts/Kairos/releases/latest` ;
   `parseLatest(corps)` lit `tag_name` (`AppVersion.parse`, préversion
   refusée), `html_url` (doit commencer par `https://github.com/`),
-  `prerelease` et `draft` ; `isNewer` ; `due(dernière, maintenant)` :
+  `prerelease` et `draft` ; `RELEASES_URL` (`…/releases?per_page=20`) et `parseNewest(corps)` : la plus récente
+  d'une liste, préversions comprises (brouillons, tags illisibles et liens hors GitHub écartés) ; `urlFor(installée)`
+  et `parseFor(installée, corps)` choisissent l'une ou l'autre selon que la version installée est une préversion
+  (§ Préversions, issue du cycle de préversions de la 4.1.0) ; `isNewer` ; `due(dernière, maintenant)` :
   jamais vérifié, 6 heures passées, ou horloge revenue en arrière.
 - `DesktopUpdates(fichier, horloge, version, fetch)` : `check(force)` sous
   verrou ; GET (`java.net.http`, 10 s, en-têtes `Accept:
@@ -114,6 +120,12 @@ savoir.
   comme le lien de don) ; l'indice de la catégorie suit (`settings_cat_general_hint_updates`).
 
 ### Décisions et pièges tracés
+
+- **Préversions** (2026-11-05, avec le cycle beta puis finale, `distribution.md` § Cycle des versions) : `/latest` exclut
+  les préversions par construction ; une « Kairos Preview » qui ne lisait que lui ne voyait jamais la beta suivante, donc
+  ses testeurs restaient sur une beta périmée. Elle lit donc la liste des releases. Une version finale garde `/latest` :
+  ses utilisateurs ne se voient jamais proposer une beta. Le `DesktopUpdates` passe `urlFor(installée)` et
+  `parseFor(installée, corps)` ; le journal dit l'adresse réellement demandée pour le proxy.
 
 - **Android : un lien, pas une vérification** (2026-10-24, issue #143, choix du propriétaire) : garder « sans
   permission réseau » (`connexions-externes.md`) ; la page de téléchargement (GitHub Pages) plutôt que la page des

@@ -34,6 +34,19 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 - **Chaque version** a un tag : une préversion (`vX.Y.Z-alpha.N`,
   `vX.Y.Z-beta.N`) est publiée en **préversion GitHub**, une version finale
   (`vX.Y.Z`) en release GitHub, avec tous les fichiers.
+- **Cycle des versions** (choix du propriétaire du 2026-11-05) : chaque version mineure ou majeure passe par une ou
+  plusieurs **betas** (`4.1.0-beta.1`, `beta.2`…), puis sa **finale** (`4.1.0`). `main` porte toujours la prochaine
+  version : juste après une finale, elle passe à la beta suivante (`4.1.0` → `4.2.0-beta.1`), si bien que tout ce qui
+  sort de `main` dit ce qu'il est. Le tag se pose depuis l'onglet Actions (« Kairos tag »), qui vérifie avant de poser
+  et lance la release. Pas de branche de correctif : un correctif part de `main` avec la version suivante.
+- **Quel numéro** : majeure si une version plus ancienne ne peut plus lire ce que la nouvelle écrit (format du fichier)
+  ou si l'utilisateur perd quelque chose ; mineure dès qu'une fonctionnalité ou un comportement visible change ;
+  correctif s'il n'y a que des corrections ; une beta quand toutes les fonctionnalités de la version sont là, puis plus
+  aucune avant la finale (§ Quel numéro donner à une version).
+- **Une beta**, pour ses testeurs : l'app « Kairos Preview » à côté de la stable (Android, bureau), la préversion web
+  sous `preview/` ; jamais sur F-Droid, l'AUR, ni dans la vérification des mises à jour d'une version stable, mais une
+  « Kairos Preview » de bureau apprend la beta suivante. Elle n'a pas de note de version dans les fiches (celles de la
+  préversion GitHub, générées, suffisent) ; une finale a la sienne dans les six langues avant d'être taguée.
 - **Android** : un APK. Tant que la version est une préversion, l'application
   s'appelle « Kairos Preview » et s'installe à côté de la version stable. Aucune
   permission réseau jusqu'à la 4.0 (rouvert pour la 4.1.0 : un seul APK avec `INTERNET`, fonctions en ligne désactivées par défaut,
@@ -57,13 +70,16 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 - **Build de test avant une release** (demande du 2026-11-03) : depuis l'onglet Actions, on lance à la main un build d'**un
   commit précis** de `main` (par défaut le dernier), en choisissant les plateformes (Android, bureau, web), pour essayer la
   version avant de poser le tag. L'APK de test est signé avec la clé des releases : il s'installe **par-dessus** la
-  version en place et garde ses données, comme le fera la release. Rien n'est publié : ni release, ni AUR, ni signature
+  version en place de son canal et garde ses données, comme le fera la release ; `main` portant la prochaine beta
+  entre deux finales (§ Cycle des versions), c'est en général la « Kairos Preview », installée à côté de la stable. Rien n'est publié : ni release, ni AUR, ni signature
   Windows ; les fichiers sont téléchargeables dans les artefacts du lancement, qui portent le commit dans leur nom.
 
 ### Critères de succès
 
-- Le tag et la version déclarée ne peuvent pas diverger (la release échoue).
-- Chaque `versionCode` Android est strictement supérieur au précédent.
+- Le tag et la version déclarée ne peuvent pas diverger (la release échoue, et « Kairos tag » refuse de le poser).
+- Chaque `versionCode` Android est strictement supérieur au précédent **de son canal** : les finales entre elles
+  (identifiant définitif), les préversions entre elles (identifiant `.preview`).
+- Une version finale ne se tague pas sans sa note de version dans les six langues (`ReleaseNotesTest`, « Kairos tag »).
 - Chaque image de bureau empaquetée est **lancée en CI** sur son OS (auto-test)
   avant publication ; un auto-test en échec bloque la release.
 - Un tag produit un APK **signé**, avec toujours la même clé (chaque version s'installe par-dessus la précédente).
@@ -103,7 +119,7 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   (bascule) : `3.0.0` (`30000`).
   Versions suivantes : `3.1.0` (`30100`), `3.2.0` (`30200`), `3.3.0` (`30300`), puis `3.4.0` (`30400`, issue #64 :
   horaires par jour de la semaine, durées apprises, catalogue de fonctionnalités et première tâche guidée, ergonomie et
-  réglages, retrait de l'import de l'ancienne version ; notes `30400.txt` en français et en anglais), puis `3.5.0` (`30500`, issue #64 : plusieurs plages par jour et contextes, carte Statistiques « Quand tu travailles chaque type » ; notes `30500.txt` en français et en anglais), puis `3.6.0` (`30600`, issue #64 : réglage « Meilleures heures », le planning préfère les heures habituelles ou préférées de chaque type ; notes `30600.txt` en français et en anglais), puis `3.7.0` (`30700` : thème sombre, issue #72 ; filtres et export des statistiques, #114 et #113 ; déplacer depuis la vue Semaine, #106 ; fériés des créneaux « jours ouvrés », #109 ; Réglages par catégories, PR #124 ; guide qui retient et montre l'endroit, #94 et #95 ; notes `30700.txt` en français et en anglais), puis `3.8.0` (`30800` : vue Mois, #107 ; créneaux mensuels, #108 ; une seule occurrence d'un créneau, #110 ; évolutions des statistiques, #112 ; corriger les estimations, #101 ; rappels, #103 ; première tâche d'équipe guidée, #97 ; notes `30800.txt` en français et en anglais), puis `3.9.0` (`30900` : noms des niveaux, #93 ; meilleures heures mesurées par l'efficacité, #105 ; accompagnement des récurrences et des Réglages, #98 ; jours et heures par membre, #104 ; notes dans les échanges, #120 ; propositions d'un membre, #121 ; dossier des données, diagnostic et proxy du bureau, #115 ; lien « Voir la dernière version » sur Android, #143 ; notes `30900.txt` en français et en anglais), puis `3.10.0` (`31000` : import d'un calendrier `.ics`, #136 ; fichier lié sur le bureau et Android, #137 ; calendriers du téléphone, #138 ; notes `31000.txt` en français et en anglais), puis `3.11.0` (`31100` : espagnol, allemand, russe et italien, #75 ; fiches du magasin et page web dans ces langues ; notes `31100.txt` dans les six langues), puis `3.12.0` (`31200` : widgets Android, #150 ; récapitulatif du jour, #151 ; couleur par défaut océan ; notes `31200.txt` dans les six langues), puis `3.13.0` (`31300` : liste complète des fonctionnalités, #153 ; avis des mois sautés, #111 ; démonstration interactive, #96 ; décision sur la signature macOS, #116, et signature Windows préparée, #117 ; notes `31300.txt` dans les six langues), puis `3.14.0` (`31400` : type choisi sur place dans « À traiter » et « À qualifier », durée posée une fois la tâche qualifiée, facette « Incomplètes », type dans l'essentiel de la fiche et dans la démonstration, barre de défilement du menu des types, #166 ; notes `31400.txt` dans les six langues), puis `4.0.0` (`40000` : synchronisation entre appareils par le fichier lié, avec fusion, #88, et durées apprises partagées, #100 ; estimations par machine learning sur l'appareil, #99 ; type requis pour sortir de « À traiter », PR #186 ; garde du modèle allégée, PR #187 ; paquet Arch Linux AUR ; corrections de la QA d’avant 4.0, PR #192 ; toujours sans permission réseau, les connexions en ligne étant reportées à la 4.1.0 ; notes `40000.txt` dans les six langues).
+  réglages, retrait de l'import de l'ancienne version ; notes `30400.txt` en français et en anglais), puis `3.5.0` (`30500`, issue #64 : plusieurs plages par jour et contextes, carte Statistiques « Quand tu travailles chaque type » ; notes `30500.txt` en français et en anglais), puis `3.6.0` (`30600`, issue #64 : réglage « Meilleures heures », le planning préfère les heures habituelles ou préférées de chaque type ; notes `30600.txt` en français et en anglais), puis `3.7.0` (`30700` : thème sombre, issue #72 ; filtres et export des statistiques, #114 et #113 ; déplacer depuis la vue Semaine, #106 ; fériés des créneaux « jours ouvrés », #109 ; Réglages par catégories, PR #124 ; guide qui retient et montre l'endroit, #94 et #95 ; notes `30700.txt` en français et en anglais), puis `3.8.0` (`30800` : vue Mois, #107 ; créneaux mensuels, #108 ; une seule occurrence d'un créneau, #110 ; évolutions des statistiques, #112 ; corriger les estimations, #101 ; rappels, #103 ; première tâche d'équipe guidée, #97 ; notes `30800.txt` en français et en anglais), puis `3.9.0` (`30900` : noms des niveaux, #93 ; meilleures heures mesurées par l'efficacité, #105 ; accompagnement des récurrences et des Réglages, #98 ; jours et heures par membre, #104 ; notes dans les échanges, #120 ; propositions d'un membre, #121 ; dossier des données, diagnostic et proxy du bureau, #115 ; lien « Voir la dernière version » sur Android, #143 ; notes `30900.txt` en français et en anglais), puis `3.10.0` (`31000` : import d'un calendrier `.ics`, #136 ; fichier lié sur le bureau et Android, #137 ; calendriers du téléphone, #138 ; notes `31000.txt` en français et en anglais), puis `3.11.0` (`31100` : espagnol, allemand, russe et italien, #75 ; fiches du magasin et page web dans ces langues ; notes `31100.txt` dans les six langues), puis `3.12.0` (`31200` : widgets Android, #150 ; récapitulatif du jour, #151 ; couleur par défaut océan ; notes `31200.txt` dans les six langues), puis `3.13.0` (`31300` : liste complète des fonctionnalités, #153 ; avis des mois sautés, #111 ; démonstration interactive, #96 ; décision sur la signature macOS, #116, et signature Windows préparée, #117 ; notes `31300.txt` dans les six langues), puis `3.14.0` (`31400` : type choisi sur place dans « À traiter » et « À qualifier », durée posée une fois la tâche qualifiée, facette « Incomplètes », type dans l'essentiel de la fiche et dans la démonstration, barre de défilement du menu des types, #166 ; notes `31400.txt` dans les six langues), puis `4.0.0` (`40000` : synchronisation entre appareils par le fichier lié, avec fusion, #88, et durées apprises partagées, #100 ; estimations par machine learning sur l'appareil, #99 ; type requis pour sortir de « À traiter », PR #186 ; garde du modèle allégée, PR #187 ; paquet Arch Linux AUR ; corrections de la QA d’avant 4.0, PR #192 ; toujours sans permission réseau, les connexions en ligne étant reportées à la 4.1.0 ; notes `40000.txt` dans les six langues). Puis, avec le cycle des versions (2026-11-05), `main` passe en `4.1.0-beta.1` (`39601`) : sous-tâches et enchaînement (#201), sans note de version (préversion).
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
 - `versionCode` (`AppVersion.versionCode`) : `X*10000 + Y*100 + Z` ; alpha :
@@ -117,6 +133,73 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 - F-Droid lit la version dans `kmp/gradle.properties` par `UpdateCheckData`
   (`publication.md`) ; chaque versionCode publié a sa note de version
   Fastlane dans les deux langues.
+
+### Cycle des versions (beta puis finale, 2026-11-05)
+
+- **Étapes** : une ou plusieurs betas `X.Y.0-beta.N` (fonctions complètes, à essayer), puis la finale `X.Y.0`. Les
+  alphas restent lisibles (`AppVersion`) mais ne servent plus. Une préversion n'existe que d'une version en `.0`, avec
+  `N` de 1 à 99 (`AppVersion.MAX_PRERELEASE`) : sinon les codes des préversions ne croissent plus d'une mineure à
+  l'autre (`4.1.1-beta.1` vaudrait `4.1.0-beta.2`, `4.1.0-beta.100` dépasserait `4.2.0-beta.1`). Vérifié sur la version
+  déclarée (`AppVersionTest.buildVersionIsConsistent`, `prereleaseCodesGrowFromOneMinorToTheNext`), par
+  `kmp/tools/set_version.py` et par « Kairos tag ». Un correctif est une version finale (`4.1.1`), sans beta.
+- **Canaux** : une beta a un `versionCode` sous sa finale (`4.1.0-beta.1` = 39601 < `4.1.0` = 40100) et même sous la
+  finale précédente (`4.0.0` = 40000) : sans conséquence, la beta s'installe sous l'identifiant `.preview` (Android) ou
+  comme produit « Kairos Preview » (bureau), dont les codes croissent entre eux.
+- **`main` en avance** : après le tag d'une finale, le commit suivant de `main` pose la beta suivante
+  (`python3 kmp/tools/set_version.py 4.2.0-beta.1`, qui écrit `kairos.versionName` et `kairos.versionCode` selon la
+  formule ; refuse une préversion hors `.0` ou hors 1-99). Une nouvelle beta : la même commande avec `beta.N+1`, après le
+  tag de la précédente. La finale : `set_version.py X.Y.0`, notes de version dans les six langues, historique ci-dessus
+  et feuille de route, puis le tag. Conséquence : un build de test (`kmp-test-build.yml`) de `main` est une beta, qui
+  s'installe en « Kairos Preview » à côté de la stable au lieu de la remplacer.
+- **Notes de version** : une finale a `fastlane/metadata/android/<langue>/changelogs/<versionCode>.txt` dans les six
+  langues, 500 caractères au plus (`ReleaseNotesTest`, `validate_fastlane.py`) ; une beta n'en a pas (ni F-Droid ni
+  fiches ; notes générées de la préversion GitHub).
+- **« Kairos tag »** (`.github/workflows/kmp-tag.yml`, lancement manuel sur `main`, champ `version` à recopier) : refuse
+  une version qui n'est pas celle de `kmp/gradle.properties`, hors du cycle, un `versionCode` hors formule, un tag qui
+  existe déjà, une finale sans ses six notes, et un commit dont la CI (`kmp.yml`) est rouge ou en cours. Puis tag annoté
+  `vX.Y.Z…` sur le dernier commit de `main`, et `gh workflow run kmp-release.yml --ref <tag>`, parce qu'un tag poussé
+  avec le jeton du workflow ne déclenche aucun autre workflow. Permissions `contents: write`, `actions: write`.
+- **Après une release lancée ainsi** : le job `follow-up` de `kmp-release.yml` lance `pages.yml` (page de
+  téléchargement) et, pour une finale, `fdroid-check.yml` avec `after_release` (comparaison à l'APK signé publié), la
+  fin d'une release lancée par le jeton ne déclenchant pas de façon sûre leurs `workflow_run`. Un tag posé à la main
+  garde le chemin d'avant (`push` du tag, puis `workflow_run`).
+- **Tags acceptés par la release** : `v[3-9].*` et `v[1-9][0-9].*` (toute version à partir de la 3 ; les `v2.*` sont
+  ceux de l'ancienne version) : une 5.0.0 n'aura rien à changer.
+- **Données des testeurs** : la « Kairos Preview » Android a ses propres données (identifiant distinct) ; pour essayer
+  avec les siennes, l'exporter de la stable et l'importer, ou lier le même fichier (synchronisation). Une beta qui
+  change le format du fichier (`formatVersion`) le dit dans les notes de sa préversion : une stable plus ancienne lirait
+  ce fichier comme `TOO_NEW` et cesserait de le fusionner.
+
+### Quel numéro donner à une version (règles du 2026-11-05)
+
+On choisit le numéro d'après ce que la version **contient depuis la dernière finale**, pas d'après sa taille :
+
+- **Majeure** (`X.0.0`) : une version plus ancienne ne peut plus lire ce que celle-ci écrit, ou l'utilisateur perd
+  quelque chose sur quoi il comptait.
+  - Nouveau format du fichier d'export ou de synchronisation (`ExportCodec.FORMAT_VERSION`, `SYNC_FORMAT_VERSION`) :
+    l'ancienne version le lit `TOO_NEW` et cesse de le fusionner. Garde-fou : `FormatVersionTest` lie chaque majeure au
+    format qu'elle écrit.
+  - Retrait d'une fonctionnalité ou d'un réglage, ou changement qui oblige l'utilisateur à refaire quelque chose.
+  - Une migration de base **additive** n'en est pas une : la base n'est jamais relue par une version plus ancienne,
+    seul le fichier d'export l'est.
+- **Mineure** (`X.Y.0`) : au moins une fonctionnalité nouvelle ou un comportement visible qui change, c'est-à-dire
+  une carte du catalogue `since = "X.Y.0"`, une puce du README ou une spec dont le « Besoin métier » change. Toujours
+  précédée d'au moins une beta. Garde-fou : `FeatureCatalogTest.aFeatureArrivesInAMinorOrMajorVersion` (une carte
+  n'annonce jamais un `X.Y.Z` avec `Z > 0`).
+- **Correctif** (`X.Y.Z`, `Z > 0`) : uniquement des corrections de défauts, sans beta. Ni carte, ni réglage, ni
+  migration, ni nouveau texte d'interface (un texte corrigé, oui). Faute de branche de correctif, possible seulement
+  quand `main` ne contient **que** des correctifs depuis la dernière finale : `main`, en `X.(Y+1).0-beta.1` non
+  tagué, passe en `X.Y.(Z+1)` (`set_version.py`), notes de version, tag, puis retour à la beta. Dès qu'une
+  fonctionnalité est fusionnée, un correctif attend la prochaine beta ou finale.
+- **Beta** (`X.Y.0-beta.N`) :
+  - `beta.1` quand **toutes** les fonctionnalités prévues de la version sont fusionnées, avec leurs specs, leurs
+    tests et leurs textes dans les six langues ;
+  - à partir de là, **gel des fonctionnalités** : seuls des correctifs entrent dans la version. Une fonctionnalité
+    prête attend, en PR ouverte, que la finale soit taguée (pas de branche de version : ce qui est fusionné dans
+    `main` part avec la finale) ;
+  - `beta.N+1` quand des correctifs ont été fusionnés et qu'il faut les faire essayer ;
+  - la **finale** quand la dernière beta a tourné chez ses testeurs sans régression (repère : une semaine), notes de
+    version écrites.
 
 ### Android (`kmp/androidApp`)
 
