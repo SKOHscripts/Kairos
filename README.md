@@ -1,6 +1,6 @@
 # Kairos
 
-<img align="right" src="fastlane/metadata/android/en-US/images/icon.png" width="140" alt="Kairos logo">
+<img align="right" src="site/icon.png" width="140" alt="Kairos logo">
 
 [![Kairos 3](https://github.com/SKOHscripts/Kairos/actions/workflows/kmp.yml/badge.svg)](https://github.com/SKOHscripts/Kairos/actions/workflows/kmp.yml)
 [![Release](https://img.shields.io/github/v/release/SKOHscripts/Kairos)](https://github.com/SKOHscripts/Kairos/releases/latest)
