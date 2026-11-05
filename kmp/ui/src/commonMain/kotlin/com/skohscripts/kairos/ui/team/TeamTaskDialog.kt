@@ -7,6 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import com.skohscripts.kairos.core.model.TaskSpace
+import com.skohscripts.kairos.core.engine.TimeTracking
+import com.skohscripts.kairos.core.stats.SplitAdvice
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.team.TeamEvents
 import com.skohscripts.kairos.ui.app.AppServices
@@ -57,6 +59,10 @@ fun TeamTaskDialog(services: AppServices, taskId: Long, onDismiss: () -> Unit, i
         dependencies = snapshot.dependencies,
         tasksById = remember(snapshot.tasks) { snapshot.tasks.associateBy { it.id } },
         rollup = remember(taskId, snapshot.tasks, snapshot.workSessions) { teamRollup(taskId, snapshot, now) },
+        // Conseil de découpage d'après l'historique de l'équipe (docs/spec/sous-taches.md § Conseil).
+        splitHistory = remember(snapshot.tasks, snapshot.workSessions) {
+            SplitAdvice.history(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks), TaskSpace.TEAM)
+        },
         estimates = estimates,
         onDismiss = onDismiss,
         onSave = {},

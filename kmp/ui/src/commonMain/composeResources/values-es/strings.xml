@@ -271,6 +271,9 @@
     <string name="rollup_unestimated_many">%1$d sin duración</string>
     <string name="rollup_spent">%1$s dedicadas</string>
     <string name="rollup_sheet">Sus subtareas: %1$s</string>
+    <string name="split_advice_bias">Divídela en subtareas: con %1$d puntos, las tareas terminadas tardaron ×%2$s el tiempo previsto (mediana de %3$d).</string>
+    <string name="split_advice_spread">Divídela en subtareas: con %1$d puntos, las tareas terminadas tardaron entre %2$s y %3$s.</string>
+    <string name="split_advice_unknown">Divídela en subtareas: solo %1$d tarea(s) terminada(s) con %2$d puntos, muy pocas para saber si este nivel se estima bien.</string>
     <string name="done_hint">Ya terminadas hoy.</string>
     <string name="backlog_title">Backlog, sin fecha</string>
     <string name="backlog_hint">Tareas sin fecha límite ni fecha programada: rellenan los huecos de la agenda según su puntuación, pero ningún día de la vista semanal las muestra. Asígnales una fecha límite o una fecha programada para vincularlas a un día.</string>

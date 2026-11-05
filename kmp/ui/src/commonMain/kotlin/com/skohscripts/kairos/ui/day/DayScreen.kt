@@ -101,6 +101,8 @@ import com.skohscripts.kairos.core.engine.Scheduling
 import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskTree
+import com.skohscripts.kairos.core.engine.TimeTracking
+import com.skohscripts.kairos.core.stats.SplitAdvice
 import com.skohscripts.kairos.core.model.LearningSettings
 import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
@@ -197,6 +199,10 @@ fun DayScreen(
     // Calendriers du téléphone (Android) : ajoutés pour le calcul, jamais écrits (docs/spec/connexions-externes.md).
     val snapshot = withDeviceCalendars(services, stored)
     val tasksById = remember(snapshot.tasks) { snapshot.tasks.associateBy { it.id } }
+    // Historique par niveau de points de l'espace Perso, pour le conseil de découpage de la fiche (docs/spec/sous-taches.md).
+    val splitHistory = remember(snapshot.tasks, snapshot.workSessions) {
+        SplitAdvice.history(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, services.clock.now(), snapshot.tasks), TaskSpace.PERSONAL)
+    }
     val timeZone = remember { TimeZone.currentSystemDefault() }
     // L'heure avance à la minute : le placement part de maintenant (buildDaySchedule).
     val now by produceState(services.clock.now()) {
@@ -660,6 +666,7 @@ fun DayScreen(
                 day = day,
                 today = today,
                 rollup = view.rollups[id],
+                splitHistory = splitHistory.takeIf { task.space == TaskSpace.PERSONAL },
                 learned = view.learned[id],
                 learning = snapshot.settings.learning ?: LearningSettings(),
                 proposal = remember(snapshot, id) { EstimateChanges.proposalFor(task, snapshot, services.clock.now(), timeZone) },

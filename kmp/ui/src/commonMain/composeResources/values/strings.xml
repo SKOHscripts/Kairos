@@ -272,6 +272,9 @@
     <string name="rollup_unestimated_many">%1$d without a duration</string>
     <string name="rollup_spent">%1$s spent</string>
     <string name="rollup_sheet">Its subtasks: %1$s</string>
+    <string name="split_advice_bias">Split it into subtasks: at %1$d points, finished tasks took ×%2$s the planned time (median of %3$d).</string>
+    <string name="split_advice_spread">Split it into subtasks: at %1$d points, finished tasks took from %2$s to %3$s.</string>
+    <string name="split_advice_unknown">Split it into subtasks: only %1$d finished task(s) at %2$d points, too few to know whether this level is well estimated.</string>
     <string name="done_hint">Already finished today.</string>
     <string name="backlog_title">Backlog, no date</string>
     <string name="backlog_hint">Tasks with neither a deadline nor a scheduled date: they fill the gaps of the schedule by score, but no day of the week view shows them. Give them a deadline or a scheduled date to tie them to a day.</string>

@@ -3,6 +3,7 @@ package com.skohscripts.kairos.desktop
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -26,9 +27,9 @@ import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-/** Priorité imposée par la mère dans « À traiter » (docs/spec/sous-taches.md § Priorité, issue #201). */
+/** Sous-tâches dans l'interface (docs/spec/sous-taches.md, issue #201) : priorité imposée, échéance héritée, agrégat, conseil. */
 @OptIn(ExperimentalTestApi::class)
-class SubtaskPriorityUiTest {
+class SubtasksUiTest {
     private val clock = object : Clock {
         override fun now() = Instant.parse("2026-11-05T08:00:00Z")
     }
@@ -84,5 +85,23 @@ class SubtaskPriorityUiTest {
             .performScrollToNode(androidx.compose.ui.test.hasText("Parent tasks in progress", substring = true))
         onNodeWithText("Parent tasks in progress", substring = true).performClick()
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("0/2 subtask(s) · 1 h 30 planned").fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    @Test
+    fun theSheetAdvisesToSplitALevelWithoutEnoughHistory() = runComposeUiTest {
+        val services = services()
+        runBlocking {
+            val r = services.repository
+            val id = r.createTask("Refondre le site")!!
+            r.setPriority(id, 1); r.setPoints(id, 13); r.setTaskType(id, "Development"); r.setEstimate(id, 240)
+        }
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Refondre le site", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        onAllNodesWithContentDescription("Edit")[0].performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Edit task").fetchSemanticsNodes().isNotEmpty() }
+        // Aucune tâche de 13 points terminée : trop peu pour savoir, Kairos conseille de découper.
+        waitUntil(timeoutMillis = 5_000) {
+            onAllNodesWithText("Split it into subtasks: only 0 finished task(s) at 13 points", substring = true).fetchSemanticsNodes().isNotEmpty()
+        }
     }
 }

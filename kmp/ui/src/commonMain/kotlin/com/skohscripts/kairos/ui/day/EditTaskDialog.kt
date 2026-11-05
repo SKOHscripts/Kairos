@@ -62,6 +62,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskTree
+import com.skohscripts.kairos.core.stats.SplitAdvice
 import com.skohscripts.kairos.core.model.TaskDependency
 import com.skohscripts.kairos.core.model.TaskRecurrence
 import com.skohscripts.kairos.core.model.TaskStatus
@@ -171,6 +172,8 @@ internal fun EditTaskDialog(
     tasksById: Map<Long, Task>,
     /** Ce que coûtent ses sous-tâches (docs/spec/sous-taches.md § Agrégation), `null` sans sous-tâche. */
     rollup: TaskTree.Rollup? = null,
+    /** Historique par niveau de points de son espace, pour le conseil de découpage (§ Conseil) ; `null` : pas de conseil. */
+    splitHistory: SplitAdvice.History? = null,
     estimates: Estimates,
     onDismiss: () -> Unit,
     onSave: (TaskEdit) -> Unit,
@@ -336,6 +339,12 @@ internal fun EditTaskDialog(
                                 points = chosen
                                 chosen?.let(estimates.minutesByPoints::get)?.let { minutes = it.toString() }
                             })
+                            // Conseil de découpage (docs/spec/sous-taches.md § Conseil) : suit les points choisis ; jamais pour une tâche
+                            // faite ou déjà découpée.
+                            val split = splitHistory?.takeIf { task.status != TaskStatus.DONE }?.let { h ->
+                                SplitAdvice.advise(points, hasSubtasks = subtasks.isNotEmpty() || rollup != null, history = h)
+                            }
+                            split?.let { SplitAdviceLine(it) }
                             PointsGuide(estimates.references)
                         }
                         // Le type dans l'essentiel (3.14.0, issue #166) : il qualifie la tâche, au même titre que la priorité et les

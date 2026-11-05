@@ -134,7 +134,7 @@ terminées à ce palier ; sans historique à un palier, l'exemple générique et
 différence entre points (l'ordre) et durée (le placement).
 
 **Édition** (dialogue) : titre, description, priorité, points (puis le
-guide des points), type (dans l'essentiel depuis 3.14.0, issue #166 : il qualifie la tâche au même titre que priorité et
+conseil de découpage s'il y a lieu, `sous-taches.md` § Conseil, et le guide des points), type (dans l'essentiel depuis 3.14.0, issue #166 : il qualifie la tâche au même titre que priorité et
 points), échéance, durée ; « Options avancées » : programmée pour, projet, temps passé manuel,
 récurrence (aucune, quotidienne, jours ouvrés, hebdomadaire, mensuelle,
 « le … du mois » avec le jour), heure fixe (HH:MM, vide = aucune),

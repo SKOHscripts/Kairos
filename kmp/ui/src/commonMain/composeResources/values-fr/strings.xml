@@ -273,6 +273,9 @@
     <string name="rollup_unestimated_many">%1$d sans durée</string>
     <string name="rollup_spent">%1$s passées</string>
     <string name="rollup_sheet">Ses sous-tâches : %1$s</string>
+    <string name="split_advice_bias">Découpe-la en sous-tâches : à %1$d points, les tâches terminées ont pris ×%2$s le temps prévu (médiane de %3$d).</string>
+    <string name="split_advice_spread">Découpe-la en sous-tâches : à %1$d points, les tâches terminées ont pris de %2$s à %3$s.</string>
+    <string name="split_advice_unknown">Découpe-la en sous-tâches : seulement %1$d tâche(s) terminée(s) à %2$d points, trop peu pour savoir si ce niveau est bien estimé.</string>
     <string name="done_hint">Déjà terminées aujourd’hui.</string>
     <string name="backlog_title">Backlog, sans date</string>
     <string name="backlog_hint">Tâches sans échéance ni date programmée : elles comblent les trous de l’agenda selon leur score, mais aucun jour de la semaine ne les affiche. Pose une échéance ou une date programmée pour les attacher à un jour.</string>

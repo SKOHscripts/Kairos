@@ -12,7 +12,7 @@ Les dépendances elles-mêmes sont dans `dependances.md`, la fiche dans `vue-jou
 1. **fil d'Ariane complet** (bug) : **livré** ;
 2. **priorité imposée** : **livrée** ;
 3. **durées et temps passé additionnés, échéance héritée** : **livrés** ;
-4. conseil de découpage : à implémenter ;
+4. **conseil de découpage** : **livré** ;
 5. section « Découpage et enchaînement » de la fiche, recherche dans « Bloquée par » : à implémenter.
 
 Décisions du propriétaire du 2026-11-05 : priorité **imposée** ; **somme et échéance** ; conseil **selon l'historique**,
@@ -134,7 +134,35 @@ Kairos conseille de découper une tâche que l'historique montre mal estimée.
 - Tests : `TaskTreeTest`, `DayViewTest.a_child_without_a_deadline_is_planned_with_its_mothers_and_the_mother_adds_up`,
   `SubtaskPriorityTest.aSubtaskNeverEndsAfterItsMother`, `SubtaskPriorityUiTest.aChildSaysWhereItsDeadlineComesFromAndTheMotherAddsUp`.
 
+### Conseil de découpage (lot 4, `core/stats/SplitAdvice.kt`)
+
+- `SplitAdvice.history(tâches, temps passé, espace)` : par niveau de points, les tâches **terminées** de l'espace avec du
+  temps réel ; ni les mères (leur temps est celui de leurs filles), ni, côté Perso, les tâches reçues d'un manager.
+- `SplitAdvice.advise(points, déjà découpée, historique)` → `Advice(reason, points, samples, bias?, shortest?, longest?)`,
+  `null` sous `MIN_POINTS` = 3, pour une tâche qui a déjà des sous-tâches, ou pour un niveau bien estimé. Motifs, du plus
+  parlant au moins parlant :
+  1. `BIAS` : au moins `MIN_SAMPLES` = 5 tâches estimées, médiane réel ÷ estimé hors de ×0,67–×1,5 ;
+  2. `SPREAD` : 80ᵉ centile ÷ 20ᵉ centile du temps réel (rang le plus proche, valeurs observées) au-delà de ×2,5 ;
+  3. `NOT_ENOUGH_HISTORY` : moins de 5 tâches terminées à ce niveau.
+- Fiche (`EditTaskDialog`, paramètre `splitHistory`) : sous les pastilles de points, `SplitAdviceLine` (icône `Layers`,
+  texte neutre) suit les points choisis en direct ; jamais pour une tâche faite ou déjà découpée. Textes :
+  `split_advice_bias` (« Découpe-la en sous-tâches : à 8 points, les tâches terminées ont pris ×1.80 le temps prévu
+  (médiane de 12). »), `split_advice_spread` (« … ont pris de 2 h à 7 h »), `split_advice_unknown` (« … seulement 2
+  tâche(s) terminée(s) à 13 points, trop peu pour savoir si ce niveau est bien estimé »), six langues ; le rapport a
+  deux décimales et un point décimal, comme le biais des statistiques.
+- Historique : celui de l'espace Perso dans la vue Jour (`DayScreen`), celui de l'équipe dans la fiche d'équipe
+  (`TeamTaskDialog`), comme les durées posées en qualifiant.
+- Tests : `SplitAdviceTest` (seuil personnel du critère de succès, biais, historique court, jamais à 1 ou 2 points,
+  espace), `SubtasksUiTest.theSheetAdvisesToSplitALevelWithoutEnoughHistory`.
+
 ### Décisions et pièges tracés
+
+- **Un seuil personnel, pas un nombre de points** (propriétaire, 2026-11-05 : « un utilisateur peut très bien estimer
+  une tâche à 8 mais pas à 5 ») : chaque niveau est jugé sur sa propre dispersion et son propre biais. Écarté : conseiller
+  à partir de 8 points pour tout le monde. Le 80ᵉ/20ᵉ centile plutôt que le maximum ÷ minimum : une seule tâche
+  aberrante ne déclenche pas le conseil.
+- **Faute d'historique, on conseille** (demande de l'issue) **sauf à 1 et 2 points** : une base neuve verrait sinon le
+  conseil sur toutes ses petites tâches.
 
 - **Échéance héritée dans la vue, pas en base** (2026-11-05) : écrire l'échéance de la mère dans chaque fille la
   figerait (déplacer la mère ne la déplacerait plus) et créerait des modifications que l'utilisateur n'a pas faites.

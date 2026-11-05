@@ -271,6 +271,9 @@
     <string name="rollup_unestimated_many">%1$d без длительности</string>
     <string name="rollup_spent">потрачено %1$s</string>
     <string name="rollup_sheet">Её подзадачи: %1$s</string>
+    <string name="split_advice_bias">Разбей её на подзадачи: при %1$d баллах завершённые задачи заняли ×%2$s от запланированного времени (медиана по %3$d).</string>
+    <string name="split_advice_spread">Разбей её на подзадачи: при %1$d баллах завершённые задачи заняли от %2$s до %3$s.</string>
+    <string name="split_advice_unknown">Разбей её на подзадачи: всего %1$d завершённых задач с %2$d баллами — слишком мало, чтобы понять, хорошо ли оценивается этот уровень.</string>
     <string name="done_hint">Уже завершены сегодня.</string>
     <string name="backlog_title">Бэклог, без даты</string>
     <string name="backlog_hint">Задачи без срока и без запланированной даты: они заполняют свободные места в расписании по рейтингу, но ни один день недельного вида их не показывает. Задай срок или запланированную дату, чтобы привязать их к дню.</string>

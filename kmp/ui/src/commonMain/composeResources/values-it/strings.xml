@@ -271,6 +271,9 @@
     <string name="rollup_unestimated_many">%1$d senza durata</string>
     <string name="rollup_spent">%1$s impiegate</string>
     <string name="rollup_sheet">Le sue sottoattività: %1$s</string>
+    <string name="split_advice_bias">Dividila in sottoattività: a %1$d punti, le attività completate hanno richiesto ×%2$s il tempo previsto (mediana di %3$d).</string>
+    <string name="split_advice_spread">Dividila in sottoattività: a %1$d punti, le attività completate hanno richiesto da %2$s a %3$s.</string>
+    <string name="split_advice_unknown">Dividila in sottoattività: solo %1$d attività completata/e a %2$d punti, troppo poche per sapere se questo livello è stimato bene.</string>
     <string name="done_hint">Già terminate oggi.</string>
     <string name="backlog_title">Backlog, senza data</string>
     <string name="backlog_hint">Attività senza scadenza né data programmata: riempiono i vuoti dell’agenda in base al punteggio, ma nessun giorno della settimana le mostra. Imposta una scadenza o una data programmata per legarle a un giorno.</string>
