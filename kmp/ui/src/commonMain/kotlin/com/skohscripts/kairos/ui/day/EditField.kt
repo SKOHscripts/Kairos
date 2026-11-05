@@ -17,13 +17,14 @@ internal enum class EditField(val advanced: Boolean = false, val team: Boolean =
     TYPE,
     MINUTES,
     DEADLINE,
+    /** Section « Découpage et enchaînement » depuis l'issue #201 (docs/spec/sous-taches.md § Section) : hors des options avancées. */
+    SUBTASKS,
+    BLOCKERS,
     SCHEDULED(advanced = true),
     PROJECT(advanced = true),
     MANUAL_TIME(advanced = true),
     RECURRENCE(advanced = true),
     PIN(advanced = true),
-    SUBTASKS(advanced = true),
-    BLOCKERS(advanced = true),
     ;
 
     /** Balise de test du champ. */

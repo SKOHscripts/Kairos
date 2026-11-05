@@ -14,6 +14,15 @@ class BlockerChoicesTest {
         Task(id, title, parentId = parent, deadline = deadline, createdAt = t0, updatedAt = t0)
 
     @Test
+    fun theSearchIgnoresCaseAndAccentsAndKeepsTheCheckedOnes() {
+        val tasks = listOf(task(1, "Été au lac"), task(2, "Réunion client"), task(3, "Devis"))
+        val choices = BlockerChoices.of(task(9, "Éditée"), tasks, emptyList(), tasks.associateBy { it.id }, "fr")
+        assertEquals(listOf(2L), BlockerChoices.filter(choices, "reunion", emptySet()).map { it.task.id })
+        assertEquals(listOf(1L, 2L), BlockerChoices.filter(choices, "ETE", setOf(2L)).map { it.task.id }) // cochée : toujours là
+        assertEquals(choices, BlockerChoices.filter(choices, "  ", emptySet()))
+    }
+
+    @Test
     fun aGrandchildShowsItsWholeLineage() {
         val tasks = listOf(task(1, "A"), task(3, "C", parent = 1), task(4, "D", parent = 3))
         val choices = BlockerChoices.of(task(9, "Éditée"), tasks, emptyList(), tasks.associateBy { it.id }, "fr")

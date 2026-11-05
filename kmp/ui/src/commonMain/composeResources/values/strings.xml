@@ -275,6 +275,12 @@
     <string name="split_advice_bias">Split it into subtasks: at %1$d points, finished tasks took ×%2$s the planned time (median of %3$d).</string>
     <string name="split_advice_spread">Split it into subtasks: at %1$d points, finished tasks took from %2$s to %3$s.</string>
     <string name="split_advice_unknown">Split it into subtasks: only %1$d finished task(s) at %2$d points, too few to know whether this level is well estimated.</string>
+    <string name="split_advice_none">Split it into subtasks: no finished task at %1$d points yet, so nothing tells whether this level is well estimated.</string>
+    <string name="split_section_title">Splitting and sequencing</string>
+    <string name="split_section_hint">Subtasks split this work: it is done when they are. “Blocked by” chains it to other tasks: it waits until they are done.</string>
+    <string name="blockers_search">Find a task</string>
+    <string name="blockers_search_none">No task matches “%1$s”.</string>
+    <string name="split_advice_action">Split into subtasks</string>
     <string name="done_hint">Already finished today.</string>
     <string name="backlog_title">Backlog, no date</string>
     <string name="backlog_hint">Tasks with neither a deadline nor a scheduled date: they fill the gaps of the schedule by score, but no day of the week view shows them. Give them a deadline or a scheduled date to tie them to a day.</string>
@@ -1379,6 +1385,8 @@
     <string name="card_first_task_body">Kairos walks you through the task sheet, field by field, then shows where your task lands in the day.</string>
     <string name="card_points_title">Priority, points and estimate</string>
     <string name="card_points_body">Priority (P0 to P3) says how much it matters, points (Fibonacci) how big it is, minutes how long it takes. The points guide shows tasks you already finished.</string>
+    <string name="card_split_advice_title">Split advice</string>
+    <string name="card_split_advice_body">When your finished tasks show that a point level is poorly estimated (actual times too spread out, estimates far from reality, or too few to tell), the task sheet suggests splitting it into subtasks. Never at 1 or 2 points.</string>
     <string name="card_score_title">Score</string>
     <string name="card_score_body">Each task gets a score: its value (priority and how close the deadline is) divided by its effort. “Why this position?” details the calculation.</string>
     <string name="card_hours_title">Hours by day of the week</string>
@@ -1388,7 +1396,7 @@
     <string name="card_week_title">Plan the week</string>
     <string name="card_week_body">Seven days at a glance: deadlines, scheduled tasks, finished tasks and slots. Open a day to see its agenda.</string>
     <string name="card_subtasks_title">Subtasks</string>
-    <string name="card_subtasks_body">Split a task into subtasks: only the leaves are scheduled, and the parent shows its progress. You can rename them from the task’s sheet.</string>
+    <string name="card_subtasks_body">Split a task into subtasks: only the leaves are scheduled, each one at least as important as its parent and, without a due date, planned with the parent’s. The parent shows its progress and the sum of their durations.</string>
     <string name="card_recurrence_title">Recurrence</string>
     <string name="card_recurrence_body">A task can come back daily, on weekdays, weekly or monthly, or on day N of the month (moved to the previous working day on a weekend or holiday).</string>
     <string name="card_dependencies_title">Blockers</string>

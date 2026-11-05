@@ -4,6 +4,7 @@ import com.skohscripts.kairos.core.engine.Dependencies
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskDependency
 import com.skohscripts.kairos.core.model.TaskTree
+import com.skohscripts.kairos.core.text.SearchFold
 
 /**
  * Une case de la liste « Bloquée par » du dialogue d'édition (docs/spec/dependances.md) : son libellé, et si la cocher
@@ -12,6 +13,16 @@ import com.skohscripts.kairos.core.model.TaskTree
 internal data class BlockerChoice(val task: Task, val label: String, val cyclic: Boolean)
 
 internal object BlockerChoices {
+    /** Nombre de cases au-delà duquel « Bloquée par » a une recherche (docs/spec/sous-taches.md § Section). */
+    const val SEARCH_FROM = 6
+
+    /**
+     * Les cases que montre la recherche [query] : celles dont le libellé contient chaque mot, sans casse ni accents
+     * ([SearchFold], comme la liste des fonctionnalités), et toujours les cochées ([checked]), dans l'ordre reçu.
+     */
+    fun filter(choices: List<BlockerChoice>, query: String, checked: Set<Long>): List<BlockerChoice> =
+        if (query.isBlank()) choices else choices.filter { it.task.id in checked || SearchFold.matches(query, it.label) }
+
     /**
      * Les bloqueurs possibles de [task] parmi [candidates] (elle exclue, et ceux d'un autre espace), dans l'ordre reçu. Libellé : la
      * lignée puis le titre pour une sous-tâche (« A › C › D », comme dans les listes de Jour, docs/spec/sous-taches.md) ; deux

@@ -274,6 +274,12 @@
     <string name="split_advice_bias">Dividila in sottoattività: a %1$d punti, le attività completate hanno richiesto ×%2$s il tempo previsto (mediana di %3$d).</string>
     <string name="split_advice_spread">Dividila in sottoattività: a %1$d punti, le attività completate hanno richiesto da %2$s a %3$s.</string>
     <string name="split_advice_unknown">Dividila in sottoattività: solo %1$d attività completata/e a %2$d punti, troppo poche per sapere se questo livello è stimato bene.</string>
+    <string name="split_advice_none">Dividila in sottoattività: ancora nessuna attività completata a %1$d punti, nulla dice se questo livello è stimato bene.</string>
+    <string name="split_section_title">Suddivisione e concatenazione</string>
+    <string name="split_section_hint">Le sottoattività suddividono questo lavoro: è finito quando lo sono loro. «Bloccata da» lo concatena ad altre attività: attende che siano completate.</string>
+    <string name="blockers_search">Cerca un’attività</string>
+    <string name="blockers_search_none">Nessuna attività corrisponde a «%1$s».</string>
+    <string name="split_advice_action">Dividi in sottoattività</string>
     <string name="done_hint">Già terminate oggi.</string>
     <string name="backlog_title">Backlog, senza data</string>
     <string name="backlog_hint">Attività senza scadenza né data programmata: riempiono i vuoti dell’agenda in base al punteggio, ma nessun giorno della settimana le mostra. Imposta una scadenza o una data programmata per legarle a un giorno.</string>
@@ -1378,6 +1384,8 @@
     <string name="card_first_task_body">Kairos ti guida nella scheda di un’attività, campo per campo, poi ti mostra dove si colloca nella giornata.</string>
     <string name="card_points_title">Priorità, punti e stima</string>
     <string name="card_points_body">La priorità (da P0 a P3) dice quanto conta, i punti (Fibonacci) quanto è grande, i minuti quanto dura. La guida dei punti mostra attività che hai già completato.</string>
+    <string name="card_split_advice_title">Consiglio di suddivisione</string>
+    <string name="card_split_advice_body">Quando le tue attività completate mostrano che un livello di punti è stimato male (tempi reali troppo dispersi, stime lontane dalla realtà o troppo poche per saperlo), la scheda suggerisce di dividerla in sottoattività. Mai a 1 o 2 punti.</string>
     <string name="card_score_title">Punteggio</string>
     <string name="card_score_body">Ogni attività riceve un punteggio: il suo valore (priorità e vicinanza della scadenza) diviso per il suo sforzo. «Perché in questa posizione?» mostra il calcolo.</string>
     <string name="card_hours_title">Orari per giorno della settimana</string>
@@ -1387,7 +1395,7 @@
     <string name="card_week_title">Pianifica la settimana</string>
     <string name="card_week_body">Sette giorni a colpo d’occhio: scadenze, attività programmate, attività completate e fasce orarie. Apri un giorno per vedere la sua agenda.</string>
     <string name="card_subtasks_title">Sottoattività</string>
-    <string name="card_subtasks_body">Suddividi un’attività in sottoattività: solo le foglie vengono pianificate, e l’attività principale mostra i suoi progressi. Puoi rinominarle dalla scheda dell’attività.</string>
+    <string name="card_subtasks_body">Suddividi un’attività in sottoattività: solo le foglie vengono pianificate, ciascuna importante almeno quanto l’attività principale e, senza scadenza, con la sua. L’attività principale mostra i progressi e la somma delle loro durate.</string>
     <string name="card_recurrence_title">Ricorrenza</string>
     <string name="card_recurrence_body">Un’attività può tornare ogni giorno, nei giorni lavorativi, ogni settimana o ogni mese, oppure il giorno N del mese (anticipato al giorno lavorativo precedente nei weekend e festivi).</string>
     <string name="card_dependencies_title">Bloccanti</string>

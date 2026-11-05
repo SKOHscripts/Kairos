@@ -103,6 +103,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_settings_body
 import com.skohscripts.kairos.ui.generated.resources.card_settings_title
 import com.skohscripts.kairos.ui.generated.resources.card_slots_body
 import com.skohscripts.kairos.ui.generated.resources.card_slots_title
+import com.skohscripts.kairos.ui.generated.resources.card_split_advice_body
+import com.skohscripts.kairos.ui.generated.resources.card_split_advice_title
 import com.skohscripts.kairos.ui.generated.resources.card_subtasks_body
 import com.skohscripts.kairos.ui.generated.resources.card_subtasks_title
 import com.skohscripts.kairos.ui.generated.resources.card_week_body
@@ -198,6 +200,8 @@ object FeatureCatalog {
         FeatureCard("guided_walks", GuideChapter.FIRST_STEPS, { KairosIcons.Repeat }, Res.string.card_guided_walks_title, Res.string.card_guided_walks_body, GuideTarget.Personal(Destination.HOME), since = "3.9.0"),
         // --- Planifier
         FeatureCard("points", GuideChapter.PLAN, { KairosIcons.Balance }, Res.string.card_points_title, Res.string.card_points_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_INBOX)),
+        // Conseil de découpage (docs/spec/sous-taches.md § Conseil, issue #201) : dans la fiche, sous les points.
+        FeatureCard("split_advice", GuideChapter.PLAN, { KairosIcons.Layers }, Res.string.card_split_advice_title, Res.string.card_split_advice_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_INBOX), since = "4.1.0"),
         FeatureCard("level_names", GuideChapter.PLAN, { KairosIcons.Flag }, Res.string.card_level_names_title, Res.string.card_level_names_body, GuideTarget.Settings(GuideSection.SETTINGS_LEVELS), since = "3.9.0"),
         FeatureCard("score", GuideChapter.PLAN, { KairosIcons.Star }, Res.string.card_score_title, Res.string.card_score_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_AGENDA)),
         FeatureCard("placement", GuideChapter.PLAN, { KairosIcons.Calculate }, Res.string.card_placement_title, Res.string.card_placement_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_AGENDA), since = "3.0.0"),
@@ -319,6 +323,7 @@ object FeatureCatalog {
         "Score" to "score",
         "Placement" to "placement",
         "Fibonacci points" to "points",
+        "Split advice" to "split_advice",
         "Level names" to "level_names",
         "Afternoon dip (14h55)" to "afternoon_dip",
         "Hours by day of the week" to "hours",

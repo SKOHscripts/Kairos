@@ -255,6 +255,8 @@ class DayScreenUiTest {
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Edit task").fetchSemanticsNodes().isNotEmpty() }
         onNodeWithText("More options").performScrollTo().performClick()
         onNode(hasSetTextAction() and hasText("Fixed time (HH:MM)")).performScrollTo().performTextInput("14:30")
+        // « Bloquée par » est dans « Découpage et enchaînement » (docs/spec/sous-taches.md § Section).
+        onNodeWithText("Splitting and sequencing").performScrollTo().performClick()
         onNodeWithText("Beta").performScrollTo().performClick()
         onNodeWithText("Save").performClick()
         waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.dependencies.isNotEmpty() }

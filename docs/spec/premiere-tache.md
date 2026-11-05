@@ -48,7 +48,7 @@ déroutant sans explication.
    pourquoi la suite de Fibonacci, avec les repères du guide des points ; (5)
    type, et ce qu'il change pour les horaires (il se choisit aussi dans « À traiter ») ; (6) estimation en minutes :
    durée suggérée et durée apprise ; (7) échéance et date programmée ; (8) aperçu des
-   options avancées (projet, récurrence, bloqueurs, heure fixe, sous-tâches) ;
+   options avancées (projet, récurrence, heure fixe) et de « Découpage et enchaînement » (bloqueurs, sous-tâches) ;
    (9) enregistrer.
 4. **Placement** : après l'enregistrement, la vue Jour s'ouvre sur la tâche,
    mise en évidence, et le coach explique sa **position** : le score, son rang, son
@@ -144,7 +144,9 @@ déroutant sans explication.
 - `FirstTaskCoach.STEPS` (`ui/guide/FirstTaskCoach.kt`) : neuf `CoachStep`, chacune avec les champs qu'elle explique :
   titre ; description ; priorité ; points ; type ; minutes ; échéance et programmée ; options avancées (projet, temps
   manuel, récurrence, heure fixe, sous-tâches, bloqueurs) ; enregistrer (met « Enregistrer » en évidence).
-  Une étape qui explique un champ avancé ouvre les options avancées.
+  Une étape qui explique un champ avancé ouvre les options avancées ; une étape qui explique les sous-tâches ou les
+  bloqueurs ouvre « Découpage et enchaînement » (ces deux champs n'ont plus `advanced` depuis l'issue #201 et suivent
+  l'échéance dans `EditField`).
 - Mise en évidence : contour primaire de 2 dp et défilement jusqu'au champ (`BringIntoViewRequester`) ; une marge constante
   est posée dès qu'un coach est là pour que la fiche ne saute pas d'étape en étape ; jamais la couleur seule : le panneau
   nomme l'étape.

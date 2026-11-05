@@ -138,7 +138,8 @@ class TeamMyWorkUiTest {
         waitText("Tracking")
         onNodeWithContentDescription("Personal").performClick()
         editTheTaskWithMoreOptions()
-        waitText("Blocked by", substring = true)
+        // Les options avancées sont ouvertes : « Heure fixe » y est (« Bloquée par » est passé dans « Découpage et enchaînement »).
+        waitText("Fixed time (HH:MM)", substring = true)
         assertEquals(0, onAllNodesWithText("Count in the team").fetchSemanticsNodes().size)
         assertTrue(s.repository.snapshot.value.tasks.none { it.teamExcluded })
     }

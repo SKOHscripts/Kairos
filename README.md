@@ -180,7 +180,13 @@ also be edited, archived without follow-up, or deleted.
 - **Editable subtasks**: a task's sheet lists its subtasks so you can rename,
   check or delete them, on top of adding new ones.
 - **Keyboard shortcuts** (desktop and web): `N` to capture, `/` to search.
-- **Subtasks**: n/m progress on the parent; only the leaves are scheduled.
+- **Subtasks**: split a piece of work (where "Blocked by" chains separate
+  ones; both sit in the task sheet's "Splitting and sequencing" section). Only
+  the leaves are scheduled. A subtask is never less important than its parent
+  (raising the parent raises it) and, without a due date of its own, is planned
+  with the parent's; it never ends later. The parent shows n/m progress and the
+  sum of its subtasks' durations and time spent; rows show the whole lineage
+  ("A › C › D").
 - **Recurrence**: daily, weekdays, weekly, monthly (finishing an occurrence
   creates the next one), and "on day N of the month" (moved to the previous
   working day if it falls on a weekend or holiday).
@@ -193,7 +199,8 @@ also be edited, archived without follow-up, or deleted.
   until then. **"Move…"** schedules a task for another day (tomorrow, next
   Monday, in a week, or any date) and offers to undo it.
 - **Blockers**: after blocking a task, Kairos says where it went ("Blocked"
-  opens); the blocking task shows a "Blocks …" badge.
+  opens); the blocking task shows a "Blocks …" badge. A search field finds the
+  task to wait for in a long list.
 
 ### "To process"
 
@@ -220,6 +227,11 @@ only.
   "How to estimate points?" shows, for each level, the median real time of
   your own finished tasks and two examples; editing suggests a duration based
   on your history.
+- **Split advice**: when your finished tasks show that a point level is poorly
+  estimated (actual times spread more than ×2.5, estimates off by more than
+  ×1.5, or fewer than 5 tasks to tell), the task sheet suggests splitting it
+  into subtasks, with a button that opens the field. The threshold is yours:
+  8 points can be reliable and 5 not. Never at 1 or 2 points.
 - **Level names** (Settings → Planning): call the priorities and the points
   in your own words ("Urgent", S/M/L…). The badge shows your name, the sheet
   and the guide show it with its value ("M (3)"); P0 stays red and Kairos still
@@ -511,6 +523,7 @@ version that brought it and the platforms it exists on.
 | First steps | The guide remembers and shows the spot | 3.7.0 | All |
 | First steps | Recurring task and Settings, step by step | 3.9.0 | All |
 | Plan | Priority, points and estimate | 3.0.0 | All |
+| Plan | Split advice | 4.1.0 | All |
 | Plan | Level names | 3.9.0 | All |
 | Plan | Score | 3.0.0 | All |
 | Plan | Placement in the day | 3.0.0 | All |

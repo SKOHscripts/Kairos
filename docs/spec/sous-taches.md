@@ -13,7 +13,8 @@ Les dépendances elles-mêmes sont dans `dependances.md`, la fiche dans `vue-jou
 2. **priorité imposée** : **livrée** ;
 3. **durées et temps passé additionnés, échéance héritée** : **livrés** ;
 4. **conseil de découpage** : **livré** ;
-5. section « Découpage et enchaînement » de la fiche, recherche dans « Bloquée par » : à implémenter.
+5. **section « Découpage et enchaînement » de la fiche, recherche dans « Bloquée par »** : **livrées** (avec la carte
+   `split_advice` et le README).
 
 Décisions du propriétaire du 2026-11-05 : priorité **imposée** ; **somme et échéance** ; conseil **selon l'historique**,
 jamais à 1 ou 2 points ; **Perso et Équipe**.
@@ -148,14 +149,43 @@ Kairos conseille de découper une tâche que l'historique montre mal estimée.
   texte neutre) suit les points choisis en direct ; jamais pour une tâche faite ou déjà découpée. Textes :
   `split_advice_bias` (« Découpe-la en sous-tâches : à 8 points, les tâches terminées ont pris ×1.80 le temps prévu
   (médiane de 12). »), `split_advice_spread` (« … ont pris de 2 h à 7 h »), `split_advice_unknown` (« … seulement 2
-  tâche(s) terminée(s) à 13 points, trop peu pour savoir si ce niveau est bien estimé »), six langues ; le rapport a
+  tâche(s) terminée(s) à 13 points, trop peu pour savoir si ce niveau est bien estimé » ; sans aucune :
+  `split_advice_none`, « aucune tâche terminée à 13 points pour l'instant, rien ne dit si ce niveau est bien estimé »),
+  six langues ; le rapport a
   deux décimales et un point décimal, comme le biais des statistiques.
 - Historique : celui de l'espace Perso dans la vue Jour (`DayScreen`), celui de l'équipe dans la fiche d'équipe
   (`TeamTaskDialog`), comme les durées posées en qualifiant.
 - Tests : `SplitAdviceTest` (seuil personnel du critère de succès, biais, historique court, jamais à 1 ou 2 points,
   espace), `SubtasksUiTest.theSheetAdvisesToSplitALevelWithoutEnoughHistory`.
 
+### Section « Découpage et enchaînement » (lot 5, `EditTaskDialog`)
+
+- Après l'échéance et la durée, avant « Options avancées » : un bouton repliable (`split_section_title`), ouvert d'emblée
+  si la tâche a des sous-tâches ou des bloqueurs. Dedans : la phrase de rôle (`split_section_hint` : « Les sous-tâches
+  découpent ce travail : il est fini quand elles le sont. « Bloquée par » l'enchaîne à d'autres tâches : il attend
+  qu'elles soient faites. »), les sous-tâches existantes (`SubtaskEditor`), « Nouvelles sous-tâches », puis « Bloquée
+  par ». Ces deux champs ont quitté les options avancées (`EditField.SUBTASKS` et `BLOCKERS` sans `advanced`, rangés
+  après `DEADLINE`) ; une étape de coach qui les explique ouvre la section.
+- Recherche : au-delà de `BlockerChoices.SEARCH_FROM` = 6 cases, un champ « Chercher une tâche » (`blockers_search`, icône
+  `Search`) ; `BlockerChoices.filter` garde les cases dont le libellé contient chaque mot, sans casse ni accents
+  (`SearchFold`, comme la liste des fonctionnalités), et **toujours les cochées** ; aucune : « Aucune tâche ne correspond
+  à « … ». » (`blockers_search_none`). L'ordre des cases ne change pas pendant la saisie.
+- Le conseil de découpage porte « Découper en sous-tâches » (`split_advice_action`) : il ouvre la section et place le
+  curseur dans « Nouvelles sous-tâches » (`FocusRequester`, après une image).
+- Fonctionnalité : carte `split_advice` (chapitre « Planifier », `since = "4.1.0"`), puce et ligne du tableau des deux
+  README ; la carte `subtasks` et les puces « Subtasks » / « Blockers » disent les nouvelles règles.
+- Tests : `BlockerChoicesTest.theSearchIgnoresCaseAndAccentsAndKeepsTheCheckedOnes`,
+  `SubtasksUiTest.theSectionGathersSubtasksAndBlockersAndBlockersCanBeSearched`,
+  `SubtasksUiTest.theAdviceOpensTheSectionOnTheNewSubtasksField` ; `DayScreenUiTest` et `TeamMyWorkUiTest` ouvrent
+  la section pour atteindre « Bloquée par ».
+
 ### Décisions et pièges tracés
+
+- **Une section, deux relations** (issue #201 : « elles se ressemblent, elles servent deux buts ») : réunies parce
+  qu'elles font toutes deux le planning, séparées par leurs sous-titres et une phrase qui dit le rôle de chacune.
+  Repliée par défaut pour garder la fiche courte, ouverte dès qu'elle porte quelque chose.
+- **Les cochées restent visibles pendant la recherche** : sinon chercher une autre tâche ferait croire qu'on a perdu
+  un bloqueur, et l'on ne pourrait plus le décocher.
 
 - **Un seuil personnel, pas un nombre de points** (propriétaire, 2026-11-05 : « un utilisateur peut très bien estimer
   une tâche à 8 mais pas à 5 ») : chaque niveau est jugé sur sa propre dispersion et son propre biais. Écarté : conseiller

@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -20,10 +21,14 @@ import com.skohscripts.kairos.ui.generated.resources.rollup_planned
 import com.skohscripts.kairos.ui.generated.resources.rollup_spent
 import com.skohscripts.kairos.ui.generated.resources.rollup_unestimated_many
 import com.skohscripts.kairos.ui.generated.resources.rollup_unestimated_one
+import com.skohscripts.kairos.ui.generated.resources.split_advice_action
 import com.skohscripts.kairos.ui.generated.resources.split_advice_bias
+import com.skohscripts.kairos.ui.generated.resources.split_advice_none
 import com.skohscripts.kairos.ui.generated.resources.split_advice_spread
 import com.skohscripts.kairos.ui.generated.resources.split_advice_unknown
 import com.skohscripts.kairos.ui.icons.KairosIcons
+import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
+import com.skohscripts.kairos.ui.theme.KairosTextButton
 import kotlin.math.round
 import kotlin.time.Instant
 import org.jetbrains.compose.resources.stringResource
@@ -60,15 +65,23 @@ internal fun teamRollup(taskId: Long, snapshot: KairosSnapshot, now: Instant): T
  * que l'historique de ce niveau dit, chiffres écrits. Icône et texte neutres : un conseil, pas une erreur (charte).
  */
 @Composable
-internal fun SplitAdviceLine(advice: SplitAdvice.Advice) {
+internal fun SplitAdviceLine(advice: SplitAdvice.Advice, onSplit: (() -> Unit)? = null) {
     val text = when (advice.reason) {
         SplitAdvice.Reason.BIAS -> stringResource(Res.string.split_advice_bias, advice.points, ratio(advice.bias ?: 1.0), advice.samples)
         SplitAdvice.Reason.SPREAD -> stringResource(Res.string.split_advice_spread, advice.points, duration(advice.shortest ?: 0), duration(advice.longest ?: 0))
-        SplitAdvice.Reason.NOT_ENOUGH_HISTORY -> stringResource(Res.string.split_advice_unknown, advice.samples, advice.points)
+        SplitAdvice.Reason.NOT_ENOUGH_HISTORY ->
+            if (advice.samples == 0) stringResource(Res.string.split_advice_none, advice.points)
+            else stringResource(Res.string.split_advice_unknown, advice.samples, advice.points)
     }
-    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Icon(KairosIcons.Layers, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
-        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Column {
+        Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(KairosIcons.Layers, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+            Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        // Ouvre « Découpage et enchaînement » et place le curseur dans « Nouvelles sous-tâches ».
+        if (onSplit != null) {
+            KairosTextButton(onClick = onSplit, contentPadding = KairosButtonIconPadding) { Text(stringResource(Res.string.split_advice_action)) }
+        }
     }
 }
 

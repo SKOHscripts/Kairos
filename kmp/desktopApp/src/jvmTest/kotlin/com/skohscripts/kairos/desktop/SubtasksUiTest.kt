@@ -2,6 +2,12 @@ package com.skohscripts.kairos.desktop
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.isFocused
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -101,7 +107,48 @@ class SubtasksUiTest {
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Edit task").fetchSemanticsNodes().isNotEmpty() }
         // Aucune tâche de 13 points terminée : trop peu pour savoir, Kairos conseille de découper.
         waitUntil(timeoutMillis = 5_000) {
-            onAllNodesWithText("Split it into subtasks: only 0 finished task(s) at 13 points", substring = true).fetchSemanticsNodes().isNotEmpty()
+            onAllNodesWithText("Split it into subtasks: no finished task at 13 points yet", substring = true).fetchSemanticsNodes().isNotEmpty()
         }
+    }
+
+    @Test
+    fun theSectionGathersSubtasksAndBlockersAndBlockersCanBeSearched() = runComposeUiTest {
+        val services = services()
+        runBlocking {
+            val r = services.repository
+            val ids = listOf("Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta").map { r.createTask(it)!! }
+            ids.forEach { r.setPriority(it, 2); r.setPoints(it, 3); r.setTaskType(it, "Development") }
+            // Alpha attend déjà Theta : la case reste visible quelle que soit la recherche.
+            r.updateTask(ids[0], com.skohscripts.kairos.data.TaskEdit(title = "Alpha", priority = 2, points = 3, taskType = "Development", pinDay = kotlinx.datetime.LocalDate(2026, 11, 5), blockerIds = setOf(ids[7])))
+        }
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Beta", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        // La fiche de la première tâche de l'agenda : section repliée (ni sous-tâche ni bloqueur), puis ouverte.
+        onAllNodesWithContentDescription("Edit")[0].performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Edit task").fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Splitting and sequencing").performScrollTo().performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Subtasks split this work", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        onNode(hasSetTextAction() and hasText("Find a task")).performScrollTo().performTextInput("ÉPS")
+        // Casse et accents ignorés : seule Epsilon reste parmi les cases (le titre de l'agenda derrière la fiche ne compte pas).
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Delta") and androidx.compose.ui.test.isToggleable()).fetchSemanticsNodes().isEmpty() }
+        onNode(hasText("Epsilon") and androidx.compose.ui.test.isToggleable()).assertExists()
+        onNode(hasSetTextAction() and hasText("Find a task")).performTextReplacement("zzz")
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("No task matches “zzz”.").fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    @Test
+    fun theAdviceOpensTheSectionOnTheNewSubtasksField() = runComposeUiTest {
+        val services = services()
+        runBlocking {
+            val r = services.repository
+            val id = r.createTask("Refondre le site")!!
+            r.setPriority(id, 1); r.setPoints(id, 13); r.setTaskType(id, "Development"); r.setEstimate(id, 240)
+        }
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Refondre le site", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        onAllNodesWithContentDescription("Edit")[0].performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Split into subtasks").fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Split into subtasks").performScrollTo().performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodes(hasSetTextAction() and hasText("New subtasks (one per line)") and isFocused()).fetchSemanticsNodes().isNotEmpty() }
     }
 }
