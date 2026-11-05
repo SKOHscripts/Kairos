@@ -7,10 +7,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import com.skohscripts.kairos.core.model.TaskSpace
+import com.skohscripts.kairos.core.engine.TimeTracking
+import com.skohscripts.kairos.core.stats.SplitAdvice
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.team.TeamEvents
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.day.EditTaskDialog
+import com.skohscripts.kairos.ui.day.teamRollup
 import com.skohscripts.kairos.ui.day.Estimates
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
@@ -54,7 +57,12 @@ fun TeamTaskDialog(services: AppServices, taskId: Long, onDismiss: () -> Unit, i
         candidates = candidates,
         blockerIds = snapshot.dependencies.filter { it.taskId == taskId }.mapTo(HashSet()) { it.blockerId },
         dependencies = snapshot.dependencies,
-        titles = remember(snapshot.tasks) { snapshot.tasks.associate { it.id to it.title } },
+        tasksById = remember(snapshot.tasks) { snapshot.tasks.associateBy { it.id } },
+        rollup = remember(taskId, snapshot.tasks, snapshot.workSessions) { teamRollup(taskId, snapshot, now) },
+        // Conseil de découpage d'après l'historique de l'équipe (docs/spec/sous-taches.md § Conseil).
+        splitHistory = remember(snapshot.tasks, snapshot.workSessions) {
+            SplitAdvice.history(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks), TaskSpace.TEAM)
+        },
         estimates = estimates,
         onDismiss = onDismiss,
         onSave = {},

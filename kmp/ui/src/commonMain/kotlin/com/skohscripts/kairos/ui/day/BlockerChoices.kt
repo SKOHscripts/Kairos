@@ -3,6 +3,8 @@ package com.skohscripts.kairos.ui.day
 import com.skohscripts.kairos.core.engine.Dependencies
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskDependency
+import com.skohscripts.kairos.core.model.TaskTree
+import com.skohscripts.kairos.core.text.SearchFold
 
 /**
  * Une case de la liste « Bloquée par » du dialogue d'édition (docs/spec/dependances.md) : son libellé, et si la cocher
@@ -11,18 +13,29 @@ import com.skohscripts.kairos.core.model.TaskDependency
 internal data class BlockerChoice(val task: Task, val label: String, val cyclic: Boolean)
 
 internal object BlockerChoices {
+    /** Nombre de cases au-delà duquel « Bloquée par » a une recherche (docs/spec/sous-taches.md § Section). */
+    const val SEARCH_FROM = 6
+
     /**
-     * Les bloqueurs possibles de [task] parmi [candidates] (elle exclue, et ceux d'un autre espace), dans l'ordre reçu. Libellé : « Mère › titre »
-     * pour une sous-tâche (comme dans les listes de Jour) ; deux libellés identiques (une tâche et sa prochaine
-     * occurrence récurrente, par exemple) se distinguent par leur date (échéance, sinon date prévue), sinon par leur
-     * numéro. [titles] donne le titre de toute tâche (les mères ne sont pas forcément candidates).
+     * Les cases que montre la recherche [query] : celles dont le libellé contient chaque mot, sans casse ni accents
+     * ([SearchFold], comme la liste des fonctionnalités), et toujours les cochées ([checked]), dans l'ordre reçu.
      */
-    fun of(task: Task, candidates: List<Task>, dependencies: List<TaskDependency>, titles: Map<Long, String>, language: String): List<BlockerChoice> {
+    fun filter(choices: List<BlockerChoice>, query: String, checked: Set<Long>): List<BlockerChoice> =
+        if (query.isBlank()) choices else choices.filter { it.task.id in checked || SearchFold.matches(query, it.label) }
+
+    /**
+     * Les bloqueurs possibles de [task] parmi [candidates] (elle exclue, et ceux d'un autre espace), dans l'ordre reçu. Libellé : la
+     * lignée puis le titre pour une sous-tâche (« A › C › D », comme dans les listes de Jour, docs/spec/sous-taches.md) ; deux
+     * libellés identiques (une tâche et sa prochaine occurrence récurrente, par exemple) se distinguent par leur date
+     * (échéance, sinon date prévue), sinon par leur numéro. [tasksById] donne toute tâche (les mères ne sont pas forcément
+     * candidates).
+     */
+    fun of(task: Task, candidates: List<Task>, dependencies: List<TaskDependency>, tasksById: Map<Long, Task>, language: String): List<BlockerChoice> {
         val edges = dependencies.map { Dependencies.Edge(blocked = it.taskId, blocker = it.blockerId) }
         // Même espace seulement : le dépôt refuse un bloqueur d'un autre espace (docs/spec/equipe.md § Espaces) ; une tâche
         // d'équipe de « moi », visible dans l'espace Perso, n'est donc jamais proposée à une tâche perso, ni l'inverse.
         val others = candidates.filter { it.id != task.id && it.space == task.space }
-        val base = others.associate { t -> t.id to (t.parentId?.let(titles::get)?.let { "$it › ${t.title}" } ?: t.title) }
+        val base = others.associate { t -> t.id to (TaskTree.path(t.id, tasksById)?.let { it + TaskTree.SEPARATOR + t.title } ?: t.title) }
         val repeated = base.values.groupingBy { it }.eachCount().filterValues { it > 1 }.keys
         return others.map { t ->
             val label = base.getValue(t.id)

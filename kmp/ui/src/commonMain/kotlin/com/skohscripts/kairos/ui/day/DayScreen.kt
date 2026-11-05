@@ -100,6 +100,9 @@ import com.skohscripts.kairos.core.engine.AffinitySource
 import com.skohscripts.kairos.core.engine.Scheduling
 import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Task
+import com.skohscripts.kairos.core.model.TaskTree
+import com.skohscripts.kairos.core.engine.TimeTracking
+import com.skohscripts.kairos.core.stats.SplitAdvice
 import com.skohscripts.kairos.core.model.LearningSettings
 import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
@@ -195,6 +198,11 @@ fun DayScreen(
     val stored by repository.personalSnapshot.collectAsState()
     // Calendriers du téléphone (Android) : ajoutés pour le calcul, jamais écrits (docs/spec/connexions-externes.md).
     val snapshot = withDeviceCalendars(services, stored)
+    val tasksById = remember(snapshot.tasks) { snapshot.tasks.associateBy { it.id } }
+    // Historique par niveau de points de l'espace Perso, pour le conseil de découpage de la fiche (docs/spec/sous-taches.md).
+    val splitHistory = remember(snapshot.tasks, snapshot.workSessions) {
+        SplitAdvice.history(snapshot.tasks, TimeTracking.spentMinutesByTask(snapshot.workSessions, services.clock.now(), snapshot.tasks), TaskSpace.PERSONAL)
+    }
     val timeZone = remember { TimeZone.currentSystemDefault() }
     // L'heure avance à la minute : le placement part de maintenant (buildDaySchedule).
     val now by produceState(services.clock.now()) {
@@ -476,6 +484,7 @@ fun DayScreen(
                         suspend fun fillEstimate() = fillInboxEstimate(repository, estimates, task.id, undo, scope, services.clock.now())
                         InboxQualify(
                             task,
+                            priorityFloor = TaskTree.floorTask(task.id, tasksById),
                             typeRequired = snapshot.settings.typeRequired,
                             onPriority = { scope.launch { repository.setPriority(task.id, it); fillEstimate() } },
                             onPoints = { scope.launch { repository.setPoints(task.id, it); fillEstimate() } },
@@ -545,7 +554,10 @@ fun DayScreen(
                 section("parents", Res.string.parents_title, Res.string.parents_hint, view.parents.size) {
                     rows("parents", view.parents.map { it.task }) { task ->
                         val progress = view.parents.first { it.task.id == task.id }
-                        TaskRow(task, ctx, before = { Badge(stringResource(Res.string.parents_progress, progress.done, progress.total)) })
+                        // Avancement, puis ce que coûtent les sous-tâches (docs/spec/sous-taches.md § Agrégation).
+                        val cost = view.rollups[task.id]?.let { rollupText(it) }
+                        val count = stringResource(Res.string.parents_progress, progress.done, progress.total)
+                        TaskRow(task, ctx, before = { Badge(cost?.let { "$count · $it" } ?: count) })
                     }
                 }
                 section("done", Res.string.done_title, Res.string.done_hint, view.doneToday.size) {
@@ -596,7 +608,7 @@ fun DayScreen(
             candidates = view.openTasks,
             blockerIds = emptySet(),
             dependencies = snapshot.dependencies,
-            titles = remember(snapshot.tasks) { snapshot.tasks.associate { it.id to it.title } },
+            tasksById = tasksById,
             estimates = estimates,
             // Fermer la fiche n'écrit rien ; rouvrir recommence au titre.
             onDismiss = { creating = false; coachStep = -1 },
@@ -653,6 +665,8 @@ fun DayScreen(
                 task = task,
                 day = day,
                 today = today,
+                rollup = view.rollups[id],
+                splitHistory = splitHistory.takeIf { task.space == TaskSpace.PERSONAL },
                 learned = view.learned[id],
                 learning = snapshot.settings.learning ?: LearningSettings(),
                 proposal = remember(snapshot, id) { EstimateChanges.proposalFor(task, snapshot, services.clock.now(), timeZone) },
@@ -662,7 +676,7 @@ fun DayScreen(
                 // Sous-tâches d'une tâche perso modifiables ici ; une tâche d'équipe a ses propres règles (equipe-backlog-suivi.md).
                 subtasks = if (task.space == TaskSpace.PERSONAL) subtasksOf(id, snapshot.tasks) else emptyList(),
                 dependencies = snapshot.dependencies,
-                titles = remember(snapshot.tasks) { snapshot.tasks.associate { it.id to it.title } },
+                tasksById = tasksById,
                 estimates = estimates,
                 onDismiss = { editingId = null },
                 onSave = { edit ->
@@ -902,6 +916,8 @@ internal fun InboxQualify(
     /** Le type manquant nommé dans « Manque : … » (« type », ou « catégorie » dans le backlog d'équipe). */
     missingType: StringResource = Res.string.missing_item_type,
     start: Dp = 48.dp,
+    /** L'ancêtre qui impose sa priorité (docs/spec/sous-taches.md § Priorité), `null` sinon. */
+    priorityFloor: Task? = null,
 ) {
     Column(Modifier.padding(start = start, end = 16.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         task.missing(typeRequired)?.let { missing ->
@@ -911,7 +927,7 @@ internal fun InboxQualify(
                 Text(stringResource(Res.string.missing_label, items.joinToString(", ")), style = MaterialTheme.typography.labelMedium)
             }
         }
-        DemoMark(DemoSpot.PRIORITY, task.id) { PriorityPills(task.priority, onPriority) }
+        DemoMark(DemoSpot.PRIORITY, task.id) { PriorityPills(task.priority, onPriority, floor = priorityFloor) }
         DemoMark(DemoSpot.POINTS, task.id) { PointsPills(task.fibonacciPoints, onPoints) }
         DemoMark(DemoSpot.TYPE, task.id) { TypeField(task.taskType, types, typeLabel, Modifier.widthIn(max = 320.dp).fillMaxWidth(), onType) }
     }

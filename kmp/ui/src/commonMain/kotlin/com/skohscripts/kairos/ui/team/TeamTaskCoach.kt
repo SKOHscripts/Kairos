@@ -61,7 +61,7 @@ fun TeamTaskCreateDialog(services: AppServices, step: Int, onStep: (Int) -> Unit
         candidates = candidates,
         blockerIds = emptySet(),
         dependencies = snapshot.dependencies,
-        titles = remember(snapshot.tasks) { snapshot.tasks.associate { it.id to it.title } },
+        tasksById = remember(snapshot.tasks) { snapshot.tasks.associateBy { it.id } },
         estimates = estimates,
         onDismiss = onDismiss,
         onSave = {},

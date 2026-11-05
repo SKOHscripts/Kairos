@@ -67,6 +67,7 @@ import com.skohscripts.kairos.core.model.PRIORITY_VALUES
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
+import com.skohscripts.kairos.core.model.TaskTree
 import com.skohscripts.kairos.core.team.TeamBoard
 import com.skohscripts.kairos.core.team.TeamBoardFilter
 import com.skohscripts.kairos.core.team.TeamCard
@@ -140,6 +141,7 @@ private val WIDE_WINDOW = 600.dp
 fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = emptySet(), initialSuggestion: Boolean = false) {
     val repository = services.repository
     val snapshot by repository.snapshot.collectAsState()
+    val tasksById = remember(snapshot.tasks) { snapshot.tasks.associateBy { it.id } }
     val scope = rememberCoroutineScope()
     val timeZone = remember { TimeZone.currentSystemDefault() }
     val today = services.clock.now().toLocalDateTime(timeZone).date
@@ -233,6 +235,7 @@ fun TeamBacklogScreen(services: AppServices, initialSelection: Set<Long> = empty
                     onPoints = { scope.launch { repository.setPoints(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope, services.clock.now()) } },
                     categories = categories, typeRequired = snapshot.settings.typeRequired,
                     onCategory = { scope.launch { repository.setTaskType(card.task.id, it); fillInboxEstimate(repository, teamEstimates, card.task.id, undo, scope, services.clock.now()) } },
+                    priorityFloor = TaskTree.floorTask(card.task.id, tasksById),
                 )
             }
 
@@ -369,6 +372,8 @@ private fun BacklogRow(
     onCategory: (String) -> Unit,
     /** La catégorie est exigée pour qualifier ([com.skohscripts.kairos.core.model.Settings.typeRequired]). */
     typeRequired: Boolean,
+    /** L'ancêtre qui impose sa priorité à cette sous-tâche (docs/spec/sous-taches.md § Priorité). */
+    priorityFloor: Task? = null,
 ) {
     val task = card.task
     val scheme = MaterialTheme.colorScheme
@@ -435,7 +440,7 @@ private fun BacklogRow(
                     }
                 }
             }
-            if (qualify) InboxQualify(task, typeRequired, onPriority, onPoints, categories, Res.string.field_category, onCategory, missingType = Res.string.missing_item_category, start = if (checkbox) 48.dp else 16.dp)
+            if (qualify) InboxQualify(task, typeRequired, onPriority, onPoints, categories, Res.string.field_category, onCategory, missingType = Res.string.missing_item_category, start = if (checkbox) 48.dp else 16.dp, priorityFloor = priorityFloor)
         }
     }
 }

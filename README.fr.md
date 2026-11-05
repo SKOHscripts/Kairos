@@ -189,8 +189,13 @@ supprimée.
   les renommer, les cocher ou les supprimer, en plus d’en ajouter.
 - **Raccourcis clavier** (bureau et web) : `N` pour capturer, `/` pour
   chercher.
-- **Sous-tâches** : avancement n/m sur la mère ; seules les feuilles sont
-  planifiées.
+- **Sous-tâches** : découpent un travail (là où « Bloquée par » en enchaîne de
+  distincts ; les deux sont dans la section « Découpage et enchaînement » de la
+  fiche). Seules les feuilles sont planifiées. Une sous-tâche n’est jamais moins
+  prioritaire que sa mère (monter la mère la monte) et, sans échéance propre,
+  est planifiée avec celle de sa mère ; elle ne finit jamais plus tard. La mère
+  affiche son avancement n/m et la somme des durées et du temps passé de ses
+  sous-tâches ; les lignes montrent toute la lignée (« A › C › D »).
 - **Récurrence** : quotidienne, jours ouvrés, hebdomadaire, mensuelle (terminer
   une occurrence crée la suivante), et « le N du mois » (décalée au jour ouvré
   précédent si week-end ou férié).
@@ -204,7 +209,8 @@ supprimée.
   autre jour (demain, lundi prochain, dans une semaine, ou une date au choix)
   et propose d’annuler.
 - **Bloqueurs** : après avoir bloqué une tâche, Kairos dit où elle est allée
-  (« Bloquées » s’ouvre) ; la tâche qui bloque porte un badge « Bloque … ».
+  (« Bloquées » s’ouvre) ; la tâche qui bloque porte un badge « Bloque … ». Une
+  recherche retrouve la tâche à attendre dans une longue liste.
 
 ### « À traiter »
 
@@ -232,6 +238,11 @@ son estimation vient des seules tâches d’équipe terminées.
   guide « Comment estimer les points ? » montre, pour chaque palier, le temps
   réel médian de tes propres tâches terminées et deux exemples ; l’édition
   suggère une durée d’après ton historique.
+- **Conseil de découpage** : quand tes tâches terminées montrent qu’un niveau
+  de points est mal estimé (temps réels dispersés de plus de ×2,5, estimations
+  décalées de plus de ×1,5, ou moins de 5 tâches pour le savoir), la fiche
+  conseille de découper en sous-tâches, avec un bouton qui ouvre le champ. Le
+  seuil est le tien : 8 points peut être fiable et 5 non. Jamais à 1 ou 2 points.
 - **Noms des niveaux** (Réglages → Planification) : appelle les priorités et
   les points avec tes mots (« Urgent », S/M/L…). Le badge montre ton nom, la
   fiche et le guide le montrent avec sa valeur (« M (3) ») ; P0 reste rouge et
@@ -549,6 +560,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Premiers pas | Le guide retient et montre l’endroit | 3.7.0 | Toutes |
 | Premiers pas | Récurrente et Réglages pas à pas | 3.9.0 | Toutes |
 | Planifier | Priorité, points et estimation | 3.0.0 | Toutes |
+| Planifier | Conseil de découpage | 4.1.0 | Toutes |
 | Planifier | Noms des niveaux | 3.9.0 | Toutes |
 | Planifier | Score | 3.0.0 | Toutes |
 | Planifier | Placement dans la journée | 3.0.0 | Toutes |

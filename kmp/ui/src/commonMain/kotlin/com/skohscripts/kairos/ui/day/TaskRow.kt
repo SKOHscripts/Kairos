@@ -70,6 +70,7 @@ import com.skohscripts.kairos.ui.generated.resources.action_timer_stop
 import com.skohscripts.kairos.ui.generated.resources.spent_of_estimate
 import com.skohscripts.kairos.ui.generated.resources.action_undo
 import com.skohscripts.kairos.ui.generated.resources.deadline_badge
+import com.skohscripts.kairos.ui.generated.resources.deadline_inherited_badge
 import com.skohscripts.kairos.ui.generated.resources.description_expand
 import com.skohscripts.kairos.ui.generated.resources.tag_recurring
 import com.skohscripts.kairos.ui.generated.resources.tag_scheduled
@@ -308,7 +309,12 @@ private fun TaskTags(task: Task, ctx: RowContext) {
     if (task.taskType.isNotEmpty()) Badge(task.taskType)
     task.estimatedMinutes?.takeIf { it > 0 }?.let { Muted(duration(it)) }
         ?: ctx.view.learned[task.id]?.takeIf { it.reliable && task.status == TaskStatus.TODO }?.let { LearnedBadge(it) }
-    task.deadline?.let { Muted(stringResource(Res.string.deadline_badge, Dates.short(it, ctx.language, ctx.view.day))) }
+    task.deadline?.let {
+        val date = Dates.short(it, ctx.language, ctx.view.day)
+        // Échéance héritée d'un ancêtre (docs/spec/sous-taches.md § Échéance) : dite avec son origine.
+        val from = ctx.view.inheritedDeadline[task.id]
+        Muted(if (from != null) stringResource(Res.string.deadline_inherited_badge, date, from) else stringResource(Res.string.deadline_badge, date))
+    }
     task.scheduledDate?.let { Muted(stringResource(Res.string.tag_scheduled, Dates.short(it, ctx.language, ctx.view.day))) }
     if (task.recurrence != TaskRecurrence.NONE) {
         Icon(

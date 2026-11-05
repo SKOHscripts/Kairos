@@ -81,7 +81,7 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
 7. **Sections secondaires**, chacune avec son compte et une phrase de rôle,
    absentes si vides : « Sans créneau aujourd'hui » (**dépliée**),
    « Bloquées » (« en attente de : … »), « Programmées plus tard »,
-   « Tâches mères en cours » (« 1/2 sous-tâche(s) »), « Fait » (terminées
+   « Tâches mères en cours » (« 1/2 sous-tâche(s) · 1 h 30 prévues », `sous-taches.md` § Agrégation), « Fait » (terminées
    aujourd'hui). Les quatre dernières sont repliées.
 8. **Rechercher / filtrer** (repliée) : recherche dans le titre, la
    description et le projet, facettes priorité, projet, type, points, et
@@ -101,7 +101,7 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
     chronométré ; à droite de la liste en largeur bureau, en bas sinon.
 
 **Ligne de tâche** (toutes sections) : coche ronde ; corps : heure (agenda),
-« Mère › » pour une sous-tâche, titre, puis étiquettes (projet, type,
+la lignée pour une sous-tâche (« A › C › » : tous ses ancêtres, `sous-taches.md`), titre, puis étiquettes (projet, type,
 durée, « échéance 30 sept. », « programmée 2 oct. », icône de récurrence,
 temps passé ou minuteur vivant, « traîne depuis N j ») qui passent à la ligne, puis la description sur une
 ligne, dépliable d'un clic ; colonne « clés » alignée à droite : score (qui
@@ -134,15 +134,16 @@ terminées à ce palier ; sans historique à un palier, l'exemple générique et
 différence entre points (l'ordre) et durée (le placement).
 
 **Édition** (dialogue) : titre, description, priorité, points (puis le
-guide des points), type (dans l'essentiel depuis 3.14.0, issue #166 : il qualifie la tâche au même titre que priorité et
-points), échéance, durée ; « Options avancées » : programmée pour, projet, temps passé manuel,
+conseil de découpage s'il y a lieu, `sous-taches.md` § Conseil, et le guide des points), type (dans l'essentiel depuis 3.14.0, issue #166 : il qualifie la tâche au même titre que priorité et
+points), échéance, durée ; **« Découpage et enchaînement »** (issue #201, `sous-taches.md` § Section ; repliée,
+ouverte d'emblée si la tâche a des sous-tâches ou des bloqueurs) : une phrase qui dit le rôle de chacun, les
+sous-tâches existantes, nouvelles sous-tâches (une par ligne), « Bloquée par » (cases à cocher, avec une recherche
+au-delà de six cases) ; « Options avancées » : programmée pour, projet, temps passé manuel,
 récurrence (aucune, quotidienne, jours ouvrés, hebdomadaire, mensuelle,
-« le … du mois » avec le jour), heure fixe (HH:MM, vide = aucune),
-nouvelles sous-tâches (une par ligne), « Bloquée par » (cases à cocher).
-Quand la tâche a déjà des sous-tâches (issue #69, 3.3.0), une section
-**« Sous-tâches »** les liste dans les essentiels, avant « Options
-avancées » : case « faite », titre modifiable, corbeille (la ligne reste, barrée,
-avec « Annuler la suppression »). Rien n'est écrit avant « Enregistrer » ;
+« le … du mois » avec le jour), heure fixe (HH:MM, vide = aucune).
+Quand la tâche a déjà des sous-tâches (issue #69, 3.3.0), la section
+**« Sous-tâches »** les liste en tête de « Découpage et enchaînement » : case « faite », titre modifiable, corbeille
+(la ligne reste, barrée, avec « Annuler la suppression »). Rien n'est écrit avant « Enregistrer » ;
 « Annuler » abandonne tout. Une tâche d'équipe n'a pas cette section.
 Un seul « Enregistrer » ; « Supprimer » avec confirmation. Seul le contenu
 défile : « Supprimer », « Annuler » et « Enregistrer » restent en bas de la
@@ -182,7 +183,8 @@ personnelle pour ce jour sans toucher à l'échéance ; un message « « X » d�
 propose « Annuler » (la date d'avant revient). Une tâche d'équipe n'a pas « Déplacer… ».
 Quand une édition **ajoute** un bloqueur à une tâche à faire, la section « Bloquées »
 s'ouvre pour cette fois et un message dit « « X » attend « Y » ». La fiche ouvre d'emblée
-ses « Options avancées » si la tâche a un bloqueur ou une date programmée ; l'aide de
+« Découpage et enchaînement » si la tâche a un bloqueur ou des sous-tâches, et ses « Options avancées » si elle a une
+date programmée ; l'aide de
 « Bloquée par » dit que la tâche attend dans « Bloquées ». Sur la ligne du **bloqueur**
 (à faire), un badge « Bloque « X » » (ou « Bloque N tâches »).
 
@@ -381,7 +383,7 @@ chaque entrée une case (rôle et état lus par le lecteur d'écran), le champ a
   qui diffèrent de la tâche d'origine (titre nettoyé ≠ titre, état, suppression) et
   les passe dans `TaskEdit.subtaskEdits` ; `updateTask` les applique dans la même
   transaction (`modele-donnees.md`).
-- Le champ « Nouvelles sous-tâches » reste dans les options avancées, inchangé.
+- Le champ « Nouvelles sous-tâches » est dans « Découpage et enchaînement », sous les sous-tâches existantes (issue #201).
 
 ### Décisions et pièges tracés
 

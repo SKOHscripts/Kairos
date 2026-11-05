@@ -14,13 +14,29 @@ class BlockerChoicesTest {
         Task(id, title, parentId = parent, deadline = deadline, createdAt = t0, updatedAt = t0)
 
     @Test
+    fun theSearchIgnoresCaseAndAccentsAndKeepsTheCheckedOnes() {
+        val tasks = listOf(task(1, "Été au lac"), task(2, "Réunion client"), task(3, "Devis"))
+        val choices = BlockerChoices.of(task(9, "Éditée"), tasks, emptyList(), tasks.associateBy { it.id }, "fr")
+        assertEquals(listOf(2L), BlockerChoices.filter(choices, "reunion", emptySet()).map { it.task.id })
+        assertEquals(listOf(1L, 2L), BlockerChoices.filter(choices, "ETE", setOf(2L)).map { it.task.id }) // cochée : toujours là
+        assertEquals(choices, BlockerChoices.filter(choices, "  ", emptySet()))
+    }
+
+    @Test
+    fun aGrandchildShowsItsWholeLineage() {
+        val tasks = listOf(task(1, "A"), task(3, "C", parent = 1), task(4, "D", parent = 3))
+        val choices = BlockerChoices.of(task(9, "Éditée"), tasks, emptyList(), tasks.associateBy { it.id }, "fr")
+        assertEquals(listOf("A", "A › C", "A › C › D"), choices.map { it.label })
+    }
+
+    @Test
     fun subtasksShowTheirParentAndTwinsTheirDate() {
         val parent = task(1, "Dentiste")
         val tasks = listOf(
             parent, task(2, "sous 1", parent = 1), task(3, "Réserver", deadline = LocalDate(2026, 10, 15)),
             task(4, "Réserver", deadline = LocalDate(2026, 11, 15)), task(5, "Réserver"), task(6, "Seule"),
         )
-        val choices = BlockerChoices.of(task(9, "Éditée"), tasks, emptyList(), tasks.associate { it.id to it.title }, "fr")
+        val choices = BlockerChoices.of(task(9, "Éditée"), tasks, emptyList(), tasks.associateBy { it.id }, "fr")
         assertEquals(
             listOf("Dentiste", "Dentiste › sous 1", "Réserver (15 oct.)", "Réserver (15 nov.)", "Réserver (#5)", "Seule"),
             choices.map { it.label },

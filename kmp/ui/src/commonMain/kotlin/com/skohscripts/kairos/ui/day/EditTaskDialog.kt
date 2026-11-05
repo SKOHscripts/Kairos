@@ -50,6 +50,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.skohscripts.kairos.ui.generated.resources.blockers_search_none
+import com.skohscripts.kairos.ui.generated.resources.blockers_search
+import com.skohscripts.kairos.ui.generated.resources.split_section_hint
+import com.skohscripts.kairos.ui.generated.resources.split_section_title
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +68,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.skohscripts.kairos.core.model.Task
+import com.skohscripts.kairos.core.model.TaskTree
+import com.skohscripts.kairos.core.stats.SplitAdvice
 import com.skohscripts.kairos.core.model.TaskDependency
 import com.skohscripts.kairos.core.model.TaskRecurrence
 import com.skohscripts.kairos.core.model.TaskStatus
@@ -86,6 +95,8 @@ import com.skohscripts.kairos.ui.generated.resources.delete_confirm_title
 import com.skohscripts.kairos.ui.generated.resources.edit_title
 import com.skohscripts.kairos.ui.generated.resources.edit_title_first
 import com.skohscripts.kairos.ui.generated.resources.field_deadline
+import com.skohscripts.kairos.ui.generated.resources.rollup_sheet
+import com.skohscripts.kairos.ui.generated.resources.deadline_floor
 import com.skohscripts.kairos.ui.generated.resources.field_description
 import com.skohscripts.kairos.ui.generated.resources.field_minutes
 import com.skohscripts.kairos.ui.generated.resources.field_project
@@ -163,9 +174,13 @@ internal fun EditTaskDialog(
     blockerIds: Set<Long>,
     /** Sous-tâches existantes de la tâche (docs/spec/vue-jour.md § Édition, issue #69) ; vide pour une tâche d'équipe ou sans fille. */
     subtasks: List<Task> = emptyList(),
-    /** Dépendances existantes et titres de toutes les tâches : libellés et cycles de « Bloquée par » ([BlockerChoices]). */
+    /** Dépendances existantes et toutes les tâches par identifiant (lignée « A › C › », cycles) : « Bloquée par » ([BlockerChoices]). */
     dependencies: List<TaskDependency>,
-    titles: Map<Long, String>,
+    tasksById: Map<Long, Task>,
+    /** Ce que coûtent ses sous-tâches (docs/spec/sous-taches.md § Agrégation), `null` sans sous-tâche. */
+    rollup: TaskTree.Rollup? = null,
+    /** Historique par niveau de points de son espace, pour le conseil de découpage (§ Conseil) ; `null` : pas de conseil. */
+    splitHistory: SplitAdvice.History? = null,
     estimates: Estimates,
     onDismiss: () -> Unit,
     onSave: (TaskEdit) -> Unit,
@@ -215,7 +230,13 @@ internal fun EditTaskDialog(
     var subtaskDrafts by remember(task.id) { mutableStateOf(originalSubtasks.map { SubtaskDraft.of(it) }) }
     var blockers by remember { mutableStateOf(blockerIds) }
     // Un bloqueur ou une date programmée existent déjà : ils sont dans les options avancées, qu'on ouvre d'emblée.
-    var advanced by remember { mutableStateOf(blockerIds.isNotEmpty() || task.scheduledDate != null) }
+    var advanced by remember { mutableStateOf(task.scheduledDate != null) }
+    // « Découpage et enchaînement » (docs/spec/sous-taches.md § Section) : ouverte si la tâche a des sous-tâches ou des bloqueurs.
+    var splitting by remember { mutableStateOf(subtasks.isNotEmpty() || blockerIds.isNotEmpty()) }
+    var blockerQuery by remember { mutableStateOf("") }
+    val newSubtasksFocus = remember { FocusRequester() }
+    var focusNewSubtasks by remember { mutableStateOf(0) }
+    LaunchedEffect(focusNewSubtasks) { if (focusNewSubtasks > 0) { withFrameNanos { }; runCatching { newSubtasksFocus.requestFocus() } } }
     var confirmDelete by remember { mutableStateOf(false) }
     // Tâche d'équipe (espace Équipe) : titulaire en cours d'édition, réponse « garder En cours ? », avancement, onglet.
     var assignee by remember { mutableStateOf(task.assigneeId) }
@@ -234,6 +255,7 @@ internal fun EditTaskDialog(
     val creating = task.id == 0L
     // Le coach ouvre les options avancées quand il en explique un champ.
     LaunchedEffect(coach?.step) { if (coach?.current?.opensAdvanced == true) advanced = true }
+    LaunchedEffect(coach?.step) { if (coach?.current?.fields.orEmpty().any { it == EditField.SUBTASKS || it == EditField.BLOCKERS }) splitting = true }
 
     val dayFirst = UiLanguage.dayFirst(uiLanguage())
     val parsedDeadline = Dates.parseDate(deadline, dayFirst)
@@ -323,7 +345,7 @@ internal fun EditTaskDialog(
                             )
                             if (teamEditing && !creating) ExchangeNoteSection(task.noteIn, noteOut, toManager = false) { noteOut = it }
                         }
-                        Column(Modifier.coachField(EditField.PRIORITY, coach)) { PriorityPills(priority, { priority = it }, showMeaning = true) }
+                        Column(Modifier.coachField(EditField.PRIORITY, coach)) { PriorityPills(priority, { priority = it }, showMeaning = true, floor = remember(task.id, tasksById) { TaskTree.floorTask(task.id, tasksById) }) }
                         // Durée suggérée (issue #15.6) : choisir un palier calibré
                         // REMPLACE la durée, même déjà saisie ; on reste libre de la retoucher.
                         Column(Modifier.coachField(EditField.POINTS, coach), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -331,6 +353,12 @@ internal fun EditTaskDialog(
                                 points = chosen
                                 chosen?.let(estimates.minutesByPoints::get)?.let { minutes = it.toString() }
                             })
+                            // Conseil de découpage (docs/spec/sous-taches.md § Conseil) : suit les points choisis ; jamais pour une tâche
+                            // faite ou déjà découpée.
+                            val split = splitHistory?.takeIf { task.status != TaskStatus.DONE }?.let { h ->
+                                SplitAdvice.advise(points, hasSubtasks = subtasks.isNotEmpty() || rollup != null, history = h)
+                            }
+                            split?.let { SplitAdviceLine(it) { splitting = true; focusNewSubtasks++ } }
                             PointsGuide(estimates.references)
                         }
                         // Le type dans l'essentiel (3.14.0, issue #166) : il qualifie la tâche, au même titre que la priorité et les
@@ -340,7 +368,18 @@ internal fun EditTaskDialog(
                             type = chosen
                             if (minutes.isBlank()) estimates.minutesByType[chosen]?.let { minutes = it.toString() }
                         }
-                        Column(Modifier.coachField(EditField.DEADLINE, coach)) { DateField(deadline, { deadline = it }, Res.string.field_deadline, deadlineInvalid, today) }
+                        Column(Modifier.coachField(EditField.DEADLINE, coach)) {
+                            DateField(deadline, { deadline = it }, Res.string.field_deadline, deadlineInvalid, today)
+                            // Échéance d'un ancêtre (docs/spec/sous-taches.md § Échéance) : la borne, et ce qu'elle prend sans la sienne.
+                            val floorTask = remember(task.id, tasksById) { TaskTree.deadlineFloorTask(task.id, tasksById) }
+                            floorTask?.deadline?.let { floorDate ->
+                                Text(
+                                    stringResource(Res.string.deadline_floor, Dates.short(floorDate, uiLanguage(), today), floorTask.title),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
                         OutlinedTextField(
                             minutes,
                             { value -> minutes = value.filter(Char::isDigit).take(4) },
@@ -349,6 +388,9 @@ internal fun EditTaskDialog(
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth().coachField(EditField.MINUTES, coach),
                         )
+                        rollup?.let { rollupText(it) }?.let { cost ->
+                            Text(stringResource(Res.string.rollup_sheet, cost), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                         // Le modèle s'écarte nettement de la durée saisie : il le dit, et la puce la remplace sur action.
                         if (proposal != null && minutes == proposal.typed.toString()) {
                             val e = proposal.estimate
@@ -376,8 +418,65 @@ internal fun EditTaskDialog(
                                 Text(stringResource(Res.string.learned_weak, learned.samples), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
-                        if (subtaskDrafts.isNotEmpty()) {
-                            SubtaskEditor(subtaskDrafts) { changed -> subtaskDrafts = subtaskDrafts.map { if (it.id == changed.id) changed else it } }
+                        // Découpage et enchaînement (docs/spec/sous-taches.md § Section) : les sous-tâches découpent ce travail, « Bloquée
+                        // par » l'enchaîne à d'autres ; deux relations, une section qui dit le rôle de chacune. Repliée sauf si elle sert.
+                        KairosTextButton(onClick = { splitting = !splitting }, modifier = Modifier.expandedState(splitting), contentPadding = KairosButtonIconPadding) {
+                            Icon(if (splitting) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
+                            Text(stringResource(Res.string.split_section_title), modifier = Modifier.padding(start = 4.dp))
+                        }
+                        if (splitting) {
+                            Text(stringResource(Res.string.split_section_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (subtaskDrafts.isNotEmpty()) {
+                                SubtaskEditor(subtaskDrafts) { changed -> subtaskDrafts = subtaskDrafts.map { if (it.id == changed.id) changed else it } }
+                            }
+                            OutlinedTextField(
+                                newSubtasks,
+                                { newSubtasks = it },
+                                label = { Text(stringResource(Res.string.field_subtasks)) },
+                                minLines = 2,
+                                modifier = Modifier.fillMaxWidth().focusRequester(newSubtasksFocus).tabLeavesField().coachField(EditField.SUBTASKS, coach),
+                            )
+                            Column(Modifier.coachField(EditField.BLOCKERS, coach), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(stringResource(Res.string.field_blockers), style = MaterialTheme.typography.labelLarge)
+                                Text(stringResource(Res.string.field_blockers_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                val language = uiLanguage()
+                                val all = remember(task.id, candidates, dependencies, tasksById, language) {
+                                    BlockerChoices.of(task, candidates, dependencies, tasksById, language)
+                                }
+                                if (all.isEmpty()) {
+                                    Text(stringResource(Res.string.field_blockers_none), style = MaterialTheme.typography.bodySmall)
+                                }
+                                // Recherche (issue #201 : la liste devenait impraticable) : au-delà de quelques tâches ; les cases cochées
+                                // restent visibles quelle que soit la recherche.
+                                if (all.size > BlockerChoices.SEARCH_FROM) {
+                                    OutlinedTextField(
+                                        blockerQuery,
+                                        { blockerQuery = it },
+                                        label = { Text(stringResource(Res.string.blockers_search)) },
+                                        leadingIcon = { Icon(KairosIcons.Search, contentDescription = null) },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                }
+                                val others = BlockerChoices.filter(all, blockerQuery, blockers)
+                                if (others.isEmpty() && all.isNotEmpty()) {
+                                    Text(stringResource(Res.string.blockers_search_none, blockerQuery.trim()), style = MaterialTheme.typography.bodySmall)
+                                }
+                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    others.forEach { other ->
+                                        val id = other.task.id
+                                        // Cocher une tâche qui attend déjà celle-ci serait refusé à l'enregistrement : la case est grisée
+                                        // et dit pourquoi (une case déjà cochée reste décochable).
+                                        val locked = other.cyclic && id !in blockers
+                                        LabeledCheckbox(
+                                            id in blockers,
+                                            { checked -> blockers = if (checked) blockers + id else blockers - id },
+                                            if (locked) stringResource(Res.string.field_blockers_cycle, other.label) else other.label,
+                                            enabled = !locked,
+                                        )
+                                    }
+                                }
+                            }
                         }
                         KairosTextButton(onClick = { advanced = !advanced }, modifier = Modifier.expandedState(advanced), contentPadding = KairosButtonIconPadding) {
                             Icon(if (advanced) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
@@ -430,13 +529,6 @@ internal fun EditTaskDialog(
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth().coachField(EditField.PIN, coach),
                             )
-                            OutlinedTextField(
-                                newSubtasks,
-                                { newSubtasks = it },
-                                label = { Text(stringResource(Res.string.field_subtasks)) },
-                                minLines = 2,
-                                modifier = Modifier.fillMaxWidth().tabLeavesField().coachField(EditField.SUBTASKS, coach),
-                            )
                             if (countInTeam != null) {
                                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     SwitchRow(counted, stringResource(Res.string.team_count_in_team)) { counted = it }
@@ -445,31 +537,6 @@ internal fun EditTaskDialog(
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
-                                }
-                            }
-                            Column(Modifier.coachField(EditField.BLOCKERS, coach), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(stringResource(Res.string.field_blockers), style = MaterialTheme.typography.labelLarge)
-                                Text(stringResource(Res.string.field_blockers_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                val language = uiLanguage()
-                                val others = remember(task.id, candidates, dependencies, titles, language) {
-                                    BlockerChoices.of(task, candidates, dependencies, titles, language)
-                                }
-                                if (others.isEmpty()) {
-                                    Text(stringResource(Res.string.field_blockers_none), style = MaterialTheme.typography.bodySmall)
-                                }
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    others.forEach { other ->
-                                        val id = other.task.id
-                                        // Cocher une tâche qui attend déjà celle-ci serait refusé à l'enregistrement : la case est grisée
-                                        // et dit pourquoi (une case déjà cochée reste décochable).
-                                        val locked = other.cyclic && id !in blockers
-                                        LabeledCheckbox(
-                                            id in blockers,
-                                            { checked -> blockers = if (checked) blockers + id else blockers - id },
-                                            if (locked) stringResource(Res.string.field_blockers_cycle, other.label) else other.label,
-                                            enabled = !locked,
-                                        )
-                                    }
                                 }
                             }
                         }
