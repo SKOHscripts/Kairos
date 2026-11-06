@@ -1,0 +1,30 @@
+# Contrôles rapides des fiches, de la page et des README (docs/spec/publication.md, docs/spec/distribution.md § CI) :
+# quelques secondes, sans construire l'application. Sortis de fdroid-check.yml pour qu'une modification de texte ne
+# relance plus la construction F-Droid.
+name: Metadata
+
+on:
+  pull_request:
+    paths: ["fastlane/**", "site/**", "README.md", "README.fr.md", "kmp/gradle.properties", "kmp/tools/*.py", ".github/workflows/metadata.yml"]
+  push:
+    branches: [main]
+    paths: ["fastlane/**", "site/**", "README.md", "README.fr.md", "kmp/gradle.properties", "kmp/tools/*.py", ".github/workflows/metadata.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.head_ref) || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 kmp/tools/validate_fastlane.py
+      - run: python3 kmp/tools/validate_badges.py
+      - run: python3 kmp/tools/validate_og.py
+      # Règle de nettoyage des artefacts (artifacts-cleanup.yml).
+      - run: python3 -m unittest discover -s kmp/tools -p 'test_*.py'

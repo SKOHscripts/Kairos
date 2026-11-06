@@ -12,11 +12,12 @@
 name: F-Droid
 
 on:
+  # Seulement ce qui change l'APK ou la recette : fiches, page et README ont leurs contrôles dans metadata.yml.
   pull_request:
-    paths: ["fdroid/**", "fastlane/**", "kmp/**", "site/**", "README.md", "README.fr.md", ".github/workflows/fdroid-check.yml"]
+    paths: ["fdroid/**", "kmp/**", "!kmp/tools/**", "kmp/tools/fdroid_check.sh", ".github/workflows/fdroid-check.yml"]
   push:
     branches: [main]
-    paths: ["fdroid/**", "fastlane/**", "kmp/**", "site/**", "README.md", "README.fr.md", ".github/workflows/fdroid-check.yml"]
+    paths: ["fdroid/**", "kmp/**", "!kmp/tools/**", "kmp/tools/fdroid_check.sh", ".github/workflows/fdroid-check.yml"]
   # Une release créée par un workflow (jeton GITHUB_TOKEN) ne déclenche pas
   # l'événement `release` : on suit donc la fin du workflow de release.
   workflow_run:
@@ -34,16 +35,13 @@ on:
 permissions:
   contents: read
 
-jobs:
-  metadata:
-    if: github.event_name != 'workflow_run' && !inputs.after_release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: python3 kmp/tools/validate_fastlane.py
-      - run: python3 kmp/tools/validate_badges.py
-      - run: python3 kmp/tools/validate_og.py
+# Une PR qui reçoit un nouveau commit annule le run précédent (docs/spec/distribution.md § CI) ; push sur main et
+# lancements manuels ne s'annulent jamais (groupe propre à chaque run).
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.head_ref) || github.run_id }}
+  cancel-in-progress: true
 
+jobs:
   build:
     # Après une release : seulement une version finale taguée (vX.Y.Z, sans suffixe).
     if: >-
@@ -70,6 +68,8 @@ jobs:
         with:
           name: fdroid-unsigned-apk
           path: ${{ runner.temp }}/fdroid/*.apk
+          # Ne sert qu'au job reproducible de ce run.
+          retention-days: 1
 
   # Reproductibilité à chaque changement, sans attendre une release : l'APK que
   # construit F-Droid (job build) doit être identique, octet pour octet, à celui

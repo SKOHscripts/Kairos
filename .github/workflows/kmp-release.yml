@@ -84,6 +84,7 @@ jobs:
         with:
           name: kairos3-android
           path: ${{ runner.temp }}/out/*
+          retention-days: 3
 
   web:
     needs: version
@@ -107,6 +108,7 @@ jobs:
         with:
           name: kairos3-web
           path: ${{ runner.temp }}/out/*
+          retention-days: 3
 
   desktop:
     needs: version
@@ -209,6 +211,7 @@ jobs:
             ${{ runner.temp }}/out/Kairos-${{ matrix.id }}.msi
             ${{ runner.temp }}/out/Kairos-${{ matrix.id }}-portable.zip
           if-no-files-found: error
+          retention-days: 3
       - name: Signature (SignPath Foundation)
         if: steps.unsigned.outcome == 'success'
         uses: signpath/github-action-submit-signing-request@v3
@@ -240,12 +243,14 @@ jobs:
         with:
           name: kairos3-${{ matrix.id }}
           path: ${{ runner.temp }}/out/*
+          retention-days: 3
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: screens-${{ matrix.id }}
           path: ${{ runner.temp }}/screens
           if-no-files-found: ignore
+          retention-days: 3
 
   release:
     needs: [version, android, web, desktop]
@@ -296,6 +301,8 @@ jobs:
         with:
           name: aur-kairos-bin
           path: aur-out/
+          # Pour une poussée à la main sur l'AUR quand le secret manque (distribution.md § Paquet Arch Linux).
+          retention-days: 7
           include-hidden-files: true
       - name: Publier sur l'AUR
         if: github.ref_type == 'tag' && env.AUR_READY == 'true'

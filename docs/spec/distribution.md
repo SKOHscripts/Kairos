@@ -463,12 +463,14 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
 
 ### CI et release (GitHub Actions)
 
-- `kmp.yml` (push sur `main`, PR, lancement manuel ; chemins `kmp/**` et ses
-  propres workflows) : JDK 21 Temurin, plateforme Android 37, tests JVM
+- `kmp.yml` (push sur `main`, PR, lancement manuel ; chemins `kmp/**` hors `kmp/tools/**`, et le workflow
+  lui-même) : JDK 21 Temurin, plateforme Android 37, tests JVM
   (`core` dont les tests différentiels, `data`, `ui`, `desktopApp` dont les
-  tests d'interface de la vue Jour), puis APK release, image de bureau Linux
+  tests d'interface de la vue Jour), puis image de bureau Linux
   et version web ; **auto-test** de l'image Linux empaquetée ; captures en
-  artefact `kmp-ci-screens`. Un test en échec affiche son message et sa
+  artefact `kmp-ci-screens` (7 jours). L'APK n'y est plus construit (2026-11-06) : `fdroid-check.yml`, déclenché par les
+  mêmes changements, le construit deux fois (F-Droid et reproductibilité). Une PR qui reçoit un nouveau commit annule le
+  run précédent ; un push sur `main` ou un lancement manuel ne s'annule jamais. Un test en échec affiche son message et sa
   pile complets (`testLogging` du `build.gradle.kts` racine) : un
   dépassement de délai d'un test d'interface y nomme l'attente qui a
   manqué. Les attentes des tests d'interface sont en temps réel : sur un
@@ -492,6 +494,23 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
     seul APK par release ;
   - `aur` (version stable) : paquet `kairos-bin` construit et testé dans un conteneur Arch, poussé sur l'AUR sur un
     tag quand `AUR_SSH_PRIVATE_KEY` existe (§ Paquet Arch Linux).
+
+- `metadata.yml` : contrôles des fiches, de la page et des README, et tests de `cleanup_artifacts.py` (`publication.md`
+  § Vérification continue).
+- `pages.yml` : ne se déclenche plus pour `kmp/androidApp/**`, `kmp/desktopApp/**` ni `kmp/tools/**`, sans effet sur la page.
+
+### Artefacts (2026-11-06)
+
+- **Durées de conservation** (au lieu des 90 jours par défaut) : APK F-Droid intermédiaire 1 jour (ne sert qu'au job
+  suivant) ; captures de la CI 7 jours ; fichiers de la release (`kairos3-*`, `unsigned-*`, `screens-*`) 3 jours, puisqu'ils
+  sont copiés dans la release GitHub ; paquet AUR 7 jours (poussée à la main possible) ; builds de test 14 jours.
+- **Nettoyage** (`artifacts-cleanup.yml`, à la fin de « Kairos 3 (KMP) », « F-Droid », « Kairos 3 release » et « Kairos
+  test build », ou à la main) : `kmp/tools/cleanup_artifacts.py` ne garde, pour chaque workflow, que les artefacts des
+  **2 derniers runs terminés** qui en ont (`KEEP_RUNS`) ; il supprime ceux des runs plus anciens et ceux d'un run disparu,
+  ne touche jamais un run en cours (une release en cours a besoin des siens), ignore les expirés. Bibliothèque standard
+  seulement, jeton du workflow (`actions: write`). La règle est pure (`plan`) et testée (`test_cleanup_artifacts.py`).
+- Conséquence : les captures ou le build de test d'une PR plus ancienne que les deux derniers runs disparaissent ; on
+  relance au besoin. L'espace compté par GitHub n'est recalculé que toutes les quelques heures.
 
 ### Build de test (`kmp-test-build.yml`)
 
@@ -518,6 +537,15 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
 - Permissions : `contents: read` seulement ; aucun job ne publie ni n'écrit dans le dépôt.
 
 ### Décisions et pièges tracés
+
+- **Simplification des workflows** (propriétaire, 2026-11-06) : annulation du run précédent d'une PR, déclencheurs
+  resserrés (un texte ne relance plus la construction F-Droid, un script de `kmp/tools/` ne relance plus la CI), APK
+  construit seulement par `fdroid-check.yml`. **Gardé** : le re-test sur `main` après fusion (deux PR fusionnées l'une
+  après l'autre ne seraient sinon jamais testées ensemble avant la release). Écartés : un filtre de chemins par job
+  (action tierce `paths-filter`), préféré à un workflow `metadata.yml` séparé.
+- **Nettoyage des artefacts par workflow, pas par nom** : les builds de test portent le SHA dans leur nom ; garder « le
+  dernier de chaque nom » ne les aurait jamais supprimés. Un script maison plutôt qu'une action tierce (dépendances
+  libres et figées, `architecture.md`).
 
 - **Arch Linux : paquet AUR `kairos-bin` publié par la CI** (2026-11-02, choix du propriétaire, 4.0.0). Tiré du
   `.deb` plutôt que de l'archive portable : celle-ci porte le marqueur `kairos-portable`, et Kairos installé par pacman
