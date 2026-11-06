@@ -47,7 +47,8 @@ class ChronoGuardUiTest {
     private val clock = object : Clock {
         override fun now() = this@ChronoGuardUiTest.now
     }
-    private val notified = mutableListOf<String>()
+    // Écrite par la veille (fil de l'interface), lue par le test : une liste sûre entre fils.
+    private val notified = java.util.concurrent.CopyOnWriteArrayList<String>()
     private val notifier = object : ChronoNotifier {
         override val state = MutableStateFlow(NotifyState.ACTIVE)
         override suspend fun notify(title: String, body: String, tag: String): Boolean {
@@ -100,9 +101,13 @@ class ChronoGuardUiTest {
         val services = services(0)
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Stop the timer").fetchSemanticsNodes().isNotEmpty() }
-        now = start + 30.hours
-        mainClock.advanceTimeBy(3_000)
-        waitForIdle()
+        // Au-delà de la limite par défaut (4 h), dans la même journée : un saut de plusieurs jours en plein rendu n'apporte rien
+        // à ce que le test prouve (la limite est désactivée) et a fait échouer la CI (« Unsupported concurrent change during
+        // composition »). On attend une alerte ordinaire (la veille a donc bien tourné après le saut), pas un temps arbitraire :
+        // sans `waitForIdle`, qui n'a pas de fin tant que la veille du chrono boucle.
+        now = start + 5.hours
+        mainClock.advanceTimeBy(2_000)
+        waitUntil(timeoutMillis = 5_000) { notified.isNotEmpty() }
         assertNull(services.repository.snapshot.value.workSessions.single().endedAt)
         assertEquals(0, onAllNodesWithText("timer stopped automatically", substring = true).fetchSemanticsNodes().size)
         // Le réglage par défaut reste nul tant qu'on n'y touche pas ; ici il vaut 0.
