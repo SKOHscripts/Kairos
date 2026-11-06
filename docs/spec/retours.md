@@ -5,8 +5,8 @@ chercher le dépôt ni le bon modèle d'issue. Fichiers couverts : `kmp/core/...
 `kmp/ui/.../ui/guide/FeedbackDialog.kt`, `ui/guide/HelpDialog.kt` (entrée « Donner un avis »), `ui/screens/AboutScreen.kt`
 (bouton), `ui/navigation/AppShell.kt` (état du dialogue, cible `GuideTarget.Feedback`), `ui/guide/GuideContent.kt`,
 `ui/guide/FeatureCatalog.kt` (carte `feedback`), `ui/guide/GuideDialog.kt` (libellé du bouton de la carte),
-`ui/app/OpenLink.kt` (`rememberCheckedLinkOpener`), `tools/make_icons.py` (icône `Feedback`), `desktopApp/.../SelfTest.kt` (captures `feedback`, `feedback-narrow`, `help-narrow`), chaînes `feedback_*`
-et `card_feedback_*` (six langues), `.github/ISSUE_TEMPLATE/feedback.yml`. Tests : `FeedbackIssueTest` (core, commun),
+`ui/app/OpenLink.kt` (`rememberCheckedLinkOpener`), `tools/make_icons.py` (icône `Feedback`), `desktopApp/.../SelfTest.kt`
+(captures `feedback`, `feedback-narrow`, `help-narrow`), chaînes `feedback_*` et `card_feedback_*` (six langues), `.github/ISSUE_TEMPLATE/feedback.yml`. Tests : `FeedbackIssueTest` (core, commun),
 `FeedbackTemplateTest` (core, JVM), `FeedbackDialogUiTest` (desktopApp), `FeatureCatalogTest`, `StringsParityTest`._
 
 État : issue #211, implémentée en 4.1.0. Canal choisi par le propriétaire le 2026-11-06 : **une issue GitHub préremplie,
