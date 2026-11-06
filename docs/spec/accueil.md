@@ -52,10 +52,11 @@ le travail en cours.
   compris), sauf sur l'Accueil et « À propos et guide », qui sont eux-mêmes
   de l'aide (le cœur de `soutien.md`, lui, reste affiché).
 - Elle ouvre un dialogue **« Aide : <écran> »** : un court texte sur l'écran
-  courant (à quoi il sert, le geste à connaître), puis trois entrées :
+  courant (à quoi il sert, le geste à connaître), puis quatre entrées :
   **« Accueil de Kairos »** (ouvre l'Accueil de l'espace courant),
   **« Visite guidée »** (espace Perso) ou
-  **« Visite de l’espace Équipe »** (espace Équipe), et « Fermer ».
+  **« Visite de l’espace Équipe »** (espace Équipe), **« Découvrir Kairos »**
+  (`visite-guidee.md`) et **« Donner un avis »** (`retours.md`), et « Fermer ».
 - Dans l'espace Équipe, l'écran Équipe a une aide pour chacun de ses deux
   onglets (« Membres », « Échanges »).
 
@@ -186,9 +187,11 @@ au lieu d'être réparti entre la fiche du membre et les Réglages.
 - **`HelpDialog(topic, team, …)`** (`ui/guide/HelpDialog.kt`) : `AlertDialog` MD3, icône
   `Help`, titre « Aide : <titre de l'écran> » (`HelpTopic.screen`, le titre
   de la destination ou des Réglages, pas le titre du jour affiché),
-  `HelpTopic.body`, puis deux `ListItem` cliquables (« Accueil de Kairos »,
+  `HelpTopic.body`, puis quatre `ListItem` cliquables (« Accueil de Kairos »,
   icône `Home`, qui ouvre la destination Accueil de l'espace courant ;
-  visite de l'espace courant d'après `space`), bouton « Fermer ». Le
+  visite de l'espace courant d'après `space` ; « Découvrir Kairos », icône
+  `Layers`, `onDiscover` ; « Donner un avis », icône `Feedback`, `onFeedback`,
+  `retours.md`), bouton « Fermer ». Le
   contenu défile (`verticalScroll`), comme ceux de `GuideDialog` et du dialogue
   d'accueil : sur un écran bas (téléphone en paysage), rien n'est coupé.
 - **`HelpTopic`** (`ui/guide/GuideContent.kt`) : un sujet par écran, avec

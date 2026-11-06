@@ -30,6 +30,7 @@ import com.skohscripts.kairos.ui.navigation.TeamDestination
 import com.skohscripts.kairos.ui.day.DayScreen
 import com.skohscripts.kairos.ui.guide.DiscoverDialog
 import com.skohscripts.kairos.ui.guide.GuideKind
+import com.skohscripts.kairos.ui.guide.FeedbackDialog
 import com.skohscripts.kairos.ui.guide.HelpDialog
 import com.skohscripts.kairos.ui.guide.HelpTopic
 import com.skohscripts.kairos.ui.screens.FeatureListScreen
@@ -469,6 +470,10 @@ object SelfTest {
             Shot("guide-step", 900, 700, overScrim { GuideDialog(GuideKind.PERSONAL, onOpen = {}, onDismiss = {}) }),
             Shot("guide-step-narrow", 360, 800, overScrim { GuideDialog(GuideKind.TEAM, onOpen = {}, onDismiss = {}) }),
             Shot("help", 900, 700, overScrim { HelpDialog(HelpTopic.DAY, team = false, onOpenHome = {}, onStartTour = {}, onDismiss = {}) }),
+            Shot("help-narrow", 360, 900, overScrim { HelpDialog(HelpTopic.DAY, team = false, onOpenHome = {}, onStartTour = {}, onDismiss = {}) }),
+            // « Donner un avis » (docs/spec/retours.md) : le dialogue vide, et à 360 dp.
+            Shot("feedback", 900, 900, overScrim { FeedbackDialog("4.1.0", "Linux", onDismiss = {}, openLink = { false }) }),
+            Shot("feedback-narrow", 360, 900, overScrim { FeedbackDialog("4.1.0", "Linux", onDismiss = {}, openLink = { false }) }),
             Shot("team-exchanges", 900, 1500, atWidth(900.dp) { TeamMembersScreen(exchange.manager, nav = exchangesTab) }),
             Shot("team-exchanges-narrow", 360, 2300, atWidth(360.dp) { TeamMembersScreen(exchange.manager, nav = exchangesTab) }),
             Shot("team-members", 1200, 1000, membersScreen),

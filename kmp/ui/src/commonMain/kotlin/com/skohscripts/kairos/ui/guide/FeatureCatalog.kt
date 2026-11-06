@@ -83,6 +83,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_discover_body
 import com.skohscripts.kairos.ui.generated.resources.card_demo_title
 import com.skohscripts.kairos.ui.generated.resources.card_demo_body
 import com.skohscripts.kairos.ui.generated.resources.card_discover_title
+import com.skohscripts.kairos.ui.generated.resources.card_feedback_body
+import com.skohscripts.kairos.ui.generated.resources.card_feedback_title
 import com.skohscripts.kairos.ui.generated.resources.card_first_task_body
 import com.skohscripts.kairos.ui.generated.resources.card_first_task_title
 import com.skohscripts.kairos.ui.generated.resources.card_hours_body
@@ -198,6 +200,7 @@ object FeatureCatalog {
         FeatureCard("demo", GuideChapter.FIRST_STEPS, { KairosIcons.Science }, Res.string.card_demo_title, Res.string.card_demo_body, GuideTarget.Demo, since = "3.13.0"),
         FeatureCard("guide_memory", GuideChapter.FIRST_STEPS, { KairosIcons.Spot }, Res.string.card_guide_memory_title, Res.string.card_guide_memory_body, GuideTarget.Personal(Destination.HOME), since = "3.7.0"),
         FeatureCard("guided_walks", GuideChapter.FIRST_STEPS, { KairosIcons.Repeat }, Res.string.card_guided_walks_title, Res.string.card_guided_walks_body, GuideTarget.Personal(Destination.HOME), since = "3.9.0"),
+        FeatureCard("feedback", GuideChapter.FIRST_STEPS, { KairosIcons.Feedback }, Res.string.card_feedback_title, Res.string.card_feedback_body, GuideTarget.Feedback, since = "4.1.0"),
         // --- Planifier
         FeatureCard("points", GuideChapter.PLAN, { KairosIcons.Balance }, Res.string.card_points_title, Res.string.card_points_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_INBOX)),
         // Conseil de découpage (docs/spec/sous-taches.md § Conseil, issue #201) : dans la fiche, sous les points.
@@ -366,6 +369,7 @@ object FeatureCatalog {
         "Discover Kairos" to "discover",
         "The guide remembers" to "guide_memory",
         "Recurring task and Settings, step by step" to "guided_walks",
+        "Give feedback" to "feedback",
         "Guided first team task" to "team_first_task",
         "Members" to "team_members",
         "Team backlog" to "team_backlog",

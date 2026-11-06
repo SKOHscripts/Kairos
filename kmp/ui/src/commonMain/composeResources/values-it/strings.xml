@@ -1229,6 +1229,16 @@
     <string name="help_action">Aiuto</string>
     <string name="link_unavailable">Impossibile aprire il link: nessun browser disponibile.</string>
     <string name="donate_action">Sostieni Kairos</string>
+    <string name="feedback_action">Lascia un feedback</string>
+    <string name="feedback_hint">Un’idea, un problema, un commento: su GitHub</string>
+    <string name="feedback_intro">Kairos prepara il tuo messaggio e lo apre su GitHub, nel tuo browser. Per inviarlo ti serve un account GitHub (gratuito), e sarà pubblico. Kairos non invia nulla da solo.</string>
+    <string name="feedback_title">Titolo</string>
+    <string name="feedback_context">Contesto (facoltativo)</string>
+    <string name="feedback_context_hint">Cosa stavi facendo, la tua situazione</string>
+    <string name="feedback_need">Bisogno, osservazione o commento</string>
+    <string name="feedback_too_long">Troppo lungo per GitHub: accorcia il messaggio.</string>
+    <string name="feedback_continue">Continua su GitHub</string>
+    <string name="feedback_attached">Aggiunto automaticamente: Kairos %1$s · %2$s</string>
     <string name="help_title">Aiuto: %1$s</string>
     <string name="help_close">Chiudi</string>
     <string name="help_open_home">Home di Kairos</string>
@@ -1528,6 +1538,8 @@
     <string name="card_besthours_eff_body">Le Statistiche dicono a che ora finisci ogni tipo più in fretta rispetto alle tue stime. Impostazioni → Orari migliori può usarlo: Misura per Efficienza, oppure Entrambe.</string>
     <string name="card_guided_walks_title">Attività ricorrente e Impostazioni, passo dopo passo</string>
     <string name="card_guided_walks_body">In «Scopri Kairos»: «Crea la mia prima attività ricorrente» mostra la prossima scadenza di ogni regola; «Configura Kairos passo dopo passo» percorre le Impostazioni una scheda alla volta e non salva nulla prima di «Salva».</string>
+    <string name="card_feedback_title">Lascia un feedback</string>
+    <string name="card_feedback_body">Dall’aiuto («?») o da «Info e guida»: un breve modulo (titolo, contesto, bisogno) apre una issue precompilata su GitHub; basta inviarla, con un account GitHub. Kairos aggiunge la sua versione e la tua piattaforma, e non invia nulla da solo.</string>
     <string name="card_level_names_title">Nomi dei livelli</string>
     <string name="card_level_names_body">Chiama le priorità e i punti con parole tue («Urgente», S/M/L…). Il badge mostra il tuo nome, la scheda e la guida lo mostrano con il suo valore («M (3)»); P0 resta rosso e Kairos calcola sempre con i valori.</string>
     <string name="card_reminders_title">Promemoria prima dell’ora</string>

@@ -51,8 +51,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   (écran secondaire `Secondary.ABOUT`) ; ouvert depuis les Réglages, sa flèche
   retour y ramène. Présente Kairos (ce
   qu'il fait en quatre points, la formule du score de priorité, l'origine du
-  nom), la version, la licence (MIT, données locales) et un lien vers le code
-  source. Un bouton retour, le retour système Android ou Échap le ferment.
+  nom), la version, la licence (MIT, données locales), un lien vers le code
+  source, « Soutenir Kairos » (`soutien.md`) et « Donner un avis » (`retours.md`). Un bouton retour, le retour système Android ou Échap le ferment.
 - Les cinq destinations sont portées : Accueil (`accueil.md`), Notes
   (`notes-capture.md`), Jour (`vue-jour.md`), Semaine (`vue-semaine.md`),
   Stats (`statistiques.md`) ; les Réglages (`reglages.md`) sont un écran

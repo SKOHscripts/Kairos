@@ -1,0 +1,30 @@
+name: Feedback
+description: An idea, a problem or a comment, in a few words (also reachable from Kairos, Help "?" → "Give feedback")
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your feedback. It will be **public**, like every issue: do not paste task titles or other private data. An idea, a problem or a simple remark are all welcome; the owner sorts them every week.
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What were you doing? Your situation (work, home, a team…).
+  - type: textarea
+    id: need
+    attributes:
+      label: Need, observation or comment
+      description: What is hard, what you noticed, or what you would like.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Kairos version
+      description: Filled in by Kairos when you come from the app; otherwise shown in "About & guide".
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: Android, Windows, Linux, macOS or Web. Filled in by Kairos when you come from the app.

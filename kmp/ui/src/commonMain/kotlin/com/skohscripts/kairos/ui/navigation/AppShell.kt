@@ -68,6 +68,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.LocalMessages
+import com.skohscripts.kairos.ui.app.rememberCheckedLinkOpener
 import com.skohscripts.kairos.ui.app.LocalUndoMessages
 import com.skohscripts.kairos.ui.app.WelcomeDialog
 import com.skohscripts.kairos.ui.app.ShortcutBanner
@@ -99,6 +100,7 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.icons.KairosLogo
 import com.skohscripts.kairos.ui.guide.GuideDialog
 import com.skohscripts.kairos.ui.guide.DiscoverDialog
+import com.skohscripts.kairos.ui.guide.FeedbackDialog
 import com.skohscripts.kairos.ui.guide.FeatureCatalog
 import com.skohscripts.kairos.ui.guide.GuideChapter
 import com.skohscripts.kairos.ui.guide.GuideKind
@@ -179,6 +181,8 @@ fun AppShell(
     var guide by rememberSaveable { mutableStateOf<GuideKind?>(null) }
     // Hub « Découvrir Kairos » et chapitre en cours de lecture (docs/spec/visite-guidee.md) : états de la coquille, rien n'est mémorisé.
     var discover by rememberSaveable { mutableStateOf(false) }
+    // « Donner un avis » (docs/spec/retours.md) : ouvert par l'aide, « À propos » ou la carte du catalogue.
+    var feedbackOpen by rememberSaveable { mutableStateOf(false) }
     var chapter by rememberSaveable { mutableStateOf<GuideChapter?>(null) }
     // Première tâche d'équipe accompagnée (issue #97) : étape du coach (`null` = fiche fermée, -1 = coach passé) et tâche créée.
     var teamCoachStep by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -279,6 +283,7 @@ fun AppShell(
             }
             GuideTarget.FirstTask -> startFirstTask()
             GuideTarget.Demo -> if (services.demo != null) startDemo()
+            GuideTarget.Feedback -> feedbackOpen = true
         }
     }
     // L'Accueil de l'espace courant (destination de tête, la même page dans les deux espaces).
@@ -389,7 +394,7 @@ fun AppShell(
                     }
                     when {
                         secondary == Secondary.SETTINGS -> SettingsScreen(services, nav.settings, onDiscover = { discover = true }, onOpenAbout = onOpenAbout)
-                        secondary == Secondary.ABOUT -> AboutScreen()
+                        secondary == Secondary.ABOUT -> AboutScreen(onFeedback = { feedbackOpen = true })
                         // Un toucher ferme la liste, puis ouvre la cible de la carte (qui peut être les Réglages).
                         secondary == Secondary.FEATURES -> FeatureListScreen(teamModeEnabled) { target -> onCloseSecondary(); openTarget(target) }
                         team -> TeamDestinationScreen(teamDestination, services, nav, onTour = { guide = GuideKind.TEAM }, home = home)
@@ -409,7 +414,11 @@ fun AppShell(
             onStartTour = { helpOpen = false; guide = if (team) GuideKind.TEAM else GuideKind.PERSONAL },
             onDismiss = { helpOpen = false },
             onDiscover = { helpOpen = false; discover = true },
+            onFeedback = { helpOpen = false; feedbackOpen = true },
         )
+    }
+    if (feedbackOpen) {
+        FeedbackDialog(KairosBuild.VERSION_NAME, services.deviceLabel, onDismiss = { feedbackOpen = false }, openLink = rememberCheckedLinkOpener())
     }
     if (discover && demo == null) {
         DiscoverDialog(

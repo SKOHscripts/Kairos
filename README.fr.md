@@ -469,6 +469,11 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   pas » passe par la journée de travail, les horaires, les contextes et les
   meilleures heures, une carte à la fois, et n’enregistre rien avant que tu
   appuies sur Enregistrer.
+- **Donner un avis** : depuis l’aide (« ? ») ou « À propos et guide », un court
+  formulaire (titre, contexte, besoin, observation ou commentaire) ouvre une
+  issue préremplie sur GitHub, dans ton navigateur, avec la version de Kairos et
+  ta plateforme déjà indiquées ; il reste à te connecter à GitHub et à
+  l’envoyer. Kairos n’envoie rien lui-même.
 
 ### Gestion d'équipe (facultative)
 
@@ -561,6 +566,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Premiers pas | Démonstration interactive | 3.13.0 | Toutes |
 | Premiers pas | Le guide retient et montre l’endroit | 3.7.0 | Toutes |
 | Premiers pas | Récurrente et Réglages pas à pas | 3.9.0 | Toutes |
+| Premiers pas | Donner un avis | 4.1.0 | Toutes |
 | Planifier | Priorité, points et estimation | 3.0.0 | Toutes |
 | Planifier | Conseil de découpage | 4.1.0 | Toutes |
 | Planifier | Noms des niveaux | 3.9.0 | Toutes |

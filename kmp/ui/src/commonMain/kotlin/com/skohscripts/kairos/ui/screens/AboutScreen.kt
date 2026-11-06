@@ -43,6 +43,7 @@ import com.skohscripts.kairos.ui.generated.resources.about_score_title
 import com.skohscripts.kairos.ui.generated.resources.about_source
 import com.skohscripts.kairos.ui.generated.resources.about_version
 import com.skohscripts.kairos.ui.generated.resources.donate_action
+import com.skohscripts.kairos.ui.generated.resources.feedback_action
 import com.skohscripts.kairos.ui.generated.resources.app_name
 import com.skohscripts.kairos.ui.generated.resources.app_tagline
 import com.skohscripts.kairos.ui.icons.KairosIcons
@@ -62,7 +63,7 @@ const val DONATE_URL = "https://skohscripts.github.io/donate.github.io/"
  * la version, la licence (docs/spec/navigation-theme.md § À propos).
  */
 @Composable
-fun AboutScreen() {
+fun AboutScreen(onFeedback: () -> Unit = {}) {
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
         Column(
             verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
@@ -122,6 +123,11 @@ fun AboutScreen() {
             KairosOutlinedButton(onClick = { openLink(DONATE_URL) }, contentPadding = KairosButtonIconPadding) {
                 Icon(KairosIcons.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(Res.string.donate_action), modifier = Modifier.padding(start = 8.dp))
+            }
+            // « Donner un avis » : formulaire, puis issue préremplie sur GitHub (docs/spec/retours.md).
+            KairosOutlinedButton(onClick = onFeedback, contentPadding = KairosButtonIconPadding) {
+                Icon(KairosIcons.Feedback, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.feedback_action), modifier = Modifier.padding(start = 8.dp))
             }
         }
     }

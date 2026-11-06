@@ -1230,6 +1230,16 @@
     <string name="help_action">Help</string>
     <string name="link_unavailable">Can’t open the link: no browser is available.</string>
     <string name="donate_action">Support Kairos</string>
+    <string name="feedback_action">Give feedback</string>
+    <string name="feedback_hint">An idea, a problem, a comment: on GitHub</string>
+    <string name="feedback_intro">Kairos prepares your message and opens it on GitHub, in your browser. You need a (free) GitHub account to send it, and it will be public. Kairos sends nothing by itself.</string>
+    <string name="feedback_title">Title</string>
+    <string name="feedback_context">Context (optional)</string>
+    <string name="feedback_context_hint">What you were doing, your situation</string>
+    <string name="feedback_need">Need, observation or comment</string>
+    <string name="feedback_too_long">Too long for GitHub: shorten your message.</string>
+    <string name="feedback_continue">Continue on GitHub</string>
+    <string name="feedback_attached">Added automatically: Kairos %1$s · %2$s</string>
     <string name="help_title">Help: %1$s</string>
     <string name="help_close">Close</string>
     <string name="help_open_home">Kairos home</string>
@@ -1529,6 +1539,8 @@
     <string name="card_besthours_eff_body">Statistics tell at which hour you finish each type fastest compared with your estimates. Settings → Best hours can use it: Measure by Efficiency, or Both.</string>
     <string name="card_guided_walks_title">Recurring task and Settings, step by step</string>
     <string name="card_guided_walks_body">In “Discover Kairos”: “Create my first recurring task” shows the next deadline of each rule; “Set up Kairos step by step” goes through the Settings one card at a time and saves nothing before “Save”.</string>
+    <string name="card_feedback_title">Give feedback</string>
+    <string name="card_feedback_body">From the help (“?”) or “About &amp; guide”: a short form (title, context, need) opens a prefilled issue on GitHub; you only have to send it, with a GitHub account. Kairos adds its version and your platform, and sends nothing by itself.</string>
     <string name="card_level_names_title">Level names</string>
     <string name="card_level_names_body">Call the priorities and the points in your own words (“Urgent”, S/M/L…). The badge shows your name, the sheet and the guide show it with its value (“M (3)”); P0 stays red and Kairos still computes with the values.</string>
     <string name="card_reminders_title">Reminders before it is time</string>

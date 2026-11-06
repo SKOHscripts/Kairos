@@ -48,6 +48,9 @@ sealed interface GuideTarget {
 
     /** Lance la démonstration jetable (docs/spec/visite-guidee.md § Visite interactive) : ne change pas d'écran. */
     data object Demo : GuideTarget
+
+    /** Ouvre « Donner un avis » (docs/spec/retours.md) : ne change pas d'écran. */
+    data object Feedback : GuideTarget
 }
 
 /** Écran qui porte une [GuideSection]. */

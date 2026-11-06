@@ -90,6 +90,7 @@ ICONS = {
     "Help": ("help", False),
     # Soutien : le cœur de la barre du haut et de « À propos » (docs/spec/soutien.md).
     "Favorite": ("favorite", False),
+    "Feedback": ("feedback", False),
     # Réglages rangés par catégories (docs/spec/reglages.md) : icônes des catégories et des cartes.
     "Tune": ("tune", False),
     "Sort": ("sort", False),
