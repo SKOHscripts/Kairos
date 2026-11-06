@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.generated.resources.Res
+import com.skohscripts.kairos.ui.generated.resources.feedback_action
+import com.skohscripts.kairos.ui.generated.resources.feedback_hint
 import com.skohscripts.kairos.ui.generated.resources.help_close
 import com.skohscripts.kairos.ui.generated.resources.help_open_home
 import com.skohscripts.kairos.ui.generated.resources.help_open_home_hint
@@ -36,7 +38,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Aide de l'écran courant (bouton « ? » de la barre du haut, docs/spec/accueil.md § Le bouton « ? ») : le texte du
- * sujet [topic], puis l'accès à l'Accueil et à la visite de l'espace [team] courant. Choisir une entrée ferme l'aide
+ * sujet [topic], puis l'accès à l'Accueil, à la visite de l'espace [team] courant, au hub « Découvrir Kairos » et à « Donner
+ * un avis » (docs/spec/retours.md). Choisir une entrée ferme l'aide
  * avant d'agir ([onDismiss] est appelé d'abord par l'appelant).
  */
 @Composable
@@ -48,6 +51,8 @@ fun HelpDialog(
     onDismiss: () -> Unit,
     /** Ouvre le hub « Découvrir Kairos » (docs/spec/visite-guidee.md). */
     onDiscover: () -> Unit = {},
+    /** Ouvre « Donner un avis » (docs/spec/retours.md). */
+    onFeedback: () -> Unit = {},
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -64,6 +69,7 @@ fun HelpDialog(
                     HelpEntry(KairosIcons.PlayArrow, Res.string.help_open_tour, Res.string.help_open_tour_hint, onStartTour)
                 }
                 HelpEntry(KairosIcons.Layers, Res.string.help_open_discover, Res.string.help_open_discover_hint, onDiscover)
+                HelpEntry(KairosIcons.Feedback, Res.string.feedback_action, Res.string.feedback_hint, onFeedback)
             }
         },
         confirmButton = { KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.help_close)) } },

@@ -41,6 +41,7 @@ dans `docs/spec-v3/`, est le seul.
 | [`mises-a-jour.md`](mises-a-jour.md) | Vérification des nouvelles versions sur le bureau (GitHub, 6 heures), bandeau, carte des Réglages. | M5 |
 | [`bureau-avance.md`](bureau-avance.md) | Bureau : dossier des données choisi (Réglages ou `--data-dir=`, effet au prochain démarrage, copie jamais déplacement), journal de diagnostic local et « Copier le diagnostic », proxy du système. | 3.9.0 (#115) |
 | [`raccourci-portable.md`](raccourci-portable.md) | Copies portables du bureau : détection (marqueur de la release), entrée de menu Linux avec icône et classe de fenêtre, raccourcis Windows (menu Démarrer, Bureau), proposés au lancement, carte des Réglages. | #46 |
+| [`retours.md`](retours.md) | « Donner un avis » (aide « ? », « À propos », carte du catalogue) : formulaire dans Kairos, puis issue GitHub préremplie (version et plateforme jointes) ouverte dans le navigateur ; aucune permission réseau. | 4.1.0 (#211) |
 | [`soutien.md`](soutien.md) | Cœur de la barre du haut et bouton de « À propos » vers la page de don (GitHub Pages). | passe design |
 | [`accessibilite.md`](accessibilite.md) | Lecteurs d'écran (boutons, états, titres), cibles de 48 dp, contrastes. | M5 |
 | [`publication.md`](publication.md) | Fiches Fastlane FR/EN et leurs captures, recette et vérification F-Droid (APK reproductible signé par nous), page de téléchargement GitHub Pages. | M6 |

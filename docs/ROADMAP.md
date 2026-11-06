@@ -62,6 +62,7 @@ Une version n'est plus « brouillon » quand ses issues ont une spec à jour dan
 |---|---|---|
 | `bug_report.yml` | Un défaut : étapes, attendu, constaté, version, plateforme, rapport de plantage Android ; rappelle de ne pas joindre un export de la base | `bug` |
 | `feature_request.yml` | Une idée d'utilisateur, en **Context / Need / Expected outcome** | `enhancement`, `feedback` |
+| `feedback.yml` | Un retour libre, souvent venu de Kairos (aide « ? » → « Donner un avis », `docs/spec/retours.md`) : **Context / Need, observation or comment**, version et plateforme préremplies par l'application | `feedback` |
 | `planned_work.yml` | Un élément de feuille de route écrit par un mainteneur, avec rappel du workflow et des contraintes du dépôt | `enhancement` |
 
 `config.yml` désactive les issues vides et renvoie vers l'index des specs et vers ce

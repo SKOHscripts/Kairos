@@ -13,7 +13,19 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 fun rememberLinkOpener(message: (String) -> Unit = LocalMessages.current): (String) -> Unit {
+    val open = rememberCheckedLinkOpener(message)
+    return remember(open) { { url -> open(url) } }
+}
+
+/**
+ * Comme [rememberLinkOpener], mais dit si le lien s'est ouvert : « Donner un avis » garde son dialogue et sa saisie quand
+ * aucun navigateur n'est là (docs/spec/retours.md).
+ */
+@Composable
+fun rememberCheckedLinkOpener(message: (String) -> Unit = LocalMessages.current): (String) -> Boolean {
     val uriHandler = LocalUriHandler.current
     val failure = stringResource(Res.string.link_unavailable)
-    return remember(uriHandler, message, failure) { { url -> runCatching { uriHandler.openUri(url) }.onFailure { message(failure) } } }
+    return remember(uriHandler, message, failure) {
+        { url -> runCatching { uriHandler.openUri(url) }.onFailure { message(failure) }.isSuccess }
+    }
 }

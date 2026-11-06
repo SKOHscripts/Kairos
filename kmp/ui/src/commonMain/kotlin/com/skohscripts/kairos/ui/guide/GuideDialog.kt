@@ -24,6 +24,7 @@ import com.skohscripts.kairos.ui.theme.KairosTextButton
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.guide_finish
+import com.skohscripts.kairos.ui.generated.resources.feedback_action
 import com.skohscripts.kairos.ui.generated.resources.guide_first_task_go
 import com.skohscripts.kairos.ui.generated.resources.guide_next
 import com.skohscripts.kairos.ui.generated.resources.guide_previous
@@ -97,7 +98,13 @@ fun GuideDialog(
                     }
                 }
                 KairosTextButton(onClick = { if (last) onFinish(); onOpen(step.target) }) {
-                    Text(stringResource(if (step.target == GuideTarget.FirstTask) Res.string.guide_first_task_go else Res.string.guide_see_screen))
+                    // La carte « Donner un avis » ouvre un dialogue, pas un écran (docs/spec/retours.md).
+                    val action = when (step.target) {
+                        GuideTarget.FirstTask -> Res.string.guide_first_task_go
+                        GuideTarget.Feedback -> Res.string.feedback_action
+                        else -> Res.string.guide_see_screen
+                    }
+                    Text(stringResource(action))
                 }
             }
         },

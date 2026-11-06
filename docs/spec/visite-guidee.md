@@ -258,9 +258,10 @@ partout. La liste complète des fonctionnalités lit le même catalogue.
 - **Cartes de la 4.0.0** : `model` (estimations par machine learning, #99 ; section `SETTINGS_LEARNED`, chapitre « Suivre »,
   icône `Model`), `sync` (synchronisation entre appareils, #88 ; section `SETTINGS_DATA`, chapitre « Organiser », icône `Sync` ;
   le texte dit de mettre d'abord tous les appareils à jour, `synchronisation.md` § Interface).
-- **Carte de la 4.1.0** : `split_advice` (conseil de découpage, #201 ; chapitre « Planifier », icône `Layers`, section
+- **Cartes de la 4.1.0** : `split_advice` (conseil de découpage, #201 ; chapitre « Planifier », icône `Layers`, section
   `DAY_INBOX` comme les points, `sous-taches.md` § Conseil). La carte `subtasks` dit aussi la priorité imposée, l'échéance
-  héritée et la somme des durées.
+  héritée et la somme des durées. `feedback` (« Donner un avis », #211 ; chapitre « Premiers pas », icône `Feedback`, après
+  `guided_walks`) : sa cible `GuideTarget.Feedback` ouvre le dialogue de `retours.md` sans changer d'écran.
 - **Comptes de cartes dans les tests** : `M6GuideUiTest` tire les nombres de cartes par chapitre de `FeatureCatalog`
   (une carte ajoutée à une version ne casse plus le test du hub).
 - **Lien avec le README** : `FeatureCatalog.README_FEATURES` associe chaque fonctionnalité en gras de la section

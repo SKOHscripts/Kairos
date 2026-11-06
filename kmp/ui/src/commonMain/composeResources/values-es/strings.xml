@@ -1229,6 +1229,16 @@
     <string name="help_action">Ayuda</string>
     <string name="link_unavailable">No se puede abrir el enlace: no hay ningún navegador disponible.</string>
     <string name="donate_action">Apoyar Kairos</string>
+    <string name="feedback_action">Dar tu opinión</string>
+    <string name="feedback_hint">Una idea, un problema, un comentario: en GitHub</string>
+    <string name="feedback_intro">Kairos prepara tu mensaje y lo abre en GitHub, en tu navegador. Necesitas una cuenta de GitHub (gratuita) para enviarlo, y será público. Kairos no envía nada por sí mismo.</string>
+    <string name="feedback_title">Título</string>
+    <string name="feedback_context">Contexto (opcional)</string>
+    <string name="feedback_context_hint">Qué estabas haciendo, tu situación</string>
+    <string name="feedback_need">Necesidad, observación o comentario</string>
+    <string name="feedback_too_long">Demasiado largo para GitHub: acorta tu mensaje.</string>
+    <string name="feedback_continue">Continuar en GitHub</string>
+    <string name="feedback_attached">Se añade automáticamente: Kairos %1$s · %2$s</string>
     <string name="help_title">Ayuda: %1$s</string>
     <string name="help_close">Cerrar</string>
     <string name="help_open_home">Inicio de Kairos</string>
@@ -1528,6 +1538,8 @@
     <string name="card_besthours_eff_body">Las Estadísticas indican a qué hora terminas cada tipo más rápido en comparación con tus estimaciones. Ajustes → Mejores horas puede usarlo: Medir por Eficiencia, o Ambas.</string>
     <string name="card_guided_walks_title">Recurrente y Ajustes, paso a paso</string>
     <string name="card_guided_walks_body">En «Descubrir Kairos»: «Crear mi primera tarea recurrente» muestra la próxima fecha límite de cada regla; «Configurar Kairos paso a paso» recorre los Ajustes una tarjeta cada vez y no guarda nada antes de «Guardar».</string>
+    <string name="card_feedback_title">Dar tu opinión</string>
+    <string name="card_feedback_body">Desde la ayuda («?») o «Acerca de y guía»: un formulario breve (título, contexto, necesidad) abre una issue ya rellenada en GitHub; solo falta enviarla, con una cuenta de GitHub. Kairos añade su versión y tu plataforma, y no envía nada por sí mismo.</string>
     <string name="card_level_names_title">Nombres de los niveles</string>
     <string name="card_level_names_body">Llama a las prioridades y a los puntos con tus palabras («Urgente», S/M/L…). La insignia muestra tu nombre, la ficha y la guía lo muestran con su valor («M (3)»); P0 sigue en rojo y Kairos sigue calculando con los valores.</string>
     <string name="card_reminders_title">Recordatorios antes de la hora</string>

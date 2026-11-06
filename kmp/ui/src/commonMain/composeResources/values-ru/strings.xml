@@ -1229,6 +1229,16 @@
     <string name="help_action">Справка</string>
     <string name="link_unavailable">Не удается открыть ссылку: нет доступного браузера.</string>
     <string name="donate_action">Поддержать Kairos</string>
+    <string name="feedback_action">Оставить отзыв</string>
+    <string name="feedback_hint">Идея, проблема, замечание: на GitHub</string>
+    <string name="feedback_intro">Kairos подготовит твоё сообщение и откроет его на GitHub в браузере. Чтобы отправить его, нужна учётная запись GitHub (бесплатная), и сообщение будет публичным. Сам Kairos ничего не отправляет.</string>
+    <string name="feedback_title">Заголовок</string>
+    <string name="feedback_context">Контекст (необязательно)</string>
+    <string name="feedback_context_hint">Чем ты занимаешься, твоя ситуация</string>
+    <string name="feedback_need">Потребность, наблюдение или комментарий</string>
+    <string name="feedback_too_long">Слишком длинно для GitHub: сократи сообщение.</string>
+    <string name="feedback_continue">Продолжить на GitHub</string>
+    <string name="feedback_attached">Добавляется автоматически: Kairos %1$s · %2$s</string>
     <string name="help_title">Справка: %1$s</string>
     <string name="help_close">Закрыть</string>
     <string name="help_open_home">Главная Kairos</string>
@@ -1528,6 +1538,8 @@
     <string name="card_besthours_eff_body">Статистика показывает, в какие часы ты завершаешь каждый тип быстрее всего в сравнении с оценками. Это может использовать Настройки → Лучшие часы: «Измерять по» — «Эффективность» или «Оба».</string>
     <string name="card_guided_walks_title">Повторяющаяся задача и Настройки по шагам</string>
     <string name="card_guided_walks_body">В «Знакомстве с Kairos»: «Создать первую повторяющуюся задачу» показывает следующий срок для каждого правила; «Настроить Kairos по шагам» проводит по Настройкам по одной карточке и ничего не сохраняет до «Сохранить».</string>
+    <string name="card_feedback_title">Оставить отзыв</string>
+    <string name="card_feedback_body">Из справки («?») или «О программе и руководство»: короткая форма (заголовок, контекст, потребность) открывает заполненный issue на GitHub; останется только отправить его с учётной записью GitHub. Kairos добавляет свою версию и твою платформу, но сам ничего не отправляет.</string>
     <string name="card_level_names_title">Названия уровней</string>
     <string name="card_level_names_body">Называй приоритеты и баллы своими словами («Срочно», S/M/L…). Значок показывает твое название, карточка и руководство — название со значением («M (3)»); P0 остается красным, а Kairos по-прежнему считает по значениям.</string>
     <string name="card_reminders_title">Напоминания заранее</string>

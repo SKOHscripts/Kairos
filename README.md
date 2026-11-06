@@ -437,6 +437,10 @@ order (critical path). Cycles are refused.
   for each rule, the next deadline it would produce; "Set up Kairos step by
   step" goes through the working day, the hours, the contexts and the best
   hours, one card at a time, and saves nothing until you press Save.
+- **Give feedback**: from the help ("?") or "About & guide", a short form
+  (title, context, need, observation or comment) opens a prefilled issue on
+  GitHub in your browser, with the Kairos version and your platform already
+  filled in; sign in to GitHub and send it. Kairos itself sends nothing.
 
 ### Team management (optional)
 
@@ -523,6 +527,7 @@ version that brought it and the platforms it exists on.
 | First steps | Interactive demo | 3.13.0 | All |
 | First steps | The guide remembers and shows the spot | 3.7.0 | All |
 | First steps | Recurring task and Settings, step by step | 3.9.0 | All |
+| First steps | Give feedback | 4.1.0 | All |
 | Plan | Priority, points and estimate | 3.0.0 | All |
 | Plan | Split advice | 4.1.0 | All |
 | Plan | Level names | 3.9.0 | All |
