@@ -45,7 +45,7 @@ enum class SettingsCategory(val title: StringResource, val hint: StringResource,
             "priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "defaultFibonacciPoints",
             "cognitiveDipEnabled", "cognitiveDipStartHour", "cognitiveDipTroughHour", "cognitiveDipEndHour", "cognitiveDipPenalty",
         )
-        private val TRACKING_KEYS = setOf("timerIdleAlertMinutes", "pomodoroFocusMinutes", "timerAlertSound", "statsWindowWeeks")
+        private val TRACKING_KEYS = setOf("timerIdleAlertMinutes", "timerAutoStopMinutes", "pomodoroFocusMinutes", "timerAlertSound", "statsWindowWeeks")
         private val GENERAL_KEYS = setOf("language", "themeColor", "themeMode", "updateCheckEnabled")
 
         /**

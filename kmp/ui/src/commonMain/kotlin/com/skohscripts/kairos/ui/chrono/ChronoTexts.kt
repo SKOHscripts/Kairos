@@ -3,6 +3,7 @@ package com.skohscripts.kairos.ui.chrono
 import com.skohscripts.kairos.core.alerts.ChronoAlert
 import com.skohscripts.kairos.core.alerts.ChronoAlertKind
 import com.skohscripts.kairos.ui.generated.resources.Res
+import com.skohscripts.kairos.ui.generated.resources.alert_auto_stop
 import com.skohscripts.kairos.ui.generated.resources.alert_idle
 import com.skohscripts.kairos.ui.generated.resources.alert_over
 import com.skohscripts.kairos.ui.generated.resources.alert_pomodoro
@@ -42,6 +43,9 @@ object ChronoTexts {
         ChronoAlertKind.IDLE -> getString(Res.string.alert_idle, duration(alert.minutes))
         ChronoAlertKind.POMODORO -> getString(Res.string.alert_pomodoro, duration(alert.minutes))
     }
+
+    /** Garde-fou (docs/spec/temps-reel-chrono.md § Garde-fou) : « chrono arrêté automatiquement après 4 h… ». */
+    suspend fun autoStopBody(limitMinutes: Int): String = getString(Res.string.alert_auto_stop, duration(limitMinutes))
 
     suspend fun running(): String = getString(Res.string.timer_running)
 

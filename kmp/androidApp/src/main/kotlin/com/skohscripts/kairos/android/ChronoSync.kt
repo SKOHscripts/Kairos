@@ -29,13 +29,17 @@ import kotlin.time.Instant
  * affiche le chronomètre du système (il tourne sans l'application) avec
  * « Arrêter » ; chaque seuil encore à venir a son alarme, qui poste l'alerte
  * même application fermée. Suit l'état de la base : ouvrir, arrêter, finir la
- * tâche ou changer les réglages remet tout d'accord.
+ * tâche ou changer les réglages remet tout d'accord. Le garde-fou (docs/spec/temps-reel-chrono.md § Garde-fou) a son
+ * alarme, qui ferme la session à l'instant limite application fermée ; une session déjà au-delà est close aussitôt.
  */
 object ChronoSync {
     const val CHANNEL_CHRONO = "chrono"
     const val CHANNEL_ALERTS = "chrono-alerts"
     const val NOTIFICATION_RUNNING = 1
     private const val NOTIFICATION_ALERT_BASE = 10
+
+    /** Indice de notification du garde-fou, après ceux des trois alertes (`NOTIFICATION_ALERT_BASE + indice`). */
+    private val AUTO_STOP_KIND = ChronoAlertKind.entries.size
 
     /** Ce dont dépendent la notification et les alarmes. */
     private data class Key(
@@ -46,6 +50,7 @@ object ChronoSync {
         val estimate: Int?,
         val idle: Int,
         val pomodoro: Int,
+        val autoStop: Int,
     )
 
     private fun keyOf(snapshot: KairosSnapshot): Key {
@@ -54,27 +59,39 @@ object ChronoSync {
         return Key(
             running?.id, running?.startedAt, task?.title, running?.let { baseMinutes(snapshot, it) } ?: 0,
             task?.let { DurationEstimator.effectiveMinutes(it, snapshot, Clock.System.now(), TimeZone.currentSystemDefault()) },
-            snapshot.settings.timerIdleAlertMinutes, snapshot.settings.pomodoroFocusMinutes,
+            snapshot.settings.timerIdleAlertMinutes, snapshot.settings.pomodoroFocusMinutes, snapshot.settings.timerAutoStop,
         )
     }
 
     fun start(context: Context, repository: KairosRepository, scope: CoroutineScope) {
         scope.launch {
-            repository.personalSnapshot.map(::keyOf).distinctUntilChanged().collect { apply(context, it) }
+            repository.personalSnapshot.map(::keyOf).distinctUntilChanged().collect { apply(context, repository, it) }
         }
     }
 
-    private suspend fun apply(context: Context, key: Key) {
+    private suspend fun apply(context: Context, repository: KairosRepository, key: Key) {
         val manager = context.getSystemService(NotificationManager::class.java)
         ensureChannels(context, manager)
         val alarms = context.getSystemService(AlarmManager::class.java)
         ChronoAlertKind.entries.forEach { alarms.cancel(alertIntent(context, it, null, null)) }
+        alarms.cancel(autoStopIntent(context, 0L, null, null, 0))
         if (key.sessionId == null || key.startedAt == null || key.title == null) {
             manager.cancel(NOTIFICATION_RUNNING)
             return
         }
+        val stopAt = ChronoAlerts.autoStopAt(key.startedAt, key.autoStop)
+        if (stopAt != null && Clock.System.now() >= stopAt) {
+            // Déjà au-delà de la limite (téléphone éteint, alarme manquée) : close à l'instant limite ; l'état change, on repasse ici.
+            autoStop(context, repository, key.sessionId, stopAt, key.title, key.autoStop)
+            return
+        }
         manager.notify(NOTIFICATION_RUNNING, running(context, key.title, key.startedAt, key.base))
-        val thresholds = ChronoAlerts.thresholds(key.startedAt, key.base, key.estimate, key.idle, key.pomodoro)
+        if (stopAt != null) {
+            alarms.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP, stopAt.toEpochMilliseconds(), autoStopIntent(context, key.sessionId, stopAt, key.title, key.autoStop),
+            )
+        }
+        val thresholds = ChronoAlerts.beforeStop(ChronoAlerts.thresholds(key.startedAt, key.base, key.estimate, key.idle, key.pomodoro), stopAt)
         for (alert in ChronoAlerts.upcoming(thresholds, Clock.System.now())) {
             val title = ChronoTexts.alertTitle(key.title)
             val body = ChronoTexts.alertBody(alert)
@@ -128,6 +145,30 @@ object ChronoSync {
             .putExtra(ChronoReceiver.EXTRA_TITLE, title)
             .putExtra(ChronoReceiver.EXTRA_BODY, body)
         return PendingIntent.getBroadcast(context, kind.ordinal, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    }
+
+    /** Intention de l'alarme du garde-fou (une seule, remplacée à chaque programmation). */
+    private fun autoStopIntent(context: Context, sessionId: Long, at: Instant?, title: String?, limit: Int): PendingIntent {
+        val intent = Intent(context, ChronoReceiver::class.java)
+            .setAction(ChronoReceiver.ACTION_AUTO_STOP)
+            .setData(android.net.Uri.parse("kairos://alert/AUTO_STOP"))
+            .putExtra(ChronoReceiver.EXTRA_SESSION, sessionId)
+            .putExtra(ChronoReceiver.EXTRA_AT, at?.toEpochMilliseconds() ?: 0L)
+            .putExtra(ChronoReceiver.EXTRA_TITLE, title)
+            .putExtra(ChronoReceiver.EXTRA_LIMIT, limit)
+        return PendingIntent.getBroadcast(context, AUTO_STOP_REQUEST, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    }
+
+    private const val AUTO_STOP_REQUEST = 100
+
+    /**
+     * Garde-fou : ferme la session à [at] ; si c'est cet appel qui l'a fermée (la veille de l'application a pu le faire
+     * avant), poste « chrono arrêté automatiquement après… ».
+     */
+    suspend fun autoStop(context: Context, repository: KairosRepository, sessionId: Long, at: Instant, title: String, limit: Int) {
+        if (repository.stopTimerAt(sessionId, at)) {
+            postAlert(context, AUTO_STOP_KIND, ChronoTexts.alertTitle(title), ChronoTexts.autoStopBody(limit))
+        }
     }
 
     /** Poste l'alerte d'un seuil (appelé par l'alarme). */

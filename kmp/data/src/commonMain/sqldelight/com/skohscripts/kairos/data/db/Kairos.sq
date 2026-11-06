@@ -414,6 +414,10 @@ UPDATE work_session SET ended_at = ? WHERE task_id = ? AND ended_at IS NULL;
 closeAllOpenSessions:
 UPDATE work_session SET ended_at = ? WHERE ended_at IS NULL;
 
+-- Garde-fou du chrono (docs/spec/temps-reel-chrono.md § Garde-fou) : cette session seulement, si elle est encore ouverte.
+closeSessionAt:
+UPDATE work_session SET ended_at = ? WHERE id = ? AND ended_at IS NULL;
+
 insertWorkSession:
 INSERT INTO work_session (task_id, started_at, ended_at, created_at) VALUES (?, ?, NULL, ?);
 

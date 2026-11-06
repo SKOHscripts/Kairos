@@ -13,9 +13,9 @@ la section « Alertes du chrono » des Réglages (`reglages.md`), et par platefo
 `desktopApp/.../DesktopNotifier.kt` et `Main.kt`,
 `webApp/.../WebNotifier.kt` et `kairos-web.js`. Tests : `TimeTrackingTest`,
 `ChronoAlertsTest`, `KairosRepositoryTest`, `DayScreenUiTest`
-(`timerRunsAlertsAndStops`)._
+(`timerRunsAlertsAndStops`), `ChronoGuardUiTest`, `SettingsFormTest`._
 
-État : **jalon M3**. Sans serveur : la notification d'alerte est la notification
+État : **jalon M3** ; garde-fou du chrono (arrêt automatique) ajouté le 2026-11-06 (issue #220, 4.1.0). Sans serveur : la notification d'alerte est la notification
 native de chaque plateforme (issue #34).
 L'ancienneté (« traîne depuis ») et le bandeau de surcharge sont décrits par
 `ordonnancement.md`.
@@ -63,6 +63,23 @@ l'application est en arrière-plan : Kairos les confie au système.
   page web et au redémarrage du téléphone : c'est un instant de départ en
   base.
 
+#### Garde-fou : arrêt automatique (issue #220)
+
+Un chrono oublié qui tourne jusqu'au lendemain gonfle le temps passé de la tâche, le temps du jour, les statistiques
+(calibration, meilleures heures, tendances) et les durées apprises, d'heures jamais travaillées. L'alerte « chrono
+oublié » ne sonne qu'une fois.
+
+- Réglage **« Arrêter le chrono après (min) »** dans « Alertes du chrono » (Réglages → Chrono et statistiques) :
+  **240 min (4 h) par défaut**, de 0 à 1 440 (24 h), **0 = jamais**.
+- Quand une session atteint cette durée, elle est **close à cet instant précis** (début + durée), pas au moment où Kairos
+  s'en aperçoit : la tâche ne reçoit jamais plus que la durée réglée, même si l'application était fermée ou le téléphone
+  éteint.
+- Kairos le dit : un bandeau « « Tâche » · chrono arrêté automatiquement après 4 h (limite réglable dans Chrono et
+  statistiques). », comme une alerte, et la notification du système quand elle peut sortir (Android : même application
+  fermée). Si Kairos était fermé (bureau, web) ou le téléphone éteint, l'arrêt et le bandeau viennent à l'ouverture
+  suivante, toujours à l'instant limite.
+- Les alertes de la session (dépassement, oubli, pause) ne sonnent plus au-delà de la limite : la session est close.
+
 ### Critères de succès
 
 - Démarrer sur B ferme la session de A ; une tâche faite ne démarre pas de
@@ -72,10 +89,15 @@ l'application est en arrière-plan : Kairos les confie au système.
   horloge simulée, voir le bandeau, le titre clignotant et le son quand la
   notification est refusée, fermer le bandeau, arrêter
   (`DayScreenUiTest.timerRunsAlertsAndStops`).
+- Garde-fou : la limite est calculée à `début + durée`, désactivée à 0 (`ChronoAlertsTest`) ; la session est close à cet
+  instant, une seule fois même si deux chemins s'en chargent, et jamais une autre session (`KairosRepositoryTest`) ;
+  application ouverte au passage de la limite, ou ouverte après elle (rattrapage), avec une horloge simulée : session
+  close à l'instant limite et bandeau affiché ; à 0, rien ne s'arrête (`ChronoGuardUiTest`) ; réglage 240 par défaut,
+  borné à 0-1 440, et une base qui n'y touche pas n'écrit rien (`SettingsFormTest`, export inchangé).
 - Web : le titre de l'onglet porte le chrono, qui survit au rechargement
   (vérifié dans Chromium).
 - Android : notification permanente avec chronomètre du système et
-  « Arrêter » ; alarmes des seuils ; reprise après redémarrage (vérification
+  « Arrêter » ; alarmes des seuils et du garde-fou ; reprise après redémarrage (vérification
   sur appareil à faire : pas d'émulateur dans l'environnement de
   développement).
 
@@ -87,6 +109,9 @@ l'application est en arrière-plan : Kairos les confie au système.
   tâche suivante) ont leur spec, `rappels.md` (3.8.0) : ils réutilisent le notificateur, les bandeaux et, sur Android, les
   alarmes inexactes et `ChronoReceiver` (`ACTION_REMINDER`).
 - Alarmes exactes (voir Décisions).
+- Garde-fou : corriger la durée d'une session déjà close (il n'existe pas d'édition des sessions ; le temps manuel de la
+  fiche ne fait qu'ajouter), arrêter à la fin de la journée de travail plutôt qu'après une durée, marquer la session
+  arrêtée par le garde-fou dans les données (pistes notées, § Décisions).
 
 ## 2. Solution technique
 
@@ -111,6 +136,11 @@ Depuis le jalon E1 de l'espace Équipe, la veille du chrono (`ChronoWatcher`) et
   L'estimé passé à `thresholds` est `DurationEstimator.effectiveMinutes` (3.4, `durees-apprises.md`) : l'estimation de la
   tâche, sinon sa durée apprise **fiable** (série, titre ou modèle, `estimateur-modele.md`), sinon rien (pas d'alerte de dépassement) ; `ChronoWatcher` et, sur Android,
   `ChronoSync` s'en servent, et la carte « Maintenant » affiche la même valeur.
+- **Garde-fou** : `ChronoAlerts.autoStopAt(début, limite)` = `début + limite`, nul si la limite vaut 0 ou moins ;
+  `ChronoAlerts.beforeStop(seuils, arrêt)` retire les seuils situés à l'instant d'arrêt ou après (ni bandeau ni alarme
+  pour une session qui sera close). `Settings.timerAutoStopMinutes` : `Int?`, **nul par défaut** (règle des réglages
+  ajoutés : rien n'est écrit dans la base ni l'export tant qu'on n'y touche pas) ; `Settings.timerAutoStop` en donne la
+  valeur effective, `DEFAULT_TIMER_AUTO_STOP_MINUTES` = 240 si nul.
 - `DayView` : `spentByTask`, `running`, `runningTask`, `runningBaseMinutes`
   (temps de la tâche avant la session), `spentToday`, `spentByTypeToday`
   (types non vides, minutes > 0), `sessionTimeline`. `build` reçoit
@@ -121,6 +151,10 @@ Depuis le jalon E1 de l'espace Équipe, la veille du chrono (`ChronoWatcher`) et
 `startTimer(tâche)` : refusé si la tâche n'est pas à faire ; ferme toutes
 les sessions ouvertes puis en insère une (même instant). `stopTimer()` :
 ferme toute session ouverte ; n'écrit rien s'il n'y en a pas.
+`stopTimerAt(session, instant)` (garde-fou) : ferme **cette** session à **cet** instant, seulement si elle est encore
+ouverte (`closeSessionAt`, `… WHERE id = ? AND ended_at IS NULL`) ; rend `true` si elle l'a fermée. Idempotente : la
+veille de l'application et l'alarme d'Android peuvent s'en charger toutes deux, une seule réussit et c'est elle qui
+prévient. L'instant est borné à [début, maintenant].
 `deleteTask` (et la suppression d'une sous-tâche depuis la fiche) ferme la
 session ouverte de la tâche à l'instant de la suppression : ses sessions
 restent (temps passé), mais une session ouverte sur une tâche disparue
@@ -142,6 +176,19 @@ compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
   gère pas déjà les alertes, `notify` ; si elle échoue, titre clignotant
   (« ⚠ Tâche · message ») une minute et `beep` si le son est activé. À
   l'arrêt, le titre redevient normal.
+- Garde-fou dans `ChronoWatcher` : à chaque seconde, **y compris la première** (rattrapage à l'ouverture, contrairement
+  aux alertes), si `maintenant ≥ autoStopAt`, `stopTimerAt(session, autoStopAt)` ; s'il a fermé la session : bandeau
+  (`ChronoTexts.autoStopBody`, durée lisible), notification si le système ne s'en charge pas déjà, et à défaut le son
+  s'il est activé (pas de titre clignotant : la session close, la veille s'arrête ; le bandeau reste). Cette partie tourne
+  hors annulation (`NonCancellable`) : fermer la session relance la veille, le bandeau ne doit pas se perdre en route. Le
+  réglage est dans les clés de la veille.
+- Réglages : `SettingsForm.MAX_TIMER_AUTO_STOP` = 1 440. La carte « Alertes du chrono » porte le repère du guide
+  `GuideSection.SETTINGS_CHRONO`, cible de la carte du catalogue `timer_guard` (« Garde-fou du chrono », chapitre
+  « Suivre », 4.1.0) ; puce et ligne du tableau dans les deux README.
+- Réglages : `timerAutoStopMinutes` (`SettingsForm`, entier 0-1 440, affiché 240 quand nul, enregistré nul s'il vaut
+  240) dans « Alertes du chrono », après le chrono oublié, libellé « Arrêter le chrono après (min) » et aide « 0 = jamais.
+  La session s'arrête à cette durée, même application fermée. ». Partagé par la synchronisation, comme les autres seuils
+  (`SyncScope`).
 - `ChronoTexts` : textes hors composition (durées, titre et corps des
   alertes, libellés des notifications Android).
 - `rememberLiveMinutes` : minuteur vivant (une seconde) du badge de ligne et
@@ -162,6 +209,11 @@ compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
   total, action « Arrêter », ouverture de l'application au toucher), et une
   alarme `setAndAllowWhileIdle` par seuil à venir, titre et corps déjà
   rédigés dans ses extras.
+- Garde-fou : `ChronoSync` programme aussi une alarme `ACTION_AUTO_STOP` à `autoStopAt` (même mécanisme inexact,
+  extras : session, instant, titre de la tâche, limite) et ne programme plus les seuils situés après elle ; si la session
+  a déjà dépassé la limite quand l'état change (redémarrage, ouverture), il l'arrête aussitôt. `ChronoReceiver`
+  (`ACTION_AUTO_STOP`) : `stopTimerAt` ; s'il a fermé la session, notification d'alerte « chrono arrêté automatiquement
+  après… ». La clé de `ChronoSync` comprend la limite.
 - `ChronoReceiver` : l'alarme poste l'alerte ; « Arrêter » ouvre la base si
   besoin et arrête le chrono (`goAsync`). `BootReceiver` (démarrage,
   mise à jour de l'application) : ouvrir la base suffit à tout remettre.
@@ -206,5 +258,19 @@ est en HTTPS), état relu à chaque notification, autorisation à l'opt-in ;
   `vue-jour.md`).
 - **Double notification évitée sur Android** : quand le système notifie par
   alarme, la veille n'appelle pas `notify`.
+- **Garde-fou par durée, à 4 h par défaut** (choix du propriétaire du 2026-11-06, #220) : une durée réglable plutôt que
+  la fin de la journée de travail (les horaires varient, une session du soir est légitime) ou qu'une question au retour
+  (le temps faux resterait compté jusque-là, et sur Android personne ne répond application fermée). 4 h : au-delà de
+  l'alerte « chrono oublié » (3 h), qui prévient donc d'abord, et au-delà d'une longue séance de travail.
+- **Close à l'instant limite, pas à la découverte** : sans quoi un chrono oublié la veille compterait toute la nuit
+  jusqu'à l'ouverture. La tâche reçoit au plus la limite ; ce surplus éventuel n'est pas corrigeable par Kairos
+  aujourd'hui (pas d'édition de session), le bandeau le dit sans promettre de correction.
+- **Pas de marque « arrêtée par le garde-fou » en base** : il faudrait une colonne (migration) pour un usage
+  hypothétique des statistiques ; le bandeau et la notification suffisent. À rouvrir si les statistiques doivent
+  l'écarter.
+- **Idempotence plutôt que coordination** : la veille et l'alarme Android peuvent agir en même temps ; la requête ne
+  ferme que la session visée si elle est encore ouverte, sous le verrou du dépôt, et seul celui qui l'a fermée prévient.
+- **Réglage nul par défaut, borné à 24 h** : l'export d'une base qui n'y touche pas ne change pas ; au-delà de 24 h,
+  le garde-fou n'en serait plus un.
 - **Tests d'interface avec une horloge simulée** : `AppServices.clock` et un
   `ChronoNotifier` de test (refusé) rendent l'alerte déterministe.

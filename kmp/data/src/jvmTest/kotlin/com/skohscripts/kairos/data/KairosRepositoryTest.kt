@@ -659,4 +659,32 @@ class KairosRepositoryTest {
         assertNotNull(sessions.single().endedAt)
         assertNull(com.skohscripts.kairos.core.engine.TimeTracking.runningSession(sessions))
     }
+
+    @Test
+    fun theTimerGuardClosesThatSessionAtTheLimitOnlyOnce() = runTest {
+        // Garde-fou (docs/spec/temps-reel-chrono.md § Garde-fou, issue #220) : la session est close à l'instant limite, même
+        // découverte le lendemain ; un second appel (l'alarme d'Android après la veille) ne fait rien ; une autre session non plus.
+        var t = now
+        val moving = object : Clock {
+            override fun now() = t
+        }
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        val repo = KairosRepository.open(KairosStore.open(driver), examples, moving, timeZone = TimeZone.UTC).also { it.replaceAll(KairosSnapshot()) }
+        val id = repo.createTask("Oubliée")!!
+        repo.startTimer(id)
+        val session = repo.snapshot.value.workSessions.single()
+        t = now + kotlin.time.Duration.parse("20h")
+        val limit = now + kotlin.time.Duration.parse("4h")
+        assertTrue(repo.stopTimerAt(session.id, limit))
+        assertEquals(limit, repo.snapshot.value.workSessions.single().endedAt)
+        assertEquals(false, repo.stopTimerAt(session.id, limit))
+        // Une limite déjà dans le futur est ramenée à maintenant ; une autre session n'est jamais touchée.
+        val other = repo.createTask("Suivante")!!
+        repo.startTimer(other)
+        val running = repo.snapshot.value.workSessions.single { it.endedAt == null }
+        assertEquals(false, repo.stopTimerAt(session.id, t))
+        assertNull(repo.snapshot.value.workSessions.single { it.id == running.id }.endedAt)
+        assertTrue(repo.stopTimerAt(running.id, t + kotlin.time.Duration.parse("1h")))
+        assertEquals(t, repo.snapshot.value.workSessions.single { it.id == running.id }.endedAt)
+    }
 }

@@ -91,7 +91,15 @@ data class Settings(
      * pas. Propre à l'appareil (`SyncScope.LOCAL_SETTINGS`).
      */
     val subtaskChain: Boolean? = null,
+    /**
+     * Garde-fou du chrono (docs/spec/temps-reel-chrono.md § Garde-fou, issue #220) : une session est close après ces minutes,
+     * 0 = jamais. `null` = [DEFAULT_TIMER_AUTO_STOP_MINUTES] ; même règle que [team] : une base qui n'y touche pas ne change pas.
+     */
+    val timerAutoStopMinutes: Int? = null,
 ) {
+    /** Durée effective du garde-fou du chrono, en minutes (0 = jamais). */
+    val timerAutoStop: Int get() = timerAutoStopMinutes ?: DEFAULT_TIMER_AUTO_STOP_MINUTES
+
     /** L'espace Équipe est activé (valeur enregistrée). */
     val teamModeEnabled: Boolean get() = team?.enabled == true
 
@@ -105,6 +113,9 @@ data class Settings(
     val typeRequired: Boolean get() = taskTypeList.isNotEmpty()
 
     companion object {
+        /** Garde-fou du chrono par défaut : 4 h, au-delà de l'alerte « chrono oublié » (3 h), qui prévient donc d'abord. */
+        const val DEFAULT_TIMER_AUTO_STOP_MINUTES = 240
+
         /** L'océan, graine de la charte (docs/DESIGN_SYSTEM.md, docs/spec/apparence.md) ; avant, le miel. */
         const val DEFAULT_THEME_COLOR = "#2F6FED"
 

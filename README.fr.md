@@ -330,6 +330,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   suggérée. Un bandeau dans l’application, et une notification système :
   Android (notification permanente avec chronomètre, même application
   fermée), zone de notification du bureau, notification du navigateur.
+- **Garde-fou du chrono** : un chrono oublié s’arrête seul après 4 heures
+  (Réglages → Chrono et statistiques, 0 = jamais), à cet instant précis, même
+  Kairos fermé ou le téléphone éteint. Un bandeau ou une notification le dit. La
+  tâche ne reçoit jamais une nuit de temps non travaillé.
 - **Rappels** (Réglages, désactivés par défaut) : une notification quelques
   minutes avant une tâche à heure fixe et, si tu le veux, quand le plan passe à
   la tâche suivante. Sur Android même Kairos fermé (quelques minutes de retard
@@ -580,6 +584,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Frise de la journée | 3.0.0 | Toutes |
 | Suivre | Suivre le temps | 3.0.0 | Toutes |
 | Suivre | Trois alertes du chrono | 3.0.0 | Toutes |
+| Suivre | Garde-fou du chrono | 4.1.0 | Toutes |
 | Suivre | Durées apprises | 3.4.0 | Toutes |
 | Suivre | Estimation par machine learning | 4.0.0 | Toutes |
 | Suivre | Quand tu travailles chaque type | 3.5.0 | Toutes |

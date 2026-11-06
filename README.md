@@ -311,6 +311,10 @@ order (critical path). Cycles are refused.
   break. A banner in the app, and a system notification: Android (ongoing
   notification with a stopwatch, even with the app closed), the desktop
   notification area, the browser notification.
+- **Timer guard**: a forgotten timer stops by itself after 4 hours (Settings →
+  Timer and statistics, 0 = never), at that exact time, even with Kairos
+  closed or the phone off. A banner or a notification says so. The task never
+  gets a night of time nobody worked.
 - **Reminders** (Settings, off by default): a notification a few minutes
   before a fixed-time task and, if you want, when the plan moves on to the
   next task. On Android even with Kairos closed (possibly a few minutes late
@@ -541,6 +545,7 @@ version that brought it and the platforms it exists on.
 | Follow | Timeline of the day | 3.0.0 | All |
 | Follow | Track time | 3.0.0 | All |
 | Follow | Three timer alerts | 3.0.0 | All |
+| Follow | Timer guard | 4.1.0 | All |
 | Follow | Learned durations | 3.4.0 | All |
 | Follow | Machine-learning estimates | 4.0.0 | All |
 | Follow | When you work on each type | 3.5.0 | All |

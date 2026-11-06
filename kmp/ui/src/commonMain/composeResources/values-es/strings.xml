@@ -355,11 +355,14 @@
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">tiempo real %1$s, por encima de la estimación (%2$s).</string>
     <string name="alert_idle">el cronómetro lleva en marcha %1$s. Detenlo si has terminado.</string>
+    <string name="alert_auto_stop">cronómetro detenido automáticamente tras %1$s (límite ajustable en Cronómetro y estadísticas).</string>
     <string name="alert_pomodoro">%1$s de concentración continua: ¿una pausa corta?</string>
     <string name="alert_close">Cerrar la alerta</string>
     <string name="settings_chrono_title">Alertas del cronómetro</string>
     <string name="settings_chrono_body">Avisos mientras corre un cronómetro. Un umbral de 0 desactiva la alerta; el exceso sobre la estimación siempre se avisa.</string>
     <string name="settings_idle">Cronómetro olvidado tras (min)</string>
+    <string name="settings_auto_stop">Detener el cronómetro tras (min)</string>
+    <string name="settings_auto_stop_help">0 = nunca. La sesión se detiene al llegar a esta duración, incluso con la aplicación cerrada.</string>
     <string name="settings_pomodoro">Pausa sugerida tras (min)</string>
     <string name="settings_sound">Sonido cuando no se puede mostrar ninguna notificación</string>
     <string name="settings_saved">Ajustes guardados.</string>
@@ -1746,6 +1749,8 @@
     <string name="card_timeline_body">La vista Día dibuja tu jornada: tareas colocadas, franjas ocupadas, horas fijas, deep work y conflictos, con una línea para el tiempo realmente cronometrado.</string>
     <string name="card_alerts_title">Tres alertas del cronómetro</string>
     <string name="card_alerts_body">Kairos te avisa cuando superas la estimación, cuando olvidaste un cronómetro y cuando toca una pausa: en la aplicación y con una notificación del sistema.</string>
+    <string name="card_timer_guard_title">Límite del cronómetro</string>
+    <string name="card_timer_guard_body">Un cronómetro olvidado se detiene solo tras 4 h (Ajustes → Cronómetro y estadísticas, 0 = nunca), en ese momento exacto, incluso con Kairos cerrado: la tarea nunca recibe una noche de tiempo no trabajado.</string>
     <string name="card_web_version_title">Versión web</string>
     <string name="card_web_version_body">Kairos también funciona en el navegador: tus datos se guardan en él y, en Edge o Chrome, pueden vincularse a un archivo actualizado.</string>
     <string name="card_team_first_task_title">Primera tarea de equipo guiada</string>
