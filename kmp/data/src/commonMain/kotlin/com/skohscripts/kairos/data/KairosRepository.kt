@@ -436,9 +436,14 @@ class KairosRepository(
                     projectTag = edit.projectTag.trim(),
                     taskType = edit.taskType.trim(),
                     recurrence = edit.recurrence,
-                    // Le jour du mois ne vaut que pour la série calendaire ; l'ancre de la
-                    // récurrence hebdomadaire est le jour de l'échéance (recurrence.md).
-                    recurrenceDayOfMonth = edit.recurrenceDayOfMonth?.takeIf { onDay && it in 1..31 },
+                    // Le jour du mois saisi ne vaut que pour la série calendaire ; les ancres de la récurrence
+                    // hebdomadaire et mensuelle sont le jour de l'échéance (recurrence.md, issue #197).
+                    // Échéance inchangée (fiche de l'occurrence de février enregistrée telle quelle) : l'ancre reste, sinon
+                    // le 31 redeviendrait le 28.
+                    recurrenceDayOfMonth = edit.recurrenceDayOfMonth?.takeIf { onDay && it in 1..31 }
+                        ?: edit.deadline?.takeIf { edit.recurrence == TaskRecurrence.MONTHLY }?.let { d ->
+                            if (task.recurrence == TaskRecurrence.MONTHLY && d == task.deadline) task.recurrenceDayOfMonth ?: d.day else d.day
+                        },
                     recurrenceDayOfWeek = edit.deadline?.takeIf { weekly }?.let(Workdays::weekday),
                     // La date programmée prime sur le jour affiché : l'heure fixe tombe ce jour-là.
                     pinnedStart = edit.pinTime?.let { (edit.scheduledDate ?: edit.pinDay).atTime(it) },

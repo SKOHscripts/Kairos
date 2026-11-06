@@ -353,6 +353,26 @@ class KairosRepositoryTest {
         changes.fold(TaskEdit(title = title, pinDay = today)) { e, f -> f(e) }
 
     @Test
+    fun aMonthlyTaskKeepsItsDayEvenWhenItsFebruarySheetIsSavedAsIs() = runTest {
+        // Issue #197 : l'ancre est le jour de l'échéance saisie ; enregistrer telle quelle la fiche de l'occurrence du
+        // 28 février ne la ramène pas à 28 ; changer l'échéance la déplace.
+        val repo = empty()
+        val id = repo.createTask("Loyer")!!
+        repo.updateTask(id, TaskEdit("Loyer", deadline = LocalDate(2027, 1, 31), recurrence = TaskRecurrence.MONTHLY, pinDay = today))
+        assertEquals(31, repo.snapshot.value.tasks.single().recurrenceDayOfMonth)
+        repo.toggleDone(id)
+        val february = repo.snapshot.value.tasks.single { it.id != id }
+        assertEquals(LocalDate(2027, 2, 28) to 31, february.deadline to february.recurrenceDayOfMonth)
+        repo.updateTask(february.id, TaskEdit("Loyer", deadline = february.deadline, recurrence = TaskRecurrence.MONTHLY, pinDay = today))
+        assertEquals(31, repo.snapshot.value.tasks.single { it.id == february.id }.recurrenceDayOfMonth)
+        repo.updateTask(february.id, TaskEdit("Loyer", deadline = LocalDate(2027, 2, 15), recurrence = TaskRecurrence.MONTHLY, pinDay = today))
+        assertEquals(15, repo.snapshot.value.tasks.single { it.id == february.id }.recurrenceDayOfMonth)
+        // Une autre règle n'en garde aucune.
+        repo.updateTask(february.id, TaskEdit("Loyer", deadline = LocalDate(2027, 2, 15), recurrence = TaskRecurrence.WEEKLY, pinDay = today))
+        assertNull(repo.snapshot.value.tasks.single { it.id == february.id }.recurrenceDayOfMonth)
+    }
+
+    @Test
     fun completingARecurringTaskCreatesTheNextOccurrenceOnce() = runTest {
         val repo = empty()
         val id = repo.createTask("Point hebdo")!!

@@ -66,6 +66,34 @@ class RecurrenceTest {
     }
 
     @Test
+    fun monthly_keeps_its_day_after_a_short_month() {
+        // Issue #197 : 31 janv. → 28 févr. → 31 mars → 30 avr. (avant : 28 mars, le jour était perdu pour de bon).
+        assertEquals(LocalDate(2027, 2, 28), Recurrence.nextDeadline(TaskRecurrence.MONTHLY, LocalDate(2027, 1, 31), dayOfMonth = 31))
+        assertEquals(LocalDate(2027, 3, 31), Recurrence.nextDeadline(TaskRecurrence.MONTHLY, LocalDate(2027, 2, 28), dayOfMonth = 31))
+        assertEquals(LocalDate(2027, 4, 30), Recurrence.nextDeadline(TaskRecurrence.MONTHLY, LocalDate(2027, 3, 31), dayOfMonth = 31))
+        assertEquals(LocalDate(2028, 3, 29), Recurrence.nextDeadline(TaskRecurrence.MONTHLY, LocalDate(2028, 2, 29), dayOfMonth = 29))
+        // Sans ancre : le jour de la base, comme avant.
+        assertEquals(LocalDate(2027, 3, 28), Recurrence.nextDeadline(TaskRecurrence.MONTHLY, LocalDate(2027, 2, 28)))
+        assertEquals(LocalDate(2027, 1, 15), Recurrence.nextDeadline(TaskRecurrence.MONTHLY, LocalDate(2026, 12, 15)))
+    }
+
+    @Test
+    fun monthly_occurrences_carry_their_anchor() {
+        val january = LocalDate(2027, 1, 31)
+        val first = task(title = "Loyer", recurrence = TaskRecurrence.MONTHLY, deadline = january)
+        val february = assertNotNull(Recurrence.nextOccurrence(first, january, emptyList(), now))
+        assertEquals(LocalDate(2027, 2, 28), february.deadline)
+        assertEquals(31, february.recurrenceDayOfMonth)
+        val march = assertNotNull(Recurrence.nextOccurrence(february.copy(status = TaskStatus.DONE), LocalDate(2027, 2, 28), emptyList(), now))
+        assertEquals(LocalDate(2027, 3, 31), march.deadline)
+        // Terminée en retard (le 5 avril pour l'échéance du 31 mars) : le mois suivant la complétion, toujours au 30/31.
+        val late = assertNotNull(Recurrence.nextOccurrence(march.copy(status = TaskStatus.DONE), LocalDate(2027, 4, 5), emptyList(), now))
+        assertEquals(LocalDate(2027, 5, 31), late.deadline)
+        // Les autres règles ne reçoivent pas d'ancre mensuelle.
+        assertNull(assertNotNull(Recurrence.nextOccurrence(task(), today, emptyList(), now)).recurrenceDayOfMonth)
+    }
+
+    @Test
     fun spawn_shifts_pinned_time_to_new_deadline_same_hour() {
         val done = task(pinned = LocalDateTime(2026, 7, 1, 10, 30))
         val next = assertNotNull(Recurrence.nextOccurrence(done, today, emptyList(), now))

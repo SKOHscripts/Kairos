@@ -32,11 +32,18 @@ object Recurrence {
     val COMPLETION_RULES = setOf(TaskRecurrence.DAILY, TaskRecurrence.WEEKDAYS, TaskRecurrence.WEEKLY, TaskRecurrence.MONTHLY)
 
     /**
-     * Prochaine échéance après [base] ; [dayOfWeek] (0 = lundi) ancre `weekly`. [holidays] : `weekdays` (jours ouvrés)
+     * Prochaine échéance après [base] ; [dayOfWeek] (0 = lundi) ancre `weekly`, [dayOfMonth] ancre `monthly` (issue #197 :
+     * sans ancre, le jour de la base). [holidays] : `weekdays` (jours ouvrés)
      * saute aussi les fériés, jamais une échéance un jour férié (docs/spec/recurrence.md) ;
      * vide par défaut : les tests différentiels n'en ont pas.
      */
-    fun nextDeadline(rule: TaskRecurrence, base: LocalDate, dayOfWeek: Int? = null, holidays: Set<LocalDate> = emptySet()): LocalDate = when (rule) {
+    fun nextDeadline(
+        rule: TaskRecurrence,
+        base: LocalDate,
+        dayOfWeek: Int? = null,
+        holidays: Set<LocalDate> = emptySet(),
+        dayOfMonth: Int? = null,
+    ): LocalDate = when (rule) {
         TaskRecurrence.DAILY -> base.plus(DatePeriod(days = 1))
         TaskRecurrence.WEEKDAYS -> {
             var step = base.plus(DatePeriod(days = 1))
@@ -50,11 +57,12 @@ object Recurrence {
             base.plus(DatePeriod(days = delta))
         }
         TaskRecurrence.MONTHLY -> {
-            // +1 mois, jour borné à la fin du mois cible (31 janv. → 28/29 févr.).
+            // Mois suivant, au jour ancré borné à la fin du mois cible (31 janv. → 28/29 févr. → 31 mars : l'ancre
+            // survit aux mois courts, issue #197).
             val december = base.month.ordinal == 11
             val year = if (december) base.year + 1 else base.year
             val month = if (december) 1 else base.month.ordinal + 2
-            LocalDate(year, month, minOf(base.day, daysInMonth(year, month)))
+            LocalDate(year, month, minOf((dayOfMonth ?: base.day).coerceIn(1, 31), daysInMonth(year, month)))
         }
         else -> throw IllegalArgumentException("Règle de récurrence inconnue : $rule")
     }
@@ -74,6 +82,13 @@ object Recurrence {
             TaskRecurrence.MONTHLY_ON_DAY to calendarDeadline((dayOfMonth ?: base.day).coerceIn(1, 31), nextMonth, holidays),
         )
     }
+
+    /**
+     * Jour d'ancrage d'une mensuelle (issue #197) : celui gardé dans `recurrenceDayOfMonth`, sinon le jour de son échéance ;
+     * `null` pour toute autre règle (le champ est alors celui de « le N du mois », ou rien).
+     */
+    fun monthlyAnchor(task: Task): Int? =
+        if (task.recurrence == TaskRecurrence.MONTHLY) task.recurrenceDayOfMonth ?: task.deadline?.day else null
 
     fun daysInMonth(year: Int, month: Int): Int {
         val first = LocalDate(year, month, 1)
@@ -98,7 +113,8 @@ object Recurrence {
         } else {
             null
         }
-        val deadline = nextDeadline(task.recurrence, base, anchor, holidays)
+        val monthAnchor = monthlyAnchor(task)
+        val deadline = nextDeadline(task.recurrence, base, anchor, holidays, monthAnchor)
         val duplicate = existing.any {
             it.title == task.title && it.recurrence == task.recurrence && it.deadline == deadline && it.status == TaskStatus.TODO
         }
@@ -117,6 +133,7 @@ object Recurrence {
             estimatedMinutes = task.estimatedMinutes,
             recurrence = task.recurrence,
             recurrenceDayOfWeek = anchor,
+            recurrenceDayOfMonth = monthAnchor,
             parentId = task.parentId,
             // L'occurrence suivante reste dans l'espace de sa mère : sinon une tâche
             // d'équipe récurrente ferait naître une tâche Perso (docs/spec/equipe.md).

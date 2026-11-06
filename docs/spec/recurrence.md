@@ -44,6 +44,9 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
   week-end **ni sur un jour férié** des réglages (France, jours libres).
 - Une hebdomadaire revient toujours sur son jour de semaine (celui de son
   échéance), même terminée en retard, sans dérive.
+- Une mensuelle revient toujours sur son jour du mois (celui de son échéance), borné à la fin des mois courts, même
+  terminée en retard, sans dérive : 31 janvier → 28 février → **31 mars** → 30 avril (issue #197 ; avant, le jour perdu
+  après un mois court l'était pour de bon : 31 janv. → 28 févr. → 28 mars).
 - Une récurrente terminée en retard repart d'aujourd'hui, pas de l'échéance
   manquée (pas de rattrapage en rafale).
 - Fait, rouvert, refait : une seule occurrence suivante.
@@ -124,7 +127,11 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
 ### Critères de succès
 
 - Les comportements décrits ci-dessus sont vérifiés par `RecurrenceTest` et
-  `KairosRepositoryTest`.
+  `KairosRepositoryTest`. Mensuelle ancrée (#197) : 31 janv. → 28 févr. → 31 mars → 30 avr., 29 févr. 2028 → 29 mars,
+  ancre reportée sur chaque occurrence, terminée en retard toujours au même jour
+  (`RecurrenceTest.monthly_keeps_its_day_after_a_short_month`, `monthly_occurrences_carry_their_anchor`) ; ancre posée à
+  l'enregistrement, gardée quand la fiche de février est enregistrée telle quelle, déplacée quand l'échéance change
+  (`KairosRepositoryTest.aMonthlyTaskKeepsItsDayEvenWhenItsFebruarySheetIsSavedAsIs`).
 - Échéances suivantes, jours ouvrés, décalage et créneaux récurrents
   identiques aux fichiers d'or sur le jeu calendaire
   (`DifferentialTest.calendar_matches_golden`).
@@ -192,15 +199,18 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
 
 ## 2. Solution technique
 
-- `nextDeadline(règle, base, jourDeSemaine?, fériés = ∅)` : `DAILY` +1 jour ;
+- `nextDeadline(règle, base, jourDeSemaine?, fériés = ∅, jourDuMois?)` : `DAILY` +1 jour ;
   `WEEKDAYS` jour suivant hors week-end et hors `fériés` ; `WEEKLY` prochain jour de semaine
   ancré (défaut : celui de la base), toujours strictement après ; `MONTHLY`
-  +1 mois, jour borné à la fin du mois.
+  mois suivant celui de la base, au jour ancré `jourDuMois` (défaut : celui de la base) borné à la fin du mois.
 - `nextOccurrence(tâche, aujourd'hui, existantes, maintenant, fériés = ∅)` : `null` hors
   `COMPLETION_RULES` ou si une tâche à faire de même titre, règle et
   échéance existe ; sinon la copie (identifiant 0), base
   `max(échéance, aujourd'hui)`, ancre hebdomadaire = `recurrenceDayOfWeek`
-  sinon jour de l'échéance, reportée sur la copie. La copie garde l'espace
+  sinon jour de l'échéance, ancre mensuelle (#197) = `recurrenceDayOfMonth` sinon jour du mois de l'échéance, reportées
+  sur la copie. `updateTask` pose l'ancre mensuelle = jour de l'échéance saisie (comme l'ancre hebdomadaire), sauf si l'échéance
+  d'une mensuelle n'a pas changé (la fiche de l'occurrence du 28 février enregistrée telle quelle garde l'ancre 31) ; la
+  projection des séries de l'espace Équipe (`TeamWork.seriesDates`) suit la même ancre. La copie garde l'espace
   et l'assigné de la tâche (`equipe.md` : une tâche d'équipe récurrente ne
   fait jamais naître une tâche Perso) ; pour une tâche d'équipe, le dépôt
   lui donne un nouveau `teamUid`, un avancement vide et son événement
@@ -326,6 +336,14 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
   La série suit le deux-points sans guillemets, comme dans l'exemple du propriétaire.
 
 ### Décisions et pièges tracés
+
+- **Mensuelle ancrée sur le jour de son échéance** (propriétaire, 2026-11-06, issue #197, QA d'avant 4.0) : le jour est
+  gardé dans `recurrenceDayOfMonth`, le champ de la série « le N du mois », que les deux règles ne lisent jamais l'une
+  pour l'autre (chaque lecture filtre sur la règle). Aucune migration : base, export et synchronisation portent déjà le
+  champ ; une mensuelle sans ancre la prend au jour de son échéance (les séries déjà tombées au 28 y restent). Écartés :
+  garder « +1 mois depuis la dernière échéance » (le 31 se perdait pour de bon) ou seulement conseiller « le N du mois »
+  dans la fiche. Conséquence : terminée en retard, une mensuelle garde son jour au lieu de prendre celui de la
+  complétion, comme l'hebdomadaire garde son jour de semaine.
 
 - **Les créneaux « jours ouvrés » sautent aussi les fériés** (2026-10-22, issue #109, décision du propriétaire) :
   **par défaut**, sans réglage. Les deux règles portent le même libellé « jours ouvrés » et se comportaient
