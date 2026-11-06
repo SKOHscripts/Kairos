@@ -7,7 +7,7 @@ GitHub. Fichiers couverts : `fastlane/metadata/android/` (fiches FR/EN),
 `kmp/tools/make_app_icons.py` (icônes des fiches et de la page, aperçu des liens `site/og/`), `kmp/tools/make_badges.py` et
 `validate_badges.py` (boutons de téléchargement, `site/badges/`), `kmp/tools/validate_og.py` (aperçu des liens),
 `fdroid/com.skohscripts.kairos.yml`, `fdroid/README.md`, `site/`,
-`.github/workflows/fdroid-check.yml`, `.github/workflows/pages.yml`, et la
+`.github/workflows/fdroid-check.yml`, `.github/workflows/metadata.yml`, `.github/workflows/pages.yml`, et la
 propriété `kairos.preview` de `kmp/androidApp/build.gradle.kts`. Versions,
 construction et releases : `distribution.md`._
 
@@ -78,7 +78,7 @@ sans débordement (les boutons passent à la ligne) ; les images se lisent sur f
   propriétaire : GitHub ne la lit pas dans le dépôt).
 
 **Critères de succès** : chaque page porte ses balises d'aperçu, cohérentes avec son titre, sa description et sa langue ; chaque
-image fait 1280×640 (`validate_og.py`, job `metadata`) ; le texte tient dans une marge de 80 px (garanti par la
+image fait 1280×640 (`validate_og.py`, workflow `metadata.yml`) ; le texte tient dans une marge de 80 px (garanti par la
 construction, `make_app_icons.py`).
 
 **Hors périmètre** : badge « Latest release » (déjà en tête du README), logos de marque des systèmes (Windows, Apple, Linux) et des
@@ -241,9 +241,12 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
      `SOURCE_DATE_EPOCH`, d'après son historique) puis `fdroid build`.
      `fdroid build` sortant avec 0 même en échec, le script juge sur l'APK
      `unsigned/com.skohscripts.kairos_<versionCode>.apk`, copié dans `OUT`.
-- `fdroid-check.yml` : sur PR et push sur `main` touchant `fdroid/**`, `fastlane/**`,
-  `kmp/**` : job `metadata` (`validate_fastlane.py`) et job `build`
-  (`fdroid_check.sh` dans l'image, APK non signé en artefact). Après une
+- `fdroid-check.yml` : sur PR et push sur `main` touchant ce qui change l'APK ou la recette (`fdroid/**`, `kmp/**` hors
+  `kmp/tools/**`, sauf `kmp/tools/fdroid_check.sh`) : job `build` (`fdroid_check.sh` dans l'image, APK non signé en
+  artefact gardé 1 jour, le temps du job `reproducible`). Une PR qui reçoit un nouveau commit annule le run précédent
+  (`concurrency`, 2026-11-06). Les contrôles de textes (`validate_fastlane.py`, `validate_badges.py`, `validate_og.py`)
+  sont dans `metadata.yml` (PR et push sur `main` touchant `fastlane/**`, `site/**`, les README, `kmp/gradle.properties`
+  ou `kmp/tools/*.py`) : une modification de texte ne relance plus la construction F-Droid. Après une
   exécution réussie de « Kairos 3 release » déclenchée par un tag **final**
   (sans `-`) : job `build` avec `--binaries`, qui compare au
   `Kairos-android.apk` publié. Une préversion n'est pas comparée à son APK
@@ -320,7 +323,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   `og:image` (adresse **absolue** `…/og/<langue>.png` : les robots d'aperçu ne résolvent pas les chemins relatifs),
   `og:image:width`/`height` (1280, 640), `og:image:alt` = le titre, `twitter:card` `summary_large_image`. Elles ne
   chargent rien chez le visiteur : seuls les services qui affichent l'aperçu lisent l'image.
-- **Vérification** : `kmp/tools/validate_og.py` (sans dépendance, job `metadata` de `fdroid-check.yml`) compare chaque balise
+- **Vérification** : `kmp/tools/validate_og.py` (sans dépendance, workflow `metadata.yml`) compare chaque balise
   à sa valeur attendue et lit l'en-tête PNG de chaque image (1280×640).
 - `pages.yml` copie `site/` tel quel : les images sont servies sous `og/` sans étape de plus.
 
@@ -340,7 +343,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   Windows, Linux, macOS) ne se traduisent pas.
 - **Régénération** : le script (`fontTools` pour les tracés, le paquet `@material-symbols/svg-400` comme `make_icons.py`) est lancé à la
   main quand un texte, une icône ou la couleur du thème change ; la CI ne le relance pas. Un test de CI (`kmp/tools/validate_badges.py`,
-  job `metadata` de `fdroid-check.yml`, qui se déclenche aussi sur `site/**` et les README) vérifie que les 42 fichiers existent, que chaque page porte une rangée des sept boutons dans sa langue et chaque README deux (en tête, puis dans « Install »), qu'aucun badge référencé n'est absent, et qu'aucun « bientôt sur F-Droid » ne reste.
+  workflow `metadata.yml`, qui se déclenche sur `site/**` et les README) vérifie que les 42 fichiers existent, que chaque page porte une rangée des sept boutons dans sa langue et chaque README deux (en tête, puis dans « Install »), qu'aucun badge référencé n'est absent, et qu'aucun « bientôt sur F-Droid » ne reste.
 - **Cibles** : F-Droid `https://f-droid.org/packages/com.skohscripts.kairos/` ; Obtainium `obtainium://add/https://github.com/SKOHscripts/Kairos`
   sur la page, `https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/SKOHscripts/Kairos` dans le README (GitHub retire
   les liens aux schémas inconnus) ; APK, Windows, Linux, macOS : `@@DL@@/<fichier>` sur la page (release stable, ou dernière préversion), `…/releases/latest/download/<fichier>`

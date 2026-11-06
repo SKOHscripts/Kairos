@@ -1,14 +1,22 @@
 # CI de Kairos 3 (kmp/, docs/spec/distribution.md § CI) : tests et builds
-# des quatre cibles à chaque PR et push sur main.
+# (bureau, web) à chaque PR et push sur main. L'APK est construit et vérifié par fdroid-check.yml (construction F-Droid
+# et reproductibilité), déclenché par les mêmes changements : il n'est pas reconstruit ici.
 name: Kairos 3 (KMP)
 
 on:
   push:
     branches: [main]
-    paths: ["kmp/**", ".github/workflows/kmp*.yml"]
+    # kmp/tools/ : scripts de génération et de contrôle, sans effet sur l'application (le code qu'ils génèrent est versionné).
+    paths: ["kmp/**", "!kmp/tools/**", ".github/workflows/kmp.yml"]
   pull_request:
-    paths: ["kmp/**", ".github/workflows/kmp*.yml"]
+    paths: ["kmp/**", "!kmp/tools/**", ".github/workflows/kmp.yml"]
   workflow_dispatch:
+
+# Une PR qui reçoit un nouveau commit annule le run précédent (docs/spec/distribution.md § CI) ; push sur main et
+# lancements manuels ne s'annulent jamais (groupe propre à chaque run).
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.head_ref) || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -50,10 +58,9 @@ jobs:
           --tests 'com.skohscripts.kairos.core.sync.SyncSummaryTest'
           --tests 'com.skohscripts.kairos.core.sync.SyncOrderTest'
 
-      - name: Builds (APK, bureau, web)
+      - name: Builds (bureau, web)
         run: >
           ./gradlew --no-daemon
-          :androidApp:assembleRelease
           :desktopApp:createDistributable
           :webApp:wasmJsBrowserDistribution
 
@@ -70,3 +77,4 @@ jobs:
           name: kmp-ci-screens
           path: ${{ runner.temp }}/screens
           if-no-files-found: ignore
+          retention-days: 7

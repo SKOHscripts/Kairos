@@ -1,0 +1,31 @@
+# Nettoyage des artefacts (docs/spec/distribution.md § Artefacts) : à la fin de chaque workflow qui en produit, ne garde
+# que ceux des 2 derniers runs terminés de chaque workflow (kmp/tools/cleanup_artifacts.py). Les durées de conservation
+# courtes de chaque artefact (1 à 14 jours) font le reste. Jamais d'artefact d'un run en cours.
+name: Artifacts cleanup
+
+on:
+  workflow_run:
+    workflows: ["Kairos 3 (KMP)", "F-Droid", "Kairos 3 release", "Kairos test build"]
+    types: [completed]
+  workflow_dispatch:
+
+# Un seul nettoyage à la fois ; un nouveau attend le précédent.
+concurrency:
+  group: artifacts-cleanup
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: kmp/tools
+      - name: Supprimer les artefacts des runs anciens
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KEEP_RUNS: "2"
+        run: python3 kmp/tools/cleanup_artifacts.py

@@ -16,7 +16,8 @@ name: Pages
 on:
   push:
     branches: [main]
-    paths: ["kmp/**", "site/**", "fastlane/**", ".github/workflows/pages.yml"]
+    # La page ne dépend que de la version web, du site et des captures : ni Android, ni bureau, ni scripts.
+    paths: ["kmp/**", "!kmp/androidApp/**", "!kmp/desktopApp/**", "!kmp/tools/**", "site/**", "fastlane/**", ".github/workflows/pages.yml"]
   release:
     types: [published]
   # La release créée par kmp-release.yml (jeton GITHUB_TOKEN) ne déclenche pas
