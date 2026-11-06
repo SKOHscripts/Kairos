@@ -99,6 +99,19 @@ class DurationEstimatorTest {
     }
 
     @Test
+    fun blankTitlesNeverFormATitleSeries() {
+        // Issue #196 : des tâches sans titre (import, fichier d'échange) n'ont rien en commun, elles ne s'alimentent pas.
+        val blank = listOf(sample(1, 30, "", series = null), sample(2, 30, " ", series = null), sample(3, 30, "  ", series = null))
+        assertNull(estimate(blank, target("", series = null)))
+        assertNull(estimate(blank, target("   ", series = null)))
+        // Un titre vide n'empêche pas la série (identifiant stable) ni un autre titre de se rattacher aux siens.
+        val series = listOf(sample(1, 40, "", series = 1), sample(2, 40, "", series = 1), sample(3, 40, "", series = 1))
+        assertEquals(DurationEstimator.Source.SERIES, estimate(series, target("", series = 1))!!.source)
+        val titled = listOf(sample(1, 30, "Courrier", series = null), sample(2, 30, "Courrier", series = null), sample(3, 30, "Courrier", series = null))
+        assertEquals(DurationEstimator.Source.TITLE, estimate(titled, target("courrier", series = null))!!.source)
+    }
+
+    @Test
     fun teamAndPersonalSpacesNeverFeedEachOther() {
         val teamHistory = listOf(sample(1, 40, space = TaskSpace.TEAM), sample(2, 40, space = TaskSpace.TEAM), sample(3, 40, space = TaskSpace.TEAM))
         assertNull(estimate(teamHistory, target(space = TaskSpace.PERSONAL)))
