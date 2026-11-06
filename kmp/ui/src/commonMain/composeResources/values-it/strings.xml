@@ -352,14 +352,21 @@
     <string name="alerts_active">Avvisi del timer attivi.</string>
     <string name="alerts_denied">Notifiche bloccate: gli avvisi compariranno nell’app.</string>
     <string name="alerts_unavailable">Notifiche non disponibili qui: gli avvisi compariranno nell’app.</string>
+    <string name="alerts_hint_exact">Ad app chiusa, gli avvisi possono arrivare in ritardo.</string>
+    <string name="alerts_hint_exact_action">Consenti sveglie esatte</string>
+    <string name="alerts_hint_battery">Il risparmio energetico può ritardare gli avvisi.</string>
+    <string name="alerts_hint_battery_action">Impostazioni batteria</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">tempo reale %1$s, oltre la stima (%2$s).</string>
     <string name="alert_idle">il timer è attivo da %1$s. Fermalo se hai finito.</string>
+    <string name="alert_auto_stop">timer fermato automaticamente dopo %1$s (limite regolabile in Timer e statistiche).</string>
     <string name="alert_pomodoro">%1$s di concentrazione continua: una breve pausa?</string>
     <string name="alert_close">Chiudi l’avviso</string>
     <string name="settings_chrono_title">Avvisi del timer</string>
     <string name="settings_chrono_body">Promemoria mentre un timer è in corso. Una soglia a 0 disattiva l’avviso; il superamento della stima viene sempre segnalato.</string>
     <string name="settings_idle">Timer dimenticato dopo (min)</string>
+    <string name="settings_auto_stop">Fermare il timer dopo (min)</string>
+    <string name="settings_auto_stop_help">0 = mai. La sessione si ferma a questa durata, anche con l’app chiusa.</string>
     <string name="settings_pomodoro">Pausa suggerita dopo (min)</string>
     <string name="settings_sound">Suono quando non si può mostrare nessuna notifica</string>
     <string name="settings_saved">Impostazioni salvate.</string>
@@ -1746,6 +1753,8 @@
     <string name="card_timeline_body">La vista Giorno disegna la tua giornata: attività collocate, fasce occupate, orari fissi, deep work e conflitti, con una linea per il tempo davvero cronometrato.</string>
     <string name="card_alerts_title">Tre avvisi del timer</string>
     <string name="card_alerts_body">Kairos ti avvisa quando superi la stima, quando hai dimenticato un timer e quando serve una pausa: nell’app e con una notifica di sistema.</string>
+    <string name="card_timer_guard_title">Limite del timer</string>
+    <string name="card_timer_guard_body">Un timer dimenticato si ferma da solo dopo 4 h (Impostazioni → Timer e statistiche, 0 = mai), esattamente in quel momento, anche con Kairos chiuso: l’attività non riceve mai una notte di tempo non lavorato.</string>
     <string name="card_web_version_title">Versione web</string>
     <string name="card_web_version_body">Kairos funziona anche nel browser: i tuoi dati vi sono salvati e, in Edge o Chrome, possono essere collegati a un file sempre aggiornato.</string>
     <string name="card_team_first_task_title">Prima attività di team guidata</string>

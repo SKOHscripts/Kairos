@@ -80,6 +80,7 @@ enum class GuideSection(
     SETTINGS_LEVELS(GuideScreen.SETTINGS, SettingsCategory.PLANNING),
     SETTINGS_APPEARANCE(GuideScreen.SETTINGS, SettingsCategory.GENERAL),
     SETTINGS_DATA(GuideScreen.SETTINGS, SettingsCategory.DATA),
+    SETTINGS_CHRONO(GuideScreen.SETTINGS, SettingsCategory.TRACKING),
     SETTINGS_REMINDERS(GuideScreen.SETTINGS, SettingsCategory.TRACKING),
     STATS_HOURS(GuideScreen.STATS, missing = Res.string.guide_spot_missing_stats),
 }

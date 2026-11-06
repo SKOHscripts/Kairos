@@ -82,6 +82,8 @@ import com.skohscripts.kairos.ui.generated.resources.settings_error_number
 import com.skohscripts.kairos.ui.generated.resources.settings_error_context
 import com.skohscripts.kairos.ui.generated.resources.settings_error_duplicate
 import com.skohscripts.kairos.ui.generated.resources.settings_error_required
+import com.skohscripts.kairos.ui.generated.resources.settings_auto_stop
+import com.skohscripts.kairos.ui.generated.resources.settings_auto_stop_help
 import com.skohscripts.kairos.ui.generated.resources.settings_idle
 import com.skohscripts.kairos.ui.generated.resources.settings_pomodoro
 import com.skohscripts.kairos.ui.generated.resources.settings_section_day
@@ -193,6 +195,7 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "learning.model" to FieldText(Res.string.setting_learning_model, Res.string.setting_learning_model_help),
     "learning.notifyChanges" to FieldText(Res.string.setting_learning_notify, Res.string.setting_learning_notify_help),
     "timerIdleAlertMinutes" to FieldText(Res.string.settings_idle),
+    "timerAutoStopMinutes" to FieldText(Res.string.settings_auto_stop, Res.string.settings_auto_stop_help),
     "pomodoroFocusMinutes" to FieldText(Res.string.settings_pomodoro),
     "timerAlertSound" to FieldText(Res.string.settings_sound),
     "reminders.enabled" to FieldText(Res.string.setting_reminders_enabled),
@@ -244,7 +247,7 @@ private val LEARNING = Section(
 private val GUARDS = Section(Res.string.settings_section_guards, null, KairosIcons.Shield, listOf("staleOverdueDays", "staleUntouchedDays", "priorityOverloadThreshold"))
 private val CHRONO = Section(
     Res.string.settings_chrono_title, Res.string.settings_chrono_body, KairosIcons.NotificationsActive,
-    listOf("timerIdleAlertMinutes", "pomodoroFocusMinutes", "timerAlertSound"),
+    listOf("timerIdleAlertMinutes", "timerAutoStopMinutes", "pomodoroFocusMinutes", "timerAlertSound"),
 )
 private val REMINDERS = Section(
     Res.string.settings_reminders_title, Res.string.settings_reminders_body, KairosIcons.Alarm,
@@ -356,7 +359,7 @@ internal fun SettingsFormCards(
             AdvancedGroup(values, errors, onChange)
         }
         SettingsCategory.TRACKING -> {
-            SectionCard(CHRONO, values, errors, onChange)
+            GuideSpot(GuideSection.SETTINGS_CHRONO) { SectionCard(CHRONO, values, errors, onChange) }
             GuideSpot(GuideSection.SETTINGS_REMINDERS) { SectionCard(REMINDERS, values, errors, onChange) }
             SectionCard(STATS, values, errors, onChange)
         }

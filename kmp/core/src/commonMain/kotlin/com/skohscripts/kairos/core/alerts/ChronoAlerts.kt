@@ -49,4 +49,14 @@ object ChronoAlerts {
 
     /** Seuils encore à venir après [now] (alarmes à programmer). */
     fun upcoming(alerts: List<ChronoAlert>, now: Instant): List<ChronoAlert> = alerts.filter { it.at > now }
+
+    /**
+     * Garde-fou (docs/spec/temps-reel-chrono.md § Garde-fou, issue #220) : l'instant où la session démarrée à [startedAt]
+     * est close d'office, `début + limite` ; nul si [limitMinutes] vaut 0 ou moins (jamais).
+     */
+    fun autoStopAt(startedAt: Instant, limitMinutes: Int): Instant? = if (limitMinutes > 0) startedAt + limitMinutes.minutes else null
+
+    /** Les seuils situés avant l'arrêt [stopAt] : une session close ne notifie plus (ni bandeau ni alarme). */
+    fun beforeStop(alerts: List<ChronoAlert>, stopAt: Instant?): List<ChronoAlert> =
+        if (stopAt == null) alerts else alerts.filter { it.at < stopAt }
 }

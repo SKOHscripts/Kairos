@@ -40,6 +40,20 @@ class SettingsFormTest {
     }
 
     @Test
+    fun theTimerGuardIsNullByDefaultAndBounded() {
+        // Garde-fou du chrono (docs/spec/temps-reel-chrono.md § Garde-fou) : 240 affiché, rien d'écrit tant qu'on n'y touche pas.
+        assertEquals("240", SettingsForm.values(base)["timerAutoStopMinutes"])
+        assertNull(SettingsForm.validate(SettingsForm.values(base), base).settings!!.timerAutoStopMinutes)
+        assertEquals(90, validate("timerAutoStopMinutes" to "90").settings!!.timerAutoStopMinutes)
+        assertEquals(0, validate("timerAutoStopMinutes" to "0").settings!!.timerAutoStop)
+        // Remis à 240 : de nouveau nul.
+        assertNull(SettingsForm.validate(SettingsForm.values(base.copy(timerAutoStopMinutes = 90)) + ("timerAutoStopMinutes" to "240"), base).settings!!.timerAutoStopMinutes)
+        assertTrue("timerAutoStopMinutes" in validate("timerAutoStopMinutes" to "1441").fieldErrors)
+        assertTrue("timerAutoStopMinutes" in validate("timerAutoStopMinutes" to "-1").fieldErrors)
+        assertEquals(1440, validate("timerAutoStopMinutes" to "1440").settings!!.timerAutoStop)
+    }
+
+    @Test
     fun theScheduleStaysNullUntilADayIsCustomised() {
         // Défauts relus puis revalidés : aucun objet `schedule` n'apparaît (rien dans l'export d'une installation qui n'y touche pas).
         assertNull(SettingsForm.validate(SettingsForm.values(base), base).settings!!.schedule)

@@ -195,7 +195,8 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
 - **Secrets** : aller-retour chiffré, altération détectée, absence de la clé = secrets absents (jamais une exception) ; fichier de
   secrets hors du dossier de données choisi par l'utilisateur (`SecretStoreTest`, `DesktopSecretsTest`).
 - **Journal** : une synchronisation qui échoue n'écrit ni adresse, ni chemin, ni identifiant, ni jeton, ni titre (`ConnectionLogTest`).
-- **Android** : le manifeste déclare exactement `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `READ_CALENDAR`, `INTERNET`
+- **Android** : le manifeste déclare exactement `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `READ_CALENDAR`,
+  `SCHEDULE_EXACT_ALARM` (alertes du chrono, #219, `temps-reel-chrono.md`), `INTERNET`
   (`ManifestPermissionsTest`, et `aapt2 dump permissions` sur l'APK de release en CI) ; trafic en clair autorisé par la configuration réseau mais
   gardé par `HttpPolicy` ; aucune autre permission.
 - **Nouvelles versions Android** : désactivée par défaut ; absente et inerte pour une installation par un magasin même si le

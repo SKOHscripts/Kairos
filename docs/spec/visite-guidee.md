@@ -262,6 +262,8 @@ partout. La liste complète des fonctionnalités lit le même catalogue.
   `DAY_INBOX` comme les points, `sous-taches.md` § Conseil). La carte `subtasks` dit aussi la priorité imposée, l'échéance
   héritée et la somme des durées. `feedback` (« Donner un avis », #211 ; chapitre « Premiers pas », icône `Feedback`, après
   `guided_walks`) : sa cible `GuideTarget.Feedback` ouvre le dialogue de `retours.md` sans changer d'écran.
+  `timer_guard` (garde-fou du chrono, #220 ; chapitre « Suivre », icône `Shield`, après `alerts`) : section
+  `SETTINGS_CHRONO` (carte « Alertes du chrono » de Réglages → Chrono et statistiques, `temps-reel-chrono.md` § Garde-fou).
 - **Comptes de cartes dans les tests** : `M6GuideUiTest` tire les nombres de cartes par chapitre de `FeatureCatalog`
   (une carte ajoutée à une version ne casse plus le test du hub).
 - **Lien avec le README** : `FeatureCatalog.README_FEATURES` associe chaque fonctionnalité en gras de la section

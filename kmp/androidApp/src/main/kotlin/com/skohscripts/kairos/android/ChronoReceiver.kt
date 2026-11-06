@@ -4,9 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import kotlinx.coroutines.launch
+import kotlin.time.Instant
 
 /**
- * Alarmes de seuil et action « Arrêter » de la notification permanente
+ * Alarmes de seuil, du garde-fou et action « Arrêter » de la notification permanente
  * (docs/spec/temps-reel-chrono.md § Android), et alarmes des rappels et du récapitulatif du jour (docs/spec/rappels.md). Fonctionne application
  * fermée : la base est ouverte par [KairosProcess] si besoin.
  */
@@ -28,6 +29,20 @@ class ChronoReceiver : BroadcastReceiver() {
                 val body = intent.getStringExtra(EXTRA_BODY) ?: return
                 ReminderSync.postSummary(context, title, body)
             }
+            ACTION_AUTO_STOP -> {
+                val title = intent.getStringExtra(EXTRA_TITLE) ?: return
+                val session = intent.getLongExtra(EXTRA_SESSION, 0L)
+                val at = Instant.fromEpochMilliseconds(intent.getLongExtra(EXTRA_AT, 0L))
+                val limit = intent.getIntExtra(EXTRA_LIMIT, 0)
+                val pending = goAsync()
+                KairosProcess.scope.launch {
+                    try {
+                        ChronoSync.autoStop(context, KairosProcess.services(context).await().repository, session, at, title, limit)
+                    } finally {
+                        pending.finish()
+                    }
+                }
+            }
             ACTION_STOP -> {
                 val pending = goAsync()
                 KairosProcess.scope.launch {
@@ -44,11 +59,15 @@ class ChronoReceiver : BroadcastReceiver() {
     companion object {
         const val ACTION_ALERT = "com.skohscripts.kairos.CHRONO_ALERT"
         const val ACTION_STOP = "com.skohscripts.kairos.CHRONO_STOP"
+        const val ACTION_AUTO_STOP = "com.skohscripts.kairos.CHRONO_AUTO_STOP"
         const val ACTION_REMINDER = "com.skohscripts.kairos.REMINDER"
         const val ACTION_SUMMARY = "com.skohscripts.kairos.SUMMARY"
         const val EXTRA_KIND = "kind"
         const val EXTRA_TITLE = "title"
         const val EXTRA_BODY = "body"
+        const val EXTRA_SESSION = "session"
+        const val EXTRA_AT = "at"
+        const val EXTRA_LIMIT = "limit"
     }
 }
 

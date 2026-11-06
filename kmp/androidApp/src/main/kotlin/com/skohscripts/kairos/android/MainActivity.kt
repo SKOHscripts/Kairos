@@ -126,6 +126,8 @@ class MainActivity : ComponentActivity(), FileService {
         KairosProcess.scope.launch {
             val services = KairosProcess.services(this@MainActivity).await()
             (services.notifier as? AndroidNotifier)?.refresh()
+            // Alarmes exactes accordées ou retirées entre-temps : les alarmes du chrono suivent (issue #219).
+            ChronoSync.reschedule()
             (services.calendars as? AndroidCalendarService)?.refresh()
             // Premier plan : le fichier lié est relu tout de suite, puis toutes les minutes (docs/spec/synchronisation.md).
             (services.linkedStorage as? LinkedFileSync)?.setVisible(true)

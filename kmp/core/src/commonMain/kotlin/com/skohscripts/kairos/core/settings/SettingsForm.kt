@@ -382,6 +382,9 @@ object SettingsForm {
         PRIORITY_VALUES.map { p -> levelName(priorityNameKey(p), { it.priority[p] }) { l, v -> l.copy(priority = l.priority.with(p, v)) } } +
             FIBONACCI_SCALE.map { pts -> levelName(pointsNameKey(pts), { it.points[pts] }) { l, v -> l.copy(points = l.points.with(pts, v)) } }
 
+    /** Garde-fou du chrono : au plus 24 h (au-delà, il n'en serait plus un). */
+    const val MAX_TIMER_AUTO_STOP = 1440
+
     const val SCHEDULE_DEFAULT = "default"
     const val SCHEDULE_CUSTOM = "custom"
     const val SCHEDULE_FREE = "free"
@@ -410,6 +413,10 @@ object SettingsForm {
         text("taskTypes", FieldKind.TEXT, { it.taskTypes }) { s, v -> s.copy(taskTypes = normalizeList(v)) },
         int("statsWindowWeeks", 1, get = { it.statsWindowWeeks }) { s, v -> s.copy(statsWindowWeeks = v) },
         int("timerIdleAlertMinutes", 0, get = { it.timerIdleAlertMinutes }) { s, v -> s.copy(timerIdleAlertMinutes = v) },
+        // Garde-fou : affiché à sa valeur effective, enregistré nul à la valeur par défaut (rien d'écrit tant qu'on n'y touche pas).
+        int("timerAutoStopMinutes", 0, MAX_TIMER_AUTO_STOP, { it.timerAutoStop }) { s, v ->
+            s.copy(timerAutoStopMinutes = v.takeIf { it != Settings.DEFAULT_TIMER_AUTO_STOP_MINUTES })
+        },
         int("pomodoroFocusMinutes", 0, get = { it.pomodoroFocusMinutes }) { s, v -> s.copy(pomodoroFocusMinutes = v) },
         bool("timerAlertSound", { it.timerAlertSound }) { s, v -> s.copy(timerAlertSound = v) },
         bool("holidaysFr", { it.holidaysFr }) { s, v -> s.copy(holidaysFr = v) },

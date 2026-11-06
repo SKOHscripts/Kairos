@@ -293,6 +293,23 @@ class KairosRepository(
     }
 
     /**
+     * Garde-fou du chrono (docs/spec/temps-reel-chrono.md § Garde-fou, issue #220) : ferme la session [sessionId] à [at]
+     * (borné entre son début et maintenant), seulement si elle est encore ouverte. `true` si c'est cet appel qui l'a fermée :
+     * la veille de l'application et l'alarme d'Android peuvent s'en charger toutes deux, seul le gagnant prévient.
+     */
+    suspend fun stopTimerAt(sessionId: Long, at: Instant): Boolean {
+        var closed = false
+        write {
+            // Relu sous le verrou : l'autre chemin a pu fermer la session entre-temps.
+            val session = state.value.workSessions.firstOrNull { it.id == sessionId && it.endedAt == null } ?: return@write
+            val end = minOf(maxOf(at, session.startedAt), clock.now())
+            queries.closeSessionAt(end.store(), sessionId)
+            closed = true
+        }
+        return closed
+    }
+
+    /**
      * « Décaler » : l'échéance passe au jour ouvré qui
      * suit (elle-même si elle est à venir, sinon aujourd'hui) ; week-ends et
      * jours fériés des réglages sautés. Une tâche personnelle est aussi programmée pour ce jour : elle quitte

@@ -354,14 +354,21 @@
     <string name="alerts_active">Alertes chrono actives.</string>
     <string name="alerts_denied">Notifications bloquées : les alertes s’afficheront dans l’application.</string>
     <string name="alerts_unavailable">Notifications indisponibles ici : les alertes s’afficheront dans l’application.</string>
+    <string name="alerts_hint_exact">Les alertes peuvent arriver en retard, application fermée.</string>
+    <string name="alerts_hint_exact_action">Autoriser les alarmes exactes</string>
+    <string name="alerts_hint_battery">L’économie d’énergie peut retarder les alertes.</string>
+    <string name="alerts_hint_battery_action">Réglages d’énergie</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">temps réel %1$s au-delà de l’estimation (%2$s).</string>
     <string name="alert_idle">le chrono tourne depuis %1$s. Pense à l’arrêter si c’est terminé.</string>
+    <string name="alert_auto_stop">chrono arrêté automatiquement après %1$s (limite réglable dans Chrono et statistiques).</string>
     <string name="alert_pomodoro">%1$s de focus continu, une courte pause ?</string>
     <string name="alert_close">Fermer l’alerte</string>
     <string name="settings_chrono_title">Alertes du chrono</string>
     <string name="settings_chrono_body">Rappels pendant qu’un chrono tourne. Un seuil à 0 désactive l’alerte ; le dépassement de l’estimation est toujours signalé.</string>
     <string name="settings_idle">Chrono oublié après (min)</string>
+    <string name="settings_auto_stop">Arrêter le chrono après (min)</string>
+    <string name="settings_auto_stop_help">0 = jamais. La session s’arrête à cette durée, même application fermée.</string>
     <string name="settings_pomodoro">Pause suggérée après (min)</string>
     <string name="settings_sound">Son quand aucune notification ne peut s’afficher</string>
     <string name="settings_saved">Réglages enregistrés.</string>
@@ -1749,6 +1756,8 @@
     <string name="card_timeline_body">La vue Jour dessine ta journée : tâches placées, créneaux occupés, heures fixes, deep work et conflits, avec une ligne pour le temps réellement chronométré.</string>
     <string name="card_alerts_title">Trois alertes du chrono</string>
     <string name="card_alerts_body">Kairos te prévient quand tu dépasses l’estimé, quand un chrono a été oublié et quand une pause s’impose : dans l’application et par une notification du système.</string>
+    <string name="card_timer_guard_title">Garde-fou du chrono</string>
+    <string name="card_timer_guard_body">Un chrono oublié s’arrête seul après 4 h (Réglages → Chrono et statistiques, 0 = jamais), à cet instant précis, même Kairos fermé : la tâche ne reçoit jamais une nuit de temps non travaillé.</string>
     <string name="card_web_version_title">Version web</string>
     <string name="card_web_version_body">Kairos tourne aussi dans le navigateur : tes données y sont enregistrées et, dans Edge ou Chrome, peuvent être liées à un fichier tenu à jour.</string>
     <string name="card_team_first_task_title">Première tâche d’équipe guidée</string>

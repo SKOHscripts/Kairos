@@ -31,7 +31,9 @@ import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.alert_close
 import com.skohscripts.kairos.ui.icons.KairosIcons
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -59,7 +61,7 @@ private fun minutesSince(start: Instant, now: Instant) = maxOf(0L, (now - start)
  * Veille du chrono, pour toute l'application (docs/spec/temps-reel-chrono.md
  * § Alertes) : chaque seconde, le titre de fenêtre montre le temps qui tourne ;
  * un seuil franchi **pendant** la veille ajoute un bandeau (toujours), une
- * notification système (sauf si le système s'en charge déjà), et à défaut le
+ * notification système (`notifyChrono`, issue #219 : tout de suite, même sur Android), et à défaut le
  * titre clignotant pendant une minute et le son s'il est activé.
  */
 @Composable
@@ -74,12 +76,20 @@ fun ChronoWatcher(services: AppServices, alerts: SnapshotStateList<String>) {
 
     // L'estimation attendue : explicite, sinon la durée apprise fiable (docs/spec/durees-apprises.md) ; l'alerte « dépassement » la suit.
     val expected = task?.let { DurationEstimator.effectiveMinutes(it, snapshot, services.clock.now(), TimeZone.currentSystemDefault()) }
-    LaunchedEffect(running?.id, task?.title, expected, base, settings.timerIdleAlertMinutes, settings.pomodoroFocusMinutes, settings.timerAlertSound) {
+    LaunchedEffect(
+        running?.id, task?.title, expected, base,
+        settings.timerIdleAlertMinutes, settings.pomodoroFocusMinutes, settings.timerAlertSound, settings.timerAutoStop,
+    ) {
         if (running == null || task == null) {
             notifier.setTitle(null)
             return@LaunchedEffect
         }
-        val thresholds = ChronoAlerts.thresholds(running.startedAt, base, expected, settings.timerIdleAlertMinutes, settings.pomodoroFocusMinutes)
+        // Garde-fou (docs/spec/temps-reel-chrono.md § Garde-fou) : instant de l'arrêt d'office ; les seuils d'après ne sonnent pas.
+        val stopAt = ChronoAlerts.autoStopAt(running.startedAt, settings.timerAutoStop)
+        val thresholds = ChronoAlerts.beforeStop(
+            ChronoAlerts.thresholds(running.startedAt, base, expected, settings.timerIdleAlertMinutes, settings.pomodoroFocusMinutes),
+            stopAt,
+        )
         var since = clock.now()
         var flashUntil = Instant.DISTANT_PAST
         var flashText = ""
@@ -87,12 +97,26 @@ fun ChronoWatcher(services: AppServices, alerts: SnapshotStateList<String>) {
         try {
             while (true) {
                 val now = clock.now()
+                // Vérifié dès le premier tour, contrairement aux alertes : une session ouverte après la limite (application
+                // fermée, téléphone éteint) est close à l'ouverture, à l'instant limite.
+                if (stopAt != null && now >= stopAt) {
+                    // Fermer la session relance la veille (la session disparaît) : le bandeau ne doit pas être annulé en route.
+                    withContext(NonCancellable) {
+                        if (services.repository.stopTimerAt(running.id, stopAt)) {
+                            val body = ChronoTexts.autoStopBody(settings.timerAutoStop)
+                            alerts += "${task.title} · $body"
+                            if (!notifier.notifyChrono(ChronoTexts.alertTitle(task.title), body, "AUTO_STOP")) {
+                                if (settings.timerAlertSound) notifier.beep()
+                            }
+                        }
+                    }
+                    break
+                }
                 for (alert in ChronoAlerts.crossed(thresholds, since, now)) {
                     val body = ChronoTexts.alertBody(alert)
                     val message = "${task.title} · $body"
                     alerts += message
-                    if (notifier.systemHandlesAlerts) continue
-                    if (!notifier.notify(ChronoTexts.alertTitle(task.title), body, alert.kind.name)) {
+                    if (!notifier.notifyChrono(ChronoTexts.alertTitle(task.title), body, alert.kind.name)) {
                         flashText = message
                         flashUntil = now + 60.seconds
                         if (settings.timerAlertSound) notifier.beep()
