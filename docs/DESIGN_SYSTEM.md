@@ -249,7 +249,8 @@ fixes (`KairosLogo.kt`, jamais teintées), et contraste avec l'interface.
 
 Repris par `KairosLogo.kt` (affiché en `Image`, jamais teinté), les icônes
 d'application et des fiches générées par `kmp/tools/make_app_icons.py`
-(bureau `.ico`/`.icns`/`.png`, web, Fastlane, page `site/`) et les ressources
+(bureau `.ico`/`.icns`/`.png`, web, Fastlane, page `site/` et ses images d'aperçu
+des liens `site/og/`, sur le fond clair `#FAF8FF`, `publication.md` § Aperçu des liens) et les ressources
 Android (`colors.xml`, `mipmap-anydpi/ic_launcher.xml`,
 `drawable/ic_launcher_foreground.xml`, écran de démarrage). Toute évolution
 passe par tous ces endroits.

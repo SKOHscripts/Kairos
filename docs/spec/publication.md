@@ -4,8 +4,8 @@ _Rôle : comment Kairos 3 est présenté et proposé aux utilisateurs hors de
 GitHub. Fichiers couverts : `fastlane/metadata/android/` (fiches FR/EN),
 `kmp/desktopApp/.../StoreScreenshots.kt` et l'option `--store-screenshots` de
 `Main.kt`, `kmp/tools/validate_fastlane.py`, `kmp/tools/fdroid_check.sh`,
-`kmp/tools/make_app_icons.py` (icônes des fiches et de la page), `kmp/tools/make_badges.py` et `validate_badges.py`
-(boutons de téléchargement, `site/badges/`),
+`kmp/tools/make_app_icons.py` (icônes des fiches et de la page, aperçu des liens `site/og/`), `kmp/tools/make_badges.py` et
+`validate_badges.py` (boutons de téléchargement, `site/badges/`), `kmp/tools/validate_og.py` (aperçu des liens),
 `fdroid/com.skohscripts.kairos.yml`, `fdroid/README.md`, `site/`,
 `.github/workflows/fdroid-check.yml`, `.github/workflows/pages.yml`, et la
 propriété `kairos.preview` de `kmp/androidApp/build.gradle.kts`. Versions,
@@ -67,6 +67,19 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
 **Critères de succès** : les sept boutons sont présents et pointent vers la bonne cible sur la page (six langues) et dans les deux
 README ; aucune mention « bientôt sur F-Droid » ne reste ; le test de CI `pages` échoue si un marqueur reste ; la page garde 390 px
 sans débordement (les boutons passent à la ligne) ; les images se lisent sur fond clair et sombre de GitHub.
+
+### Aperçu des liens (2026-11-06, #217)
+
+- Un lien vers la page de téléchargement partagé sur un réseau social, une messagerie ou un forum s'affiche avec une **image
+  d'aperçu** et le résumé de la page, **dans la langue de la page** : le logo, « Kairos », l'accroche de l'application, et la
+  ligne « Gratuit · Open source · Android, Windows, Linux, macOS, Web » (« Free · Open-source · … » en anglais).
+- Fond **clair**, celui de l'application (choix du propriétaire du 2026-11-06, préféré au fond océan des icônes).
+- La même image anglaise sert d'**aperçu du dépôt GitHub** (Settings → General → Social preview, posée à la main par le
+  propriétaire : GitHub ne la lit pas dans le dépôt).
+
+**Critères de succès** : chaque page porte ses balises d'aperçu, cohérentes avec son titre, sa description et sa langue ; chaque
+image fait 1280×640 (`validate_og.py`, job `metadata`) ; le texte tient dans une marge de 80 px (garanti par la
+construction, `make_app_icons.py`).
 
 **Hors périmètre** : badge « Latest release » (déjà en tête du README), logos de marque des systèmes (Windows, Apple, Linux) et des
 magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bouton dans l'application.
@@ -292,6 +305,25 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   ou `pages.yml` ; release publiée à la main ; **fin du workflow « Kairos 3
   release »** ; lancement manuel.
 
+### Aperçu des liens (`site/og/`, `make_app_icons.py`, `validate_og.py`)
+
+- **Images** : `make_app_icons.py` (`social_preview`, lancé à la main avec les icônes ; la CI ne le relance pas) écrit
+  `site/og/<langue>.png` (`fr`, `en`, `es`, `de`, `ru`, `it`), 1280×640, **versionnées**. Logo `render_master` (le même que les
+  icônes, couleurs miel fixes) à gauche, textes à droite : « Kairos » en Roboto Regular, l'accroche (`app_tagline` de la langue,
+  recopiée dans `PREVIEW_TEXTS`) en Regular, la ligne du bas en Medium. Couleurs `PREVIEW_COLORS` : rôles du thème clair
+  `KairosLightColors` (surface `#FAF8FF`, texte `#1A1B21`, texte secondaire `#44464F`, primaire `#485D92` pour la ligne du bas).
+  Rendu à 2x puis réduit (bords nets). L'ensemble est centré, et réduit par pas de 2 % tant qu'il dépasse la marge
+  `PREVIEW_MARGIN` = 80 px de chaque côté (le russe et l'allemand, plus longs, sont un peu plus petits).
+- **Balises** (dans le `<head>` de chaque page, après la description) : `og:type` `website`, `og:site_name` `Kairos`,
+  `og:title` = le `<title>`, `og:description` = la description, `og:url` (adresse absolue de la page,
+  `https://skohscripts.github.io/Kairos/` + `<langue>/` sauf le français à la racine), `og:locale` (`fr_FR`, `en_US`…),
+  `og:image` (adresse **absolue** `…/og/<langue>.png` : les robots d'aperçu ne résolvent pas les chemins relatifs),
+  `og:image:width`/`height` (1280, 640), `og:image:alt` = le titre, `twitter:card` `summary_large_image`. Elles ne
+  chargent rien chez le visiteur : seuls les services qui affichent l'aperçu lisent l'image.
+- **Vérification** : `kmp/tools/validate_og.py` (sans dépendance, job `metadata` de `fdroid-check.yml`) compare chaque balise
+  à sa valeur attendue et lit l'en-tête PNG de chaque image (1280×640).
+- `pages.yml` copie `site/` tel quel : les images sont servies sous `og/` sans étape de plus.
+
 ### Boutons de téléchargement (`make_badges.py`, `site/badges/`)
 
 - **Source** : `kmp/tools/make_badges.py` génère `site/badges/<langue>/<id>.svg` (`id` : `fdroid`, `obtainium`, `apk`, `windows`,
@@ -320,6 +352,12 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   Obtainium par le redirecteur du projet dans le README seulement, parce que GitHub filtre les schémas personnalisés.
 
 ### Décisions et pièges tracés
+
+- **Aperçu des liens sur fond clair, une image par langue** (2026-11-06, choix du propriétaire, #217) : le fond océan des icônes
+  a été essayé et écarté au profit du fond de l'application. Ligne du bas « Gratuit · Open source » plutôt que « Libre · Hors
+  ligne » : « hors ligne » cesse d'être toute la vérité avec les connexions en ligne facultatives de la 4.1.0
+  (`connexions-en-ligne.md`), et « libre » ferait doublon avec « open source ». Images générées par le script des icônes plutôt
+  que dessinées à la main : le logo reste le même partout, et un changement d'accroche se régénère.
 
 - **README bilingue** (demande du 2026-10-12, ouverture à l'international via
   F-Droid) : `README.md` en anglais, `README.fr.md` en français, mêmes sections

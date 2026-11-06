@@ -11,13 +11,15 @@ redessiné avec Pillow (pas de dépendance de conversion SVG). Sorties, commité
 - webApp/src/wasmJsMain/resources/favicon.png, icon-192.png, icon-512.png
 - fastlane/metadata/android/{fr-FR,en-US}/images/icon.png (512 px, fiches F-Droid)
   et site/icon.png, site/favicon.png (page de téléchargement)
+- site/og/<langue>.png (1280×640, aperçu des liens de la page et de GitHub, fond clair, docs/spec/publication.md
+  § Aperçu des liens)
 
     pip install Pillow
     python kmp/tools/make_app_icons.py
 """
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 DIAL, RING, WEDGE, DARK = "#FFEEDC", "#FFCC85", "#C28417", "#2B251C"
 # Fond de l'icône : ton 20 de la palette primaire de la graine océan (#2F6FED), `ic_launcher_background` côté Android.
@@ -67,6 +69,65 @@ def tile(master: Image.Image, size: int, rounded: bool) -> Image.Image:
     return img.resize((size, size), Image.LANCZOS)
 
 
+# Image d'aperçu des liens (Open Graph) et de GitHub, 1280×640 (docs/spec/publication.md § Aperçu des liens) : le logo, le nom,
+# l'accroche de l'application (`app_tagline`) et une ligne « gratuit, open source, plateformes », dans la langue de la page.
+PREVIEW_W, PREVIEW_H = 1280, 640
+PREVIEW_MARGIN = 80  # GitHub et les réseaux rognent les bords : le contenu reste dans cette marge
+PREVIEW_PLATFORMS = "Android, Windows, Linux, macOS, Web"
+PREVIEW_TEXTS = {  # langue : (accroche = `app_tagline`, ligne du bas sans les plateformes)
+    "fr": ("Le bon moment pour chaque tâche", "Gratuit · Open source"),
+    "en": ("The right time for every task", "Free · Open-source"),
+    "es": ("El momento justo para cada tarea", "Gratis · Código abierto"),
+    "de": ("Der richtige Moment für jede Aufgabe", "Kostenlos · Open Source"),
+    "ru": ("Подходящее время для каждой задачи", "Бесплатно · Открытый код"),
+    "it": ("Il momento giusto per ogni attività", "Gratuito · Open source"),
+}
+# Fond clair, comme l'application : rôles du thème clair (surface, texte, texte secondaire, primaire de `KairosLightColors`).
+PREVIEW_COLORS = ("#FAF8FF", "#1A1B21", "#44464F", "#485D92")
+FONTS = ROOT / "ui" / "src" / "commonMain" / "composeResources" / "font"
+
+
+def social_preview(master: Image.Image, lang: str) -> Image.Image:
+    """Le bandeau de [lang] : logo à gauche, textes à droite, l'ensemble centré et réduit s'il dépasse les marges."""
+    tagline, line = PREVIEW_TEXTS[lang]
+    line = f"{line} · {PREVIEW_PLATFORMS}"
+    bg, text, muted, accent = PREVIEW_COLORS
+    k = 2  # rendu à 2x puis réduit : bords nets
+    w, h = PREVIEW_W * k, PREVIEW_H * k
+
+    def layout(f: float):
+        name = ImageFont.truetype(str(FONTS / "roboto_regular.ttf"), round(124 * f * k))
+        tag = ImageFont.truetype(str(FONTS / "roboto_regular.ttf"), round(44 * f * k))
+        small = ImageFont.truetype(str(FONTS / "roboto_medium.ttf"), round(30 * f * k))
+        probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+        boxes = [probe.textbbox((0, 0), t, font=fo) for t, fo in (("Kairos", name), (tagline, tag), (line, small))]
+        logo = round(280 * f * k)
+        gap = round(56 * f * k)
+        width = logo + gap + max(b[2] for b in boxes)
+        return name, tag, small, boxes, logo, gap, width
+
+    f = 1.0
+    while layout(f)[6] > w - 2 * PREVIEW_MARGIN * k:
+        f -= 0.02
+    name, tag, small, boxes, logo_size, gap, width = layout(f)
+    img = Image.new("RGB", (w, h), bg)
+    draw = ImageDraw.Draw(img)
+    # Le cadran occupe 37/40 du dessin d'origine : on le met à la taille voulue pour le cadran lui-même.
+    logo = master.resize((round(logo_size * 40 / 37),) * 2, Image.LANCZOS)
+    x0 = (w - width) // 2
+    img.paste(logo, (x0 - (logo.width - logo_size) // 2, (h - logo.height) // 2), logo)
+    spacing = [round(18 * f * k), round(30 * f * k)]
+    heights = [b[3] - b[1] for b in boxes]
+    y = (h - sum(heights) - sum(spacing)) // 2
+    x = x0 + logo_size + gap
+    for (t, fo, colour), b, ht, sp in zip(
+        (("Kairos", name, text), (tagline, tag, muted), (line, small, accent)), boxes, heights, spacing + [0]
+    ):
+        draw.text((x, y - b[1]), t, font=fo, fill=colour)
+        y += ht + sp
+    return img.resize((PREVIEW_W, PREVIEW_H), Image.LANCZOS)
+
+
 def main() -> None:
     master = render_master()
     icons = ROOT / "desktopApp" / "icons"
@@ -90,7 +151,11 @@ def main() -> None:
     site.mkdir(parents=True, exist_ok=True)
     tile(master, 192, rounded=True).save(site / "icon.png")
     tile(master, 64, rounded=True).save(site / "favicon.png")
-    print("Icônes écrites :", icons, web, repo / "fastlane", site)
+    og = site / "og"
+    og.mkdir(parents=True, exist_ok=True)
+    for lang in PREVIEW_TEXTS:
+        social_preview(master, lang).save(og / f"{lang}.png", optimize=True)
+    print("Icônes et aperçus écrits :", icons, web, repo / "fastlane", site)
 
 
 if __name__ == "__main__":

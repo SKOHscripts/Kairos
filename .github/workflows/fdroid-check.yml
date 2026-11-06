@@ -42,6 +42,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: python3 kmp/tools/validate_fastlane.py
       - run: python3 kmp/tools/validate_badges.py
+      - run: python3 kmp/tools/validate_og.py
 
   build:
     # Après une release : seulement une version finale taguée (vX.Y.Z, sans suffixe).
