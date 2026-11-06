@@ -93,7 +93,7 @@ object TeamWork {
                 val anchor = if (rep.recurrence == TaskRecurrence.WEEKLY) rep.recurrenceDayOfWeek ?: rep.deadline?.let(Workdays::weekday) else null
                 var base = maxOf(rep.deadline ?: day, day)
                 while (dates.size < MAX_OCCURRENCES_PER_SERIES) {
-                    val next = Recurrence.nextDeadline(rep.recurrence, base, anchor, holidays)
+                    val next = Recurrence.nextDeadline(rep.recurrence, base, anchor, holidays, Recurrence.monthlyAnchor(rep))
                     if (next > horizonEnd) break
                     dates += next
                     base = next
