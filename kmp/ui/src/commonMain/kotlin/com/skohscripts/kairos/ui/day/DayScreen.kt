@@ -220,6 +220,7 @@ fun DayScreen(
     val estimates = remember(snapshot) { Estimates.of(snapshot.tasks, snapshot.workSessions, now) }
     val view = remember(snapshot, minute, filter, day) { DayView.build(snapshot, day, minute, timeZone, filter, instant = now) }
     val notifyState by services.notifier.state.collectAsState()
+    val notifyHints by services.notifier.hints.collectAsState()
     val scope = rememberCoroutineScope()
     val undo = LocalUndoMessages.current
     val showMessage = LocalMessages.current
@@ -504,6 +505,8 @@ fun DayScreen(
                             onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
                             onToggleTimer = toggleTimer,
                             onEnableAlerts = { scope.launch { services.notifier.requestPermission() } },
+                            hints = notifyHints,
+                            onHint = services.notifier::openHint,
                         )
                     }
                 }

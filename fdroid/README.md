@@ -23,6 +23,8 @@ Fiche d’identité de l’application :
 - licence MIT ; aucune dépendance non libre, aucun service Google, aucun traqueur ;
 - permissions : `POST_NOTIFICATIONS` (chrono et alertes),
   `RECEIVE_BOOT_COMPLETED` (reprogrammer les alertes au redémarrage),
+  `SCHEDULE_EXACT_ALARM` (alertes du chrono à l’heure, application fermée ;
+  à accorder dans les réglages du système sur Android 14 et plus, depuis la 4.1.0),
   `READ_CALENDAR` (facultative : demandée seulement si l’utilisateur active
   les calendriers du téléphone, depuis la 3.10.0) ;
   **pas** d’accès réseau (jusqu’à la 3.x) ;

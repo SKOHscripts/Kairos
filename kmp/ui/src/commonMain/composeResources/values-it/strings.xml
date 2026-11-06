@@ -352,6 +352,10 @@
     <string name="alerts_active">Avvisi del timer attivi.</string>
     <string name="alerts_denied">Notifiche bloccate: gli avvisi compariranno nell’app.</string>
     <string name="alerts_unavailable">Notifiche non disponibili qui: gli avvisi compariranno nell’app.</string>
+    <string name="alerts_hint_exact">Ad app chiusa, gli avvisi possono arrivare in ritardo.</string>
+    <string name="alerts_hint_exact_action">Consenti sveglie esatte</string>
+    <string name="alerts_hint_battery">Il risparmio energetico può ritardare gli avvisi.</string>
+    <string name="alerts_hint_battery_action">Impostazioni batteria</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">tempo reale %1$s, oltre la stima (%2$s).</string>
     <string name="alert_idle">il timer è attivo da %1$s. Fermalo se hai finito.</string>

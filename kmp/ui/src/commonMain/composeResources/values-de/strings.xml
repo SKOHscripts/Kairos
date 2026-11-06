@@ -352,6 +352,10 @@
     <string name="alerts_active">Timer-Hinweise sind aktiv.</string>
     <string name="alerts_denied">Benachrichtigungen sind blockiert: Hinweise erscheinen in der App.</string>
     <string name="alerts_unavailable">Benachrichtigungen sind hier nicht verfügbar: Hinweise erscheinen in der App.</string>
+    <string name="alerts_hint_exact">Bei geschlossener App können Hinweise verspätet kommen.</string>
+    <string name="alerts_hint_exact_action">Exakte Wecker erlauben</string>
+    <string name="alerts_hint_battery">Der Energiesparmodus kann Hinweise verzögern.</string>
+    <string name="alerts_hint_battery_action">Akku-Einstellungen</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">Echtzeit %1$s, über der Schätzung (%2$s).</string>
     <string name="alert_idle">der Timer läuft seit %1$s. Stoppe ihn, wenn du fertig bist.</string>

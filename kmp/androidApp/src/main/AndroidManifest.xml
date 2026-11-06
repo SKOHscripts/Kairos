@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Aucune permission réseau : Kairos 3 sur Android ne fait aucun appel réseau
      (pas de INTERNET), donc aucune anti-fonctionnalité F-Droid
-     (docs/spec/distribution.md § Android). Deux permissions pour le chrono
+     (docs/spec/distribution.md § Android). Trois permissions pour le chrono
      (docs/spec/temps-reel-chrono.md § Android) : notifier (demandée à
      l'opt-in des alertes, jamais au démarrage) et remettre la notification et
-     les alarmes après un redémarrage. Aucune alarme exacte : pas de
-     SCHEDULE_EXACT_ALARM. Une troisième, facultative (3.10.0,
+     les alarmes après un redémarrage. Alarmes exactes des alertes du chrono
+     (4.1.0, issue #219) : SCHEDULE_EXACT_ALARM, accordée d'office sur Android
+     12 et 13, à accorder par l'utilisateur sur Android 14 et plus (sinon les
+     alarmes restent inexactes) ; jamais USE_EXACT_ALARM. Une quatrième, facultative (3.10.0,
      docs/spec/connexions-externes.md § Android) : lire les calendriers du
      téléphone, demandée seulement quand l'utilisateur l'active ; ce n'est pas
      une permission réseau. Les widgets de l'écran d'accueil (3.12.0, docs/spec/widgets-android.md) n'en ajoutent
@@ -14,6 +16,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <application
         android:name=".KairosApplication"

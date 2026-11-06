@@ -38,6 +38,10 @@ import com.skohscripts.kairos.ui.generated.resources.action_timer_stop
 import com.skohscripts.kairos.ui.generated.resources.alerts_active
 import com.skohscripts.kairos.ui.generated.resources.alerts_denied
 import com.skohscripts.kairos.ui.generated.resources.alerts_enable
+import com.skohscripts.kairos.ui.generated.resources.alerts_hint_battery
+import com.skohscripts.kairos.ui.generated.resources.alerts_hint_battery_action
+import com.skohscripts.kairos.ui.generated.resources.alerts_hint_exact
+import com.skohscripts.kairos.ui.generated.resources.alerts_hint_exact_action
 import com.skohscripts.kairos.ui.generated.resources.alerts_unavailable
 import com.skohscripts.kairos.ui.generated.resources.now_running_empty
 import com.skohscripts.kairos.ui.generated.resources.now_running_estimate
@@ -49,6 +53,7 @@ import com.skohscripts.kairos.ui.generated.resources.stats_load
 import com.skohscripts.kairos.ui.generated.resources.stats_overflow
 import com.skohscripts.kairos.ui.generated.resources.stats_todo
 import com.skohscripts.kairos.ui.generated.resources.todo_empty
+import com.skohscripts.kairos.ui.app.NotifyHint
 import com.skohscripts.kairos.ui.app.NotifyState
 import com.skohscripts.kairos.ui.chrono.rememberLiveMinutes
 import com.skohscripts.kairos.ui.icons.KairosIcons
@@ -61,7 +66,7 @@ import kotlin.time.Clock
  * sinon ce qui va réellement se passer (issue #34).
  */
 @Composable
-private fun AlertsOptIn(state: NotifyState, onEnable: () -> Unit) {
+private fun AlertsOptIn(state: NotifyState, onEnable: () -> Unit, hints: Set<NotifyHint>, onHint: (NotifyHint) -> Unit) {
     if (state == NotifyState.CAN_REQUEST) {
         KairosTextButton(onClick = onEnable, contentPadding = KairosButtonIconPadding) {
             Icon(KairosIcons.NotificationsActive, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -75,6 +80,16 @@ private fun AlertsOptIn(state: NotifyState, onEnable: () -> Unit) {
         else -> Res.string.alerts_unavailable
     }
     Text(stringResource(text), style = MaterialTheme.typography.bodySmall)
+    if (state != NotifyState.ACTIVE) return
+    // Freins connus (issue #219) : une phrase et le bouton vers le réglage du système ; rien n'est demandé d'office.
+    for (hint in NotifyHint.entries.filter { it in hints }) {
+        val (line, action) = when (hint) {
+            NotifyHint.EXACT_ALARMS -> Res.string.alerts_hint_exact to Res.string.alerts_hint_exact_action
+            NotifyHint.BATTERY -> Res.string.alerts_hint_battery to Res.string.alerts_hint_battery_action
+        }
+        Text(stringResource(line), style = MaterialTheme.typography.bodySmall)
+        KairosTextButton(onClick = { onHint(hint) }) { Text(stringResource(action)) }
+    }
 }
 
 /**
@@ -136,6 +151,8 @@ internal fun NowCard(
     onSnooze: (Task) -> Unit,
     onToggleTimer: (Task) -> Unit,
     onEnableAlerts: () -> Unit,
+    hints: Set<NotifyHint> = emptySet(),
+    onHint: (NotifyHint) -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
     Card(
@@ -200,7 +217,7 @@ internal fun NowCard(
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
-            AlertsOptIn(notifyState, onEnableAlerts)
+            AlertsOptIn(notifyState, onEnableAlerts, hints, onHint)
         }
     }
 }

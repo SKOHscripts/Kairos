@@ -353,6 +353,10 @@
     <string name="alerts_active">Timer alerts are on.</string>
     <string name="alerts_denied">Notifications are blocked: alerts will show in the app.</string>
     <string name="alerts_unavailable">Notifications are not available here: alerts will show in the app.</string>
+    <string name="alerts_hint_exact">Alerts may arrive late while the app is closed.</string>
+    <string name="alerts_hint_exact_action">Allow exact alarms</string>
+    <string name="alerts_hint_battery">Battery saving can delay alerts.</string>
+    <string name="alerts_hint_battery_action">Battery settings</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">real time %1$s, past the estimate (%2$s).</string>
     <string name="alert_idle">the timer has been running for %1$s. Stop it if you are done.</string>

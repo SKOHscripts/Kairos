@@ -61,7 +61,7 @@ private fun minutesSince(start: Instant, now: Instant) = maxOf(0L, (now - start)
  * Veille du chrono, pour toute l'application (docs/spec/temps-reel-chrono.md
  * § Alertes) : chaque seconde, le titre de fenêtre montre le temps qui tourne ;
  * un seuil franchi **pendant** la veille ajoute un bandeau (toujours), une
- * notification système (sauf si le système s'en charge déjà), et à défaut le
+ * notification système (`notifyChrono`, issue #219 : tout de suite, même sur Android), et à défaut le
  * titre clignotant pendant une minute et le son s'il est activé.
  */
 @Composable
@@ -105,7 +105,7 @@ fun ChronoWatcher(services: AppServices, alerts: SnapshotStateList<String>) {
                         if (services.repository.stopTimerAt(running.id, stopAt)) {
                             val body = ChronoTexts.autoStopBody(settings.timerAutoStop)
                             alerts += "${task.title} · $body"
-                            if (!notifier.systemHandlesAlerts && !notifier.notify(ChronoTexts.alertTitle(task.title), body, "AUTO_STOP")) {
+                            if (!notifier.notifyChrono(ChronoTexts.alertTitle(task.title), body, "AUTO_STOP")) {
                                 if (settings.timerAlertSound) notifier.beep()
                             }
                         }
@@ -116,8 +116,7 @@ fun ChronoWatcher(services: AppServices, alerts: SnapshotStateList<String>) {
                     val body = ChronoTexts.alertBody(alert)
                     val message = "${task.title} · $body"
                     alerts += message
-                    if (notifier.systemHandlesAlerts) continue
-                    if (!notifier.notify(ChronoTexts.alertTitle(task.title), body, alert.kind.name)) {
+                    if (!notifier.notifyChrono(ChronoTexts.alertTitle(task.title), body, alert.kind.name)) {
                         flashText = message
                         flashUntil = now + 60.seconds
                         if (settings.timerAlertSound) notifier.beep()

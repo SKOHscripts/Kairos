@@ -73,7 +73,7 @@ savoir.
   `com.android.packageinstaller`, `com.android.shell` pour `adb`) ; tout autre installateur = un magasin
   (`InstallSourceTest`). La carte montre la version et ouvre la page de la langue de l'interface ; sans lien
   (magasin), rien (`DownloadPageUiTest`). L'APK de release garde `POST_NOTIFICATIONS` et `RECEIVE_BOOT_COMPLETED` (et, depuis la 3.10.0, `READ_CALENDAR`
-  facultative, `connexions-externes.md`)
+  facultative, `connexions-externes.md` ; depuis la 4.1.0, `SCHEDULE_EXACT_ALARM`, `temps-reel-chrono.md`)
   seulement (`aapt2 dump permissions`).
 
 ### Hors périmètre / différé

@@ -224,7 +224,8 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
   `connexions-en-ligne.md`** : la 4.1.0 déclare `INTERNET`, un seul APK, sans variante ni drapeau de construction (à implémenter) ;
   `POST_NOTIFICATIONS` (demandée à l'opt-in des alertes) et
   `RECEIVE_BOOT_COMPLETED` pour le chrono (`temps-reel-chrono.md`), avec
-  ses deux récepteurs (`ChronoReceiver` non exporté, `BootReceiver`) ;
+  ses deux récepteurs (`ChronoReceiver` non exporté, `BootReceiver`) ; `SCHEDULE_EXACT_ALARM` (4.1.0, #219) : alarmes
+  exactes des alertes du chrono quand l'utilisateur les accorde (`temps-reel-chrono.md` § Décisions) ;
   `READ_CALENDAR`, **facultative**, demandée seulement quand l'utilisateur
   active « Utiliser les calendriers du téléphone » (3.10.0,
   `connexions-externes.md`) : ce n'est pas une permission réseau ;

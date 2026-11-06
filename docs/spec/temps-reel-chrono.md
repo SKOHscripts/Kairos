@@ -13,9 +13,11 @@ la section « Alertes du chrono » des Réglages (`reglages.md`), et par platefo
 `desktopApp/.../DesktopNotifier.kt` et `Main.kt`,
 `webApp/.../WebNotifier.kt` et `kairos-web.js`. Tests : `TimeTrackingTest`,
 `ChronoAlertsTest`, `KairosRepositoryTest`, `DayScreenUiTest`
-(`timerRunsAlertsAndStops`), `ChronoGuardUiTest`, `SettingsFormTest`._
+(`timerRunsAlertsAndStops`), `ChronoGuardUiTest`, `ChronoNotifyUiTest`, `DesktopNotifierTest`, `SettingsFormTest`._
 
-État : **jalon M3** ; garde-fou du chrono (arrêt automatique) ajouté le 2026-11-06 (issue #220, 4.1.0). Sans serveur : la notification d'alerte est la notification
+État : **jalon M3** ; garde-fou du chrono (arrêt automatique) ajouté le 2026-11-06 (issue #220, 4.1.0) ; notifications
+fiabilisées le 2026-11-06 (issue #219 : notification immédiate application ouverte sur Android, alarmes exactes quand
+elles sont accordées, économie d'énergie signalée, `notify-send` sous Linux). Sans serveur : la notification d'alerte est la notification
 native de chaque plateforme (issue #34).
 L'ancienneté (« traîne depuis ») et le bandeau de surcharge sont décrits par
 `ordonnancement.md`.
@@ -59,6 +61,18 @@ l'application est en arrière-plan : Kairos les confie au système.
 - « Maintenant » dit l'état des alertes : « Activer les alertes chrono »
   tant que l'autorisation est à demander, sinon « Alertes chrono actives »,
   « Notifications bloquées… » ou « Notifications indisponibles ici… ».
+- **Alertes à l'heure** (issue #219, constat du propriétaire du 2026-11-06 : seul le bandeau apparaissait, sur Android
+  autorisation donnée et sous Linux) :
+  - Android, application ouverte (ou encore en mémoire) : la notification du système part **au moment du seuil**, en même
+    temps que le bandeau, et une seule fois (l'alarme du même seuil est annulée).
+  - Android, application fermée : l'alarme est **exacte** si l'autorisation « Alarmes et rappels » est accordée, sinon
+    inexacte comme avant (quelques minutes de retard possibles, plus avec l'économie d'énergie).
+  - Sous « Alertes chrono actives » (Android), une ligne par frein connu, avec un bouton vers le réglage du système :
+    « Les alertes peuvent arriver en retard, application fermée. » → « Autoriser les alarmes exactes » (tant que
+    l'autorisation manque) ; « L’économie d’énergie peut retarder les alertes. » → « Réglages d’énergie » (tant que Kairos
+    est soumis à l'optimisation de la batterie). Rien n'est demandé d'office ; l'état est relu au retour dans l'application.
+  - Linux : la notification passe par le service de notifications du bureau (`notify-send`), qu'il y ait ou non une zone
+    de notification ; l'icône du plateau reste la voie de Windows et macOS, et celle de Linux quand `notify-send` manque.
 - Un chrono survit à la fermeture de l'application, au rechargement de la
   page web et au redémarrage du téléphone : c'est un instant de départ en
   base.
@@ -89,6 +103,13 @@ oublié » ne sonne qu'une fois.
   horloge simulée, voir le bandeau, le titre clignotant et le son quand la
   notification est refusée, fermer le bandeau, arrêter
   (`DayScreenUiTest.timerRunsAlertsAndStops`).
+- Notifications (#219) : la veille appelle la voie « chrono » du notificateur à chaque seuil franchi, y compris quand le
+  système programme aussi des alarmes ; une voie qui a notifié ne fait ni clignoter le titre ni sonner ; les freins
+  « alarmes exactes » et « économie d'énergie » s'affichent sous « Alertes chrono actives » avec leur bouton, qui appelle
+  la plateforme (`ChronoNotifyUiTest`) ; bureau : sous Linux avec `notify-send`, état actif et notification par la
+  commande (nom de l'application, titre, corps) même sans plateau ; sans l'un ni l'autre, indisponible
+  (`DesktopNotifierTest`). Android (sur appareil, pas d'émulateur ici) : notification à l'heure application ouverte,
+  alarme exacte une fois l'autorisation accordée, bascule en inexacte si elle est retirée.
 - Garde-fou : la limite est calculée à `début + durée`, désactivée à 0 (`ChronoAlertsTest`) ; la session est close à cet
   instant, une seule fois même si deux chemins s'en chargent, et jamais une autre session (`KairosRepositoryTest`) ;
   application ouverte au passage de la limite, ou ouverte après elle (rattrapage), avec une horloge simulée : session
@@ -166,19 +187,21 @@ compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
 - `ChronoNotifier` (dans `AppServices`, `NoNotifier` par défaut) : `state`
   (`ACTIVE`, `CAN_REQUEST`, `DENIED`, `UNAVAILABLE`), `systemHandlesAlerts`,
   `requestPermission`, `notify` (`false` si rien n'est sorti), `setTitle`,
-  `beep`.
+  `beep`. Depuis #219 : `notifyChrono(titre, corps, étiquette)`, la voie des seuils du chrono et du garde-fou (par
+  défaut : vrai si le système s'en charge, sinon `notify` ; Android la redéfinit), `hints` (`StateFlow<Set<NotifyHint>>`,
+  vide par défaut ; `EXACT_ALARMS`, `BATTERY`) et `openHint(frein)`. `systemHandlesAlerts` reste la règle des rappels et
+  de l'avis des estimations, que #219 ne change pas.
 - `ChronoWatcher`, dans la coquille (toutes destinations) : relancé quand la
   session, la tâche, son estimé, le temps de base ou les réglages changent ;
   chaque seconde, il notifie les seuils franchis depuis la seconde
   précédente (le premier tour part de l'instant où la veille commence : un
   seuil déjà passé ne notifie pas), puis écrit le titre. Par alerte : bandeau
-  (`AlertBanners`, surface inverse, fermeture au clic) ; si le système ne
-  gère pas déjà les alertes, `notify` ; si elle échoue, titre clignotant
+  (`AlertBanners`, surface inverse, fermeture au clic) ; `notifyChrono` ; si elle échoue, titre clignotant
   (« ⚠ Tâche · message ») une minute et `beep` si le son est activé. À
   l'arrêt, le titre redevient normal.
 - Garde-fou dans `ChronoWatcher` : à chaque seconde, **y compris la première** (rattrapage à l'ouverture, contrairement
   aux alertes), si `maintenant ≥ autoStopAt`, `stopTimerAt(session, autoStopAt)` ; s'il a fermé la session : bandeau
-  (`ChronoTexts.autoStopBody`, durée lisible), notification si le système ne s'en charge pas déjà, et à défaut le son
+  (`ChronoTexts.autoStopBody`, durée lisible), `notifyChrono` (étiquette `AUTO_STOP`), et à défaut le son
   s'il est activé (pas de titre clignotant : la session close, la veille s'arrête ; le bandeau reste). Cette partie tourne
   hors annulation (`NonCancellable`) : fermer la session relance la veille, le bandeau ne doit pas se perdre en route. Le
   réglage est dans les clés de la veille.
@@ -189,6 +212,9 @@ compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
   240) dans « Alertes du chrono », après le chrono oublié, libellé « Arrêter le chrono après (min) » et aide « 0 = jamais.
   La session s'arrête à cette durée, même application fermée. ». Partagé par la synchronisation, comme les autres seuils
   (`SyncScope`).
+- « Maintenant » (`NowCard`, `AlertsOptIn`) : quand l'état est `ACTIVE`, une ligne par frein de `hints`
+  (`alerts_hint_exact`, `alerts_hint_battery`, `bodySmall`) suivie de son bouton texte (`alerts_hint_exact_action`,
+  `alerts_hint_battery_action`) qui appelle `openHint`.
 - `ChronoTexts` : textes hors composition (durées, titre et corps des
   alertes, libellés des notifications Android).
 - `rememberLiveMinutes` : minuteur vivant (une seconde) du badge de ligne et
@@ -207,9 +233,16 @@ compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
   alarmes annulées ; avec session : notification permanente (catégorie
   chronomètre, `setUsesChronometer`, départ `début − base` pour afficher le
   total, action « Arrêter », ouverture de l'application au toucher), et une
-  alarme `setAndAllowWhileIdle` par seuil à venir, titre et corps déjà
-  rédigés dans ses extras.
-- Garde-fou : `ChronoSync` programme aussi une alarme `ACTION_AUTO_STOP` à `autoStopAt` (même mécanisme inexact,
+  alarme par seuil à venir, titre et corps déjà rédigés dans ses extras : `setExactAndAllowWhileIdle` si
+  `canExact` (Android 11 et moins, ou `AlarmManager.canScheduleExactAlarms()`), sinon `setAndAllowWhileIdle` (#219,
+  `ChronoSync.schedule`). Les rappels gardent leurs alarmes inexactes (`rappels.md`, hors de #219).
+- `ChronoSync.postNow(étiquette, titre, corps)` (#219) : annule l'alarme du seuil (nature `OVER`/`IDLE`/`POMODORO`, ou
+  `AUTO_STOP` pour le garde-fou) puis poste la même notification que l'alarme (même identifiant). Les alertes portent
+  `setOnlyAlertOnce` : reposter une alerte encore affichée ne sonne pas deux fois. `ChronoSync.reschedule` repasse la
+  dernière clé (mêmes notification et alarmes) : appelé au retour dans l'application, il bascule les alarmes en exactes
+  quand l'autorisation vient d'être accordée, en inexactes quand elle a été retirée (le système annule alors les alarmes
+  exactes de l'application).
+- Garde-fou : `ChronoSync` programme aussi une alarme `ACTION_AUTO_STOP` à `autoStopAt` (même mécanisme, exacte si accordée,
   extras : session, instant, titre de la tâche, limite) et ne programme plus les seuils situés après elle ; si la session
   a déjà dépassé la limite quand l'état change (redémarrage, ouverture), il l'arrête aussitôt. `ChronoReceiver`
   (`ACTION_AUTO_STOP`) : `stopTimerAt` ; s'il a fermé la session, notification d'alerte « chrono arrêté automatiquement
@@ -219,19 +252,27 @@ compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
   mise à jour de l'application) : ouvrir la base suffit à tout remettre.
 - `AndroidNotifier` : `ACTIVE` si l'autorisation (Android 13+) est accordée
   et les notifications activées ; alors `systemHandlesAlerts` (les alarmes
-  notifient, l'application n'ajoute que son bandeau). Autorisation demandée
-  par `MainActivity` à l'opt-in ; état relu à chaque retour dans
-  l'application. Son : `ToneGenerator`.
-- Manifeste : `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED` (et `READ_CALENDAR`, facultative, pour les calendriers du
-  téléphone, `connexions-externes.md`) ; icône de
+  notifient : règle des rappels). `notifyChrono` : `ACTIVE` → `ChronoSync.postNow`, vrai ; sinon faux (bandeau, titre,
+  son). `hints` : `EXACT_ALARMS` si Android 12+ et `canScheduleExactAlarms()` faux ; `BATTERY` si
+  `PowerManager.isIgnoringBatteryOptimizations` faux. `openHint` : `Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM`
+  (`package:` de Kairos) ou `Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` (la liste du système : aucune
+  permission `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`), dans un `runCatching`. Autorisation demandée par `MainActivity` à
+  l'opt-in ; état, freins et alarmes (`ChronoSync.reschedule`) relus à chaque retour dans l'application. Son :
+  `ToneGenerator`.
+- Manifeste : `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM` (#219 : accordée d'office
+  sur Android 12 et 13, à accorder par l'utilisateur sur Android 14 et plus ; jamais `USE_EXACT_ALARM`), et
+  `READ_CALENDAR`, facultative, pour les calendriers du téléphone (`connexions-externes.md`) ; icône de
   notification `ic_notification` (silhouette du cadran).
 
 ### Bureau
 
-`DesktopNotifier` : notification par l'icône du plateau (`Tray` de Compose
-Desktop, si le bureau en a un ; sinon `UNAVAILABLE`) ; le titre de la
-fenêtre lit `titlePrefix` ; bip `Toolkit.beep`. Toucher l'icône du plateau
-ramène la fenêtre.
+`DesktopNotifier(tray, osName, notifySend, run)` : sous Linux, si `notify-send` est sur le `PATH` (`findOnPath`), la
+notification passe par lui (`notify-send -a Kairos <titre> <corps>`, délai de 5 s, réussite = code 0) : c'est la
+notification native du bureau (GNOME, KDE…), avec ou sans zone de notification ; sinon, et sous Windows et macOS, par
+l'icône du plateau (`Tray` de Compose Desktop, si le bureau en a un). État `ACTIVE` si l'une des deux voies existe,
+sinon `UNAVAILABLE`. Le titre de la fenêtre lit `titlePrefix` ; bip `Toolkit.beep`. Toucher l'icône du plateau ramène
+la fenêtre. Windows et macOS : la voie du plateau donne la notification du système (centre de notifications) ; à
+vérifier sur machine.
 
 ### Web
 
@@ -244,11 +285,16 @@ est en HTTPS), état relu à chaque notification, autorisation à l'opt-in ;
 - **Seuils calculés d'avance**, pas vérifiés par comparaison chaque
   seconde : les mêmes instants servent à la veille de l'application et aux
   alarmes Android.
-- **Alarmes inexactes** (`setAndAllowWhileIdle`) : aucune autorisation
-  d'alarme exacte (`SCHEDULE_EXACT_ALARM` demande un passage par les
-  réglages du système, `USE_EXACT_ALARM` est réservé aux réveils et
-  agendas). Téléphone en veille profonde, une alerte peut arriver quelques
-  minutes après le seuil ; acceptable pour des rappels de 50 min et plus.
+- **Alarmes exactes quand elles sont accordées** (décision **rouverte** par le propriétaire le 2026-11-06, #219 ; elle
+  remplace « alarmes inexactes, aucune autorisation d'alarme exacte » du jalon M3) : les alarmes inexactes arrivaient en
+  retard, ou pas du tout selon le constructeur et l'économie d'énergie. `SCHEDULE_EXACT_ALARM` est déclarée ; sur
+  Android 14 et plus elle est refusée par défaut et s'accorde dans les réglages du système (« Alarmes et rappels »), d'où
+  le bouton de « Maintenant » ; sans elle, retour aux inexactes. Écartés : `USE_EXACT_ALARM` (réservée aux réveils et
+  agendas, refusée hors de ce cas), `setAlarmClock` (une alarme exacte aussi, qui afficherait un réveil dans la barre
+  d'état), un service au premier plan (une notification de plus et une permission de plus pour un chronomètre que le
+  système dessine déjà). Une permission de plus dans l'APK, sans anti-fonctionnalité F-Droid (aucun réseau).
+- **Rappels laissés aux alarmes inexactes** : #219 vise les alertes du chrono ; étendre les alarmes exactes aux rappels
+  (`rappels.md`) est une piste notée.
 - **Pas de service au premier plan** : le chronomètre de la notification est
   dessiné par le système ; rien ne tourne dans l'application.
 - **Un seuil franchi pendant que le téléphone est éteint** n'est pas
@@ -256,8 +302,16 @@ est en HTTPS), état relu à chaque notification, autorisation à l'opt-in ;
 - **Temps du jour en date locale** : la date est celle du début de
   session dans le fuseau local, pas en UTC (même règle que « Fait » dans
   `vue-jour.md`).
-- **Double notification évitée sur Android** : quand le système notifie par
-  alarme, la veille n'appelle pas `notify`.
+- **Notification immédiate application ouverte, puis plus d'alarme pour ce seuil** (#219, remplace « quand le système
+  notifie par alarme, la veille n'appelle pas `notify` ») : l'alarme inexacte arrivait après le bandeau, ou jamais. La
+  veille poste maintenant elle-même (`notifyChrono`) et annule l'alarme du seuil ; une alarme déjà partie repose la même
+  notification sans sonner (`setOnlyAlertOnce`, même identifiant). Une voie à part (`notifyChrono`) plutôt que changer
+  `systemHandlesAlerts` : les rappels et l'avis des estimations notifieraient sinon deux fois (leurs alarmes et la veille).
+- **Économie d'énergie : signaler, jamais demander** : la page de liste du système suffit (aucune permission
+  `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, que F-Droid et Google surveillent) ; c'est l'utilisateur qui exempte Kairos.
+- **`notify-send` d'abord sous Linux** : la bulle de l'icône du plateau d'AWT est une fenêtre Java sans le style du bureau,
+  et GNOME (Wayland ou sans extension) n'a pas de zone de notification ; `notify-send` (libnotify) parle au service de
+  notifications standard (`org.freedesktop.Notifications`). Une commande plutôt qu'un client D-Bus : aucune dépendance.
 - **Garde-fou par durée, à 4 h par défaut** (choix du propriétaire du 2026-11-06, #220) : une durée réglable plutôt que
   la fin de la journée de travail (les horaires varient, une session du soir est légitime) ou qu'une question au retour
   (le temps faux resterait compté jusque-là, et sur Android personne ne répond application fermée). 4 h : au-delà de

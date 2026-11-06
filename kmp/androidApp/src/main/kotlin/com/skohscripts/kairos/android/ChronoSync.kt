@@ -8,6 +8,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import com.skohscripts.kairos.core.alerts.ChronoAlertKind
 import com.skohscripts.kairos.core.alerts.ChronoAlerts
 import com.skohscripts.kairos.core.engine.DurationEstimator
@@ -63,10 +64,48 @@ object ChronoSync {
         )
     }
 
+    /** Dernier état appliqué, pour [reschedule] (issue #219). */
+    @Volatile private var last: Triple<Context, KairosRepository, Key>? = null
+
     fun start(context: Context, repository: KairosRepository, scope: CoroutineScope) {
         scope.launch {
-            repository.personalSnapshot.map(::keyOf).distinctUntilChanged().collect { apply(context, repository, it) }
+            repository.personalSnapshot.map(::keyOf).distinctUntilChanged().collect {
+                last = Triple(context.applicationContext, repository, it)
+                apply(context, repository, it)
+            }
         }
+    }
+
+    /**
+     * Repasse le dernier état (retour dans l'application) : les alarmes deviennent exactes quand l'autorisation vient
+     * d'être accordée, inexactes quand elle a été retirée (le système annule alors les alarmes exactes de l'application).
+     */
+    suspend fun reschedule() {
+        val (context, repository, key) = last ?: return
+        apply(context, repository, key)
+    }
+
+    /** Alarmes exactes possibles : Android 11 et moins, ou autorisation « Alarmes et rappels » accordée (issue #219). */
+    fun canExact(alarms: AlarmManager): Boolean = Build.VERSION.SDK_INT < 31 || alarms.canScheduleExactAlarms()
+
+    /** Programme [intent] à [at] : exacte si possible, sinon inexacte (docs/spec/temps-reel-chrono.md § Décisions). */
+    private fun schedule(alarms: AlarmManager, at: Instant, intent: PendingIntent) {
+        if (canExact(alarms)) {
+            alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at.toEpochMilliseconds(), intent)
+        } else {
+            alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at.toEpochMilliseconds(), intent)
+        }
+    }
+
+    /**
+     * Seuil franchi application ouverte (issue #219) : l'alarme de ce seuil est annulée et la même notification part tout
+     * de suite. [tag] : `OVER`, `IDLE`, `POMODORO` ou `AUTO_STOP`.
+     */
+    fun postNow(context: Context, tag: String, title: String, body: String) {
+        val alarms = context.getSystemService(AlarmManager::class.java)
+        val kind = ChronoAlertKind.entries.firstOrNull { it.name == tag }
+        if (kind != null) alarms.cancel(alertIntent(context, kind, null, null)) else alarms.cancel(autoStopIntent(context, 0L, null, null, 0))
+        postAlert(context, kind?.ordinal ?: AUTO_STOP_KIND, title, body)
     }
 
     private suspend fun apply(context: Context, repository: KairosRepository, key: Key) {
@@ -86,18 +125,13 @@ object ChronoSync {
             return
         }
         manager.notify(NOTIFICATION_RUNNING, running(context, key.title, key.startedAt, key.base))
-        if (stopAt != null) {
-            alarms.setAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP, stopAt.toEpochMilliseconds(), autoStopIntent(context, key.sessionId, stopAt, key.title, key.autoStop),
-            )
-        }
+        if (stopAt != null) schedule(alarms, stopAt, autoStopIntent(context, key.sessionId, stopAt, key.title, key.autoStop))
         val thresholds = ChronoAlerts.beforeStop(ChronoAlerts.thresholds(key.startedAt, key.base, key.estimate, key.idle, key.pomodoro), stopAt)
         for (alert in ChronoAlerts.upcoming(thresholds, Clock.System.now())) {
             val title = ChronoTexts.alertTitle(key.title)
             val body = ChronoTexts.alertBody(alert)
-            // Alarme inexacte autorisée en veille : aucune autorisation d'alarme exacte
-            // demandée, quelques minutes de retard possibles téléphone en veille profonde.
-            alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alert.at.toEpochMilliseconds(), alertIntent(context, alert.kind, title, body))
+            // Exacte si l'autorisation est accordée, sinon inexacte (quelques minutes de retard possibles en veille profonde).
+            schedule(alarms, alert.at, alertIntent(context, alert.kind, title, body))
         }
     }
 
@@ -182,6 +216,8 @@ object ChronoSync {
                 .setContentText(body)
                 .setStyle(Notification.BigTextStyle().bigText(body))
                 .setCategory(Notification.CATEGORY_REMINDER)
+                // Reposter une alerte encore affichée (veille puis alarme déjà partie) ne sonne pas deux fois.
+                .setOnlyAlertOnce(true)
                 .setAutoCancel(true)
                 .setContentIntent(openApp(context))
                 .build(),

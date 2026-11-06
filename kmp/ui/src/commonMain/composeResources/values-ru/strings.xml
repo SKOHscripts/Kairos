@@ -352,6 +352,10 @@
     <string name="alerts_active">Оповещения таймера включены.</string>
     <string name="alerts_denied">Уведомления заблокированы: оповещения будут показаны в приложении.</string>
     <string name="alerts_unavailable">Уведомления здесь недоступны: оповещения будут показаны в приложении.</string>
+    <string name="alerts_hint_exact">Когда приложение закрыто, оповещения могут приходить с опозданием.</string>
+    <string name="alerts_hint_exact_action">Разрешить точные будильники</string>
+    <string name="alerts_hint_battery">Экономия заряда может задерживать оповещения.</string>
+    <string name="alerts_hint_battery_action">Настройки батареи</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">реальное время %1$s, оценка (%2$s) превышена.</string>
     <string name="alert_idle">таймер работает уже %1$s. Останови его, если все сделано.</string>

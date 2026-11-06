@@ -352,6 +352,10 @@
     <string name="alerts_active">Alertas del cronómetro activadas.</string>
     <string name="alerts_denied">Notificaciones bloqueadas: las alertas se mostrarán en la aplicación.</string>
     <string name="alerts_unavailable">Notificaciones no disponibles aquí: las alertas se mostrarán en la aplicación.</string>
+    <string name="alerts_hint_exact">Las alertas pueden llegar tarde con la aplicación cerrada.</string>
+    <string name="alerts_hint_exact_action">Permitir alarmas exactas</string>
+    <string name="alerts_hint_battery">El ahorro de batería puede retrasar las alertas.</string>
+    <string name="alerts_hint_battery_action">Ajustes de batería</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">tiempo real %1$s, por encima de la estimación (%2$s).</string>
     <string name="alert_idle">el cronómetro lleva en marcha %1$s. Detenlo si has terminado.</string>
