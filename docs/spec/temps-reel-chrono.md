@@ -4,7 +4,7 @@ _Rôle : mesurer le temps réellement passé sur les tâches, le montrer en
 direct, et prévenir quand un seuil est franchi. Fichiers couverts :
 `kmp/core/.../engine/TimeTracking.kt`, `kmp/core/.../alerts/ChronoAlerts.kt`,
 `kmp/core/.../day/DayView.kt` (champs du temps), `data/KairosRepository.kt`
-(`startTimer`, `stopTimer`), `kmp/ui/.../app/ChronoNotifier.kt`,
+(`startTimer`, `stopTimer`), `kmp/ui/.../app/ChronoNotifier.kt`, `kmp/ui/.../app/NotifyPrompt.kt`, `kmp/ui/.../day/AlertsPromptDialog.kt`,
 `kmp/ui/.../chrono/` (`ChronoWatcher.kt`, `ChronoTexts.kt`), les éléments du
 chrono de la vue Jour (`day/TaskRow.kt`, `day/NowCard.kt`, `day/Timeline.kt`),
 la section « Alertes du chrono » des Réglages (`reglages.md`), et par plateforme :
@@ -13,7 +13,7 @@ la section « Alertes du chrono » des Réglages (`reglages.md`), et par platefo
 `desktopApp/.../DesktopNotifier.kt` et `Main.kt`,
 `webApp/.../WebNotifier.kt` et `kairos-web.js`. Tests : `TimeTrackingTest`,
 `ChronoAlertsTest`, `KairosRepositoryTest`, `DayScreenUiTest`
-(`timerRunsAlertsAndStops`), `ChronoGuardUiTest`, `ChronoNotifyUiTest`, `DesktopNotifierTest`, `SettingsFormTest`._
+(`timerRunsAlertsAndStops`), `ChronoGuardUiTest`, `ChronoNotifyUiTest`, `NotifyPromptTest`, `DesktopNotifierTest`, `SettingsFormTest`._
 
 État : **jalon M3** ; garde-fou du chrono (arrêt automatique) ajouté le 2026-11-06 (issue #220, 4.1.0) ; notifications
 fiabilisées le 2026-11-06 (issue #219 : notification immédiate application ouverte sur Android, alarmes exactes quand
@@ -77,6 +77,24 @@ l'application est en arrière-plan : Kairos les confie au système.
   page web et au redémarrage du téléphone : c'est un instant de départ en
   base.
 
+#### Demande d'autorisation au démarrage du chrono (demande du propriétaire du 2026-11-07)
+
+Le bouton « Activer les alertes chrono » restait facultatif, en bas de « Maintenant » : peu vu, donc peu utilisé, alors
+que sans autorisation Android et le navigateur ne notifient pas.
+
+- **Au premier chrono de la session** (bouton ▷ d'une ligne, « Démarrer le chrono » de « Maintenant », ou
+  « Démarrer le chrono » des félicitations de la première tâche), **si l'autorisation est à demander** (Android 13 et plus,
+  navigateur), Kairos ouvre un dialogue : « Recevoir les alertes du chrono ? » avec le pourquoi (dépassement, chrono
+  oublié, pause) et deux boutons, « Activer » et « Plus tard ». Le chrono **a déjà démarré** dans tous les cas.
+- « Activer » ouvre la demande du système (un geste de l'utilisateur, que le navigateur exige) ; « Plus tard », ou un clic à
+  côté, ferme le dialogue sans rien demander.
+- **Une fois par lancement de l'application**, quelle que soit la réponse : pas de deuxième dialogue au chrono suivant.
+  Rien n'est stocké : au prochain lancement, tant que le système n'a ni accordé ni refusé, le dialogue revient. Refusé par
+  le système, accordé, indisponible (bureau sans notifications, par exemple) : jamais de dialogue.
+- Le bouton de « Maintenant » reste, et se **voit** : bouton en contour (et non plus un texte sans bord sur le bloc
+  teinté), de même que les boutons des freins connus (« Autoriser les alarmes exactes », « Réglages d'énergie »), dont la
+  phrase passe à la taille de corps normale.
+
 #### Garde-fou : arrêt automatique (issue #220)
 
 Un chrono oublié qui tourne jusqu'au lendemain gonfle le temps passé de la tâche, le temps du jour, les statistiques
@@ -110,6 +128,10 @@ oublié » ne sonne qu'une fois.
   commande (nom de l'application, titre, corps) même sans plateau ; sans l'un ni l'autre, indisponible
   (`DesktopNotifierTest`). Android (sur appareil, pas d'émulateur ici) : notification à l'heure application ouverte,
   alarme exacte une fois l'autorisation accordée, bascule en inexacte si elle est retirée.
+- Demande au démarrage : à l'état « à demander », démarrer un chrono ouvre le dialogue (le chrono tourne) ; « Plus tard »
+  ne demande rien au système, le bouton de « Maintenant » reste, et un deuxième chrono de la session ne rouvre rien ;
+  « Activer » appelle `requestPermission` ; avec les alertes déjà actives, aucun dialogue (`ChronoNotifyUiTest`) ;
+  `NotifyPrompt` : une demande par lancement, aucun autre état ne la consomme (`NotifyPromptTest`).
 - Garde-fou : la limite est calculée à `début + durée`, désactivée à 0 (`ChronoAlertsTest`) ; la session est close à cet
   instant, une seule fois même si deux chemins s'en chargent, et jamais une autre session (`KairosRepositoryTest`) ;
   application ouverte au passage de la limite, ou ouverte après elle (rattrapage), avec une horloge simulée : session
@@ -212,9 +234,16 @@ compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
   240) dans « Alertes du chrono », après le chrono oublié, libellé « Arrêter le chrono après (min) » et aide « 0 = jamais.
   La session s'arrête à cette durée, même application fermée. ». Partagé par la synchronisation, comme les autres seuils
   (`SyncScope`).
-- « Maintenant » (`NowCard`, `AlertsOptIn`) : quand l'état est `ACTIVE`, une ligne par frein de `hints`
-  (`alerts_hint_exact`, `alerts_hint_battery`, `bodySmall`) suivie de son bouton texte (`alerts_hint_exact_action`,
-  `alerts_hint_battery_action`) qui appelle `openHint`.
+- « Maintenant » (`NowCard`, `AlertsOptIn`) : à l'état `CAN_REQUEST`, le bouton « Activer les alertes chrono » est un
+  `KairosOutlinedButton` ; quand l'état est `ACTIVE`, une ligne par frein de `hints` (`alerts_hint_exact`,
+  `alerts_hint_battery`, `bodyMedium`) suivie de son `KairosOutlinedButton` (`alerts_hint_exact_action`,
+  `alerts_hint_battery_action`) qui appelle `openHint`. Des boutons texte se perdaient sur le bloc teinté (2026-11-07).
+- Demande au démarrage (`NotifyPrompt`, `AlertsPromptDialog`, `DayScreen`) : `AppServices.notifyPrompt` porte un seul
+  drapeau en mémoire ; `claim(état)` rend vrai la première fois que l'état est `CAN_REQUEST`, puis jamais (aucun autre état
+  ne le consomme). `DayScreen` démarre le chrono par `startTimer(id)` : `repository.startTimer`, puis, si `claim`, ouvre
+  `AlertsPromptDialog` (`alerts_prompt_*`, six langues) ; « Activer » appelle `notifier.requestPermission()`. Tous les
+  départs de chrono de l'écran Jour passent par là (ligne, « Maintenant », félicitations) ; la démonstration de la visite
+  guidée appelle le dépôt directement et ne demande rien.
 - `ChronoTexts` : textes hors composition (durées, titre et corps des
   alertes, libellés des notifications Android).
 - `rememberLiveMinutes` : minuteur vivant (une seconde) du badge de ligne et
@@ -282,6 +311,13 @@ est en HTTPS), état relu à chaque notification, autorisation à l'opt-in ;
 
 ### Décisions et pièges tracés
 
+- **Demande d'autorisation au premier chrono** (demande du propriétaire du 2026-11-07) : le bouton facultatif de
+  « Maintenant » ne suffisait pas. Retenu : un **dialogue d'explication** (Kairos dit pourquoi, puis le système demande),
+  **une fois par lancement**, sans rien stocker. Écartés : la demande du système sans explication (sans contexte, et
+  Android ne la montre que deux fois avant de la bloquer pour de bon, il ne faut pas la gaspiller) ; un bandeau non
+  bloquant sous le chrono (plus discret, mais le même défaut que le bouton) ; une demande à chaque chrono (insistante) ou
+  une fois pour toutes (un réglage de plus, à tracer dans l'export, pour un cas où le bouton reste de toute façon).
+  Le dialogue n'attend pas la réponse du système : le chrono et ses alertes dans l'application ne dépendent pas de lui.
 - **Seuils calculés d'avance**, pas vérifiés par comparaison chaque
   seconde : les mêmes instants servent à la veille de l'application et aux
   alarmes Android.

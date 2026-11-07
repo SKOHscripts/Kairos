@@ -356,6 +356,10 @@
     <string name="alerts_hint_exact_action">Exakte Wecker erlauben</string>
     <string name="alerts_hint_battery">Der Energiesparmodus kann Hinweise verzögern.</string>
     <string name="alerts_hint_battery_action">Akku-Einstellungen</string>
+    <string name="alerts_prompt_title">Timer-Hinweise erhalten?</string>
+    <string name="alerts_prompt_body">Kairos kann dich benachrichtigen, wenn eine Aufgabe ihre Schätzung überschreitet, ein Timer weiterläuft oder eine Pause fällig ist. Dein Timer läuft in jedem Fall.</string>
+    <string name="alerts_prompt_enable">Aktivieren</string>
+    <string name="alerts_prompt_later">Später</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">Echtzeit %1$s, über der Schätzung (%2$s).</string>
     <string name="alert_idle">der Timer läuft seit %1$s. Stoppe ihn, wenn du fertig bist.</string>

@@ -356,6 +356,10 @@
     <string name="alerts_hint_exact_action">Consenti sveglie esatte</string>
     <string name="alerts_hint_battery">Il risparmio energetico può ritardare gli avvisi.</string>
     <string name="alerts_hint_battery_action">Impostazioni batteria</string>
+    <string name="alerts_prompt_title">Ricevere gli avvisi del timer?</string>
+    <string name="alerts_prompt_body">Kairos può avvisarti quando un’attività supera la stima, quando un timer resta acceso o quando è ora di una pausa. Il tuo timer è comunque partito.</string>
+    <string name="alerts_prompt_enable">Attiva</string>
+    <string name="alerts_prompt_later">Più tardi</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">tempo reale %1$s, oltre la stima (%2$s).</string>
     <string name="alert_idle">il timer è attivo da %1$s. Fermalo se hai finito.</string>

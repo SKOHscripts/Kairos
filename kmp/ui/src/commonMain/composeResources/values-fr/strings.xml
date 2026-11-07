@@ -358,6 +358,10 @@
     <string name="alerts_hint_exact_action">Autoriser les alarmes exactes</string>
     <string name="alerts_hint_battery">L’économie d’énergie peut retarder les alertes.</string>
     <string name="alerts_hint_battery_action">Réglages d’énergie</string>
+    <string name="alerts_prompt_title">Recevoir les alertes du chrono ?</string>
+    <string name="alerts_prompt_body">Kairos peut te prévenir quand une tâche dépasse son estimation, quand un chrono reste lancé ou quand une pause s’impose. Ton chrono a démarré dans tous les cas.</string>
+    <string name="alerts_prompt_enable">Activer</string>
+    <string name="alerts_prompt_later">Plus tard</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">temps réel %1$s au-delà de l’estimation (%2$s).</string>
     <string name="alert_idle">le chrono tourne depuis %1$s. Pense à l’arrêter si c’est terminé.</string>

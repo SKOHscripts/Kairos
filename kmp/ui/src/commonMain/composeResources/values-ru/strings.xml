@@ -356,6 +356,10 @@
     <string name="alerts_hint_exact_action">Разрешить точные будильники</string>
     <string name="alerts_hint_battery">Экономия заряда может задерживать оповещения.</string>
     <string name="alerts_hint_battery_action">Настройки батареи</string>
+    <string name="alerts_prompt_title">Получать оповещения таймера?</string>
+    <string name="alerts_prompt_body">Kairos может предупредить, когда задача превысила оценку, таймер остался включённым или пора сделать перерыв. Таймер запущен в любом случае.</string>
+    <string name="alerts_prompt_enable">Включить</string>
+    <string name="alerts_prompt_later">Позже</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">реальное время %1$s, оценка (%2$s) превышена.</string>
     <string name="alert_idle">таймер работает уже %1$s. Останови его, если все сделано.</string>

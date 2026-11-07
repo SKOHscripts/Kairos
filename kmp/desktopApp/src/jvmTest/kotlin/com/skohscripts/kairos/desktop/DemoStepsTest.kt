@@ -22,6 +22,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.time.Clock
@@ -115,7 +116,10 @@ class DemoStepsTest {
             val fields = AppServices::class.java.declaredFields.map { it.name }.filterNot { it.startsWith("$") }.toSet()
             val carried = setOf("repository", "files", "backups", "clock", "notifier", "teamUi", "systemLanguage", "applyLanguage", "deviceLabel")
             val empty = setOf("dataLocation", "linkedStorage", "firstLaunch", "updates", "downloadPage", "dataFolder", "diagnostics", "calendars", "shortcuts", "demo")
-            assertEquals(carried + empty, fields)
+            // Neuf pour la démonstration (jamais repris des vrais services) : la demande d'autorisation de notifier.
+            val fresh = setOf("notifyPrompt")
+            assertEquals(carried + empty + fresh, fields)
+            assertNotSame(real.notifyPrompt, demo.notifyPrompt)
             for (name in empty) {
                 val field = AppServices::class.java.getDeclaredField(name).apply { isAccessible = true }
                 val value = field.get(demo)
