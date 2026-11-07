@@ -117,6 +117,77 @@ soit.
   nouveaux, et quand il n’y a rien à apprendre il reste à moins de 10 % de la
   durée par défaut. On peut le couper dans les Réglages.
 
+### Comment l’estimation est choisie
+
+Pour une tâche sans estimation saisie, Kairos suit ce chemin et s’arrête au
+premier niveau dont la réponse est **fiable**. Un niveau qui a quelque chose à
+dire mais trop peu d’exemples s’affiche « pas encore fiable », n’est jamais
+appliqué, et la recherche continue.
+
+```mermaid
+flowchart TD
+    begin(["Tâche à estimer"]) --> typed("Estimation saisie<br/>par toi ?")
+    typed -- oui --> typedOk["Ton estimation l’emporte.<br/>Rien n’est calculé"]
+    typed -- non --> guard("Apprentissage activé et tâche<br/>non reçue d’un manager ?")
+    guard -- non --> fallback
+    guard -- oui --> bySeries("1 · Même série :<br/>au moins 3 occurrences<br/>chronométrées ?")
+    bySeries -- oui --> median["Médiane des 5 dernières,<br/>chronos oubliés écartés,<br/>arrondie à 5 min"]
+    bySeries -- non --> byTitle("2 · Même titre :<br/>au moins 3 tâches<br/>chronométrées ?")
+    byTitle -- oui --> median
+    byTitle -- non --> corpus
+    subgraph mdl["3 · Modèle, sur ton appareil"]
+        corpus("Au moins 12 tâches faites<br/>et chronométrées ?")
+        corpus -- oui --> neighbours("Au moins 3 voisins<br/>(ressemblance ≥ 25 %) ?")
+        neighbours -- oui --> proof
+        neighbours -- non --> regression("Type connu<br/>ou points ?")
+        regression -- oui --> proof
+        proof("Preuve : erreur ≤ 85 % de celle<br/>du défaut, sur tes 30 dernières<br/>tâches (≥ 6 testées) ?")
+        proof -- oui --> pace["Facteur de rythme :<br/>jour et moment de la journée"]
+    end
+    corpus -- non --> fallback
+    regression -- non --> fallback
+    proof -- non --> fallback
+    pace --> modelOk["Durée avec fourchette"]
+    fallback["4 · Durée par défaut<br/>(30 min par défaut)"]
+```
+
+- **Ce qui compte comme exemple.** Tes tâches faites avec au moins 2 minutes de
+  temps réel, dans le même espace (perso ou équipe). Une tâche reçue d’un
+  manager n’est jamais estimée ainsi.
+- **Niveaux 1 et 2.** Médiane des 5 dernières occurrences (Réglages :
+  « occurrences considérées »), sans celles qui dépassent 3 fois la médiane (un
+  chrono oublié), arrondie à 5 minutes. Fiable à partir de 3 exemples
+  (Réglages : « occurrences nécessaires »). Une série suit une tâche récurrente
+  même renommée ; les titres se comparent sans tenir compte de la casse ni des
+  espaces autour.
+- **Ressemblance (niveau 3).** Le titre pèse la moitié (mots entiers et groupes
+  de trois lettres), le type 20 %, les points 20 %, l’étiquette de projet 10 %,
+  comptés seulement sur ce que la tâche a renseigné. Les voisins sont les 5 plus
+  proches, au-dessus de 25 %.
+- **La preuve.** Le modèle est rejoué sur tes 30 dernières tâches faites, à
+  chaque fois entraîné sur les seules plus anciennes. Au moins 6 doivent être
+  testables, et son erreur médiane doit valoir au plus 85 % de celle de la durée
+  par défaut. Si presque toutes tes tâches durent à peu près la durée par
+  défaut, le modèle ne peut pas la battre et reste éteint : rien n’est perdu.
+- **Ton rythme.** Un facteur par jour de la semaine ou par moment de la journée,
+  appliqué aux seules estimations du modèle, seulement s’il est appris sur au
+  moins 8 séances chronométrées du groupe, déplace l’estimation d’au moins 10 %
+  et baisse nettement l’erreur. Il lui faut un jour planifié (et une heure fixe
+  pour la partie « moment de la journée »).
+
+**Ce que tu peux faire pour en tirer le meilleur**
+
+| Tu peux | Ce que ça change |
+|---|---|
+| **Chronométrer tes tâches** avec le minuteur | Tout s’apprend des tâches faites et chronométrées : 3 suffisent pour une série ou un titre, le modèle démarre à 12. |
+| **Renseigner type et points** | 20 % de la ressemblance chacun. Le repli par régression demande des points, ou un type utilisé sur au moins 3 tâches. |
+| **Garder des titres cohérents** | Les mots du titre font la moitié de la ressemblance, et un titre identique est repris au niveau 2 sans le modèle. |
+| **Ajouter une étiquette de projet** | 10 % de la ressemblance, quand la tâche en a une. |
+| **Éviter les chronos oubliés** | Les durées au-delà de 3 fois la médiane sont ignorées. |
+| **Planifier à une date, fixer une heure** | Le facteur de rythme demande un jour planifié, et une heure fixe pour le moment de la journée. |
+| **Baisser « occurrences nécessaires »** | Les niveaux 1 et 2 répondent plus tôt (minimum 2), avec des estimations moins fiables. Les voisins restent à 3 au moins. |
+| **Lire la ligne des Réglages** | « Erreur médiane 12 %, contre 48 % pour la durée par défaut » dit si la preuve est faite. |
+
 ## Installer
 
 La [page de téléchargement](https://skohscripts.github.io/Kairos/) propose le
