@@ -222,6 +222,25 @@ interface DurationEstimator {
   spreads)` ;
   `withLearnedEstimates` en est la projection `snapshot`. Voir « Prévisions ».
 
+### Chemin d'estimation (référence des schémas des README)
+
+Les README (`README.md` § « How the estimate is chosen », `README.fr.md` § « Comment l’estimation est choisie ») donnent le
+chemin sous forme d'organigramme Mermaid et de tableau de leviers. Cette spec en est la référence : **les deux schémas se
+relisent à chaque changement d'une constante ou de l'ordre des niveaux** (aucun test ne les compare au code).
+
+| Étape | Condition pour répondre | Fiable si | Constantes et réglages | Code |
+|---|---|---|---|---|
+| Garde-fous | `learning.enabled`, `task.origin == null`, pas d'`estimatedMinutes > 0` : sinon aucune estimation apprise (durée par défaut) | | `LearningSettings.enabled` | `EstimatorChain` |
+| 1 · Série | la tâche a un `seriesId` ; répond avec la médiane des occurrences de la série | au moins `minSamples` occurrences retenues | `history` 5, `minSamples` 3, aberrant × 3,0, arrondi à 5 min | `SeriesEstimator`, `HistoryEstimates.fromSamples` |
+| 2 · Titre | titre non vide (casse et espaces autour ignorés) ; même calcul | idem | idem | `TitleEstimator` |
+| 3 · Modèle | `learning.model != false` ; voisins retenus, sinon régression si le corpus a au moins 12 échantillons et que la tâche a un type connu ou des points | corpus ≥ 12, base suffisante, garde réussie | `ModelParams` | `ModelEstimator`, `ModelGate` |
+| Garde du modèle | rétro-test sur les 30 derniers échantillons ayant au moins 6 plus anciens ; au moins 6 estimés à base suffisante | médiane de l'erreur ≤ 0,85 × celle de la durée par défaut | `GATE_*` | `ModelGate` |
+| Rythme | estimation fiable du modèle seulement ; jour si la tâche est planifiée, tranche si elle a une heure fixe | groupe d'au moins 8 rapports, écart ≥ 10 %, erreur ≤ 0,95 × | `Rhythm.MIN_*` | `Rhythm` |
+| 4 · Défaut | aucun niveau fiable | | `defaultTaskDurationMinutes` | |
+
+Règle commune : à chaque niveau, une réponse sans assez d'exemples est **exposée non fiable** (« pas encore fiable »),
+jamais appliquée ; le premier niveau fiable gagne, sinon la première réponse non fiable est affichée.
+
 ### Données : `Sample` enrichi
 
 `samples(tasks, spentByTask)` garde sa règle (tâches **terminées**, `origin == null`, temps passé ≥ `MIN_SAMPLE_MINUTES` = 2) et
@@ -590,6 +609,14 @@ La provenance est visible partout où la durée l'est, avec les mêmes règles q
 - Les prévisions n'existent que dans l'espace Équipe : le chemin `spreads` n'est atteint que par `MonteCarlo.prepare`.
 
 ### Décisions et pièges tracés
+
+**Schéma du chemin d'estimation dans les README (demande du propriétaire du 2026-11-07)** : pour que les utilisateurs
+comprennent en détail le machine learning, les deux README montrent le chemin de décision (niveaux, seuils, leviers) sous la
+section dédiée. **Format retenu : Mermaid dans le README** (rendu natif de GitHub, thèmes clair et sombre automatiques,
+texte modifiable à la main). Écartés : des images SVG EN + FR (deux fichiers à tenir, thème sombre à gérer, lourd à
+rééditer quand un seuil change), un simple tableau (moins parlant pour un chemin à embranchements). Les décisions du
+schéma sont rectangulaires et arrondies, non en losange : les losanges de Mermaid rendent l'organigramme trois fois plus
+haut. Les seuils sont ceux du code (tableau ci-dessus) ; la page des leviers ne promet rien que le code ne fasse.
 
 **Vocabulaire « machine learning » (demande du propriétaire du 2026-11-03)** : la fonctionnalité se présente comme du
 **machine learning sur l'appareil**, plus parlant et plus accrocheur que « modèle ». Partout où l'utilisateur lit « le

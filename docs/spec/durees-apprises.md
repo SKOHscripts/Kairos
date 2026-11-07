@@ -47,7 +47,8 @@ sans la réaliser.
    écrite dans la tâche : elle est calculée, donc toujours cohérente avec
    l'historique.
 3. **Repli** : à défaut de série fiable, Kairos descend au **même titre**
-   (sans tenir compte de la casse ni des espaces autour), puis à la durée par
+   (sans tenir compte de la casse ni des espaces autour ; un titre **vide**
+   ne forme jamais de série, issue #196), puis à la durée par
    défaut des réglages. (Les calibrages par type et par points qui existent
    déjà dans l'espace Équipe restent à leur place ; ils ne sont pas des
    niveaux de la durée apprise.)
@@ -138,7 +139,7 @@ moins `MIN_SAMPLE_MINUTES` = 2 minutes.
   qui a des occurrences, « peu fiable ») : série (`sample.seriesId == task.seriesId`
   ou `sample.taskId == task.seriesId`, la première tâche de la série n'ayant
   pas de `seriesId` propre) → même titre (insensible à la casse et aux espaces
-  autour). Seuls les échantillons du **même espace** (Perso / Équipe) comptent,
+  autour ; `TitleEstimator` rend `null` pour un titre vide, #196). Seuls les échantillons du **même espace** (Perso / Équipe) comptent,
   hors la tâche elle-même.
 - **Statistique** : médiane des `history` (5 par défaut) derniers échantillons
   par `Sample.order` décroissant : l'identifiant, ou dans une base synchronisée le
@@ -245,6 +246,12 @@ extraite, la chaîne et `Sample` enrichi (type, points, priorité, étiquette, r
   tronquée reste possible pour n ≥ 6.
 - **Ordre par `id`** : l'`updatedAt` change à chaque édition.
 - **Séances à zéro ignorées** : jamais comptées comme 0 minute.
+- **Un titre vide ne forme pas de série** (propriétaire, 2026-11-06, issue #196, QA d'avant 4.0) : la capture refuse un titre
+  vide, mais un import ou un fichier d'échange peut en apporter ; ces tâches n'ont rien en commun et s'alimentaient
+  mutuellement. `TitleEstimator` ne cherche rien pour un titre vide ou d'espaces : pas d'échantillon, pas d'estimation par
+  titre, on retombe sur le modèle puis sur la durée par défaut. Ni la série (identifiant stable, qui survit à un titre vide)
+  ni le modèle par ressemblance (qui ne lit aucun mot d'un titre vide) ne changent. Écarté : garder le comportement
+  (cas rare, mais des estimations fausses sans signe visible).
 
 ### Écarts avec la spécification initiale (décidés à l'implémentation)
 

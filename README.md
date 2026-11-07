@@ -112,6 +112,74 @@ check against your own data before it changes anything.
   within 10% of the default duration.
   It can be switched off in Settings.
 
+### How the estimate is chosen
+
+For a task without a typed estimate, Kairos walks down this path and stops at
+the first level whose answer is **reliable**. A level that has something to say
+but too few examples is shown as "not reliable yet", never applied, and the
+search goes on.
+
+```mermaid
+flowchart TD
+    begin(["Task to estimate"]) --> typed("Estimate typed<br/>by you?")
+    typed -- yes --> typedOk["Your estimate wins.<br/>Nothing is computed"]
+    typed -- no --> guard("Learning on, and task<br/>not received from a manager?")
+    guard -- no --> fallback
+    guard -- yes --> bySeries("1 · Same series:<br/>at least 3 timed<br/>occurrences?")
+    bySeries -- yes --> median["Median of the last 5,<br/>forgotten timers dropped,<br/>rounded to 5 min"]
+    bySeries -- no --> byTitle("2 · Same title:<br/>at least 3 timed tasks?")
+    byTitle -- yes --> median
+    byTitle -- no --> corpus
+    subgraph mdl["3 · Model, on your device"]
+        corpus("At least 12 finished<br/>timed tasks?")
+        corpus -- yes --> neighbours("At least 3 neighbours<br/>(resemblance ≥ 25%)?")
+        neighbours -- yes --> proof
+        neighbours -- no --> regression("Known type<br/>or points?")
+        regression -- yes --> proof
+        proof("Proof: error ≤ 85% of the<br/>default's, on your last 30<br/>tasks (≥ 6 tested)?")
+        proof -- yes --> pace["Pace factor:<br/>day and time of day"]
+    end
+    corpus -- no --> fallback
+    regression -- no --> fallback
+    proof -- no --> fallback
+    pace --> modelOk["Duration with a range"]
+    fallback["4 · Default duration<br/>(30 min by default)"]
+```
+
+- **What counts as an example.** Your finished tasks with at least 2 minutes of
+  real time, in the same space (personal or team). A task received from a
+  manager is never estimated this way.
+- **Levels 1 and 2.** Median of the last 5 occurrences (Settings: "occurrences
+  considered"), without those above 3 times the median (a forgotten timer),
+  rounded to 5 minutes. Reliable from 3 examples (Settings: "occurrences
+  needed"). A series follows a recurring task even if you rename it; titles are
+  compared ignoring case and surrounding spaces.
+- **Resemblance (level 3).** The title weighs half (whole words and groups of
+  three letters), type 20%, points 20%, project tag 10%, counted only on what
+  the task has filled in. The neighbours are the 5 closest, above 25%.
+- **The proof.** The model is replayed on your last 30 finished tasks, each time
+  trained only on older ones. At least 6 must be testable, and its median error
+  must be at most 85% of the default duration's. If almost all your tasks last
+  about the default duration, the model cannot beat it and stays off: nothing
+  is lost.
+- **Your pace.** A weekday or time-of-day factor, applied only to the model's
+  estimates, only if it is learned from at least 8 timed sessions in that
+  group, moves the estimate by at least 10% and measurably lowers the error. It
+  needs a planned day (and a fixed time for the time-of-day part).
+
+**What you can do to get the most out of it**
+
+| You can | What it changes |
+|---|---|
+| **Time your tasks** with the timer | Everything is learned from finished, timed tasks: 3 are enough for a series or a title, the model starts at 12. |
+| **Fill in type and points** | 20% of the resemblance each. The regression fallback needs points, or a type used on at least 3 tasks. |
+| **Keep titles consistent** | Title words are half of the resemblance, and an identical title is picked up at level 2 without the model. |
+| **Add a project tag** | 10% of the resemblance, when the task has one. |
+| **Stop forgotten timers** | Durations above 3 times the median are ignored. |
+| **Plan on dates, fix times** | The pace factor needs a planned day, and a fixed time for the time of day. |
+| **Lower "occurrences needed"** | Levels 1 and 2 answer sooner (minimum 2), with less reliable estimates. The neighbours stay at 3 at least. |
+| **Read the Settings line** | "Median error 12%, against 48% for the default duration" tells you whether the proof is passed. |
+
 ## Install
 
 The [download page](https://skohscripts.github.io/Kairos/en/) offers the right

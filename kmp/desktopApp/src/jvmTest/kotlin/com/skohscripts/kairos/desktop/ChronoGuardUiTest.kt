@@ -47,7 +47,8 @@ class ChronoGuardUiTest {
     private val clock = object : Clock {
         override fun now() = this@ChronoGuardUiTest.now
     }
-    private val notified = mutableListOf<String>()
+    // Écrite par la veille (fil de l'interface), lue par le test : une liste sûre entre fils.
+    private val notified = java.util.concurrent.CopyOnWriteArrayList<String>()
     private val notifier = object : ChronoNotifier {
         override val state = MutableStateFlow(NotifyState.ACTIVE)
         override suspend fun notify(title: String, body: String, tag: String): Boolean {
@@ -56,14 +57,19 @@ class ChronoGuardUiTest {
         }
     }
 
-    /** Une tâche « Forgotten » dont le chrono tourne depuis [start], et le garde-fou à [limit] minutes (`null` = défaut). */
-    private fun services(limit: Int?): AppServices = runBlocking {
+    /**
+     * Une tâche « Forgotten » dont le chrono tourne depuis [start], et le garde-fou à [limit] minutes (`null` = défaut) ;
+     * [idle] et [pomodoro] : seuils des alertes ordinaires en minutes (0 = désactivée).
+     */
+    private fun services(limit: Int?, idle: Int = 180, pomodoro: Int = 50): AppServices = runBlocking {
         val repository = KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock)
         val id = repository.createTask("Forgotten")!!
         repository.setPriority(id, 1)
         repository.setPoints(id, 3)
         repository.setTaskType(id, "Development")
-        repository.updateSettings(repository.snapshot.value.settings.copy(timerAutoStopMinutes = limit))
+        repository.updateSettings(
+            repository.snapshot.value.settings.copy(timerAutoStopMinutes = limit, timerIdleAlertMinutes = idle, pomodoroFocusMinutes = pomodoro),
+        )
         repository.startTimer(id)
         AppServices(repository, object : FileService {
             override suspend fun saveText(suggestedName: String, text: String) = false
@@ -97,17 +103,21 @@ class ChronoGuardUiTest {
 
     @Test
     fun zeroNeverStops() = runComposeUiTest {
-        val services = services(0)
+        // Alertes ordinaires désactivées : seul le garde-fou est en jeu, rien ne change à l'écran hors le chrono lui-même.
+        // Le temps est celui, virtuel, de `mainClock` : trois tours de la veille, sans attente en temps réel (ni `waitForIdle`,
+        // qui n'a pas de fin tant que la veille boucle). Un saut de 30 h puis `waitForIdle` avait fait échouer la CI
+        // (« Unsupported concurrent change during composition »).
+        val services = services(limit = 0, idle = 0, pomodoro = 0)
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Stop the timer").fetchSemanticsNodes().isNotEmpty() }
-        now = start + 30.hours
+        // Bien au-delà de la limite par défaut (4 h), dans la même journée.
+        now = start + 5.hours
         mainClock.advanceTimeBy(3_000)
-        waitForIdle()
         assertNull(services.repository.snapshot.value.workSessions.single().endedAt)
+        onAllNodesWithText("Stop the timer").fetchSemanticsNodes().let { assertEquals(true, it.isNotEmpty()) }
         assertEquals(0, onAllNodesWithText("timer stopped automatically", substring = true).fetchSemanticsNodes().size)
         // Le réglage par défaut reste nul tant qu'on n'y touche pas ; ici il vaut 0.
         assertEquals(0, services.repository.snapshot.value.settings.timerAutoStopMinutes)
-        // Les alertes ordinaires (pause, chrono oublié) sonnent, jamais l'arrêt automatique.
-        assertEquals(0, notified.count { "stopped automatically" in it })
+        assertEquals(emptyList(), notified.toList())
     }
 }

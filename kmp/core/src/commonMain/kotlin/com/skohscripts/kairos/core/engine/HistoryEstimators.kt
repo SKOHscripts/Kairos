@@ -50,12 +50,17 @@ object SeriesEstimator : DurationEstimator {
     }
 }
 
-/** Les tâches de même titre, comparé sans tenir compte des espaces autour ni de la casse. */
+/**
+ * Les tâches de même titre, comparé sans tenir compte des espaces autour ni de la casse. Un titre **vide** (ou d'espaces)
+ * ne forme pas de série : il n'a rien en commun d'une tâche à l'autre, et des tâches sans titre (import, fichier d'échange)
+ * s'alimenteraient mutuellement (docs/spec/durees-apprises.md § Décisions, issue #196).
+ */
 object TitleEstimator : DurationEstimator {
     private fun key(title: String) = title.trim().lowercase()
 
     override fun estimate(task: Task, history: DurationEstimator.History, settings: Settings): DurationEstimator.Estimate? {
         val title = key(task.title)
+        if (title.isEmpty()) return null
         return HistoryEstimates.fromSamples(history.samples.filter { key(it.title) == title }, DurationEstimator.Source.TITLE, settings)
     }
 }
