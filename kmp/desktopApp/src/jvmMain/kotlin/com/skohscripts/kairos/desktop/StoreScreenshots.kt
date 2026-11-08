@@ -114,6 +114,25 @@ object StoreScreenshots {
     }
 
     /**
+     * `--story-screenshots=<dossier>` : `order-fr.png` et `order-en.png`, la vue Jour des fiches (même jeu de données, même
+     * heure figée) défilée jusqu'à « Aujourd'hui, dans l'ordre », pour la page « histoire » du site. Versionnées, pas
+     * régénérées par la CI : à refaire si la vue Jour change.
+     */
+    fun runStory(dir: File): Int = try {
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"))
+        dir.mkdirs()
+        for ((language, locale) in listOf("fr" to Locale.FRANCE, "en" to Locale.US)) {
+            Locale.setDefault(locale)
+            val services = runBlocking { services(language) }
+            File(dir, "order-$language.png").writeBytes(render(wheel = STORY_SCROLL) { KairosApp(Platform.ANDROID, Destination.DAY, systemDark = false) { services } })
+        }
+        0
+    } catch (e: Throwable) {
+        e.printStackTrace()
+        1
+    }
+
+    /**
      * Capture 2 (docs/spec/publication.md § Captures, docs/spec/estimateur-modele.md § Interface) : la base de la capture 1
      * enrichie de rapports faits et chronométrés, et la fiche d'un rapport au titre nouveau, sans durée saisie, ouverte
      * d'emblée ([KairosApp] `showcaseTaskId`) : « Utiliser 45 min (entre … et …) » et « Tâches proches » dépliée. Le calcul
@@ -200,6 +219,9 @@ object StoreScreenshots {
 
     /** Défilement (en crans de molette) de la fiche de la capture 2, pour que l'estimation par machine learning soit à l'écran. */
     private const val SHEET_SCROLL = 40f
+
+    /** Défilement (en crans de molette) de la capture de la page « histoire » : la liste ordonnée sous la carte « maintenant ». */
+    private const val STORY_SCROLL = 21f
 
     /** Textes du jeu de données, par langue. */
     private class Words(

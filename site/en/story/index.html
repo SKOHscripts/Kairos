@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The story of Kairos</title>
+<meta name="description" content="Why Kairos exists: an endless pile of tasks, and a tool that sorts it for you. You capture, Kairos decides.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Kairos">
+<meta property="og:title" content="The story of Kairos">
+<meta property="og:description" content="Why Kairos exists: an endless pile of tasks, and a tool that sorts it for you. You capture, Kairos decides.">
+<meta property="og:url" content="https://skohscripts.github.io/Kairos/en/story/">
+<meta property="og:image" content="https://skohscripts.github.io/Kairos/og/en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../../favicon.png">
+<link rel="alternate" hreflang="fr" href="../../histoire/">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<header>
+  <img src="../../icon.png" alt="">
+  <span class="name">Kairos</span>
+  <nav><a href="../../histoire/" hreflang="fr" lang="fr">Français</a></nav>
+</header>
+<main class="story">
+  <section class="hero">
+    <h1>The story of Kairos</h1>
+    <p class="slogan">You capture. Kairos decides.</p>
+  </section>
+  <p>It is 1 pm. You have a meeting until 2. Your list holds 47 tasks, and not one of them says “start with me”.</p>
+  <p>Ten of them have been sitting there for weeks. In every to-do tool I tried, what you do not do never rises to the top: new tasks pile on top, old ones sink. Every morning you have to re-sort the list in your head before you can work.</p>
+  <p class="quote">The pile is endless. The tool might as well sort it for you.</p>
+  <h2>The observation</h2>
+  <p>To-do tools manage a list, more or less finely. None of them sorts it. I had the idea of merging three worlds: agile development (a backlog you prioritise continuously), a to-do tool and the GTD method (capture everything, then process it).</p>
+  <p>The result: a list that evolves by itself over time. You take care of GTD, Kairos tells you what to start with. You can trust it enough to unload your mind, and put your attention on something other than managing to-dos.</p>
+  <figure>
+    <img src="../../story/order-en.png" alt="Kairos Day view: the task to do now, then the tasks in order" loading="lazy">
+    <figcaption>The Day view, with example tasks: the task to do <strong>now</strong>, then the next ones in score order. No list to re-sort: the order is already done.</figcaption>
+  </figure>
+  <h2>How it happened</h2>
+  <ol class="timeline">
+    <li><strong>A script.</strong> The first version lived in a Linux terminal: a Python script that ranked my tasks with the WSJF score, and nothing else. It worked, and it changed my days.</li>
+    <li><strong>An interface.</strong> Then a real interface, served locally and started with systemd. The day I understood that the useful part was not the sorting but fitting tasks into the gaps of the calendar, the tool took its shape.</li>
+    <li><strong>Other people.</strong> Talking about it around me, I saw that the need was not only mine. A tool that only runs on my machine, with a service to install by hand, helped nobody else.</li>
+    <li><strong>Rebuilding everything.</strong> I rebuilt it all in Kotlin with Claude Code, to run everywhere: Android, Windows, Linux, macOS and the browser, with no account and no network.</li>
+  </ol>
+  <figure class="wide">
+    <img src="../../story/cli-en.svg" alt="Terminal: the kairos --capture command with a priority and points, then kairos --list, which shows the tasks sorted by descending score: fix the backup script (5.33), answer the supplier’s email (4.00), then the others" loading="lazy">
+    <figcaption><strong>Reconstruction</strong> of the first version, before any git: two commands, tasks sorted by score. No duration, no deadline, no calendar. It is not a screenshot from back then: I recreated it from memory.</figcaption>
+  </figure>
+  <h2>No AI: machine learning</h2>
+  <p>The next ideas came with the wish to do machine learning and fine statistics on your own way of working. No generative AI, no chatbot, no cloud: pure algorithmics, on your device, that sharpens over time and helps you understand how you work.</p>
+  <p>The goal: the more you use Kairos, the better it estimates how long things will take you, and it always tells you which task to do <strong>now</strong>.</p>
+  <h2>Why 14h55</h2>
+  <p>14h55 (2:55 pm) is the project’s code name. According to a study, it is the hour when we are statistically the least efficient. When you think about it, that is rather true. I found it interesting to take that into account: Kairos protects your deep-work slots and, in the afternoon, lets light tasks go ahead of complex ones.</p>
+  <h2>Who did what</h2>
+  <p>Claude Code let me rebuild everything in Kotlin. The AI is my pen and a creation accelerator; the rest is mine: I set the course, planned, guided in detail, wrote the <a href="https://github.com/SKOHscripts/Kairos/tree/main/docs/spec">specifications</a>, corrected, structured the code, set up the CI and the builds, drew the boundaries and brought the theory. Every change starts with a spec, before the code.</p>
+  <h2>I answer every piece of feedback</h2>
+  <p>Kairos is the first software I have published, and I answer every issue. A few examples:</p>
+  <ul class="plain">
+    <li><a href="https://github.com/SKOHscripts/Kairos/issues/150">#150</a>: a request for a home screen widget on Android. Version 3.12 delivered it the next day, and what I rethought while building it gave quick capture.</li>
+    <li><a href="https://github.com/SKOHscripts/Kairos/issues/88">#88</a>: syncing your devices without an account. Bigger than expected, with many edge cases; shipped in 4.0: one shared file, merged without losing anything.</li>
+    <li><a href="https://github.com/SKOHscripts/Kairos/issues/65">#65</a>: a crash at startup that I could not reproduce. 3.3.0 added a crash report screen, which stays on your device and is only sent if you share it.</li>
+    <li><a href="https://github.com/SKOHscripts/Kairos/issues/131">#131</a>: too many settings in one pile. They are sorted by category, each with an icon, since 3.7.</li>
+  </ul>
+  <h2>What I do not hide</h2>
+  <ul class="plain">
+    <li>The macOS apps are not signed: Apple’s developer programme costs $99 a year, and I have not joined it (<a href="https://github.com/SKOHscripts/Kairos/issues/116">#116</a>). At first launch, macOS asks you to confirm.</li>
+    <li>On Windows, signing is ready on the project side and waiting for admission at SignPath (<a href="https://github.com/SKOHscripts/Kairos/issues/117">#117</a>). Until then, SmartScreen may show “Windows protected your PC”.</li>
+    <li>The Android APK is signed, its build is reproducible, and every release publishes its checksums (SHA256SUMS): you can check what you install.</li>
+  </ul>
+  <h2>Kairos may not be for you if…</h2>
+  <ul class="plain">
+    <li>you want to work with others in real time: Kairos has no account and no server. The Team space is designed for a single manager, with file exchanges;</li>
+    <li>you expect a generative AI, an assistant that talks back: Kairos has no chatbot and no cloud;</li>
+    <li>you like arranging your list by hand, with your own tags and views: you can tune the score weights and pin a time, but the order is Kairos’s call.</li>
+  </ul>
+  <h2>Mentioned on</h2>
+  <ul class="plain">
+    <li><a href="https://alternativeto.net/software/kairos-by-skohstripts/about/">AlternativeTo</a>: Kairos’s listing, to rate it or suggest it as an alternative to another app.</li>
+    <li><a href="https://www.reddit.com/r/foss/comments/1xiohaj/kairos_a_foss_task_manager_that_schedules_your/">r/foss</a>: the presentation post (October 2026).</li>
+  </ul>
+  <p class="slogan" style="margin-top:40px">You capture. Kairos decides.</p>
+  <p class="cta">
+    <a class="button filled" href="../../">Discover Kairos</a>
+    <a class="button" href="https://github.com/SKOHscripts/Kairos/issues">Open an issue</a>
+  </p>
+</main>
+<footer>
+  Free software under the MIT licence · <a href="https://github.com/SKOHscripts/Kairos">source code</a>
+</footer>
+</body>
+</html>

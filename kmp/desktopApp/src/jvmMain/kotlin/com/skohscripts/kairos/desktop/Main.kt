@@ -36,6 +36,10 @@ fun main(args: Array<String>) {
     args.firstOrNull { it.startsWith("--store-screenshots=") }?.let {
         exitProcess(StoreScreenshots.run(java.io.File(it.substringAfter('='))))
     }
+    // Image de la page « histoire » (site/histoire, docs/spec/publication.md § Captures).
+    args.firstOrNull { it.startsWith("--story-screenshots=") }?.let {
+        exitProcess(StoreScreenshots.runStory(java.io.File(it.substringAfter('='))))
+    }
 
     // Instance déjà ouverte : elle est ramenée au premier plan, celle-ci s'arrête.
     val instance = SingleInstance.acquire(dataDir) ?: exitProcess(0)
