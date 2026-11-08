@@ -68,7 +68,8 @@ import kotlin.time.Clock
 @Composable
 private fun AlertsOptIn(state: NotifyState, onEnable: () -> Unit, hints: Set<NotifyHint>, onHint: (NotifyHint) -> Unit) {
     if (state == NotifyState.CAN_REQUEST) {
-        KairosTextButton(onClick = onEnable, contentPadding = KairosButtonIconPadding) {
+        // En contour, pas en texte nu : sur le bloc teinté, un bouton sans bord ne se voyait pas (2026-11-07).
+        KairosOutlinedButton(onClick = onEnable, contentPadding = KairosButtonIconPadding) {
             Icon(KairosIcons.NotificationsActive, contentDescription = null, modifier = Modifier.size(18.dp))
             Text(stringResource(Res.string.alerts_enable), modifier = Modifier.padding(start = 6.dp))
         }
@@ -87,8 +88,8 @@ private fun AlertsOptIn(state: NotifyState, onEnable: () -> Unit, hints: Set<Not
             NotifyHint.EXACT_ALARMS -> Res.string.alerts_hint_exact to Res.string.alerts_hint_exact_action
             NotifyHint.BATTERY -> Res.string.alerts_hint_battery to Res.string.alerts_hint_battery_action
         }
-        Text(stringResource(line), style = MaterialTheme.typography.bodySmall)
-        KairosTextButton(onClick = { onHint(hint) }) { Text(stringResource(action)) }
+        Text(stringResource(line), style = MaterialTheme.typography.bodyMedium)
+        KairosOutlinedButton(onClick = { onHint(hint) }) { Text(stringResource(action)) }
     }
 }
 

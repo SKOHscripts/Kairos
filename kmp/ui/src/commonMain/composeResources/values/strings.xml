@@ -357,6 +357,10 @@
     <string name="alerts_hint_exact_action">Allow exact alarms</string>
     <string name="alerts_hint_battery">Battery saving can delay alerts.</string>
     <string name="alerts_hint_battery_action">Battery settings</string>
+    <string name="alerts_prompt_title">Get timer alerts?</string>
+    <string name="alerts_prompt_body">Kairos can notify you when a task runs past its estimate, when a timer is left running, or when a break is due. Your timer has started either way.</string>
+    <string name="alerts_prompt_enable">Turn on</string>
+    <string name="alerts_prompt_later">Not now</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">real time %1$s, past the estimate (%2$s).</string>
     <string name="alert_idle">the timer has been running for %1$s. Stop it if you are done.</string>

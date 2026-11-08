@@ -65,4 +65,6 @@ fun AppServices.forDemo(session: DemoSession): AppServices = AppServices(
     deviceLabel = deviceLabel,
     applyLanguage = applyLanguage,
     demo = null,
+    // Neuf : la démonstration n'hérite pas de la demande déjà faite ; avec NoNotifier (indisponible), elle ne demande jamais.
+    notifyPrompt = NotifyPrompt(),
 )

@@ -60,6 +60,8 @@ class AppServices(
      * § Précisions de l'implémentation (étape 4)) : l'appareil s'appelle ensuite « Android · 3f9c ».
      */
     val deviceLabel: String = "Kairos",
+    /** Demande d'autorisation de notifier au premier chrono : une fois par lancement (docs/spec/temps-reel-chrono.md). */
+    val notifyPrompt: NotifyPrompt = NotifyPrompt(),
 )
 
 /** Choix d'un fichier par l'utilisateur (boîtes de dialogue du système). */

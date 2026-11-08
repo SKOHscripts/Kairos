@@ -267,8 +267,15 @@ fun DayScreen(
     var captureRequest by remember { mutableIntStateOf(0) }
     var searchRequest by remember { mutableIntStateOf(0) }
     val positions = remember { mutableMapOf<String, Int>() }
+    // Premier chrono de la session : la demande d'autorisation de notifier, une fois par lancement (docs/spec/temps-reel-chrono.md
+    // § Demande au démarrage du chrono). Le chrono démarre d'abord ; le dialogue ne retient rien.
+    var askAlerts by remember { mutableStateOf(false) }
+    val startTimer: suspend (Long) -> Unit = { id ->
+        repository.startTimer(id)
+        if (services.notifyPrompt.claim(services.notifier.state.value)) askAlerts = true
+    }
     val toggleTimer: (Task) -> Unit = { t ->
-        scope.launch { if (view.running?.taskId == t.id) repository.stopTimer() else repository.startTimer(t.id) }
+        scope.launch { if (view.running?.taskId == t.id) repository.stopTimer() else startTimer(t.id) }
     }
     // Sections repliées par défaut, sauf « Sans créneau aujourd'hui ».
     val sectionOpen = remember { mutableStateMapOf("unscheduled" to true) }
@@ -651,13 +658,19 @@ fun DayScreen(
     val created = placedId?.let { id -> snapshot.tasks.firstOrNull { it.id == id } }
     if (congrats && created != null) {
         FirstTaskCongratsDialog(
-            onTimer = { congrats = false; placedId = null; scope.launch { repository.startTimer(created.id) } },
+            onTimer = { congrats = false; placedId = null; scope.launch { startTimer(created.id) } },
             onWhere = { congrats = false; placedStep = 0 },
             onDiscover = { congrats = false; placedId = null; onDiscover() },
             onClose = { congrats = false; placedId = null },
         )
     }
     if (syncReviewing) SyncReviewDialog(services) { syncReviewing = false }
+    if (askAlerts) {
+        AlertsPromptDialog(
+            onEnable = { askAlerts = false; scope.launch { services.notifier.requestPermission() } },
+            onLater = { askAlerts = false },
+        )
+    }
     editingId?.let { id ->
         val task = snapshot.tasks.firstOrNull { it.id == id }
         if (task == null) {

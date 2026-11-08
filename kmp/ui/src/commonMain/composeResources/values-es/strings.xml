@@ -356,6 +356,10 @@
     <string name="alerts_hint_exact_action">Permitir alarmas exactas</string>
     <string name="alerts_hint_battery">El ahorro de batería puede retrasar las alertas.</string>
     <string name="alerts_hint_battery_action">Ajustes de batería</string>
+    <string name="alerts_prompt_title">¿Recibir las alertas del cronómetro?</string>
+    <string name="alerts_prompt_body">Kairos puede avisarte cuando una tarea supera su estimación, cuando un cronómetro se queda en marcha o cuando toca descansar. Tu cronómetro ya ha empezado en cualquier caso.</string>
+    <string name="alerts_prompt_enable">Activar</string>
+    <string name="alerts_prompt_later">Más tarde</string>
     <string name="alert_title">Kairos · %1$s</string>
     <string name="alert_over">tiempo real %1$s, por encima de la estimación (%2$s).</string>
     <string name="alert_idle">el cronómetro lleva en marcha %1$s. Detenlo si has terminado.</string>

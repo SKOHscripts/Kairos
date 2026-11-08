@@ -77,7 +77,7 @@ class ChronoNotifyUiTest {
         }
     }
 
-    private fun services(): AppServices = runBlocking {
+    private fun services(with: ChronoNotifier = notifier): AppServices = runBlocking {
         val repository = KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock)
         val id = repository.createTask("Write the report")!!
         repository.setPriority(id, 1)
@@ -87,7 +87,7 @@ class ChronoNotifyUiTest {
         AppServices(repository, object : FileService {
             override suspend fun saveText(suggestedName: String, text: String) = false
             override suspend fun openText(): String? = null
-        }, { _, _ -> }, clock = clock, notifier = notifier)
+        }, { _, _ -> }, clock = clock, notifier = with)
     }
 
     @Test
@@ -105,6 +105,8 @@ class ChronoNotifyUiTest {
         assertTrue(plain.isEmpty())
         assertTrue(titles.none { it != null && it.startsWith("⚠") })
         onNodeWithText("Write the report · 1 min of continuous focus: time for a short break?").assertExists()
+        // Les alertes sont déjà actives : démarrer le chrono ne demande rien.
+        onNodeWithText("Get timer alerts?").assertDoesNotExist()
     }
 
     @Test
@@ -117,5 +119,52 @@ class ChronoNotifyUiTest {
         onNodeWithText("Allow exact alarms").performScrollTo().performClick()
         onNodeWithText("Battery settings").performScrollTo().performClick()
         assertEquals(listOf(NotifyHint.EXACT_ALARMS, NotifyHint.BATTERY), opened)
+    }
+
+    /** Comme Android avant l'accord : l'autorisation est à demander. */
+    private class AskingNotifier : ChronoNotifier {
+        override val state = MutableStateFlow(NotifyState.CAN_REQUEST)
+        var requested = 0
+        override suspend fun requestPermission() {
+            requested++
+        }
+    }
+
+    @Test
+    fun startingTheFirstTimerAsksOnceAndNotNowAsksNothing() = runComposeUiTest {
+        val asking = AskingNotifier()
+        val services = services(asking)
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Start the timer").fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Start the timer").performClick()
+        // Le chrono démarre, et le dialogue dit pourquoi avant que le système ne demande.
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Get timer alerts?").fetchSemanticsNodes().isNotEmpty() }
+        assertTrue(onAllNodesWithText("Stop the timer").fetchSemanticsNodes().isNotEmpty())
+        onNodeWithText("Not now").performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Get timer alerts?").fetchSemanticsNodes().isEmpty() }
+        assertEquals(0, asking.requested)
+        // Le bouton facultatif de « Maintenant » reste là.
+        onNodeWithText("Turn on timer alerts").performScrollTo().assertExists()
+        // Un deuxième chrono dans la même session ne redemande pas.
+        onAllNodesWithText("Stop the timer")[0].performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Start the timer").fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Start the timer").performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Stop the timer").fetchSemanticsNodes().isNotEmpty() }
+        waitForIdle()
+        onNodeWithText("Get timer alerts?").assertDoesNotExist()
+        assertEquals(0, asking.requested)
+    }
+
+    @Test
+    fun turningOnFromThePromptAsksTheSystem() = runComposeUiTest {
+        val asking = AskingNotifier()
+        val services = services(asking)
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Start the timer").fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Start the timer").performClick()
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Turn on").fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Turn on").performClick()
+        waitUntil(timeoutMillis = 5_000) { asking.requested == 1 }
+        onNodeWithText("Get timer alerts?").assertDoesNotExist()
     }
 }
