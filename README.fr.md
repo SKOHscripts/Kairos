@@ -76,13 +76,16 @@ se règlent dans les **Réglages**.
 
 ## Pourquoi j’ai construit Kairos
 
-Les outils de todo gèrent une liste, mais ne la trient pas. J’ai fusionné le
-développement agile, un outil de todo et la méthode GTD pour que la liste évolue
-toute seule : je me concentre sur GTD, et Kairos me dit par quoi commencer, pour
-me décharger l’esprit. Pas d’IA : de l’algorithmique locale qui s’affine avec
-l’usage, et indique toujours la tâche à faire **maintenant**. D’un script Python
-en terminal à une application Android, Windows, Linux, macOS et navigateur,
-reconstruite en Kotlin avec Claude Code.
+**Tu captures. Kairos décide.**
+
+Les outils de todo gèrent une liste, mais ne la trient pas : la pile est
+infinie. J’ai fusionné le développement agile, un outil de todo et la méthode
+GTD pour que la liste évolue toute seule : tu te concentres sur GTD, et Kairos
+te dit par quoi commencer, pour te décharger l’esprit. Pas d’IA : de
+l’algorithmique locale qui s’affine avec l’usage, et indique toujours la tâche
+à faire **maintenant**. D’un script Python en terminal à une application
+Android, Windows, Linux, macOS et navigateur, reconstruite en Kotlin avec
+Claude Code.
 
 **[Lire l’histoire de Kairos](https://skohscripts.github.io/Kairos/histoire/)**
 

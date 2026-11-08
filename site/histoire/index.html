@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>L’histoire de Kairos</title>
-<meta name="description" content="Pourquoi et comment Kairos a été construit : d’un script Python en terminal à une application pour Android, Windows, Linux, macOS et navigateur.">
+<meta name="description" content="Pourquoi Kairos existe : une pile de tâches infinie, un outil qui trie à ta place. Tu captures, Kairos décide.">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Kairos">
 <meta property="og:title" content="L’histoire de Kairos">
-<meta property="og:description" content="Pourquoi et comment Kairos a été construit : d’un script Python en terminal à une application pour Android, Windows, Linux, macOS et navigateur.">
+<meta property="og:description" content="Pourquoi Kairos existe : une pile de tâches infinie, un outil qui trie à ta place. Tu captures, Kairos décide.">
 <meta property="og:url" content="https://skohscripts.github.io/Kairos/histoire/">
 <meta property="og:image" content="https://skohscripts.github.io/Kairos/og/fr.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -22,21 +22,66 @@
   <span class="name">Kairos</span>
   <nav><a href="../en/story/" hreflang="en" lang="en">English</a></nav>
 </header>
-<main>
+<main class="story">
   <section class="hero">
     <h1>L’histoire de Kairos</h1>
+    <p class="slogan">Tu captures. Kairos décide.</p>
   </section>
-  <p>Je n’ai pas cherché à écrire un gestionnaire de tâches de plus. J’avais essayé les autres : Obsidian et ses extensions, Super Productivity… Tous font la même chose : ils gèrent une liste, plus ou moins finement, mais ne la trient pas. À chaque fois, je me retrouvais avec une pile de choses à faire et aucune idée de par où commencer.</p>
-  <p>Puis j’ai eu l’idée de fusionner trois mondes : le développement agile, un outil de todo et la méthode GTD. De là est venu un système où la liste évolue toute seule avec le temps. Je me concentre sur la méthode GTD (tout noter, puis traiter), et l’outil me dit par quoi commencer. Le but est de lui faire assez confiance pour se décharger l’esprit, et mettre son attention sur autre chose que la gestion des todos.</p>
-  <ol class="notes">
+  <p>Il est 13 h. Tu as une réunion jusqu’à 14 h. Ta liste contient 47 tâches, et pas une ne te dit « commence par moi ».</p>
+  <p>Dix d’entre elles y traînent depuis des semaines. Dans tous les outils de todo que j’ai essayés, ce qu’on ne fait pas ne remonte jamais : les nouvelles tâches s’empilent par-dessus, les anciennes s’enfoncent. Chaque matin, il faut retrier la liste de tête avant de pouvoir travailler.</p>
+  <p class="quote">La pile est infinie. Autant que l’outil la trie à ta place.</p>
+  <h2>Le constat</h2>
+  <p>Les outils de todo gèrent une liste, plus ou moins finement. Aucun ne la trie. J’ai eu l’idée de fusionner trois mondes : le développement agile (un backlog qu’on priorise en continu), un outil de todo et la méthode GTD (tout capturer, puis traiter).</p>
+  <p>Le résultat : une liste qui évolue toute seule avec le temps. Tu t’occupes de GTD, Kairos te dit par quoi commencer. Tu peux lui faire assez confiance pour te décharger l’esprit, et mettre ton attention ailleurs que dans la gestion des todos.</p>
+  <figure>
+    <img src="../story/order-fr.png" alt="Vue Jour de Kairos : la tâche à faire maintenant, puis les tâches dans l’ordre" loading="lazy">
+    <figcaption>La vue Jour, avec des tâches d’exemple : la tâche à faire <strong>maintenant</strong>, puis les suivantes dans l’ordre du score. Pas de liste à retrier : l’ordre est déjà fait.</figcaption>
+  </figure>
+  <h2>Comment c’est arrivé</h2>
+  <ol class="timeline">
     <li><strong>Un script.</strong> La première version tenait dans un terminal Linux : un script Python qui classait mes tâches avec le score WSJF, et rien d’autre. Ça marchait, et ça changeait mes journées.</li>
     <li><strong>Une interface.</strong> Puis une vraie interface, servie en local et lancée avec systemd. Le jour où j’ai compris que le plus utile n’était pas le tri mais de placer les tâches dans les trous de l’agenda, l’outil a pris sa forme.</li>
     <li><strong>Les autres.</strong> En en parlant autour de moi, j’ai vu que ce besoin n’était pas que le mien. Un outil qui ne marche que sur ma machine, avec un service à installer à la main, ne servait personne d’autre.</li>
-    <li><strong>Tout reconstruire.</strong> J’ai donc tout reconstruit en Kotlin avec Claude Code, pour qu’il tourne partout : Android, Windows, Linux, macOS et navigateur, sans compte ni réseau. Mon métier m’a donné la direction : je savais comment structurer le code, et comment bâtir une intégration continue et des artefacts reproductibles, que vous pouvez vérifier vous-mêmes.</li>
+    <li><strong>Tout reconstruire.</strong> J’ai tout reconstruit en Kotlin avec Claude Code, pour que ça tourne partout : Android, Windows, Linux, macOS et navigateur, sans compte ni réseau.</li>
   </ol>
-  <p>Les idées suivantes sont venues avec l’envie de faire du machine learning et des statistiques fines sur sa propre façon de travailler. Pas d’IA : de l’algorithmique pure, locale, qui s’affine avec le temps et aide à comprendre comment on travaille. L’objectif : plus on utilise Kairos, mieux il estime le temps que prendront les choses, et il indique toujours la tâche à faire <strong>maintenant</strong>.</p>
-  <p>Kairos est le premier logiciel que je publie. Je réponds à chaque retour, et ce sont vos idées qui le font avancer : le widget de l’écran d’accueil, par exemple, a donné la saisie rapide. Chaque demande est une issue : écrivez-moi, c’est comme ça que ça se construit.</p>
-  <p class="badges" style="display:flex;flex-wrap:wrap;gap:12px;margin:24px 0">
+  <figure class="wide">
+    <img src="../story/cli-fr.svg" alt="Terminal : la commande kairos --capture avec une priorité et des points, puis kairos --list, qui affiche les tâches triées par score décroissant : réparer le script de sauvegarde (5,33), répondre au mail du fournisseur (4,00), puis les autres" loading="lazy">
+    <figcaption><strong>Reconstitution</strong> de la première version, avant tout git : deux commandes, des tâches triées par score. Ni durée, ni échéance, ni agenda. Ce n’est pas une capture d’époque : je l’ai recréée d’après mes souvenirs.</figcaption>
+  </figure>
+  <h2>Pas d’IA : du machine learning</h2>
+  <p>Les idées suivantes sont venues avec l’envie de faire du machine learning et des statistiques fines sur sa propre façon de travailler. Pas d’IA générative, pas de chatbot, pas de cloud : de l’algorithmique pure, sur ton appareil, qui s’affine avec le temps et t’aide à comprendre comment tu travailles.</p>
+  <p>L’objectif : plus tu utilises Kairos, mieux il estime le temps que tu vas passer à faire les choses, et il te dit toujours quelle tâche faire <strong>maintenant</strong>.</p>
+  <h2>Pourquoi 14h55</h2>
+  <p>14h55 est le nom de code du projet. D’après une étude, c’est l’heure où l’on est statistiquement le moins efficace. Quand on y pense, c’est plutôt vrai. J’ai trouvé intéressant d’en tenir compte : Kairos protège tes créneaux de deep work et, l’après-midi, laisse passer les tâches légères avant les complexes.</p>
+  <h2>Qui a fait quoi</h2>
+  <p>Claude Code m’a permis de tout reconstruire en Kotlin. L’IA est ma plume et un accélérateur de création ; le reste est de moi : j’ai fixé le cap, planifié, guidé dans le détail, écrit les <a href="https://github.com/SKOHscripts/Kairos/tree/main/docs/spec">spécifications</a>, corrigé, structuré le code, mis en place la CI et les builds, cadré les bornes et apporté la théorie. Chaque changement commence par une spec, avant le code.</p>
+  <h2>Je réponds à chaque retour</h2>
+  <p>Kairos est le premier logiciel que je publie, et je réponds à chaque issue. Quelques exemples :</p>
+  <ul class="plain">
+    <li><a href="https://github.com/SKOHscripts/Kairos/issues/150">#150</a> : une demande de widget pour l’écran d’accueil d’Android. La version 3.12 le livrait le lendemain, et ce que j’ai repensé en le faisant a donné la saisie rapide.</li>
+    <li><a href="https://github.com/SKOHscripts/Kairos/issues/88">#88</a> : synchroniser ses appareils sans compte. Plus gros que prévu, avec beaucoup de cas limites ; livré en 4.0 : un fichier commun, fusionné sans rien perdre.</li>
+    <li><a href="https://github.com/SKOHscripts/Kairos/issues/65">#65</a> : un plantage au démarrage que je ne pouvais pas reproduire. La 3.3.0 a ajouté un écran de rapport de plantage, qui reste sur ton appareil et n’est envoyé que si tu le partages.</li>
+    <li><a href="https://github.com/SKOHscripts/Kairos/issues/131">#131</a> : trop de réglages en vrac. Ils sont rangés par catégorie, avec une icône chacune, depuis la 3.7.</li>
+  </ul>
+  <h2>Ce que je ne cache pas</h2>
+  <ul class="plain">
+    <li>Les applications macOS ne sont pas signées : l’adhésion au programme développeur d’Apple coûte 99 $ par an, et je ne l’ai pas prise (<a href="https://github.com/SKOHscripts/Kairos/issues/116">#116</a>). Au premier lancement, macOS te demande de confirmer.</li>
+    <li>Sous Windows, la signature est prête côté projet et attend l’admission chez SignPath (<a href="https://github.com/SKOHscripts/Kairos/issues/117">#117</a>). D’ici là, SmartScreen peut afficher « Windows a protégé votre PC ».</li>
+    <li>L’APK Android est signé, sa construction est reproductible, et chaque version publie ses sommes de contrôle (SHA256SUMS) : tu peux vérifier ce que tu installes.</li>
+  </ul>
+  <h2>Kairos n’est peut-être pas pour toi si…</h2>
+  <ul class="plain">
+    <li>tu veux travailler à plusieurs en temps réel : Kairos n’a ni compte ni serveur. L’espace Équipe est pensé pour un manager seul, avec des échanges de fichiers ;</li>
+    <li>tu attends une IA générative, un assistant qui te répond : Kairos n’a ni chatbot ni cloud ;</li>
+    <li>tu aimes ranger ta liste à la main, avec tes étiquettes et tes vues : tu peux régler les poids du score et épingler une heure, mais l’ordre, c’est Kairos qui le décide.</li>
+  </ul>
+  <h2>On en parle</h2>
+  <ul class="plain">
+    <li><a href="https://alternativeto.net/software/kairos-by-skohstripts/about/">AlternativeTo</a> : la fiche de Kairos, pour la noter ou la proposer comme alternative à une autre application.</li>
+    <li><a href="https://www.reddit.com/r/foss/comments/1xiohaj/kairos_a_foss_task_manager_that_schedules_your/">r/foss</a> : le post de présentation (octobre 2026, en anglais).</li>
+  </ul>
+  <p class="slogan" style="margin-top:40px">Tu captures. Kairos décide.</p>
+  <p class="cta">
     <a class="button filled" href="../">Découvrir Kairos</a>
     <a class="button" href="https://github.com/SKOHscripts/Kairos/issues">Écrire une issue</a>
   </p>

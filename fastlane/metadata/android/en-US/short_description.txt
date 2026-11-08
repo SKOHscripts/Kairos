@@ -1,1 +1,1 @@
-A to-do list that sorts itself and tells you what to do now.
+You capture. Kairos decides. A to-do list that sorts itself.

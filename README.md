@@ -73,12 +73,15 @@ in **Settings**.
 
 ## Why I built Kairos
 
-To-do tools manage a list but do not sort it. I merged agile development, a
-to-do tool and the GTD method so that the list evolves by itself: I focus on
-GTD, and Kairos tells me what to start with, so I can unload my mind. No AI:
-local algorithmics that sharpen with use and always point to the task to do
-**now**. From a Python script in a terminal to an app for Android, Windows,
-Linux, macOS and the browser, rebuilt in Kotlin with Claude Code.
+**You capture. Kairos decides.**
+
+To-do tools manage a list but do not sort it: the pile is endless. I merged
+agile development, a to-do tool and the GTD method so that the list evolves by
+itself: you focus on GTD, and Kairos tells you what to start with, so you can
+unload your mind. No AI: local algorithmics that sharpen with use and always
+point to the task to do **now**. From a Python script in a terminal to an app
+for Android, Windows, Linux, macOS and the browser, rebuilt in Kotlin with
+Claude Code.
 
 **[Read the story of Kairos](https://skohscripts.github.io/Kairos/en/story/)**
 

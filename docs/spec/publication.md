@@ -270,7 +270,45 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   trier ; Kairos fusionne agile, todo et GTD en une liste qui évolue seule et dit quoi faire maintenant, avec des
   estimations qui s'affinent par machine learning local. Le russe est le plus serré (le paragraphe tient en ~210
   caractères pour rester sous les 4000 de `full_description.txt`). La description du dépôt GitHub (« About »,
-  hors dépôt, `gh repo edit`) dit la même chose en anglais.
+  hors dépôt, `gh repo edit`) dit la même chose en anglais. Les fiches restent au vouvoiement (ou équivalent), la page
+  histoire et le README français au tutoiement.
+- **Page « L'histoire de Kairos » (2026-11-08)** : `site/histoire/index.html` (français) et
+  `site/en/story/index.html` (anglais), HTML et CSS seuls (`style.css`, bloc « Page histoire »), sans `@@…@@`.
+  Ton : **tutoiement** (décision du propriétaire, pour toucher les lecteurs), première personne. Plan : une scène
+  (47 tâches, dix qui traînent : « la pile est infinie »), la citation (seul bloc teinté), le constat (agile + todo +
+  GTD), l'image de la vue Jour, la frise des quatre étapes, « pas d'IA : du machine learning », « pourquoi 14h55 »
+  (une étude : l'heure statistiquement la moins efficace), « qui a fait quoi » (Claude Code est la plume ; cap, specs, CI
+  et bornes sont du propriétaire), « je réponds à chaque retour » (issues #150, #88, #65, #131, sans citer
+  d'utilisateur), « ce que je ne cache pas » (macOS non signé, 99 $ par an, #116 ; Windows en attente de SignPath, #117),
+  « Kairos n'est peut-être pas pour toi si… », « on en parle » (les deux liens de la section du README), le slogan,
+  deux boutons. Les citations d'utilisateurs sont **hors périmètre** tant que le propriétaire ne le décide pas.
+  Un bouton sous la rangée des sept boutons de chaque page d'accueil y mène ; les quatre autres langues (es, de, ru, it)
+  pointent vers la page anglaise, libellé dans leur langue suivi de la mention de la langue, `hreflang="en"` : pas de
+  traduction d'un récit à la première personne tant que le propriétaire ne la valide pas. Les validateurs
+  (`validate_og.py`, `validate_badges.py`) ne lisent que les `index.html` de langue : ces pages n'en dépendent pas.
+  Les README ne gardent qu'un résumé, le slogan et le lien (section « Pourquoi j'ai construit Kairos »).
+- **Image de la page** : `site/story/order-fr.png` et `order-en.png`, **versionnées** (pas régénérées par la CI), la vue
+  Jour des fiches (mêmes tâches d'exemple, heure figée) défilée jusqu'à « Aujourd'hui, dans l'ordre ».
+  `./gradlew :desktopApp:run --args=--story-screenshots=<dépôt>/site/story` (`StoreScreenshots.runStory`,
+  `STORY_SCROLL`) ; à refaire si la vue Jour change. Sous Java 21 (`JAVA_HOME`), le JDK 17 ne lit pas les classes.
+- **Reconstitution de la première version (2026-11-08)** : la page montre, sous la frise, `site/story/cli-fr.svg` et
+  `cli-en.svg`, une image de terminal (`kairos --capture="…" --prio=N --fibo=N`, puis `kairos --list`, tâches triées par
+  score décroissant ; ni durée ni échéance). La première version n'a **jamais été sous git** : l'image est une
+  **reconstitution d'après les souvenirs du propriétaire**, annoncée comme telle dans la légende (jamais présentée
+  comme une capture d'époque). Score = 4^(2 − priorité) / points, celui de Kairos sans l'échéance. Générée et versionnée
+  par `kmp/tools/make_story_cli.py` (le calcul des scores est dans le script, pas écrit à la main) ; SVG, polices
+  système à chasse fixe. Aucune version intermédiaire (page web locale) n'est illustrée : pas de capture d'époque.
+- **Slogan (2026-11-08)** : « Tu captures. Kairos décide. » (« You capture. Kairos decides. »), répété à quatre
+  endroits : la page histoire (sous le titre et en clôture), le résumé des README, la description courte des fiches
+  (six langues, au registre de chaque fiche : « Vous capturez… », « Sie erfassen… », « Lei cattura… ») et la
+  description du dépôt GitHub.
+- **Message des fiches (2026-11-08)** : les `short_description.txt` et le premier paragraphe des `full_description.txt`
+  (six langues) portent le constat fondateur de la page « histoire » : les outils de todo gèrent une liste sans la
+  trier ; Kairos fusionne agile, todo et GTD en une liste qui évolue seule et dit quoi faire maintenant, avec des
+  estimations qui s'affinent par machine learning local. Le russe est le plus serré (le paragraphe tient en ~210
+  caractères pour rester sous les 4000 de `full_description.txt`). La description du dépôt GitHub (« About »,
+  hors dépôt, `gh repo edit`) dit la même chose en anglais. Les fiches restent au vouvoiement (ou équivalent), la page
+  histoire et le README français au tutoiement.
 - **Page « L'histoire de Kairos » (2026-11-08)** : `site/histoire/index.html` (français) et
   `site/en/story/index.html` (anglais), HTML et CSS seuls, sans `@@…@@` (rien à substituer). Un bouton
   sous la rangée des sept boutons de chaque page d'accueil y mène ; les quatre autres langues (es, de, ru, it)

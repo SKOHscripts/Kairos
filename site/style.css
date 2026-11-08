@@ -106,3 +106,32 @@ footer { padding-top: 32px; padding-bottom: 32px; font-size: 14px; color: var(--
   .hero p { font-size: 16px; line-height: 24px; }
   .shots img { width: 180px; }
 }
+
+/* Page « histoire » (docs/spec/publication.md) : lecture confortable, un seul bloc teinté (la citation). */
+.story { max-width: 720px; }
+.story p { font-size: 18px; line-height: 30px; margin: 0 0 16px; }
+.story .slogan { font-size: 22px; line-height: 30px; font-weight: 700; color: var(--md-primary); margin-top: 8px; }
+.story .quote {
+  background: var(--md-primary-container); color: var(--md-on-primary-container);
+  border-radius: 16px; padding: 24px; margin: 32px 0;
+  font-size: 24px; line-height: 32px; font-weight: 500;
+}
+.story figure { margin: 32px 0; display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+.story figure img { width: 260px; max-width: 100%; height: auto; border: 1px solid var(--md-outline-variant); border-radius: 16px; }
+.story figcaption { flex: 1 1 240px; font-size: 14px; line-height: 20px; color: var(--md-on-surface-variant); }
+.timeline { list-style: none; margin: 0 0 16px; padding: 0 0 0 20px; border-left: 2px solid var(--md-outline-variant); }
+.timeline li { position: relative; padding-bottom: 20px; font-size: 18px; line-height: 28px; }
+.timeline li::before {
+  content: ""; position: absolute; left: -27px; top: 9px; width: 12px; height: 12px;
+  border-radius: 50%; background: var(--md-primary);
+}
+.timeline strong { display: block; font-weight: 500; }
+.story ul.plain { font-size: 18px; line-height: 28px; padding-left: 20px; }
+.story ul.plain li { margin-bottom: 8px; }
+.story .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; }
+@media (max-width: 480px) {
+  .story p, .timeline li, .story ul.plain { font-size: 16px; line-height: 26px; }
+  .story .quote { font-size: 20px; line-height: 28px; padding: 20px; }
+}
+.story figure.wide { flex-direction: column; align-items: flex-start; }
+.story figure.wide img { width: 100%; max-width: 560px; border: 0; border-radius: 12px; }
