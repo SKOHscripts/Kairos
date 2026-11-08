@@ -773,6 +773,8 @@ The design and contribution documents are written in French.
   alternative to another app.
 - [r/foss](https://www.reddit.com/r/foss/comments/1xiohaj/kairos_a_foss_task_manager_that_schedules_your/): presentation post (October 2026).
 
+- [whatwemade](https://www.whatwemade.app/p/kairos) : presentation article
+
 ## License
 
 [MIT](LICENSE).

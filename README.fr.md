@@ -815,6 +815,8 @@ cd kmp
   comme alternative à une autre application.
 - [r/foss](https://www.reddit.com/r/foss/comments/1xiohaj/kairos_a_foss_task_manager_that_schedules_your/) : post de présentation (octobre 2026, en anglais).
 
+- [whatwemade](https://www.whatwemade.app/p/kairos) : article de présentation
+
 ## Licence
 
 [MIT](LICENSE).
