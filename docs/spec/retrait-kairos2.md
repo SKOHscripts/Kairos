@@ -5,7 +5,7 @@ migration, écrans, textes, tests différentiels, mentions, sans perdre
 l'histoire ni l'identité. Fichiers couverts (à venir) : voir l'inventaire en
 partie 2. Tests : `DifferentialTest`, `StatsDifferentialTest` (refaits sur
 fichiers d'or figés), `LegacyMigrationTest` (supprimé), test de garde
-`NoKairos2MentionTest`._
+`NoKairos2MentionTest` (créé en 3.4, supprimé le 2026-11-08)._
 
 État : **issue #64 (retour du propriétaire)**, **implémentée en 3.4.0**, en
 **premier** chantier de la version (il allège les autres). **Rouvre
@@ -45,10 +45,9 @@ de lever les blocages liés à cette version.
   Kairos 2 : `DifferentialTest` (480 scénarios), `StatsDifferentialTest` (200 et
   plus), partie calendaire ; mêmes assertions, source différente (voir
   « Décisions »).
-- Test de garde `NoKairos2MentionTest` : aucune occurrence de `Kairos 2`,
-  `Kairos2`, `kairos2` ou `tasks.db` hérité dans `kmp/*/src`, `site/`,
-  `fastlane/**/full_description.txt`, `README*.md`, hors liste blanche
-  (notes de version publiées, `plan-v3-kotlin.md`, cette spec).
+- Plus aucune occurrence de `Kairos 2`, `Kairos2`, `kairos2` ou `tasks.db` hérité
+  dans le code, les textes d'interface, `site/` et les fiches des magasins. Plus de
+  test de garde pour le vérifier depuis le 2026-11-08 (voir « Décisions »).
 - Les bases existantes s'ouvrent comme avant (`ExchangeMigrationTest`) ; `TeamIsolationTest.soloExportIsByteIdentical` passe.
 - `StringsParityTest` reste vert après retrait des chaînes.
 - Android, bureau et web démarrent sans l'import (`--self-test`, démarrage de
@@ -139,10 +138,16 @@ les chantiers de la 3.4 (`planning-personnalise.md`, `durees-apprises.md`).
   casserait l'ouverture de bases réelles (leçon de `demarrage.md`).
 - **Aucun effacement de fichier utilisateur** : un `tasks.db` hérité devient
   simplement inutilisé.
-- **Test de garde** `NoKairos2MentionTest` (`core/src/jvmTest`) : balaie `kmp/`,
-  `docs/`, `site/`, `fdroid/`, `fastlane/`, `.github/`, `.claude/`, les README et
-  `CLAUDE.md` à la recherche de la mention ; liste blanche : cette spec,
-  `docs/plan-v3-kotlin.md`, les notes de version publiées (`changelogs/`) et le test
-  lui-même. Le nom de fichier `retrait-kairos2.md` n'est pas une mention.
+- **Test de garde supprimé le 2026-11-08.** `NoKairos2MentionTest` (créé en 3.4) a
+  été retiré : il datait de la transition entre les deux versions et empêchait de
+  raconter l'histoire de l'outil. Ce qui reste de la règle : ni migration, ni import,
+  ni support de l'ancienne version, et pas de mention dans l'interface.
 - **Chemin des données du bureau inchangé** : `DataDirectory` garde la racine
   `Kairos` de platformdirs et le sous-dossier `v3` ; seuls ses commentaires changent.
+- **Histoire d'origine (2026-11-08).** Page du site `histoire/` et `en/story/`
+  (`publication.md`), résumée dans la section « Pourquoi j'ai construit Kairos » des
+  README (après « Pourquoi Kairos ? ») : un
+  script Python en terminal, puis une interface locale lancée par systemd, puis la
+  réécriture en Kotlin. Ce n'est pas une fonctionnalité (hors catalogue, hors tableau
+  « Feature list ») : c'est du récit de projet, voulu pour que les lecteurs s'y
+  reconnaissent. Le récit peut nommer les anciennes versions.

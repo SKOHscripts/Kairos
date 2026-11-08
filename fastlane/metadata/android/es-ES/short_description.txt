@@ -1,1 +1,1 @@
-Sus tareas en orden y en su día, con aprendizaje automático en el dispositivo.
+Una lista de tareas que se ordena sola y le dice qué hacer ahora.

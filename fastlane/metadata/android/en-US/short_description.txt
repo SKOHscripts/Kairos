@@ -1,1 +1,1 @@
-Tasks in the right order, fitted into your day, with on-device machine learning.
+A to-do list that sorts itself and tells you what to do now.

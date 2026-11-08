@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L’histoire de Kairos</title>
+<meta name="description" content="Pourquoi et comment Kairos a été construit : d’un script Python en terminal à une application pour Android, Windows, Linux, macOS et navigateur.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Kairos">
+<meta property="og:title" content="L’histoire de Kairos">
+<meta property="og:description" content="Pourquoi et comment Kairos a été construit : d’un script Python en terminal à une application pour Android, Windows, Linux, macOS et navigateur.">
+<meta property="og:url" content="https://skohscripts.github.io/Kairos/histoire/">
+<meta property="og:image" content="https://skohscripts.github.io/Kairos/og/fr.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../favicon.png">
+<link rel="alternate" hreflang="en" href="../en/story/">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header>
+  <img src="../icon.png" alt="">
+  <span class="name">Kairos</span>
+  <nav><a href="../en/story/" hreflang="en" lang="en">English</a></nav>
+</header>
+<main>
+  <section class="hero">
+    <h1>L’histoire de Kairos</h1>
+  </section>
+  <p>Je n’ai pas cherché à écrire un gestionnaire de tâches de plus. J’avais essayé les autres : Obsidian et ses extensions, Super Productivity… Tous font la même chose : ils gèrent une liste, plus ou moins finement, mais ne la trient pas. À chaque fois, je me retrouvais avec une pile de choses à faire et aucune idée de par où commencer.</p>
+  <p>Puis j’ai eu l’idée de fusionner trois mondes : le développement agile, un outil de todo et la méthode GTD. De là est venu un système où la liste évolue toute seule avec le temps. Je me concentre sur la méthode GTD (tout noter, puis traiter), et l’outil me dit par quoi commencer. Le but est de lui faire assez confiance pour se décharger l’esprit, et mettre son attention sur autre chose que la gestion des todos.</p>
+  <ol class="notes">
+    <li><strong>Un script.</strong> La première version tenait dans un terminal Linux : un script Python qui classait mes tâches avec le score WSJF, et rien d’autre. Ça marchait, et ça changeait mes journées.</li>
+    <li><strong>Une interface.</strong> Puis une vraie interface, servie en local et lancée avec systemd. Le jour où j’ai compris que le plus utile n’était pas le tri mais de placer les tâches dans les trous de l’agenda, l’outil a pris sa forme.</li>
+    <li><strong>Les autres.</strong> En en parlant autour de moi, j’ai vu que ce besoin n’était pas que le mien. Un outil qui ne marche que sur ma machine, avec un service à installer à la main, ne servait personne d’autre.</li>
+    <li><strong>Tout reconstruire.</strong> J’ai donc tout reconstruit en Kotlin avec Claude Code, pour qu’il tourne partout : Android, Windows, Linux, macOS et navigateur, sans compte ni réseau. Mon métier m’a donné la direction : je savais comment structurer le code, et comment bâtir une intégration continue et des artefacts reproductibles, que vous pouvez vérifier vous-mêmes.</li>
+  </ol>
+  <p>Les idées suivantes sont venues avec l’envie de faire du machine learning et des statistiques fines sur sa propre façon de travailler. Pas d’IA : de l’algorithmique pure, locale, qui s’affine avec le temps et aide à comprendre comment on travaille. L’objectif : plus on utilise Kairos, mieux il estime le temps que prendront les choses, et il indique toujours la tâche à faire <strong>maintenant</strong>.</p>
+  <p>Kairos est le premier logiciel que je publie. Je réponds à chaque retour, et ce sont vos idées qui le font avancer : le widget de l’écran d’accueil, par exemple, a donné la saisie rapide. Chaque demande est une issue : écrivez-moi, c’est comme ça que ça se construit.</p>
+  <p class="badges" style="display:flex;flex-wrap:wrap;gap:12px;margin:24px 0">
+    <a class="button filled" href="../">Découvrir Kairos</a>
+    <a class="button" href="https://github.com/SKOHscripts/Kairos/issues">Écrire une issue</a>
+  </p>
+</main>
+<footer>
+  Logiciel libre sous licence MIT · <a href="https://github.com/SKOHscripts/Kairos">code source</a>
+</footer>
+</body>
+</html>

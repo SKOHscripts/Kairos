@@ -265,6 +265,19 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
 
 ### Page de téléchargement (`site/`, `pages.yml`)
 
+- **Message des fiches (2026-11-08)** : les `short_description.txt` et le premier paragraphe des `full_description.txt`
+  (six langues) portent le constat fondateur de la page « histoire » : les outils de todo gèrent une liste sans la
+  trier ; Kairos fusionne agile, todo et GTD en une liste qui évolue seule et dit quoi faire maintenant, avec des
+  estimations qui s'affinent par machine learning local. Le russe est le plus serré (le paragraphe tient en ~210
+  caractères pour rester sous les 4000 de `full_description.txt`). La description du dépôt GitHub (« About »,
+  hors dépôt, `gh repo edit`) dit la même chose en anglais.
+- **Page « L'histoire de Kairos » (2026-11-08)** : `site/histoire/index.html` (français) et
+  `site/en/story/index.html` (anglais), HTML et CSS seuls, sans `@@…@@` (rien à substituer). Un bouton
+  sous la rangée des sept boutons de chaque page d'accueil y mène ; les quatre autres langues (es, de, ru, it)
+  pointent vers la page anglaise, libellé dans leur langue suivi de la mention de la langue, `hreflang="en"` :
+  pas de traduction d'un récit à la première personne tant que le propriétaire ne la valide pas. Les validateurs
+  (`validate_og.py`, `validate_badges.py`) ne lisent que les `index.html` de langue : ces pages n'en dépendent pas.
+  Les README ne gardent qu'un court résumé et le lien (section « Pourquoi j'ai construit Kairos »).
 - `site/index.html` (français), `site/en/`, `site/es/`, `site/de/`, `site/ru/` et `site/it/` (`index.html` chacun, 3.11.0),
   versionnés ; chaque page relie les cinq autres (`<nav>`, `hreflang`) et affiche les captures de `screens/en/`,
   en HTML et CSS seuls (`style.css`) ; `os.js` (facultatif) ajoute `current`

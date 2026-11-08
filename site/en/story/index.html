@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The story of Kairos</title>
+<meta name="description" content="Why and how Kairos was built: from a Python script in a terminal to an app for Android, Windows, Linux, macOS and the browser.">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Kairos">
+<meta property="og:title" content="The story of Kairos">
+<meta property="og:description" content="Why and how Kairos was built: from a Python script in a terminal to an app for Android, Windows, Linux, macOS and the browser.">
+<meta property="og:url" content="https://skohscripts.github.io/Kairos/en/story/">
+<meta property="og:image" content="https://skohscripts.github.io/Kairos/og/en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../../favicon.png">
+<link rel="alternate" hreflang="fr" href="../../histoire/">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<header>
+  <img src="../../icon.png" alt="">
+  <span class="name">Kairos</span>
+  <nav><a href="../../histoire/" hreflang="fr" lang="fr">Français</a></nav>
+</header>
+<main>
+  <section class="hero">
+    <h1>The story of Kairos</h1>
+  </section>
+  <p>I did not set out to write one more task manager. I had tried the others: Obsidian and its plugins, Super Productivity… They all do the same thing: they manage a list, more or less finely, but they do not sort it. Every time I ended up with a pile of things to do and no idea where to start.</p>
+  <p>Then I had the idea of merging three worlds: agile development, a to-do tool and the GTD method. That gave me a system where the list evolves by itself over time. I focus on GTD (capture everything, then process it), and the tool tells me what to start with. The goal is to trust it enough to unload your mind, and to put your attention on something other than managing to-dos.</p>
+  <ol class="notes">
+    <li><strong>A script.</strong> The first version lived in a Linux terminal: a Python script that ranked my tasks with the WSJF score, and nothing else. It worked, and it changed my days.</li>
+    <li><strong>An interface.</strong> Then a real interface, served locally and started with systemd. The day I understood that the useful part was not the sorting but fitting tasks into the gaps of the calendar, the tool took its shape.</li>
+    <li><strong>Other people.</strong> Talking about it around me, I saw that the need was not only mine. A tool that only runs on my machine, with a service to install by hand, helped nobody else.</li>
+    <li><strong>Rebuilding everything.</strong> So I rebuilt it all in Kotlin with Claude Code, to run everywhere: Android, Windows, Linux, macOS and the browser, with no account and no network. My day job gave me the direction: I knew how to structure the code, and how to build continuous integration and reproducible artifacts that you can check yourself.</li>
+  </ol>
+  <p>The next ideas came with the wish to do machine learning and fine statistics on your own way of working. No AI: pure algorithmics, running locally, that sharpens over time and helps you understand how you work. The goal: the more you use Kairos, the better it estimates how long things will take, and it always tells you which task to do <strong>now</strong>.</p>
+  <p>Kairos is the first software I have published. I answer every piece of feedback, and your ideas are what move it forward: the home screen widget, for example, led to quick capture. Every request is an issue: write to me, that is how this gets built.</p>
+  <p class="badges" style="display:flex;flex-wrap:wrap;gap:12px;margin:24px 0">
+    <a class="button filled" href="../../">Discover Kairos</a>
+    <a class="button" href="https://github.com/SKOHscripts/Kairos/issues">Open an issue</a>
+  </p>
+</main>
+<footer>
+  Free software under the MIT licence · <a href="https://github.com/SKOHscripts/Kairos">source code</a>
+</footer>
+</body>
+</html>

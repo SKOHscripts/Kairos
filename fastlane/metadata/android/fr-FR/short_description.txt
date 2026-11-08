@@ -1,1 +1,1 @@
-Vos tâches dans le bon ordre et dans la journée, par machine learning local.
+Une liste de tâches qui se trie seule et dit quoi faire maintenant.

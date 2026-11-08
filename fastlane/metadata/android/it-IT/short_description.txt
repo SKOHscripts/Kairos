@@ -1,1 +1,1 @@
-Le attività in ordine e nella giornata, con machine learning sul dispositivo.
+Una lista di attività che si ordina da sola e dice cosa fare ora.

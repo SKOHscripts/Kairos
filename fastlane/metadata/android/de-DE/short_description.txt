@@ -1,1 +1,1 @@
-Aufgaben richtig geordnet und eingeplant, mit maschinellem Lernen auf dem Gerät.
+Eine To-do-Liste, die sich selbst sortiert und sagt, was jetzt dran ist.

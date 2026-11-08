@@ -71,6 +71,17 @@ in **Settings**.
 > tool's job: finding the right slot for every task. Code name: **14h55**, the
 > post-lunch dip, the least productive hour of the day.
 
+## Why I built Kairos
+
+To-do tools manage a list but do not sort it. I merged agile development, a
+to-do tool and the GTD method so that the list evolves by itself: I focus on
+GTD, and Kairos tells me what to start with, so I can unload my mind. No AI:
+local algorithmics that sharpen with use and always point to the task to do
+**now**. From a Python script in a terminal to an app for Android, Windows,
+Linux, macOS and the browser, rebuilt in Kotlin with Claude Code.
+
+**[Read the story of Kairos](https://skohscripts.github.io/Kairos/en/story/)**
+
 ## On-device machine learning: how long your tasks really take
 
 New in 4.0: a machine-learning model that learns from your finished tasks how
