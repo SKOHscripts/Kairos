@@ -193,7 +193,8 @@ class M5ScreensUiTest {
     fun aChosenColorThemesTheWholeInterfaceOnceSaved() = runComposeUiTest {
         val services = services()
         val repository = services.repository
-        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        // Couleurs claires attendues : thème du système forcé, sinon un bureau en sombre (GNOME « prefer-dark ») fait échouer le test.
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD, systemDark = false) { services } }
         openSettings(SettingsCategory.GENERAL)
         waitText("Appearance")
         // Le fond de l'écran est la surface du schéma : celle de la graine par défaut (l'océan), puis celle de la graine choisie.
