@@ -67,7 +67,8 @@ champs à contour).
 ### Hors périmètre
 
 - Couleurs, rôles, formes (4/8/12/16/28 dp), typographie et taille du corps
-  (14 sp), logo, navigation (rail, barres).
+  (14 sp par défaut ; un zoom choisi par l'utilisateur existe depuis 4.1.0, `apparence.md` § Taille du texte), logo,
+  navigation (rail, barres).
 - Densité différente selon la plateforme (« compact sur ordinateur ») :
   écartée, une seule règle pour Android, bureau et web.
 - Thème sombre, animations.

@@ -44,6 +44,8 @@ data class Settings(
     val themeColor: String = DEFAULT_THEME_COLOR,
     /** Thème : [THEME_MODE_SYSTEM] (suit le système), [THEME_MODE_LIGHT] ou [THEME_MODE_DARK] (docs/spec/apparence.md, issue #72). */
     val themeMode: String = THEME_MODE_SYSTEM,
+    /** Zoom du texte en pour cent, un palier de `TextZoom.STEPS` (docs/spec/apparence.md § Taille du texte, issue #229). Propre à l'appareil. */
+    val textZoom: Int = DEFAULT_TEXT_ZOOM,
     /** Langue de l'interface : [LANGUAGE_SYSTEM] (suit le système) ou l'une des langues de `UiLanguage.SUPPORTED` (docs/spec/i18n.md). */
     val language: String = LANGUAGE_SYSTEM,
     /**
@@ -124,6 +126,9 @@ data class Settings(
 
         /** Couleurs du système (Android 12 et plus), à défaut la graine par défaut. */
         const val SYSTEM_THEME = "system"
+
+        /** Zoom du texte par défaut : 100 %, le corps de 14 sp de la charte. */
+        const val DEFAULT_TEXT_ZOOM = 100
 
         /** Thème : celui du système (sombre si le système l'est), ou choisi. */
         const val THEME_MODE_SYSTEM = "system"

@@ -173,8 +173,9 @@ Compose correspondant avant d'en inventer un. Détail complet :
 - **Material Symbols** (Outlined 400) via `KairosIcons`, **généré** par
   `kmp/tools/make_icons.py` : ajouter l'icône dans le script, jamais à la
   main. Variante pleine pour la destination active.
-- Densité d'information : corps 14 sp ; ne pas l'augmenter ni la réduire lors
-  de futurs ajouts.
+- Densité d'information : corps 14 sp par défaut ; ne pas l'augmenter ni la réduire lors
+  de futurs ajouts. Seul l'utilisateur la change, par le zoom du texte (Réglages →
+  Apparence, `docs/spec/apparence.md` § Taille du texte, issue #229).
 
 ## Forme & effets
 - Formes MD3 : champs 4 dp, chips/pastilles 8 dp, cartes et lignes 12 dp,

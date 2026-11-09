@@ -602,6 +602,8 @@
     <string name="language_it">Italiano</string>
     <string name="theme_custom">Свой цвет</string>
     <string name="theme_custom_help">Формат #RRGGBB, например #2F6FED.</string>
+    <string name="text_zoom">Размер текста</string>
+    <string name="text_zoom_help">Увеличивает весь текст в Kairos поверх размера шрифта системы. По умолчанию 100 %; применяется по кнопке «Сохранить».</string>
     <string name="theme_system">Цвета системы</string>
     <string name="theme_preset_honey">Мед</string>
     <string name="theme_preset_ocean">Океан</string>
@@ -1559,6 +1561,8 @@
     <string name="card_settings_categories_body">Общие, День и часы, Планирование, Таймер и статистика…: у каждой категории свой значок и краткое описание; на широком экране список и категория стоят рядом.</string>
     <string name="card_darktheme_title">Темная тема</string>
     <string name="card_darktheme_body">Kairos следует теме твоей системы. Переключатель «Темная тема» в разделе «Оформление» выбирает другую; если вернуть его обратно, Kairos снова следует системе.</string>
+    <string name="card_text_zoom_title">Размер текста</string>
+    <string name="card_text_zoom_body">В разделе «Настройки» → «Общие» → «Оформление» можно выбрать размер текста: 100 %, 115 %, 130 % или 150 %. Удобно на масштабированном экране компьютера; на Android он добавляется к размеру шрифта системы.</string>
     <string name="card_languages_title">Языки</string>
     <string name="card_languages_body">Kairos говорит по-русски, по-английски, по-французски, по-испански, по-немецки и по-итальянски. Он следует языку системы, если тот есть в списке (иначе английский); другой язык выбирается в Настройки → Общие → Язык. Даты, время и числа подстраиваются под него.</string>
     <string name="edit_title_first">Первая задача</string>

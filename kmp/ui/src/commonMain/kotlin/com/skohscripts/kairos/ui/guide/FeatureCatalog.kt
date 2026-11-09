@@ -70,6 +70,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_slots_month_title
 import com.skohscripts.kairos.ui.generated.resources.card_settings_categories_title
 import com.skohscripts.kairos.ui.generated.resources.card_settings_categories_body
 import com.skohscripts.kairos.ui.generated.resources.card_darktheme_title
+import com.skohscripts.kairos.ui.generated.resources.card_text_zoom_title
+import com.skohscripts.kairos.ui.generated.resources.card_text_zoom_body
 import com.skohscripts.kairos.ui.generated.resources.card_daily_summary_body
 import com.skohscripts.kairos.ui.generated.resources.card_daily_summary_title
 import com.skohscripts.kairos.ui.generated.resources.card_darktheme_body
@@ -265,6 +267,7 @@ object FeatureCatalog {
         FeatureCard("daily_summary", GuideChapter.SETTINGS, { KairosIcons.Alarm }, Res.string.card_daily_summary_title, Res.string.card_daily_summary_body, GuideTarget.Settings(GuideSection.SETTINGS_REMINDERS), since = "3.12.0"),
         FeatureCard("theme_color", GuideChapter.SETTINGS, { KairosIcons.Palette }, Res.string.card_theme_color_title, Res.string.card_theme_color_body, GuideTarget.Settings(GuideSection.SETTINGS_APPEARANCE), since = "3.1.0"),
         FeatureCard("darktheme", GuideChapter.SETTINGS, { KairosIcons.DarkMode }, Res.string.card_darktheme_title, Res.string.card_darktheme_body, GuideTarget.Settings(GuideSection.SETTINGS_APPEARANCE), since = "3.7.0"),
+        FeatureCard("text_zoom", GuideChapter.SETTINGS, { KairosIcons.Palette }, Res.string.card_text_zoom_title, Res.string.card_text_zoom_body, GuideTarget.Settings(GuideSection.SETTINGS_APPEARANCE), since = "4.1.0"),
         FeatureCard("languages", GuideChapter.SETTINGS, { KairosIcons.Translate }, Res.string.card_languages_title, Res.string.card_languages_body, GuideTarget.Settings(), since = "3.11.0"),
         FeatureCard("data", GuideChapter.SETTINGS, { KairosIcons.Description }, Res.string.guide_you_data_title, Res.string.guide_you_data_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), tour = true),
         FeatureCard("linked_file", GuideChapter.SETTINGS, { KairosIcons.Description }, Res.string.card_linked_file_title, Res.string.card_linked_file_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "3.10.0"),
@@ -385,6 +388,7 @@ object FeatureCatalog {
         "File exchanges" to "team_exchanges",
         "Theme color" to "theme_color",
         "Dark theme" to "darktheme",
+        "Text size" to "text_zoom",
     )
 }
 

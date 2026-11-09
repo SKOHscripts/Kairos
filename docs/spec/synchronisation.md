@@ -241,7 +241,7 @@ Pur. Une seule définition, utilisée par la réconciliation, la fusion et l'exp
 | `WorkSession` | sa tâche est synchronisée | — |
 | `Note` | toujours | — |
 | `CalendarSource`, `DayMark` | toujours (les créneaux du téléphone ne sont jamais stockés) | — |
-| `Settings` | champs de planification (liste ci-dessous) | `language`, `themeColor`, `themeMode`, `updateCheckEnabled`, `timerAlertSound`, `reminders`, `guide`, `team`, `subtaskChain` (#209) |
+| `Settings` | champs de planification (liste ci-dessous) | `language`, `themeColor`, `themeMode`, `textZoom`, `updateCheckEnabled`, `timerAlertSound`, `reminders`, `guide`, `team`, `subtaskChain` (#209) |
 | `TeamMember`, `MemberAbsence`, `TeamEvent`, `TeamScenario`, tâche d'équipe, tâche reçue | **jamais** | tout |
 
 - Un champ local d'un enregistrement **déjà présent** garde la valeur locale ; sur un enregistrement qui **arrive**, il prend sa

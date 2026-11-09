@@ -167,8 +167,9 @@ contour et icône, bandeau de dégradation neutre.
   `headlineSmall` pour les chiffres clés, `displaySmall` pour le minuteur
   « En ce moment ».
 - Aucun italique décoratif, aucune seconde police.
-- Densité d'information : corps 14 sp ; ne pas l'augmenter ni la réduire lors
-  de futurs ajouts.
+- Densité d'information : corps 14 sp par défaut ; ne pas l'augmenter ni la réduire lors
+  de futurs ajouts. Seul l'utilisateur la change, par le zoom du texte (Réglages →
+  Apparence, `docs/spec/apparence.md` § Taille du texte, issue #229).
 
 ## Icônes
 

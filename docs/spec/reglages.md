@@ -204,7 +204,7 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
 - **Catégories** (`SettingsCategory.kt`) : `SettingsCategory` (`GENERAL`, `DAY`, `PLANNING`, `TRACKING`, `TEAM`,
   `DATA`, `ABOUT`, dans l'ordre de la liste), chacune avec son titre, son résumé et son icône (`Tune`, `Schedule`,
   `Sort`, `Timer`, `Groups`, `Database`, `Info`). `SettingsCategory.of(clé)` range chaque champ de `SettingsForm` :
-  `language`, `themeColor`, `updateCheckEnabled` → Général ; journée de travail, `schedule.dN.*`, `schedule.cN.*`
+  `language`, `themeColor`, `themeMode`, `textZoom`, `updateCheckEnabled` → Général ; journée de travail, `schedule.dN.*`, `schedule.cN.*`
   (contextes), `holidaysFr`, `extraHolidays` → Journée et horaires ; `taskTypes`, `levelNames.*`, `schedule.bestHours.*`,
   `learning.*`, garde-fous, score, creux → Planification ; chrono, `reminders.*` et `statsWindowWeeks` → Chrono et statistiques ;
   `team.*` → Équipe. Une clé inconnue lève une erreur (aucune ne tombe en silence hors de l'écran) ;
