@@ -250,6 +250,12 @@ converts it: the first line becomes the title, the rest the description, and
 the task lands in "To process". The note is archived, never lost. A note can
 also be edited, archived without follow-up, or deleted.
 
+- **GTD explained**: Kairos follows GTD (capture, clarify, organize, reflect,
+  engage). Each screen says which step it is, and "The GTD method" on Notes
+  explains the five steps, where they are in Kairos and what Kairos does
+  differently (it computes the order itself; Notes is also your "someday/maybe"
+  list).
+
 ### Tasks
 
 - **One-line capture**: the task lands in "To process", and the field stays
@@ -608,6 +614,7 @@ version that brought it and the platforms it exists on.
 | Chapter | Feature | Since | Platforms |
 |---|---|---|---|
 | First steps | Capture without thinking | 3.0.0 | All |
+| First steps | The GTD method in Kairos | 4.2.0 | All |
 | First steps | Keyboard shortcuts | 3.0.0 | Desktop, Web |
 | First steps | Qualify in one click | 3.0.0 | All |
 | First steps | Do things in order | 3.0.0 | All |

@@ -262,6 +262,12 @@ description, et la tâche arrive dans « À traiter ». La note est archivée,
 jamais perdue. Une note peut aussi être modifiée, archivée sans suite ou
 supprimée.
 
+- **GTD expliqué** : Kairos suit GTD (capturer, clarifier, organiser, faire le
+  point, faire). Chaque écran dit de quelle étape il s’agit, et « La méthode GTD »
+  sur Notes explique les cinq étapes, où elles sont dans Kairos et ce que Kairos
+  fait autrement (il calcule l’ordre lui-même ; Notes est aussi ta liste « un jour
+  peut-être »).
+
 ### Tâches
 
 - **Capture en une ligne** : la tâche arrive dans « À traiter », le champ
@@ -652,6 +658,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Chapitre | Fonctionnalité | Depuis | Plateformes |
 |---|---|---|---|
 | Premiers pas | Capturer sans réfléchir | 3.0.0 | Toutes |
+| Premiers pas | La méthode GTD dans Kairos | 4.2.0 | Toutes |
 | Premiers pas | Raccourcis clavier | 3.0.0 | Bureau, Web |
 | Premiers pas | Qualifier en un clic | 3.0.0 | Toutes |
 | Premiers pas | Faire dans l’ordre | 3.0.0 | Toutes |

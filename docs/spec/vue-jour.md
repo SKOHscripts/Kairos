@@ -12,6 +12,8 @@ clavier réels), `desktopApp/.../M4ScreensUiTest.kt` (autre jour, guide des
 points, durée suggérée), `data/.../SubtaskEditTest.kt` (sous-tâches
 existantes), `desktopApp/.../SubtaskEditUiTest.kt` (section « Sous-tâches »)._
 
+Étapes GTD de l'écran (« À traiter » : étapes 2 et 3 ; « Maintenant » : étape 5) et dialogue de la méthode : `methode-gtd.md`
+(issue #235, 4.2.0).
 État : **jalons M2 et M4**. Le moteur est décrit par `ordonnancement.md`, `dependances.md`
 et `recurrence.md`. Le chrono (bouton de chaque ligne, « Démarrer le
 chrono » de « Maintenant », carte « En ce moment », temps passé, temps du

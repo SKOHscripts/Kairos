@@ -11,7 +11,8 @@ décrit par `modele-donnees.md`, l'entrée de navigation par
 `KairosRepositoryTest.notesAreCapturedEditedConvertedArchivedAndDeleted`,
 `M4ScreensUiTest.noteIsCapturedThenTurnedIntoATask`._
 
-État : **jalon M4**, implémenté.
+État : **jalon M4**, implémenté. En tête de l'écran depuis 4.2.0 : l'étape GTD, l'objectif et « La méthode GTD »
+(`methode-gtd.md`, issue #235) ; une note peut attendre indéfiniment : Notes tient aussi lieu de liste « Un jour peut-être ».
 
 ## 1. Besoin métier (cahier des charges)
 
