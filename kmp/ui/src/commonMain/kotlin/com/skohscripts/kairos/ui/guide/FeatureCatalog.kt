@@ -16,6 +16,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_timeline_body
 import com.skohscripts.kairos.ui.generated.resources.card_alerts_title
 import com.skohscripts.kairos.ui.generated.resources.card_timer_guard_body
 import com.skohscripts.kairos.ui.generated.resources.card_timer_guard_title
+import com.skohscripts.kairos.ui.generated.resources.card_chrono_bells_title
+import com.skohscripts.kairos.ui.generated.resources.card_chrono_bells_body
 import com.skohscripts.kairos.ui.generated.resources.card_alerts_body
 import com.skohscripts.kairos.ui.generated.resources.card_subtasks_edit_title
 import com.skohscripts.kairos.ui.generated.resources.card_subtasks_edit_body
@@ -220,6 +222,7 @@ object FeatureCatalog {
         FeatureCard("time", GuideChapter.FOLLOW, { KairosIcons.Schedule }, Res.string.guide_you_time_title, Res.string.guide_you_time_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_NOW), tour = true),
         FeatureCard("alerts", GuideChapter.FOLLOW, { KairosIcons.NotificationsActive }, Res.string.card_alerts_title, Res.string.card_alerts_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_NOW), since = "3.0.0"),
         FeatureCard("timer_guard", GuideChapter.FOLLOW, { KairosIcons.Shield }, Res.string.card_timer_guard_title, Res.string.card_timer_guard_body, GuideTarget.Settings(GuideSection.SETTINGS_CHRONO), since = "4.1.0"),
+        FeatureCard("chrono_bells", GuideChapter.FOLLOW, { KairosIcons.NotificationsActive }, Res.string.card_chrono_bells_title, Res.string.card_chrono_bells_body, GuideTarget.Settings(GuideSection.SETTINGS_CHRONO), since = "4.2.0"),
         FeatureCard("learned", GuideChapter.FOLLOW, { KairosIcons.TrendingUp }, Res.string.card_learned_title, Res.string.card_learned_body, GuideTarget.Settings(GuideSection.SETTINGS_LEARNED), since = "3.4.0"),
         FeatureCard("model", GuideChapter.FOLLOW, { KairosIcons.Model }, Res.string.card_model_title, Res.string.card_model_body, GuideTarget.Settings(GuideSection.SETTINGS_LEARNED), since = "4.0.0"),
         FeatureCard("besthours", GuideChapter.FOLLOW, { KairosIcons.Schedule }, Res.string.card_besthours_title, Res.string.card_besthours_body, GuideTarget.Personal(Destination.STATS, GuideSection.STATS_HOURS), since = "3.5.0"),
@@ -347,6 +350,7 @@ object FeatureCatalog {
         "Timer per task" to "time",
         "Three alerts" to "alerts",
         "Timer guard" to "timer_guard",
+        "Pomodoro bells" to "chrono_bells",
         "Reminders" to "reminders",
         "Daily summary" to "daily_summary",
         "Day" to "do",

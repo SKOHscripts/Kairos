@@ -11,14 +11,15 @@ la section « Alertes du chrono » des Réglages (`reglages.md`), et par platefo
 `androidApp/.../` (`AndroidNotifier.kt`, `ChronoSync.kt`, `ChronoReceiver.kt`,
 `KairosProcess.kt`, `MainActivity.kt`, manifeste),
 `desktopApp/.../DesktopNotifier.kt` et `Main.kt`,
-`webApp/.../WebNotifier.kt` et `kairos-web.js`. Tests : `TimeTrackingTest`,
+`webApp/.../WebNotifier.kt` et `kairos-web.js` ; cloches : `kmp/core/.../alerts/Bell.kt`, `kmp/tools/make_bells.py`,
+`kmp/ui/.../composeResources/files/bell_*.wav`, `kmp/androidApp/src/main/res/raw/bell_*.wav`, `kmp/ui/.../chrono/Bells.kt`. Tests : `TimeTrackingTest`,
 `ChronoAlertsTest`, `KairosRepositoryTest`, `DayScreenUiTest`
-(`timerRunsAlertsAndStops`), `ChronoGuardUiTest`, `ChronoNotifyUiTest`, `NotifyPromptTest`, `DesktopNotifierTest`, `SettingsFormTest`._
+(`timerRunsAlertsAndStops`), `ChronoGuardUiTest`, `ChronoNotifyUiTest`, `NotifyPromptTest`, `DesktopNotifierTest`, `SettingsFormTest`, `BellTest`, `BellFilesTest`._
 
 État : **jalon M3** ; garde-fou du chrono (arrêt automatique) ajouté le 2026-11-06 (issue #220, 4.1.0) ; notifications
 fiabilisées le 2026-11-06 (issue #219 : notification immédiate application ouverte sur Android, alarmes exactes quand
 elles sont accordées, économie d'énergie signalée, `notify-send` sous Linux). Sans serveur : la notification d'alerte est la notification
-native de chaque plateforme (issue #34).
+native de chaque plateforme (issue #34). Cloches du pomodoro le 2026-11-09 (issue #234, 4.2.0).
 L'ancienneté (« traîne depuis ») et le bandeau de surcharge sont décrits par
 `ordonnancement.md`.
 
@@ -52,12 +53,12 @@ l'application est en arrière-plan : Kairos les confie au système.
   seuil déjà dépassé quand on commence à regarder : dépassement de
   l'estimé, chrono oublié (180 min de session par défaut), pause suggérée
   (50 min de focus par défaut). Réglages : les deux seuils (0 = désactivé)
-  et le son de dernier recours (désactivé par défaut).
+  et les cloches (désactivées par défaut, § Cloches).
 - Toute alerte affiche un **bandeau** dans l'application, qui reste jusqu'à
   ce qu'on le ferme. En plus, la **notification système** : Android (même
   application fermée, même après un redémarrage du téléphone), plateau du
   bureau, notification du navigateur. Si elle ne peut pas sortir : le titre
-  de la fenêtre clignote une minute, et le son joue s'il est activé.
+  de la fenêtre clignote une minute. Les cloches, si elles sont activées, sonnent à chaque alerte (§ Cloches).
 - « Maintenant » dit l'état des alertes : « Activer les alertes chrono »
   tant que l'autorisation est à demander, sinon « Alertes chrono actives »,
   « Notifications bloquées… » ou « Notifications indisponibles ici… ».
@@ -112,15 +113,38 @@ oublié » ne sonne qu'une fois.
   suivante, toujours à l'instant limite.
 - Les alertes de la session (dépassement, oubli, pause) ne sonnent plus au-delà de la limite : la session est close.
 
+### Cloches (issue #234, 4.2.0)
+
+- Les notifications du chrono sortent maintenant à l'heure (#219) ; il leur manquait un **son** pour en faire un vrai
+  pomodoro. L'interrupteur « Son » des Réglages ne servait qu'en dernier recours (un bip quand aucune notification ne
+  pouvait sortir) : il devient **« Cloches avec les alertes »** et, activé, fait sonner **chaque** alerte du chrono,
+  notification sortie ou non.
+- **Pause suggérée** (pomodoro) : **une cloche**, légère et sobre, avec une résonance (« traîne ») d'environ deux secondes.
+- **Chrono oublié** : **deux cloches**, la première avec sa traîne, la seconde plus douce, avec la sienne : on distingue
+  les deux alertes à l'oreille, sans regarder l'écran.
+- **Dépassement de l'estimé** et **arrêt automatique** (garde-fou) : une cloche, comme la pause (choix du propriétaire).
+- Le réglage reste **désactivé par défaut** : rien ne sonne chez qui n'y touche pas. Activé, il sonne sur Android
+  (application fermée comprise : c'est la notification qui porte la cloche), sur le bureau et sur le web.
+- Sur Android, la cloche est le son de la notification : couper la notification ou le son dans le système la coupe. Le mode
+  « Ne pas déranger » du système s'applique.
+- **Carte « Alertes du chrono »** réordonnée et réécrite dans les termes du pomodoro, un réglage sous l'autre : d'abord la
+  pause (« Pomodoro : pause après (min de concentration) », aide « Une cloche. 0 = pas de pause suggérée. »), puis le chrono
+  oublié (aide « Deux cloches. »), puis l'arrêt automatique, puis l'interrupteur des cloches avec son aide. Le texte
+  d'introduction de la carte parle de concentration et de pause.
+
 ### Critères de succès
 
 - Démarrer sur B ferme la session de A ; une tâche faite ne démarre pas de
   chrono (`KairosRepositoryTest`).
 - Temps du jour limité aux sessions commencées ce jour (`TimeTrackingTest`).
 - Démarrer, voir « En ce moment », franchir le seuil de pause avec une
-  horloge simulée, voir le bandeau, le titre clignotant et le son quand la
+  horloge simulée, voir le bandeau, le titre clignotant et la cloche quand la
   notification est refusée, fermer le bandeau, arrêter
   (`DayScreenUiTest.timerRunsAlertsAndStops`).
+- Cloches (#234) : la pause et le dépassement donnent une cloche, le chrono oublié deux (`BellTest`) ; cloches activées,
+  chaque alerte sonne, que la notification sorte ou non, sauf là où la notification porte elle-même la cloche (Android) ;
+  désactivées, rien ne sonne (`DayScreenUiTest`, `ChronoNotifyUiTest`). Les fichiers des cloches sont les mêmes octets
+  dans les ressources communes et dans celles d'Android (`BellFilesTest`).
 - Notifications (#219) : la veille appelle la voie « chrono » du notificateur à chaque seuil franchi, y compris quand le
   système programme aussi des alarmes ; une voie qui a notifié ne fait ni clignoter le titre ni sonner ; les freins
   « alarmes exactes » et « économie d'énergie » s'affichent sous « Alertes chrono actives » avec leur bouton, qui appelle
@@ -252,6 +276,47 @@ compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
   formulaire commun, catégorie « Chrono et statistiques » (`reglages.md` ; carte séparée au jalon M3, fondue au
   jalon M5).
 
+### Cloches (`core`, `ui`, plateformes ; issue #234)
+
+- `Bell` (`core/alerts/Bell.kt`, pur) : `SINGLE`, `DOUBLE` ; `Bell.of(kind)` : `POMODORO` et `OVER` → `SINGLE`, `IDLE` →
+  `DOUBLE` ; `Bell.AUTO_STOP` = `SINGLE`.
+- **Sons générés** par `kmp/tools/make_bells.py` (bibliothèque standard de Python : `wave`, `math`), jamais retouchés à la
+  main : WAV mono 16 bits à 22 050 Hz. Une frappe = les partiels d'une cloche sur une prime de 392 Hz (hum 0,5 ; prime 1 ;
+  tierce mineure 1,183 ; quinte 1,506 ; nominal 2,0, la note entendue à 784 Hz, sol 5 ; puis 2,514 ; 2,662 ; 3,011 ;
+  4,166), chacun en décroissance exponentielle, les graves les plus longs (1,6 s pour le hum : la traîne) ; deux doublets
+  désaccordés de 1,7 et 2,3 Hz (tierce, nominal) dont le battement fait le scintillement métallique ; trois partiels très
+  aigus éteints en 15 à 30 ms (le « tic » du battant) ; attaque de 2 ms. `bell_single.wav` : une frappe, 2,5 s ;
+  `bell_double.wav` : une frappe, puis une seconde à 0,75 s, à 55 % du volume, 3,2 s en tout. Timbre métallique demandé par
+  le propriétaire le 2026-11-09 (une première version à quatre partiels sonnait trop « carillon électronique »). Crête à 35 % de la pleine échelle (« léger »). Le script écrit les deux
+  fichiers dans `ui/src/commonMain/composeResources/files/` (bureau, web) et `androidApp/src/main/res/raw/` (canaux de
+  notification) ; `BellFilesTest` (ui) vérifie que les deux copies sont identiques, en WAV mono 16 bits à 22 050 Hz ;
+  le script, relancé, redonne les mêmes octets (vérifié à la main, pas en test : Gradle ne lance pas Python). Pas de
+  dépendance ajoutée.
+- `ui/chrono/Bells.kt` : `suspend fun bellBytes(bell)` lit le fichier (`Res.readBytes("files/bell_….wav")`), pour les
+  plateformes qui le jouent elles-mêmes.
+- `ChronoNotifier.ring(bell)` (remplace `beep()`, par défaut ne fait rien) et `ringsWithNotification` (faux par défaut) :
+  vrai quand une notification sortie porte déjà la cloche, pour ne pas sonner deux fois.
+- `ChronoWatcher` : pour chaque alerte et pour l'arrêt automatique, `sent = notifyChrono(…)`, puis si `timerAlertSound` et
+  pas (`sent` et `ringsWithNotification`) : `ring(Bell.of(kind))`. Le titre clignotant reste réservé à l'échec de la
+  notification.
+- **Android** : deux canaux de plus, `chrono-bell-1` et `chrono-bell-2` (importance haute, nom « Alertes du chrono (une
+  cloche) » / « (deux cloches) » via `ChronoTexts.bellChannel`), dont le son est `android.resource://…/raw/bell_single` ou `bell_double`
+  (`AudioAttributes.USAGE_NOTIFICATION`). `ChronoSync.postAlert(context, kind, title, body, sound)` poste sur le canal de la
+  cloche de la nature si `sound`, sur `chrono-alerts` sinon ; la clé de `ChronoSync` comprend `timerAlertSound`, et les
+  alarmes portent `EXTRA_SOUND` (`ChronoReceiver`). `AndroidNotifier` : `ringsWithNotification` = vrai (`notifyChrono` ne
+  rend vrai qu'en postant) ; `ring(bell)` joue `R.raw.bell_…` par `MediaPlayer` (usage notification), libéré à la fin.
+  `ToneGenerator` n'est plus utilisé.
+- **Bureau** : `ring` joue les octets par `javax.sound.sampled` (`AudioSystem.getClip`), refermé à la fin (`LineListener`),
+  dans un `runCatching` (pas de sortie son : rien). `Toolkit.beep` n'est plus utilisé.
+- **Web** : `ring` passe le WAV en `data:audio/wav;base64,…` à `KairosWeb.ring`, qui le joue par `new Audio(…).play()`
+  (erreur ignorée : un navigateur peut refuser un son sans geste récent). Le bip Web Audio est retiré.
+- Réglages : section `CHRONO` dans l'ordre `pomodoroFocusMinutes`, `timerIdleAlertMinutes`, `timerAutoStopMinutes`,
+  `timerAlertSound` ; chaînes réécrites `settings_chrono_body`, `settings_pomodoro`, `settings_sound`, ajoutées
+  `settings_pomodoro_help`, `settings_idle_help`, `settings_sound_help`, `notif_channel_bell_single`,
+  `notif_channel_bell_double`, dans les six langues.
+- Catalogue : carte `chrono_bells` (chapitre « Suivre », 4.2.0, toutes plateformes, ouvre la carte « Alertes du chrono »),
+  puce « Pomodoro bells » du README, lignes des deux tableaux, en anglais et en français.
+
 ### Android
 
 - `KairosProcess` : une base par processus pour l'activité, les alarmes et
@@ -286,8 +351,8 @@ compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
   `PowerManager.isIgnoringBatteryOptimizations` faux. `openHint` : `Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM`
   (`package:` de Kairos) ou `Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` (la liste du système : aucune
   permission `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`), dans un `runCatching`. Autorisation demandée par `MainActivity` à
-  l'opt-in ; état, freins et alarmes (`ChronoSync.reschedule`) relus à chaque retour dans l'application. Son :
-  `ToneGenerator`.
+  l'opt-in ; état, freins et alarmes (`ChronoSync.reschedule`) relus à chaque retour dans l'application. Cloches :
+  § Cloches.
 - Manifeste : `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM` (#219 : accordée d'office
   sur Android 12 et 13, à accorder par l'utilisateur sur Android 14 et plus ; jamais `USE_EXACT_ALARM`), et
   `READ_CALENDAR`, facultative, pour les calendriers du téléphone (`connexions-externes.md`) ; icône de
@@ -299,7 +364,7 @@ compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
 notification passe par lui (`notify-send -a Kairos <titre> <corps>`, délai de 5 s, réussite = code 0) : c'est la
 notification native du bureau (GNOME, KDE…), avec ou sans zone de notification ; sinon, et sous Windows et macOS, par
 l'icône du plateau (`Tray` de Compose Desktop, si le bureau en a un). État `ACTIVE` si l'une des deux voies existe,
-sinon `UNAVAILABLE`. Le titre de la fenêtre lit `titlePrefix` ; bip `Toolkit.beep`. Toucher l'icône du plateau ramène
+sinon `UNAVAILABLE`. Le titre de la fenêtre lit `titlePrefix` ; cloches § Cloches. Toucher l'icône du plateau ramène
 la fenêtre. Windows et macOS : la voie du plateau donne la notification du système (centre de notifications) ; à
 vérifier sur machine.
 
@@ -307,7 +372,7 @@ vérifier sur machine.
 
 `WebNotifier` : API `Notification` (contexte sécurisé exigé ; GitHub Pages
 est en HTTPS), état relu à chaque notification, autorisation à l'opt-in ;
-`document.title` ; bip Web Audio (`kairos-web.js`).
+`document.title` ; cloches § Cloches (`kairos-web.js`).
 
 ### Décisions et pièges tracés
 
@@ -318,6 +383,20 @@ est en HTTPS), état relu à chaque notification, autorisation à l'opt-in ;
   bloquant sous le chrono (plus discret, mais le même défaut que le bouton) ; une demande à chaque chrono (insistante) ou
   une fois pour toutes (un réglage de plus, à tracer dans l'export, pour un cas où le bouton reste de toute façon).
   Le dialogue n'attend pas la réponse du système : le chrono et ses alertes dans l'application ne dépendent pas de lui.
+- **Cloches à chaque alerte, pas seulement en dernier recours** (issue #234, choix du propriétaire du 2026-11-09) : le son
+  ne servait que si aucune notification ne sortait, ce qui n'arrive presque plus depuis #219. Il reste désactivé par
+  défaut. Écartés : l'activer par défaut (un son inattendu à la mise à jour) ; garder le dernier recours en changeant
+  seulement le timbre (ne répond pas au pomodoro).
+- **Une cloche ou deux, selon l'alerte** : on reconnaît la pause et l'oubli sans regarder. Dépassement et arrêt automatique
+  prennent la cloche simple (choix du propriétaire).
+- **Sons générés par un script, pas enregistrés** : aucune licence de son à suivre (F-Droid), octets reproductibles, timbre
+  réglable dans le script. Fichiers WAV plutôt qu'OGG : la bibliothèque standard de Python les écrit, Android, le JVM et les
+  navigateurs les lisent sans décodeur ajouté ; ~110 Ko et ~140 Ko, accepté.
+- **Sur Android, la cloche passe par le canal de notification**, pas par un lecteur lancé par l'application : c'est la seule
+  voie qui sonne application fermée, et elle respecte les réglages du système (canal, « Ne pas déranger »). Le son d'un canal
+  ne change plus après sa création : d'où deux canaux dédiés, à côté de `chrono-alerts` (sans cloche) que l'on garde quand
+  l'interrupteur est coupé.
+- **Une seule réglette, pas une par alerte** : l'issue demande un interrupteur ; les seuils à 0 coupent déjà une alerte.
 - **Seuils calculés d'avance**, pas vérifiés par comparaison chaque
   seconde : les mêmes instants servent à la veille de l'application et aux
   alarmes Android.

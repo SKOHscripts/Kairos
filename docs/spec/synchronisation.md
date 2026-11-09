@@ -144,7 +144,7 @@ qui a été supprimé : ses éléments reviennent, et l'aperçu les compte comme
 - **Partagé** : les tâches (et sous-tâches, dépendances, récurrences), les créneaux et leurs occurrences modifiées, les notes,
   les sessions de travail, les calendriers importés (`.ics`) et leurs journées entières, et les **réglages de planification**
   (heures de travail, durées, pondérations, jours fériés, types de tâche, horaires par jour, durées apprises, noms des niveaux).
-- **Propre à chaque appareil** : la langue, le thème et sa couleur, les rappels, la vérification des mises à jour, le son des
+- **Propre à chaque appareil** : la langue, le thème et sa couleur, les rappels, la vérification des mises à jour, les cloches des
   alertes, ce que le guide a retenu, les calendriers du téléphone (jamais stockés), et l'espace Équipe.
 - **L'espace Équipe n'est pas synchronisé** (voir « Hors périmètre ») : un utilisateur qui ne l'a pas activé n'en voit jamais
   la moindre trace, quel que soit le fichier qu'il fusionne.

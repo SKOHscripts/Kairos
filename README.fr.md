@@ -420,6 +420,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   (Réglages → Chrono et statistiques, 0 = jamais), à cet instant précis, même
   Kairos fermé ou le téléphone éteint. Un bandeau ou une notification le dit. La
   tâche ne reçoit jamais une nuit de temps non travaillé.
+- **Cloches du pomodoro** (Réglages → Chrono et statistiques, désactivées par
+  défaut) : une cloche légère quand vient la pause, deux quand un chrono est
+  oublié, une pour l’estimation dépassée ou l’arrêt automatique. On les distingue
+  sans regarder, sur Android (même application fermée), le bureau et le web.
 - **Rappels** (Réglages, désactivés par défaut) : une notification quelques
   minutes avant une tâche à heure fixe et, si tu le veux, quand le plan passe à
   la tâche suivante. Sur Android même Kairos fermé (quelques minutes de retard
@@ -671,6 +675,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Suivre le temps | 3.0.0 | Toutes |
 | Suivre | Trois alertes du chrono | 3.0.0 | Toutes |
 | Suivre | Garde-fou du chrono | 4.1.0 | Toutes |
+| Suivre | Cloches du pomodoro | 4.2.0 | Toutes |
 | Suivre | Durées apprises | 3.4.0 | Toutes |
 | Suivre | Estimation par machine learning | 4.0.0 | Toutes |
 | Suivre | Quand tu travailles chaque type | 3.5.0 | Toutes |
@@ -748,7 +753,7 @@ touché ; rien n’est enregistré avant « Enregistrer »).
 | | Garde-fous | Seuils « traîne » (en retard, sans date), surcharge P0 | 7 j, 14 j, 5 |
 | | Score de priorité (WSJF), avancé | Base de valeur, horizon et poids de l’urgence, points par défaut | 4, 14 j, 8, 3 |
 | | Creux de l’après-midi, avancé | Activé, début, creux, fin, force | activé, 13 h – 15 h – 16 h, 1 |
-| Chrono et statistiques | Alertes du chrono | Chrono oublié, pause suggérée, son de secours | 180 min, 50 min, désactivé |
+| Chrono et statistiques | Alertes du chrono | Pause du pomodoro, chrono oublié, cloches avec les alertes | 50 min, 180 min, désactivées |
 | | Rappels | Tâches à heure fixe et avance, tâche suivante, récapitulatif du jour et son heure | désactivé, 10 min, désactivé, désactivé, 08:30 |
 | | Statistiques | Fenêtre des indicateurs | 8 semaines |
 | Équipe | Équipe | Gestion d’équipe, puis ses seuils, sa charge et ses prévisions | désactivé |

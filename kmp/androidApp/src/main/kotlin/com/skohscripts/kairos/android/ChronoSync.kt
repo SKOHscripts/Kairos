@@ -6,9 +6,11 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.media.AudioAttributes
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.skohscripts.kairos.core.alerts.Bell
 import com.skohscripts.kairos.core.alerts.ChronoAlertKind
 import com.skohscripts.kairos.core.alerts.ChronoAlerts
 import com.skohscripts.kairos.core.engine.DurationEstimator
@@ -36,6 +38,9 @@ import kotlin.time.Instant
 object ChronoSync {
     const val CHANNEL_CHRONO = "chrono"
     const val CHANNEL_ALERTS = "chrono-alerts"
+
+    /** Canaux des cloches (issue #234) : le son d'un canal ne change plus après sa création, d'où un canal par cloche. */
+    private fun bellChannel(bell: Bell) = if (bell == Bell.DOUBLE) "chrono-bell-2" else "chrono-bell-1"
     const val NOTIFICATION_RUNNING = 1
     private const val NOTIFICATION_ALERT_BASE = 10
 
@@ -52,6 +57,7 @@ object ChronoSync {
         val idle: Int,
         val pomodoro: Int,
         val autoStop: Int,
+        val sound: Boolean,
     )
 
     private fun keyOf(snapshot: KairosSnapshot): Key {
@@ -61,6 +67,7 @@ object ChronoSync {
             running?.id, running?.startedAt, task?.title, running?.let { baseMinutes(snapshot, it) } ?: 0,
             task?.let { DurationEstimator.effectiveMinutes(it, snapshot, Clock.System.now(), TimeZone.currentSystemDefault()) },
             snapshot.settings.timerIdleAlertMinutes, snapshot.settings.pomodoroFocusMinutes, snapshot.settings.timerAutoStop,
+            snapshot.settings.timerAlertSound,
         )
     }
 
@@ -105,7 +112,7 @@ object ChronoSync {
         val alarms = context.getSystemService(AlarmManager::class.java)
         val kind = ChronoAlertKind.entries.firstOrNull { it.name == tag }
         if (kind != null) alarms.cancel(alertIntent(context, kind, null, null)) else alarms.cancel(autoStopIntent(context, 0L, null, null, 0))
-        postAlert(context, kind?.ordinal ?: AUTO_STOP_KIND, title, body)
+        postAlert(context, kind?.ordinal ?: AUTO_STOP_KIND, title, body, last?.third?.sound ?: false)
     }
 
     private suspend fun apply(context: Context, repository: KairosRepository, key: Key) {
@@ -131,7 +138,7 @@ object ChronoSync {
             val title = ChronoTexts.alertTitle(key.title)
             val body = ChronoTexts.alertBody(alert)
             // Exacte si l'autorisation est accordée, sinon inexacte (quelques minutes de retard possibles en veille profonde).
-            schedule(alarms, alert.at, alertIntent(context, alert.kind, title, body))
+            schedule(alarms, alert.at, alertIntent(context, alert.kind, title, body, key.sound))
         }
     }
 
@@ -142,6 +149,15 @@ object ChronoSync {
         manager.createNotificationChannel(
             NotificationChannel(CHANNEL_ALERTS, ChronoTexts.alertsChannel(), NotificationManager.IMPORTANCE_HIGH),
         )
+        val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+        Bell.entries.forEach { bell ->
+            manager.createNotificationChannel(
+                NotificationChannel(bellChannel(bell), ChronoTexts.bellChannel(bell), NotificationManager.IMPORTANCE_HIGH).apply {
+                    setSound(bellUri(context, bell), attributes)
+                },
+            )
+        }
     }
 
     /** Notification permanente : le chronomètre du système part de « début − temps déjà passé ». */
@@ -170,14 +186,21 @@ object ChronoSync {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
+    /** Le fichier de [bell] dans `res/raw`, généré par `kmp/tools/make_bells.py`. */
+    fun bellRes(bell: Bell): Int = if (bell == Bell.DOUBLE) R.raw.bell_double else R.raw.bell_single
+
+    private fun bellUri(context: Context, bell: Bell): android.net.Uri =
+        android.net.Uri.parse("android.resource://${context.packageName}/${bellRes(bell)}")
+
     /** Intention d'une alarme de seuil (une par nature d'alerte, remplacée à chaque programmation). */
-    private fun alertIntent(context: Context, kind: ChronoAlertKind, title: String?, body: String?): PendingIntent {
+    private fun alertIntent(context: Context, kind: ChronoAlertKind, title: String?, body: String?, sound: Boolean = false): PendingIntent {
         val intent = Intent(context, ChronoReceiver::class.java)
             .setAction(ChronoReceiver.ACTION_ALERT)
             .setData(android.net.Uri.parse("kairos://alert/${kind.name}"))
             .putExtra(ChronoReceiver.EXTRA_KIND, kind.ordinal)
             .putExtra(ChronoReceiver.EXTRA_TITLE, title)
             .putExtra(ChronoReceiver.EXTRA_BODY, body)
+            .putExtra(ChronoReceiver.EXTRA_SOUND, sound)
         return PendingIntent.getBroadcast(context, kind.ordinal, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
@@ -201,16 +224,17 @@ object ChronoSync {
      */
     suspend fun autoStop(context: Context, repository: KairosRepository, sessionId: Long, at: Instant, title: String, limit: Int) {
         if (repository.stopTimerAt(sessionId, at)) {
-            postAlert(context, AUTO_STOP_KIND, ChronoTexts.alertTitle(title), ChronoTexts.autoStopBody(limit))
+            postAlert(context, AUTO_STOP_KIND, ChronoTexts.alertTitle(title), ChronoTexts.autoStopBody(limit), repository.snapshot.value.settings.timerAlertSound)
         }
     }
 
-    /** Poste l'alerte d'un seuil (appelé par l'alarme). */
-    fun postAlert(context: Context, kind: Int, title: String, body: String) {
+    /** Poste l'alerte d'un seuil (appelé par l'alarme) ; [sound] : sur le canal de sa cloche (issue #234). */
+    fun postAlert(context: Context, kind: Int, title: String, body: String, sound: Boolean) {
         val manager = context.getSystemService(NotificationManager::class.java)
+        val bell = ChronoAlertKind.entries.getOrNull(kind)?.let(Bell::of) ?: Bell.AUTO_STOP
         manager.notify(
             NOTIFICATION_ALERT_BASE + kind,
-            Notification.Builder(context, CHANNEL_ALERTS)
+            Notification.Builder(context, if (sound) bellChannel(bell) else CHANNEL_ALERTS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(body)

@@ -367,15 +367,20 @@
     <string name="alert_pomodoro">%1$s di concentrazione continua: una breve pausa?</string>
     <string name="alert_close">Chiudi l’avviso</string>
     <string name="settings_chrono_title">Avvisi del timer</string>
-    <string name="settings_chrono_body">Promemoria mentre un timer è in corso. Una soglia a 0 disattiva l’avviso; il superamento della stima viene sempre segnalato.</string>
+    <string name="settings_chrono_body">Pomodoro mentre un timer è in corso: una pausa dopo un periodo di concentrazione, un avviso per un timer dimenticato. Una soglia a 0 disattiva l’avviso; il superamento della stima viene sempre segnalato.</string>
     <string name="settings_idle">Timer dimenticato dopo (min)</string>
+    <string name="settings_idle_help">Due campane.</string>
     <string name="settings_auto_stop">Fermare il timer dopo (min)</string>
     <string name="settings_auto_stop_help">0 = mai. La sessione si ferma a questa durata, anche con l’app chiusa.</string>
-    <string name="settings_pomodoro">Pausa suggerita dopo (min)</string>
-    <string name="settings_sound">Suono quando non si può mostrare nessuna notifica</string>
+    <string name="settings_pomodoro">Pomodoro: pausa dopo (min di concentrazione)</string>
+    <string name="settings_pomodoro_help">Una campana. 0 = nessuna pausa suggerita.</string>
+    <string name="settings_sound">Campane con gli avvisi</string>
+    <string name="settings_sound_help">Una campana per una pausa, la stima superata o l’arresto automatico; due per un timer dimenticato.</string>
     <string name="settings_saved">Impostazioni salvate.</string>
     <string name="notif_channel_chrono">Timer in corso</string>
     <string name="notif_channel_alerts">Avvisi del timer</string>
+    <string name="notif_channel_bell_single">Avvisi del timer (una campana)</string>
+    <string name="notif_channel_bell_double">Avvisi del timer (due campane)</string>
     <string name="settings_reminders_title">Promemoria</string>
     <string name="settings_reminders_body">Una notifica di sistema prima di un’attività a ora fissa e, se vuoi, quando il piano passa all’attività successiva. Su Android, anche con Kairos chiuso, con qualche minuto di ritardo possibile quando il telefono è in standby; su desktop e web, finché Kairos è aperto.</string>
     <string name="setting_reminders_enabled">Ricordami le attività a ora fissa</string>
@@ -1759,6 +1764,8 @@
     <string name="card_alerts_body">Kairos ti avvisa quando superi la stima, quando hai dimenticato un timer e quando serve una pausa: nell’app e con una notifica di sistema.</string>
     <string name="card_timer_guard_title">Limite del timer</string>
     <string name="card_timer_guard_body">Un timer dimenticato si ferma da solo dopo 4 h (Impostazioni → Timer e statistiche, 0 = mai), esattamente in quel momento, anche con Kairos chiuso: l’attività non riceve mai una notte di tempo non lavorato.</string>
+    <string name="card_chrono_bells_title">Campane del pomodoro</string>
+    <string name="card_chrono_bells_body">Attiva «Campane con gli avvisi» (Impostazioni → Timer e statistiche): una campana leggera quando è ora di una pausa, due quando un timer è stato dimenticato. Le distingui senza guardare, anche con Kairos chiuso su Android.</string>
     <string name="card_web_version_title">Versione web</string>
     <string name="card_web_version_body">Kairos funziona anche nel browser: i tuoi dati vi sono salvati e, in Edge o Chrome, possono essere collegati a un file sempre aggiornato.</string>
     <string name="card_team_first_task_title">Prima attività di team guidata</string>

@@ -367,15 +367,20 @@
     <string name="alert_pomodoro">%1$s ununterbrochener Fokus: Zeit für eine kurze Pause?</string>
     <string name="alert_close">Hinweis schließen</string>
     <string name="settings_chrono_title">Timer-Hinweise</string>
-    <string name="settings_chrono_body">Erinnerungen, solange ein Timer läuft. Ein Schwellenwert von 0 schaltet den Hinweis aus; das Überschreiten der Schätzung wird immer gemeldet.</string>
+    <string name="settings_chrono_body">Pomodoro, solange ein Timer läuft: eine Pause nach einer Konzentrationsphase, ein Hinweis bei einem vergessenen Timer. Ein Schwellenwert von 0 schaltet den Hinweis aus; das Überschreiten der Schätzung wird immer gemeldet.</string>
     <string name="settings_idle">Vergessener Timer nach (min)</string>
+    <string name="settings_idle_help">Zwei Glocken.</string>
     <string name="settings_auto_stop">Timer stoppen nach (min)</string>
     <string name="settings_auto_stop_help">0 = nie. Die Sitzung endet nach dieser Dauer, auch wenn die App geschlossen ist.</string>
-    <string name="settings_pomodoro">Pause vorgeschlagen nach (min)</string>
-    <string name="settings_sound">Ton, wenn keine Benachrichtigung angezeigt werden kann</string>
+    <string name="settings_pomodoro">Pomodoro: Pause nach (min Konzentration)</string>
+    <string name="settings_pomodoro_help">Eine Glocke. 0 = keine Pause vorgeschlagen.</string>
+    <string name="settings_sound">Glocken bei Hinweisen</string>
+    <string name="settings_sound_help">Eine Glocke für eine Pause, die überschrittene Schätzung oder den automatischen Stopp; zwei für einen vergessenen Timer.</string>
     <string name="settings_saved">Einstellungen gespeichert.</string>
     <string name="notif_channel_chrono">Laufender Timer</string>
     <string name="notif_channel_alerts">Timer-Hinweise</string>
+    <string name="notif_channel_bell_single">Timer-Hinweise (eine Glocke)</string>
+    <string name="notif_channel_bell_double">Timer-Hinweise (zwei Glocken)</string>
     <string name="settings_reminders_title">Erinnerungen</string>
     <string name="settings_reminders_body">Eine Systembenachrichtigung vor einer Aufgabe mit fester Uhrzeit und, wenn du möchtest, wenn der Plan zur nächsten Aufgabe übergeht. Unter Android auch bei geschlossenem Kairos, möglicherweise ein paar Minuten verspätet, solange das Telefon schläft; auf dem Desktop und im Web, solange Kairos geöffnet ist.</string>
     <string name="setting_reminders_enabled">An Aufgaben mit fester Uhrzeit erinnern</string>
@@ -1759,6 +1764,8 @@
     <string name="card_alerts_body">Kairos warnt dich, wenn du die Schätzung überschreitest, ein Timer vergessen wurde oder eine Pause fällig ist: in der App und als Systembenachrichtigung.</string>
     <string name="card_timer_guard_title">Timer-Sicherung</string>
     <string name="card_timer_guard_body">Ein vergessener Timer stoppt nach 4 h von selbst (Einstellungen → Timer und Statistiken, 0 = nie), genau zu diesem Zeitpunkt, auch wenn Kairos geschlossen ist: Die Aufgabe bekommt nie eine Nacht nicht gearbeiteter Zeit.</string>
+    <string name="card_chrono_bells_title">Pomodoro-Glocken</string>
+    <string name="card_chrono_bells_body">Schalte „Glocken bei Hinweisen“ ein (Einstellungen → Timer und Statistiken): eine leichte Glocke, wenn Zeit für eine Pause ist, zwei, wenn ein Timer vergessen wurde. Du unterscheidest sie ohne hinzusehen, unter Android auch bei geschlossenem Kairos.</string>
     <string name="card_web_version_title">Webversion</string>
     <string name="card_web_version_body">Kairos läuft auch im Browser: deine Daten werden dort gespeichert und können in Edge oder Chrome mit einer aktuell gehaltenen Datei verknüpft werden.</string>
     <string name="card_team_first_task_title">Geführte erste Teamaufgabe</string>

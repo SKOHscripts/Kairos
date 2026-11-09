@@ -367,15 +367,20 @@
     <string name="alert_pomodoro">%1$s de concentración continua: ¿una pausa corta?</string>
     <string name="alert_close">Cerrar la alerta</string>
     <string name="settings_chrono_title">Alertas del cronómetro</string>
-    <string name="settings_chrono_body">Avisos mientras corre un cronómetro. Un umbral de 0 desactiva la alerta; el exceso sobre la estimación siempre se avisa.</string>
+    <string name="settings_chrono_body">Pomodoro mientras corre un cronómetro: una pausa tras un rato de concentración, un aviso para un cronómetro olvidado. Un umbral de 0 desactiva la alerta; el exceso sobre la estimación siempre se avisa.</string>
     <string name="settings_idle">Cronómetro olvidado tras (min)</string>
+    <string name="settings_idle_help">Dos campanas.</string>
     <string name="settings_auto_stop">Detener el cronómetro tras (min)</string>
     <string name="settings_auto_stop_help">0 = nunca. La sesión se detiene al llegar a esta duración, incluso con la aplicación cerrada.</string>
-    <string name="settings_pomodoro">Pausa sugerida tras (min)</string>
-    <string name="settings_sound">Sonido cuando no se puede mostrar ninguna notificación</string>
+    <string name="settings_pomodoro">Pomodoro: pausa tras (min de concentración)</string>
+    <string name="settings_pomodoro_help">Una campana. 0 = sin pausa sugerida.</string>
+    <string name="settings_sound">Campanas con las alertas</string>
+    <string name="settings_sound_help">Una campana para una pausa, la estimación superada o la parada automática; dos para un cronómetro olvidado.</string>
     <string name="settings_saved">Ajustes guardados.</string>
     <string name="notif_channel_chrono">Cronómetro en marcha</string>
     <string name="notif_channel_alerts">Alertas del cronómetro</string>
+    <string name="notif_channel_bell_single">Alertas del cronómetro (una campana)</string>
+    <string name="notif_channel_bell_double">Alertas del cronómetro (dos campanas)</string>
     <string name="settings_reminders_title">Recordatorios</string>
     <string name="settings_reminders_body">Una notificación del sistema antes de una tarea con hora fija y, si lo deseas, cuando el plan pasa a la tarea siguiente. En Android, incluso con Kairos cerrado, con posibles retrasos de unos minutos si el teléfono está en reposo; en el escritorio y en la web, mientras Kairos esté abierto.</string>
     <string name="setting_reminders_enabled">Recordarme las tareas con hora fija</string>
@@ -1759,6 +1764,8 @@
     <string name="card_alerts_body">Kairos te avisa cuando superas la estimación, cuando olvidaste un cronómetro y cuando toca una pausa: en la aplicación y con una notificación del sistema.</string>
     <string name="card_timer_guard_title">Límite del cronómetro</string>
     <string name="card_timer_guard_body">Un cronómetro olvidado se detiene solo tras 4 h (Ajustes → Cronómetro y estadísticas, 0 = nunca), en ese momento exacto, incluso con Kairos cerrado: la tarea nunca recibe una noche de tiempo no trabajado.</string>
+    <string name="card_chrono_bells_title">Campanas del pomodoro</string>
+    <string name="card_chrono_bells_body">Activa «Campanas con las alertas» (Ajustes → Cronómetro y estadísticas): una campana ligera cuando toca una pausa, dos cuando se ha olvidado un cronómetro. Se distinguen sin mirar, incluso con Kairos cerrado en Android.</string>
     <string name="card_web_version_title">Versión web</string>
     <string name="card_web_version_body">Kairos también funciona en el navegador: tus datos se guardan en él y, en Edge o Chrome, pueden vincularse a un archivo actualizado.</string>
     <string name="card_team_first_task_title">Primera tarea de equipo guiada</string>

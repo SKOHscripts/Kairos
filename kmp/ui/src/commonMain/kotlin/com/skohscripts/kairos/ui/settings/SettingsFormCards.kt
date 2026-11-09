@@ -97,6 +97,9 @@ import com.skohscripts.kairos.ui.generated.resources.settings_section_types
 import com.skohscripts.kairos.ui.generated.resources.settings_section_wsjf
 import com.skohscripts.kairos.ui.generated.resources.settings_section_wsjf_body
 import com.skohscripts.kairos.ui.generated.resources.settings_sound
+import com.skohscripts.kairos.ui.generated.resources.settings_sound_help
+import com.skohscripts.kairos.ui.generated.resources.settings_pomodoro_help
+import com.skohscripts.kairos.ui.generated.resources.settings_idle_help
 import com.skohscripts.kairos.ui.generated.resources.setting_default_duration
 import com.skohscripts.kairos.ui.generated.resources.setting_default_duration_help
 import com.skohscripts.kairos.ui.generated.resources.setting_default_points
@@ -194,10 +197,10 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "learning.minSamples" to FieldText(Res.string.setting_learning_min, Res.string.setting_learning_min_help),
     "learning.model" to FieldText(Res.string.setting_learning_model, Res.string.setting_learning_model_help),
     "learning.notifyChanges" to FieldText(Res.string.setting_learning_notify, Res.string.setting_learning_notify_help),
-    "timerIdleAlertMinutes" to FieldText(Res.string.settings_idle),
+    "timerIdleAlertMinutes" to FieldText(Res.string.settings_idle, Res.string.settings_idle_help),
     "timerAutoStopMinutes" to FieldText(Res.string.settings_auto_stop, Res.string.settings_auto_stop_help),
-    "pomodoroFocusMinutes" to FieldText(Res.string.settings_pomodoro),
-    "timerAlertSound" to FieldText(Res.string.settings_sound),
+    "pomodoroFocusMinutes" to FieldText(Res.string.settings_pomodoro, Res.string.settings_pomodoro_help),
+    "timerAlertSound" to FieldText(Res.string.settings_sound, Res.string.settings_sound_help),
     "reminders.enabled" to FieldText(Res.string.setting_reminders_enabled),
     "reminders.leadMinutes" to FieldText(Res.string.setting_reminders_lead, Res.string.setting_reminders_lead_help),
     "reminders.nextTask" to FieldText(Res.string.setting_reminders_next),
@@ -247,7 +250,8 @@ private val LEARNING = Section(
 private val GUARDS = Section(Res.string.settings_section_guards, null, KairosIcons.Shield, listOf("staleOverdueDays", "staleUntouchedDays", "priorityOverloadThreshold"))
 private val CHRONO = Section(
     Res.string.settings_chrono_title, Res.string.settings_chrono_body, KairosIcons.NotificationsActive,
-    listOf("timerIdleAlertMinutes", "timerAutoStopMinutes", "pomodoroFocusMinutes", "timerAlertSound"),
+    // Pomodoro d'abord, un réglage sous l'autre (issue #234).
+    listOf("pomodoroFocusMinutes", "timerIdleAlertMinutes", "timerAutoStopMinutes", "timerAlertSound"),
 )
 private val REMINDERS = Section(
     Res.string.settings_reminders_title, Res.string.settings_reminders_body, KairosIcons.Alarm,
