@@ -53,10 +53,12 @@ l'écran Notes ne dit pas qu'il est l'étape « capturer », et la méthode n'es
 - La ligne d'étape de « À traiter », de Semaine et de Stats ouvre le même dialogue ; celle de « Maintenant » n'est pas
   cliquable (`GtdUiTest`).
 - L'entrée du « ? » existe dans l'espace Perso et pas dans l'espace Équipe (`GtdUiTest`).
-- À 360 dp, dans les six langues, aucune ligne d'étape ne déborde : elle passe à la ligne (captures `--self-test`) ; la ligne
+- À 360 dp, aucune ligne d'étape ne déborde : elle passe à la ligne si besoin (captures `--self-test` regardées en
+  français, allemand et russe, store en français et anglais) ; la ligne
   cliquable garde une cible de 48 dp (enveloppe `KairosTextButton`, `ComponentDensityTest`).
 - Textes dans les six langues (`StringsParityTest`) ; carte, puce et lignes du README (`FeatureCatalogTest`).
-- Les captures des magasins qui montrent Notes, Jour, Semaine ou Stats sont régénérées (`--store-screenshots`).
+- Les captures des magasins qui montrent Notes, Jour, Semaine ou Stats sont régénérées (`--store-screenshots` : 1, 3, 4, 5
+  et 10, en français et en anglais).
 
 ### Hors périmètre
 
@@ -103,3 +105,10 @@ l'écran Notes ne dit pas qu'il est l'étape « capturer », et la méthode n'es
   geste par le « ? » ou par la ligne de « À traiter ».
 - **Libellés entiers, pas de format « Étape %d »** : « Étapes 2 et 3 » et l'ordre des mots varient selon la langue.
 - **Pas dans l'espace Équipe** : le cycle y est celui du manager (backlog, assignation), pas GTD personnel.
+- **La vue Jour grandit d'environ 70 dp** (ligne de « À traiter », ligne de « Maintenant ») : coût accepté du choix « une
+  ligne à chaque étape ». La ligne de « Maintenant » est la première à retirer si l'écran doit regagner de la place. Trois
+  tests de la vue Jour (`CalendarImportUiTest`, `M4ScreensUiTest`, `TeamBacklogBoardUiTest`) attendaient un élément visible
+  sans défiler ; ils font maintenant défiler la liste jusqu'à lui (motif de `IncompleteFilterUiTest`), et `M4ScreensUiTest`
+  vérifie que la fiche ouverte est bien celle de « Delta ».
+- **La vue Mois n'a pas de ligne d'étape** : seule la vue Semaine la porte ; la Mois, atteinte par le sélecteur de la même
+  destination, sert à planifier plus qu'à faire le point.
