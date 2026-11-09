@@ -37,7 +37,7 @@ dans `docs/spec-v3/`, est le seul.
 | [`reglages.md`](reglages.md) | Écran Réglages : catégories (liste puis sous-écrans, deux volets dès 840 dp), sections, champs, bornes, validation par champ et entre champs, un seul « Enregistrer ». | M5, catégories 2026-10-22 |
 | [`accueil.md`](accueil.md) | Accueil au premier lancement (présentation, exemples) ; bouton « ? » et aide de l'écran, page Accueil (raison d'être, fonctionnalités), visite guidée. | M5, E6 |
 | [`demarrage.md`](demarrage.md) | Page de démarrage commune (Android, bureau, web) : l'aiguille du cadran fait un tour et se pose sur le logo, pause, fondu ; relais natifs (écran de démarrage Android, chargement web) ; rapport de plantage Android. | après 3.2.0, 3.3.0 (#65) |
-| [`apparence.md`](apparence.md) | Couleur du thème : graines proposées, couleur libre, couleurs du système (Android 12 et plus), schéma MD3 dérivé. | #45 |
+| [`apparence.md`](apparence.md) | Couleur du thème : graines proposées, couleur libre, couleurs du système (Android 12 et plus), schéma MD3 dérivé ; thème sombre ; taille du texte. | #45, #72, #229 |
 | [`mises-a-jour.md`](mises-a-jour.md) | Vérification des nouvelles versions sur le bureau (GitHub, 6 heures), bandeau, carte des Réglages. | M5 |
 | [`bureau-avance.md`](bureau-avance.md) | Bureau : dossier des données choisi (Réglages ou `--data-dir=`, effet au prochain démarrage, copie jamais déplacement), journal de diagnostic local et « Copier le diagnostic », proxy du système. | 3.9.0 (#115) |
 | [`raccourci-portable.md`](raccourci-portable.md) | Copies portables du bureau : détection (marqueur de la release), entrée de menu Linux avec icône et classe de fenêtre, raccourcis Windows (menu Démarrer, Bureau), proposés au lancement, carte des Réglages. | #46 |

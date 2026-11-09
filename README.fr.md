@@ -621,6 +621,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   ordinateur ou ton navigateur l’est). L’interrupteur « Thème sombre » (Réglages →
   Général → Apparence) choisit l’autre thème ; le rebasculer suit à nouveau le
   système. Les images exportées des statistiques restent claires.
+- **Taille du texte** : un zoom à quatre paliers (100 %, 115 %, 130 %, 150 %) dans
+  Réglages → Général → Apparence, pour un écran de bureau mis à l’échelle ou par
+  simple confort. 100 % par défaut ; sur Android, il s’ajoute à la taille de police
+  du système. Les cibles tactiles gardent leur taille.
 - Au lancement, une **page de démarrage** (Android, bureau, web) : l’aiguille
   du cadran solaire fait un tour et se pose sur le logo, puis l’application
   apparaît en fondu. Un toucher l’abrège.
@@ -696,6 +700,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Réglages | Ta journée en une notification | 3.12.0 | Toutes |
 | Réglages | Couleur du thème | 3.1.0 | Toutes |
 | Réglages | Thème sombre | 3.7.0 | Toutes |
+| Réglages | Taille du texte | 4.1.0 | Toutes |
 | Réglages | Langues | 3.11.0 | Toutes |
 | Réglages | Tes données et ton manager | 3.0.0 | Toutes |
 | Réglages | Une copie de tes données dans un dossier synchronisé | 3.10.0 | Toutes |
@@ -719,6 +724,7 @@ touché ; rien n’est enregistré avant « Enregistrer »).
 | Général | Langue | Langue de l’interface (Système, Français, English, Español, Deutsch, Русский, Italiano) | Système |
 | | Apparence | Couleur du thème (proposée, libre, ou du système sur Android 12+) | océan `#2F6FED` |
 | | Apparence | Thème sombre (interrupteur à deux états) | suit le système |
+| | Apparence | Taille du texte (100, 115, 130 ou 150 %) | 100 % |
 | | Mises à jour (bureau) | Vérifier les nouvelles versions | activé |
 | | Mises à jour (Android, APK installé à la main) | Version installée, « Voir la dernière version » | |
 | | Raccourci (bureau, version portable) | Créer, mettre à jour ou retirer le raccourci | proposé au lancement |

@@ -1,8 +1,9 @@
-# Apparence : couleur et thème sombre de Kairos
+# Apparence : couleur, thème sombre et taille du texte de Kairos
 
-_Rôle : laisser chacun choisir la couleur dont tout le thème est dérivé, et un thème clair ou sombre.
-Fichiers couverts : `kmp/core/.../model/Settings.kt` (`themeColor`),
-`kmp/core/.../settings/SettingsForm.kt` (champ `themeColor`, validation),
+_Rôle : laisser chacun choisir la couleur dont tout le thème est dérivé, un thème clair ou sombre, et la taille du texte.
+Fichiers couverts : `kmp/core/.../model/Settings.kt` (`themeColor`, `textZoom`),
+`kmp/core/.../settings/SettingsForm.kt` (champs `themeColor` et `textZoom`, validation), `kmp/core/.../settings/TextZoom.kt`
+(paliers de la taille du texte),
 `kmp/ui/.../theme/` (`ThemeColors.kt` : graines proposées et schéma dérivé ;
 `KairosTheme.kt`), `kmp/ui/.../settings/AppearanceCard.kt`,
 `kmp/ui/.../KairosApp.kt` (thème appliqué une fois les réglages lus,
@@ -10,14 +11,14 @@ paramètres `systemColorScheme`, `systemDark`, `onDarkTheme`), `kmp/core/.../set
 interrupteur), `kmp/tools/make_theme.py` (schémas clair et sombre), `kmp/androidApp/.../MainActivity.kt`
 (couleurs du système sur Android 12 et plus, barres du système), `kmp/androidApp/src/main/res/values-night*/`
 et `kmp/webApp/.../index.html` (relais natifs en sombre). Tests :
-`core/.../settings/SettingsFormTest.kt`, `ui/.../theme/ThemeColorsTest.kt`,
+`core/.../settings/SettingsFormTest.kt`, `core/.../settings/TextZoomTest.kt`, `desktopApp/.../TextZoomUiTest.kt`, `ui/.../theme/ThemeColorsTest.kt`,
 `desktopApp/.../M5ScreensUiTest.kt`, `core/.../settings/ThemeModeTest.kt`, `desktopApp/.../DarkThemeUiTest.kt`.
 Couleur par défaut (océan) : `kmp/data/.../db/11.sqm` et `Kairos.sq` (table `migration_mark`), `KairosStore.kt` (`MARKERS`),
 `kmp/tools/make_app_icons.py`, `kmp/tools/make_badges.py`, `kmp/androidApp/src/main/res/` (`values*/colors.xml`,
 `drawable/ic_launcher_foreground.xml`), `site/style.css` ; test `data/.../ThemeColorMigrationTest.kt`._
 
 État : couleur, issue #45 (après la 3.0.0) ; thème sombre, issue #72 (3.7.0) ; couleur par défaut passée du miel à l'océan
-le 2026-10-27 (livré en 3.12.0, `docs/ROADMAP.md`).
+le 2026-10-27 (livré en 3.12.0, `docs/ROADMAP.md`) ; taille du texte, issue #229 (4.1.0).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -71,6 +72,42 @@ rôles et règles d'usage de la couleur restent ceux de Material Design 3.
   colle dans un rapport ou s'imprime.
 - Les fiches des magasins et la page gardent leurs captures claires et en ajoutent une **en sombre** (la vue Jour,
   capture 10, `publication.md`).
+
+### Taille du texte (issue #229, 4.1.0)
+
+- Sur un ordinateur dont l'écran est mis à l'échelle (125 % sur un portable 1920×1080), le corps de 14 sp reste petit, et le
+  contourner revient à toucher l'échelle du système entier. La règle « ne pas toucher à la taille du corps » de la charte
+  (`densite.md` § Hors périmètre) vaut pour la **valeur par défaut**, pas pour ce que l'utilisateur choisit : elle est rouverte
+  ici (décision du propriétaire, 2026-11-09), la valeur par défaut ne change pas.
+- Carte **Apparence**, sous le thème sombre et avant les pastilles : une rangée à quatre segments **« Taille du texte »** :
+  **100 %** (par défaut), **115 %**, **130 %**, **150 %**, avec une ligne d'aide. Comme tout réglage, le choix ne s'applique qu'à
+  « Enregistrer ».
+- Le zoom **multiplie** tout le texte de l'interface (corps, titres, libellés, champs, boutons), sur Android, le bureau et le
+  web. Sur Android il s'ajoute à la taille de police du système (130 % système × 115 % = ~150 %) : c'est le cas de qui veut
+  une autre taille dans Kairos que dans le reste du téléphone.
+- Les **dimensions en dp ne bougent pas** : cibles tactiles de 48 dp, hauteurs des boutons (36 dp), puces et segments,
+  marges, icônes, formes. Une ligne dont le texte grandit grandit en hauteur ; un bouton garde sa hauteur minimale et
+  s'agrandit si son libellé l'exige.
+- Le réglage est **propre à l'appareil** : il ne voyage pas par la synchronisation (`synchronisation.md`), un portable à 125 % et un
+  téléphone n'ont pas besoin de la même taille. Il voyage avec l'export et l'import comme les autres réglages.
+- Hors du zoom : les **images exportées** des Stats (taille fixe, pour les coller dans un rapport), les widgets Android
+  (dessinés par le système, qui applique sa propre taille de police), les icônes et le logo.
+
+### Critères de succès (taille du texte)
+
+- Le zoom par défaut (100 %) ne change **rien** : mêmes tailles, mêmes captures qu'avant.
+- À 150 % et à 360 dp de large, aucun écran de premier niveau ne déborde horizontalement (captures `--self-test`) ; les cibles
+  tactiles restent à 48 dp au moins (`accessibilite.md`).
+- Une valeur enregistrée hors des quatre paliers (import, fichier édité à la main) revient au palier le plus proche, jamais
+  une erreur (`TextZoomTest`).
+- Choisir 150 % puis « Enregistrer » enregistre `textZoom = 150` et agrandit le texte rendu d’environ 50 %, sans rétrécir un segment
+  (`TextZoomUiTest`).
+
+### Hors périmètre (taille du texte)
+
+- Une valeur libre (curseur ou saisie en pourcentage), un zoom au-delà de 150 %, un zoom par écran ou par plateforme, un
+  raccourci clavier (Ctrl +/−) : écartés ; on ajoutera un palier si 150 % ne suffit pas.
+- Mettre l'interface entière à l'échelle (dp compris) : c'est le rôle de l'échelle du système, que ce réglage laisse intacte.
 
 ### Couleur par défaut : l'océan (changé le 2026-10-27)
 
@@ -213,6 +250,25 @@ de lui, tout ce qui ne dépend pas des réglages est à l'océan par défaut :
 - **Boutons de téléchargement** (`make_badges.py`, `site/badges/`) : tonal clair, fond `#DAE2FF`, texte et icône `#1C2F59`.
 - **Page** (`site/style.css`) : variables `--md-*` = rôles du schéma clair généré ; captures des fiches régénérées en océan.
 
+### Taille du texte (`core`, `ui`)
+
+- `Settings.textZoom: Int`, par défaut `100` (`Settings.DEFAULT_TEXT_ZOOM`), en pour cent. `TextZoom` (`core/settings`, pur) :
+  `STEPS` = `[100, 115, 130, 150]`, `normalize(valeur)` = le palier le plus proche (égalité : le plus petit), `factor(valeur)` =
+  `normalize(valeur) / 100f`. `SettingsForm` : champ `textZoom` (`FieldKind.TEXT`, texte du nombre, normalisé par
+  `TextZoom.normalize` à l'écriture, une saisie non numérique donne `100`), jamais refusé, comme `themeMode`.
+- Local à l'appareil : `textZoom` est dans `SyncScope.LOCAL_SETTINGS`. Le fichier d'or `solo-export-v1.json` gagne
+  `"textZoom": 100` ; un export ancien l'ignore à l'import (valeur par défaut).
+- `KairosApp` : une fois les réglages lus, le contenu est enveloppé par
+  `LocalDensity provides Density(density.density, density.fontScale * TextZoom.factor(settings.textZoom))`. Seul `fontScale` change,
+  donc seuls les `sp` grandissent, jamais les `dp` : cibles de 48 dp et hauteurs de la charte intactes sans toucher un composant.
+  Pendant le chargement (réglages non lus) le zoom est 100 %. `StatsExport` impose déjà sa propre densité à `fontScale` 1 :
+  les images exportées ne suivent pas le zoom.
+- Catégorie : `textZoom` est dans `GENERAL_KEYS` de `SettingsCategory` (Général, carte Apparence). Carte : `KairosSegmentedRow` à
+  quatre segments « 100 % », « 115 % », « 130 % », « 150 % », sous l'interrupteur du thème sombre ; aide
+  `text_zoom_help`. Chaînes : `text_zoom`, `text_zoom_help` (le pourcentage des segments est écrit « N % » en Kotlin), dans les six langues.
+- Catalogue des fonctionnalités : carte `text_zoom` (chapitre Réglages, since 4.1.0, toutes plateformes, ouvre la carte
+  Apparence), puce « Text size » du README, ligne de la liste et du tableau des réglages, en anglais et en français.
+
 ### Carte Apparence (`ui/settings/AppearanceCard.kt`)
 
 - `OutlinedCard` comme les autres sections : titre, aide, interrupteur « Thème sombre » (`SwitchRow`, ligne
@@ -230,6 +286,17 @@ de lui, tout ce qui ne dépend pas des réglages est à l'océan par défaut :
 
 ### Décisions et pièges tracés
 
+- **Multiplier `fontScale`, pas mettre l'écran à l'échelle** (issue #229) : on agrandit le texte (`sp`) et on laisse les `dp`
+  tranquilles. Écarté : un facteur de densité global, qui agrandit aussi les cibles et les marges, fait déborder les 360 dp
+  plus tôt et double l'échelle que le système applique déjà. Écarté aussi : redéfinir l'échelle typographique
+  (`kairosTypography`) avec un facteur, qui ne toucherait pas les `sp` posés directement et dupliquerait ce que Compose sait
+  faire.
+- **Quatre paliers, pas de valeur libre** : 100 / 115 / 130 / 150 % suffisent pour 125 % d'échelle d'écran et se testent un
+  à un à 360 dp ; une valeur libre ouvre des tailles jamais vérifiées. 150 % est le plafond : au-delà, un 360 dp déborde.
+- **Local à l'appareil** : la taille dépend de l'écran devant soi, pas de l'utilisateur ; synchroniser le zoom d'un portable
+  mis à l'échelle changerait celui du téléphone.
+- **Rouvrir la règle des 14 sp, pas la défaire** (`CLAUDE.md`, `DESIGN_SYSTEM.md`, `densite.md`) : les 14 sp restent la valeur
+  par défaut et la mesure de la charte ; le zoom est un choix de l'utilisateur, au-dessus.
 - **Une graine, jamais un rôle isolé** (règle de la charte) : l'utilisateur
   choisit une graine, tout le schéma en est recalculé par l'algorithme MD3 ;
   aucun rôle n'est réglable seul.

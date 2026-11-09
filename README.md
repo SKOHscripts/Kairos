@@ -580,6 +580,9 @@ order (critical path). Cycles are refused.
   browser is). The "Dark theme" switch (Settings → General → Appearance) picks the
   other theme; switching it back follows the system again. Exported statistics
   images stay light.
+- **Text size**: a four-step zoom (100 %, 115 %, 130 %, 150 %) in Settings →
+  General → Appearance, for scaled desktop screens or just comfort. 100 % is the
+  default; on Android it adds to the system font size. Touch targets keep their size.
 - At launch, a **startup page** (Android, desktop, web): the sundial hand makes
   one turn and settles on the logo, then the app fades in. A tap skips it.
 
@@ -654,6 +657,7 @@ version that brought it and the platforms it exists on.
 | Settings | Your day in one notification | 3.12.0 | All |
 | Settings | Theme color | 3.1.0 | All |
 | Settings | Dark theme | 3.7.0 | All |
+| Settings | Text size | 4.1.0 | All |
 | Settings | Languages | 3.11.0 | All |
 | Settings | Your data and your manager | 3.0.0 | All |
 | Settings | A copy of your data in a synced folder | 3.10.0 | All |
@@ -676,6 +680,7 @@ you press "Save").
 | General | Language | Interface language (System, Français, English, Español, Deutsch, Русский, Italiano) | System |
 | | Appearance | Theme color (suggested, free, or system on Android 12+) | ocean `#2F6FED` |
 | | Appearance | Dark theme (two-state switch) | follows the system |
+| | Appearance | Text size (100, 115, 130 or 150 %) | 100 % |
 | | Updates (desktop) | Check for new versions | on |
 | | Updates (Android, APK installed by hand) | Installed version, "See the latest version" | |
 | | Shortcut (desktop, portable version) | Create, update or remove the shortcut | offered at launch |
