@@ -429,6 +429,8 @@ object SettingsForm {
         ),
         // Thème : normalisé à l'écriture (une valeur inconnue suit le système), jamais refusé.
         text("themeMode", FieldKind.TEXT, { it.themeMode }) { s, v -> s.copy(themeMode = ThemeMode.normalize(v)) },
+        // Zoom du texte : ramené au palier le plus proche, jamais refusé (un import peut porter n'importe quel nombre).
+        text("textZoom", FieldKind.TEXT, { it.textZoom.toString() }) { s, v -> s.copy(textZoom = TextZoom.normalize(v.toIntOrNull())) },
         // Langue : normalisée à l'écriture (une valeur inconnue suit le système), jamais refusée.
         text("language", FieldKind.TEXT, { it.language }) { s, v -> s.copy(language = UiLanguage.normalize(v)) },
         team("team.enabled", FieldKind.BOOL, get = { it.enabled.toString() }) { t, v -> t.copy(enabled = v == "true") },
