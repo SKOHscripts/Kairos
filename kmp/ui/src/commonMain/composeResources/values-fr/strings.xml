@@ -604,6 +604,8 @@
     <string name="language_it">Italiano</string>
     <string name="theme_custom">Couleur personnalisée</string>
     <string name="theme_custom_help">Format #RRGGBB, par exemple #2F6FED.</string>
+    <string name="text_zoom">Taille du texte</string>
+    <string name="text_zoom_help">Agrandit tout le texte de Kairos, en plus de la taille de police du système. 100 % par défaut ; appliqué à « Enregistrer ».</string>
     <string name="theme_system">Couleurs du système</string>
     <string name="theme_preset_honey">Miel</string>
     <string name="theme_preset_ocean">Océan</string>
@@ -1562,6 +1564,8 @@
     <string name="card_settings_categories_body">Général, Journée et horaires, Planification, Chrono et statistiques… : chaque catégorie a son icône et son résumé ; sur grand écran, la liste et la catégorie côte à côte.</string>
     <string name="card_darktheme_title">Thème sombre</string>
     <string name="card_darktheme_body">Kairos suit le thème de ton système. L’interrupteur « Thème sombre » de l’Apparence choisit l’autre ; le rebasculer suit à nouveau le système.</string>
+    <string name="card_text_zoom_title">Taille du texte</string>
+    <string name="card_text_zoom_body">Réglages → Général → Apparence propose une taille du texte : 100 %, 115 %, 130 % ou 150 %. Pratique sur un écran de bureau mis à l’échelle ; sur Android, elle s’ajoute à la taille de police du système.</string>
     <string name="card_languages_title">Langues</string>
     <string name="card_languages_body">Kairos parle français, anglais, espagnol, allemand, russe et italien. Il suit la langue de ton système quand elle en fait partie (l’anglais sinon) ; Réglages → Général → Langue en choisit une autre. Les dates, les heures et les nombres la suivent.</string>
     <string name="edit_title_first">Première tâche</string>

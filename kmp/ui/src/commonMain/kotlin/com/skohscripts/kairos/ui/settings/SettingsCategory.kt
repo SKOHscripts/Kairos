@@ -46,7 +46,7 @@ enum class SettingsCategory(val title: StringResource, val hint: StringResource,
             "cognitiveDipEnabled", "cognitiveDipStartHour", "cognitiveDipTroughHour", "cognitiveDipEndHour", "cognitiveDipPenalty",
         )
         private val TRACKING_KEYS = setOf("timerIdleAlertMinutes", "timerAutoStopMinutes", "pomodoroFocusMinutes", "timerAlertSound", "statsWindowWeeks")
-        private val GENERAL_KEYS = setOf("language", "themeColor", "themeMode", "updateCheckEnabled")
+        private val GENERAL_KEYS = setOf("language", "themeColor", "themeMode", "textZoom", "updateCheckEnabled")
 
         /**
          * Catégorie d'un champ de `SettingsForm` (son erreur y ouvre l'écran). Une clé inconnue lève une erreur : un

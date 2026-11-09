@@ -36,8 +36,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.model.TeamSettings
+import com.skohscripts.kairos.core.settings.TextZoom
 import com.skohscripts.kairos.core.settings.ThemeMode
 import com.skohscripts.kairos.core.settings.UiLanguage
 import com.skohscripts.kairos.ui.app.AppServices
@@ -146,7 +149,11 @@ fun KairosApp(
                             remember(language) { ready.applyLanguage(language) }
                             // Noms des niveaux choisis (docs/spec/planning-personnalise.md § Lot D) : affichage seulement, partout dans l'interface.
                             val levelNames = settings.levelNames ?: LevelNames()
+                            // Zoom du texte (issue #229) : seul fontScale change, les dp (cibles de 48 dp) restent.
+                            val density = LocalDensity.current
+                            val zoomed = remember(density, settings.textZoom) { Density(density.density, density.fontScale * TextZoom.factor(settings.textZoom)) }
                             CompositionLocalProvider(
+                                LocalDensity provides zoomed,
                                 LocalUiLanguage provides language,
                                 LocalSystemColorScheme provides systemColorScheme?.invoke(dark),
                                 LocalLevelNames provides levelNames,

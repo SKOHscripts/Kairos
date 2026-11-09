@@ -29,7 +29,13 @@ import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.settings.FieldError
 import com.skohscripts.kairos.core.settings.SettingsForm
+import com.skohscripts.kairos.core.settings.TextZoom
 import com.skohscripts.kairos.core.settings.ThemeMode
+import androidx.compose.material3.SegmentedButtonDefaults
+import com.skohscripts.kairos.ui.generated.resources.text_zoom
+import com.skohscripts.kairos.ui.generated.resources.text_zoom_help
+import com.skohscripts.kairos.ui.theme.KairosSegmentedButton
+import com.skohscripts.kairos.ui.theme.KairosSegmentedRow
 import com.skohscripts.kairos.ui.generated.resources.theme_dark
 import com.skohscripts.kairos.ui.generated.resources.theme_dark_chosen
 import com.skohscripts.kairos.ui.generated.resources.theme_dark_system
@@ -54,7 +60,10 @@ import org.jetbrains.compose.resources.stringResource
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun AppearanceCard(mode: String, value: String, error: FieldError?, onModeChange: (String) -> Unit, onChange: (String) -> Unit) {
+internal fun AppearanceCard(
+    mode: String, value: String, error: FieldError?, onModeChange: (String) -> Unit,
+    zoom: String, onZoomChange: (String) -> Unit, onChange: (String) -> Unit,
+) {
     val system = LocalSystemColorScheme.current
     val systemDark = LocalSystemDark.current
     val chosen = SettingsForm.normalizeColor(value)
@@ -68,6 +77,21 @@ internal fun AppearanceCard(mode: String, value: String, error: FieldError?, onM
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        // Zoom du texte (issue #229) : quatre paliers, appliqué à « Enregistrer » comme le reste.
+        Column(verticalArrangement = Arrangement.spacedBy(KairosSpacing.xs)) {
+            Text(stringResource(Res.string.text_zoom), style = MaterialTheme.typography.labelLarge)
+            val current = TextZoom.normalize(zoom.toIntOrNull())
+            KairosSegmentedRow(Modifier.fillMaxWidth()) {
+                TextZoom.STEPS.forEachIndexed { index, step ->
+                    KairosSegmentedButton(
+                        selected = step == current,
+                        onClick = { onZoomChange(step.toString()) },
+                        shape = SegmentedButtonDefaults.itemShape(index, TextZoom.STEPS.size),
+                    ) { Text("$step %") }
+                }
+            }
+            Text(stringResource(Res.string.text_zoom_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             if (system != null) {
