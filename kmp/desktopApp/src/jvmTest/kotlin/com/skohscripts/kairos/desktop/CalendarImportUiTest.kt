@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onAllNodesWithText
@@ -92,6 +95,12 @@ class CalendarImportUiTest {
         KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock)
     }
 
+    /** Fait défiler la liste de la vue Jour jusqu'à [text] (paresseuse : un élément hors écran n'est pas composé). */
+    private fun ComposeUiTest.waitInList(text: String, substring: Boolean = false) =
+        waitUntil(conditionDescription = "« $text » dans la liste", timeoutMillis = 15_000) {
+            runCatching { onNode(hasScrollToIndexAction()).performScrollToNode(hasText(text, substring = substring)) }.isSuccess
+        }
+
     private fun ComposeUiTest.waitText(text: String, substring: Boolean = false) =
         waitUntil(conditionDescription = text, timeoutMillis = 10_000) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
 
@@ -182,7 +191,7 @@ class CalendarImportUiTest {
         val services = services(repo)
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         // Journée entière : un badge sous « Aujourd'hui », sans effet sur le planning.
-        waitText("Conférence")
+        waitInList("Conférence")
         waitText("Time slot / deep work")
         onNodeWithText("Time slot / deep work").performClick()
         waitText("Imported from “Travail”")

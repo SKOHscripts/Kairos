@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -64,6 +67,12 @@ class M4ScreensUiTest {
         }
         AppServices(repository, files, { _, _ -> }, clock = clock)
     }
+
+    /** Fait défiler la liste de la vue Jour jusqu'à [text] (paresseuse : un élément hors écran n'est pas composé). */
+    private fun ComposeUiTest.waitInList(text: String, substring: Boolean = false) =
+        waitUntil(conditionDescription = "« $text » dans la liste", timeoutMillis = 15_000) {
+            runCatching { onNode(hasScrollToIndexAction()).performScrollToNode(hasText(text, substring = substring)) }.isSuccess
+        }
 
     private fun ComposeUiTest.waitText(text: String, substring: Boolean = false) =
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
@@ -146,9 +155,14 @@ class M4ScreensUiTest {
             repository.setTaskType(id, "Development")
         }
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
-        waitText("Delta", substring = true)
+        // « Delta » est aussi dans « Maintenant », en haut : défiler jusqu'au crayon de sa ligne.
+        waitUntil(conditionDescription = "crayon « Edit » dans la liste", timeoutMillis = 15_000) {
+            runCatching { onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("Edit")) }.isSuccess
+        }
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
         waitText("Edit task")
+        // La bonne ligne : la fiche ouverte est celle de « Delta », la seule tâche ouverte.
+        onNode(hasSetTextAction() and hasText("Delta")).assertExists()
 
         onNodeWithText("How to estimate points?").performScrollTo().performClick()
         waitText("for you ≈ 45 min (median of 3 task(s))")
