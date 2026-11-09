@@ -30,6 +30,7 @@
         "updateCheckEnabled": true,
         "themeColor": "#2F6FED",
         "themeMode": "system",
+        "textZoom": 100,
         "language": "system"
     },
     "tasks": [
