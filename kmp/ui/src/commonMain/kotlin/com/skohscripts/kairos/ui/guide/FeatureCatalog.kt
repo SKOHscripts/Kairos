@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.guide
 
+import com.skohscripts.kairos.ui.generated.resources.card_gtd_title
+import com.skohscripts.kairos.ui.generated.resources.card_gtd_body
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.skohscripts.kairos.ui.Platform
 import com.skohscripts.kairos.ui.generated.resources.Res
@@ -196,6 +198,7 @@ object FeatureCatalog {
     val cards: List<FeatureCard> = listOf(
         // --- Premiers pas
         FeatureCard("capture", GuideChapter.FIRST_STEPS, { KairosIcons.Notes }, Res.string.guide_you_capture_title, Res.string.guide_you_capture_body, GuideTarget.Personal(Destination.NOTES), tour = true),
+        FeatureCard("gtd", GuideChapter.FIRST_STEPS, { KairosIcons.Help }, Res.string.card_gtd_title, Res.string.card_gtd_body, GuideTarget.Personal(Destination.NOTES), since = "4.2.0"),
         FeatureCard("shortcuts", GuideChapter.FIRST_STEPS, { KairosIcons.Keyboard }, Res.string.card_shortcuts_title, Res.string.card_shortcuts_body, GuideTarget.Personal(Destination.DAY), since = "3.0.0", platforms = setOf(Platform.DESKTOP, Platform.WEB)),
         FeatureCard("qualify", GuideChapter.FIRST_STEPS, { KairosIcons.Edit }, Res.string.guide_you_qualify_title, Res.string.guide_you_qualify_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_INBOX), tour = true),
         FeatureCard("do", GuideChapter.FIRST_STEPS, { KairosIcons.Today }, Res.string.guide_you_do_title, Res.string.guide_you_do_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_AGENDA), tour = true),
@@ -321,6 +324,7 @@ object FeatureCatalog {
      */
     val README_FEATURES: Map<String, String> = mapOf(
         "One-line capture" to "capture",
+        "GTD explained" to "gtd",
         "Full editing" to "qualify",
         "Editable subtasks" to "subtasks_edit",
         "Keyboard shortcuts" to "shortcuts",

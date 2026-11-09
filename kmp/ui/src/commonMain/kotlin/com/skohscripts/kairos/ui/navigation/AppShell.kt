@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.navigation
 
+import com.skohscripts.kairos.ui.guide.GtdDialog
 import com.skohscripts.kairos.ui.sync.SyncMergeMessages
 import com.skohscripts.kairos.ui.app.LocalShellScope
 import com.skohscripts.kairos.ui.app.EstimateReviewDialog
@@ -183,6 +184,7 @@ fun AppShell(
     var discover by rememberSaveable { mutableStateOf(false) }
     // « Donner un avis » (docs/spec/retours.md) : ouvert par l'aide, « À propos » ou la carte du catalogue.
     var feedbackOpen by rememberSaveable { mutableStateOf(false) }
+    var gtdOpen by rememberSaveable { mutableStateOf(false) }
     var chapter by rememberSaveable { mutableStateOf<GuideChapter?>(null) }
     // Première tâche d'équipe accompagnée (issue #97) : étape du coach (`null` = fiche fermée, -1 = coach passé) et tâche créée.
     var teamCoachStep by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -415,8 +417,10 @@ fun AppShell(
             onDismiss = { helpOpen = false },
             onDiscover = { helpOpen = false; discover = true },
             onFeedback = { helpOpen = false; feedbackOpen = true },
+            onGtd = { helpOpen = false; gtdOpen = true },
         )
     }
+    if (gtdOpen) GtdDialog { gtdOpen = false }
     if (feedbackOpen) {
         FeedbackDialog(KairosBuild.VERSION_NAME, services.deviceLabel, onDismiss = { feedbackOpen = false }, openLink = rememberCheckedLinkOpener())
     }

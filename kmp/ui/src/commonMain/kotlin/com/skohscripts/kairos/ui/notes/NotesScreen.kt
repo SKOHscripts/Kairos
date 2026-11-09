@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.ui.notes
 
+import com.skohscripts.kairos.ui.generated.resources.gtd_notes_goal
+import com.skohscripts.kairos.ui.guide.GtdMethodButton
+import com.skohscripts.kairos.ui.guide.GtdStepText
+import com.skohscripts.kairos.ui.guide.GtdStep
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosRowIconButton
 import com.skohscripts.kairos.ui.theme.KairosButton
@@ -115,6 +119,14 @@ fun NotesScreen(services: AppServices, onOpenTasks: () -> Unit) {
             contentPadding = PaddingValues(KairosSpacing.l),
             modifier = Modifier.widthIn(max = 840.dp).fillMaxSize(),
         ) {
+            // Étape 1 de GTD (docs/spec/methode-gtd.md) : l'objectif de l'écran, et la méthode à un geste.
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(KairosSpacing.xs)) {
+                    GtdStepText(GtdStep.CAPTURE, MaterialTheme.typography.labelLarge, MaterialTheme.colorScheme.primary)
+                    Text(stringResource(Res.string.gtd_notes_goal), style = MaterialTheme.typography.bodyMedium)
+                    Box(Modifier.padding(top = KairosSpacing.xs)) { GtdMethodButton() }
+                }
+            }
             item { NoteCapture { body -> scope.launch { repository.createNote(body) } } }
             item {
                 Column(Modifier.padding(top = KairosListSectionExtra)) {

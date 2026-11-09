@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.week
 
+import com.skohscripts.kairos.ui.guide.GtdStepButton
+import com.skohscripts.kairos.ui.guide.GtdStep
 import com.skohscripts.kairos.ui.app.withDeviceCalendars
 import com.skohscripts.kairos.ui.day.DayMarkBadges
 import com.skohscripts.kairos.ui.day.blockTitle
@@ -145,6 +147,7 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
 
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.widthIn(max = 1400.dp).fillMaxWidth().padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.m)) {
+            GtdStepButton(GtdStep.REFLECT)
             WeekMonthSwitch(nav, today)
             // Titre au-dessus des boutons : entre eux, il n'avait plus de place sur un
             // téléphone et s'affichait une lettre par ligne.

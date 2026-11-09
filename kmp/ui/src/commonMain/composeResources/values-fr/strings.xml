@@ -1901,4 +1901,29 @@
     <string name="why_learned_model_unverified">Durée : pas encore assez de tâches comparables pour vérifier le modèle de machine learning (%1$d sur %2$d).</string>
     <!-- Fiche : intitulé de l’estimation par machine learning (docs/spec/estimateur-modele.md § Interface, #99) -->
     <string name="sheet_model_title">Estimation par machine learning</string>
+    <string name="gtd_title">La méthode GTD</string>
+    <string name="gtd_intro">GTD (Getting Things Done, de David Allen) : ta tête sert à avoir des idées, pas à les retenir. Tout ce qui t’occupe va dans un système fiable, que tu vides et revois régulièrement. Cinq étapes :</string>
+    <string name="gtd_step_capture_name">Capturer</string>
+    <string name="gtd_step_capture_body">Noter tout ce qui t’occupe, sans trier. Dans Kairos : l’écran Notes, ou la capture de la vue Jour.</string>
+    <string name="gtd_step_clarify_name">Clarifier</string>
+    <string name="gtd_step_clarify_body">Décider ce qu’est chaque chose : une action ? Elle devient une tâche ; sinon, on la garde ou on l’abandonne. Dans Kairos : « → Tâche » ou « Archiver » sur une note, puis « À traiter » dans la vue Jour.</string>
+    <string name="gtd_step_organize_name">Organiser</string>
+    <string name="gtd_step_organize_body">Ranger chaque action selon ce qui compte. Dans Kairos : priorité, points et échéance dans « À traiter » ; Kairos range ensuite la liste lui-même.</string>
+    <string name="gtd_step_reflect_name">Faire le point</string>
+    <string name="gtd_step_reflect_body">Revoir régulièrement le système pour lui garder ta confiance. Dans Kairos : les vues Semaine et Stats.</string>
+    <string name="gtd_step_engage_name">Faire</string>
+    <string name="gtd_step_engage_body">Choisir quoi faire maintenant, et le faire. Dans Kairos : « À faire maintenant » dans la vue Jour, avec son chrono.</string>
+    <string name="gtd_diff_title">Ce que Kairos fait autrement</string>
+    <string name="gtd_diff_order">L’ordre : GTD te laisse choisir dans tes listes ; Kairos calcule l’ordre (priorité, taille, échéance) et te dit par quoi commencer.</string>
+    <string name="gtd_diff_someday">« Un jour peut-être » : pas de liste à part. Notes en tient lieu : une note peut y rester aussi longtemps qu’il faut avant de devenir une tâche, et « Archiver » la classe sans suite.</string>
+    <string name="gtd_diff_review">La revue hebdomadaire : Kairos ne la guide pas pas à pas ; la vue Semaine et les Stats t’en donnent la matière.</string>
+    <string name="gtd_label_capture">Étape 1 sur 5 de GTD · Capturer</string>
+    <string name="gtd_label_process">Étapes 2 et 3 de GTD · Clarifier, organiser</string>
+    <string name="gtd_label_reflect">Étape 4 de GTD · Faire le point</string>
+    <string name="gtd_label_engage">Étape 5 de GTD · Faire</string>
+    <string name="gtd_notes_goal">Sors de ta tête tout ce qui t’occupe, sans trier ni décider. Une note peut attendre ici aussi longtemps qu’il faut.</string>
+    <string name="gtd_open">La méthode GTD</string>
+    <string name="gtd_open_hint">Les cinq étapes et où elles sont dans Kairos</string>
+    <string name="card_gtd_title">La méthode GTD dans Kairos</string>
+    <string name="card_gtd_body">Kairos suit GTD : capturer, clarifier, organiser, faire le point, faire. Chaque écran dit de quelle étape il s’agit, et « La méthode GTD » sur Notes les explique, avec ce que Kairos fait autrement.</string>
 </resources>
