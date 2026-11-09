@@ -61,8 +61,9 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
      les tâches sont ordonnées »** (`planning-personnalise.md` lot A, ouvert d'office quand un de ses champs est en
      erreur) : **Score de priorité** (base de valeur, horizon d'urgence, poids maximal de l'urgence, points par
      défaut) et **Creux de l'après-midi** (activé, début, creux le plus profond, fin, force de la pénalité).
-  4. **Chrono et statistiques** : **Alertes du chrono** (chrono oublié, arrêt automatique du chrono après 0-1 440 min,
-     240 par défaut, 0 = jamais, `temps-reel-chrono.md` § Garde-fou, pause suggérée, son de secours),
+  4. **Chrono et statistiques** : **Alertes du chrono** (dans cet ordre depuis 4.2.0 : pause du pomodoro, chrono oublié, arrêt
+     automatique du chrono après 0-1 440 min, 240 par défaut, 0 = jamais, `temps-reel-chrono.md` § Garde-fou, cloches avec
+     les alertes, `temps-reel-chrono.md` § Cloches),
      **Rappels** (3.8.0 : « Rappeler les tâches à heure fixe », « Combien de minutes avant » 0-120, 10 par défaut,
      « Signaler aussi la tâche suivante du plan » ; désactivés par défaut, `rappels.md`),
      **Statistiques** (fenêtre en semaines).

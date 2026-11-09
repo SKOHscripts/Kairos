@@ -5,13 +5,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.Notification
 import androidx.compose.ui.window.TrayState
+import com.skohscripts.kairos.core.alerts.Bell
 import com.skohscripts.kairos.ui.app.ChronoNotifier
+import com.skohscripts.kairos.ui.chrono.bellBytes
 import com.skohscripts.kairos.ui.app.NotifyState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
-import java.awt.Toolkit
+import java.io.ByteArrayInputStream
+import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.LineEvent
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -50,8 +54,17 @@ class DesktopNotifier(
         titlePrefix = prefix
     }
 
-    override fun beep() {
-        runCatching { Toolkit.getDefaultToolkit().beep() }
+    /** Cloche (issue #234) : le WAV généré, joué par `javax.sound` ; pas de sortie son, rien. */
+    override suspend fun ring(bell: Bell) {
+        val bytes = bellBytes(bell)
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val clip = AudioSystem.getClip()
+                clip.addLineListener { if (it.type == LineEvent.Type.STOP) clip.close() }
+                clip.open(AudioSystem.getAudioInputStream(ByteArrayInputStream(bytes)))
+                clip.start()
+            }
+        }
     }
 
     companion object {

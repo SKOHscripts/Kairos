@@ -367,15 +367,20 @@
     <string name="alert_pomodoro">%1$s непрерывной работы: пора сделать короткий перерыв?</string>
     <string name="alert_close">Закрыть оповещение</string>
     <string name="settings_chrono_title">Оповещения таймера</string>
-    <string name="settings_chrono_body">Напоминания, пока работает таймер. Порог 0 отключает оповещение; превышение оценки сообщается всегда.</string>
+    <string name="settings_chrono_body">Помодоро, пока работает таймер: перерыв после периода сосредоточенности, напоминание о забытом таймере. Порог 0 отключает оповещение; превышение оценки сообщается всегда.</string>
     <string name="settings_idle">Забытый таймер через (мин)</string>
+    <string name="settings_idle_help">Два колокольчика.</string>
     <string name="settings_auto_stop">Остановить таймер через (мин)</string>
     <string name="settings_auto_stop_help">0 = никогда. Сеанс останавливается по истечении этого времени, даже если приложение закрыто.</string>
-    <string name="settings_pomodoro">Перерыв предлагается через (мин)</string>
-    <string name="settings_sound">Звук, когда уведомление показать нельзя</string>
+    <string name="settings_pomodoro">Помодоро: перерыв через (мин сосредоточенности)</string>
+    <string name="settings_pomodoro_help">Один колокольчик. 0 = без перерыва.</string>
+    <string name="settings_sound">Колокольчики с оповещениями</string>
+    <string name="settings_sound_help">Один колокольчик для перерыва, превышения оценки или автоостановки; два для забытого таймера.</string>
     <string name="settings_saved">Настройки сохранены.</string>
     <string name="notif_channel_chrono">Таймер запущен</string>
     <string name="notif_channel_alerts">Оповещения таймера</string>
+    <string name="notif_channel_bell_single">Оповещения таймера (один колокольчик)</string>
+    <string name="notif_channel_bell_double">Оповещения таймера (два колокольчика)</string>
     <string name="settings_reminders_title">Напоминания</string>
     <string name="settings_reminders_body">Системное уведомление перед задачей с фиксированным временем и, если хочешь, когда план переходит к следующей задаче. На Android оно приходит даже при закрытом Kairos, возможно с опозданием на несколько минут, пока телефон спит; на компьютере и в вебе — пока Kairos открыт.</string>
     <string name="setting_reminders_enabled">Напоминать о задачах с фиксированным временем</string>
@@ -1763,6 +1768,8 @@
     <string name="card_alerts_body">Kairos предупредит, когда ты превысишь оценку, забудешь таймер или пора сделать перерыв: в приложении и системным уведомлением.</string>
     <string name="card_timer_guard_title">Автоостановка таймера</string>
     <string name="card_timer_guard_body">Забытый таймер останавливается сам через 4 ч (Настройки → Таймер и статистика, 0 = никогда), точно в этот момент, даже если Kairos закрыт: задача никогда не получает ночь неотработанного времени.</string>
+    <string name="card_chrono_bells_title">Колокольчики помодоро</string>
+    <string name="card_chrono_bells_body">Включи «Колокольчики с оповещениями» (Настройки → Таймер и статистика): один лёгкий колокольчик, когда пора сделать перерыв, два, когда таймер забыт. Их различаешь, не глядя, даже если Kairos на Android закрыт.</string>
     <string name="card_web_version_title">Веб-версия</string>
     <string name="card_web_version_body">Kairos работает и в браузере: данные хранятся в нём, а в Edge или Chrome их можно связать с файлом, который всегда актуален.</string>
     <string name="card_team_first_task_title">Первая командная задача с подсказками</string>

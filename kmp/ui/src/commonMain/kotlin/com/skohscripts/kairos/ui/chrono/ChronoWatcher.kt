@@ -22,6 +22,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.skohscripts.kairos.core.alerts.Bell
 import com.skohscripts.kairos.core.alerts.ChronoAlerts
 import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.core.engine.TimeTracking
@@ -62,7 +63,7 @@ private fun minutesSince(start: Instant, now: Instant) = maxOf(0L, (now - start)
  * § Alertes) : chaque seconde, le titre de fenêtre montre le temps qui tourne ;
  * un seuil franchi **pendant** la veille ajoute un bandeau (toujours), une
  * notification système (`notifyChrono`, issue #219 : tout de suite, même sur Android), et à défaut le
- * titre clignotant pendant une minute et le son s'il est activé.
+ * titre clignotant pendant une minute ; les cloches, si elles sont activées, sonnent à chaque alerte (issue #234).
  */
 @Composable
 fun ChronoWatcher(services: AppServices, alerts: SnapshotStateList<String>) {
@@ -105,9 +106,8 @@ fun ChronoWatcher(services: AppServices, alerts: SnapshotStateList<String>) {
                         if (services.repository.stopTimerAt(running.id, stopAt)) {
                             val body = ChronoTexts.autoStopBody(settings.timerAutoStop)
                             alerts += "${task.title} · $body"
-                            if (!notifier.notifyChrono(ChronoTexts.alertTitle(task.title), body, "AUTO_STOP")) {
-                                if (settings.timerAlertSound) notifier.beep()
-                            }
+                            val sent = notifier.notifyChrono(ChronoTexts.alertTitle(task.title), body, "AUTO_STOP")
+                            if (settings.timerAlertSound && !(sent && notifier.ringsWithNotification)) notifier.ring(Bell.AUTO_STOP)
                         }
                     }
                     break
@@ -116,11 +116,13 @@ fun ChronoWatcher(services: AppServices, alerts: SnapshotStateList<String>) {
                     val body = ChronoTexts.alertBody(alert)
                     val message = "${task.title} · $body"
                     alerts += message
-                    if (!notifier.notifyChrono(ChronoTexts.alertTitle(task.title), body, alert.kind.name)) {
+                    val sent = notifier.notifyChrono(ChronoTexts.alertTitle(task.title), body, alert.kind.name)
+                    if (!sent) {
                         flashText = message
                         flashUntil = now + 60.seconds
-                        if (settings.timerAlertSound) notifier.beep()
                     }
+                    // Cloches à chaque alerte (issue #234), sauf si la notification sortie la porte déjà (Android).
+                    if (settings.timerAlertSound && !(sent && notifier.ringsWithNotification)) notifier.ring(Bell.of(alert.kind))
                 }
                 since = now
                 if (now < flashUntil) {

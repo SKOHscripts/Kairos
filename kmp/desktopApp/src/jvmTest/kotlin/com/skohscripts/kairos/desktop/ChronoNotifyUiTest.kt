@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.ui.test.ComposeUiTest
+import com.skohscripts.kairos.core.alerts.Bell
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -77,13 +79,13 @@ class ChronoNotifyUiTest {
         }
     }
 
-    private fun services(with: ChronoNotifier = notifier): AppServices = runBlocking {
+    private fun services(with: ChronoNotifier = notifier, sound: Boolean = false, idle: Int = 180): AppServices = runBlocking {
         val repository = KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock)
         val id = repository.createTask("Write the report")!!
         repository.setPriority(id, 1)
         repository.setPoints(id, 3)
         repository.setTaskType(id, "Development")
-        repository.updateSettings(repository.snapshot.value.settings.copy(pomodoroFocusMinutes = 1))
+        repository.updateSettings(repository.snapshot.value.settings.copy(pomodoroFocusMinutes = 1, timerAlertSound = sound, timerIdleAlertMinutes = idle))
         AppServices(repository, object : FileService {
             override suspend fun saveText(suggestedName: String, text: String) = false
             override suspend fun openText(): String? = null
@@ -107,6 +109,57 @@ class ChronoNotifyUiTest {
         onNodeWithText("Write the report · 1 min of continuous focus: time for a short break?").assertExists()
         // Les alertes sont déjà actives : démarrer le chrono ne demande rien.
         onNodeWithText("Get timer alerts?").assertDoesNotExist()
+    }
+
+    /** Notification sortie ; [carried] : elle porte déjà la cloche (Android). */
+    private class RingingNotifier(override val ringsWithNotification: Boolean) : ChronoNotifier {
+        override val state = MutableStateFlow(NotifyState.ACTIVE)
+        val rings = mutableListOf<Bell>()
+        override suspend fun notifyChrono(title: String, body: String, tag: String) = true
+        override suspend fun ring(bell: Bell) {
+            rings += bell
+        }
+    }
+
+    private fun ComposeUiTest.crossBreakAndForgottenTimer(services: AppServices) {
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Start the timer").fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithText("Start the timer").performClick()
+        onAllNodesWithText("Not now").fetchSemanticsNodes().takeIf { it.isNotEmpty() }?.let { onNodeWithText("Not now").performClick() }
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Stop the timer").fetchSemanticsNodes().isNotEmpty() }
+        // Pause à 1 min, chrono oublié à 2 min.
+        now += 61.seconds
+        mainClock.advanceTimeBy(2_000)
+        now += 60.seconds
+        mainClock.advanceTimeBy(2_000)
+    }
+
+    @Test
+    fun bellsRingWithEveryAlertOnceTurnedOn() = runComposeUiTest {
+        // Bureau, web : la notification sort, la cloche sonne en plus (issue #234) ; une pour la pause, deux pour l'oubli.
+        val desktop = RingingNotifier(ringsWithNotification = false)
+        crossBreakAndForgottenTimer(services(desktop, sound = true, idle = 2))
+        waitUntil(timeoutMillis = 5_000) { desktop.rings.size == 2 }
+        assertEquals(listOf(Bell.SINGLE, Bell.DOUBLE), desktop.rings)
+    }
+
+    @Test
+    fun aNotificationThatCarriesTheBellDoesNotRingTwice() = runComposeUiTest {
+        // Android : le canal de la notification sonne la cloche ; la veille ne la rejoue pas.
+        val android = RingingNotifier(ringsWithNotification = true)
+        crossBreakAndForgottenTimer(services(android, sound = true, idle = 2))
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Write the report · 1 min of continuous focus: time for a short break?").fetchSemanticsNodes().isNotEmpty() }
+        mainClock.advanceTimeBy(2_000)
+        assertTrue(android.rings.isEmpty())
+    }
+
+    @Test
+    fun noBellWhenTurnedOff() = runComposeUiTest {
+        val desktop = RingingNotifier(ringsWithNotification = false)
+        crossBreakAndForgottenTimer(services(desktop, sound = false, idle = 2))
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Write the report · 1 min of continuous focus: time for a short break?").fetchSemanticsNodes().isNotEmpty() }
+        mainClock.advanceTimeBy(2_000)
+        assertTrue(desktop.rings.isEmpty())
     }
 
     @Test

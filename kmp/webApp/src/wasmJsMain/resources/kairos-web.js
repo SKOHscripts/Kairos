@@ -261,20 +261,12 @@
         // Navigateur qui refuse la surcharge : l'interface garde la langue du navigateur.
       }
     },
-    // Court bip (dernier recours, seulement si activé dans les réglages).
-    beep() {
+    // Cloche d'une alerte du chrono (docs/spec/temps-reel-chrono.md § Cloches), si activée dans les réglages.
+    ring(dataUri) {
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.value = 880;
-        gain.gain.value = 0.1;
-        osc.connect(gain).connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.25);
-        osc.onended = () => ctx.close();
+        new Audio(dataUri).play().catch(() => {});
       } catch (e) {
-        // Pas de son possible : le bandeau et le titre suffisent.
+        // Pas de son possible (aucun geste récent, pas de sortie) : le bandeau et la notification suffisent.
       }
     },
   };

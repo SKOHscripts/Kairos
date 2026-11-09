@@ -6,14 +6,13 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.AudioManager
-import android.media.ToneGenerator
+import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
+import com.skohscripts.kairos.core.alerts.Bell
 import com.skohscripts.kairos.ui.app.ChronoNotifier
 import com.skohscripts.kairos.ui.app.NotifyHint
 import com.skohscripts.kairos.ui.app.NotifyState
@@ -92,11 +91,18 @@ class AndroidNotifier(private val context: Context) : ChronoNotifier {
         runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     }
 
-    override fun beep() {
+    /** `notifyChrono` ne rend vrai qu'en postant, et la notification porte la cloche (canal, issue #234). */
+    override val ringsWithNotification: Boolean get() = true
+
+    /** Notification bloquée : la cloche sonne quand même, par le lecteur du système (usage notification). */
+    override suspend fun ring(bell: Bell) {
         runCatching {
-            val tone = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 60)
-            tone.startTone(ToneGenerator.TONE_PROP_BEEP, 250)
-            Handler(Looper.getMainLooper()).postDelayed({ tone.release() }, 500)
+            val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+            MediaPlayer.create(context, ChronoSync.bellRes(bell), attributes, 0)?.apply {
+                setOnCompletionListener { it.release() }
+                start()
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.chrono
 
+import com.skohscripts.kairos.core.alerts.Bell
 import com.skohscripts.kairos.core.alerts.ChronoAlert
 import com.skohscripts.kairos.core.alerts.ChronoAlertKind
 import com.skohscripts.kairos.ui.generated.resources.Res
@@ -12,6 +13,8 @@ import com.skohscripts.kairos.ui.generated.resources.duration_hours
 import com.skohscripts.kairos.ui.generated.resources.duration_hours_minutes
 import com.skohscripts.kairos.ui.generated.resources.duration_minutes
 import com.skohscripts.kairos.ui.generated.resources.notif_channel_alerts
+import com.skohscripts.kairos.ui.generated.resources.notif_channel_bell_single
+import com.skohscripts.kairos.ui.generated.resources.notif_channel_bell_double
 import com.skohscripts.kairos.ui.generated.resources.notif_channel_chrono
 import com.skohscripts.kairos.ui.generated.resources.notif_stop
 import com.skohscripts.kairos.ui.generated.resources.timer_running
@@ -54,4 +57,8 @@ object ChronoTexts {
     suspend fun chronoChannel(): String = getString(Res.string.notif_channel_chrono)
 
     suspend fun alertsChannel(): String = getString(Res.string.notif_channel_alerts)
+
+    /** Canal Android d'une cloche (docs/spec/temps-reel-chrono.md § Cloches) : son nom dit combien de cloches il sonne. */
+    suspend fun bellChannel(bell: Bell): String =
+        getString(if (bell == Bell.DOUBLE) Res.string.notif_channel_bell_double else Res.string.notif_channel_bell_single)
 }

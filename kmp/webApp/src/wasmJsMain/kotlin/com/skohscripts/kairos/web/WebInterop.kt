@@ -30,7 +30,7 @@ external object KairosWeb : JsAny {
     fun notifyRequest(): Promise<JsString>
     fun notify(title: String, body: String, tag: String): Boolean
     fun setTitle(prefix: String?)
-    fun beep()
+    fun ring(dataUri: String)
     fun setLanguage(language: String)
 }
 

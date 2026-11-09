@@ -17,7 +17,7 @@ class ChronoReceiver : BroadcastReceiver() {
             ACTION_ALERT -> {
                 val title = intent.getStringExtra(EXTRA_TITLE) ?: return
                 val body = intent.getStringExtra(EXTRA_BODY) ?: return
-                ChronoSync.postAlert(context, intent.getIntExtra(EXTRA_KIND, 0), title, body)
+                ChronoSync.postAlert(context, intent.getIntExtra(EXTRA_KIND, 0), title, body, intent.getBooleanExtra(EXTRA_SOUND, false))
             }
             ACTION_REMINDER -> {
                 val title = intent.getStringExtra(EXTRA_TITLE) ?: return
@@ -68,6 +68,7 @@ class ChronoReceiver : BroadcastReceiver() {
         const val EXTRA_SESSION = "session"
         const val EXTRA_AT = "at"
         const val EXTRA_LIMIT = "limit"
+        const val EXTRA_SOUND = "sound"
     }
 }
 

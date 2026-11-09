@@ -47,6 +47,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.skohscripts.kairos.core.alerts.Bell
 import com.skohscripts.kairos.ui.app.ChronoNotifier
 import com.skohscripts.kairos.ui.app.NotifyState
 import kotlin.time.Clock
@@ -279,7 +280,7 @@ class DayScreenUiTest {
         }
         val notified = mutableListOf<String>()
         val titles = mutableListOf<String?>()
-        var beeps = 0
+        val rings = mutableListOf<Bell>()
         val notifier = object : ChronoNotifier {
             override val state = MutableStateFlow(NotifyState.DENIED)
             override suspend fun notify(title: String, body: String, tag: String): Boolean {
@@ -289,8 +290,8 @@ class DayScreenUiTest {
             override fun setTitle(prefix: String?) {
                 titles += prefix
             }
-            override fun beep() {
-                beeps++
+            override suspend fun ring(bell: Bell) {
+                rings += bell
             }
         }
     }
@@ -325,7 +326,8 @@ class DayScreenUiTest {
         mainClock.advanceTimeBy(2_000)
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Write the report · 1 min of continuous focus: time for a short break?").fetchSemanticsNodes().isNotEmpty() }
         assertEquals(listOf("1 min of continuous focus: time for a short break?"), h.notified)
-        assertEquals(1, h.beeps)
+        // Pause : une cloche (issue #234).
+        assertEquals(listOf(Bell.SINGLE), h.rings)
         assertTrue(h.titles.any { it != null && it.startsWith("⚠") })
 
         // Le bandeau se ferme d'un clic ; le chrono s'arrête depuis « En ce moment ».

@@ -369,15 +369,20 @@
     <string name="alert_pomodoro">%1$s de focus continu, une courte pause ?</string>
     <string name="alert_close">Fermer l’alerte</string>
     <string name="settings_chrono_title">Alertes du chrono</string>
-    <string name="settings_chrono_body">Rappels pendant qu’un chrono tourne. Un seuil à 0 désactive l’alerte ; le dépassement de l’estimation est toujours signalé.</string>
+    <string name="settings_chrono_body">Pomodoro pendant qu’un chrono tourne : une pause après un temps de concentration, un rappel pour un chrono oublié. Un seuil à 0 désactive l’alerte ; le dépassement de l’estimation est toujours signalé.</string>
     <string name="settings_idle">Chrono oublié après (min)</string>
+    <string name="settings_idle_help">Deux cloches.</string>
     <string name="settings_auto_stop">Arrêter le chrono après (min)</string>
     <string name="settings_auto_stop_help">0 = jamais. La session s’arrête à cette durée, même application fermée.</string>
-    <string name="settings_pomodoro">Pause suggérée après (min)</string>
-    <string name="settings_sound">Son quand aucune notification ne peut s’afficher</string>
+    <string name="settings_pomodoro">Pomodoro : pause après (min de concentration)</string>
+    <string name="settings_pomodoro_help">Une cloche. 0 = pas de pause suggérée.</string>
+    <string name="settings_sound">Cloches avec les alertes</string>
+    <string name="settings_sound_help">Une cloche pour une pause, l’estimation dépassée ou l’arrêt automatique ; deux pour un chrono oublié.</string>
     <string name="settings_saved">Réglages enregistrés.</string>
     <string name="notif_channel_chrono">Chrono en cours</string>
     <string name="notif_channel_alerts">Alertes du chrono</string>
+    <string name="notif_channel_bell_single">Alertes du chrono (une cloche)</string>
+    <string name="notif_channel_bell_double">Alertes du chrono (deux cloches)</string>
     <string name="settings_reminders_title">Rappels</string>
     <string name="settings_reminders_body">Une notification du système avant une tâche à heure fixe et, si tu le veux, quand le plan passe à la tâche suivante. Sur Android, même Kairos fermé, avec quelques minutes de retard possibles téléphone en veille ; sur le bureau et le web, tant que Kairos est ouvert.</string>
     <string name="setting_reminders_enabled">Rappeler les tâches à heure fixe</string>
@@ -1766,6 +1771,8 @@
     <string name="card_alerts_body">Kairos te prévient quand tu dépasses l’estimé, quand un chrono a été oublié et quand une pause s’impose : dans l’application et par une notification du système.</string>
     <string name="card_timer_guard_title">Garde-fou du chrono</string>
     <string name="card_timer_guard_body">Un chrono oublié s’arrête seul après 4 h (Réglages → Chrono et statistiques, 0 = jamais), à cet instant précis, même Kairos fermé : la tâche ne reçoit jamais une nuit de temps non travaillé.</string>
+    <string name="card_chrono_bells_title">Cloches du pomodoro</string>
+    <string name="card_chrono_bells_body">Active « Cloches avec les alertes » (Réglages → Chrono et statistiques) : une cloche légère quand vient la pause, deux quand un chrono est oublié. On les distingue sans regarder, même Kairos fermé sur Android.</string>
     <string name="card_web_version_title">Version web</string>
     <string name="card_web_version_body">Kairos tourne aussi dans le navigateur : tes données y sont enregistrées et, dans Edge ou Chrome, peuvent être liées à un fichier tenu à jour.</string>
     <string name="card_team_first_task_title">Première tâche d’équipe guidée</string>

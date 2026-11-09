@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.app
 
+import com.skohscripts.kairos.core.alerts.Bell
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -67,8 +68,14 @@ interface ChronoNotifier {
     /** Titre de la fenêtre ou de l'onglet : [prefix] avant le nom de l'application, `null` pour le titre normal. */
     fun setTitle(prefix: String?) {}
 
-    /** Court signal sonore (dernier recours, seulement si activé dans les réglages). */
-    fun beep() {}
+    /**
+     * Vrai quand une notification sortie ([notifyChrono] vrai) porte déjà la cloche (canal Android) : la veille ne sonne
+     * pas une seconde fois (docs/spec/temps-reel-chrono.md § Cloches).
+     */
+    val ringsWithNotification: Boolean get() = false
+
+    /** Joue la cloche [bell] (cloches activées dans les réglages) ; rien si la plateforme n'a pas de son. */
+    suspend fun ring(bell: Bell) {}
 }
 
 private val NO_HINTS: StateFlow<Set<NotifyHint>> = MutableStateFlow(emptySet())
