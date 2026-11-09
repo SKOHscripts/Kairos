@@ -41,7 +41,8 @@ l'écran Notes ne dit pas qu'il est l'étape « capturer », et la méthode n'es
   - **« Un jour peut-être »** : pas de liste à part ; Notes en tient lieu : une note peut y rester aussi longtemps qu'il
     faut avant de devenir une tâche (précision du propriétaire, 2026-11-10), « Archiver » la classe sans suite ;
   - **la revue hebdomadaire** : Kairos ne la guide pas pas à pas ; la vue Semaine et les Stats en donnent la matière.
-  Le dialogue défile sur un petit écran ; « Fermer » le ferme.
+  Le dialogue défile sur un petit écran et montre une **barre de défilement** (le pouce du menu des types, `vue-jour.md`)
+  dès que tout ne tient pas ; « Fermer » le ferme.
 - **Aide « ? »** de l'espace Perso : une entrée « La méthode GTD » (« Les cinq étapes et où elles sont dans Kairos »), qui
   ferme l'aide et ouvre le dialogue. Pas dans l'espace Équipe, qui ne suit pas le cycle GTD personnel.
 - Catalogue : une carte « La méthode GTD » (chapitre « Premiers pas », 4.2.0), qui ouvre l'écran Notes.
@@ -77,7 +78,8 @@ l'écran Notes ne dit pas qu'il est l'étape « capturer », et la méthode n'es
   - `GtdStepText(step, color)` : la même ligne, non cliquable (« Maintenant »).
   - `GtdMethodButton()` : `KairosTonalButton` « La méthode GTD » (icône `Help`), qui ouvre `GtdDialog`.
   - `GtdDialog(onDismiss)` : `AlertDialog` (icône `Help`, titre `gtd_title` marqué titre pour les lecteurs d'écran),
-    colonne défilante : `gtd_intro`, puis pour chaque étape son nom en `titleSmall` (`gtd_step_*_name`) et son texte
+    colonne défilante (`ScrollState` partagé avec `Modifier.scrollIndicator`, posé avant `verticalScroll`, comme le menu des
+    types, `day/TypeField.kt`) : `gtd_intro`, puis pour chaque étape son nom en `titleSmall` (`gtd_step_*_name`) et son texte
     (`gtd_step_*_body`), puis `gtd_diff_title` et les trois écarts (`gtd_diff_order`, `gtd_diff_someday`,
     `gtd_diff_review`) ; bouton « Fermer » (`help_close`).
 - `NotesScreen` : premier élément de la liste, avant la capture : `GtdStepText(CAPTURE)` en `labelLarge` couleur primaire
@@ -104,6 +106,13 @@ l'écran Notes ne dit pas qu'il est l'étape « capturer », et la méthode n'es
 - **« Maintenant » sans lien** : la carte teintée ne reçoit ni bouton texte ni seconde couleur ; le dialogue reste à un
   geste par le « ? » ou par la ligne de « À traiter ».
 - **Libellés entiers, pas de format « Étape %d »** : « Étapes 2 et 3 » et l'ordre des mots varient selon la langue.
+- **Barre de défilement du dialogue** (demande du propriétaire, 2026-11-10) : sur un écran bas, rien n'indiquait que le texte
+  continuait. On réutilise `scrollIndicator`, déjà éprouvé sur le menu des types, par l'aide `verticalScrollWithThumb`
+  (`day/TypeField.kt`), qui remplace `verticalScroll(rememberScrollState())` dans **tous** les dialogues et feuilles qui
+  défilent (même demande, même jour) : fiche d'édition d'une tâche, d'un créneau, aide « ? », « Découvrir Kairos », visite
+  guidée, retours, accueil, import d'un calendrier, revue de la synchronisation, estimations changées, correction des
+  estimations, application d'un scénario, échanges d'équipe, suggestion de répartition, rapport de plantage. Hors de ce
+  périmètre : les écrans (qui ont déjà la barre du système ou du navigateur) et la barre de navigation.
 - **Pas dans l'espace Équipe** : le cycle y est celui du manager (backlog, assignation), pas GTD personnel.
 - **La vue Jour grandit d'environ 70 dp** (ligne de « À traiter », ligne de « Maintenant ») : coût accepté du choix « une
   ligne à chaque étape ». La ligne de « Maintenant » est la première à retirer si l'écran doit regagner de la place. Trois

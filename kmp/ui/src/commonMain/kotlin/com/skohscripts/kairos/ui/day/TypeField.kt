@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
@@ -85,3 +86,12 @@ internal fun Modifier.scrollIndicator(state: ScrollState, color: Color): Modifie
         cornerRadius = CornerRadius(width / 2),
     )
 }
+
+/**
+ * Défilement vertical avec sa barre ([scrollIndicator], couleur `outline`) : pour le contenu d'un dialogue ou d'une
+ * feuille, où rien ne disait qu'il y avait une suite sur un écran bas (issue #235, `methode-gtd.md`). [state] : celui du
+ * contenu ; sans argument, un état propre à la composition.
+ */
+@Composable
+internal fun Modifier.verticalScrollWithThumb(state: ScrollState = rememberScrollState()): Modifier =
+    scrollIndicator(state, MaterialTheme.colorScheme.outline).verticalScroll(state)

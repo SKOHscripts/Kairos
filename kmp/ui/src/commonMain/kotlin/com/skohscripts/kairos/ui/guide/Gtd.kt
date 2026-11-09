@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.app.heading
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.gtd_diff_order
 import com.skohscripts.kairos.ui.generated.resources.gtd_diff_review
@@ -104,8 +103,8 @@ fun GtdDialog(onDismiss: () -> Unit) {
         icon = { Icon(KairosIcons.Help, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         title = { Text(stringResource(Res.string.gtd_title), modifier = Modifier.heading()) },
         text = {
-            // Défile : sur un téléphone en paysage, tout reste lisible.
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Défile : sur un petit écran, tout reste lisible, et le pouce dit qu'il y a une suite (docs/spec/methode-gtd.md).
+            Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(Res.string.gtd_intro), style = MaterialTheme.typography.bodyMedium)
                 STEPS.forEachIndexed { index, (name, body) ->
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {

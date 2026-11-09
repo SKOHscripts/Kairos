@@ -1,14 +1,13 @@
 package com.skohscripts.kairos.ui.stats
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -60,7 +59,7 @@ internal fun EstimateCorrectionDialog(
                         Text(stringResource(Res.string.stats_correct_none))
                     }
                 }
-                Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
+                Column(Modifier.heightIn(max = 360.dp).verticalScrollWithThumb()) {
                     val none = stringResource(Res.string.stats_correct_no_estimate)
                     candidates.forEach { c ->
                         val checked = c.task.id !in unticked

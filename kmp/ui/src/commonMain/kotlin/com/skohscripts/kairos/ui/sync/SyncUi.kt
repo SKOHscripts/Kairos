@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.sync
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -8,8 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -285,7 +284,7 @@ fun SyncReviewDialog(services: AppServices, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.sync_review_title)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (review.isEmpty()) {
                     Text(stringResource(Res.string.sync_review_empty), style = MaterialTheme.typography.bodyMedium)
                 } else {

@@ -1,12 +1,11 @@
 package com.skohscripts.kairos.ui.guide
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import com.skohscripts.kairos.ui.generated.resources.gtd_open_hint
 import com.skohscripts.kairos.ui.generated.resources.gtd_open
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -64,7 +63,7 @@ fun HelpDialog(
         title = { Text(stringResource(Res.string.help_title, stringResource(topic.screen)), modifier = Modifier.heading()) },
         text = {
             // Défile : sur un écran bas (téléphone en paysage, fenêtre réduite), les entrées restent atteignables.
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(topic.body), style = MaterialTheme.typography.bodyMedium)
                 HelpEntry(KairosIcons.Home, Res.string.help_open_home, Res.string.help_open_home_hint, onOpenHome)
                 if (team) {

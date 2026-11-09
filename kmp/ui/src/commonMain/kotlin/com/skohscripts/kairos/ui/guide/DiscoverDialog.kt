@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.guide
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import com.skohscripts.kairos.ui.generated.resources.discover_settings_tour_hint
 import com.skohscripts.kairos.ui.generated.resources.discover_settings_tour
 import com.skohscripts.kairos.ui.generated.resources.discover_first_recurring_hint
@@ -9,8 +10,6 @@ import com.skohscripts.kairos.ui.generated.resources.discover_chapter_read
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -68,7 +67,7 @@ fun DiscoverDialog(
         title = { Text(stringResource(Res.string.discover_title), modifier = Modifier.heading()) },
         text = {
             // Défile : sur un écran bas, toutes les entrées restent atteignables.
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Entry(KairosIcons.Add, stringResource(Res.string.discover_first_task), stringResource(Res.string.discover_first_task_hint), onClick = onFirstTask)
                 onDemo?.let {
                     val hint = stringResource(if (demoBusy) Res.string.demo_hub_busy else Res.string.demo_hub_hint)
