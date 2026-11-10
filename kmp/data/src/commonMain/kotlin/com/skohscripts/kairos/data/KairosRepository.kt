@@ -1845,7 +1845,7 @@ class KairosRepository(
         val all = state.value
         val d = syncState.value
         val intact = if (d == null) examplePresets(all).second.size else d.marks.values.count { it.born == Stamp.ORIGIN }
-        return SyncScope.of(all).size > intact
+        return SyncScope.of(all, d).size > intact
     }
 
     /** Renomme cet appareil (« Android · 3f9c »), tel qu'il apparaît dans « À revoir » sur les autres. */

@@ -127,7 +127,7 @@ object SnapshotMerge {
 
     /** Les enregistrements de la portée d'un côté, par référence. Une marque manquante (base incomplète) est prise « legacy ». */
     fun lift(side: Synced): Map<RecordRef, Rec> {
-        val scoped = SyncScope.of(side.snapshot)
+        val scoped = SyncScope.of(side.snapshot, side.data)
         val out = HashMap<RecordRef, Rec>()
         for ((kind, records) in SyncReconcile.liftAll(scoped) { k, id -> side.data.uidOf(k, id) }) {
             for ((id, l) in records) {
@@ -249,7 +249,7 @@ object SnapshotMerge {
         fun taskId(uid: String): Long = ids[RecordKind.TASK]?.get(uid) ?: known[RecordKind.TASK]?.get(uid)
             ?: phantoms.getOrPut(uid) { --lowestPhantom }
         val idOf = SyncRecords.IdOf { kind, uid -> built[kind]?.get(uid) ?: if (kind == RecordKind.TASK) taskId(uid) else null }
-        val scoped = SyncScope.of(s)
+        val scoped = SyncScope.of(s, ours.data)
         val ourTasks = scoped.tasks.associateBy { it.id }
         val ourNotes = scoped.notes.associateBy { it.id }
         val out = Built()
@@ -270,7 +270,8 @@ object SnapshotMerge {
                 if (ok) built.getOrPut(kind) { HashMap() }[ref.uid] = id
             }
         }
-        val inScope = SyncScope.of(s)
+        // Même portée qu'à la levée : une session d'une tâche supprimée est reconstruite, jamais gardée en double (issue #193).
+        val inScope = scoped
         fun <T> keep(all: List<T>, scopedList: List<T>, rebuilt: List<T>): List<T> {
             val scopedSet = scopedList.toHashSet()
             return all.filter { it !in scopedSet } + rebuilt
@@ -290,10 +291,11 @@ object SnapshotMerge {
             settings = SyncRecords.buildSettings(sharedSettings, s.settings),
         )
         val uidMaps = built.mapValues { (_, m) -> m.entries.associate { (uid, id) -> id to uid } }.toMutableMap()
-        // Les identités fantômes encore référencées par la portée reconstruite (tâches, notes).
+        // Les identités fantômes encore référencées par la portée reconstruite (tâches, notes, sessions).
         val tasksBuilt = built[RecordKind.TASK].orEmpty()
         val byTaskId = (ids[RecordKind.TASK].orEmpty() + known[RecordKind.TASK].orEmpty() + phantoms).entries.associate { (uid, id) -> id to uid }
-        val referenced = (out.tasks.flatMap { listOfNotNull(it.parentId, it.seriesId) } + out.notes.mapNotNull { it.convertedTaskId }).toSet()
+        val referenced = (out.tasks.flatMap { listOfNotNull(it.parentId, it.seriesId) } + out.notes.mapNotNull { it.convertedTaskId } +
+            out.sessions.map { it.taskId }).toSet()
         val phantomIds = referenced.filter { id -> byTaskId[id]?.let { it !in tasksBuilt } == true }
         if (phantomIds.isNotEmpty()) uidMaps[RecordKind.TASK] = uidMaps[RecordKind.TASK].orEmpty() + phantomIds.associateWith { byTaskId.getValue(it) }
         val uids = uidMaps.filterValues { it.isNotEmpty() }

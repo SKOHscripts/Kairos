@@ -62,17 +62,24 @@ object SyncScope {
         "teamExcluded", "noteOut", "noteIn", "proposedTo",
     )
 
-    /** Les enregistrements de [snapshot] dans la portée, par genre. */
-    fun of(snapshot: KairosSnapshot): Scoped {
+    /**
+     * Les enregistrements de [snapshot] dans la portée, par genre. [data] (l'état de synchronisation de cette base) fait entrer
+     * les sessions d'une tâche **supprimée** dont l'identité est gardée (fantôme, issue #193) : sans lui, une session ne suit
+     * que sa tâche. Une session d'une tâche qui existe hors de la portée (équipe, reçue) reste toujours dehors.
+     */
+    fun of(snapshot: KairosSnapshot, data: SyncData? = null): Scoped {
         val tasks = snapshot.tasks.filter { it.space == TaskSpace.PERSONAL && it.origin == null }
         val taskIds = tasks.mapTo(HashSet()) { it.id }
+        val phantoms = data?.uids?.get(RecordKind.TASK)?.keys.orEmpty().let { known ->
+            if (known.isEmpty()) emptySet() else snapshot.tasks.mapTo(HashSet()) { it.id }.let { present -> known.filterTo(HashSet()) { it !in present } }
+        }
         val calendarIds = snapshot.calendarSources.mapTo(HashSet()) { it.id }
         return Scoped(
             calendars = snapshot.calendarSources,
             tasks = tasks,
             blocks = snapshot.timeBlocks.filter { b -> b.source.let { it == null || (it is BlockSource.Imported && it.calendarId in calendarIds) } },
             notes = snapshot.notes,
-            sessions = snapshot.workSessions.filter { it.taskId in taskIds },
+            sessions = snapshot.workSessions.filter { it.taskId in taskIds || it.taskId in phantoms },
             exceptions = snapshot.blockExceptions,
             dependencies = snapshot.dependencies.filter { it.taskId in taskIds && it.blockerId in taskIds },
             dayMarks = snapshot.dayMarks.filter { m -> (m.source as? BlockSource.Imported)?.calendarId in calendarIds },

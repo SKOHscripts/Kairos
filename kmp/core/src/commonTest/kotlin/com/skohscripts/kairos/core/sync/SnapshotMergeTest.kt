@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.core.sync
 
+import com.skohscripts.kairos.core.engine.TimeTracking
 import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskDependency
@@ -210,6 +211,51 @@ class SnapshotMergeTest {
         a.pull(b)
         assertEquals(at(500), a.task(uid)!!.updatedAt)
         assertEquals(at(0), a.task(uid)!!.createdAt)
+    }
+
+    @Test
+    fun deletedTaskKeepsSessionsEverywhere() {
+        // Issue #193 : le temps passé sur une tâche supprimée reste compté, et le même, sur tous les appareils.
+        val (a, b) = pair()
+        a.write { s ->
+            s.copy(
+                tasks = s.tasks + task(2, "Chrono", 1),
+                workSessions = listOf(WorkSession(1, 2, at(100), at(130), at(100)), WorkSession(2, 2, at(200), at(245), at(200))),
+            )
+        }
+        b.pull(a)
+        a.pull(b)
+        val chrono = a.uidOf(2)
+        fun spent(d: Dev) = TimeTracking.spentMinutesByTask(d.snapshot.workSessions, at(1_000)).values.sum()
+        val before = spent(a)
+        assertEquals(before, spent(b))
+
+        a.write { s -> s.copy(tasks = s.tasks.filter { it.title != "Chrono" }) }
+        assertEquals(2, a.snapshot.workSessions.size, "l'appareil qui supprime garde les sessions")
+        assertEquals(chrono, a.data.uidOf(RecordKind.TASK, 2), "la tâche supprimée garde son identité (fantôme)")
+        val out = b.pull(a)
+        assertNull(b.task(chrono))
+        assertEquals(null, out.changes.removed[RecordKind.SESSION], "les sessions ne sont pas retirées ailleurs")
+        assertEquals(2, b.snapshot.workSessions.size)
+        assertEquals(1, b.snapshot.workSessions.map { it.taskId }.toSet().size, "toujours sur la même tâche")
+        assertEquals(before, spent(b))
+        a.pull(b)
+        assertEquals(Canonical.of(a.snapshot, a.data), Canonical.of(b.snapshot, b.data))
+
+        // Un troisième appareil qui n'a jamais connu la tâche reçoit les sessions, sur une identité fantôme.
+        val c = Dev("cccccccccccc")
+        c.pull(b)
+        assertEquals(before, spent(c))
+        assertTrue(c.snapshot.workSessions.all { s -> c.snapshot.tasks.none { it.id == s.taskId } })
+        b.pull(c)
+        assertEquals(Canonical.of(b.snapshot, b.data), Canonical.of(c.snapshot, c.data))
+
+        // Une tâche d'équipe supprimée n'a jamais eu d'identité partagée : ses sessions restent propres à l'appareil.
+        a.write { s -> s.copy(tasks = s.tasks + task(50, "Équipe", 9, { it.copy(space = TaskSpace.TEAM, teamUid = "t") }), workSessions = s.workSessions + WorkSession(9, 50, at(300), at(360), at(300))) }
+        a.write { s -> s.copy(tasks = s.tasks.filter { it.id != 50L }) }
+        b.pull(a)
+        assertTrue(a.snapshot.workSessions.any { it.taskId == 50L })
+        assertEquals(2, b.snapshot.workSessions.size)
     }
 
     @Test
