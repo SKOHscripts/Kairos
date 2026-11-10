@@ -249,6 +249,7 @@
     <string name="note_pushed">с %1$s, после «%2$s»</string>
     <string name="note_pushed_pinned">с %1$s, после «%2$s» (закреплена)</string>
     <string name="note_dip">послеобеденный спад (~%1$d ч): предпочтительна легкая задача</string>
+    <string name="note_oversized">слишком длинная, чтобы сделать за раз: главное — начать</string>
     <string name="note_conflict">пересекается с «%1$s»</string>
     <string name="tag_scheduled">запланирована на %1$s</string>
     <string name="tag_stale">висит: %1$d дн.</string>
