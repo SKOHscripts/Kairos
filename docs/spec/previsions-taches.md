@@ -44,8 +44,9 @@ Kairos sait estimer une **durée** (`estimateur-modele.md`) et, pour une équipe
    « Réaliste : 12 h à 22 h (tes 8 dernières semaines) · 27 h à échéance ou programmées cette semaine ». Même seuil de
    4 semaines chronométrées.
 6. **Restant quand ça dérape.** Quand le temps passé sur une tâche dépasse sa durée attendue, Kairos dit ce qui reste
-   d'après les tâches proches qui ont duré **au moins aussi longtemps** : « Tes tâches proches qui ont dépassé 45 min ont
-   pris 70 min (entre 55 et 120) ». Rien n'est écrit dans la tâche.
+   d'après les tâches comparables qui ont duré **plus longtemps** que le temps déjà passé, dans la carte « En ce
+   moment » : « Tes 3 tâches comparables qui ont duré plus de 50 min ont pris 1 h 20 au total (entre 1 h 10 et 2 h). »
+   Moins de 3 tâches comparables plus longues : rien n'est dit. Rien n'est écrit dans la tâche.
 7. **Ce qui finit par se faire.** Pour une tâche qui traîne : « Parmi tes tâches de même priorité ouvertes depuis aussi
    longtemps, 1 sur 5 a fini par être faite ».
 8. **Honnêteté** (règle commune) : chaque sortie porte son effectif et sa source en une phrase ; sous son minimum de
@@ -166,7 +167,21 @@ Fichiers : `core/forecast/SoloForecast.kt` (pur), `ui/day/DayScreen.kt`, `TaskRo
   urgente ne rapproche jamais une autre fin ; moins de 4 semaines actives ou file vide : `null` ; des tâches et sessions
   d'équipe ne changent rien.
 
-### Étape D : restant conditionnel (non implémentée)
+### Étape D : restant conditionnel (livrée le 2026-11-11)
+
+Fichiers : `core/engine/model/Remaining.kt` (pur), `DurationEstimator.history`, `ui/day/NowCard.kt` (`RunningCard`),
+`DayScreen.kt`. Tests : `RemainingTest` (`core`), `SoloForecastUiTest.aTaskThatOverrunsSaysWhatComparableTasksTook`.
+
+- `Remaining.of(tâche, passé, attendu, historique, réglages)` : `null` si les durées apprises sont coupées, si la tâche
+  est reçue d'un manager, ou tant que `passé < attendu`. Sinon, dans l'ordre de la chaîne : les occurrences de la série,
+  les tâches de même titre, puis (modèle actif, corpus ≥ `MIN_CORPUS`) les tâches de ressemblance ≥ `SIMILARITY_MIN`,
+  les `NEIGHBOURS_MAX` = 5 plus proches **parmi celles qui ont duré plus que le temps passé**. Le premier niveau qui
+  garde au moins `MIN_SURVIVORS` = 3 tâches plus longues (après retrait des aberrants au-delà de 3 × leur médiane)
+  répond : `Outlook(spentMinutes, minutes, low, high, samples, source)` = médiane basse, minimum et maximum de leurs
+  durées totales, arrondis à 5 min, toujours au-dessus du temps passé. Même espace, jamais la tâche elle-même.
+- `RunningCard` : sous « estimé : … », dès que le minuteur vivant atteint la durée attendue (saisie, sinon apprise
+  fiable), la phrase `now_running_remaining` ; recalculée à chaque minute du minuteur (l'ensemble des tâches plus
+  longues rétrécit à mesure que le temps passe, puis la phrase disparaît).
 
 ### Étape E : ce qui finit par se faire (non implémentée)
 
@@ -207,8 +222,12 @@ Fichiers : `core/forecast/SoloForecast.kt` (pur), `ui/day/DayScreen.kt`, `TaskRo
   (l'urgence qui monte à l'approche d'une échéance n'est pas rejouée).
 - **Dans « Pourquoi ? » seulement, pas dans la fiche** : la fiche d'édition n'a pas la file sous la main ; à rouvrir
   avec « et si j'accepte ? ».
+- **Restant = durée totale des comparables plus longues, pas « estimé − passé »** (étape D) : c'est la médiane d'une
+  durée sachant qu'elle dépasse le temps passé, lue dans l'historique, sans loi. Écarté : un rapport global « quand tu
+  dépasses, tu finis à × 1,4 » en repli (il demanderait l'estimation des tâches faites, que les échantillons ne
+  portent pas ; à rouvrir si la phrase manque trop souvent).
 - **P50 et P85 seulement, en « fois sur »** : pas de P95 ni de pourcentage à l'unité en solo.
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 
-- `temps-reel-chrono.md`, `statistiques.md`, `FeatureCatalog`, README (FR, EN).
+- `statistiques.md`, `FeatureCatalog`, README (FR, EN).

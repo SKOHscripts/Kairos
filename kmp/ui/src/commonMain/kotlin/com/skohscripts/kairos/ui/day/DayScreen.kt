@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.ui.guide.GtdStepButton
 import com.skohscripts.kairos.ui.guide.GtdStep
 import com.skohscripts.kairos.ui.sync.SyncReviewBanner
@@ -226,6 +227,8 @@ fun DayScreen(
     // Fin probable des tâches perso : graine = le jour (stable dans la journée, refaisable) ; calculée à la première ouverture
     // d'un « Pourquoi ? », sur les données enregistrées (sans les calendriers du téléphone, qu'elle ne lit pas).
     val forecast = remember(stored, today) { lazy { SoloForecast.run(stored, today, services.clock.now(), timeZone, seed = today.toEpochDays().toLong()) } }
+    // Occurrences passées : ce que lit le restant d'une tâche qui dérape (carte « En ce moment »).
+    val history = remember(stored) { DurationEstimator.history(stored, services.clock.now(), timeZone) }
     val notifyState by services.notifier.state.collectAsState()
     val notifyHints by services.notifier.hints.collectAsState()
     val scope = rememberCoroutineScope()
@@ -589,7 +592,7 @@ fun DayScreen(
                     rows("backlog", view.backlog) { TaskRow(it, ctx) }
                 }
                 if (!twoColumns) {
-                    block("running") { RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } }) }
+                    block("running") { RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } }, history = history, settings = snapshot.settings) }
                     block("timeline") { TimelineCard(view, language) }
                 }
             }
@@ -598,7 +601,7 @@ fun DayScreen(
                     Modifier.width(320.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = KairosSpacing.l),
                     verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
                 ) {
-                    RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } })
+                    RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } }, history = history, settings = snapshot.settings)
                     TimelineCard(view, language)
                 }
             }

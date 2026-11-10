@@ -148,6 +148,9 @@ interface DurationEstimator {
             return first.mapValues { it.value.toLocalDateTime(timeZone) }
         }
 
+        /** Les occurrences passées du [snapshot] au temps [now] : ce que lit `Remaining.of` (docs/spec/previsions-taches.md § Étape D). */
+        fun history(snapshot: KairosSnapshot, now: Instant, timeZone: TimeZone? = null): List<Sample> = past(snapshot, now, timeZone)
+
         private fun past(snapshot: KairosSnapshot, now: Instant, timeZone: TimeZone?): List<Sample> = samples(
             snapshot.tasks,
             TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks),

@@ -391,6 +391,9 @@ est en HTTPS), état relu à chaque notification, autorisation à l'opt-in ;
 
 ### Décisions et pièges tracés
 
+- **Restant quand la tâche dérape** (#232) : la carte « En ce moment » dit ce qu'ont pris au total les tâches
+  comparables qui ont duré plus longtemps que le temps déjà passé (`Remaining`, `previsions-taches.md` § Étape D).
+
 - **Sessions qui se chevauchent : l'union par tâche** (#195, 2026-11-10, choix du propriétaire). Additionner deux
   sessions qui se chevauchent comptait deux fois le temps commun, et ce surplus nourrissait les statistiques, la
   calibration et les durées apprises. Retenu : le calcul lit les sessions par `TimeTracking.withoutOverlaps`, qui

@@ -112,6 +112,26 @@ class SoloForecastUiTest {
     }
 
     @Test
+    fun aTaskThatOverrunsSaysWhatComparableTasksTook() = runComposeUiTest {
+        // Même titre : 30, 70, 80 et 120 min. Estimée 45 min, chronométrée depuis 50 min : restent 70, 80 et 120.
+        val done = listOf(30, 70, 80, 120).mapIndexed { i, m -> Task(10L + i, "Weekly report", status = TaskStatus.DONE, manualTimeSpentMinutes = m, createdAt = now, updatedAt = now) }
+        val running = Task(1, "Weekly report", priority = 1, fibonacciPoints = 3, taskType = "Writing", estimatedMinutes = 45, createdAt = now, updatedAt = now)
+        val started = now - 50.minutes
+        val repository = runBlocking {
+            KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock).also {
+                it.replaceAll(KairosSnapshot(tasks = done + running, workSessions = listOf(WorkSession(1, 1, started, null, started)), settings = Settings(taskTypes = "Writing,Admin")))
+            }
+        }
+        val files = object : FileService {
+            override suspend fun saveText(suggestedName: String, text: String) = false
+            override suspend fun openText(): String? = null
+        }
+        val services = AppServices(repository, files, { _, _ -> }, clock = clock)
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitText("Your 3 comparable tasks that ran longer than 50 min took 1 h 20", substring = true)
+    }
+
+    @Test
     fun theWeekSaysWhatItCanReallyHold() = runComposeUiTest {
         val services = services()
         setContent { KairosApp(Platform.DESKTOP, Destination.WEEK, TeamDestination.BOARD) { services } }

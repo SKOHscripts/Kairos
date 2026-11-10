@@ -1947,4 +1947,5 @@
     <string name="why_finish_deadline">Deadline met %1$d times in 10.</string>
     <string name="why_finish_source">From your last 8 weeks: %1$s tracked per day worked (%2$d draws).</string>
     <string name="week_realistic">Realistic: %1$s to %2$s (your last 8 weeks) · %3$s due or scheduled this week</string>
+    <string name="now_running_remaining">Your %5$d comparable tasks that ran longer than %1$s took %2$s in all (between %3$s and %4$s).</string>
 </resources>

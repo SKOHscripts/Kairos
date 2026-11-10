@@ -1946,4 +1946,5 @@
     <string name="why_finish_deadline">Plazo cumplido %1$d de cada 10 veces.</string>
     <string name="why_finish_source">Según tus últimas 8 semanas: %1$s cronometrados por día trabajado (%2$d simulaciones).</string>
     <string name="week_realistic">Realista: de %1$s a %2$s (tus últimas 8 semanas) · %3$s con plazo o programadas esta semana</string>
+    <string name="now_running_remaining">Tus %5$d tareas comparables que duraron más de %1$s llevaron %2$s en total (entre %3$s y %4$s).</string>
 </resources>

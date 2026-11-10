@@ -1946,4 +1946,5 @@
     <string name="why_finish_deadline">Frist in %1$d von 10 Fällen gehalten.</string>
     <string name="why_finish_source">Nach deinen letzten 8 Wochen: %1$s erfasst je Arbeitstag (%2$d Ziehungen).</string>
     <string name="week_realistic">Realistisch: %1$s bis %2$s (deine letzten 8 Wochen) · %3$s diese Woche fällig oder geplant</string>
+    <string name="now_running_remaining">Deine %5$d vergleichbaren Aufgaben, die länger als %1$s dauerten, brauchten insgesamt %2$s (zwischen %3$s und %4$s).</string>
 </resources>
