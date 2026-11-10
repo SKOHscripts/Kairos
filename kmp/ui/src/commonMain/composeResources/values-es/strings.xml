@@ -1947,4 +1947,8 @@
     <string name="why_finish_source">Según tus últimas 8 semanas: %1$s cronometrados por día trabajado (%2$d simulaciones).</string>
     <string name="week_realistic">Realista: de %1$s a %2$s (tus últimas 8 semanas) · %3$s con plazo o programadas esta semana</string>
     <string name="now_running_remaining">Tus %5$d tareas comparables que duraron más de %1$s llevaron %2$s en total (entre %3$s y %4$s).</string>
+    <string name="why_survival_same">Se alarga: de tus %1$d tareas de la misma prioridad aún abiertas tras %2$d días, %3$d de cada 10 se hicieron en los 3 meses siguientes.</string>
+    <string name="why_survival_all">Se alarga: de tus %1$d tareas aún abiertas tras %2$d días, %3$d de cada 10 se hicieron en los 3 meses siguientes.</string>
+    <string name="card_task_forecast_title">Fin probable de una tarea</string>
+    <string name="card_task_forecast_body">«¿Cuándo estará hecha?» Kairos repite tu cola de tareas con el tiempo que cronometras de verdad, días sin trabajo incluidos, y responde con un intervalo en «¿Por qué en este lugar?»: nunca una fecha sola. La vista Semana dice lo que una semana puede contener de verdad, el cronómetro lo que llevaron las tareas comparables cuando la tuya se alarga, y las previsiones de equipo dan el fin de cada tarea. Los intervalos se comprueban con tus últimas tareas.</string>
 </resources>

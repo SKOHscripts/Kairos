@@ -371,6 +371,19 @@ son estimation vient des seules tâches d’équipe terminées.
   de revoir les estimations saisies qu’il conteste. Tout se calcule sur
   l’appareil, à partir de ton seul historique
   ([détails](#machine-learning-sur-lappareil-pour-la-vraie-durée-de-tes-tâches)).
+- **Fin probable d’une tâche** : « quand sera-t-elle finie ? » Kairos rejoue
+  ta file de tâches avec le temps que tu chronomètres vraiment sur tes
+  8 dernières semaines, jours sans travail compris, et des durées tirées dans
+  leurs fourchettes ; « Pourquoi à cette place ? » donne alors une fourchette
+  (« entre mar. 17/11 et ven. 20/11, si rien de plus urgent n’arrive »), jamais
+  une date seule, et combien de fois l’échéance est tenue. La vue Semaine dit
+  ce qu’une semaine peut réellement contenir (« Réaliste : 12 h à 22 h »), le
+  chrono ce qu’ont pris les tâches comparables quand la tienne dérape, une
+  tâche qui traîne combien de ses semblables ont fini par être faites, et les
+  prévisions d’équipe donnent à chaque tâche sa fourchette de fin et sa marge.
+  Les fourchettes sont vérifiées sur tes dernières tâches faites et ajustées
+  pour tenir 8 fois sur 10. Rien n’est affiché sans assez d’historique
+  chronométré, et rien n’est jamais écrit dans une tâche.
 - **Jours ouvrés et fériés** : calendrier français intégré, dates
   supplémentaires dans les Réglages.
 
@@ -689,6 +702,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Cloches du pomodoro | 4.2.0 | Toutes |
 | Suivre | Durées apprises | 3.4.0 | Toutes |
 | Suivre | Estimation par machine learning | 4.0.0 | Toutes |
+| Suivre | Fin probable d’une tâche | 4.2.0 | Toutes |
 | Suivre | Quand tu travailles chaque type | 3.5.0 | Toutes |
 | Suivre | Tes heures les plus efficaces | 3.9.0 | Toutes |
 | Suivre | Ta journée sur l’écran d’accueil | 3.12.0 | Android |

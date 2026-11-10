@@ -7,6 +7,7 @@ import com.skohscripts.kairos.ui.sync.SyncReviewBanner
 import com.skohscripts.kairos.ui.sync.SyncReviewDialog
 import com.skohscripts.kairos.data.EditBase
 import com.skohscripts.kairos.core.forecast.SoloForecast
+import com.skohscripts.kairos.core.forecast.Survival
 import com.skohscripts.kairos.core.engine.model.EstimateChanges
 import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.guide.demo.LocalDemoTour
@@ -227,6 +228,7 @@ fun DayScreen(
     // Fin probable des tâches perso : graine = le jour (stable dans la journée, refaisable) ; calculée à la première ouverture
     // d'un « Pourquoi ? », sur les données enregistrées (sans les calendriers du téléphone, qu'elle ne lit pas).
     val forecast = remember(stored, today) { lazy { SoloForecast.run(stored, today, services.clock.now(), timeZone, seed = today.toEpochDays().toLong()) } }
+    val survival = remember(stored, today) { lazy { Survival.prepare(stored.tasks, stored.workSessions, services.clock.now(), timeZone) } }
     // Occurrences passées : ce que lit le restant d'une tâche qui dérape (carte « En ce moment »).
     val history = remember(stored) { DurationEstimator.history(stored, services.clock.now(), timeZone) }
     val notifyState by services.notifier.state.collectAsState()
@@ -389,6 +391,7 @@ fun DayScreen(
         val mainWidth = if (twoColumns) minOf(maxWidth - 340.dp, 840.dp) else minOf(maxWidth, 840.dp)
         val ctx = RowContext(
             forecast = forecast,
+            survival = survival,
             view = view,
             language = language,
             compact = mainWidth < COMPACT_ROWS,

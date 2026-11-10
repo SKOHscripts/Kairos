@@ -1947,4 +1947,8 @@
     <string name="why_finish_source">Dalle tue ultime 8 settimane: %1$s cronometrati per giorno lavorato (%2$d estrazioni).</string>
     <string name="week_realistic">Realistico: da %1$s a %2$s (le tue ultime 8 settimane) · %3$s in scadenza o programmate questa settimana</string>
     <string name="now_running_remaining">Le tue %5$d attività comparabili durate più di %1$s hanno richiesto %2$s in tutto (tra %3$s e %4$s).</string>
+    <string name="why_survival_same">Si trascina: delle tue %1$d attività della stessa priorità ancora aperte dopo %2$d giorni, %3$d su 10 sono state fatte nei 3 mesi successivi.</string>
+    <string name="why_survival_all">Si trascina: delle tue %1$d attività ancora aperte dopo %2$d giorni, %3$d su 10 sono state fatte nei 3 mesi successivi.</string>
+    <string name="card_task_forecast_title">Fine probabile di un’attività</string>
+    <string name="card_task_forecast_body">«Quando sarà finita?» Kairos ripercorre la tua coda di attività con il tempo che cronometri davvero, giorni senza lavoro compresi, e risponde con un intervallo in «Perché in questa posizione?»: mai una data sola. La vista Settimana dice che cosa una settimana può davvero contenere, il cronometro quanto hanno richiesto le attività comparabili quando la tua sfora, e le previsioni di squadra danno la fine di ogni attività. Gli intervalli sono verificati sulle tue ultime attività.</string>
 </resources>

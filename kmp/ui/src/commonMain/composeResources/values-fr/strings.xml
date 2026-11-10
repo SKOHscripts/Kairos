@@ -1950,4 +1950,8 @@
     <string name="why_finish_source">D’après tes 8 dernières semaines : %1$s chronométrées par jour travaillé (%2$d tirages).</string>
     <string name="week_realistic">Réaliste : %1$s à %2$s (tes 8 dernières semaines) · %3$s à échéance ou programmées cette semaine</string>
     <string name="now_running_remaining">Tes %5$d tâches comparables qui ont duré plus de %1$s ont pris %2$s au total (entre %3$s et %4$s).</string>
+    <string name="why_survival_same">Elle traîne : parmi tes %1$d tâches de même priorité encore ouvertes après %2$d jours, %3$d sur 10 ont été faites dans les 3 mois suivants.</string>
+    <string name="why_survival_all">Elle traîne : parmi tes %1$d tâches encore ouvertes après %2$d jours, %3$d sur 10 ont été faites dans les 3 mois suivants.</string>
+    <string name="card_task_forecast_title">Fin probable d’une tâche</string>
+    <string name="card_task_forecast_body">« Quand sera-t-elle finie ? » Kairos rejoue ta file de tâches avec le temps que tu chronomètres vraiment, jours sans travail compris, et répond par une fourchette dans « Pourquoi à cette place ? » : jamais une date seule. La vue Semaine dit ce qu’une semaine peut réellement contenir, le chrono ce qu’ont pris les tâches comparables quand la tienne dérape, et les prévisions d’équipe donnent la fin de chaque tâche. Les fourchettes sont vérifiées sur tes dernières tâches.</string>
 </resources>

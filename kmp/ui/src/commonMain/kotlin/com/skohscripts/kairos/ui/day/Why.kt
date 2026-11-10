@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.engine.AffinitySource
 import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.core.forecast.SoloForecast
+import com.skohscripts.kairos.core.forecast.Survival
 import com.skohscripts.kairos.core.engine.Scheduling
 import com.skohscripts.kairos.core.model.LearningSettings
 import com.skohscripts.kairos.ui.generated.resources.why_learned
@@ -64,6 +65,8 @@ import com.skohscripts.kairos.ui.generated.resources.why_finish_range
 import com.skohscripts.kairos.ui.generated.resources.why_finish_single
 import com.skohscripts.kairos.ui.generated.resources.why_finish_source
 import com.skohscripts.kairos.ui.generated.resources.why_score
+import com.skohscripts.kairos.ui.generated.resources.why_survival_all
+import com.skohscripts.kairos.ui.generated.resources.why_survival_same
 import com.skohscripts.kairos.ui.generated.resources.why_team_task
 import com.skohscripts.kairos.ui.generated.resources.why_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
@@ -84,6 +87,8 @@ internal fun ScoreBadge(
     affinity: AffinitySource? = null,
     /** La file solo rejouée (docs/spec/previsions-taches.md § Étape C) ; calculée à la première ouverture d'un « Pourquoi ? ». */
     forecast: Lazy<SoloForecast.Result?>? = null,
+    /** Pour une tâche qui traîne : ce qui finit par se faire (docs/spec/previsions-taches.md § Étape E) ; `null` sinon. */
+    survival: Lazy<Survival.Model>? = null,
 ) {
     var open by remember { mutableStateOf(false) }
     val score = Dates.number(why.score, language)
@@ -158,6 +163,12 @@ internal fun ScoreBadge(
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
+                }
+                survival?.value?.of(task)?.let { s ->
+                    Text(
+                        stringResource(if (s.samePriority) Res.string.why_survival_same else Res.string.why_survival_all, s.atRisk, s.ageDays, s.donePerTen),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
                 // Meilleures heures (étape C2) : l'heure du type a fait préférer cette tâche sur ce créneau.
                 affinity?.let {

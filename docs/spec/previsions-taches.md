@@ -4,8 +4,7 @@ _Rôle : répondre « quand sera-t-elle finie ? » tâche par tâche, en solo co
 une durée sans fourchette ; et dire ce qui reste quand une tâche dérape. Fichiers couverts : voir chaque étape (§ 2).
 Skill associée : `.claude/skills/kairos-monte-carlo/`._
 
-État : **issue #232**, spécifiée le 2026-11-11, réalisée par étapes (une par commit) ; l'état de chaque étape est écrit
-dans son titre au § 2. Les étapes non livrées ne modifient aucune autre spec (« Impacts » en fin de document).
+État : **issue #232**, spécifiée et **implémentée le 2026-11-11**, par étapes A à E (une par commit).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -47,8 +46,9 @@ Kairos sait estimer une **durée** (`estimateur-modele.md`) et, pour une équipe
    d'après les tâches comparables qui ont duré **plus longtemps** que le temps déjà passé, dans la carte « En ce
    moment » : « Tes 3 tâches comparables qui ont duré plus de 50 min ont pris 1 h 20 au total (entre 1 h 10 et 2 h). »
    Moins de 3 tâches comparables plus longues : rien n'est dit. Rien n'est écrit dans la tâche.
-7. **Ce qui finit par se faire.** Pour une tâche qui traîne : « Parmi tes tâches de même priorité ouvertes depuis aussi
-   longtemps, 1 sur 5 a fini par être faite ».
+7. **Ce qui finit par se faire.** Pour une tâche qui traîne (pastille « traîne depuis »), « Pourquoi à cette place ? »
+   ajoute : « Elle traîne : parmi tes 21 tâches de même priorité encore ouvertes après 60 jours, 2 sur 10 ont été faites
+   dans les 3 mois suivants. » Moins de 10 tâches encore ouvertes à cet âge : rien n'est dit.
 8. **Honnêteté** (règle commune) : chaque sortie porte son effectif et sa source en une phrase ; sous son minimum de
    données elle **n'est pas affichée** (ou est marquée « peu fiable » là où une valeur existait déjà). Rien n'est jamais
    écrit dans une tâche ; aucune de ces sorties ne change le plan de la journée.
@@ -183,7 +183,28 @@ Fichiers : `core/engine/model/Remaining.kt` (pur), `DurationEstimator.history`, 
   fiable), la phrase `now_running_remaining` ; recalculée à chaque minute du minuteur (l'ensemble des tâches plus
   longues rétrécit à mesure que le temps passe, puis la phrase disparaît).
 
-### Étape E : ce qui finit par se faire (non implémentée)
+### Étape E : ce qui finit par se faire (livrée le 2026-11-11)
+
+Fichiers : `core/forecast/Survival.kt` (pur), `ui/day/DayScreen.kt`, `TaskRow.kt` (`RowContext.survival`), `Why.kt`.
+Tests : `SurvivalTest` (`core`), `SoloForecastUiTest.aLingeringTaskSaysHowManyLikeItWereEverDone`.
+
+- **Vies** (`Survival.prepare(tâches, sessions, maintenant, fuseau)`) : les tâches perso sans récurrence ni série. Âge en
+  jours depuis la création ; faite : jusqu'à la fin de sa **dernière session**, à défaut sa dernière modification ; à
+  faire : jusqu'à maintenant, « pas encore faite » ; archivée : jusqu'à sa dernière modification, « pas encore faite ».
+- **Estimateur de Kaplan-Meier** : part encore ouverte après `t` jours = produit, sur chaque âge ≤ `t` où des tâches
+  sont faites, de `1 − faites / encore observées`. `× ÷` seulement.
+- `Model.of(tâche)` : groupe = les vies de même priorité s'il y en a au moins `MIN_GROUP` = 30, sinon toutes
+  (`samePriority` faux) ; `null` sous `MIN_AT_RISK` = 10 vies au moins aussi longues que l'âge `a` de la tâche. Sinon
+  `Outlook(ageDays, donePerTen, atRisk, samePriority)` avec `donePerTen = ⌊10 × (1 − S(a + 90) / S(a))⌋`
+  (`WINDOW_DAYS` = 90).
+- **Interface** : `DayScreen` garde un `Lazy` du modèle ; `ScoreBadge` ne le reçoit que pour une tâche qui traîne
+  (`DayView.staleDays`) : `why_survival_same`, `why_survival_all`.
+
+### Catalogue et README
+
+Une carte `task_forecast` (« Fin probable d'une tâche », chapitre Suivre, `since` = 4.2.0, six langues), sa puce et sa
+ligne de tableau dans les deux README (`FeatureCatalogTest`). L'issue vise la 4.3.0, mais `noCardIsNewerThanTheApp`
+refuse plus d'une version mineure d'avance sur l'application (4.1.0) : à passer à 4.3.0 si le chantier sort là.
 
 ### Décisions et pièges tracés
 
@@ -226,8 +247,10 @@ Fichiers : `core/engine/model/Remaining.kt` (pur), `DurationEstimator.history`, 
   durée sachant qu'elle dépasse le temps passé, lue dans l'historique, sans loi. Écarté : un rapport global « quand tu
   dépasses, tu finis à × 1,4 » en repli (il demanderait l'estimation des tâches faites, que les échantillons ne
   portent pas ; à rouvrir si la phrase manque trop souvent).
+- **« Faites dans les 3 mois suivants » plutôt que « jamais faite »** (étape E) : « jamais » demanderait la valeur de
+  la courbe à l'infini, que personne n'observe ; une fenêtre de 90 jours se mesure.
+- **Biais connu : les tâches supprimées** ne laissent aucune trace, donc les abandons par suppression manquent et la
+  part « faite » est surestimée. La phrase dit « parmi tes tâches », pas « tes chances ».
+- **Fin d'une tâche faite = sa dernière session** quand elle existe : `updatedAt` bouge à chaque retouche
+  (`SurvivalTest.theLastSessionDatesTheEndRatherThanALaterEdit`). Les statistiques gardent leur règle (`statistiques.md`).
 - **P50 et P85 seulement, en « fois sur »** : pas de P95 ni de pourcentage à l'unité en solo.
-
-### Impacts sur les specs existantes (à reporter à l'implémentation)
-
-- `statistiques.md`, `FeatureCatalog`, README (FR, EN).

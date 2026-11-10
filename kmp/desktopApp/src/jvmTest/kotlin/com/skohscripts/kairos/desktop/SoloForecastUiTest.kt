@@ -44,6 +44,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Instant
 import com.skohscripts.kairos.core.model.WorkSession
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 
 /**
@@ -129,6 +130,30 @@ class SoloForecastUiTest {
         val services = AppServices(repository, files, { _, _ -> }, clock = clock)
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitText("Your 3 comparable tasks that ran longer than 50 min took 1 h 20", substring = true)
+    }
+
+    @Test
+    fun aLingeringTaskSaysHowManyLikeItWereEverDone() = runComposeUiTest {
+        // 20 tâches faites en 5 jours, 20 ouvertes depuis 200 jours (qualifiées et programmées plus tard : hors de la journée affichée), et une
+        // tâche ouverte depuis 60 jours, jamais retouchée.
+        val old = now - 400.days
+        val done = (0 until 20).map { Task(100L + it, "Done $it", status = TaskStatus.DONE, priority = 2, createdAt = old, updatedAt = old + 5.days) }
+        val waiting = (0 until 20).map { Task(200L + it, "Waiting $it", priority = 2, fibonacciPoints = 3, taskType = "Writing", scheduledDate = LocalDate(2027, 6, 1), createdAt = now - 200.days, updatedAt = now - 200.days) }
+        val target = Task(1, "Lingering", priority = 2, fibonacciPoints = 3, taskType = "Writing", createdAt = now - 60.days, updatedAt = now - 60.days)
+        val repository = runBlocking {
+            KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock).also {
+                it.replaceAll(KairosSnapshot(tasks = done + waiting + target, settings = Settings(taskTypes = "Writing,Admin")))
+            }
+        }
+        val files = object : FileService {
+            override suspend fun saveText(suggestedName: String, text: String) = false
+            override suspend fun openText(): String? = null
+        }
+        val services = AppServices(repository, files, { _, _ -> }, clock = clock)
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitText("Lingering", substring = true)
+        onAllNodesWithContentDescription("Why this position?", substring = true).onFirst().performClick()
+        waitText("of your 21 tasks of the same priority still open after 60 days, 0 in 10 were done", substring = true)
     }
 
     @Test
