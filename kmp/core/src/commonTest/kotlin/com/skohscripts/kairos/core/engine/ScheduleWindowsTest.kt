@@ -93,9 +93,10 @@ class ScheduleWindowsTest {
     fun aTaskTooLongForAWindowTakesTheNextOneThatFitsIt() {
         val s = settings(listOf(WorkWindow(9, 10), WorkWindow(14, 16)))
         val day = place(listOf(task(1, minutes = 90), task(2, minutes = 90)), s)
-        // La première commence à 9 h (elle déborde, comme avant) ; la seconde ne commence pas dans la plage de 9 h : elle passe à 14 h.
-        assertEquals(listOf(9, 14), day.scheduled.map { it.start.hour })
-        assertTrue(day.unscheduled.isEmpty())
+        // Issue #194 : 1 h 30 ne tient pas dans la plage de 9 h et n'est pas « trop longue » (la plage de 14 h la contient) :
+        // la première passe à 14 h ; la seconde ne tient plus avant 16 h, « Sans créneau ».
+        assertEquals(listOf(14), day.scheduled.map { it.start.hour })
+        assertEquals(listOf(2L), day.unscheduled.map { it.id })
     }
 
     @Test
