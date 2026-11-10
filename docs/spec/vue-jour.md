@@ -123,7 +123,7 @@ atténué.
 **Pourquoi à cette place ?** : valeur de la priorité, ce qu'ajoute la date
 la plus proche (« Échéance dépassée de 12 j », « Date programmée demain »,
 « Aucune échéance »), l'effort et sa provenance, le score ; une tâche en
-retard le dit en tête. Le score n'est affiché que pour une tâche qualifiée. Quand les meilleures heures ont fait préférer la tâche sur son créneau (3.6),
+retard le dit en tête. Le score n'est affiché que pour une tâche qualifiée. Depuis #232, la **fin probable** de la tâche et sa source y figurent aussi (`previsions-taches.md` § Étape C). Quand les meilleures heures ont fait préférer la tâche sur son créneau (3.6),
 une phrase de plus le dit (« Placée ici car tu travailles d'habitude les tâches « Dev » vers cette heure » ou « … car tu as réglé une heure préférée pour « Dev » ») et rappelle
 que ce n'est qu'une préférence : l'urgence et les tâches en retard passent d'abord (`ScoreBadge(affinity)`, lu sur `DayView.schedule`).
 

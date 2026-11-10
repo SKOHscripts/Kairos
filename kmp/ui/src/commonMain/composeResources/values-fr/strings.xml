@@ -1943,4 +1943,10 @@
     <string name="forecast_task_finish_out">Hors horizon</string>
     <string name="forecast_task_finish_margin">marge : %1$d j</string>
     <string name="forecast_task_finish_late">dépasse de %1$d j</string>
+    <string name="why_finish_range">Fin probable : entre %1$s et %2$s, si rien de plus urgent n’arrive.</string>
+    <string name="why_finish_single">Fin probable : %1$s au plus tard, 85 fois sur 100, si rien de plus urgent n’arrive.</string>
+    <string name="why_finish_out">Fin probable : pas avant un an, au rythme de tes dernières semaines.</string>
+    <string name="why_finish_deadline">Échéance tenue %1$d fois sur 10.</string>
+    <string name="why_finish_source">D’après tes 8 dernières semaines : %1$s chronométrées par jour travaillé (%2$d tirages).</string>
+    <string name="week_realistic">Réaliste : %1$s à %2$s (tes 8 dernières semaines) · %3$s à échéance ou programmées cette semaine</string>
 </resources>

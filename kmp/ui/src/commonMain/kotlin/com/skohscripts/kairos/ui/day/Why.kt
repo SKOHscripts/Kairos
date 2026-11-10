@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.engine.AffinitySource
 import com.skohscripts.kairos.core.engine.DurationEstimator
+import com.skohscripts.kairos.core.forecast.SoloForecast
 import com.skohscripts.kairos.core.engine.Scheduling
 import com.skohscripts.kairos.core.model.LearningSettings
 import com.skohscripts.kairos.ui.generated.resources.why_learned
@@ -57,6 +58,11 @@ import com.skohscripts.kairos.ui.generated.resources.why_scheduled_in
 import com.skohscripts.kairos.ui.generated.resources.why_scheduled_overdue
 import com.skohscripts.kairos.ui.generated.resources.why_scheduled_today
 import com.skohscripts.kairos.ui.generated.resources.why_scheduled_tomorrow
+import com.skohscripts.kairos.ui.generated.resources.why_finish_deadline
+import com.skohscripts.kairos.ui.generated.resources.why_finish_out
+import com.skohscripts.kairos.ui.generated.resources.why_finish_range
+import com.skohscripts.kairos.ui.generated.resources.why_finish_single
+import com.skohscripts.kairos.ui.generated.resources.why_finish_source
 import com.skohscripts.kairos.ui.generated.resources.why_score
 import com.skohscripts.kairos.ui.generated.resources.why_team_task
 import com.skohscripts.kairos.ui.generated.resources.why_title
@@ -76,6 +82,8 @@ internal fun ScoreBadge(
     learned: DurationEstimator.Estimate? = null,
     learning: LearningSettings = LearningSettings(),
     affinity: AffinitySource? = null,
+    /** La file solo rejouée (docs/spec/previsions-taches.md § Étape C) ; calculée à la première ouverture d'un « Pourquoi ? ». */
+    forecast: Lazy<SoloForecast.Result?>? = null,
 ) {
     var open by remember { mutableStateOf(false) }
     val score = Dates.number(why.score, language)
@@ -132,6 +140,24 @@ internal fun ScoreBadge(
                         stringResource(Res.string.why_learned_weak, it.samples, learning.minSamples)
                     }
                     Text(text, style = MaterialTheme.typography.bodySmall)
+                }
+                // Fin probable (docs/spec/previsions-taches.md § Étape C) : jamais une date seule, toujours sa source.
+                forecast?.value?.let { result ->
+                    result.outlooks[task.id]?.let { o ->
+                        val p50 = o.p50
+                        val p85 = o.p85
+                        val finish = when {
+                            p50 == null || p85 == null -> stringResource(Res.string.why_finish_out)
+                            p50 == p85 -> stringResource(Res.string.why_finish_single, Dates.dayShort(p85, language))
+                            else -> stringResource(Res.string.why_finish_range, Dates.dayShort(p50, language), Dates.dayShort(p85, language))
+                        }
+                        val deadline = o.onTimeDraws?.let { " " + stringResource(Res.string.why_finish_deadline, it * 10 / result.runs) }.orEmpty()
+                        Text(finish + deadline, style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            stringResource(Res.string.why_finish_source, duration(result.capacity.workedDayMinutes), result.runs),
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
                 // Meilleures heures (étape C2) : l'heure du type a fait préférer cette tâche sur ce créneau.
                 affinity?.let {

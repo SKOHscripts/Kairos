@@ -1940,4 +1940,10 @@
     <string name="forecast_task_finish_out">Fuera del horizonte</string>
     <string name="forecast_task_finish_margin">margen: %1$d d</string>
     <string name="forecast_task_finish_late">%1$d d de retraso</string>
+    <string name="why_finish_range">Fin probable: entre %1$s y %2$s, si no llega nada más urgente.</string>
+    <string name="why_finish_single">Fin probable: %1$s como tarde, 85 de cada 100 veces, si no llega nada más urgente.</string>
+    <string name="why_finish_out">Fin probable: no antes de un año, al ritmo de tus últimas semanas.</string>
+    <string name="why_finish_deadline">Plazo cumplido %1$d de cada 10 veces.</string>
+    <string name="why_finish_source">Según tus últimas 8 semanas: %1$s cronometrados por día trabajado (%2$d simulaciones).</string>
+    <string name="week_realistic">Realista: de %1$s a %2$s (tus últimas 8 semanas) · %3$s con plazo o programadas esta semana</string>
 </resources>

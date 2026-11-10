@@ -1940,4 +1940,10 @@
     <string name="forecast_task_finish_out">Oltre l’orizzonte</string>
     <string name="forecast_task_finish_margin">margine: %1$d g</string>
     <string name="forecast_task_finish_late">%1$d g di ritardo</string>
+    <string name="why_finish_range">Fine probabile: tra %1$s e %2$s, se non arriva nulla di più urgente.</string>
+    <string name="why_finish_single">Fine probabile: entro %1$s, 85 volte su 100, se non arriva nulla di più urgente.</string>
+    <string name="why_finish_out">Fine probabile: non prima di un anno, al ritmo delle tue ultime settimane.</string>
+    <string name="why_finish_deadline">Scadenza rispettata %1$d volte su 10.</string>
+    <string name="why_finish_source">Dalle tue ultime 8 settimane: %1$s cronometrati per giorno lavorato (%2$d estrazioni).</string>
+    <string name="week_realistic">Realistico: da %1$s a %2$s (le tue ultime 8 settimane) · %3$s in scadenza o programmate questa settimana</string>
 </resources>

@@ -1940,4 +1940,10 @@
     <string name="forecast_task_finish_out">Außerhalb des Horizonts</string>
     <string name="forecast_task_finish_margin">Puffer: %1$d T</string>
     <string name="forecast_task_finish_late">%1$d T zu spät</string>
+    <string name="why_finish_range">Wahrscheinliches Ende: zwischen %1$s und %2$s, falls nichts Dringenderes dazukommt.</string>
+    <string name="why_finish_single">Wahrscheinliches Ende: spätestens %1$s, in 85 von 100 Fällen, falls nichts Dringenderes dazukommt.</string>
+    <string name="why_finish_out">Wahrscheinliches Ende: nicht innerhalb eines Jahres, beim Tempo deiner letzten Wochen.</string>
+    <string name="why_finish_deadline">Frist in %1$d von 10 Fällen gehalten.</string>
+    <string name="why_finish_source">Nach deinen letzten 8 Wochen: %1$s erfasst je Arbeitstag (%2$d Ziehungen).</string>
+    <string name="week_realistic">Realistisch: %1$s bis %2$s (deine letzten 8 Wochen) · %3$s diese Woche fällig oder geplant</string>
 </resources>

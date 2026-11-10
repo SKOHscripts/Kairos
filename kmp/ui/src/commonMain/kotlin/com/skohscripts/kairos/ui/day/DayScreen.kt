@@ -5,6 +5,7 @@ import com.skohscripts.kairos.ui.guide.GtdStep
 import com.skohscripts.kairos.ui.sync.SyncReviewBanner
 import com.skohscripts.kairos.ui.sync.SyncReviewDialog
 import com.skohscripts.kairos.data.EditBase
+import com.skohscripts.kairos.core.forecast.SoloForecast
 import com.skohscripts.kairos.core.engine.model.EstimateChanges
 import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.guide.demo.LocalDemoTour
@@ -222,6 +223,9 @@ fun DayScreen(
     val day = selectedDay ?: today
     val estimates = remember(snapshot) { Estimates.of(snapshot.tasks, snapshot.workSessions, now) }
     val view = remember(snapshot, minute, filter, day) { DayView.build(snapshot, day, minute, timeZone, filter, instant = now) }
+    // Fin probable des tâches perso : graine = le jour (stable dans la journée, refaisable) ; calculée à la première ouverture
+    // d'un « Pourquoi ? », sur les données enregistrées (sans les calendriers du téléphone, qu'elle ne lit pas).
+    val forecast = remember(stored, today) { lazy { SoloForecast.run(stored, today, services.clock.now(), timeZone, seed = today.toEpochDays().toLong()) } }
     val notifyState by services.notifier.state.collectAsState()
     val notifyHints by services.notifier.hints.collectAsState()
     val scope = rememberCoroutineScope()
@@ -381,6 +385,7 @@ fun DayScreen(
         val twoColumns = maxWidth >= TWO_COLUMNS
         val mainWidth = if (twoColumns) minOf(maxWidth - 340.dp, 840.dp) else minOf(maxWidth, 840.dp)
         val ctx = RowContext(
+            forecast = forecast,
             view = view,
             language = language,
             compact = mainWidth < COMPACT_ROWS,

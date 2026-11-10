@@ -1941,4 +1941,10 @@
     <string name="forecast_task_finish_out">Beyond the horizon</string>
     <string name="forecast_task_finish_margin">margin: %1$d d</string>
     <string name="forecast_task_finish_late">%1$d d late</string>
+    <string name="why_finish_range">Likely finish: between %1$s and %2$s, if nothing more urgent comes up.</string>
+    <string name="why_finish_single">Likely finish: by %1$s, 85 times in 100, if nothing more urgent comes up.</string>
+    <string name="why_finish_out">Likely finish: not within a year, at the pace of your last weeks.</string>
+    <string name="why_finish_deadline">Deadline met %1$d times in 10.</string>
+    <string name="why_finish_source">From your last 8 weeks: %1$s tracked per day worked (%2$d draws).</string>
+    <string name="week_realistic">Realistic: %1$s to %2$s (your last 8 weeks) · %3$s due or scheduled this week</string>
 </resources>

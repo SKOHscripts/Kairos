@@ -35,11 +35,14 @@ Kairos sait estimer une **durée** (`estimateur-modele.md`) et, pour une équipe
    2 jours 85 fois sur 100 ».
 4. **Date de fin d'une tâche perso.** Sans espace Équipe : Kairos rejoue la file des tâches à faire, dans l'ordre où il
    les propose, avec le **temps réellement chronométré** des dernières semaines (jours sans travail compris) et des
-   durées tirées dans leurs fourchettes. « Pourquoi ? » et la fiche disent : « Fin probable : entre mar. 17 et ven. 20,
-   si rien de plus urgent n'arrive ». Jamais une date seule ; la phrase dit d'où elle vient (« d'après tes 8 dernières
-   semaines : 2 h 40 chronométrées par jour travaillé »).
-5. **Semaine réaliste.** La vue Semaine dit ce que la semaine peut réellement contenir : « Réaliste : 12 à 22 h
-   (tes 8 dernières semaines) · 27 h à échéance ou programmées cette semaine ».
+   durées tirées dans leurs fourchettes. « Pourquoi à cette place ? » dit : « Fin probable : entre mar. 17/11 et
+   ven. 20/11, si rien de plus urgent n'arrive. » puis, pour une tâche à échéance, « Échéance tenue 7 fois sur 10. »
+   Jamais une date seule ; la ligne suivante dit d'où elle vient (« D'après tes 8 dernières semaines : 2 h 40
+   chronométrées par jour travaillé (500 tirages). »). Avec moins de 4 semaines chronométrées sur les 8, rien n'est
+   affiché.
+5. **Semaine réaliste.** La vue Semaine dit ce que la semaine affichée (courante ou à venir) peut réellement contenir :
+   « Réaliste : 12 h à 22 h (tes 8 dernières semaines) · 27 h à échéance ou programmées cette semaine ». Même seuil de
+   4 semaines chronométrées.
 6. **Restant quand ça dérape.** Quand le temps passé sur une tâche dépasse sa durée attendue, Kairos dit ce qui reste
    d'après les tâches proches qui ont duré **au moins aussi longtemps** : « Tes tâches proches qui ont dépassé 45 min ont
    pris 70 min (entre 55 et 120) ». Rien n'est écrit dans la tâche.
@@ -122,7 +125,46 @@ Fichiers : `core/team/forecast/ForecastResult.kt` (`TaskFinish`, `taskFinish`, `
   si et seulement si au moins ⌈0,85 n⌉ tirages tiennent l'échéance ; sans aléa les deux dates coïncident ; même résultat
   en une ou quatre tranches, dans n'importe quel ordre (`TaskFinishTest`).
 
-### Étape C : file solo, semaine réaliste (non implémentée)
+### Étape C : file solo, semaine réaliste (livrée le 2026-11-11)
+
+Fichiers : `core/forecast/SoloForecast.kt` (pur), `ui/day/DayScreen.kt`, `TaskRow.kt` (`RowContext.forecast`), `Why.kt`,
+`ui/week/WeekScreen.kt`. Tests : `SoloForecastTest` (`core`, `commonTest`), `SoloForecastPerformanceTest` (`core`,
+`jvmTest`), `SoloForecastUiTest` (`desktopApp`).
+
+- **Capacité vécue** (`SoloForecast.capacity`) : minutes chronométrées (`TimeTracking.withoutOverlaps`) des sessions des
+  tâches **perso**, par jour, sur les `HISTORY_WEEKS` = 8 semaines complètes (lundi-dimanche) avant la semaine
+  courante : huit valeurs par jour de la semaine, zéros compris, et huit totaux hebdomadaires. `available` si au moins
+  `MIN_ACTIVE_WEEKS` = 4 semaines ont du temps ; sinon `run` rend `null` (rien n'est affiché).
+- **File** (`SoloForecast.queue`) : tâches perso à faire qui ne sont pas des mères, triées par la clé de la vue Jour
+  (`Scheduling.sortKey`, urgence héritée par `Dependencies.derivedUrgency`), puis identifiant ; tri topologique stable
+  pour qu'une tâche bloquée suive ses bloqueuses (dépendances sans cycle, `Dependencies.acyclicEdges`).
+- **Durées** : `Scheduling.durationMinutes` (saisie, sinon apprise fiable, sinon défaut) moins le temps passé, plancher
+  10 %. Facteur par tirage : `EffortSpread.factor` dans l'intervalle de la tâche si elle en a un (étape A) ; sinon un
+  rapport réel ÷ estimé des tâches perso faites (`errorFactors` : estimation saisie et temps passé, les 50 plus
+  récentes, bornés [0,2 ; 5]), mêlé à la loi triangulaire (0,8 ; 1 ; 2) sous `MIN_FACTORS` = 8, comme
+  `ForecastData.errorFactor`.
+- **Tirage** (`SoloForecast.run(snapshot, jour, maintenant, fuseau, graine, tirages = 500, extra)`) : jour après jour
+  (garde-fou `HORIZON_DAYS` = 365, au-delà « hors horizon »), la capacité du jour est tirée parmi les huit valeurs du
+  même jour de la semaine (un jour férié à venir : parmi les dimanches ; aujourd'hui : moins le temps déjà chronométré
+  ce jour) et consommée par la première tâche ouverte, commençable (date programmée atteinte, ou son échéance si elle
+  tombe avant) et débloquée. Sous-générateurs `ForecastRandom.stream` par identité stable (tâche : `mix(id)`, domaine
+  erreur ; jour : numéro absolu du jour, domaine capacité) : tirages **communs** entre deux calculs de même graine.
+- **Résultat** : `Result(day, runs, seed, capacity, factorSamples, unestimated, outlooks)` ; `Outlook(p50, p85,
+  todayDraws, onTimeDraws)` par tâche (rang le plus proche ; date nulle = hors horizon ; `onTimeDraws` nul sans
+  échéance). `extra` ajoute des tâches hypothétiques (identifiants négatifs) à la file : la brique de « et si
+  j'accepte ? », sans interface à ce jour.
+- **Semaine** : `Capacity.weekMinutes(15)` et `(85)` (rang le plus proche sur huit semaines : la 2e et la 7e) ;
+  `SoloForecast.committedMinutes(snapshot, lundi, …)` : minutes restantes des tâches perso à faire, non mères, dont la
+  date programmée (à défaut l'échéance) tombe dans la semaine, comme la grille de la vue Semaine.
+- **Interface** : `DayScreen` garde un `Lazy` de la prévision par (données enregistrées, jour), de graine **le numéro du
+  jour** ; `ScoreBadge` le lit à l'ouverture de « Pourquoi à cette place ? » (`why_finish_range`, `_single`, `_out`,
+  `_deadline`, `_source`). `WeekScreen` : `week_realistic`, sous le temps réel de la semaine.
+- **Mesuré** : 200 tâches × 500 tirages, à froid, 0,14 s sur JVM (budget 1 s, `SoloForecastPerformanceTest`).
+- Critères (`SoloForecastTest`) : sans aléa les fins tombent sur les jours exacts ; le week-end et un jour férié ne
+  reçoivent rien ; tâche programmée et tâche bloquée attendent ; échéance : P85 ≤ échéance si et seulement si 85 % des
+  tirages la tiennent ; même graine, même résultat, ordre d'entrée sans effet, valeurs figées ; ajouter une tâche
+  urgente ne rapproche jamais une autre fin ; moins de 4 semaines actives ou file vide : `null` ; des tâches et sessions
+  d'équipe ne changent rien.
 
 ### Étape D : restant conditionnel (non implémentée)
 
@@ -150,9 +192,23 @@ Fichiers : `core/team/forecast/ForecastResult.kt` (`TaskFinish`, `taskFinish`, `
   tout le plan ; la marge (échéance − P85) est ce que la simulation mesure vraiment.
 - **Fins par tâche en double plutôt que dé-triées** : `ScenarioPropertyTest` s'appuie sur les fins triées par tirage
   (statistiques d'ordre) ; les garder et ajouter la ligne non triée ne change aucun résultat existant.
+- **Capacité tirée par jour de la semaine, dans l'historique** : week-ends, temps partiel et jours sans chrono sont
+  appris sans calendrier ni réglage, et s'expliquent en une phrase (« tes huit derniers mardis »). Écarté : la fenêtre
+  de travail des réglages (ce qu'on voudrait faire, pas ce qu'on fait).
+- **Graine = le numéro du jour, non affichée** (écart assumé à la règle « la graine s'affiche », skill
+  `kairos-monte-carlo`) : la phrase ne clignote pas d'une ouverture à l'autre et reste refaisable ; le nombre de tirages
+  est écrit. Une graine dans une infobulle de 300 dp n'aiderait personne.
+- **Calcul à la demande** (`Lazy`) : la vue Jour se recalcule chaque minute, la prévision seulement au premier
+  « Pourquoi ? » ouvert après un changement de données.
+- **Piège : les sessions des tâches d'équipe** ne comptent pas dans la capacité (la file ne contient que le perso ; les
+  compter rendrait la prévision optimiste).
+- **Raccourcis connus** : les occurrences futures des tâches récurrentes et les tâches d'équipe assignées à « moi »
+  ne sont pas dans la file (prévision optimiste pour qui en a beaucoup) ; l'ordre de la file est celui d'aujourd'hui
+  (l'urgence qui monte à l'approche d'une échéance n'est pas rejouée).
+- **Dans « Pourquoi ? » seulement, pas dans la fiche** : la fiche d'édition n'a pas la file sous la main ; à rouvrir
+  avec « et si j'accepte ? ».
 - **P50 et P85 seulement, en « fois sur »** : pas de P95 ni de pourcentage à l'unité en solo.
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 
-- `vue-semaine.md`, `vue-jour.md`, `temps-reel-chrono.md`, `reglages.md`, `i18n.md`, `architecture.md`,
-  `docs/spec/README.md` (index), `FeatureCatalog`, README (FR, EN).
+- `temps-reel-chrono.md`, `statistiques.md`, `FeatureCatalog`, README (FR, EN).

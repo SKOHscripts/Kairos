@@ -27,6 +27,8 @@ un autre jour.
   2026 ».
 - « Temps réel cette semaine : 3 h 10 (Dev 2 h · Réunion 1 h 10) » :
   sessions commencées dans la semaine, ventilées par type (types non vides).
+- « Réaliste : 12 h à 22 h (tes 8 dernières semaines) · 27 h à échéance ou programmées cette semaine » (#232,
+  `previsions-taches.md` § Étape C) : pour la semaine courante ou à venir, avec au moins 4 semaines chronométrées.
 - « Rechercher / filtrer » (mêmes facettes que la vue Jour) : réduit les
   listes des jours, jamais la grille.
 - « Backlog, sans date (N) », replié : les tâches à faire sans échéance ni
