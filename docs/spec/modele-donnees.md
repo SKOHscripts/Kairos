@@ -269,7 +269,8 @@ de SQLDelight.
   - Une seule occurrence (3.8.0) : `skipOccurrence`, `overrideOccurrence`, `restoreOccurrence`,
     `putOccurrenceException` (`recurrence.md` § Solution technique).
   - `deleteTask` : supprime la tâche et les dépendances où elle figure ; ses
-    sous-tâches et sessions restent (comportement propre de Kairos).
+    sous-tâches et sessions restent (comportement propre de Kairos), y compris
+    sur les autres appareils synchronisés (#193, `synchronisation.md`).
   - Notes : `createNote`, `editNote`, `convertNote`, `archiveNote`,
     `deleteNote` (`notes-capture.md`).
   - `updateSettings` : si `team` existe sans identité, en pose une (UUID

@@ -249,6 +249,7 @@
     <string name="note_pushed">desde las %1$s, después de «%2$s»</string>
     <string name="note_pushed_pinned">desde las %1$s, después de «%2$s» (fijada)</string>
     <string name="note_dip">bajón de la tarde (~%1$d h): se prefiere una tarea ligera</string>
+    <string name="note_oversized">demasiado larga para hacerla de una vez: lo importante es empezarla</string>
     <string name="note_conflict">se solapa con «%1$s»</string>
     <string name="tag_scheduled">programada %1$s</string>
     <string name="tag_stale">lleva %1$d d pendiente</string>

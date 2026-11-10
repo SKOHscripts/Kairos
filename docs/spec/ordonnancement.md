@@ -41,6 +41,16 @@ traiter ».
   heure de début réaliste.
 - Une réunion de 13 h à 14 h repousse une tâche à 14 h 05 (marge de 5 min),
   jamais avant, avec la note « à partir de 14h05, après « Réunion » ».
+- **La fin de la journée est une borne comme une autre** (#194) : une tâche
+  doit tenir **entière** avant la fin de sa plage, comme elle doit tenir avant
+  une réunion. À 17 h 45 dans une journée qui finit à 18 h, une tâche de 2 h
+  part « Sans créneau » (ou dans une plage suivante qui l'accueille), et une
+  plus courte peut prendre la place.
+- **Une grosse tâche n'est jamais reléguée parce qu'elle est grosse** (#194) :
+  une tâche plus longue que toute plage qui l'accueille (10 h dans une journée
+  de 9 h) est placée comme avant, au premier créneau libre, et déborde ; elle
+  porte la note « trop longue pour tenir d'un bloc : l'essentiel est de la
+  commencer » (même 5 min font avancer).
 - Une tâche épinglée à une heure y est posée exactement ; le reste s'organise
   autour. Un chevauchement avec un créneau est **signalé**, jamais corrigé.
   Une tâche épinglée dont l'heure est **passée** reste à cette heure et s'affiche
@@ -77,6 +87,11 @@ traiter ».
   et sur 300 graphes de dépendances et un jeu calendaire (fériés, Pâques de
   1950 à 2100, jours ouvrés, échéances récurrentes, créneaux récurrents).
 - Une tâche en retard passe toujours devant une tâche à l'heure.
+- (#194) Une tâche qui ne tient plus avant la fin de sa plage passe « Sans
+  créneau » ou à la plage suivante, et une plus courte prend la place ; une
+  tâche plus longue que toute plage qui l'accueille est placée et marquée
+  (`ScheduleWindowsTest.aTaskMustEndBeforeTheEndOfItsWindow`,
+  `ScheduleWindowsTest.aTaskLongerThanEveryWindowIsStillPlaced`, fichiers d'or).
 - À valeur égale, une tâche N fois plus grosse a un score N fois plus faible ;
   un cran de priorité multiplie la valeur par la base (4 par défaut).
 - Toute tâche à faire (hors mère à sous-tâches ouvertes) est dans
@@ -158,8 +173,13 @@ réglages, les tâches bloquées et les clés d'urgence effectives
    l'effort est majoré de `penalty × intensité × effort normalisé`). Si la
    tâche chevauche un obstacle, elle est repoussée après lui (+ marge) et
    note l'obstacle (`pushedAfter`, `BUSY`, `PINNED` ou `DEEPWORK`). Si elle commence
-   après la fin de journée : « sans créneau », et l'on continue (une plus
-   courte peut encore tenir). `dipApplied` si le creux a changé le choix ; `affinity` si l'affinité des meilleures heures l'a changé (voir § Meilleures
+   après la fin de la plage, ou (#194) si elle **finit** après elle alors
+   qu'elle n'est pas « trop longue », elle passe à une plage suivante qui
+   l'accueille, sinon « sans créneau », et l'on continue (une plus courte peut
+   encore tenir). « Trop longue » : durée strictement supérieure à la plus
+   longue des plages du jour qui accueillent son contexte (plages entières,
+   pas leur reste) ; elle est alors placée même si elle déborde, avec
+   `oversized` (la note de la vue Jour). `dipApplied` si le creux a changé le choix ; `affinity` si l'affinité des meilleures heures l'a changé (voir § Meilleures
    heures au créneau ; alors `dipApplied` reste faux).
 6. Charge : requis = durées des tâches à placer ; disponible = fenêtre
    restante moins l'union des créneaux occupés.
@@ -246,3 +266,24 @@ type, tous deux indexés par le nom du type en minuscules.
 - **Tâche en aval d'un cycle de dépendances bloquée** (2026-11-04) : 10
   scénarios sur 480 de `scheduling.json` ont changé (bloquées, urgence héritée,
   placement), voir `dependances.md` § Décisions.
+- **La fin de plage borne la tâche entière** (#194, 2026-11-10). Avant, seul
+  le **début** devait précéder la fin de journée (comportement hérité, figé
+  par les fichiers d'or) : une tâche de 2 h posée à 17 h 45 finissait à
+  19 h 45. Retenu : les bords de la plage se comportent comme ceux d'un
+  créneau occupé (demande du propriétaire : une borne, pas deux règles), sauf
+  pour une tâche plus longue que toute plage qui l'accueille, placée comme
+  avant avec la note « trop longue pour tenir d'un bloc » : une grosse tâche
+  ne doit pas être reléguée pour sa taille, l'essentiel est de la commencer.
+  Écartés : garder le débordement (option 1 de l'issue : la journée affichée
+  ment) ; exiger que toute tâche tienne (option 2 stricte : une tâche plus
+  longue que la journée ne serait jamais placée). « Trop longue » se mesure à
+  la plage **entière** et non à son reste : sinon toute tâche de fin de
+  journée serait « trop longue » et déborderait encore. Les fichiers d'or
+  ont été édités en conséquence (placement, sans créneau, frise) : 93
+  scénarios sur 480 changent, chacun avec une tâche qui passe « sans
+  créneau » ; la charge (requis, disponible) ne change pas, et aucun
+  scénario n'a de tâche plus longue que la journée (ce cas est couvert par
+  `ScheduleWindowsTest`). La JVM ne démarrant pas dans l'environnement de
+  développement de ce changement, les sorties ont été recalculées par un
+  portage Python jetable du placement, validé d'abord en reproduisant les
+  480 scénarios d'avant à l'identique.

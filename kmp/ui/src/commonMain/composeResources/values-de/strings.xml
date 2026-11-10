@@ -249,6 +249,7 @@
     <string name="note_pushed">ab %1$s, nach „%2$s“</string>
     <string name="note_pushed_pinned">ab %1$s, nach „%2$s“ (fixiert)</string>
     <string name="note_dip">Nachmittagstief (~%1$d Uhr): leichtere Aufgabe bevorzugt</string>
+    <string name="note_oversized">zu lang für einen Block: Hauptsache, du fängst an</string>
     <string name="note_conflict">überschneidet sich mit „%1$s“</string>
     <string name="tag_scheduled">geplant %1$s</string>
     <string name="tag_stale">liegt seit %1$d T. brach</string>

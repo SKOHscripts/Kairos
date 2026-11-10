@@ -101,7 +101,7 @@ object SyncReconcile {
      * marques restent celles du fichier, seules les empreintes de leurs valeurs sont posées.
      */
     fun rehash(snapshot: KairosSnapshot, data: SyncData): SyncData {
-        val lifted = liftAll(SyncScope.of(snapshot)) { k, id -> data.uidOf(k, id) }
+        val lifted = liftAll(SyncScope.of(snapshot, data)) { k, id -> data.uidOf(k, id) }
         val marks = HashMap(data.marks)
         for ((kind, records) in lifted) for ((id, l) in records) {
             val ref = RecordRef(kind, data.uidOf(kind, id) ?: continue)
@@ -122,9 +122,9 @@ object SyncReconcile {
      * d'une récurrente terminée dans la même écriture (`next:<uid>`).
      */
     fun reconcile(snapshot: KairosSnapshot, data: SyncData, previous: KairosSnapshot?, nowMillis: Long, newUid: () -> String): Result {
-        val scoped = SyncScope.of(snapshot)
+        val scoped = SyncScope.of(snapshot, data)
         val uids = assignUids(scoped, data, previous, newUid)
-        val prevScoped = previous?.let(SyncScope::of)
+        val prevScoped = previous?.let { SyncScope.of(it, data) }
         var stamp: Stamp? = null
         fun tick(): Stamp = stamp ?: Stamp(Hlc.tick(data.clock, nowMillis), data.device).also { stamp = it }
 
@@ -226,8 +226,8 @@ object SyncReconcile {
             val taken = HashSet<String>()
             for (id in ids) known[id]?.let { m[id] = it; taken += it }
             // Identités fantômes : une tâche supprimée que référence encore une référence molle de la portée (mère, série, note
-            // convertie) garde son uid, pour que cette référence se lise partout de la même façon (docs/spec/synchronisation.md
-            // § Identité, fantômes).
+            // convertie, tâche d'une session depuis l'issue #193) garde son uid, pour que cette référence se lise partout de la
+            // même façon (docs/spec/synchronisation.md § Identité, fantômes).
             if (kind == RecordKind.TASK) for (id in softTargets(scoped, data)) known[id]?.let { m[id] = it; taken += it }
             val fresh = ids.filter { it !in m }.sorted()
             if (kind == RecordKind.TASK) {
@@ -266,6 +266,8 @@ object SyncReconcile {
         fun add(id: Long?) { if (id != null && id !in present && id in known) out += id }
         for (t in scoped.tasks) { add(t.parentId); add(t.seriesId) }
         for (n in scoped.notes) add(n.convertedTaskId)
+        // Les sessions d'une tâche supprimée restent partout (issue #193) : leur tâche garde son identité tant qu'elles existent.
+        for (s in scoped.sessions) add(s.taskId)
         return out
     }
 

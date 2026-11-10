@@ -361,6 +361,14 @@ disparue y tombe) : `Profile(type, sessions, minutes, share, lift, peak, reliabl
 
 ### Décisions et pièges tracés
 
+- **Sessions qui se chevauchent comptées une fois** (#195, 2026-11-10, `temps-reel-chrono.md` § Décisions) : le temps
+  suivi, le temps par type, le focus (une session entièrement couverte par une autre de la même tâche n'en est pas
+  une), la calibration, le biais, les repères, les évolutions et les meilleures heures lisent les sessions par
+  `TimeTracking.withoutOverlaps`. Les fichiers d'or `stats.json` contenaient 49 chevauchements dans 23 cas ; 14 cas sur
+  200 changent (temps suivi, calibration, biais, par type, focus, repères, calibration par type). La JVM ne démarrant
+  pas dans l'environnement de développement de ce changement, les valeurs ont été recalculées par un portage Python
+  jetable de ces champs, validé d'abord en reproduisant les 200 cas d'avant à l'identique.
+
 - **Filtres : la carte de la vue Jour** (choix du propriétaire, issue #114) : les mêmes facettes partout, plutôt que deux
   menus propres aux Stats ; la priorité et les points viennent avec.
 - **La période ne touche pas la calibration** (choix du propriétaire) : elle porte sur tout l'historique depuis le

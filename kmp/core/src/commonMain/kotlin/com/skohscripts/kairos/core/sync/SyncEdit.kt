@@ -12,7 +12,7 @@ object SyncEdit {
     fun setField(snapshot: KairosSnapshot, data: SyncData, ref: RecordRef, field: String, value: String): KairosSnapshot? {
         val byUid = data.idsByUid()
         val id = byUid[ref.kind]?.get(ref.uid) ?: return null
-        val scoped = SyncScope.of(snapshot)
+        val scoped = SyncScope.of(snapshot, data)
         val lifted = SyncReconcile.liftAll(scoped) { k, i -> data.uidOf(k, i) }[ref.kind]?.get(id) ?: return null
         val l = lifted.copy(fields = lifted.fields + (field to value))
         val ids = SyncRecords.IdOf { k, uid -> byUid[k]?.get(uid) }

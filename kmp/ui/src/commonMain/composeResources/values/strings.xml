@@ -250,6 +250,7 @@
     <string name="note_pushed">from %1$s, after “%2$s”</string>
     <string name="note_pushed_pinned">from %1$s, after “%2$s” (pinned)</string>
     <string name="note_dip">afternoon dip (~%1$d h): lighter task preferred</string>
+    <string name="note_oversized">too long to fit in one go: just get it started</string>
     <string name="note_conflict">overlaps “%1$s”</string>
     <string name="tag_scheduled">scheduled %1$s</string>
     <string name="tag_stale">lingering for %1$d d</string>

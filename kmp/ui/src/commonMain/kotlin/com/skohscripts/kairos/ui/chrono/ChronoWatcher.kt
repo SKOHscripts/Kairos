@@ -44,7 +44,8 @@ import kotlin.time.Instant
 fun baseMinutes(snapshot: KairosSnapshot, running: WorkSession): Int {
     val closed = snapshot.workSessions.filter { it.taskId == running.taskId && it.id != running.id }
     val manual = snapshot.tasks.firstOrNull { it.id == running.taskId }?.manualTimeSpentMinutes ?: 0
-    return closed.sumOf { TimeTracking.sessionMinutes(it, it.endedAt ?: it.startedAt) } + manual
+    // Sessions closes : l'instant courant ne sert pas, sauf à une session restée ouverte par erreur (comptée nulle, comme avant).
+    return TimeTracking.withoutOverlaps(closed, Instant.DISTANT_PAST).sumOf { TimeTracking.sessionMinutes(it, it.endedAt ?: it.startedAt) } + manual
 }
 
 /** Minutes écoulées depuis [start], plus [base], rafraîchies chaque seconde (minuteur vivant). */

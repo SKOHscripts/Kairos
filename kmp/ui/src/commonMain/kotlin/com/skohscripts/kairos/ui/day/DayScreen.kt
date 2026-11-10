@@ -143,6 +143,7 @@ import com.skohscripts.kairos.ui.generated.resources.note_conflict
 import com.skohscripts.kairos.ui.generated.resources.note_affinity_detected
 import com.skohscripts.kairos.ui.generated.resources.note_affinity_manual
 import com.skohscripts.kairos.ui.generated.resources.note_dip
+import com.skohscripts.kairos.ui.generated.resources.note_oversized
 import com.skohscripts.kairos.ui.generated.resources.note_pushed
 import com.skohscripts.kairos.ui.generated.resources.note_pushed_pinned
 import com.skohscripts.kairos.ui.generated.resources.overload_banner
@@ -897,6 +898,7 @@ private fun AgendaRow(item: Scheduling.ScheduledTask, ctx: RowContext, dipTrough
                 WarnBadge(stringResource(res, time, after))
             }
             if (item.dipApplied) WarnBadge(stringResource(Res.string.note_dip, dipTroughHour), KairosIcons.Schedule)
+            if (item.oversized) WarnBadge(stringResource(Res.string.note_oversized), KairosIcons.Schedule)
             item.affinity?.let {
                 val res = when (it) {
                     AffinitySource.MANUAL -> Res.string.note_affinity_manual

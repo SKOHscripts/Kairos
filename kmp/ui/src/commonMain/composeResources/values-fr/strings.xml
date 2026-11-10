@@ -251,6 +251,7 @@
     <string name="note_pushed">à partir de %1$s, après « %2$s »</string>
     <string name="note_pushed_pinned">à partir de %1$s, après « %2$s » (épinglée)</string>
     <string name="note_dip">créneau creux (~%1$d h) : tâche légère privilégiée</string>
+    <string name="note_oversized">trop longue pour tenir d’un bloc : l’essentiel est de la commencer</string>
     <string name="note_conflict">chevauche « %1$s »</string>
     <string name="tag_scheduled">programmée %1$s</string>
     <string name="tag_stale">traîne depuis %1$d j</string>

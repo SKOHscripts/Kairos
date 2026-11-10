@@ -249,6 +249,7 @@
     <string name="note_pushed">da %1$s, dopo «%2$s»</string>
     <string name="note_pushed_pinned">da %1$s, dopo «%2$s» (fissata)</string>
     <string name="note_dip">calo del pomeriggio (~%1$d h): preferita un’attività leggera</string>
+    <string name="note_oversized">troppo lunga per farla in una volta: l’importante è iniziarla</string>
     <string name="note_conflict">si sovrappone a «%1$s»</string>
     <string name="tag_scheduled">programmata %1$s</string>
     <string name="tag_stale">ferma da %1$d g</string>

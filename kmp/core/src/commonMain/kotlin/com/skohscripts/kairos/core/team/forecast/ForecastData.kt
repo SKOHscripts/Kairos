@@ -240,7 +240,7 @@ data class ForecastData(
             // Capacité réelle : heures chronométrées sur les tâches d'équipe d'un membre, par semaine passée.
             val assignee = snapshot.tasks.filter { it.space == TaskSpace.TEAM && it.assigneeId != null }.associate { it.id to it.assigneeId!! }
             val realHours = HashMap<Long, DoubleArray>()
-            for (s in snapshot.workSessions) {
+            for (s in TimeTracking.withoutOverlaps(snapshot.workSessions, now)) {
                 val owner = assignee[s.taskId] ?: continue
                 val started = s.startedAt.toLocalDateTime(timeZone).date
                 if (started < windowStart || started >= monday) continue

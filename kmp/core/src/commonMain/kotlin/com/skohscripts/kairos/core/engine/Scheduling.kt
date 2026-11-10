@@ -226,6 +226,11 @@ object Scheduling {
         val dipApplied: Boolean = false,
         /** L'heure habituelle ou préférée du type de la tâche l'a fait préférer sur ce créneau (étape C2) ; `null` : sans effet. */
         val affinity: AffinitySource? = null,
+        /**
+         * Plus longue que toute plage du jour qui l'accueille : placée quand même, elle déborde de sa plage (issue #194 ; la
+         * vue Jour dit que l'essentiel est de la commencer).
+         */
+        val oversized: Boolean = false,
     ) {
         val affinityApplied: Boolean get() = affinity != null
         val end: LocalDateTime get() = start.plusMinutes(durationMinutes)
@@ -356,6 +361,10 @@ object Scheduling {
         // sur le choix : une tâche dont le contexte n'a pas cette plage attend la suivante.
         val remaining = auto.filter { it.id !in assigned }.toMutableList()
         obstacles.sortBy { it.start }
+        // Issue #194 : une tâche doit finir avant la fin de sa plage, sauf si elle est plus longue que toute plage (entière) qui
+        // l'accueille ; mesurée au reste de la plage, toute tâche de fin de journée serait « trop longue » et déborderait encore.
+        fun oversized(task: Task, duration: Int): Boolean =
+            windows.filter { Schedule.accepts(it, contextOf[task.id]) }.all { minutesBetween(it.start, it.end) < duration }
         var cursor = effectiveStart
         for ((index, window) in windows.withIndex()) {
             cursor = maxOf(cursor, window.start)
@@ -382,7 +391,8 @@ object Scheduling {
                     pushedAfter = blocking
                     start = blocking.end.plusMinutes(blocking.bufferMinutes)
                 }
-                if (start >= window.end) {
+                val tooLong = oversized(task, duration)
+                if (start >= window.end || (start.plusMinutes(duration) > window.end && !tooLong)) {
                     // Pas de place dans cette plage : une plage suivante qui l'accueille la prend ; sinon « Sans créneau ».
                     if (nextWindows.any { Schedule.accepts(it, contextOf[task.id]) }) {
                         skipped += task.id
@@ -401,6 +411,7 @@ object Scheduling {
                     pushedAfterKind = pushedAfter?.kind,
                     dipApplied = dipActive && !affinityChanged && task.id != urgencyPick.id,
                     affinity = if (affinityChanged) liking?.source(task.taskType) else null,
+                    oversized = tooLong,
                 )
                 cursor = start.plusMinutes(duration)
             }

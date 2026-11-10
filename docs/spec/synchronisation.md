@@ -138,6 +138,8 @@ qui a été supprimé : ses éléments reviennent, et l'aperçu les compte comme
 - Si deux chronos ont été lancés en même temps sur deux appareils, la fusion garde **le plus récent** en cours et arrête
   l'autre à l'instant où le plus récent a commencé : il n'y a toujours qu'un chrono à la fois (`temps-reel-chrono.md`).
 - Les alertes du chrono (dépassement, chrono oublié, pause) valent sur tout appareil qui voit la session ouverte.
+- **Supprimer une tâche ne supprime pas son temps passé** (#193) : ses sessions restent, **sur tous les appareils**, et le temps
+  travaillé (statistiques, temps par type, durées apprises) est le même partout après la fusion.
 
 #### Ce qui est partagé, ce qui reste propre à l'appareil
 
@@ -174,6 +176,9 @@ Chacun est prouvé par un test (à créer ; nom entre parenthèses).
   réimporté, exceptions d'occurrence, exemples (`SnapshotMergeTest.noDuplicates`, `SyncRepositoryTest`).
 - **Chrono** : au plus une session ouverte après la fusion ; une session arrêtée des deux côtés garde la première fin
   (`SyncRepairTest`).
+- **Sessions d'une tâche supprimée** (#193) : gardées des deux côtés, sur la même tâche, et le temps passé est le même sur les
+  deux appareils (`SnapshotMergeTest.deletedTaskKeepsSessionsEverywhere`) ; les propriétés de la fusion tiennent avec des
+  tâches chronométrées puis supprimées (`SnapshotMergePropertiesTest`).
 - **Premier rapprochement** confirmé quand le fichier doit changer ou que des éléments diffèrent, jamais appliqué avant, et
   silencieux pour l'appareil dont le fichier contient déjà tout ; fusion manuelle toujours précédée de l'aperçu (`SyncUiTest`,
   `LinkedFileSyncTest.firstContact`).
@@ -238,7 +243,7 @@ Pur. Une seule définition, utilisée par la réconciliation, la fusion et l'exp
 | `TimeBlock` | toujours (créneaux saisis et importés) | — |
 | `BlockException` | toujours | — |
 | `TaskDependency` | les deux tâches sont synchronisées | — |
-| `WorkSession` | sa tâche est synchronisée | — |
+| `WorkSession` | sa tâche est synchronisée, ou a été supprimée en gardant son identité (fantôme, #193) | — |
 | `Note` | toujours | — |
 | `CalendarSource`, `DayMark` | toujours (les créneaux du téléphone ne sont jamais stockés) | — |
 | `Settings` | champs de planification (liste ci-dessous) | `language`, `themeColor`, `themeMode`, `textZoom`, `updateCheckEnabled`, `timerAlertSound`, `reminders`, `guide`, `team`, `subtaskChain` (#209) |
@@ -359,12 +364,15 @@ Pur et idempotent (une seconde passe ne change rien). Pour chaque enregistrement
   journée entière (`title`, `start`, `end`, `sourceId`, `sourceUid`). `createdAt` et `updatedAt` (tâche, note) sont les deux
   registres particuliers, hors des champs. Valeur : texte JSON compact (`SyncRecords.canonicalJson`, défauts et `null` écrits).
   Réglages : un registre par champ de premier niveau, même texte.
-- **Portée** : une session de travail n'est dans la portée que si sa tâche l'est ; un créneau importé ou une journée entière,
-  que si son calendrier est stocké. Conséquence assumée : supprimer une tâche fait sortir ses sessions de la portée ; elles
-  restent dans la base de l'appareil qui a supprimé (comme aujourd'hui, `modele-donnees.md`) et disparaissent des autres, ce
-  qui garde la portée identique partout.
+- **Portée** : une session de travail est dans la portée si sa tâche l'est, ou si sa tâche n'existe plus dans la base et que
+  son `uid` est connu (identité fantôme, ci-dessous) : `SyncScope.of(snapshot, data)`. Une session dont la tâche existe hors
+  de la portée (tâche d'équipe, reçue) reste dehors ; une session d'une tâche supprimée **avant** l'activation, ou d'une tâche
+  d'équipe supprimée, n'a pas d'identité à partager et reste propre à l'appareil. Un créneau importé ou une journée entière
+  n'est dans la portée que si son calendrier est stocké. Avant #193, une session suivait seulement sa tâche : supprimer la
+  tâche la faisait sortir de la portée, elle restait sur l'appareil qui avait supprimé et disparaissait des autres.
 - **Identités fantômes** (étape 2) : une tâche supprimée que référence encore une **référence molle** de la portée (`parentId`,
-  `seriesId` d'une tâche, `convertedTaskId` d'une note) garde son `uid` dans `sync_identity`, **sans marques**. Sans cela, la
+  `seriesId` d'une tâche, `convertedTaskId` d'une note, `taskId` d'une session de travail depuis #193) garde son `uid` dans
+  `sync_identity`, **sans marques**. Sans cela, la
   même référence se lèverait `uid` sur un appareil et vide sur un autre, sous la même marque : la fusion dépendrait de l'ordre
   des échanges (trouvé par `SnapshotMergePropertiesTest`). À la fusion, une référence vers un `uid` inconnu ici reçoit un
   identifiant local **négatif** (jamais attribué par la base, `AUTOINCREMENT`, donc jamais repris par une tâche créée ensuite) :
@@ -762,11 +770,11 @@ Voir la skill `kairos-ecran` ; couleurs par rôles, aucun `Color(0x…)`.
   session ouverte venue d'un autre appareil est une session ouverte comme une autre.
 - Le temps passé (`TimeTracking.spentMinutesByTask`) est la somme des sessions de l'état fusionné et de
   `manualTimeSpentMinutes` : la réunion des appareils, sans double compte puisque les sessions ont un `uid`.
-- **Limite connue, différée (#193, consignée le 2026-11-04)** : les sessions d'une tâche **supprimée** divergent entre
-  appareils. L'appareil qui supprime les garde, l'autre les retire après fusion, et le temps travaillé n'est plus le même des
-  deux côtés. Un essai de correction (la session suit la portée de sa tâche dans `SyncScope`) cassait l'associativité et
-  « aucune perte silencieuse » de `SnapshotMergePropertiesTest` ; il a été retiré. À trancher : garder les sessions partout, ou
-  les retirer partout avec une pierre tombale qui garde la fusion associative.
+- **Sessions d'une tâche supprimée (#193)** : gardées partout. Le `taskId` d'une session est une référence molle comme
+  `parentId` : la tâche supprimée garde son `uid` (fantôme) tant qu'une session la référence (`SyncReconcile.softTargets`), la
+  session reste dans la portée (`SyncScope.of(snapshot, data)`), et l'abaissement de la fusion garde l'identité des tâches
+  que référencent les sessions reconstruites (`SnapshotMerge.lower`). Sur un appareil qui n'a jamais connu la tâche, la
+  session pointe vers un identifiant négatif, comme toute référence molle vers un fantôme. Voir « Décisions ».
 
 ### Isolation du mode solo
 
@@ -888,6 +896,14 @@ fichier fusionné à la main après son aperçu, nom de l'appareil et dernière 
 - **Chrono visible sur tous les appareils** (décision de conception) : une session ouverte appartient à la base, non à
   l'appareil qui l'a lancée ; arrêtée de n'importe où, elle est arrêtée partout. Écarté : un chrono propre à l'appareil (le temps
   passé serait faux et deux chronos tourneraient pour la même personne).
+- **Les sessions d'une tâche supprimée restent partout** (#193, 2026-11-10) : le temps déjà passé reste compté (statistiques,
+  temps par type, durées apprises), comme il le restait déjà sur l'appareil qui supprime (`modele-donnees.md`), et la règle
+  réutilise un mécanisme existant (référence molle et identité fantôme) sans rien ajouter au format. Écartés : **retirer les
+  sessions partout**, qui exigeait une pierre tombale (contraire à « Pas de pierres tombales ») et effaçait du temps réellement
+  travaillé ; **faire suivre à la session la portée de sa tâche** (premier essai, retiré avant la 4.0) : sans identité gardée,
+  la même session se levait différemment selon l'appareil, ce qui cassait l'associativité et « rien de perdu en silence » de
+  `SnapshotMergePropertiesTest`. Limite assumée : une session d'une tâche supprimée avant l'activation reste propre à
+  l'appareil (elle n'a jamais eu d'identité partagée).
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 

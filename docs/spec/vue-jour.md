@@ -78,7 +78,9 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    l'obstacle est une tâche épinglée, jamais pour une fenêtre de deep work :
   `ObstacleKind.DEEPWORK`, que le test différentiel range avec `PINNED`), « créneau creux (~15 h) : tâche
    légère privilégiée », « heure préférée pour « Dev » » ou « ton heure habituelle pour « Dev » » (3.6, meilleures heures :
-   seulement si elles ont changé le choix du créneau), « chevauche « Réunion » ». Vide : « Aucune tâche à
+   seulement si elles ont changé le choix du créneau), « trop longue pour tenir d'un bloc : l'essentiel est de la
+   commencer » (#194 : tâche plus longue que toute plage qui l'accueille, placée quand même ; `oversized`,
+   `ordonnancement.md`), « chevauche « Réunion » ». Vide : « Aucune tâche à
    faire n'est actuellement planifiée ».
 7. **Sections secondaires**, chacune avec son compte et une phrase de rôle,
    absentes si vides : « Sans créneau aujourd'hui » (**dépliée**),
