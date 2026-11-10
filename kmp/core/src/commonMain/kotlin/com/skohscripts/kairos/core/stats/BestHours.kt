@@ -160,7 +160,7 @@ object BestHours {
         val minutesCount = LinkedHashMap<String, Int>()
         // Minutes retenues de chaque tâche par tranche, sans pondération récente : l'efficacité les répartit (v2).
         val taskBuckets = HashMap<Long, DoubleArray>()
-        for (s in TimeTracking.sessionsInRange(sessions, windowStart, today, timeZone)) {
+        for (s in TimeTracking.sessionsInRange(TimeTracking.withoutOverlaps(sessions, now), windowStart, today, timeZone)) {
             val minutes = TimeTracking.sessionMinutes(s, now)
             if (minutes < MIN_SESSION_MINUTES) continue
             val start = s.startedAt.toLocalDateTime(timeZone)

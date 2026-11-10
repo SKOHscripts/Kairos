@@ -22,15 +22,40 @@ object TimeTracking {
     }
 
     /**
+     * Sessions sans double compte (issue #195) : deux sessions d'une **même** tâche qui se chevauchent (import, session
+     * corrigée à la main, fusion de synchronisation) ne comptent qu'une fois le temps commun. Dans l'ordre (début, id), le
+     * début d'une session est rogné à la plus grande fin des précédentes de sa tâche ; une session entièrement couverte est
+     * retirée. Les données ne changent pas : seul le calcul lit ces sessions. Sans chevauchement, la liste est rendue telle
+     * quelle (ordre d'entrée gardé), donc les totaux sont ceux d'avant à la minute près ; deux sessions bout à bout ne se
+     * fusionnent pas (l'arrondi par session resterait celui d'avant).
+     */
+    fun withoutOverlaps(sessions: List<WorkSession>, now: Instant): List<WorkSession> {
+        val reach = HashMap<Long, Instant>()
+        val kept = HashMap<Long, WorkSession?>()
+        var changed = false
+        for (s in sessions.sortedWith(compareBy({ it.startedAt }, { it.id }))) {
+            val end = s.endedAt ?: now
+            val r = reach[s.taskId]
+            kept[s.id] = when {
+                r == null || s.startedAt >= r -> s
+                end > r -> s.copy(startedAt = r).also { changed = true }
+                else -> null.also { changed = true }
+            }
+            reach[s.taskId] = if (r == null || end > r) end else r
+        }
+        return if (!changed) sessions else sessions.mapNotNull { kept[it.id] }
+    }
+
+    /**
      * Total par tâche : sessions (ouvertes comprises) **plus** le temps saisi à
      * la main (`manualTimeSpentMinutes`) **plus** le temps rapporté par un membre
      * (`reportedMinutes`, côté manager, docs/spec/equipe-echanges.md) : chacun complète les
      * autres, jamais ne les remplace. Seules les [tasks] données comptent pour les
-     * deux derniers termes.
+     * deux derniers termes. Sessions qui se chevauchent : leur union ([withoutOverlaps]).
      */
     fun spentMinutesByTask(sessions: List<WorkSession>, now: Instant, tasks: List<Task> = emptyList()): Map<Long, Int> {
         val totals = LinkedHashMap<Long, Int>()
-        for (s in sessions) totals[s.taskId] = (totals[s.taskId] ?: 0) + sessionMinutes(s, now)
+        for (s in withoutOverlaps(sessions, now)) totals[s.taskId] = (totals[s.taskId] ?: 0) + sessionMinutes(s, now)
         for (t in tasks) {
             val extra = (t.manualTimeSpentMinutes ?: 0) + (t.reportedMinutes ?: 0)
             if (extra != 0) totals[t.id] = (totals[t.id] ?: 0) + extra
@@ -42,7 +67,8 @@ object TimeTracking {
     fun runningSession(sessions: List<WorkSession>): WorkSession? =
         sessions.filter { it.endedAt == null }.maxByOrNull { it.startedAt }
 
-    fun totalMinutes(sessions: List<WorkSession>, now: Instant): Int = sessions.sumOf { sessionMinutes(it, now) }
+    /** Minutes chronométrées, sessions qui se chevauchent comptées une fois ([withoutOverlaps]). */
+    fun totalMinutes(sessions: List<WorkSession>, now: Instant): Int = withoutOverlaps(sessions, now).sumOf { sessionMinutes(it, now) }
 
     /**
      * Sessions dont le **début** tombe dans `[start, end]`, dates locales de
@@ -55,10 +81,10 @@ object TimeTracking {
     fun sessionsOnDay(sessions: List<WorkSession>, day: LocalDate, timeZone: TimeZone): List<WorkSession> =
         sessionsInRange(sessions, day, day, timeZone)
 
-    /** Minutes par type de tâche ; tâche sans type ou disparue : clé `""`. */
+    /** Minutes par type de tâche ; tâche sans type ou disparue : clé `""`. Chevauchements comptés une fois ([withoutOverlaps]). */
     fun spentMinutesByType(sessions: List<WorkSession>, typeById: Map<Long, String>, now: Instant): Map<String, Int> {
         val totals = LinkedHashMap<String, Int>()
-        for (s in sessions) {
+        for (s in withoutOverlaps(sessions, now)) {
             val key = typeById[s.taskId] ?: ""
             totals[key] = (totals[key] ?: 0) + sessionMinutes(s, now)
         }

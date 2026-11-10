@@ -77,6 +77,12 @@ l'application est en arrière-plan : Kairos les confie au système.
 - Un chrono survit à la fermeture de l'application, au rechargement de la
   page web et au redémarrage du téléphone : c'est un instant de départ en
   base.
+- **Le temps passé est le temps réellement couvert** (#195) : deux sessions
+  d'une même tâche qui se chevauchent ne comptent qu'une fois le temps
+  commun (10:00–11:00 et 10:30–11:30 font 90 min, pas 120). Un seul chrono
+  tourne à la fois, donc ces chevauchements ne viennent que d'un import ou
+  d'une fusion de synchronisation ; les sessions elles-mêmes ne sont pas
+  modifiées, seul le calcul en tient compte.
 
 #### Demande d'autorisation au démarrage du chrono (demande du propriétaire du 2026-11-07)
 
@@ -137,6 +143,10 @@ oublié » ne sonne qu'une fois.
 - Démarrer sur B ferme la session de A ; une tâche faite ne démarre pas de
   chrono (`KairosRepositoryTest`).
 - Temps du jour limité aux sessions commencées ce jour (`TimeTrackingTest`).
+- Sessions d'une même tâche qui se chevauchent comptées une fois (90 min pour 10:00–11:00 et 10:30–11:30), autre tâche
+  jamais rognée, session couverte retirée, rien ne change sans chevauchement
+  (`TimeTrackingTest.overlapping_sessions_of_one_task_count_once`, `without_overlap_the_sessions_are_left_untouched`,
+  `an_open_session_overlapped_by_a_later_one_runs_until_now`).
 - Démarrer, voir « En ce moment », franchir le seuil de pause avec une
   horloge simulée, voir le bandeau, le titre clignotant et la cloche quand la
   notification est refusée, fermer le bandeau, arrêter
@@ -191,6 +201,11 @@ Depuis le jalon E1 de l'espace Équipe, la veille du chrono (`ChronoWatcher`) et
   maintenant), `spentMinutesByTask` (sessions **plus** saisie manuelle **plus** temps
   rapporté par un membre, `reportedMinutes`, `equipe-echanges.md`),
   `runningSession` (la plus récente des ouvertes), `totalMinutes`,
+  `withoutOverlaps` (#195 : dans l'ordre (début, id), le début d'une session
+  est rogné à la plus grande fin des précédentes de **sa** tâche, une
+  session ouverte courant jusqu'à maintenant ; une session entièrement
+  couverte est retirée ; sans chevauchement, la liste est rendue telle
+  quelle, ordre d'entrée gardé),
   `sessionsInRange` / `sessionsOnDay` (date **locale** du début, fuseau
   passé), `spentMinutesByType` (clé `""` sans type), `sessionTimeline` (rail :
   sessions bornées à la journée de travail, une minute au moins, nature
@@ -375,6 +390,21 @@ est en HTTPS), état relu à chaque notification, autorisation à l'opt-in ;
 `document.title` ; cloches § Cloches (`kairos-web.js`).
 
 ### Décisions et pièges tracés
+
+- **Sessions qui se chevauchent : l'union par tâche** (#195, 2026-11-10, choix du propriétaire). Additionner deux
+  sessions qui se chevauchent comptait deux fois le temps commun, et ce surplus nourrissait les statistiques, la
+  calibration et les durées apprises. Retenu : le calcul lit les sessions par `TimeTracking.withoutOverlaps`, qui
+  rogne la plus tardive. Tout cumul de temps chronométré y passe : `spentMinutesByTask`, `spentMinutesByType` et
+  `totalMinutes` l'appliquent eux-mêmes ; les boucles qui répartissent des sessions l'appliquent avant de filtrer
+  (`TaskStats.focus` et `trackedMinutesWindow` du tableau de bord, `StatsTrends.tracked`, `BestHours.measure`,
+  heures réelles de `ForecastData`, `baseMinutes` de `ChronoWatcher.kt`). Seul le rail « réel » de la frise
+  (`sessionTimeline`) montre les sessions telles qu'en base : c'est un affichage, pas un cumul. Écartés : **garder la
+  somme** (simple, mais faux dès qu'un import ou une fusion crée un chevauchement) ; **rogner les sessions à l'import
+  ou à la fusion** (modifie les données, et une fusion qui réécrit des sessions passées devrait le faire de façon
+  identique sur chaque appareil). Micro-décisions : deux sessions **bout à bout** ne fusionnent pas (l'arrondi à la
+  minute reste par session, donc rien ne change sans chevauchement) ; seules les sessions d'une **même** tâche se
+  rognent (deux tâches en même temps restent deux temps, la règle « un chrono à la fois » est celle du dépôt).
+  Conséquence : 14 cas sur 200 des fichiers d'or des statistiques changent (`statistiques.md` § Décisions).
 
 - **Demande d'autorisation au premier chrono** (demande du propriétaire du 2026-11-07) : le bouton facultatif de
   « Maintenant » ne suffisait pas. Retenu : un **dialogue d'explication** (Kairos dit pourquoi, puis le système demande),

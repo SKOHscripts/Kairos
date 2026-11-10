@@ -184,7 +184,8 @@ object TaskStats {
     }
 
     fun focus(sessions: List<WorkSession>, now: Instant): Focus {
-        val durations = sessions.map { TimeTracking.sessionMinutes(it, now) }.filter { it > 0 }
+        // Une session entièrement couverte par une autre de la même tâche (doublon importé) n'en est pas une (issue #195).
+        val durations = TimeTracking.withoutOverlaps(sessions, now).map { TimeTracking.sessionMinutes(it, now) }.filter { it > 0 }
         val total = durations.sum()
         return Focus(durations.size, total, if (durations.isEmpty()) null else pyRound(total.toDouble() / durations.size))
     }
@@ -230,7 +231,7 @@ object TaskStats {
         return Dashboard(
             windowWeeks = weeks,
             completedInWindow = tasks.count { t -> doneDate(t, tz)?.let { it >= windowStart } ?: false },
-            trackedMinutesWindow = windowSessions.sumOf { TimeTracking.sessionMinutes(it, now) },
+            trackedMinutesWindow = TimeTracking.totalMinutes(windowSessions, now),
             throughput = throughputByWeek(tasks, today, weeks, tz),
             calibration = fibonacciCalibration(tasks, spent),
             bias = estimationBias(tasks, spent),

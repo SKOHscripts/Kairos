@@ -67,7 +67,7 @@ object StatsTrends {
         val start = windowStart(today, weeks)
         val daily = weeks <= DAILY_MAX_WEEKS
         val byDay = HashMap<LocalDate, Int>()
-        for (s in TimeTracking.sessionsInRange(sessions, start, today, tz)) {
+        for (s in TimeTracking.sessionsInRange(TimeTracking.withoutOverlaps(sessions, now), start, today, tz)) {
             val day = s.startedAt.toLocalDateTime(tz).date
             val key = if (daily) day else TaskStats.monday(day)
             byDay[key] = (byDay[key] ?: 0) + TimeTracking.sessionMinutes(s, now)
