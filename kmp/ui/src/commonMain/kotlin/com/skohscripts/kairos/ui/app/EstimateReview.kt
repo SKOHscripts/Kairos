@@ -1,13 +1,12 @@
 package com.skohscripts.kairos.ui.app
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -128,7 +127,7 @@ fun EstimateReviewDialog(services: AppServices, changes: List<EstimateChanges.Ch
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.estimates_changed_title)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 val shown = EstimateChanges.stillOpen(changes, snapshot.tasks)
                 if (shown.isNotEmpty()) {
                     Text(stringResource(Res.string.review_changed_header), style = MaterialTheme.typography.titleSmall)

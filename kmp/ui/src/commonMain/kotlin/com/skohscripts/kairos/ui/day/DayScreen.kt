@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.guide.GtdStepButton
+import com.skohscripts.kairos.ui.guide.GtdStep
 import com.skohscripts.kairos.ui.sync.SyncReviewBanner
 import com.skohscripts.kairos.ui.sync.SyncReviewDialog
 import com.skohscripts.kairos.data.EditBase
@@ -479,6 +481,8 @@ fun DayScreen(
                 }
                 one("inbox-help") {
                     Column {
+                        // Étapes 2 et 3 de GTD (docs/spec/methode-gtd.md) : la ligne ouvre la méthode.
+                        GtdStepButton(GtdStep.PROCESS)
                         // Liste vidée par le filtre seulement : ne pas annoncer que tout est clarifié.
                         val empty = if (view.schedule.toProcess.isEmpty()) Res.string.inbox_empty else Res.string.inbox_empty_filtered
                         Hint(stringResource(if (view.inbox.isEmpty()) empty else Res.string.inbox_help))

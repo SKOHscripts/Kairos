@@ -1905,4 +1905,29 @@
     <string name="why_learned_model_unverified">Длительность: пока мало похожих задач, чтобы проверить модель машинного обучения (%1$d из %2$d).</string>
     <!-- Fiche : intitulé de l’estimation par machine learning (docs/spec/estimateur-modele.md § Interface, #99) -->
     <string name="sheet_model_title">Оценка машинным обучением</string>
+    <string name="gtd_title">Метод GTD</string>
+    <string name="gtd_intro">GTD (Getting Things Done, Дэвид Аллен): голова нужна, чтобы придумывать, а не чтобы помнить. Всё, что тебя занимает, попадает в надёжную систему, которую ты разбираешь и регулярно просматриваешь. Пять шагов:</string>
+    <string name="gtd_step_capture_name">Собрать</string>
+    <string name="gtd_step_capture_body">Записать всё, что тебя занимает, без сортировки. В Kairos: экран «Заметки» или быстрый ввод в виде «День».</string>
+    <string name="gtd_step_clarify_name">Прояснить</string>
+    <string name="gtd_step_clarify_body">Решить, что это: действие? Тогда это задача; иначе оставить или отбросить. В Kairos: «→ Задача» или «В архив» у заметки, затем «К обработке» в виде «День».</string>
+    <string name="gtd_step_organize_name">Упорядочить</string>
+    <string name="gtd_step_organize_body">Расставить действия по тому, что важно. В Kairos: приоритет, очки и срок в «К обработке»; дальше Kairos сам упорядочивает список.</string>
+    <string name="gtd_step_reflect_name">Обзор</string>
+    <string name="gtd_step_reflect_body">Регулярно просматривать систему, чтобы продолжать ей доверять. В Kairos: виды «Неделя» и «Статистика».</string>
+    <string name="gtd_step_engage_name">Делать</string>
+    <string name="gtd_step_engage_body">Выбрать, что делать сейчас, и сделать. В Kairos: «Далее» в виде «День», с таймером.</string>
+    <string name="gtd_diff_title">Чем Kairos отличается</string>
+    <string name="gtd_diff_order">Порядок: в GTD ты сам выбираешь из списков; Kairos вычисляет порядок (приоритет, размер, срок) и говорит, с чего начать.</string>
+    <string name="gtd_diff_someday">«Когда-нибудь/может быть»: отдельного списка нет. Его роль играют «Заметки»: заметка может лежать там сколько нужно, прежде чем стать задачей, а «В архив» убирает её.</string>
+    <string name="gtd_diff_review">Еженедельный обзор: Kairos не ведёт по нему шаг за шагом; вид «Неделя» и «Статистика» дают для него материал.</string>
+    <string name="gtd_label_capture">Шаг 1 из 5 GTD · Собрать</string>
+    <string name="gtd_label_process">Шаги 2 и 3 GTD · Прояснить, упорядочить</string>
+    <string name="gtd_label_reflect">Шаг 4 GTD · Обзор</string>
+    <string name="gtd_label_engage">Шаг 5 GTD · Делать</string>
+    <string name="gtd_notes_goal">Выгрузи из головы всё, что тебя занимает, ничего не сортируя и не решая. Заметка может ждать здесь сколько нужно.</string>
+    <string name="gtd_open">Метод GTD</string>
+    <string name="gtd_open_hint">Пять шагов и где они в Kairos</string>
+    <string name="card_gtd_title">Метод GTD в Kairos</string>
+    <string name="card_gtd_body">Kairos следует GTD: собрать, прояснить, упорядочить, обзор, делать. Каждый экран говорит, какой это шаг, а «Метод GTD» в заметках объясняет их и то, чем Kairos отличается.</string>
 </resources>

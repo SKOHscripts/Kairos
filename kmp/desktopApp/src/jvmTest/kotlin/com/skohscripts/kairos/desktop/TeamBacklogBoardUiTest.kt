@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasSetTextAction
 import com.skohscripts.kairos.ui.settings.SettingsCategory
@@ -84,6 +86,12 @@ class TeamBacklogBoardUiTest {
         }
         AppServices(repository, files, { _, _ -> }, clock = clock)
     }
+
+    /** Fait défiler la liste de la vue Jour jusqu'à [text] (paresseuse : un élément hors écran n'est pas composé). */
+    private fun ComposeUiTest.waitInList(text: String, substring: Boolean = false) =
+        waitUntil(conditionDescription = "« $text » dans la liste", timeoutMillis = 15_000) {
+            runCatching { onNode(hasScrollToIndexAction()).performScrollToNode(hasText(text, substring = substring)) }.isSuccess
+        }
 
     private fun ComposeUiTest.waitText(text: String, substring: Boolean = false) =
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
@@ -380,9 +388,9 @@ class TeamBacklogBoardUiTest {
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithContentDescription("Personal").fetchSemanticsNodes().isNotEmpty() }
         onNodeWithContentDescription("Personal").performClick()
-        waitText("Blocked (1)")
+        waitInList("Blocked (1)")
         onNodeWithText("Blocked (1)").performScrollTo().performClick()
-        waitText("waiting for: Colleague job (Alex)")
+        waitInList("waiting for: Colleague job (Alex)")
     }
 
     @Test

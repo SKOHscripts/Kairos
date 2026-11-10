@@ -32,9 +32,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.DropdownMenuItem
@@ -293,7 +291,7 @@ internal fun EditTaskDialog(
                 // faire défiler (à 900x700, « Enregistrer » était hors de vue sous les options avancées).
                 Column(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 8.dp),
+                    modifier = Modifier.weight(1f, fill = false).verticalScrollWithThumb().padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 8.dp),
                 ) {
                     Text(
                         stringResource(

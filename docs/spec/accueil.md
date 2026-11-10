@@ -56,7 +56,8 @@ le travail en cours.
   **« Accueil de Kairos »** (ouvre l'Accueil de l'espace courant),
   **« Visite guidée »** (espace Perso) ou
   **« Visite de l’espace Équipe »** (espace Équipe), **« Découvrir Kairos »**
-  (`visite-guidee.md`) et **« Donner un avis »** (`retours.md`), et « Fermer ».
+  (`visite-guidee.md`) et **« Donner un avis »** (`retours.md`), et « Fermer ». Dans l'espace Perso, une cinquième
+  entrée, **« La méthode GTD »**, après « Découvrir Kairos » (`methode-gtd.md`, issue #235).
 - Dans l'espace Équipe, l'écran Équipe a une aide pour chacun de ses deux
   onglets (« Membres », « Échanges »).
 

@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.stats
 
+import com.skohscripts.kairos.ui.guide.GtdStepButton
+import com.skohscripts.kairos.ui.guide.GtdStep
 import com.skohscripts.kairos.core.stats.StatsTrends
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
@@ -149,6 +151,7 @@ fun StatsScreen(services: AppServices) {
             ) { StatsCardImage({ StatsCardView(card, stats, hours, trends, language) }, caption) }
         }
         Column(Modifier.widthIn(max = 960.dp).fillMaxWidth().padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.m)) {
+            GtdStepButton(GtdStep.REFLECT)
             // Une base vide n'a rien à filtrer : l'état vide seul.
             val filterable = snapshot.tasks.isNotEmpty() || snapshot.workSessions.isNotEmpty()
             if (filterable) {

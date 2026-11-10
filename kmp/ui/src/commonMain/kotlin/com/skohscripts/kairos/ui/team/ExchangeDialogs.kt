@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import com.skohscripts.kairos.core.sync.RecordKind
 import com.skohscripts.kairos.core.calendar.CalendarImport
 import com.skohscripts.kairos.core.calendar.CalendarPlan
@@ -37,8 +38,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -283,7 +282,7 @@ fun ExchangePreviewCard(preview: ExchangePreview, onConfirm: () -> Unit, onDismi
         Column {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 8.dp),
+                modifier = Modifier.weight(1f, fill = false).verticalScrollWithThumb().padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 8.dp),
             ) {
                 Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.heading())
                 body()

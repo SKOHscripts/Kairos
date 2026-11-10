@@ -1,10 +1,11 @@
 package com.skohscripts.kairos.ui.guide
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
+import com.skohscripts.kairos.ui.generated.resources.gtd_open_hint
+import com.skohscripts.kairos.ui.generated.resources.gtd_open
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -53,6 +54,8 @@ fun HelpDialog(
     onDiscover: () -> Unit = {},
     /** Ouvre « Donner un avis » (docs/spec/retours.md). */
     onFeedback: () -> Unit = {},
+    /** Ouvre « La méthode GTD » (docs/spec/methode-gtd.md), espace Perso seulement. */
+    onGtd: () -> Unit = {},
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -60,7 +63,7 @@ fun HelpDialog(
         title = { Text(stringResource(Res.string.help_title, stringResource(topic.screen)), modifier = Modifier.heading()) },
         text = {
             // Défile : sur un écran bas (téléphone en paysage, fenêtre réduite), les entrées restent atteignables.
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(topic.body), style = MaterialTheme.typography.bodyMedium)
                 HelpEntry(KairosIcons.Home, Res.string.help_open_home, Res.string.help_open_home_hint, onOpenHome)
                 if (team) {
@@ -69,6 +72,8 @@ fun HelpDialog(
                     HelpEntry(KairosIcons.PlayArrow, Res.string.help_open_tour, Res.string.help_open_tour_hint, onStartTour)
                 }
                 HelpEntry(KairosIcons.Layers, Res.string.help_open_discover, Res.string.help_open_discover_hint, onDiscover)
+                // Le cycle GTD est celui de l'espace Perso, pas celui du manager.
+                if (!team) HelpEntry(KairosIcons.Help, Res.string.gtd_open, Res.string.gtd_open_hint, onGtd)
                 HelpEntry(KairosIcons.Feedback, Res.string.feedback_action, Res.string.feedback_hint, onFeedback)
             }
         },

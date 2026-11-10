@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.settings
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import com.skohscripts.kairos.ui.generated.resources.calendars_phone_choose
 import com.skohscripts.kairos.ui.generated.resources.calendars_phone_empty
 import com.skohscripts.kairos.ui.generated.resources.calendars_phone_settings
@@ -18,8 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -152,7 +151,7 @@ fun CalendarImportDialog(services: AppServices, plan: CalendarPlan, onDone: () -
             shadowElevation = 6.dp,
             modifier = Modifier.padding(16.dp).widthIn(max = 560.dp).fillMaxWidth(),
         ) {
-            Column(Modifier.verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScrollWithThumb().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(Res.string.calendar_import_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
                 Text(stringResource(Res.string.calendar_import_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (!plan.isEmpty) {

@@ -1,10 +1,9 @@
 package com.skohscripts.kairos.ui.guide
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,7 +53,7 @@ fun FeedbackDialog(version: String, platform: String, onDismiss: () -> Unit, ope
         title = { Text(stringResource(Res.string.feedback_action), modifier = Modifier.heading()) },
         text = {
             // Défile : sur un écran bas (téléphone en paysage, clavier ouvert), les champs restent atteignables.
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(Res.string.feedback_intro), style = MaterialTheme.typography.bodyMedium)
                 OutlinedTextField(
                     value = title,

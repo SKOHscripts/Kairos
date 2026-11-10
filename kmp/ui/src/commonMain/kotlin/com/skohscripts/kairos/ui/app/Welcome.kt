@@ -1,11 +1,10 @@
 package com.skohscripts.kairos.ui.app
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -44,7 +43,7 @@ fun WelcomeDialog(services: AppServices, onStartGuide: () -> Unit, onFirstTask: 
         title = { Text(stringResource(Res.string.welcome_title)) },
         text = {
             // Défile sur un écran bas (téléphone en paysage, fenêtre réduite) : rien n’est coupé.
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(Res.string.welcome_body), style = MaterialTheme.typography.bodyMedium)
                 Text(stringResource(Res.string.welcome_examples), style = MaterialTheme.typography.bodyMedium)
                 KairosOutlinedButton(onClick = { open = false; onFirstTask() }) { Text(stringResource(Res.string.welcome_first_task)) }

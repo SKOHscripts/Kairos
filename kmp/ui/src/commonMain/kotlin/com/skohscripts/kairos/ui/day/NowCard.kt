@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.guide.GtdStepText
+import com.skohscripts.kairos.ui.guide.GtdStep
 import com.skohscripts.kairos.ui.guide.demo.DemoSpot
 import com.skohscripts.kairos.ui.guide.demo.DemoMark
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
@@ -163,6 +165,8 @@ internal fun NowCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Étape 5 de GTD : texte simple, la carte teintée ne reçoit pas de bouton texte (docs/spec/methode-gtd.md).
+            GtdStepText(GtdStep.ENGAGE)
             val next = view.nextUp
             if (next == null) {
                 Text(stringResource(Res.string.todo_empty), style = MaterialTheme.typography.titleLarge)

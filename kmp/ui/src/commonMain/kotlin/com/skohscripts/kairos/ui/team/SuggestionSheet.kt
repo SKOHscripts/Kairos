@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.team
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import com.skohscripts.kairos.ui.app.uiLanguage
 import com.skohscripts.kairos.ui.theme.KairosButton
 import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
@@ -13,8 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -151,7 +150,7 @@ internal fun SuggestionSheet(services: AppServices, taskIds: Set<Long>?, onDismi
 
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f, fill = compact).verticalScroll(rememberScrollState()).padding(horizontal = padding, vertical = 12.dp),
+                    modifier = Modifier.weight(1f, fill = compact).verticalScrollWithThumb().padding(horizontal = padding, vertical = 12.dp),
                 ) {
                     Text(
                         if (taskIds == null) stringResource(Res.string.suggest_scope_all) else stringResource(Res.string.suggest_scope_selection, taskIds.size),

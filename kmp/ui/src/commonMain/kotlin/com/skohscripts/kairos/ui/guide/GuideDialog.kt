@@ -1,8 +1,8 @@
 package com.skohscripts.kairos.ui.guide
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -79,7 +79,7 @@ fun GuideDialog(
         text = {
             // Défile sur un écran bas (téléphone en paysage, fenêtre réduite) : rien n’est coupé. Un défilement par étape :
             // la suivante s'ouvre en haut, pas au milieu d'une phrase.
-            Column(Modifier.verticalScroll(rememberSaveable(index, saver = ScrollState.Saver) { ScrollState(0) }), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScrollWithThumb(rememberSaveable(index, saver = ScrollState.Saver) { ScrollState(0) }), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     stringResource(Res.string.guide_step_counter, index + 1, steps.size),
                     style = MaterialTheme.typography.labelMedium,

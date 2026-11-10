@@ -21,8 +21,6 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
@@ -376,7 +374,7 @@ internal fun BlockDialog(
             shadowElevation = 6.dp,
             modifier = Modifier.padding(16.dp).widthIn(max = 640.dp),
         ) {
-            Column(Modifier.verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(Modifier.verticalScrollWithThumb().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(stringResource(Res.string.block_edit_title), style = MaterialTheme.typography.headlineSmall)
                 if (recurring) {
                     KairosSegmentedRow(Modifier.fillMaxWidth()) {

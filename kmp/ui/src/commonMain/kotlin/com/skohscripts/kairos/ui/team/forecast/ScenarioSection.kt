@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.team.forecast
 
+import com.skohscripts.kairos.ui.day.verticalScrollWithThumb
 import com.skohscripts.kairos.ui.theme.KairosButtonIconPadding
 import com.skohscripts.kairos.ui.theme.KairosRowIconButton
 import com.skohscripts.kairos.ui.theme.KairosButton
@@ -14,8 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -339,7 +338,7 @@ internal fun ScenarioApplyDialog(scenario: TeamScenario, snapshot: KairosSnapsho
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.scenario_apply_title, scenario.name)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(Res.string.scenario_apply_body), style = MaterialTheme.typography.bodyMedium)
                 if (real.isNotEmpty()) {
                     Text(stringResource(Res.string.scenario_apply_real, real.size), style = MaterialTheme.typography.titleSmall, modifier = Modifier.heading())

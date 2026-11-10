@@ -12,6 +12,8 @@ clavier réels), `desktopApp/.../M4ScreensUiTest.kt` (autre jour, guide des
 points, durée suggérée), `data/.../SubtaskEditTest.kt` (sous-tâches
 existantes), `desktopApp/.../SubtaskEditUiTest.kt` (section « Sous-tâches »)._
 
+Étapes GTD de l'écran (« À traiter » : étapes 2 et 3 ; « Maintenant » : étape 5) et dialogue de la méthode : `methode-gtd.md`
+(issue #235, 4.2.0).
 État : **jalons M2 et M4**. Le moteur est décrit par `ordonnancement.md`, `dependances.md`
 et `recurrence.md`. Le chrono (bouton de chaque ligne, « Démarrer le
 chrono » de « Maintenant », carte « En ce moment », temps passé, temps du
@@ -61,7 +63,7 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    proches) »), sinon la médiane fiable de son type, sinon celle de son palier de points, et le dit : « Estimée à 45 min (médiane de « Rédaction ») »,
    ou « … (médiane des tâches à 3 points) », avec « Annuler » (la durée redevient vide). Une durée déjà là n'est jamais
    touchée ; sans médiane fiable, rien n'est posé. Le backlog d'équipe fait de même dans « À qualifier », avec les
-   médianes des seules tâches d'équipe terminées (`equipe-backlog-suivi.md`). Le menu des types montre une barre de défilement dès que la liste ne tient pas en entier.
+   médianes des seules tâches d'équipe terminées (`equipe-backlog-suivi.md`). Le menu des types montre une barre de défilement dès que la liste ne tient pas en entier ; depuis 4.2.0 les dialogues et feuilles qui défilent (fiche d'édition comprise) aussi, par `verticalScrollWithThumb` (`methode-gtd.md`).
 4. **Maintenant** (seul bloc teinté) : « À faire maintenant : » la première
    tâche placée (avec son heure), sinon la première sans créneau ; boutons
    nommés « Fait », « Démarrer le chrono » (ou « Arrêter le chrono ») et
