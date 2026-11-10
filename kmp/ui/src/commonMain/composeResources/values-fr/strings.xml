@@ -1881,7 +1881,7 @@
     <string name="card_model_body">Un modèle de machine learning, entraîné sur l’appareil, donne à une tâche au titre nouveau une durée d’après tes tâches faites qui lui ressemblent, avec une fourchette et la liste de ces tâches. Il ne s’applique qu’une fois qu’il bat la durée par défaut sur ton historique, apprend ton rythme selon le jour et l’heure, et te prévient quand les estimations changent. Rien ne quitte l’appareil. Une IA ? Non, du machine learning : robuste et local, il s’entraîne à chaque tâche que tu termines, léger et très rapide.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, estimé par machine learning (%2$s à %3$s)</string>
-    <string name="forecast_model_estimated">Dont %1$d tâche(s) estimée(s) par machine learning (fourchette apprise)</string>
+    <string name="forecast_model_estimated">Dont %1$d tâche(s) à fourchette apprise (série, titre ou machine learning)</string>
     <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
     <string name="why_model_rhythm">Ton rythme : %1$s.</string>
     <string name="model_rhythm_weekday">%1$s % le %2$s</string>
@@ -1934,4 +1934,6 @@
     <string name="gtd_open_hint">Les cinq étapes et où elles sont dans Kairos</string>
     <string name="card_gtd_title">La méthode GTD dans Kairos</string>
     <string name="card_gtd_body">Kairos suit GTD : capturer, clarifier, organiser, faire le point, faire. Chaque écran dit de quelle étape il s’agit, et « La méthode GTD » sur Notes les explique, avec ce que Kairos fait autrement.</string>
+    <string name="learning_model_coverage">Fourchette vérifiée sur tes %1$d dernières tâches : %2$d dedans avant ajustement ; ajustée pour en contenir 8 sur 10.</string>
+    <string name="learning_model_coverage_pending">Fourchette pas encore vérifiée : %1$d tâches comparables sur %2$d nécessaires.</string>
 </resources>

@@ -34,9 +34,15 @@ internal object HistoryEstimates {
         // Un chrono oublié (plus de trois fois la médiane) ne tire pas la durée vers le haut.
         val kept = recent.filter { it <= first * OUTLIER_FACTOR }
         val median = TaskStats.median(kept) ?: return null
+        val minutes = roundToFive(median).coerceIn(5, cap(settings))
+        // Même règle que les voisins du modèle : le min-max de k occurrences, chaque côté élargi de (1 + 2/k). Une seule
+        // occurrence ne dit rien de la dispersion : pas d'intervalle.
+        val widen = 1.0 + 2.0 / kept.size
         return DurationEstimator.Estimate(
-            roundToFive(median).coerceIn(5, cap(settings)), source, kept.size,
+            minutes, source, kept.size,
             reliable = kept.size >= maxOf(1, learning.minSamples),
+            low = if (kept.size < 2) null else minOf(roundToFive(median - (median - kept.min()) * widen).coerceIn(5, cap(settings)), minutes),
+            high = if (kept.size < 2) null else maxOf(roundToFive(median + (kept.max() - median) * widen).coerceIn(5, cap(settings)), minutes),
         )
     }
 }

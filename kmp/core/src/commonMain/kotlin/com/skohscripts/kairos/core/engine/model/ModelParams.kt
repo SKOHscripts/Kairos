@@ -55,4 +55,13 @@ object ModelParams {
     const val GATE_PREFIX_MIN = 6
     const val GATE_MIN = 6
     const val GATE_RATIO = 0.85
+
+    /**
+     * Fourchette vérifiée (docs/spec/previsions-taches.md § Étape A) : à partir de [CALIBRATION_MIN] candidats de la garde,
+     * l'intervalle est étiré pour contenir [CALIBRATION_PERCENT] % de leurs durées réelles, dans [STRETCH_MIN ; STRETCH_MAX].
+     */
+    const val CALIBRATION_MIN = 20
+    const val CALIBRATION_PERCENT = 80
+    const val STRETCH_MIN = 0.5
+    const val STRETCH_MAX = 3.0
 }

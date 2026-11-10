@@ -1879,7 +1879,7 @@
     <string name="card_model_body">A machine-learning model, trained on your device, gives a task with a new title a duration from your finished tasks that look like it, with a range and the list of those tasks. It applies only once it beats the default duration on your own history, learns your pace by day and time, and tells you when estimates change. Nothing leaves the device. AI? No, machine learning: robust and local, it trains on every task you finish, light and very fast.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, estimated by machine learning (%2$s to %3$s)</string>
-    <string name="forecast_model_estimated">Including %1$d task(s) estimated by machine learning (learned range)</string>
+    <string name="forecast_model_estimated">Including %1$d task(s) with a learned range (series, title or machine learning)</string>
     <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
     <string name="why_model_rhythm">Your pace: %1$s.</string>
     <string name="model_rhythm_weekday">%1$s% on %2$s</string>
@@ -1932,4 +1932,6 @@
     <string name="gtd_open_hint">The five steps and where they are in Kairos</string>
     <string name="card_gtd_title">The GTD method in Kairos</string>
     <string name="card_gtd_body">Kairos follows GTD: capture, clarify, organize, reflect, engage. Each screen says which step it is, and “The GTD method” on Notes explains them, with what Kairos does differently.</string>
+    <string name="learning_model_coverage">Range checked on your last %1$d tasks: %2$d fell inside before adjustment; adjusted to hold 8 in 10.</string>
+    <string name="learning_model_coverage_pending">Range not checked yet: %1$d comparable tasks out of %2$d needed.</string>
 </resources>

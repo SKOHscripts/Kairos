@@ -271,4 +271,7 @@ extraite, la chaîne et `Sample` enrichi (type, points, priorité, étiquette, r
   planificateur de la vue Jour : la provenance y est portée par
   `DayView.learned`.
 - Le calibrage de `statistiques.md` n'est pas partagé : rien à reporter.
+- **Depuis #232**, une durée apprise d'une série ou d'un titre d'au moins deux occurrences porte l'intervalle de ses
+  occurrences (`Estimate.low`, `high`), que les prévisions d'équipe tirent (`previsions-taches.md` § Étape A) ; le
+  planificateur de la vue Jour ne lit toujours que la durée.
 

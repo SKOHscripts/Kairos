@@ -1878,7 +1878,7 @@
     <string name="card_model_body">Ein auf dem Gerät trainiertes Modell für maschinelles Lernen gibt einer Aufgabe mit neuem Titel eine Dauer aus deinen erledigten Aufgaben, die ihr ähneln, mit einer Spanne und der Liste dieser Aufgaben. Es gilt erst, wenn es auf deinem Verlauf besser ist als die Standarddauer, lernt dein Tempo nach Tag und Uhrzeit und meldet, wenn sich Schätzungen ändern. Nichts verlässt das Gerät. KI? Nein, maschinelles Lernen: robust und lokal, es trainiert mit jeder erledigten Aufgabe weiter, leicht und sehr schnell.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, durch maschinelles Lernen geschätzt (%2$s bis %3$s)</string>
-    <string name="forecast_model_estimated">Davon %1$d durch maschinelles Lernen geschätzte Aufgabe(n) (gelernte Spanne)</string>
+    <string name="forecast_model_estimated">Davon %1$d Aufgabe(n) mit gelernter Spanne (Serie, Titel oder maschinelles Lernen)</string>
     <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
     <string name="why_model_rhythm">Dein Tempo: %1$s.</string>
     <string name="model_rhythm_weekday">%1$s% am %2$s</string>
@@ -1931,4 +1931,6 @@
     <string name="gtd_open_hint">Die fünf Schritte und wo sie in Kairos sind</string>
     <string name="card_gtd_title">Die GTD-Methode in Kairos</string>
     <string name="card_gtd_body">Kairos folgt GTD: erfassen, klären, organisieren, durchsehen, erledigen. Jeder Bildschirm sagt, welcher Schritt er ist, und „Die GTD-Methode“ in den Notizen erklärt sie, samt dem, was Kairos anders macht.</string>
+    <string name="learning_model_coverage">Spanne an deinen letzten %1$d Aufgaben geprüft: %2$d lagen vor der Anpassung darin; angepasst, damit 8 von 10 darin liegen.</string>
+    <string name="learning_model_coverage_pending">Spanne noch nicht geprüft: %1$d vergleichbare Aufgaben von %2$d nötigen.</string>
 </resources>

@@ -207,7 +207,7 @@ interface DurationEstimator {
 
 - `SeriesEstimator` et `TitleEstimator` (`HistoryEstimators.kt`) : le code de `fromSamples` et des filtres série / titre,
   **déplacé sans changement de comportement** (médiane des `history` derniers, aberrants à 3 ×, arrondi à 5 min, bornes). Leurs
-  `Estimate` gardent `low = high = null` : l'intervalle est propre au modèle.
+  `Estimate` portent depuis #232 l'intervalle de leurs occurrences (`previsions-taches.md` § Étape A ; nul pour une seule).
 - `ModelEstimator` (`engine/model/`) : voir ci-dessous. `Source.MODEL`.
 - `EstimatorChain(listOf(SeriesEstimator, TitleEstimator, ModelEstimator))` : **la règle actuelle étendue** : on essaie les
   niveaux dans l'ordre, **le premier fiable gagne** ; à défaut, le premier qui a quelque chose à dire est rendu avec
@@ -217,7 +217,7 @@ interface DurationEstimator {
   signatures de `samples`, `estimates`, `appliedMinutes`, `effectiveMinutes` et `withLearnedEstimates` sont **inchangées**
   (paramètre `cache` facultatif ajouté à celles qui calculent), donc les tests actuels compilent tels quels.
   `appliedMinutes` garde les estimations fiables, modèle compris.
-- Nouveau : `DurationEstimator.spreads(estimates): Map<Long, Spread>` (les estimations **fiables** de source `MODEL` :
+- Nouveau : `DurationEstimator.spreads(estimates): Map<Long, Spread>` (les estimations **fiables** à intervalle, de source `MODEL` et, depuis #232, série ou titre :
   `Spread(minutes, low, high)`, en minutes), et `DurationEstimator.withLearned(snapshot, now, timeZone): Learned(snapshot,
   spreads)` ;
   `withLearnedEstimates` en est la projection `snapshot`. Voir « Prévisions ».
@@ -306,6 +306,8 @@ urgence, pas une taille ; on la laisse à la régression, qui dira si les donné
 - **Élargissement** : un intervalle fait de `k` voisins sous-estime la dispersion d'une tâche nouvelle (le min-max de `k`
   tirages ne couvre qu'une part `(k−1)/(k+1)` des suivants). L'écart de chaque côté de la médiane est multiplié par
   `1 + 2/k`. Valeur de départ, arbitrée par `IntervalCoverageTest` (critère 70-90 % de couverture) ; tout changement se consigne.
+  **Depuis #232** : cet intervalle brut est ensuite **étiré** par la garde pour contenir 8 durées réelles sur 10 de
+  l'historique (`ModelGate.stretch`, `previsions-taches.md` § Étape A) ; `IntervalCoverageTest` mesure l'intervalle livré.
 - `Evidence(NEIGHBOURS, …)` : les voisins retenus avec leur durée et leur ressemblance en pour cent entier.
 
 **4. Régression légère en repli** (`RidgePrior.kt`) quand il y a moins de `MIN_NEIGHBOURS` voisins retenus
@@ -344,7 +346,8 @@ La garde est le moyen de tenir « jamais pire que la durée par défaut » *sur 
 - La garde réussit si au moins `GATE_MIN` = 6 candidats ont pu être estimés **et** si la médiane de `e` du modèle est
   `≤ GATE_RATIO` = 0,85 × la médiane de `e` de la durée par défaut (`defaultTaskDurationMinutes`) sur les mêmes candidats.
   Un modèle qui ne fait pas nettement mieux que 30 min ne sert à rien et ne mérite pas de bouger le planning.
-- `ModelGate.Result(evaluated, modelError, defaultError, passed, reason)` avec `reason` ∈ {`OK`, `TOO_FEW_SAMPLES`,
+- `ModelGate.Result(evaluated, modelError, defaultError, passed, reason, covered, stretch)` (`covered` et `stretch` :
+  fourchette vérifiée, `previsions-taches.md` § Étape A) avec `reason` ∈ {`OK`, `TOO_FEW_SAMPLES`,
   `NOT_BETTER`} ; il est rendu dans `Evidence` et dans l'état de la carte des Réglages. Les médianes sont **basses** (la valeur
   de rang ⌈n/2⌉, `ModelGate.lowMedian`) ; `ModelGate.fromErrors` décide à partir des erreurs déjà mesurées (le rétro-test
   s'en sert).
@@ -459,8 +462,8 @@ propre dispersion, apprise de tâches qui lui ressemblent. On la substitue au fa
   entre réel et scénarios sont conservés (décision de `equipe-simulation.md`). L'effort reste `Effort.planned × facteur` : une
   tâche entamée garde sa forme de dispersion sur le restant.
 - **Pas de double compte** : pour ces tâches, le facteur d'erreur historique de l'équipe n'est **pas** appliqué en plus, car
-  l'intervalle est déjà bâti sur des durées réelles. Les tâches estimées par série ou titre gardent le comportement actuel
-  (approximation existante, non rouverte ici).
+  l'intervalle est déjà bâti sur des durées réelles. Les tâches estimées par série ou titre, d'abord laissées au facteur
+  de l'équipe, ont depuis #232 leur propre intervalle et sont tirées de même (`previsions-taches.md` § Étape A).
 - **Honnêteté** : `ForecastResult` porte `modelEstimated` (nombre de tâches du périmètre dont l'effort vient du modèle) ; la
   ligne de source dit « dont n tâches estimées par le modèle (fourchette apprise) ». Le modèle par débit ne change pas.
 - **Cohérence avec `equipe-simulation.md`** : le rééchantillonnage de l'historique réel reste le moteur ; la loi du modèle est

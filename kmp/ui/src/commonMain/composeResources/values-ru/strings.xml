@@ -1878,7 +1878,7 @@
     <string name="card_model_body">Модель машинного обучения, обученная на устройстве, даёт задаче с новым названием длительность по похожим выполненным задачам, с диапазоном и списком этих задач. Она применяется, только если на твоей истории точнее длительности по умолчанию, учит твой ритм по дням и часам и сообщает, когда оценки меняются. Ничего не покидает устройство. ИИ? Нет, машинное обучение: надёжное и локальное, оно обучается на каждой выполненной задаче, лёгкое и очень быстрое.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, оценено машинным обучением (от %2$s до %3$s)</string>
-    <string name="forecast_model_estimated">В том числе задач, оцененных машинным обучением (выученный диапазон): %1$d</string>
+    <string name="forecast_model_estimated">В том числе задач с выученным диапазоном (серия, название или машинное обучение): %1$d</string>
     <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
     <string name="why_model_rhythm">Твой ритм: %1$s.</string>
     <string name="model_rhythm_weekday">%1$s% (%2$s)</string>
@@ -1931,4 +1931,6 @@
     <string name="gtd_open_hint">Пять шагов и где они в Kairos</string>
     <string name="card_gtd_title">Метод GTD в Kairos</string>
     <string name="card_gtd_body">Kairos следует GTD: собрать, прояснить, упорядочить, обзор, делать. Каждый экран говорит, какой это шаг, а «Метод GTD» в заметках объясняет их и то, чем Kairos отличается.</string>
+    <string name="learning_model_coverage">Диапазон проверен на последних %1$d задачах: до поправки в него попали %2$d; поправлен, чтобы попадали 8 из 10.</string>
+    <string name="learning_model_coverage_pending">Диапазон ещё не проверен: сопоставимых задач %1$d из %2$d нужных.</string>
 </resources>

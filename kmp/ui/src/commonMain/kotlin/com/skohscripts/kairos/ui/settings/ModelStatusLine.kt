@@ -18,6 +18,8 @@ import com.skohscripts.kairos.core.engine.model.ModelGate
 import com.skohscripts.kairos.core.engine.model.ModelParams
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.generated.resources.Res
+import com.skohscripts.kairos.ui.generated.resources.learning_model_coverage
+import com.skohscripts.kairos.ui.generated.resources.learning_model_coverage_pending
 import com.skohscripts.kairos.ui.generated.resources.learning_model_status_few
 import com.skohscripts.kairos.ui.generated.resources.learning_model_status_not_better
 import com.skohscripts.kairos.ui.generated.resources.learning_model_status_ok
@@ -46,6 +48,17 @@ internal fun ModelStatusLine(services: AppServices) {
         else -> stringResource(Res.string.learning_model_status_not_better, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
     }
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    // Fourchette vérifiée (docs/spec/previsions-taches.md § Étape A) : dite dès que la garde a ses candidats.
+    if (gate.reason != ModelGate.Reason.TOO_FEW_SAMPLES && status.corpus >= ModelParams.MIN_CORPUS) {
+        Text(
+            if (gate.calibrated) {
+                stringResource(Res.string.learning_model_coverage, gate.evaluated, gate.covered)
+            } else {
+                stringResource(Res.string.learning_model_coverage_pending, gate.evaluated, ModelParams.CALIBRATION_MIN)
+            },
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
     // Estimations saisies que le modèle conteste (besoin 13) : la revue, depuis la carte.
     // L'espace Perso seulement, comme le dialogue : une tâche d'équipe n'y paraît jamais.
     val personal by services.repository.personalSnapshot.collectAsState()

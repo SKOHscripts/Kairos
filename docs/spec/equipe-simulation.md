@@ -86,9 +86,10 @@ chaque tâche multiplié par un **facteur d'erreur d'estimation** tiré dans
 l'historique de l'équipe (rapport réel / estimé des tâches faites). Il
 répond aux six questions et tient compte de qui fait quoi. Une tâche dont la
 durée vient de l'estimateur par modèle (4.0.0, `estimateur-modele.md`) est
-tirée dans **son propre intervalle** au lieu de ce facteur, et la ligne de
-source le dit (« Dont 2 tâche(s) estimée(s) par le modèle (fourchette
-apprise) »).
+tirée dans **son propre intervalle** au lieu de ce facteur, comme, depuis
+#232, une tâche à durée apprise d'une série ou d'un titre
+(`previsions-taches.md` § Étape A), et la ligne de source le dit (« Dont
+2 tâche(s) à fourchette apprise (série, titre ou machine learning) »).
 
 - Option « Inclure le backlog non assigné » : à chaque tirage, les tâches
   du backlog sont réparties par la suggestion de répartition

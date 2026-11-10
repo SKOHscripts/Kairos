@@ -90,9 +90,11 @@ object ModelEstimator : DurationEstimator {
         val rhythm = if (reliable) Rhythm.applied(state.rhythm, features.weekday, features.band).takeIf { !it.isEmpty } else null
         val f = rhythm?.factor ?: 1.0
         val cap = HistoryEstimates.cap(settings)
-        val minutes = if (rhythm == null) p.minutes else round(p.minutes * f, cap)
-        val low = if (rhythm == null) p.low else minOf(round(p.low * f, cap), minutes)
-        val high = if (rhythm == null) p.high else maxOf(round(p.high * f, cap), minutes)
+        // Fourchette vérifiée : chaque côté est étiré de ce qu'il a fallu sur les candidats de la garde (1 : rien à faire).
+        val k = state.gate.stretch
+        val minutes = round(p.minutes * f, cap)
+        val low = minOf(round((p.minutes - (p.minutes - p.low) * k) * f, cap), minutes)
+        val high = maxOf(round((p.minutes + (p.high - p.minutes) * k) * f, cap), minutes)
         return DurationEstimator.Estimate(
             minutes, DurationEstimator.Source.MODEL, p.samples, reliable, low, high,
             DurationEstimator.Evidence(p.basis, p.neighbours, p.taskType, p.points, p.corpus, state.gate, rhythm),
