@@ -1934,4 +1934,11 @@
     <string name="card_gtd_body">Kairos follows GTD: capture, clarify, organize, reflect, engage. Each screen says which step it is, and “The GTD method” on Notes explains them, with what Kairos does differently.</string>
     <string name="learning_model_coverage">Range checked on your last %1$d tasks: %2$d fell inside before adjustment; adjusted to hold 8 in 10.</string>
     <string name="learning_model_coverage_pending">Range not checked yet: %1$d comparable tasks out of %2$d needed.</string>
+    <string name="forecast_task_finish_title">Finish date per task</string>
+    <string name="forecast_task_finish_hint">Likely finish of each task, latest first: one time in two before the first date, 85 times in 100 before the second.</string>
+    <string name="forecast_task_finish_range">Between %1$s and %2$s</string>
+    <string name="forecast_task_finish_single">On %1$s</string>
+    <string name="forecast_task_finish_out">Beyond the horizon</string>
+    <string name="forecast_task_finish_margin">margin: %1$d d</string>
+    <string name="forecast_task_finish_late">%1$d d late</string>
 </resources>

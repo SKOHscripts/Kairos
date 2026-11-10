@@ -1933,4 +1933,11 @@
     <string name="card_gtd_body">Kairos следует GTD: собрать, прояснить, упорядочить, обзор, делать. Каждый экран говорит, какой это шаг, а «Метод GTD» в заметках объясняет их и то, чем Kairos отличается.</string>
     <string name="learning_model_coverage">Диапазон проверен на последних %1$d задачах: до поправки в него попали %2$d; поправлен, чтобы попадали 8 из 10.</string>
     <string name="learning_model_coverage_pending">Диапазон ещё не проверен: сопоставимых задач %1$d из %2$d нужных.</string>
+    <string name="forecast_task_finish_title">Срок по каждой задаче</string>
+    <string name="forecast_task_finish_hint">Вероятный срок каждой задачи, сначала самые поздние: в одном случае из двух до первой даты, в 85 из 100 до второй.</string>
+    <string name="forecast_task_finish_range">Между %1$s и %2$s</string>
+    <string name="forecast_task_finish_single">%1$s</string>
+    <string name="forecast_task_finish_out">За горизонтом</string>
+    <string name="forecast_task_finish_margin">запас: %1$d дн.</string>
+    <string name="forecast_task_finish_late">опоздание: %1$d дн.</string>
 </resources>

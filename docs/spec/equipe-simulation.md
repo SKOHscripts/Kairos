@@ -60,6 +60,9 @@ de décider.
     dates de fin par semaine (barres primaires, valeur écrite sur chaque
     barre ; P50, P85 et P95 marqués par un trait et leur libellé) ;
   - **Combien d'ici…** : sélecteur de date, réponse en percentiles ;
+  - **Fin par tâche** (#232, `previsions-taches.md` § Étape B) : la fin
+    probable de chaque tâche du périmètre (P50 et P85) et sa marge avant
+    l'échéance ;
   - **Échéances** : liste des tâches à échéance, triées par probabilité
     croissante, avec « 62 % · en danger » (contour + icône sous le seuil) ;
   - **Criticité** : les 10 tâches les plus souvent en retard ;
@@ -254,7 +257,8 @@ une ».
   ensemble, puis ids) et `mostLikelyLateSet`, `expectedLate`,
   `allOnTimeProbability`, `finishedBy(date)` (« au moins X tâches » : fins
   par tâche gardées en `ForecastSamples`, plafonnées à 16 M valeurs, au-delà
-  `null`), `mostCritical(10)`, `reliable`, graine, tirages demandés et faits,
+  `null`), `taskFinish(id)` et `taskFinishes()` (fin par tâche, mêmes
+  tirages gardés à la place de chaque tâche : `endsByTask`), `mostCritical(10)`, `reliable`, graine, tirages demandés et faits,
   `interrupted`, source. Modèle par débit : les agrégats par tâche sont
   vides (et `expectedLate`, `allOnTimeProbability` neutres, à ne pas
   afficher).

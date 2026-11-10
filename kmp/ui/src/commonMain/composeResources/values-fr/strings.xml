@@ -1936,4 +1936,11 @@
     <string name="card_gtd_body">Kairos suit GTD : capturer, clarifier, organiser, faire le point, faire. Chaque écran dit de quelle étape il s’agit, et « La méthode GTD » sur Notes les explique, avec ce que Kairos fait autrement.</string>
     <string name="learning_model_coverage">Fourchette vérifiée sur tes %1$d dernières tâches : %2$d dedans avant ajustement ; ajustée pour en contenir 8 sur 10.</string>
     <string name="learning_model_coverage_pending">Fourchette pas encore vérifiée : %1$d tâches comparables sur %2$d nécessaires.</string>
+    <string name="forecast_task_finish_title">Fin par tâche</string>
+    <string name="forecast_task_finish_hint">Fin probable de chaque tâche, les plus tardives d’abord : une fois sur deux avant la première date, 85 fois sur 100 avant la seconde.</string>
+    <string name="forecast_task_finish_range">Entre le %1$s et le %2$s</string>
+    <string name="forecast_task_finish_single">Le %1$s</string>
+    <string name="forecast_task_finish_out">Hors horizon</string>
+    <string name="forecast_task_finish_margin">marge : %1$d j</string>
+    <string name="forecast_task_finish_late">dépasse de %1$d j</string>
 </resources>

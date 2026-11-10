@@ -1933,4 +1933,11 @@
     <string name="card_gtd_body">Kairos sigue GTD: capturar, aclarar, organizar, revisar, hacer. Cada pantalla dice qué paso es, y «El método GTD» en Notas los explica, con lo que Kairos hace distinto.</string>
     <string name="learning_model_coverage">Intervalo comprobado con tus últimas %1$d tareas: %2$d dentro antes del ajuste; ajustado para contener 8 de cada 10.</string>
     <string name="learning_model_coverage_pending">Intervalo aún no comprobado: %1$d tareas comparables de %2$d necesarias.</string>
+    <string name="forecast_task_finish_title">Fin por tarea</string>
+    <string name="forecast_task_finish_hint">Fin probable de cada tarea, las más tardías primero: una de cada dos veces antes de la primera fecha, 85 de cada 100 antes de la segunda.</string>
+    <string name="forecast_task_finish_range">Entre el %1$s y el %2$s</string>
+    <string name="forecast_task_finish_single">El %1$s</string>
+    <string name="forecast_task_finish_out">Fuera del horizonte</string>
+    <string name="forecast_task_finish_margin">margen: %1$d d</string>
+    <string name="forecast_task_finish_late">%1$d d de retraso</string>
 </resources>

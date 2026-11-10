@@ -99,7 +99,28 @@ Fichiers : `core/engine/model/ModelGate.kt`, `ModelEstimator.kt`, `ModelParams.k
   × 1,5 76 → 78 % ; intact 86 → 81 %. L'intervalle d'origine varie de 10 points selon le régime, le vérifié de 3
   (`IntervalCalibrationTest.coverageStaysNearEightyPercentWhateverTheRegime`, bande 75-85 %).
 
-### Étape B : date de fin d'une tâche d'équipe (non implémentée)
+### Étape B : date de fin d'une tâche d'équipe (livrée le 2026-11-11)
+
+Fichiers : `core/team/forecast/ForecastResult.kt` (`TaskFinish`, `taskFinish`, `taskFinishes`), `EffortModel.kt`,
+`ForecastAccumulator.kt` (`DrawBatch.endsByTask`), `MonteCarlo.kt` (`Setup.scopeIds`),
+`ui/team/forecast/ForecastPanels.kt` (`TaskFinishPanel`), `ForecastScreen.kt`. Tests : `TaskFinishTest` (`core`),
+`ForecastUiTest` (`desktopApp`).
+
+- **Aucun tirage de plus** : le modèle par effort calculait déjà la fin de chaque tâche dans chaque tirage, puis la
+  triait dans le tirage (pour « Combien d'ici… »), ce qui perdait l'identité de la tâche. Il garde en plus la même
+  ligne **avant le tri**, à la place de chaque tâche (`DrawBatch.endsByTask`, `ForecastSamples.endsByTask` et
+  `scopeIds`), sous le même plafond `MAX_KEPT_TASK_ENDS` ; la mémoire des fins par tâche double (2 Mo de plus pour
+  5 000 tirages × 200 tâches).
+- `ForecastResult.taskFinish(id)` : `TaskFinish(taskId, p50, p85, marginDays)`, rang le plus proche sur les fins de
+  cette tâche ; date nulle = hors horizon ; `marginDays` = jours du P85 à l'échéance (négatif : dépassée 85 fois sur
+  100), nul sans échéance. `null` hors périmètre, pour le modèle par débit, ou si les fins ne sont pas gardées.
+  `taskFinishes()` : toutes, les plus tardives d'abord (hors horizon, puis P85, P50, identifiant).
+- **Panneau « Fin par tâche »**, avant « Échéances » (modèle par effort seulement) : pour chaque tâche « Entre le 12 oct.
+  et le 16 oct. » (« Le 12 oct. » si les deux percentiles coïncident, « Hors horizon »), et à droite la marge
+  (« marge : 3 j », ou « dépasse de 2 j » en contour + icône) ; 8 lignes puis « Afficher les n autres ».
+- Critères : chaque tâche a P50 ≤ P85 ≤ ceux du périmètre et une tâche au moins porte le P85 du périmètre ; marge ≥ 0
+  si et seulement si au moins ⌈0,85 n⌉ tirages tiennent l'échéance ; sans aléa les deux dates coïncident ; même résultat
+  en une ou quatre tranches, dans n'importe quel ordre (`TaskFinishTest`).
 
 ### Étape C : file solo, semaine réaliste (non implémentée)
 
@@ -125,10 +146,13 @@ Fichiers : `core/engine/model/ModelGate.kt`, `ModelEstimator.kt`, `ModelParams.k
   quand l'intervalle était trop large (86 → 81 %).
 - **Décision rouverte** (`estimateur-modele.md` § Prévisions, « séries et titres non rouverts ») : une série de trois
   occurrences à 30, 30 et 35 min n'a pas à recevoir l'écart générique de l'équipe (× 0,2 à × 5).
+- **La marge plutôt que « à commencer avant le… »** (étape B) : la date de début au plus tard supposerait de décaler
+  tout le plan ; la marge (échéance − P85) est ce que la simulation mesure vraiment.
+- **Fins par tâche en double plutôt que dé-triées** : `ScenarioPropertyTest` s'appuie sur les fins triées par tirage
+  (statistiques d'ordre) ; les garder et ajouter la ligne non triée ne change aucun résultat existant.
 - **P50 et P85 seulement, en « fois sur »** : pas de P95 ni de pourcentage à l'unité en solo.
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 
-- `equipe-simulation.md` : fins par tâche gardées non triées, date par tâche.
 - `vue-semaine.md`, `vue-jour.md`, `temps-reel-chrono.md`, `reglages.md`, `i18n.md`, `architecture.md`,
   `docs/spec/README.md` (index), `FeatureCatalog`, README (FR, EN).

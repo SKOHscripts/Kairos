@@ -88,6 +88,8 @@ class MonteCarlo private constructor(
         val toQualify: Int,
         /** Tâches du périmètre dont l'effort vient du modèle (tirées dans leur propre intervalle). */
         val modelEstimated: Int = 0,
+        /** Identifiants des tâches du périmètre, dans l'ordre des fins par tâche. */
+        val scopeIds: LongArray = LongArray(0),
     )
 
     val model: ForecastModel get() = setup.model
@@ -223,6 +225,7 @@ class MonteCarlo private constructor(
                 taskLevel = effort,
                 toQualify = toQualify,
                 modelEstimated = if (effort) scoped.count { it.id in learned.spreads } else 0,
+                scopeIds = scopeIds,
             )
             val engine: DrawEngine = if (effort) {
                 EffortModel(
