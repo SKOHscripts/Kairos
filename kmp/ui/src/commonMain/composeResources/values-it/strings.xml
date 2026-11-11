@@ -2033,4 +2033,6 @@
     <string name="model_contested">Il modello contesta %1$d durata/e inserita/e.</string>
     <string name="card_model_review_title">Cosa impara Kairos</string>
     <string name="card_model_review_body">Nel Bilancio, una scheda mostra a che punto è il modello che stima le tue durate: attività apprese, errore rispetto alla durata predefinita, intervallo rispettato e la sua convergenza settimana dopo settimana.</string>
+    <string name="card_lingering_title">Ciò che resta fermo</string>
+    <string name="card_lingering_body">Un’attività senza data risale da sola: dopo 30 giorni conta come se fosse in scadenza. Nel Bilancio, il backlog senza data mostra prima le più vecchie, segnala quelle ferme da tempo e un tocco ne programma una.</string>
 </resources>

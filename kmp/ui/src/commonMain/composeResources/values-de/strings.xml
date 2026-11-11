@@ -2033,4 +2033,6 @@
     <string name="model_contested">Das Modell bezweifelt %1$d eingegebene Dauer(n).</string>
     <string name="card_model_review_title">Was Kairos lernt</string>
     <string name="card_model_review_body">In der Bilanz zeigt eine Karte, wo das Modell steht, das deine Dauern schätzt: gelernte Aufgaben, Fehler gegenüber der Standarddauer, eingehaltene Spanne und seine Konvergenz Woche für Woche.</string>
+    <string name="card_lingering_title">Was liegen bleibt</string>
+    <string name="card_lingering_body">Eine Aufgabe ohne Datum steigt von selbst: Nach 30 Tagen zählt sie, als wäre sie fällig. In der Bilanz zeigt der Backlog ohne Datum die ältesten zuerst, markiert die brachliegenden, und ein Tippen plant eine ein.</string>
 </resources>

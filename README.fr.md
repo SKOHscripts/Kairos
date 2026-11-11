@@ -406,6 +406,12 @@ son estimation vient des seules tâches d’équipe terminées.
   reconstruit tel qu’il était à chaque date. Elle dit aussi comment tes
   estimations ont tenu sur la période et quelles durées saisies le modèle
   conteste.
+- **Ce qui traîne** : une tâche sans date ne s’enfonce plus pour toujours sous
+  les tâches datées : 30 jours après sa création, elle compte comme si elle
+  était due (une échéance implicite, pour son score seulement, jamais « en
+  retard » ; réglable, 0 la coupe). Dans l’onglet Bilan, la liste « Backlog,
+  sans date » met les plus anciennes d’abord, compte et signale celles qui
+  traînent, et un toucher en programme une, aujourd’hui compris.
 - **Jours ouvrés et fériés** : calendrier français intégré, dates
   supplémentaires dans les Réglages.
 
@@ -731,6 +737,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Chronos à vérifier | 4.1.0 | Toutes |
 | Suivre | Bilan de la semaine et du mois | 4.1.0 | Toutes |
 | Suivre | Ce que Kairos apprend | 4.1.0 | Toutes |
+| Suivre | Ce qui traîne | 4.1.0 | Toutes |
 | Suivre | Quand tu travailles chaque type | 3.5.0 | Toutes |
 | Suivre | Tes heures les plus efficaces | 3.9.0 | Toutes |
 | Suivre | Ta journée sur l’écran d’accueil | 3.12.0 | Android |

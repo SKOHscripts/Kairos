@@ -2033,4 +2033,6 @@
     <string name="model_contested">El modelo discute %1$d duración(es) introducida(s).</string>
     <string name="card_model_review_title">Lo que aprende Kairos</string>
     <string name="card_model_review_body">En el Balance, una tarjeta muestra dónde está el modelo que estima tus duraciones: tareas aprendidas, error frente a la duración por defecto, rango cumplido y su convergencia semana a semana.</string>
+    <string name="card_lingering_title">Lo que se queda pendiente</string>
+    <string name="card_lingering_body">Una tarea sin fecha sube sola: a los 30 días cuenta como si venciera. En el Balance, el backlog sin fecha muestra primero las más antiguas, marca las pendientes desde hace mucho y un toque programa una.</string>
 </resources>

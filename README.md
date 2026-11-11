@@ -383,6 +383,12 @@ only.
   converged week after week, rebuilt as it was at each date. It also says how
   your estimates held over the period and which typed durations the model
   disputes.
+- **What lingers**: a task with no date no longer sinks for good under the
+  dated ones: 30 days after its creation it counts as if it were due (an
+  implicit deadline, for its score only, never “overdue”; adjustable, 0 turns
+  it off). In the Recap tab, the “Backlog, no date” list puts the oldest first,
+  counts and marks the tasks that linger, and a tap schedules one, today
+  included.
 - **Working days and holidays**: built-in French calendar, with extra dates
   in Settings.
 
@@ -683,6 +689,7 @@ version that brought it and the platforms it exists on.
 | Follow | Timers to check | 4.1.0 | All |
 | Follow | Week and month recap | 4.1.0 | All |
 | Follow | What Kairos learns | 4.1.0 | All |
+| Follow | What lingers | 4.1.0 | All |
 | Follow | When you work on each type | 3.5.0 | All |
 | Follow | Your most efficient hours | 3.9.0 | All |
 | Follow | Your day on the home screen | 3.12.0 | Android |
