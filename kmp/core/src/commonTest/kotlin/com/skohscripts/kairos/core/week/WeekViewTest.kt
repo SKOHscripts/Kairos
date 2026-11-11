@@ -86,8 +86,6 @@ class WeekViewTest {
         assertEquals(listOf(5L), wednesday.done.map { it.id })
         assertEquals(listOf("Point", "Déjeuner"), wednesday.blocks.map { it.title })
         assertEquals(emptyList(), week.days[5].blocks) // samedi : pas de déjeuner « jours ouvrés »
-        assertEquals(90, week.spentMinutes)
-        assertEquals(emptyMap(), week.spentByType)
         assertEquals(listOf(1L), WeekView.build(snapshot, wed, t0, TimeZone.UTC, DayFilter(priority = 2)).days[2].tasks.map { it.id })
     }
 

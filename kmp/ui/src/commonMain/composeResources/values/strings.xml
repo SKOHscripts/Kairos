@@ -416,7 +416,6 @@
     <string name="week_prev">Previous week</string>
     <string name="week_next">Next week</string>
     <string name="week_title">Week of %1$s</string>
-    <string name="week_spent">Real time this week: %1$s</string>
     <string name="week_see_day">See the day</string>
     <string name="week_nothing">—</string>
     <string name="week_block">%1$s (%2$s-%3$s)</string>
@@ -1964,4 +1963,25 @@
     <string name="whatif_unavailable">Not enough tracked time yet to tell: it takes some in 4 of your last 8 weeks.</string>
     <string name="card_suspect_timers_title">Timers to check</string>
     <string name="card_suspect_timers_body">A forgotten timer skews everything that learns from your real time. In Stats, “Timers to check…” lists the sessions far longer than their task usually takes and offers to bring them back to the usual duration. Nothing is fixed without your say, and “Undo” restores the previous durations.</string>
+    <string name="recap_title_week">Week recap</string>
+    <string name="recap_title_month">Month recap</string>
+    <string name="recap_hint">What happened over the period, to read out or paste into a meeting.</string>
+    <string name="recap_empty">Nothing done or timed over this period.</string>
+    <string name="recap_kpi_done">task(s) done</string>
+    <string name="recap_kpi_tracked">time tracked</string>
+    <string name="recap_kpi_slots">in meetings or time slots</string>
+    <string name="recap_kpi_left">due, not done yet</string>
+    <string name="recap_detail">Details</string>
+    <string name="recap_copy">Copy the recap</string>
+    <string name="recap_copied">Recap copied.</string>
+    <string name="recap_done">Done</string>
+    <string name="recap_advanced">Worked on, not finished</string>
+    <string name="recap_slots">Meetings and time slots</string>
+    <string name="recap_left">Left</string>
+    <string name="recap_by_type">Where the time went</string>
+    <string name="recap_slot_line">%1$s ×%2$d</string>
+    <string name="recap_text_title">Recap · %1$s</string>
+    <string name="recap_text_tracked">Time tracked: %1$s</string>
+    <string name="card_recap_title">Week and month recap</string>
+    <string name="card_recap_body">In the Week and Month views, the “Recap” card sums up the period: tasks done and their time, what moved forward, meetings and time slots, what is still due. “Copy the recap” puts it on the clipboard as text, ready for the weekly meeting.</string>
 </resources>

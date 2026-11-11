@@ -415,7 +415,6 @@
     <string name="week_prev">Settimana precedente</string>
     <string name="week_next">Settimana successiva</string>
     <string name="week_title">Settimana del %1$s</string>
-    <string name="week_spent">Tempo reale questa settimana: %1$s</string>
     <string name="week_see_day">Vedi il giorno</string>
     <string name="week_nothing">—</string>
     <string name="week_block">%1$s (%2$s-%3$s)</string>
@@ -1963,4 +1962,25 @@
     <string name="whatif_unavailable">Non c’è ancora abbastanza tempo cronometrato per dirlo: ne serve in 4 delle tue ultime 8 settimane.</string>
     <string name="card_suspect_timers_title">Cronometri da verificare</string>
     <string name="card_suspect_timers_body">Un cronometro dimenticato falsa tutto ciò che impara dal tuo tempo reale. Nelle Statistiche, «Cronometri da verificare…» elenca le sessioni molto più lunghe di quanto la loro attività richiede di solito e propone di riportarle alla durata abituale. Nulla viene corretto senza il tuo consenso, e «Annulla» ripristina le durate precedenti.</string>
+    <string name="recap_title_week">Bilancio della settimana</string>
+    <string name="recap_title_month">Bilancio del mese</string>
+    <string name="recap_hint">Cosa è successo nel periodo, da leggere o incollare in riunione.</string>
+    <string name="recap_empty">Niente di fatto né cronometrato in questo periodo.</string>
+    <string name="recap_kpi_done">attività completate</string>
+    <string name="recap_kpi_tracked">tempo cronometrato</string>
+    <string name="recap_kpi_slots">in riunioni o fasce orarie</string>
+    <string name="recap_kpi_left">in scadenza, non ancora fatte</string>
+    <string name="recap_detail">Dettaglio</string>
+    <string name="recap_copy">Copia il bilancio</string>
+    <string name="recap_copied">Bilancio copiato.</string>
+    <string name="recap_done">Fatto</string>
+    <string name="recap_advanced">Avviato, non finito</string>
+    <string name="recap_slots">Riunioni e fasce orarie</string>
+    <string name="recap_left">Resta</string>
+    <string name="recap_by_type">Dove è andato il tempo</string>
+    <string name="recap_slot_line">%1$s ×%2$d</string>
+    <string name="recap_text_title">Bilancio · %1$s</string>
+    <string name="recap_text_tracked">Tempo cronometrato: %1$s</string>
+    <string name="card_recap_title">Bilancio della settimana e del mese</string>
+    <string name="card_recap_body">Nelle viste Settimana e Mese, la scheda «Bilancio» riassume il periodo: attività completate e il loro tempo, ciò che è avanzato, riunioni e fasce orarie, ciò che resta in scadenza. «Copia il bilancio» lo mette come testo negli appunti, pronto per la riunione settimanale.</string>
 </resources>

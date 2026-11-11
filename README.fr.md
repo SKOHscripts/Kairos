@@ -392,6 +392,12 @@ son estimation vient des seules tâches d’équipe terminées.
   au moins une heure de plus) et propose de les ramener à la durée
   habituelle ; rien n’est coché d’office, et « Annuler » rend les durées
   d’avant.
+- **Bilan de la semaine et du mois** : dans les vues Semaine et Mois, la carte
+  « Bilan » résume la période en quatre chiffres (tâches faites, temps
+  chronométré, temps en réunion, ce qui reste à échéance) ; « Détail » liste
+  ce qui a été fait avec son temps, ce qui a avancé, les réunions et créneaux
+  regroupés par titre, et ce qui reste. « Copier le bilan » le met en texte
+  dans le presse-papiers, prêt pour la réunion hebdomadaire.
 - **Jours ouvrés et fériés** : calendrier français intégré, dates
   supplémentaires dans les Réglages.
 
@@ -712,6 +718,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Estimation par machine learning | 4.0.0 | Toutes |
 | Suivre | Fin probable d’une tâche | 4.1.0 | Toutes |
 | Suivre | Chronos à vérifier | 4.1.0 | Toutes |
+| Suivre | Bilan de la semaine et du mois | 4.1.0 | Toutes |
 | Suivre | Quand tu travailles chaque type | 3.5.0 | Toutes |
 | Suivre | Tes heures les plus efficaces | 3.9.0 | Toutes |
 | Suivre | Ta journée sur l’écran d’accueil | 3.12.0 | Android |

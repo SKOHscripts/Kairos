@@ -415,7 +415,6 @@
     <string name="week_prev">Предыдущая неделя</string>
     <string name="week_next">Следующая неделя</string>
     <string name="week_title">Неделя с %1$s</string>
-    <string name="week_spent">Реальное время за неделю: %1$s</string>
     <string name="week_see_day">Открыть день</string>
     <string name="week_nothing">—</string>
     <string name="week_block">%1$s (%2$s-%3$s)</string>
@@ -1963,4 +1962,25 @@
     <string name="whatif_unavailable">Пока недостаточно времени по таймеру, чтобы ответить: оно нужно в 4 из последних 8 недель.</string>
     <string name="card_suspect_timers_title">Проверка таймеров</string>
     <string name="card_suspect_timers_body">Забытый таймер искажает всё, что учится на вашем реальном времени. В статистике «Проверить таймеры…» показывает сеансы намного длиннее обычного для их задачи и предлагает сократить их до обычной длительности. Ничего не исправляется без вашего согласия, а «Отменить» возвращает прежние длительности.</string>
+    <string name="recap_title_week">Итоги недели</string>
+    <string name="recap_title_month">Итоги месяца</string>
+    <string name="recap_hint">Что произошло за период: прочитать или вставить на встрече.</string>
+    <string name="recap_empty">За этот период ничего не сделано и не засечено.</string>
+    <string name="recap_kpi_done">задач завершено</string>
+    <string name="recap_kpi_tracked">время по таймеру</string>
+    <string name="recap_kpi_slots">на встречах и в интервалах</string>
+    <string name="recap_kpi_left">со сроком, еще не сделано</string>
+    <string name="recap_detail">Подробнее</string>
+    <string name="recap_copy">Скопировать итоги</string>
+    <string name="recap_copied">Итоги скопированы.</string>
+    <string name="recap_done">Сделано</string>
+    <string name="recap_advanced">В работе, не закончено</string>
+    <string name="recap_slots">Встречи и интервалы</string>
+    <string name="recap_left">Осталось</string>
+    <string name="recap_by_type">Куда ушло время</string>
+    <string name="recap_slot_line">%1$s ×%2$d</string>
+    <string name="recap_text_title">Итоги · %1$s</string>
+    <string name="recap_text_tracked">Время по таймеру: %1$s</string>
+    <string name="card_recap_title">Итоги недели и месяца</string>
+    <string name="card_recap_body">В видах «Неделя» и «Месяц» карточка «Итоги» подводит итог периода: завершенные задачи и их время, что продвинулось, встречи и интервалы, что осталось со сроком. «Скопировать итоги» кладет их текстом в буфер обмена, готово для еженедельной встречи.</string>
 </resources>

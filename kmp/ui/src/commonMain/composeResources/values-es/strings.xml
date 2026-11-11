@@ -415,7 +415,6 @@
     <string name="week_prev">Semana anterior</string>
     <string name="week_next">Semana siguiente</string>
     <string name="week_title">Semana del %1$s</string>
-    <string name="week_spent">Tiempo real esta semana: %1$s</string>
     <string name="week_see_day">Ver el día</string>
     <string name="week_nothing">—</string>
     <string name="week_block">%1$s (%2$s-%3$s)</string>
@@ -1963,4 +1962,25 @@
     <string name="whatif_unavailable">Aún no hay suficiente tiempo cronometrado para decirlo: hace falta en 4 de tus últimas 8 semanas.</string>
     <string name="card_suspect_timers_title">Cronómetros por revisar</string>
     <string name="card_suspect_timers_body">Un cronómetro olvidado falsea todo lo que aprende de tu tiempo real. En Estadísticas, «Cronómetros por revisar…» lista las sesiones mucho más largas de lo que su tarea suele llevar y propone devolverlas a la duración habitual. Nada se corrige sin tu acuerdo, y «Deshacer» devuelve las duraciones anteriores.</string>
+    <string name="recap_title_week">Balance de la semana</string>
+    <string name="recap_title_month">Balance del mes</string>
+    <string name="recap_hint">Lo que pasó en el periodo, para leer o pegar en una reunión.</string>
+    <string name="recap_empty">Nada hecho ni cronometrado en este periodo.</string>
+    <string name="recap_kpi_done">tarea(s) hecha(s)</string>
+    <string name="recap_kpi_tracked">tiempo cronometrado</string>
+    <string name="recap_kpi_slots">en reuniones o franjas</string>
+    <string name="recap_kpi_left">con plazo, aún sin hacer</string>
+    <string name="recap_detail">Detalle</string>
+    <string name="recap_copy">Copiar el balance</string>
+    <string name="recap_copied">Balance copiado.</string>
+    <string name="recap_done">Hecho</string>
+    <string name="recap_advanced">Avanzado, sin terminar</string>
+    <string name="recap_slots">Reuniones y franjas</string>
+    <string name="recap_left">Pendiente</string>
+    <string name="recap_by_type">Adónde fue el tiempo</string>
+    <string name="recap_slot_line">%1$s ×%2$d</string>
+    <string name="recap_text_title">Balance · %1$s</string>
+    <string name="recap_text_tracked">Tiempo cronometrado: %1$s</string>
+    <string name="card_recap_title">Balance de la semana y del mes</string>
+    <string name="card_recap_body">En las vistas Semana y Mes, la tarjeta «Balance» resume el periodo: tareas hechas y su tiempo, lo que avanzó, reuniones y franjas, lo que sigue con plazo. «Copiar el balance» lo pone como texto en el portapapeles, listo para la reunión semanal.</string>
 </resources>

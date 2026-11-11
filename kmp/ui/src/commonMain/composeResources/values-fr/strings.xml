@@ -417,7 +417,6 @@
     <string name="week_prev">Semaine précédente</string>
     <string name="week_next">Semaine suivante</string>
     <string name="week_title">Semaine du %1$s</string>
-    <string name="week_spent">Temps réel cette semaine : %1$s</string>
     <string name="week_see_day">Voir le jour</string>
     <string name="week_nothing">—</string>
     <string name="week_block">%1$s (%2$s-%3$s)</string>
@@ -1966,4 +1965,25 @@
     <string name="whatif_unavailable">Pas encore assez de temps chronométré pour le dire : il en faut sur 4 de tes 8 dernières semaines.</string>
     <string name="card_suspect_timers_title">Chronos à vérifier</string>
     <string name="card_suspect_timers_body">Un chrono oublié fausse tout ce qui apprend de ton temps réel. Dans les Stats, « Chronos à vérifier… » liste les sessions bien plus longues que ce que leur tâche prend d’habitude et propose de les ramener à la durée habituelle. Rien n’est corrigé sans ton accord, et « Annuler » rend les durées d’avant.</string>
+    <string name="recap_title_week">Bilan de la semaine</string>
+    <string name="recap_title_month">Bilan du mois</string>
+    <string name="recap_hint">Ce qui s’est passé sur la période, à lire ou à coller en réunion.</string>
+    <string name="recap_empty">Rien de fait ni de chronométré sur cette période.</string>
+    <string name="recap_kpi_done">tâche(s) faite(s)</string>
+    <string name="recap_kpi_tracked">temps chronométré</string>
+    <string name="recap_kpi_slots">en réunion ou créneau</string>
+    <string name="recap_kpi_left">à échéance, pas encore faite(s)</string>
+    <string name="recap_detail">Détail</string>
+    <string name="recap_copy">Copier le bilan</string>
+    <string name="recap_copied">Bilan copié.</string>
+    <string name="recap_done">Fait</string>
+    <string name="recap_advanced">Avancé, pas fini</string>
+    <string name="recap_slots">Réunions et créneaux</string>
+    <string name="recap_left">Reste</string>
+    <string name="recap_by_type">Où est passé le temps</string>
+    <string name="recap_slot_line">%1$s ×%2$d</string>
+    <string name="recap_text_title">Bilan · %1$s</string>
+    <string name="recap_text_tracked">Temps chronométré : %1$s</string>
+    <string name="card_recap_title">Bilan de la semaine et du mois</string>
+    <string name="card_recap_body">Dans les vues Semaine et Mois, la carte « Bilan » résume la période : tâches faites et leur temps, ce qui a avancé, réunions et créneaux, ce qui reste à échéance. « Copier le bilan » le met en texte dans le presse-papiers, prêt pour la réunion hebdomadaire.</string>
 </resources>

@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
@@ -126,8 +127,8 @@ class M4ScreensUiTest {
 
         // Semaine suivante puis précédente : le titre suit.
         onAllNodesWithText("Week").onFirst().performClick()
-        waitText("Next week")
-        onNodeWithText("Next week").performClick()
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithContentDescription("Next week").fetchSemanticsNodes().isNotEmpty() }
+        onNodeWithContentDescription("Next week").performClick()
         waitText("Week · from Monday, October 5, 2026")
     }
 

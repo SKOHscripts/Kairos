@@ -415,7 +415,6 @@
     <string name="week_prev">Vorherige Woche</string>
     <string name="week_next">Nächste Woche</string>
     <string name="week_title">Woche vom %1$s</string>
-    <string name="week_spent">Echtzeit diese Woche: %1$s</string>
     <string name="week_see_day">Tag ansehen</string>
     <string name="week_nothing">—</string>
     <string name="week_block">%1$s (%2$s-%3$s)</string>
@@ -1963,4 +1962,25 @@
     <string name="whatif_unavailable">Noch nicht genug erfasste Zeit, um das zu sagen: nötig ist welche in 4 deiner letzten 8 Wochen.</string>
     <string name="card_suspect_timers_title">Timer prüfen</string>
     <string name="card_suspect_timers_body">Ein vergessener Timer verfälscht alles, was aus deiner echten Zeit lernt. In den Statistiken listet „Timer prüfen…“ die Sitzungen auf, die viel länger dauerten, als ihre Aufgabe sonst braucht, und bietet an, sie auf die übliche Dauer zu kürzen. Nichts wird ohne deine Zustimmung korrigiert, und „Rückgängig“ stellt die vorherigen Dauern wieder her.</string>
+    <string name="recap_title_week">Wochenbilanz</string>
+    <string name="recap_title_month">Monatsbilanz</string>
+    <string name="recap_hint">Was im Zeitraum passiert ist, zum Vorlesen oder Einfügen im Meeting.</string>
+    <string name="recap_empty">In diesem Zeitraum nichts erledigt und nichts erfasst.</string>
+    <string name="recap_kpi_done">Aufgabe(n) erledigt</string>
+    <string name="recap_kpi_tracked">erfasste Zeit</string>
+    <string name="recap_kpi_slots">in Meetings oder Zeitfenstern</string>
+    <string name="recap_kpi_left">fällig, noch nicht erledigt</string>
+    <string name="recap_detail">Details</string>
+    <string name="recap_copy">Bilanz kopieren</string>
+    <string name="recap_copied">Bilanz kopiert.</string>
+    <string name="recap_done">Erledigt</string>
+    <string name="recap_advanced">Bearbeitet, nicht fertig</string>
+    <string name="recap_slots">Meetings und Zeitfenster</string>
+    <string name="recap_left">Offen</string>
+    <string name="recap_by_type">Wohin die Zeit ging</string>
+    <string name="recap_slot_line">%1$s ×%2$d</string>
+    <string name="recap_text_title">Bilanz · %1$s</string>
+    <string name="recap_text_tracked">Erfasste Zeit: %1$s</string>
+    <string name="card_recap_title">Wochen- und Monatsbilanz</string>
+    <string name="card_recap_body">In der Wochen- und Monatsansicht fasst die Karte „Bilanz“ den Zeitraum zusammen: erledigte Aufgaben und ihre Zeit, was vorankam, Meetings und Zeitfenster, was noch fällig ist. „Bilanz kopieren“ legt sie als Text in die Zwischenablage, bereit für das Wochenmeeting.</string>
 </resources>

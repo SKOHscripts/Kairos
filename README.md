@@ -369,6 +369,12 @@ only.
   longer than their task usually takes (more than three times, and at least an
   hour more) and offers to bring them back to the usual duration; nothing is
   ticked for you, and “Undo” restores the previous durations.
+- **Week and month recap**: in the Week and Month views, the “Recap” card sums
+  up the period in four figures (tasks done, time tracked, time in meetings,
+  what is still due); “Details” lists what was done with its time, what moved
+  forward, meetings and time slots grouped by title, and what is left. “Copy
+  the recap” puts it on the clipboard as plain text, ready for the weekly
+  meeting.
 - **Working days and holidays**: built-in French calendar, with extra dates
   in Settings.
 
@@ -665,6 +671,7 @@ version that brought it and the platforms it exists on.
 | Follow | Machine-learning estimates | 4.0.0 | All |
 | Follow | Likely finish date | 4.1.0 | All |
 | Follow | Timers to check | 4.1.0 | All |
+| Follow | Week and month recap | 4.1.0 | All |
 | Follow | When you work on each type | 3.5.0 | All |
 | Follow | Your most efficient hours | 3.9.0 | All |
 | Follow | Your day on the home screen | 3.12.0 | Android |
