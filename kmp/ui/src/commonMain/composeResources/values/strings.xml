@@ -286,6 +286,7 @@
     <string name="backlog_hint">Tasks with neither a deadline nor a scheduled date: they fill the gaps of the schedule by score, but no day of the week view shows them. Give them a deadline or a scheduled date to tie them to a day.</string>
     <string name="backlog_title_lingering">Backlog, no date (%1$d) · lingering: %2$d</string>
     <string name="backlog_implicit_hint">After %1$d d without a date, a task rises as if it were due: the lingering ones are past that. Tap a task to schedule it.</string>
+    <string name="backlog_implicit_hint_learned">After %1$d d without a date, a task is older than 4 of your 5 undated tasks once done: it rises as if it were due. Tap a task to schedule it.</string>
     <string name="filter_title">Search / filter</string>
     <string name="filter_active">filter on</string>
     <string name="filter_search">Search</string>

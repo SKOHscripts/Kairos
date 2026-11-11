@@ -285,6 +285,7 @@
     <string name="backlog_hint">Tareas sin fecha límite ni fecha programada: rellenan los huecos de la agenda según su puntuación, pero ningún día de la vista semanal las muestra. Asígnales una fecha límite o una fecha programada para vincularlas a un día.</string>
     <string name="backlog_title_lingering">Backlog, sin fecha (%1$d) · pendientes desde hace mucho: %2$d</string>
     <string name="backlog_implicit_hint">Tras %1$d d sin fecha, una tarea sube como si venciera: las pendientes desde hace mucho lo han superado. Toca una tarea para programarla.</string>
+    <string name="backlog_implicit_hint_learned">Tras %1$d d sin fecha, una tarea es más antigua que 4 de cada 5 de tus tareas sin fecha ya hechas: sube como si venciera. Toca una tarea para programarla.</string>
     <string name="filter_title">Buscar / filtrar</string>
     <string name="filter_active">filtro activo</string>
     <string name="filter_search">Búsqueda</string>

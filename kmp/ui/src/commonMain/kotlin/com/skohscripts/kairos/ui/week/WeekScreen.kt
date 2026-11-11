@@ -63,6 +63,7 @@ import com.skohscripts.kairos.ui.day.duration
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.backlog_hint
 import com.skohscripts.kairos.ui.generated.resources.backlog_implicit_hint
+import com.skohscripts.kairos.ui.generated.resources.backlog_implicit_hint_learned
 import com.skohscripts.kairos.ui.generated.resources.backlog_title_lingering
 import com.skohscripts.kairos.ui.generated.resources.tag_stale
 import com.skohscripts.kairos.ui.generated.resources.backlog_title
@@ -141,7 +142,8 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
     var filterOpen by remember { mutableStateOf(false) }
     var backlogOpen by remember { mutableStateOf(false) }
     val week = remember(snapshot, nav.week, filter, today) { WeekView.build(snapshot, nav.week ?: today, now, timeZone, filter) }
-    val backlog = remember(snapshot, filter, today) { DayView.build(snapshot, today, null, timeZone, filter, instant = now).backlog }
+    // Backlog et réglages du score (échéance implicite apprise du rythme, docs/spec/taches-qui-trainent.md).
+    val todayView = remember(snapshot, filter, today) { DayView.build(snapshot, today, null, timeZone, filter, instant = now) }
     val projects = remember(snapshot) { snapshot.tasks.map { it.projectTag }.filter { it.isNotEmpty() }.distinct().sorted() }
     val scope = rememberCoroutineScope()
     val undo = LocalUndoMessages.current
@@ -194,7 +196,7 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
             RecapCard(recap, stringResource(Res.string.recap_title_week), stringResource(Res.string.week_title, Dates.dayMonth(monday, language)), today, language, forecast)
             // Ce que le modèle apprend (docs/spec/bilan.md § Ce que Kairos apprend) : une carte à part, hors du bilan copié.
             ModelCard(services, stored, monday, sunday, today, language)
-            BacklogList(backlog, snapshot.settings, move, backlogOpen) { backlogOpen = !backlogOpen }
+            BacklogList(todayView.backlog, todayView.scoringSettings, todayView.implicitDeadlineLearned, move, backlogOpen) { backlogOpen = !backlogOpen }
             // Sept colonnes égales quand elles tiennent (140 dp chacune au moins), sinon autant de colonnes égales de
             // 160 dp au moins que la largeur en permet : les cartes remplissent la ligne, sans moitié droite vide.
             BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -249,7 +251,7 @@ internal fun WeekMonthSwitch(nav: NavState, today: LocalDate) {
  * tâche dont l'échéance implicite est atteinte porte « traîne depuis N j » ; toucher une tâche ouvre « Déplacer ».
  */
 @Composable
-private fun BacklogList(tasks: List<Task>, settings: Settings, move: MoveContext, open: Boolean, onToggle: () -> Unit) {
+private fun BacklogList(tasks: List<Task>, settings: Settings, learned: Boolean, move: MoveContext, open: Boolean, onToggle: () -> Unit) {
     val sorted = remember(tasks) { tasks.sortedBy { it.createdAt } }
     val lingering = sorted.count { Scheduling.isLingering(it, move.today, settings) }
     Column {
@@ -266,7 +268,7 @@ private fun BacklogList(tasks: List<Task>, settings: Settings, move: MoveContext
             Text(stringResource(Res.string.backlog_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (settings.implicitDeadlineDays > 0) {
                 Text(
-                    stringResource(Res.string.backlog_implicit_hint, settings.implicitDeadlineDays),
+                    stringResource(if (learned) Res.string.backlog_implicit_hint_learned else Res.string.backlog_implicit_hint, settings.implicitDeadlineDays),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),
