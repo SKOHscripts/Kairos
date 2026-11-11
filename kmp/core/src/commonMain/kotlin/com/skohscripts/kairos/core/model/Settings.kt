@@ -24,6 +24,8 @@ data class Settings(
     val priorityValueBase: Double = 4.0,
     val urgencyHorizonDays: Int = 14,
     val urgencyPeak: Double = 8.0,
+    /** Échéance implicite d'une tâche sans date, en jours après sa création ; 0 = coupée (docs/spec/taches-qui-trainent.md). */
+    val implicitDeadlineDays: Int = 30,
     val defaultFibonacciPoints: Int = 3,
     val cognitiveDipEnabled: Boolean = true,
     val cognitiveDipStartHour: Int = 13,

@@ -6,11 +6,15 @@ import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.model.TimeBlock
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
 import kotlinx.datetime.daysUntil
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import kotlin.math.pow
 
 /**
@@ -62,9 +66,22 @@ object Scheduling {
         return base.pow(PRIORITY_MAX - clamped)
     }
 
-    /** Rampe linéaire 0 → `urgencyPeak` vers la date la plus proche (échéance ou date programmée). */
+    /**
+     * Échéance implicite d'une tâche **sans aucune date** : création (date UTC, comme `Staleness`) + `implicitDeadlineDays`,
+     * `null` si le réglage vaut 0. Elle ne nourrit que la criticité, jamais le palier « en retard » : sinon toute vieille tâche
+     * passerait devant tout (docs/spec/taches-qui-trainent.md).
+     */
+    fun implicitDeadline(task: Task, settings: Settings): LocalDate? {
+        if (task.deadline != null || task.scheduledDate != null || settings.implicitDeadlineDays <= 0) return null
+        return task.createdAt.toLocalDateTime(TimeZone.UTC).date.plus(settings.implicitDeadlineDays, DateTimeUnit.DAY)
+    }
+
+    /** Traîne : sans date, et son échéance implicite est atteinte (revue du Bilan). */
+    fun isLingering(task: Task, day: LocalDate, settings: Settings): Boolean = implicitDeadline(task, settings)?.let { it <= day } == true
+
+    /** Rampe linéaire 0 → `urgencyPeak` vers la date la plus proche (échéance ou date programmée, sinon l'échéance implicite). */
     fun timeCriticality(task: Task, day: LocalDate, settings: Settings): Double {
-        val nearest = listOfNotNull(task.deadline, task.scheduledDate).minOrNull() ?: return 0.0
+        val nearest = listOfNotNull(task.deadline, task.scheduledDate).minOrNull() ?: implicitDeadline(task, settings) ?: return 0.0
         val horizon = settings.urgencyHorizonDays
         val peak = settings.urgencyPeak
         val daysUntil = day.daysUntil(nearest)
@@ -84,7 +101,7 @@ object Scheduling {
         return settings.defaultFibonacciPoints.toDouble() to EffortSource.DEFAULT
     }
 
-    enum class DateKind { DEADLINE, SCHEDULED }
+    enum class DateKind { DEADLINE, SCHEDULED, IMPLICIT }
 
     /** Les termes du score, pour « Pourquoi à cette place ? ». */
     data class WsjfBreakdown(
@@ -103,7 +120,7 @@ object Scheduling {
         val (effort, source) = effort(task, settings)
         // Échéance en premier : à date égale, c'est elle qui est citée (min stable de Python).
         val dated = listOfNotNull(task.deadline?.let { it to DateKind.DEADLINE }, task.scheduledDate?.let { it to DateKind.SCHEDULED })
-        val nearest = dated.minByOrNull { it.first }
+        val nearest = dated.minByOrNull { it.first } ?: implicitDeadline(task, settings)?.let { it to DateKind.IMPLICIT }
         return WsjfBreakdown(
             value = priorityValue(task.priority, settings),
             criticality = timeCriticality(task, day, settings),
