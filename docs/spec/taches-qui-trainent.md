@@ -36,7 +36,7 @@ correction groupée) sans avancer d'un pas.
   coupée, ≥ 0). Elle gagne donc de l'urgence comme une tâche datée : rien pendant les premiers jours, puis la même rampe
   (horizon d'urgence des réglages, 14 j par défaut) jusqu'au maximum à 30 j. Une tâche oubliée finit par revenir d'elle-même,
   à sa taille : à valeur égale, une grosse tâche reste derrière une petite.
-- **Apprise de ton rythme** (réglage « Apprendre l'échéance implicite de mon rythme », activé par défaut). 30 j est
+- **Apprise de ton rythme** (interrupteur « L'apprendre de mon rythme » sous la valeur réglée, activé par défaut). 30 j est
   arbitraire : Kairos le remplace par l'âge auquel **4 tâches sans date sur 5** que tu crées ont été faites (80ᵉ
   centile de leur durée de vie). Une tâche plus vieille que ça est dans le cinquième le plus lent : elle traîne. La
   valeur suit ton historique et change avec lui ; elle ne descend jamais sous l'horizon d'urgence (14 j par défaut),
@@ -44,6 +44,11 @@ correction groupée) sans avancer d'un pas.
   tâches perso, ou moins de 4 sur 5 jamais faites), la valeur réglée (30 j) sert. Les tâches encore ouvertes comptent :
   elles n'ont pas fini leur vie, elles ne sont pas ignorées. Espace Perso seulement : l'espace Équipe garde la valeur
   réglée.
+- **La valeur apprise est dite dans les Réglages**, sous l'interrupteur (Planification → « Avancé : comment les tâches
+  sont ordonnées » → Score de priorité) : « Apprise de ton rythme : 29 j. 4 de tes tâches sans date sur 5 sont faites
+  avant cet âge ; plus vieille, une tâche traîne. », ou, faute d'historique, « Pas encore assez d'historique pour
+  l'apprendre (30 tâches perso) : la valeur réglée, 30 j, s'applique. ». Rien quand l'apprentissage est coupé (le champ
+  dit la valeur) ou l'échéance à 0. Sans cela, le champ affiche 30 pendant que le score en utilise une autre.
 - **Jamais « en retard ».** L'échéance implicite ne fait pas passer la tâche dans le palier dur des retards, ne colore pas
   sa ligne, n'est affichée nulle part comme une date, et ne compte ni dans les vues Semaine et Mois, ni comme échéance
   dans les prévisions, ni dans « traîne » de la vue Jour : seul le score la voit. **L'ordre**, lui, change partout où le
@@ -81,6 +86,7 @@ correction groupée) sans avancer d'un pas.
   seules faites serait plus courte) ; repli sur toutes les tâches perso sous 30 tâches sans date, sur la valeur réglée
   sous 30 tâches ou si la part ouverte ne descend jamais à 1 sur 5 ; jamais sous l'horizon ; rien si l'apprentissage est
   coupé ou la valeur à 0 ; la vue Jour score avec la valeur apprise et le dit (`LingerDaysTest`).
+- Les Réglages disent la valeur apprise, ou le repli faute d'historique (`LingerSettingsUiTest`).
 - Les 480 scénarios d'or restent identiques, rejoués réglage coupé (`DifferentialTest`).
 - La revue montre le décompte, la pastille et l'ordre par âge ; toucher une tâche puis « aujourd'hui » la programme
   (`BacklogReviewUiTest`) ; textes dans les six langues (`StringsParityTest`) ; carte, puce et ligne du README
@@ -96,7 +102,6 @@ correction groupée) sans avancer d'un pas.
 - La vue Mois : elle sert à planifier ; la revue est dans la vue Semaine, avec l'ancienne liste.
 - L'espace Équipe : le manager voit son backlog entier, trié par score, et l'échéance implicite y joue avec la valeur
   réglée ; l'apprendre du rythme de l'équipe demanderait sa propre mesure (tâches d'équipe, plusieurs personnes).
-- Afficher la valeur apprise dans les Réglages : la revue la dit, là où elle sert.
 
 ## 2. Solution technique
 
@@ -145,9 +150,13 @@ correction groupée) sans avancer d'un pas.
 
 ### Réglage
 
-`int("implicitDeadlineDays", 0)` puis `bool("implicitDeadlineAuto")` dans `SettingsForm`, groupe avancé du score (après
-`urgencyPeak`), textes `setting_implicit_deadline`, `setting_implicit_deadline_help`, `setting_implicit_deadline_auto`
-et `setting_implicit_deadline_auto_help`.
+`int("implicitDeadlineDays", 0)` puis `bool("implicitDeadlineAuto")` dans `SettingsForm`, en fin de section du score
+du groupe avancé (après `defaultFibonacciPoints` : la ligne d'état suit l'interrupteur), textes
+`setting_implicit_deadline`, `setting_implicit_deadline_help`, `setting_implicit_deadline_auto` et
+`setting_implicit_deadline_auto_help`. `LingerStatusLine(services)` (`ui/settings/ModelStatusLine.kt`, à côté de la ligne
+du modèle) lit l'instantané Perso **enregistré**, comme `ModelStatusLine`, et rend `settings_linger_learned` ou
+`settings_linger_pending` ; `SettingsFormCards(lingerStatus)` la pose après la section du score (`SectionCard(after)`)
+quand le formulaire a l'interrupteur actif et une échéance > 0.
 
 ### Décisions et pièges tracés
 
