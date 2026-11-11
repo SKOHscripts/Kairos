@@ -298,10 +298,11 @@ supprimée.
   d’aujourd’hui le dit alors, une ligne par série (« 2 occurrences mensuelles
   ont été sautées : Note de frais ») : les recréer (déjà en retard) ou les
   ignorer, avec annulation. Rien n’est recréé sans demander.
-- **« Décaler »** : atterrit toujours sur un jour ouvré, et la tâche quitte
-  « Aujourd’hui » jusque-là. **« Déplacer… »** programme une tâche pour un
-  autre jour (demain, lundi prochain, dans une semaine, ou une date au choix)
-  et propose d’annuler.
+- **Décaler et déplacer** : le bouton calendrier d’une ligne de tâche propose
+  d’abord **« Décaler au prochain jour ouvré »** (l’échéance passe toujours à
+  un jour ouvré, et la tâche quitte « Aujourd’hui » jusque-là), puis des dates
+  où la programmer (demain, lundi prochain, dans une semaine, ou une date au
+  choix) sans toucher son échéance, avec annulation.
 - **Bloqueurs** : après avoir bloqué une tâche, Kairos dit où elle est allée
   (« Bloquées » s’ouvre) ; la tâche qui bloque porte un badge « Bloque … ». Une
   recherche retrouve la tâche à attendre dans une longue liste.
@@ -392,6 +393,12 @@ son estimation vient des seules tâches d’équipe terminées.
   au moins une heure de plus) et propose de les ramener à la durée
   habituelle ; rien n’est coché d’office, et « Annuler » rend les durées
   d’avant.
+- **Bilan de la semaine et du mois** : dans les vues Semaine et Mois, la carte
+  « Bilan » résume la période en quatre chiffres (tâches faites, temps
+  chronométré, temps en réunion, ce qui reste à échéance) ; « Détail » liste
+  ce qui a été fait avec son temps, ce qui a avancé, les réunions et créneaux
+  regroupés par titre, et ce qui reste. « Copier le bilan » le met en texte
+  dans le presse-papiers, prêt pour la réunion hebdomadaire.
 - **Jours ouvrés et fériés** : calendrier français intégré, dates
   supplémentaires dans les Réglages.
 
@@ -438,7 +445,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 
 - **Chrono par tâche** (un seul à la fois), en direct sur la ligne, dans
   « Maintenant », la carte « En ce moment » et le titre de la fenêtre ; il
-  survit à la fermeture de l’application et au redémarrage du téléphone.
+  survit à la fermeture de l’application et au redémarrage du téléphone. Le
+  temps passé se corrige dans la fiche (« Dates et temps ») : à la hausse pour
+  du travail non chronométré, à la baisse après un chrono oublié (les sessions
+  les plus récentes sont raccourcies, avec annulation).
 - **Trois alertes** : dépassement de l’estimé, chrono oublié, pause
   suggérée. Un bandeau dans l’application, et une notification système :
   Android (notification permanente avec chronomètre, même application
@@ -567,7 +577,7 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 - **Première tâche guidée** : au premier lancement (ou depuis la vue Jour tant
   que tu n’as aucune tâche à toi), Kairos te guide dans la vraie fiche d’une
   tâche, champ par champ (titre, priorité, points de Fibonacci, type,
-  estimation, dates, options avancées), puis te montre où elle se place dans la
+  dates et temps, découpage), puis te montre où elle se place dans la
   journée et te félicite une fois qu’elle est réellement créée. Rien n’est
   écrit si tu renonces.
 - **Démonstration interactive** : « Essayer en démonstration » dans
@@ -628,7 +638,7 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 - **Votre travail perso compte** : si un membre est « C’est moi », vos tâches
   personnelles entrent dans votre charge et vos prévisions d’équipe (marquées
   « Perso »), sans quitter l’espace Perso ; « Compter dans l’équipe » (fiche
-  de la tâche, options avancées) en exclut une. Vos réunions de la vue Jour
+  de la tâche, « Qualification ») en exclut une. Vos réunions de la vue Jour
   réduisent votre capacité, et les prévisions proposent « Mon travail ».
 - Les prévisions et la charge tiennent compte des **tâches récurrentes**
   (chaque occurrence à venir sur l’horizon) et du **temps déjà passé** sur
@@ -712,6 +722,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Estimation par machine learning | 4.0.0 | Toutes |
 | Suivre | Fin probable d’une tâche | 4.1.0 | Toutes |
 | Suivre | Chronos à vérifier | 4.1.0 | Toutes |
+| Suivre | Bilan de la semaine et du mois | 4.1.0 | Toutes |
 | Suivre | Quand tu travailles chaque type | 3.5.0 | Toutes |
 | Suivre | Tes heures les plus efficaces | 3.9.0 | Toutes |
 | Suivre | Ta journée sur l’écran d’accueil | 3.12.0 | Android |

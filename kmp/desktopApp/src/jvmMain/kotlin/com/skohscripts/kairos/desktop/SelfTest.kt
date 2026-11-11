@@ -116,6 +116,8 @@ private fun sampleCalendar(today: kotlinx.datetime.LocalDate): String {
  * rendus y sont écrits en PNG (artefacts de CI).
  */
 object SelfTest {
+    private var sheetTask: Long? = null
+
     fun run(args: List<String>, dataDir: File): Int = try {
         val version = requireNotNull(AppVersion.parse(KairosBuild.VERSION_NAME)) { "version invalide" }
         check(version.versionCode == KairosBuild.VERSION_CODE) { "versionCode incohérent" }
@@ -242,6 +244,25 @@ object SelfTest {
                 s.repository.replaceAll(snap.copy(workSessions = sessions, tasks = snap.tasks.map { finished[it.id] ?: it }))
             }
         }
+        // Fiche d'édition (docs/spec/fiche-tache.md) : quarante tâches ouvertes générées, et une tâche qui en attend deux,
+        // a une sous-tâche et une date programmée : les deux sections s'ouvrent d'office, « Bloquée par » montre ses puces.
+        val sheetServices = runBlocking {
+            DesktopServices.open(dataDir, inMemory = true).also { s ->
+                val r = s.repository
+                val day = Clock.System.todayIn(TimeZone.currentSystemDefault())
+                val others = (1..40).map { n -> r.createTask("Dossier $n : relire et valider la note de synthèse")!!.also { r.setPriority(it, 2); r.setPoints(it, 3); r.setTaskType(it, "Documentation") } }
+                val id = r.createTask("Préparer la revue trimestrielle")!!
+                r.updateTask(id, TaskEdit(
+                    title = "Préparer la revue trimestrielle", priority = 1, points = 5, taskType = "Réunion", estimatedMinutes = 90,
+                    deadline = day.plus(3, DateTimeUnit.DAY), scheduledDate = day.plus(1, DateTimeUnit.DAY), projectTag = "Pilotage",
+                    pinDay = day, newSubtasks = "Rassembler les chiffres", blockerIds = setOf(others[0], others[1]),
+                ))
+                sheetTask = id
+            }
+        }
+        val editSheet: @Composable () -> Unit = {
+            CompositionLocalProvider(com.skohscripts.kairos.ui.app.LocalShowcaseTask provides sheetTask) { KairosTheme { Surface { DayScreen(sheetServices) } } }
+        }
         val hoursStats: @Composable () -> Unit = { KairosApp(Platform.DESKTOP, Destination.STATS) { hoursServices } }
         // Troisième base : gestion d'équipe activée, ouverte dans l'espace Équipe (docs/spec/equipe.md).
         val team = runBlocking {
@@ -363,6 +384,8 @@ object SelfTest {
         val teamSettings = settingsIn(team, SettingsCategory.TEAM)
         val notes: @Composable () -> Unit = { KairosTheme { Surface { NotesScreen(services) {} } } }
         val week: @Composable () -> Unit = { KairosTheme { Surface { WeekScreen(services, NavState()) {} } } }
+        // Le bilan avec de quoi le remplir (docs/spec/bilan.md) : la base à sessions chronométrées des Stats.
+        val weekRecap: @Composable () -> Unit = { KairosTheme { Surface { WeekScreen(hoursServices, NavState()) {} } } }
         val month: @Composable () -> Unit = { KairosTheme { Surface { MonthScreen(services, NavState().apply { monthMode = true }) {} } } }
         val stats: @Composable () -> Unit = { KairosTheme { Surface { StatsScreen(timed) } } }
         // Thème sombre (docs/spec/apparence.md § Thème sombre, issue #72) : système en sombre, rien de réglé.
@@ -421,6 +444,13 @@ object SelfTest {
             Shot("notes", 900, 1000, notes),
             Shot("week", 1200, 1000, week),
             Shot("week-narrow", 420, 2400, week),
+            Shot("edit-sheet", 1200, 2000, editSheet),
+            Shot("edit-sheet-narrow", 360, 2400, editSheet),
+            Shot("dark-edit-sheet", 1200, 2000, { KairosApp(Platform.DESKTOP, Destination.DAY, systemDark = true, showcaseTaskId = sheetTask) { sheetServices } }),
+            Shot("week-recap", 1200, 1100, weekRecap),
+            Shot("week-recap-narrow", 360, 2600, weekRecap),
+            // Semaine passée : le détail du bilan s'ouvre d'office.
+            Shot("week-recap-past", 1200, 1100, { KairosTheme { Surface { WeekScreen(hoursServices, NavState().apply { this.week = today.plus(-7, DateTimeUnit.DAY) }) {} } } }),
             Shot("month", 1200, 1100, month),
             Shot("month-narrow", 360, 1600, month),
             Shot("stats", 1200, 1600, stats),

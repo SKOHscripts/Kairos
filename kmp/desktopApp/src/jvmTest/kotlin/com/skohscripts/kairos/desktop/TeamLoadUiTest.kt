@@ -297,6 +297,8 @@ class TeamLoadUiTest {
             // Le champ de recherche porte aussi le titre : la ligne est le dernier nœud.
             waitUntil(timeoutMillis = 5_000) { onAllNodesWithText(title).fetchSemanticsNodes().size >= 2 }
             onAllNodesWithText(title).onLast().performClick()
+            // L'effort est dans la section « Équipe », repliée à l'ouverture (docs/spec/fiche-tache.md).
+            openSheetSection("Team")
         }
         waitText("Search")
 

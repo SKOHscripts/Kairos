@@ -35,7 +35,9 @@ quatre étapes ci-dessous, dans cet ordre.
   français. Les issues des utilisateurs sont en anglais : la PR qui les traite
   doit se lire de la même façon. Si un gabarit de PR existe, on remplit ses
   sections en anglais.
-- Les messages de commit ne sont pas concernés par cette règle.
+- **Messages de commit en anglais** aussi, depuis le 2026-11-11 : conventional commits
+  `type(scope): description [#<issue>]`, un changement logique par commit, sans mention
+  d'IA (skill `commit`). Les anciens commits en français ne sont pas réécrits.
 
 ## Où vivent les specs
 
@@ -57,6 +59,8 @@ quatre étapes ci-dessous, dans cet ordre.
 
 - `kairos-spec` : le workflow ci-dessus, pas à pas (gabarit de spec,
   checklist de bijectivité).
+- `commit` : conventions des commits (anglais, `type(scope): … [#issue]`,
+  commits atomiques, indexation partielle sans `git add -p`).
 - `kairos-ecran` : checklist d'un écran ou composant conforme au design
   system.
 - `kairos-equipe` : implémentation de l'espace Équipe et isolation du mode

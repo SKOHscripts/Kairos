@@ -166,6 +166,7 @@ class SoloForecastUiTest {
         waitText("Edit task")
         // Rien n'est calculé ni dit avant le clic.
         assertTrue(onAllNodesWithText("Likely finish:", substring = true).fetchSemanticsNodes().isEmpty())
+        openSheetSection("Dates and time")
         onNodeWithText("What if I take it on?").performScrollTo().performClick()
         waitText("Likely finish:", substring = true)
         // Trois tâches de 1 h 30 pour vendredi à 2 h par jour : aucune échéance ne tombe.

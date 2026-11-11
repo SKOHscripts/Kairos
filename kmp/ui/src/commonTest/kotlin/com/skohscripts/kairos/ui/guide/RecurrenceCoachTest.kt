@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.ui.guide
 
 import com.skohscripts.kairos.ui.day.EditField
+import com.skohscripts.kairos.ui.day.SheetSection
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -17,7 +18,7 @@ class RecurrenceCoachTest {
         // L'étape de la règle explique « Récurrence », ouvre les options avancées et montre l'aperçu ; elle seule.
         val rule = steps.single { it.preview }
         assertEquals(setOf(EditField.RECURRENCE), rule.fields)
-        assertTrue(rule.opensAdvanced)
+        assertEquals(setOf(SheetSection.TIME), rule.sections)
         // Seulement de vrais champs de la fiche personnelle, chacun une fois.
         val covered = steps.flatMap { it.fields }
         assertTrue(EditField.personal.containsAll(covered))

@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.ui.test.isDialog
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
@@ -154,6 +157,28 @@ class DayScreenUiTest {
     }
 
     @Test
+    fun snoozeIsTheFirstChoiceOfTheRowCalendar() = runComposeUiTest {
+        // « Décaler » n'a plus d'icône à lui sur une ligne perso : c'est le premier choix du menu « Déplacer… »
+        // (docs/spec/vue-jour.md § Lisibilité de la ligne). Il repousse l'échéance, contrairement aux dates du menu.
+        val services = services()
+        val repository = services.repository
+        runBlocking {
+            val id = repository.createTask("Call back")!!
+            repository.setPriority(id, 1)
+            repository.setPoints(id, 2)
+            repository.setTaskType(id, "Development")
+        }
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithContentDescription("Move to another day…").fetchSemanticsNodes().isNotEmpty() }
+        assertEquals(0, onAllNodesWithContentDescription("Move to the next working day").fetchSemanticsNodes().size, "plus d'icône « Décaler » sur la ligne")
+        onAllNodesWithContentDescription("Move to another day…")[0].performClick()
+        onNodeWithText("Move to the next working day").performClick()
+        waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.tasks.single().deadline != null }
+        assertEquals("2026-09-30", repository.snapshot.value.tasks.single().deadline.toString())
+        assertEquals("2026-09-30", repository.snapshot.value.tasks.single().scheduledDate.toString())
+    }
+
+    @Test
     fun moveSchedulesATaskOnAnotherDayAndCanBeUndone() = runComposeUiTest {
         val services = services()
         val repository = services.repository
@@ -254,11 +279,13 @@ class DayScreenUiTest {
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Alpha", substring = true).fetchSemanticsNodes().isNotEmpty() }
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Edit task").fetchSemanticsNodes().isNotEmpty() }
-        onNodeWithText("More options").performScrollTo().performClick()
+        openSheetSection("Dates and time")
         onNode(hasSetTextAction() and hasText("Fixed time (HH:MM)")).performScrollTo().performTextInput("14:30")
         // « Bloquée par » est dans « Découpage et enchaînement » (docs/spec/sous-taches.md § Section).
-        onNodeWithText("Splitting and sequencing").performScrollTo().performClick()
-        onNodeWithText("Beta").performScrollTo().performClick()
+        openSheetSection("Splitting and sequencing")
+        // « Bloquée par » se choisit par la recherche (docs/spec/fiche-tache.md).
+        onNode(hasSetTextAction() and hasText("Add a blocker…")).performScrollTo().performTextInput("Beta")
+        onNode(hasText("Beta") and hasClickAction() and hasAnyAncestor(isDialog()) and !hasSetTextAction()).performScrollTo().performClick()
         onNodeWithText("Save").performClick()
         waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.dependencies.isNotEmpty() }
         val dep = repository.snapshot.value.dependencies.single()

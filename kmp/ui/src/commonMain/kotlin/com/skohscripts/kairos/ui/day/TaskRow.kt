@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
@@ -152,7 +153,9 @@ internal fun TaskRow(
     Surface(
         // Bloquée : fond de surface et contour, jamais d'opacité (décision tracée dans
         // docs/spec/vue-jour.md).
-        color = if (blocked) scheme.surface else scheme.surfaceContainerLow,
+        // `surfaceContainer`, un cran au-dessus des autres cartes (docs/spec/vue-jour.md § Lisibilité de la ligne) : sur
+        // `surfaceContainerLow`, les lignes se fondaient dans la page et leurs bords ne séparaient plus les tâches.
+        color = if (blocked) scheme.surface else scheme.surfaceContainer,
         border = when {
             ctx.highlight == task.id -> BorderStroke(2.dp, scheme.primary)
             blocked -> BorderStroke(1.dp, scheme.outlineVariant)
@@ -221,9 +224,14 @@ private fun RowActions(task: Task, ctx: RowContext, editable: Boolean) {
                 tint = if (running) MaterialTheme.colorScheme.primary else LocalContentColor.current,
             )
         }
-        KairosRowIconButton(KairosIcons.Redo, stringResource(Res.string.action_snooze), onClick = { ctx.onSnooze(task) })
-        // Une tâche d'équipe n'a pas de date programmée (docs/spec/planning-personnalise.md) : pas de « Déplacer… ».
-        if (task.space == TaskSpace.PERSONAL) DemoMark(DemoSpot.MOVE, task.id) { MoveButton(task, ctx) }
+        // « Décaler » est le premier choix du menu « Déplacer… » (docs/spec/vue-jour.md § Lisibilité de la ligne) : une icône
+        // de moins par ligne. Une tâche d'équipe n'a pas de date programmée (docs/spec/planning-personnalise.md), donc pas
+        // de « Déplacer… » : elle garde « Décaler » seul.
+        if (task.space == TaskSpace.PERSONAL) {
+            DemoMark(DemoSpot.MOVE, task.id) { MoveButton(task, ctx) }
+        } else {
+            KairosRowIconButton(KairosIcons.Redo, stringResource(Res.string.action_snooze), onClick = { ctx.onSnooze(task) })
+        }
     }
     if (editable) {
         KairosRowIconButton(KairosIcons.Edit, stringResource(Res.string.action_edit), onClick = { ctx.onEdit(task) })
@@ -231,8 +239,9 @@ private fun RowActions(task: Task, ctx: RowContext, editable: Boolean) {
 }
 
 /**
- * « Déplacer… » : un menu de dates (demain, lundi prochain, dans une semaine, ou « Choisir une date… » avec le sélecteur
- * Material 3) ; choisir une date programme la tâche pour ce jour ([RowContext.onMove]).
+ * « Déplacer… » : « Décaler au prochain jour ouvré » ([RowContext.onSnooze]), puis un menu de dates (demain, lundi
+ * prochain, dans une semaine, ou « Choisir une date… » avec le sélecteur Material 3) ; choisir une date programme la tâche
+ * pour ce jour ([RowContext.onMove]).
  */
 @Composable
 private fun MoveButton(task: Task, ctx: RowContext) {
@@ -241,6 +250,13 @@ private fun MoveButton(task: Task, ctx: RowContext) {
     Box {
         KairosRowIconButton(KairosIcons.DateRange, stringResource(Res.string.action_move), onClick = { open = true })
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            // Décaler repousse l'échéance ; les dates dessous ne font que programmer : le séparateur les distingue.
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.action_snooze)) },
+                leadingIcon = { Icon(KairosIcons.Redo, contentDescription = null) },
+                onClick = { open = false; ctx.onSnooze(task) },
+            )
+            HorizontalDivider()
             dateShortcuts(ctx.today).filter { it.first != DateShortcut.TODAY }.forEach { (shortcut, date) ->
                 DropdownMenuItem(
                     text = { Text("${stringResource(shortcut.label)} · ${Dates.short(date, ctx.language)}") },
@@ -312,16 +328,23 @@ private fun TaskTags(task: Task, ctx: RowContext) {
     // Tâche reçue d'un manager par paquet (docs/spec/equipe-echanges.md) : « de Corentin », ou « retirée par Corentin ».
     ReceivedTasks.originOf(task)?.let { ReceivedMark(it, task.originRemoved) }
     if (task.projectTag.isNotEmpty()) Badge(task.projectTag)
-    if (task.taskType.isNotEmpty()) Badge(task.taskType)
-    task.estimatedMinutes?.takeIf { it > 0 }?.let { Muted(duration(it)) }
-        ?: ctx.view.learned[task.id]?.takeIf { it.reliable && task.status == TaskStatus.TODO }?.let { LearnedBadge(it) }
-    task.deadline?.let {
-        val date = Dates.short(it, ctx.language, ctx.view.day)
-        // Échéance héritée d'un ancêtre (docs/spec/sous-taches.md § Échéance) : dite avec son origine.
-        val from = ctx.view.inheritedDeadline[task.id]
-        Muted(if (from != null) stringResource(Res.string.deadline_inherited_badge, date, from) else stringResource(Res.string.deadline_badge, date))
+    // Type, durée et dates : une seule phrase atténuée (docs/spec/vue-jour.md § Lisibilité de la ligne). En pastilles
+    // et en mots détachés, cinq objets de même poids se disputaient l'œil ; les pastilles restent aux signaux.
+    val facts = buildList {
+        if (task.taskType.isNotEmpty()) add(task.taskType)
+        task.estimatedMinutes?.takeIf { it > 0 }?.let { add(duration(it)) }
+        task.deadline?.let {
+            val date = Dates.short(it, ctx.language, ctx.view.day)
+            // Échéance héritée d'un ancêtre (docs/spec/sous-taches.md § Échéance) : dite avec son origine.
+            val from = ctx.view.inheritedDeadline[task.id]
+            add(if (from != null) stringResource(Res.string.deadline_inherited_badge, date, from) else stringResource(Res.string.deadline_badge, date))
+        }
+        task.scheduledDate?.let { add(stringResource(Res.string.tag_scheduled, Dates.short(it, ctx.language, ctx.view.day))) }
     }
-    task.scheduledDate?.let { Muted(stringResource(Res.string.tag_scheduled, Dates.short(it, ctx.language, ctx.view.day))) }
+    if (facts.isNotEmpty()) Muted(facts.joinToString(" · "))
+    if (task.estimatedMinutes?.takeIf { it > 0 } == null) {
+        ctx.view.learned[task.id]?.takeIf { it.reliable && task.status == TaskStatus.TODO }?.let { LearnedBadge(it) }
+    }
     if (task.recurrence != TaskRecurrence.NONE) {
         Icon(
             KairosIcons.Repeat,

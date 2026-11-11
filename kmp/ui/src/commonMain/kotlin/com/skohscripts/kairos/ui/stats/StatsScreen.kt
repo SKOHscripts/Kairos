@@ -2,6 +2,9 @@ package com.skohscripts.kairos.ui.stats
 
 import com.skohscripts.kairos.core.stats.SuspectSessions
 import com.skohscripts.kairos.ui.generated.resources.stats_suspect_open
+import com.skohscripts.kairos.ui.generated.resources.stats_untimed_body
+import com.skohscripts.kairos.ui.generated.resources.stats_untimed_filtered
+import com.skohscripts.kairos.ui.generated.resources.stats_untimed_title
 import com.skohscripts.kairos.ui.generated.resources.stats_suspect_done
 import com.skohscripts.kairos.ui.guide.GtdStepButton
 import com.skohscripts.kairos.ui.guide.GtdStep
@@ -55,6 +58,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -208,7 +212,20 @@ fun StatsScreen(services: AppServices) {
                 MissingGuideSection(GuideSection.STATS_HOURS)
                 return@Column
             }
+            // Sans aucun chrono, cinq cartes vides empilées : une seule carte dit ce que le chrono fera apparaître.
+            val untimed = nothingTimed(stats, hours, trends)
             StatsCard.entries.forEach { card ->
+                if (untimed && card.timed) {
+                    if (card == StatsCard.TRACKED) {
+                        // Cible du guide « Quand tu travailles chaque type » (issue #95) : la carte qui dit comment la remplir.
+                        GuideSpot(GuideSection.STATS_HOURS) {
+                            val body = if (query.filter.active) Res.string.stats_untimed_filtered else Res.string.stats_untimed_body
+                            Panel(KairosIcons.Schedule, stringResource(Res.string.stats_untimed_title), stringResource(body)) {}
+                        }
+                        CorrectionButtons(corrections.size, suspects.size, { correcting = true }, { checking = true })
+                    }
+                    return@forEach
+                }
                 if (card == StatsCard.HOURS) {
                     // Panneau que la carte « Quand tu travailles chaque type » fait voir (docs/spec/visite-guidee.md, issue #95).
                     GuideSpot(GuideSection.STATS_HOURS) { StatsCardView(card, stats, hours, trends, language) }
@@ -216,18 +233,32 @@ fun StatsScreen(services: AppServices) {
                     StatsCardView(card, stats, hours, trends, language)
                 }
                 // Sous la carte, pas dedans : l'image exportée d'une carte ne montre pas de bouton.
-                if (card == StatsCard.CALIBRATION && corrections.isNotEmpty()) {
-                    KairosOutlinedButton(onClick = { correcting = true }, contentPadding = KairosButtonIconPadding) {
-                        Icon(KairosIcons.EditNote, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text(stringResource(Res.string.stats_correct_open), modifier = Modifier.padding(start = 6.dp))
-                    }
-                }
-                if (card == StatsCard.CALIBRATION && suspects.isNotEmpty()) {
-                    KairosOutlinedButton(onClick = { checking = true }, contentPadding = KairosButtonIconPadding) {
-                        Icon(KairosIcons.Schedule, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text(stringResource(Res.string.stats_suspect_open, suspects.size), modifier = Modifier.padding(start = 6.dp))
-                    }
-                }
+                if (card == StatsCard.CALIBRATION) CorrectionButtons(corrections.size, suspects.size, { correcting = true }, { checking = true })
+            }
+        }
+    }
+}
+
+/**
+ * « Corriger les estimations… » et « Chronos à vérifier (n)… » sous la calibration, sur une ligne (docs/spec/bilan.md) :
+ * empilés, ils coupaient la lecture des cartes. Sous la carte, pas dedans : l'image exportée d'une carte ne montre pas de
+ * bouton. Rien si aucune des deux n'a de candidat.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CorrectionButtons(corrections: Int, suspects: Int, onCorrect: () -> Unit, onCheck: () -> Unit) {
+    if (corrections == 0 && suspects == 0) return
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(KairosSpacing.s), verticalArrangement = Arrangement.spacedBy(KairosSpacing.s)) {
+        if (corrections > 0) {
+            KairosOutlinedButton(onClick = onCorrect, contentPadding = KairosButtonIconPadding) {
+                Icon(KairosIcons.EditNote, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.stats_correct_open), modifier = Modifier.padding(start = 6.dp))
+            }
+        }
+        if (suspects > 0) {
+            KairosOutlinedButton(onClick = onCheck, contentPadding = KairosButtonIconPadding) {
+                Icon(KairosIcons.Schedule, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(Res.string.stats_suspect_open, suspects), modifier = Modifier.padding(start = 6.dp))
             }
         }
     }

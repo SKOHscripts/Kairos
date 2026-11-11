@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.ui.guide
 
 import com.skohscripts.kairos.ui.day.EditField
+import com.skohscripts.kairos.ui.day.SheetSection
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -23,7 +24,8 @@ class TeamTaskCoachTest {
         assertEquals(setOf(EditField.TITLE, EditField.DESCRIPTION), steps[0].fields)
         assertEquals(setOf(EditField.ASSIGNEE), steps[1].fields)
         assertTrue(steps.last().save && steps.last().fields.isEmpty())
-        assertTrue(steps.first { EditField.BLOCKERS in it.fields }.opensAdvanced)
+        assertTrue(SheetSection.SPLIT in steps.first { EditField.BLOCKERS in it.fields }.sections)
+        assertEquals(setOf(SheetSection.TEAM), steps[1].sections)
     }
 
     @Test

@@ -53,6 +53,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.ui.app.heading
 import com.skohscripts.kairos.ui.day.EditField
+import com.skohscripts.kairos.ui.day.SheetSection
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.coach_deadline_body
 import com.skohscripts.kairos.ui.generated.resources.coach_deadline_title
@@ -118,8 +119,8 @@ internal class CoachStep(
     /** L'étape montre, sous son texte, la prochaine échéance de chaque règle de récurrence ([RecurrencePreview], issue #98). */
     val preview: Boolean = false,
 ) {
-    /** Cette étape explique un champ des options avancées : la fiche les ouvre. */
-    val opensAdvanced: Boolean get() = fields.any { it.advanced }
+    /** Les sections repliables des champs qu'elle explique : la fiche les ouvre (docs/spec/fiche-tache.md). */
+    val sections: Set<SheetSection> get() = fields.mapNotNullTo(LinkedHashSet()) { it.section }
 }
 
 /** Les étapes du coach : celles de la fiche (neuf, dans l'ordre de la fiche), puis celles du placement (trois, sur la vue Jour). */

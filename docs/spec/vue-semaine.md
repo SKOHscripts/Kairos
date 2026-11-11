@@ -21,14 +21,13 @@ un autre jour.
 
 ### Comportement attendu (utilisateur)
 
-- En tête : « Semaine du 28/09 », puis dessous « Semaine précédente » à
-  gauche et « Semaine suivante » à droite (même hauteur : à 360 dp l'un passe
-  sur deux lignes, l'autre l'imite). La barre de titre dit « Semaine · du lundi 28 septembre
-  2026 ».
-- « Temps réel cette semaine : 3 h 10 (Dev 2 h · Réunion 1 h 10) » :
-  sessions commencées dans la semaine, ventilées par type (types non vides).
-- « Réaliste : 12 h à 22 h (tes 8 dernières semaines) · 27 h à échéance ou programmées cette semaine » (#232,
-  `previsions-taches.md` § Étape C) : pour la semaine courante ou à venir, avec au moins 4 semaines chronométrées.
+- En tête (4.1.0, `bilan.md`) : une ligne « ‹ Semaine du 28/09 › », deux boutons à icône décrits « Semaine
+  précédente » et « Semaine suivante » ; hors de la semaine courante, « Revenir à aujourd'hui » dessous. La barre de
+  titre dit « Semaine · du lundi 28 septembre 2026 ».
+- Carte « Bilan de la semaine » (4.1.0, issue #233, `bilan.md`) sous le filtre : tâches faites, temps chronométré (total
+  et par type), réunions et créneaux, ce qui reste à échéance, et la ligne « Réaliste : 12 h à 22 h (tes 8 dernières
+  semaines) · 27 h à échéance ou programmées cette semaine » (#232, `previsions-taches.md` § Étape C : semaine courante
+  ou à venir, avec au moins 4 semaines chronométrées). Elle remplace la ligne « Temps réel cette semaine ».
 - « Rechercher / filtrer » (mêmes facettes que la vue Jour) : réduit les
   listes des jours, jamais la grille.
 - « Backlog, sans date (N) », replié : les tâches à faire sans échéance ni
@@ -46,7 +45,8 @@ un autre jour.
   la pastille « Programmée » et, si elle a une échéance, son rappel (« échéance 1 oct. ») ; ce rappel prend le contour
   d'avertissement quand l'échéance tombe **avant** le jour programmé. Une tâche programmée n'apparaît **qu'à son jour
   programmé** (3.7.0, issue #106 : avant, elle apparaissait aussi à son échéance), comme elle quitte « Aujourd'hui » dans
-  la vue Jour ; une seule ligne par tâche dans la semaine. « — » si rien ; puis
+  la vue Jour ; une seule ligne par tâche dans la semaine. « — » si le jour n'a rien du tout (ni tâche, ni créneau, ni
+  journée de calendrier) ; puis
   « Voir le jour », qui ouvre la vue Jour de ce jour (`vue-jour.md` § Un
   autre jour).
 - **Déplacer depuis la semaine** (3.7.0, issue #106) : toucher une tâche **personnelle** à faire d'une carte (toute la
@@ -70,7 +70,7 @@ un autre jour.
   faites par titre ; créneaux par heure ; un récurrent « jours ouvrés »
   n'apparaît pas le samedi ; le filtre réduit les listes (`WeekViewTest`).
 - Une tâche due jeudi apparaît dans la semaine ; « Voir le jour » du
-  mercredi ouvre « Jour · mercredi 30 septembre 2026 » ; « Semaine
+  mercredi ouvre « Jour · mercredi 30 septembre 2026 » ; le bouton « Semaine
   suivante » passe au lundi 5 octobre (`M4ScreensUiTest`).
 - Une tâche **programmée pour** un jour de la semaine n'apparaît qu'à ce jour, une seule fois (jamais à son échéance si
   elle est un autre jour), avec la pastille « Programmée » ; une tâche faite ou programmée une autre semaine n'y est pas
@@ -98,18 +98,14 @@ Depuis le jalon E1 de l'espace Équipe, l'écran de la vue Semaine lit `reposito
   priorité)` ; `done` = faites filtrées dont la date **locale** de
   modification est ce jour, par titre ; `blocks` = ponctuels du jour et
   occurrences des récurrents (`Recurrence.expandRecurringBlocks` sur la
-  semaine), par début), `spentMinutes` et `spentByType` (sessions de la
-  semaine, `TimeTracking.sessionsInRange` en date locale, types non vides,
-  minutes > 0).
+  semaine), par début). Le temps de la semaine (total et par type) est calculé par `Recap`
+  (`bilan.md`), plus par `WeekView`.
 - `NavState` (dans `KairosApp`, `remember`) : `day` (jour de la vue Jour,
   `null` = aujourd'hui) et `week` (un jour de la semaine affichée, `null` =
   la courante). Changer de destination remet les deux à `null` ;
   `onOpenDay(jour)` pose `day` et va sur « Jour ».
 - `WeekScreen(services, nav, onOpenDay)` : colonne défilante de 1 400 dp au
-  plus ; titre au-dessus d'une `Row` des deux boutons `OutlinedButton` à
-  chevron séparés par un `Spacer(weight(1f))` (placé entre eux, le titre
-  n'avait plus de place sur un téléphone et s'écrivait une lettre par
-  ligne) ; `FilterCard` et backlog de la
+  plus ; `PeriodHeader` (`bilan.md`), `FilterCard`, `RecapCard`, puis backlog de la
   vue Jour (`DayView.build(...).backlog` d'aujourd'hui) ; grille :
   `BoxWithConstraints`, `Row` à cartes `weight(1f)` et hauteur
   intrinsèque si 7 × 140 dp + 6 × 8 dp tiennent, sinon `FlowRow`

@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.ui.guide
 
 import com.skohscripts.kairos.ui.day.EditField
+import com.skohscripts.kairos.ui.day.SheetSection
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -27,11 +28,13 @@ class FirstTaskCoachTest {
     }
 
     @Test
-    fun theStepsOfTheAdvancedFieldsOpenTheAdvancedOptions() {
-        assertFalse(steps.first().opensAdvanced)
-        assertTrue(steps.first { EditField.PROJECT in it.fields }.opensAdvanced)
-        // Date d'échéance (visible) et programmée (avancée) partagent une étape : elle ouvre les options.
-        assertTrue(steps.first { EditField.DEADLINE in it.fields }.opensAdvanced)
+    fun eachStepOpensTheSectionsOfTheFieldsItExplains() {
+        // Fiche repliée (docs/spec/fiche-tache.md) : le titre est toujours visible, chaque autre étape ouvre sa section.
+        assertEquals(emptySet(), steps.first().sections)
+        assertEquals(setOf(SheetSection.QUALIFY), steps.first { EditField.PRIORITY in it.fields }.sections)
+        // Échéance et date programmée : la même section, « Dates et temps ».
+        assertEquals(setOf(SheetSection.TIME), steps.first { EditField.DEADLINE in it.fields }.sections)
+        assertEquals(setOf(SheetSection.QUALIFY, SheetSection.TIME, SheetSection.SPLIT), steps.first { EditField.PROJECT in it.fields }.sections)
     }
 
     @Test

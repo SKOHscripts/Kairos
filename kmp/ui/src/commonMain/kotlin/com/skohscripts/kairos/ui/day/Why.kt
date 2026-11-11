@@ -25,6 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -95,10 +97,11 @@ internal fun ScoreBadge(
     val title = stringResource(Res.string.why_title)
     Box {
         Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            // Chiffre primaire sans pastille (charte § Où va la couleur) : une pastille de moins par ligne.
+            color = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.primary,
             shape = CircleShape,
-            modifier = Modifier.clickable { open = true }.semantics { contentDescription = "$score · $title" },
+            modifier = Modifier.clip(CircleShape).clickable { open = true }.semantics { contentDescription = "$score · $title" },
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

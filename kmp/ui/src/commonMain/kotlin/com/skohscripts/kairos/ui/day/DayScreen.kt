@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.generated.resources.spent_corrected
+import com.skohscripts.kairos.core.engine.TimeCorrection
 import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.ui.guide.GtdStepButton
 import com.skohscripts.kairos.ui.guide.GtdStep
@@ -697,7 +699,12 @@ fun DayScreen(
         } else {
             // La fiche à son ouverture : une fusion survenue pendant l'édition n'est pas défaite à l'enregistrement.
             val base = remember(id) { EditBase(task, view.blockersOf[id].orEmpty().toSet()) }
+            // Temps passé corrigeable (docs/spec/fiche-tache.md § Temps passé) : les sessions et l'instant d'ouverture, figés.
+            val openedAt = remember(id) { services.clock.now() }
+            val taskSessions = remember(id) { snapshot.workSessions.filter { it.taskId == id } }
             EditTaskDialog(
+                sessions = taskSessions,
+                now = openedAt,
                 task = task,
                 day = day,
                 today = today,
@@ -724,6 +731,15 @@ fun DayScreen(
                     val added = edit.blockerIds.filter { it !in before && it in openIds }
                     scope.launch {
                         repository.updateTask(id, edit, opened = base)
+                        // Des sessions raccourcies : le message propose « Annuler » (temps saisi et fins d'avant).
+                        if (edit.sessionEnds.isNotEmpty()) {
+                            val oldEnds = taskSessions.filter { it.id in edit.sessionEnds }.associate { it.id to it.endedAt!! }
+                            val was = TimeCorrection.total(taskSessions, task.manualTimeSpentMinutes, openedAt)
+                            val now = TimeCorrection.total(taskSessions.map { it.copy(endedAt = edit.sessionEnds[it.id] ?: it.endedAt) }, edit.manualTimeSpentMinutes, openedAt)
+                            undo(getString(Res.string.spent_corrected, task.title, durationText(was), durationText(now)), getString(Res.string.action_revert)) {
+                                scope.launch { repository.restoreSpent(id, task.manualTimeSpentMinutes, oldEnds) }
+                            }
+                        }
                         if (added.isNotEmpty() && task.status == TaskStatus.TODO) {
                             val names = added.mapNotNull { blocker -> snapshot.tasks.firstOrNull { it.id == blocker }?.title }
                             sectionOpen["blocked"] = true

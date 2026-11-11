@@ -101,6 +101,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_learned_body
 import com.skohscripts.kairos.ui.generated.resources.card_learned_title
 import com.skohscripts.kairos.ui.generated.resources.card_model_body
 import com.skohscripts.kairos.ui.generated.resources.card_model_title
+import com.skohscripts.kairos.ui.generated.resources.card_recap_body
+import com.skohscripts.kairos.ui.generated.resources.card_recap_title
 import com.skohscripts.kairos.ui.generated.resources.card_suspect_timers_body
 import com.skohscripts.kairos.ui.generated.resources.card_suspect_timers_title
 import com.skohscripts.kairos.ui.generated.resources.card_task_forecast_body
@@ -236,6 +238,7 @@ object FeatureCatalog {
         FeatureCard("model", GuideChapter.FOLLOW, { KairosIcons.Model }, Res.string.card_model_title, Res.string.card_model_body, GuideTarget.Settings(GuideSection.SETTINGS_LEARNED), since = "4.0.0"),
         FeatureCard("task_forecast", GuideChapter.FOLLOW, { KairosIcons.Event }, Res.string.card_task_forecast_title, Res.string.card_task_forecast_body, GuideTarget.Personal(Destination.DAY), since = "4.1.0"),
         FeatureCard("suspect_timers", GuideChapter.FOLLOW, { KairosIcons.Schedule }, Res.string.card_suspect_timers_title, Res.string.card_suspect_timers_body, GuideTarget.Personal(Destination.STATS), since = "4.1.0"),
+        FeatureCard("recap", GuideChapter.FOLLOW, { KairosIcons.Checklist }, Res.string.card_recap_title, Res.string.card_recap_body, GuideTarget.Personal(Destination.WEEK), since = "4.1.0"),
         FeatureCard("besthours", GuideChapter.FOLLOW, { KairosIcons.Schedule }, Res.string.card_besthours_title, Res.string.card_besthours_body, GuideTarget.Personal(Destination.STATS, GuideSection.STATS_HOURS), since = "3.5.0"),
         FeatureCard("besthours_efficiency", GuideChapter.FOLLOW, { KairosIcons.Timer }, Res.string.card_besthours_eff_title, Res.string.card_besthours_eff_body, GuideTarget.Personal(Destination.STATS, GuideSection.STATS_HOURS), since = "3.9.0"),
         // Widgets Android (docs/spec/widgets-android.md) : la carte mène à la vue Jour, qu'ils reprennent.
@@ -340,7 +343,7 @@ object FeatureCatalog {
         "Subtasks" to "subtasks",
         "Recurrence" to "recurrence",
         "Skipped months" to "skipped_months",
-        "\"Snooze\"" to "snooze",
+        "Snooze and move" to "snooze",
         "Blockers" to "dependencies",
         "Score" to "score",
         "Placement" to "placement",
@@ -354,6 +357,7 @@ object FeatureCatalog {
         "Machine-learning estimates" to "model",
         "Likely finish date" to "task_forecast",
         "Timers to check" to "suspect_timers",
+        "Week and month recap" to "recap",
         "Working days and holidays" to "holidays",
         "Busy slots" to "slots",
         "Weekday slots skip holidays" to "holidays_slots",

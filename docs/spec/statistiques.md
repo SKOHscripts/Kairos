@@ -47,8 +47,9 @@ Destination « Stats », en lecture seule. En tête (3.7.0, issue #114) :
   présent seulement quand l'écran montre des chiffres. Il ouvre un menu :
   - « Tableaux (CSV) » : **un seul fichier** `kairos-stats-AAAAMMJJ-HHMM.csv`, une section par carte, exactement ce que
     l'écran montre pour la période et le filtre choisis ;
-  - « Image : <titre de la carte> », pour chacune des sept cartes (chiffres clés, débit, calibration, où va le temps,
-    quand tu travailles chaque type, flux et backlog, complétude) : un fichier
+  - « Image : <titre de la carte> », pour chacune des neuf cartes, dans l'ordre de l'écran (chiffres clés, flux et backlog,
+    débit, temps chronométré au fil du temps, calibration, biais par semaine, où va le temps, quand tu travailles chaque
+    type, complétude) : un fichier
     `kairos-stats-<carte>-AAAAMMJJ-HHMM.png` de la carte seule, rendue hors écran à **600 dp de large, densité ×2**,
     quel que soit l'appareil, toujours en thème **clair** de la même graine (même quand l'écran est sombre,
     `apparence.md` § Thème sombre), avec en pied une légende « Kairos · vendredi 23 octobre 2026 ·
@@ -66,6 +67,8 @@ ce filtre. Change-le ou réinitialise-le plus haut. », le filtre restant visibl
   tâches terminées, temps réel chronométré, délai médian de complétion (en
   jours ; alerte au-delà de 7), part des échéances tenues (alerte sous
   70 %).
+- **Flux et backlog** (état courant) : tâches à faire, âge médian, en
+  retard, qui traînent (ces deux-là en alerte s'il y en a).
 - **Débit hebdomadaire** : par semaine de la fenêtre (semaines vides
   comprises), tâches terminées et points cumulés (vélocité).
 - **Calibration de l'estimation** : temps réel médian par palier de points,
@@ -79,15 +82,25 @@ ce filtre. Change-le ou réinitialise-le plus haut. », le filtre restant visibl
   type (« Sans type » compris), du plus au moins chronophage ; puis le
   focus : nombre de sessions et durée moyenne (beaucoup de sessions
   courtes = attention morcelée).
-- **Flux et backlog** (état courant) : tâches à faire, âge médian, en
-  retard, qui traînent (ces deux-là en alerte s'il y en a).
-- **Complétude des métadonnées** : part des tâches à faire ayant des
-  points, une durée estimée, un type (« 90 % · 9/10 »).
 - **Quand tu travailles chaque type** (3.5, étape C1 de `planning-personnalise.md`) : pour chaque type (« Sans type » compris), du plus au
   moins chronométré, ses effectifs (« n=5 · 5 h », « peu fiable » avec l'icône d'alerte sous le seuil), la **tranche de 2 h qui le
   distingue** (« Se distingue à 14:00–16:00 : 80 % de son temps (×2.2 ton rythme habituel) », ou « Réparti dans la journée, sans plage
   marquée »), les trois plus grandes parts écrites et douze barres (une par tranche, de minuit à minuit) qui les illustrent. Observation
   seulement : rien ne change dans le planning.
+- **Complétude des métadonnées** : part des tâches à faire ayant des
+  points, une durée estimée, un type (« 90 % · 9/10 »).
+
+**Ordre et cartes vides** (4.1.0, issue #233, `bilan.md`) : « Flux et backlog » vient juste après les chiffres clés
+(ce qui est en retard ou traîne est la seule carte qui appelle une action ; elle était avant-dernière), puis débit, temps
+chronométré au fil du temps, calibration, biais par semaine, répartition, heures par type, complétude. Quand rien n'est
+chronométré dans ce que l'écran retient (ni temps sur la période, ni calibration, ni biais, ni répartition, ni profil
+horaire), ces cinq cartes ne s'affichent pas : une seule carte « Rien de chronométré pour l'instant » dit ce que le chrono
+fera apparaître (avec un filtre actif : « Rien de chronométré pour ce filtre. Change-le ou réinitialise-le plus haut, ou
+lance le chrono sur une de ces tâches. »). C'est elle que vise le guide « Quand tu travailles chaque type ». L'export d'image propose toujours toutes les cartes ; le CSV ne change pas. Preuves :
+`BestHoursUiTest.withoutAnyTimedSessionTheCardSaysSo` (rien de chronométré : la carte unique, pas la carte des heures) et
+`aFewMinutesTimedKeepTheCardsAndTheHoursSayWhyTheyAreEmpty` (trois minutes : les cartes reviennent). Les boutons
+« Corriger les estimations… » et « Chronos à vérifier (n)… » (`CorrectionButtons`) suivent la calibration, ou la carte
+unique quand elle la remplace.
 
 Honnêteté statistique : chaque agrégat montre son effectif ; sous 3, il est
 marqué « peu fiable » (icône d'alerte), mais reste affiché.
@@ -123,7 +136,8 @@ saisi, celui de la calibration). Toutes les tâches terminées, quelles que soie
 - Appliquer écrit les estimations cochées, sans changer la date de fin des tâches ; le message « Estimations
   corrigées : N » propose « Annuler », qui rend à chacune son estimation d'avant (« sans » compris).
 
-**Chronos à vérifier** (4.1.0, issue #232) : sous la calibration aussi, « Chronos à vérifier (n)… » propose de ramener
+**Chronos à vérifier** (4.1.0, issue #232) : sous la calibration aussi, sur la même ligne que « Corriger les
+estimations… » quand les deux existent (`FlowRow`, `bilan.md`), « Chronos à vérifier (n)… » propose de ramener
 à leur durée habituelle les sessions manifestement oubliées (`previsions-taches.md` § Étape G).
 
 ### Critères de succès

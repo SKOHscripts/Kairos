@@ -53,6 +53,9 @@ fun TeamTaskDialog(services: AppServices, taskId: Long, onDismiss: () -> Unit, i
     EditTaskDialog(
         task = task,
         day = today,
+        // Temps passé (docs/spec/fiche-tache.md § Temps passé) : tâche d'équipe, le total ne descend pas sous le chronométré.
+        sessions = remember(taskId) { snapshot.workSessions.filter { it.taskId == taskId } },
+        now = remember(taskId) { now },
         taskTypes = snapshot.settings.taskTypeList,
         candidates = candidates,
         blockerIds = snapshot.dependencies.filter { it.taskId == taskId }.mapTo(HashSet()) { it.blockerId },

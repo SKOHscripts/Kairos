@@ -6,6 +6,7 @@ import com.skohscripts.kairos.core.model.TaskSpace
 import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.time.Instant
 
 class BlockerChoicesTest {
@@ -14,12 +15,18 @@ class BlockerChoicesTest {
         Task(id, title, parentId = parent, deadline = deadline, createdAt = t0, updatedAt = t0)
 
     @Test
-    fun theSearchIgnoresCaseAndAccentsAndKeepsTheCheckedOnes() {
-        val tasks = listOf(task(1, "Été au lac"), task(2, "Réunion client"), task(3, "Devis"))
+    fun aSearchShowsAPageOfUnchosenMatches() {
+        val tasks = listOf(task(1, "Été au lac"), task(2, "Réunion client"), task(3, "Devis")) + (10L..19L).map { task(it, "Relire $it") }
         val choices = BlockerChoices.of(task(9, "Éditée"), tasks, emptyList(), tasks.associateBy { it.id }, "fr")
-        assertEquals(listOf(2L), BlockerChoices.filter(choices, "reunion", emptySet()).map { it.task.id })
-        assertEquals(listOf(1L, 2L), BlockerChoices.filter(choices, "ETE", setOf(2L)).map { it.task.id }) // cochée : toujours là
-        assertEquals(choices, BlockerChoices.filter(choices, "  ", emptySet()))
+        // Rien tant qu'on n'a rien tapé : pas de mur de cases.
+        assertNull(BlockerChoices.page(choices, "  ", emptySet()))
+        // Casse et accents ignorés ; une tâche déjà choisie (en puce) n'est plus proposée.
+        assertEquals(listOf(2L), BlockerChoices.page(choices, "reunion", emptySet())!!.items.map { it.task.id })
+        assertEquals(emptyList(), BlockerChoices.page(choices, "ETE", setOf(1L))!!.items)
+        // Dix « Relire » : six montrés, quatre comptés.
+        val page = BlockerChoices.page(choices, "relire", setOf(10L))!!
+        assertEquals((11L..16L).toList(), page.items.map { it.task.id })
+        assertEquals(3, page.more)
     }
 
     @Test

@@ -96,19 +96,28 @@ internal fun DateField(
             singleLine = true,
             modifier = modifier,
         )
-        if (shortcuts) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                dateShortcuts(today).forEach { (shortcut, date) ->
-                    KairosFilterChip(selected = parsed == date, onClick = { onChange(date.toString()) }, label = { Text(stringResource(shortcut.label)) })
-                }
-                if (value.isNotBlank()) {
-                    KairosFilterChip(selected = false, onClick = { onChange("") }, label = { Text(stringResource(Res.string.date_clear)) })
-                }
-            }
-        }
+        if (shortcuts) DateShortcuts(value, onChange, today)
     }
     if (picking) {
         DateChoice(parsed ?: today, onPick = { onChange(it.toString()); picking = false }, onDismiss = { picking = false })
+    }
+}
+
+/**
+ * Raccourcis d'un champ date (« Aujourd'hui », « Demain », « Lundi prochain », « Dans une semaine », « Effacer ») ; à part
+ * pour que la fiche puisse les poser sur toute la largeur sous deux champs côte à côte (docs/spec/fiche-tache.md).
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun DateShortcuts(value: String, onChange: (String) -> Unit, today: LocalDate) {
+    val parsed = Dates.parseDate(value, UiLanguage.dayFirst(uiLanguage()))
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        dateShortcuts(today).forEach { (shortcut, date) ->
+            KairosFilterChip(selected = parsed == date, onClick = { onChange(date.toString()) }, label = { Text(stringResource(shortcut.label)) })
+        }
+        if (value.isNotBlank()) {
+            KairosFilterChip(selected = false, onClick = { onChange("") }, label = { Text(stringResource(Res.string.date_clear)) })
+        }
     }
 }
 

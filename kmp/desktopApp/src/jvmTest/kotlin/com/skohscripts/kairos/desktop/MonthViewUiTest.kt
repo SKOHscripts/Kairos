@@ -104,7 +104,7 @@ class MonthViewUiTest {
     @Test
     fun theNextMonthAndBackToTheWeek() = runComposeUiTest {
         openMonth(1200)
-        onNodeWithText("Next month").performClick()
+        onNodeWithContentDescription("Next month").performClick()
         waitText("Month · December 2026")
         // Le segment « Week » de la bascule (le premier « Week » est la destination du rail, qui garde le mode).
         onAllNodesWithText("Week").onLast().performClick()
