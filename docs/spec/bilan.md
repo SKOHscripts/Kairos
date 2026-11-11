@@ -105,6 +105,9 @@ d'œil, détaillable à la demande.
   pas nul (`nav.week` / `nav.month` remis à `null`).
 - `WeekScreen` : `Recap.build(snapshot, lundi, dimanche, now, fuseau, filtre)` (snapshot avec les calendriers du
   téléphone) ; `MonthScreen` : du 1er au dernier jour du mois, sans filtre.
+- Stats : « Corriger les estimations… » et « Chronos à vérifier (n)… » partagent une ligne (`CorrectionButtons`,
+  `FlowRow`) sous la calibration au lieu de s'empiler ; « Flux et backlog » remonte sous les chiffres clés et une carte
+  unique remplace les cinq cartes de temps vides (`statistiques.md` § Ordre et cartes vides).
 ### Décisions et pièges tracés
 
 - **Chiffres toujours visibles, détail à la demande** (2026-11-11) : la semaine courante sert d'abord à planifier, la

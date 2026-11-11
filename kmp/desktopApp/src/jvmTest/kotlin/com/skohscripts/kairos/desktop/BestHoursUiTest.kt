@@ -1,6 +1,13 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
+import com.skohscripts.kairos.ui.guide.GuideSection
+import com.skohscripts.kairos.ui.guide.GuideSpotState
+import com.skohscripts.kairos.ui.guide.LocalGuideSpot
+import com.skohscripts.kairos.ui.stats.StatsScreen
+import com.skohscripts.kairos.ui.theme.KairosTheme
+import androidx.compose.material3.Surface
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.runComposeUiTest
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
@@ -22,6 +29,7 @@ import java.util.TimeZone
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -101,8 +109,26 @@ class BestHoursUiTest {
 
     @Test
     fun withoutAnyTimedSessionTheCardSaysSo() = runComposeUiTest {
+        // Rien de chronométré : les cartes de temps laissent place à une seule (docs/spec/statistiques.md § Ordre et cartes vides).
         val services = services(KairosSnapshot(tasks = listOf(done(1, "Documentation"))))
+        // Le guide « Quand tu travailles chaque type » (issue #95) vise cette carte unique : il la trouve et consomme sa demande.
+        val spot = GuideSpotState().apply { pending = GuideSection.STATS_HOURS }
+        setContent {
+            // L'écran seul : le shell fournirait son propre état de guide.
+            CompositionLocalProvider(LocalGuideSpot provides spot) { KairosTheme { Surface { StatsScreen(services) } } }
+        }
+        waitText(this, "Nothing timed yet")
+        assertTrue(onAllNodesWithText("When you work on each type").fetchSemanticsNodes().isEmpty())
+        waitUntil(timeoutMillis = 15_000) { spot.pending == null && spot.shown == GuideSection.STATS_HOURS }
+    }
+
+    @Test
+    fun aFewMinutesTimedKeepTheCardsAndTheHoursSayWhyTheyAreEmpty() = runComposeUiTest {
+        // Trois minutes : du temps, mais aucune session de 5 minutes pour le profil horaire.
+        val session = WorkSession(1, 1, Instant.parse("2026-10-09T10:00:00Z"), Instant.parse("2026-10-09T10:03:00Z"), Instant.parse("2026-10-01T08:00:00Z"))
+        val services = services(KairosSnapshot(tasks = listOf(done(1, "Documentation")), workSessions = listOf(session)))
         setContent { KairosApp(Platform.DESKTOP, Destination.STATS, TeamDestination.BOARD) { services } }
         waitText(this, "No timed session of 5 minutes or more yet.")
+        assertTrue(onAllNodesWithText("Nothing timed yet").fetchSemanticsNodes().isEmpty())
     }
 }

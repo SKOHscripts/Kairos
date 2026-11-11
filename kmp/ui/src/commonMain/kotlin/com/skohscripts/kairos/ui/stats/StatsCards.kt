@@ -84,20 +84,29 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.math.round
 
 /**
- * Les sept cartes de l'écran Stats, dans l'ordre de l'écran (docs/spec/statistiques.md § Export à l'écran) : l'écran et
+ * Les neuf cartes de l'écran Stats, dans l'ordre de l'écran (docs/spec/statistiques.md § Export à l'écran) : l'écran et
  * l'image exportée d'une carte les dessinent par le même [StatsCardView]. [fileKey] entre dans le nom du PNG.
  */
 internal enum class StatsCard(val title: StringResource, val fileKey: String) {
     KEY_FIGURES(Res.string.stats_key_figures, "key-figures"),
+    // Juste après les chiffres clés (docs/spec/statistiques.md § Ordre et cartes vides) : la seule carte qui appelle une action.
+    BACKLOG(Res.string.stats_flow_title, "backlog"),
     THROUGHPUT(Res.string.stats_throughput_title, "throughput"),
     TRACKED(Res.string.stats_tracked_title, "tracked-time"),
     CALIBRATION(Res.string.stats_calibration_title, "calibration"),
     BIAS_TREND(Res.string.stats_bias_trend_title, "bias-trend"),
     TIME_BY_TYPE(Res.string.stats_types_title, "time-by-type"),
     HOURS(Res.string.stats_hours_title, "hours"),
-    BACKLOG(Res.string.stats_flow_title, "backlog"),
     COMPLETENESS(Res.string.stats_completeness_title, "completeness"),
+    ;
+
+    /** Carte qui ne vit que du temps chronométré : sans aucun chrono, elles laissent place à une seule carte d'explication. */
+    val timed: Boolean get() = this == TRACKED || this == CALIBRATION || this == BIAS_TREND || this == TIME_BY_TYPE || this == HOURS
 }
+
+/** Rien de chronométré dans ce que l'écran retient : les cartes [StatsCard.timed] seraient toutes vides. */
+internal fun nothingTimed(stats: TaskStats.Dashboard, hours: BestHours.Result, trends: StatsTrends.Result): Boolean =
+    !trends.hasTracked && !trends.hasBias && stats.calibration.isEmpty() && stats.bias == null && stats.timeByType.isEmpty() && !hours.hasData
 
 /**
  * Une carte des Stats. Barres d'une seule teinte (le primaire) sur une piste neutre, valeur toujours écrite à côté :

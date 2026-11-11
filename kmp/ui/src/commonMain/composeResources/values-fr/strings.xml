@@ -1986,4 +1986,7 @@
     <string name="recap_text_tracked">Temps chronométré : %1$s</string>
     <string name="card_recap_title">Bilan de la semaine et du mois</string>
     <string name="card_recap_body">Dans les vues Semaine et Mois, la carte « Bilan » résume la période : tâches faites et leur temps, ce qui a avancé, réunions et créneaux, ce qui reste à échéance. « Copier le bilan » le met en texte dans le presse-papiers, prêt pour la réunion hebdomadaire.</string>
+    <string name="stats_untimed_title">Rien de chronométré pour l’instant</string>
+    <string name="stats_untimed_body">Lance le chrono sur une tâche (▷ sur sa ligne) : le temps au fil des jours, la calibration de tes estimations, leur biais par semaine, la répartition par type et tes heures de travail apparaîtront ici.</string>
+    <string name="stats_untimed_filtered">Rien de chronométré pour ce filtre. Change-le ou réinitialise-le plus haut, ou lance le chrono sur une de ces tâches.</string>
 </resources>

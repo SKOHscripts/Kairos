@@ -1983,4 +1983,7 @@
     <string name="recap_text_tracked">Tempo cronometrato: %1$s</string>
     <string name="card_recap_title">Bilancio della settimana e del mese</string>
     <string name="card_recap_body">Nelle viste Settimana e Mese, la scheda «Bilancio» riassume il periodo: attività completate e il loro tempo, ciò che è avanzato, riunioni e fasce orarie, ciò che resta in scadenza. «Copia il bilancio» lo mette come testo negli appunti, pronto per la riunione settimanale.</string>
+    <string name="stats_untimed_title">Ancora niente di cronometrato</string>
+    <string name="stats_untimed_body">Avvia il timer su un’attività (▷ sulla sua riga): il tempo nei giorni, la calibrazione delle tue stime, il loro scarto settimanale, la ripartizione per tipo e le tue ore di lavoro appariranno qui.</string>
+    <string name="stats_untimed_filtered">Niente di cronometrato per questo filtro. Cambialo o reimpostalo qui sopra, oppure avvia il timer su una di queste attività.</string>
 </resources>

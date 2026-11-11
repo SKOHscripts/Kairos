@@ -1983,4 +1983,7 @@
     <string name="recap_text_tracked">Erfasste Zeit: %1$s</string>
     <string name="card_recap_title">Wochen- und Monatsbilanz</string>
     <string name="card_recap_body">In der Wochen- und Monatsansicht fasst die Karte „Bilanz“ den Zeitraum zusammen: erledigte Aufgaben und ihre Zeit, was vorankam, Meetings und Zeitfenster, was noch fällig ist. „Bilanz kopieren“ legt sie als Text in die Zwischenablage, bereit für das Wochenmeeting.</string>
+    <string name="stats_untimed_title">Noch nichts erfasst</string>
+    <string name="stats_untimed_body">Starte den Timer bei einer Aufgabe (▷ in ihrer Zeile): Zeit im Verlauf, Kalibrierung deiner Schätzungen, ihre wöchentliche Abweichung, Verteilung nach Typ und deine Arbeitszeiten erscheinen dann hier.</string>
+    <string name="stats_untimed_filtered">Für diesen Filter ist nichts erfasst. Ändere ihn oder setze ihn oben zurück, oder starte den Timer bei einer dieser Aufgaben.</string>
 </resources>

@@ -1984,4 +1984,7 @@
     <string name="recap_text_tracked">Time tracked: %1$s</string>
     <string name="card_recap_title">Week and month recap</string>
     <string name="card_recap_body">In the Week and Month views, the “Recap” card sums up the period: tasks done and their time, what moved forward, meetings and time slots, what is still due. “Copy the recap” puts it on the clipboard as text, ready for the weekly meeting.</string>
+    <string name="stats_untimed_title">Nothing timed yet</string>
+    <string name="stats_untimed_body">Start the timer on a task (▷ on its row): time over the days, the calibration of your estimates, their weekly bias, the split by type and your working hours will show up here.</string>
+    <string name="stats_untimed_filtered">Nothing timed for this filter. Change or reset it above, or start the timer on one of these tasks.</string>
 </resources>
