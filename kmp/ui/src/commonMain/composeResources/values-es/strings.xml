@@ -548,6 +548,8 @@
     <string name="setting_urgency_horizon_help">Número de días antes de la fecha límite en que la urgencia empieza a subir.</string>
     <string name="setting_urgency_peak">Peso máximo de la urgencia</string>
     <string name="setting_urgency_peak_help">Lo que añade una fecha límite alcanzada, en la misma unidad que el valor de la prioridad.</string>
+    <string name="setting_implicit_deadline">Fecha límite implícita de las tareas sin fecha (días)</string>
+    <string name="setting_implicit_deadline_help">Una tarea sin fecha límite ni fecha programada cuenta, para su puntuación, como si venciera este número de días después de su creación: acaba volviendo a subir. 0 lo desactiva.</string>
     <string name="setting_default_points">Puntos por defecto</string>
     <string name="setting_default_points_help">Esfuerzo de una tarea sin puntos ni duración (divisor de la puntuación).</string>
     <string name="setting_dip_enabled">Activar el bajón de la tarde</string>

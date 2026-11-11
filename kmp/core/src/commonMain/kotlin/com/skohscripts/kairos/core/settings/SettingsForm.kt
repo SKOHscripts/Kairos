@@ -401,6 +401,7 @@ object SettingsForm {
         decimal("priorityValueBase", 0.0, true, { it.priorityValueBase }) { s, v -> s.copy(priorityValueBase = v) },
         int("urgencyHorizonDays", 0, get = { it.urgencyHorizonDays }) { s, v -> s.copy(urgencyHorizonDays = v) },
         decimal("urgencyPeak", 0.0, false, { it.urgencyPeak }) { s, v -> s.copy(urgencyPeak = v) },
+        int("implicitDeadlineDays", 0, get = { it.implicitDeadlineDays }) { s, v -> s.copy(implicitDeadlineDays = v) },
         int("defaultFibonacciPoints", 1, get = { it.defaultFibonacciPoints }) { s, v -> s.copy(defaultFibonacciPoints = v) },
         bool("cognitiveDipEnabled", { it.cognitiveDipEnabled }) { s, v -> s.copy(cognitiveDipEnabled = v) },
         int("cognitiveDipStartHour", 0, 23, { it.cognitiveDipStartHour }) { s, v -> s.copy(cognitiveDipStartHour = v) },

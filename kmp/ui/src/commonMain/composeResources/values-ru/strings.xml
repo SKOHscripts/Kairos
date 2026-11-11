@@ -548,6 +548,8 @@
     <string name="setting_urgency_horizon_help">За сколько дней до срока срочность начинает расти.</string>
     <string name="setting_urgency_peak">Максимальный вес срочности</string>
     <string name="setting_urgency_peak_help">Что добавляет наступивший срок, в тех же единицах, что и ценность приоритета.</string>
+    <string name="setting_implicit_deadline">Неявный срок задач без даты (дни)</string>
+    <string name="setting_implicit_deadline_help">Задача без срока и без запланированной даты считается для рейтинга так, будто её срок наступает через это число дней после создания: со временем она поднимается. 0 отключает.</string>
     <string name="setting_default_points">Баллы по умолчанию</string>
     <string name="setting_default_points_help">Усилие задачи без баллов и без длительности (делитель рейтинга).</string>
     <string name="setting_dip_enabled">Включить послеобеденный спад</string>

@@ -548,6 +548,8 @@
     <string name="setting_urgency_horizon_help">Numero di giorni prima della scadenza in cui l’urgenza inizia a salire.</string>
     <string name="setting_urgency_peak">Peso massimo dell’urgenza</string>
     <string name="setting_urgency_peak_help">Ciò che aggiunge una scadenza raggiunta, nella stessa unità del valore della priorità.</string>
+    <string name="setting_implicit_deadline">Scadenza implicita delle attività senza data (giorni)</string>
+    <string name="setting_implicit_deadline_help">Un’attività senza scadenza né data programmata conta, per il punteggio, come se scadesse questo numero di giorni dopo la creazione: finisce per risalire. 0 la disattiva.</string>
     <string name="setting_default_points">Punti predefiniti</string>
     <string name="setting_default_points_help">Sforzo di un’attività senza punti né durata (divisore del punteggio).</string>
     <string name="setting_dip_enabled">Attiva il calo del pomeriggio</string>

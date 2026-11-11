@@ -550,6 +550,8 @@
     <string name="setting_urgency_horizon_help">Nombre de jours avant l’échéance où l’urgence commence à monter.</string>
     <string name="setting_urgency_peak">Poids maximal de l’urgence</string>
     <string name="setting_urgency_peak_help">Ce qu’ajoute une échéance atteinte, dans la même unité que la valeur de la priorité.</string>
+    <string name="setting_implicit_deadline">Échéance implicite des tâches sans date (jours)</string>
+    <string name="setting_implicit_deadline_help">Une tâche sans échéance ni date programmée compte, pour son score, comme si elle était due ce nombre de jours après sa création : elle finit par remonter. 0 la coupe.</string>
     <string name="setting_default_points">Points par défaut</string>
     <string name="setting_default_points_help">Effort d’une tâche sans points ni durée (diviseur du score).</string>
     <string name="setting_dip_enabled">Activer le creux de l’après-midi</string>

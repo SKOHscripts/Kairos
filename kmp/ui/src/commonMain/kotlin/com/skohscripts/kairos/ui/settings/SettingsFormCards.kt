@@ -161,6 +161,8 @@ import com.skohscripts.kairos.ui.generated.resources.setting_update_check
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_horizon
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_horizon_help
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_peak
+import com.skohscripts.kairos.ui.generated.resources.setting_implicit_deadline
+import com.skohscripts.kairos.ui.generated.resources.setting_implicit_deadline_help
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_peak_help
 import com.skohscripts.kairos.ui.generated.resources.setting_workday_end
 import com.skohscripts.kairos.ui.generated.resources.setting_workday_end_help
@@ -181,6 +183,7 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "priorityValueBase" to FieldText(Res.string.setting_priority_base, Res.string.setting_priority_base_help),
     "urgencyHorizonDays" to FieldText(Res.string.setting_urgency_horizon, Res.string.setting_urgency_horizon_help),
     "urgencyPeak" to FieldText(Res.string.setting_urgency_peak, Res.string.setting_urgency_peak_help),
+    "implicitDeadlineDays" to FieldText(Res.string.setting_implicit_deadline, Res.string.setting_implicit_deadline_help),
     "defaultFibonacciPoints" to FieldText(Res.string.setting_default_points, Res.string.setting_default_points_help),
     "cognitiveDipEnabled" to FieldText(Res.string.setting_dip_enabled),
     "cognitiveDipStartHour" to FieldText(Res.string.setting_dip_start),
@@ -263,7 +266,7 @@ private val STATS = Section(Res.string.settings_section_stats, null, KairosIcons
 private val ADVANCED = listOf(
     Section(
         Res.string.settings_section_wsjf, Res.string.settings_section_wsjf_body, KairosIcons.Leaderboard,
-        listOf("priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "defaultFibonacciPoints"), advanced = true,
+        listOf("priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "implicitDeadlineDays", "defaultFibonacciPoints"), advanced = true,
     ),
     Section(
         Res.string.settings_section_dip,

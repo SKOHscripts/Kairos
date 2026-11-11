@@ -548,6 +548,8 @@
     <string name="setting_urgency_horizon_help">Anzahl der Tage vor der Frist, ab denen die Dringlichkeit steigt.</string>
     <string name="setting_urgency_peak">Maximales Gewicht der Dringlichkeit</string>
     <string name="setting_urgency_peak_help">Was eine erreichte Frist hinzufügt, in derselben Einheit wie der Wert der Priorität.</string>
+    <string name="setting_implicit_deadline">Implizite Frist undatierter Aufgaben (Tage)</string>
+    <string name="setting_implicit_deadline_help">Eine Aufgabe ohne Frist und ohne geplantes Datum zählt für ihren Score, als wäre sie so viele Tage nach ihrer Erstellung fällig: Sie steigt irgendwann wieder auf. 0 schaltet das aus.</string>
     <string name="setting_default_points">Standardpunkte</string>
     <string name="setting_default_points_help">Aufwand einer Aufgabe ohne Punkte und ohne Dauer (teilt den Score).</string>
     <string name="setting_dip_enabled">Nachmittagstief aktivieren</string>
