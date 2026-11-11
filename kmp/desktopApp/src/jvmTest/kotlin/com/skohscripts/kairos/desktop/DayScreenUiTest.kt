@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.ui.test.isDialog
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
@@ -276,11 +279,13 @@ class DayScreenUiTest {
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Alpha", substring = true).fetchSemanticsNodes().isNotEmpty() }
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Edit task").fetchSemanticsNodes().isNotEmpty() }
-        onNodeWithText("More options").performScrollTo().performClick()
+        openSheetSection("Dates and time")
         onNode(hasSetTextAction() and hasText("Fixed time (HH:MM)")).performScrollTo().performTextInput("14:30")
         // « Bloquée par » est dans « Découpage et enchaînement » (docs/spec/sous-taches.md § Section).
-        onNodeWithText("Splitting and sequencing").performScrollTo().performClick()
-        onNodeWithText("Beta").performScrollTo().performClick()
+        openSheetSection("Splitting and sequencing")
+        // « Bloquée par » se choisit par la recherche (docs/spec/fiche-tache.md).
+        onNode(hasSetTextAction() and hasText("Add a blocker…")).performScrollTo().performTextInput("Beta")
+        onNode(hasText("Beta") and hasClickAction() and hasAnyAncestor(isDialog()) and !hasSetTextAction()).performScrollTo().performClick()
         onNodeWithText("Save").performClick()
         waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.dependencies.isNotEmpty() }
         val dep = repository.snapshot.value.dependencies.single()

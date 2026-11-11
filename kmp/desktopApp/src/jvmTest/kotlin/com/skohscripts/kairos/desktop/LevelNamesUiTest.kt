@@ -87,6 +87,7 @@ class LevelNamesUiTest {
 
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
         waitText("Edit task")
+        openSheetSection("Qualification")
         onNodeWithText("Urgent (P0)", substring = true).assertExists()
         onNodeWithText("P1 Important", substring = true).assertExists()
         onNodeWithText("M (3)").assertExists()

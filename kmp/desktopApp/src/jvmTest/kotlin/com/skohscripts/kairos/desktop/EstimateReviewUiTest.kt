@@ -135,6 +135,9 @@ class EstimateReviewUiTest {
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitText("Quarterly report for the committee", substring = true)
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
+        // Section repliée : son résumé signale la durée contestée ; ouverte, la phrase et la puce.
+        waitText("the model suggests 45 min", substring = true)
+        openSheetSection("Dates and time")
         waitText("Machine learning estimates 45 min", substring = true)
         onNode(hasSetTextAction() and hasText("120")).assertExists()
         onNodeWithText("Set to 45 min").performScrollTo().performClick()

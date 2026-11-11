@@ -81,6 +81,7 @@ class LearnedDurationsUiTest {
         // Le dialogue propose la valeur sans la remplir ; un clic sur la puce l'inscrit.
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Edit task").fetchSemanticsNodes().isNotEmpty() }
+        openSheetSection("Dates and time")
         onNodeWithText("Use 40 min (your last 3)").performScrollTo().performClick()
         onNode(hasSetTextAction() and hasText("40")).assertExists()
         onNodeWithText("Save").performClick()

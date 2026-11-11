@@ -55,8 +55,8 @@ besoin métier._
    ouvre seulement « Déplacer vers un autre jour… » (`vue-semaine.md`) ; la fiche reste dans la vue Jour.
 3. **Blocage** : après avoir bloqué une tâche, un retour dit où elle est allée
    (« X attend Y », section « Bloquées » ouverte pour cette fois) ; l'aide de la
-   fiche dit ce que fait un bloqueur ; les « Options avancées » de la fiche
-   s'ouvrent d'office quand un bloqueur ou une date programmée existe ; le
+   fiche dit ce que fait un bloqueur ; l'en-tête replié de la fiche résume
+   bloqueurs et date programmée (4.1.0, `fiche-tache.md` ; avant, les sections s'ouvraient d'office) ; le
    bloqueur porte un badge « bloque X ».
 4. **Réglages** : libellés en langage clair (« WSJF » retiré des titres et des
    aides de l'agenda) ; langue et apparence en tête ; un groupe replié

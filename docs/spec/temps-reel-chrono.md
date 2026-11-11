@@ -186,8 +186,8 @@ oublié » ne sonne qu'une fois.
   tâche suivante) ont leur spec, `rappels.md` (3.8.0) : ils réutilisent le notificateur, les bandeaux et, sur Android, les
   alarmes inexactes et `ChronoReceiver` (`ACTION_REMINDER`).
 - Alarmes exactes (voir Décisions).
-- Garde-fou : corriger la durée d'une session déjà close (il n'existe pas d'édition des sessions ; le temps manuel de la
-  fiche ne fait qu'ajouter), arrêter à la fin de la journée de travail plutôt qu'après une durée, marquer la session
+- Garde-fou : corriger une session précise (heure de début ou de fin ; depuis 4.1.0 le **total** se corrige dans la fiche,
+  `fiche-tache.md` § Temps passé, en raccourcissant les sessions récentes), arrêter à la fin de la journée de travail plutôt qu'après une durée, marquer la session
   arrêtée par le garde-fou dans les données (pistes notées, § Décisions).
 
 ## 2. Solution technique

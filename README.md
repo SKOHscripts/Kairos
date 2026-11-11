@@ -420,7 +420,9 @@ order (critical path). Cycles are refused.
 
 - **Timer per task** (one at a time), live on the row, in "Up next", in the
   "Right now" card and in the window title; it survives closing the app and
-  restarting the phone.
+  restarting the phone. The time spent is corrected in the task sheet
+  ("Dates and time"): raise it for untimed work, lower it after a forgotten
+  timer (the latest sessions are shortened, with an undo).
 - **Three alerts**: going past the estimate, a forgotten timer, a suggested
   break. A banner in the app, and a system notification: Android (ongoing
   notification with a stopwatch, even with the app closed), the desktop
@@ -540,8 +542,8 @@ order (critical path). Cycles are refused.
   enabled.
 - **Guided first task**: on first launch (or from the Day view while you have
   no task of your own), Kairos walks you through the real task sheet, field by
-  field (title, priority, Fibonacci points, type, estimate, dates, advanced
-  options), then shows where your task lands in the day and congratulates you
+  field (title, priority, Fibonacci points, type, estimate, dates and time,
+  splitting), then shows where your task lands in the day and congratulates you
   once it is really created. Nothing is written if you give up.
 - **Interactive demo**: "Try it in a demo" in "Discover Kairos" opens the real
   screens on throwaway examples, in memory, and guides you through capturing,
@@ -592,7 +594,7 @@ order (critical path). Cycles are refused.
   side by side, then applied if you wish.
 - **Your personal work counts**: if a member is "This is me", your personal
   tasks enter your load and your team forecasts (marked "Personal"), without
-  leaving the Personal space; "Count in the team" (task sheet, more options)
+  leaving the Personal space; "Count in the team" (task sheet, "Qualification")
   excludes one. Your meetings in the Day view reduce your capacity, and the
   forecasts offer "My work".
 - Forecasts and load take **recurring tasks** into account (every upcoming

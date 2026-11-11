@@ -278,7 +278,6 @@
     <string name="split_advice_none">Divídela en subtareas: todavía ninguna tarea terminada con %1$d puntos, nada indica si este nivel se estima bien.</string>
     <string name="split_section_title">División y encadenamiento</string>
     <string name="split_section_hint">Las subtareas dividen este trabajo: está terminado cuando ellas lo están. «Bloqueada por» lo encadena a otras tareas: espera hasta que estén hechas.</string>
-    <string name="blockers_search">Buscar una tarea</string>
     <string name="blockers_search_none">Ninguna tarea coincide con «%1$s».</string>
     <string name="split_advice_action">Dividir en subtareas</string>
     <string name="done_hint">Ya terminadas hoy.</string>
@@ -309,9 +308,8 @@
     <string name="why_score">Puntuación</string>
     <string name="why_note">La puntuación más alta va primero. Una fecha límite cercana sube la puntuación; una tarea grande la divide.</string>
     <string name="timeline_title">Agenda</string>
-    <string name="edit_advanced">Más opciones</string>
     <string name="field_scheduled">Programada para</string>
-    <string name="field_manual_time">Tiempo dedicado, introducido a mano (min)</string>
+    <string name="field_manual_time">Tiempo dedicado (min)</string>
     <string name="field_recurrence">Repetición</string>
     <string name="task_rec_none">ninguna</string>
     <string name="task_rec_daily">diaria</string>
@@ -334,7 +332,7 @@
     <string name="subtask_restore">Deshacer la eliminación</string>
     <string name="subtask_deleted_description">Se eliminará al guardar: %1$s</string>
     <string name="field_blockers">Bloqueada por</string>
-    <string name="field_blockers_hint">Mientras una tarea marcada siga pendiente, esta espera en «Bloqueadas» y no se ordena.</string>
+    <string name="field_blockers_hint">Mientras una de estas tareas esté pendiente, esta espera en «Bloqueadas» y no se ordena.</string>
     <string name="field_blockers_cycle">%1$s (ya espera a esta tarea)</string>
     <string name="field_blockers_none">ninguna otra tarea</string>
     <string name="field_day_invalid">Día esperado entre 1 y 31</string>
@@ -1311,7 +1309,7 @@
     <string name="guide_you_do_title">Haz en orden</string>
     <string name="guide_you_do_body">«A continuación» muestra la tarea por hacer; las siguientes se ordenan por puntuación en torno a tus reuniones. «¿Por qué en este lugar?» explica cada posición.</string>
     <string name="guide_you_time_title">Sigue el tiempo</string>
-    <string name="guide_you_time_body">Inicia el cronómetro en una tarea: Kairos mide el tiempo real, te avisa cuando te pasas y lo compara con tu estimación.</string>
+    <string name="guide_you_time_body">Inicia el cronómetro en una tarea: Kairos mide el tiempo real, te avisa cuando te pasas y lo compara con tu estimación. Un cronómetro olvidado o tiempo no cronometrado se corrige en la ficha, «Fechas y tiempo».</string>
     <string name="guide_you_stats_title">Semana y estadísticas</string>
     <string name="guide_you_stats_body">La Semana muestra los siete días de un vistazo. Las estadísticas comparan el tiempo estimado y el tiempo real para afinar tus estimaciones.</string>
     <string name="guide_you_data_title">Tus datos y tu manager</string>
@@ -1503,7 +1501,7 @@
     <string name="coach_minutes_title">Estimación: en minutos</string>
     <string name="coach_minutes_body">Opcional. Sin ella, Kairos toma la duración de tus puntos y luego la duración predeterminada de los Ajustes. Tras algunas ocurrencias cronometradas, puede sugerirte la duración real.</string>
     <string name="coach_deadline_title">Fechas: fecha límite y día previsto</string>
-    <string name="coach_deadline_body">La fecha límite sube la puntuación a medida que se acerca. «Programada para», en las opciones avanzadas, reserva la tarea para el día en que puedes empezarla.</string>
+    <string name="coach_deadline_body">La fecha límite sube la puntuación a medida que se acerca. «Programada para», en la misma sección, reserva la tarea para el día en que puedes empezarla.</string>
     <string name="coach_type_title">Tipo: para qué sirve</string>
     <string name="coach_type_body">El tipo agrupa tus estadísticas y puede sugerir una duración. Con la prioridad y los puntos, saca la tarea de «Por procesar» (también se elige ahí). Los tipos se gestionan en los Ajustes.</string>
     <string name="coach_more_title">Para ir más lejos</string>
@@ -1986,4 +1984,26 @@
     <string name="stats_untimed_title">Aún no hay nada cronometrado</string>
     <string name="stats_untimed_body">Inicia el cronómetro en una tarea (▷ en su fila): el tiempo a lo largo de los días, la calibración de tus estimaciones, su sesgo semanal, el reparto por tipo y tus horas de trabajo aparecerán aquí.</string>
     <string name="stats_untimed_filtered">Nada cronometrado para este filtro. Cámbialo o restablécelo arriba, o inicia el cronómetro en una de estas tareas.</string>
+    <string name="edit_section_qualify">Calificación</string>
+    <string name="edit_section_when">Fechas y tiempo</string>
+    <string name="edit_summary_subtasks">%1$d subtarea(s)</string>
+    <string name="edit_summary_blockers">%1$d bloqueo(s)</string>
+    <string name="edit_summary_scheduled">programada %1$s</string>
+    <string name="edit_summary_project">proyecto %1$s</string>
+    <string name="edit_summary_recurring">recurrente</string>
+    <string name="edit_summary_pinned">fijada a las %1$s</string>
+    <string name="blockers_add">Añadir un bloqueo…</string>
+    <string name="blockers_remove">Quitar «%1$s»</string>
+    <string name="blockers_more">… y %1$d más: afina la búsqueda.</string>
+    <string name="edit_summary_unqualified">por calificar</string>
+    <string name="edit_summary_split_advice">consejo: dividirla</string>
+    <string name="edit_summary_invalid">por corregir</string>
+    <string name="edit_summary_deadline">fecha límite %1$s</string>
+    <string name="edit_summary_estimate">%1$s estimadas</string>
+    <string name="edit_summary_spent">%1$s dedicadas</string>
+    <string name="edit_summary_model">el modelo propone %1$s</string>
+    <string name="spent_floor_running">Al menos %1$s: hay un cronómetro en marcha.</string>
+    <string name="spent_floor_timed">Al menos %1$s cronometradas.</string>
+    <string name="spent_tracked_hint">de ellas %1$s cronometradas</string>
+    <string name="spent_corrected">Tiempo dedicado a «%1$s»: %2$s → %3$s</string>
 </resources>

@@ -31,11 +31,11 @@ urgente : il doit en hériter l'urgence pour passer plus tôt.
   aussitôt dans le planning, sans action de déblocage.
 - Un bloqueur d'une tâche plus urgente remonte dans l'ordre et porte
   « chemin critique » ; sa priorité affichée ne change jamais.
-- Le dialogue d'édition propose les autres tâches à faire en cases à cocher
-  (« Bloquée par ») ; l'ensemble coché est l'état voulu. Une tâche qui
-  attend déjà celle-ci (directement ou non) a sa case grisée, avec « (attend
-  déjà cette tâche) » : la cocher fermerait une boucle. Le dépôt ignore de
-  toute façon une telle arête sans erreur, le reste s'enregistre. Chaque case
+- Le dialogue d'édition propose les autres tâches à faire par une recherche
+  (« Bloquée par », 4.1.0, `fiche-tache.md`) ; l'ensemble des puces choisies est l'état voulu. Une tâche qui
+  attend déjà celle-ci (directement ou non) est proposée grisée, avec « (attend
+  déjà cette tâche) » : la choisir fermerait une boucle. Le dépôt ignore de
+  toute façon une telle arête sans erreur, le reste s'enregistre. Chaque choix
   porte la lignée puis le titre pour une sous-tâche (« A › C › D », `sous-taches.md`), et deux libellés identiques
   (une tâche et sa prochaine occurrence) se distinguent par leur date.
 

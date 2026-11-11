@@ -273,8 +273,8 @@ qu'elles ne pourraient l'être.
 
 - `EditTaskDialog(…, countInTeam: Boolean? = null)` : `null` masque
   l'interrupteur ; sinon `SwitchRow` (ligne `toggleable` de 48 dp, `Switch`
-  MD3) et sa phrase d'aide, en fin d'« Options avancées », juste avant les
-  bloqueurs. L'édition porte `TaskEdit.teamExcluded` seulement si
+  MD3) et sa phrase d'aide, en fin de « Qualification » (4.1.0, `fiche-tache.md` ; avant, en fin d'« Options
+  avancées »). L'édition porte `TaskEdit.teamExcluded` seulement si
   l'interrupteur a changé. Appelant : la vue Jour (`DayScreen`), qui passe
   `!teamExcluded` si `TeamWork.countable(task)` et que « moi » existe.
 - `MemberLoadSection` : une tâche du plan dont la tâche réelle est perso

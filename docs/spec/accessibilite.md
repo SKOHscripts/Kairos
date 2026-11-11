@@ -27,7 +27,7 @@ pouvoir le toucher sans viser.
   lue deux fois.
 - Les en-têtes qui déplient une section (« Rechercher / filtrer »,
   « Sans créneau aujourd'hui »…, « Traité / archivé », description d'une
-  tâche, « Options avancées », « Comment estimer les points ? », « Comment
+  tâche, sections de la fiche (« Qualification », « Dates et temps »…, `fiche-tache.md`), « Comment estimer les points ? », « Comment
   qualifier ? », « Backlog ») sont lus comme des boutons, suivis de
   « déplié » ou « replié ».
 - Les titres de section (vue Jour, Notes, Stats, cartes des Réglages) sont

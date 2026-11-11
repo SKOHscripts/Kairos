@@ -256,6 +256,7 @@ class TeamBacklogBoardUiTest {
         openBoard()
         waitText("Refactor billing")
         onNodeWithText("Refactor billing").performClick()
+        openSheetSection("Team")
         waitText("Note for the member")
         onNode(hasSetTextAction() and hasText("Note for the member")).performScrollTo().performTextInput("Start with the invoices.")
         onNodeWithText("Save").performClick()
@@ -278,6 +279,7 @@ class TeamBacklogBoardUiTest {
         assertEquals(0, count("60%"))
 
         onNodeWithText("Refactor billing").performClick()
+        openSheetSection("Team")
         waitText("Progress")
         onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
             .performSemanticsAction(SemanticsActions.SetProgress) { it(60f) }

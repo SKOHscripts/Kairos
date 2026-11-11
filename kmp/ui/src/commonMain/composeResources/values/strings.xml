@@ -279,7 +279,6 @@
     <string name="split_advice_none">Split it into subtasks: no finished task at %1$d points yet, so nothing tells whether this level is well estimated.</string>
     <string name="split_section_title">Splitting and sequencing</string>
     <string name="split_section_hint">Subtasks split this work: it is done when they are. “Blocked by” chains it to other tasks: it waits until they are done.</string>
-    <string name="blockers_search">Find a task</string>
     <string name="blockers_search_none">No task matches “%1$s”.</string>
     <string name="split_advice_action">Split into subtasks</string>
     <string name="done_hint">Already finished today.</string>
@@ -310,9 +309,8 @@
     <string name="why_score">Score</string>
     <string name="why_note">The highest score goes first. A close deadline raises the score; a big task divides it.</string>
     <string name="timeline_title">Schedule</string>
-    <string name="edit_advanced">More options</string>
     <string name="field_scheduled">Scheduled for</string>
-    <string name="field_manual_time">Time spent, entered by hand (min)</string>
+    <string name="field_manual_time">Time spent (min)</string>
     <string name="field_recurrence">Repeat</string>
     <string name="task_rec_none">none</string>
     <string name="task_rec_daily">daily</string>
@@ -335,7 +333,7 @@
     <string name="subtask_restore">Undo the deletion</string>
     <string name="subtask_deleted_description">Deleted when you save: %1$s</string>
     <string name="field_blockers">Blocked by</string>
-    <string name="field_blockers_hint">While a checked task is still to do, this task waits under “Blocked” and is not ordered.</string>
+    <string name="field_blockers_hint">While one of these tasks is still to do, this task waits under “Blocked” and is not ordered.</string>
     <string name="field_blockers_cycle">%1$s (already waiting on this task)</string>
     <string name="field_blockers_none">no other task</string>
     <string name="field_day_invalid">Day expected between 1 and 31</string>
@@ -1312,7 +1310,7 @@
     <string name="guide_you_do_title">Do things in order</string>
     <string name="guide_you_do_body">“Up next” shows the task to do, the next ones are ranked by score around your meetings. “Why this position?” explains each rank.</string>
     <string name="guide_you_time_title">Track time</string>
-    <string name="guide_you_time_body">Start the timer on a task: Kairos measures real time, warns you when you go over and compares it with your estimate.</string>
+    <string name="guide_you_time_body">Start the timer on a task: Kairos measures real time, warns you when you go over and compares it with your estimate. A forgotten timer or untimed work is corrected in the task sheet, “Dates and time”.</string>
     <string name="guide_you_stats_title">Week and statistics</string>
     <string name="guide_you_stats_body">The Week shows the seven days at a glance. The statistics compare estimated and real time to sharpen your estimates.</string>
     <string name="guide_you_data_title">Your data and your manager</string>
@@ -1504,7 +1502,7 @@
     <string name="coach_minutes_title">Estimate: in minutes</string>
     <string name="coach_minutes_body">Optional. Without it, Kairos takes the duration of your points, then the default duration of the Settings. After a few timed occurrences it can suggest the real duration.</string>
     <string name="coach_deadline_title">Dates: deadline and planned day</string>
-    <string name="coach_deadline_body">The deadline raises the score as it gets close. “Scheduled for”, in the more options, keeps the task for the day you can start it.</string>
+    <string name="coach_deadline_body">The deadline raises the score as it gets close. “Scheduled for”, in the same section, keeps the task for the day you can start it.</string>
     <string name="coach_type_title">Type: what it is for</string>
     <string name="coach_type_body">The type groups your statistics and can suggest a duration. With the priority and the points, it takes the task out of “To process” (you can also pick it there). Types are managed in the Settings.</string>
     <string name="coach_more_title">Going further</string>
@@ -1987,4 +1985,26 @@
     <string name="stats_untimed_title">Nothing timed yet</string>
     <string name="stats_untimed_body">Start the timer on a task (▷ on its row): time over the days, the calibration of your estimates, their weekly bias, the split by type and your working hours will show up here.</string>
     <string name="stats_untimed_filtered">Nothing timed for this filter. Change or reset it above, or start the timer on one of these tasks.</string>
+    <string name="edit_section_qualify">Qualification</string>
+    <string name="edit_section_when">Dates and time</string>
+    <string name="edit_summary_subtasks">%1$d subtask(s)</string>
+    <string name="edit_summary_blockers">%1$d blocker(s)</string>
+    <string name="edit_summary_scheduled">scheduled %1$s</string>
+    <string name="edit_summary_project">project %1$s</string>
+    <string name="edit_summary_recurring">recurring</string>
+    <string name="edit_summary_pinned">pinned at %1$s</string>
+    <string name="blockers_add">Add a blocker…</string>
+    <string name="blockers_remove">Remove “%1$s”</string>
+    <string name="blockers_more">… and %1$d more: narrow the search.</string>
+    <string name="edit_summary_unqualified">to qualify</string>
+    <string name="edit_summary_split_advice">advice: split it</string>
+    <string name="edit_summary_invalid">to fix</string>
+    <string name="edit_summary_deadline">due %1$s</string>
+    <string name="edit_summary_estimate">%1$s estimated</string>
+    <string name="edit_summary_spent">%1$s spent</string>
+    <string name="edit_summary_model">the model suggests %1$s</string>
+    <string name="spent_floor_running">At least %1$s: a timer is running.</string>
+    <string name="spent_floor_timed">At least %1$s timed.</string>
+    <string name="spent_tracked_hint">including %1$s timed</string>
+    <string name="spent_corrected">Time spent on “%1$s”: %2$s → %3$s</string>
 </resources>

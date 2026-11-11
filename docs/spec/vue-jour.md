@@ -139,14 +139,16 @@ terminées à ce palier ; sans historique à un palier, l'exemple générique et
 « aucune de tes tâches terminées à ce palier pour l'instant ». Enfin, la
 différence entre points (l'ordre) et durée (le placement).
 
-**Édition** (dialogue) : titre, description, priorité, points (puis le
+**Édition** (dialogue ; depuis 4.1.0, titre et description puis sections **repliées** qui se résument dans leur en-tête,
+« Bloquée par » en puces et recherche, temps passé corrigeable, `fiche-tache.md`) : titre, description ;
+**« Qualification »** : priorité, points (puis le
 conseil de découpage s'il y a lieu, `sous-taches.md` § Conseil, et le guide des points), type (dans l'essentiel depuis 3.14.0, issue #166 : il qualifie la tâche au même titre que priorité et
-points), échéance, durée ; **« Découpage et enchaînement »** (issue #201, `sous-taches.md` § Section ; repliée,
-ouverte d'emblée si la tâche a des sous-tâches ou des bloqueurs) : une phrase qui dit le rôle de chacun, les
-sous-tâches existantes, l'interrupteur « Enchaîner » (issue #209, `sous-taches.md` § File : chacune attend la précédente, dernier choix retenu sur l'appareil), nouvelles sous-tâches (une par ligne), « Bloquée par » (cases à cocher, avec une recherche
-au-delà de six cases) ; « Options avancées » : programmée pour, projet, temps passé manuel,
-récurrence (aucune, quotidienne, jours ouvrés, hebdomadaire, mensuelle,
-« le … du mois » avec le jour), heure fixe (HH:MM, vide = aucune).
+points), projet, « Compter dans l'équipe » ; **« Dates et temps »** : échéance, durée, programmée pour, heure fixe
+(HH:MM, vide = aucune), récurrence (aucune, quotidienne, jours ouvrés, hebdomadaire, mensuelle, « le … du mois » avec le
+jour), temps passé (le total, corrigeable, `fiche-tache.md` § Temps passé) ; **« Découpage et enchaînement »** (issue
+#201, `sous-taches.md` § Section) : une phrase qui dit le rôle de chacun, les
+sous-tâches existantes, l'interrupteur « Enchaîner » (issue #209, `sous-taches.md` § File : chacune attend la précédente, dernier choix retenu sur l'appareil), nouvelles sous-tâches (une par ligne), « Bloquée par » (puces des tâches choisies et recherche
+à six résultats, `fiche-tache.md`).
 Quand la tâche a déjà des sous-tâches (issue #69, 3.3.0), la section
 **« Sous-tâches »** les liste en tête de « Découpage et enchaînement » : case « faite », titre modifiable, corbeille
 (la ligne reste, barrée, avec « Annuler la suppression »). Rien n'est écrit avant « Enregistrer » ;
@@ -188,9 +190,9 @@ prochain », « Dans une semaine », « Choisir une date… ») qui programme la
 personnelle pour ce jour sans toucher à l'échéance ; un message « « X » déplacée au … »
 propose « Annuler » (la date d'avant revient). Une tâche d'équipe n'a pas « Déplacer… ».
 Quand une édition **ajoute** un bloqueur à une tâche à faire, la section « Bloquées »
-s'ouvre pour cette fois et un message dit « « X » attend « Y » ». La fiche ouvre d'emblée
-« Découpage et enchaînement » si la tâche a un bloqueur ou des sous-tâches, et ses « Options avancées » si elle a une
-date programmée ; l'aide de
+s'ouvre pour cette fois et un message dit « « X » attend « Y » ». La fiche ne s'ouvre jamais dépliée :
+l'en-tête de « Découpage et enchaînement » dit « 1 bloqueur(s) », celui de « Dates et temps » la date programmée
+(4.1.0, `fiche-tache.md`) ; l'aide de
 « Bloquée par » dit que la tâche attend dans « Bloquées ». Sur la ligne du **bloqueur**
 (à faire), un badge « Bloque « X » » (ou « Bloque N tâches »).
 
@@ -474,7 +476,7 @@ chaque entrée une case (rôle et état lus par le lecteur d'écran), le champ a
   il est long, et la phrase d'aide courte reste visible.
 - **Jour et heures saisis à part** pour un créneau : un champ
   `datetime-local` n'a pas d'équivalent commun à Compose.
-- **Projet dans les options avancées** ; le type garde une
+- **Projet dans « Qualification »** (dans les options avancées jusqu'à 4.1.0, `fiche-tache.md`) ; le type garde une
   valeur retirée de la liste des réglages (décision M1).
 - **Opacité interdite sur une ligne bloquée** : on ne baisse pas l'opacité
   (fond et contour à la place), même si le dialogue de Compose, fenêtre à

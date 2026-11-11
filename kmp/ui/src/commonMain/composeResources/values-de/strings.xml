@@ -278,7 +278,6 @@
     <string name="split_advice_none">Teile sie in Unteraufgaben auf: Noch keine erledigte Aufgabe mit %1$d Punkten, nichts zeigt, ob diese Stufe gut geschätzt wird.</string>
     <string name="split_section_title">Aufteilen und Verketten</string>
     <string name="split_section_hint">Unteraufgaben teilen diese Arbeit auf: Sie ist fertig, wenn sie es sind. „Blockiert durch“ verkettet sie mit anderen Aufgaben: Sie wartet, bis diese erledigt sind.</string>
-    <string name="blockers_search">Aufgabe suchen</string>
     <string name="blockers_search_none">Keine Aufgabe passt zu „%1$s“.</string>
     <string name="split_advice_action">In Unteraufgaben aufteilen</string>
     <string name="done_hint">Heute bereits abgeschlossen.</string>
@@ -309,9 +308,8 @@
     <string name="why_score">Score</string>
     <string name="why_note">Der höchste Score kommt zuerst. Eine nahe Frist erhöht den Score; eine große Aufgabe teilt ihn.</string>
     <string name="timeline_title">Kalender</string>
-    <string name="edit_advanced">Weitere Optionen</string>
     <string name="field_scheduled">Geplant für</string>
-    <string name="field_manual_time">Aufgewendete Zeit, von Hand eingegeben (min)</string>
+    <string name="field_manual_time">Aufgewendete Zeit (min)</string>
     <string name="field_recurrence">Wiederholung</string>
     <string name="task_rec_none">keine</string>
     <string name="task_rec_daily">täglich</string>
@@ -334,7 +332,7 @@
     <string name="subtask_restore">Löschen rückgängig machen</string>
     <string name="subtask_deleted_description">Wird beim Speichern gelöscht: %1$s</string>
     <string name="field_blockers">Blockiert durch</string>
-    <string name="field_blockers_hint">Solange eine angehakte Aufgabe noch offen ist, wartet diese Aufgabe unter „Blockiert“ und wird nicht eingeordnet.</string>
+    <string name="field_blockers_hint">Solange eine dieser Aufgaben offen ist, wartet diese unter „Blockiert“ und wird nicht eingeplant.</string>
     <string name="field_blockers_cycle">%1$s (wartet bereits auf diese Aufgabe)</string>
     <string name="field_blockers_none">keine andere Aufgabe</string>
     <string name="field_day_invalid">Tag zwischen 1 und 31 erwartet</string>
@@ -1311,7 +1309,7 @@
     <string name="guide_you_do_title">Der Reihe nach erledigen</string>
     <string name="guide_you_do_body">„Als Nächstes“ zeigt die anstehende Aufgabe, die folgenden sind nach Score rund um deine Meetings geordnet. „Warum an dieser Stelle?“ erklärt jeden Rang.</string>
     <string name="guide_you_time_title">Zeit messen</string>
-    <string name="guide_you_time_body">Starte den Timer bei einer Aufgabe: Kairos misst die Echtzeit, warnt dich bei Überschreitung und vergleicht sie mit deiner Schätzung.</string>
+    <string name="guide_you_time_body">Starte den Timer bei einer Aufgabe: Kairos misst die Echtzeit, warnt dich bei Überschreitung und vergleicht sie mit deiner Schätzung. Ein vergessener Timer oder nicht erfasste Zeit wird im Aufgabenblatt unter „Daten und Zeit“ korrigiert.</string>
     <string name="guide_you_stats_title">Woche und Statistiken</string>
     <string name="guide_you_stats_body">Die Woche zeigt die sieben Tage auf einen Blick. Die Statistiken vergleichen geschätzte und tatsächliche Zeit, um deine Schätzungen zu schärfen.</string>
     <string name="guide_you_data_title">Deine Daten und dein manager</string>
@@ -1503,7 +1501,7 @@
     <string name="coach_minutes_title">Schätzung: in Minuten</string>
     <string name="coach_minutes_body">Optional. Ohne sie nimmt Kairos die Dauer deiner Punkte, dann die Standarddauer aus den Einstellungen. Nach einigen gemessenen Vorkommen kann es dir die reale Dauer vorschlagen.</string>
     <string name="coach_deadline_title">Daten: Frist und geplanter Tag</string>
-    <string name="coach_deadline_body">Die Frist erhöht den Score, je näher sie rückt. „Geplant für“ unter den erweiterten Optionen hält die Aufgabe für den Tag zurück, an dem du anfangen kannst.</string>
+    <string name="coach_deadline_body">Die Frist erhöht den Score, je näher sie rückt. „Geplant für“ im selben Abschnitt hält die Aufgabe für den Tag zurück, an dem du anfangen kannst.</string>
     <string name="coach_type_title">Typ: wozu er dient</string>
     <string name="coach_type_body">Der Typ gruppiert deine Statistiken und kann eine Dauer vorschlagen. Mit Priorität und Punkten holt er die Aufgabe aus „Zu bearbeiten“ (dort lässt er sich auch wählen). Typen werden in den Einstellungen verwaltet.</string>
     <string name="coach_more_title">Weitere Möglichkeiten</string>
@@ -1986,4 +1984,26 @@
     <string name="stats_untimed_title">Noch nichts erfasst</string>
     <string name="stats_untimed_body">Starte den Timer bei einer Aufgabe (▷ in ihrer Zeile): Zeit im Verlauf, Kalibrierung deiner Schätzungen, ihre wöchentliche Abweichung, Verteilung nach Typ und deine Arbeitszeiten erscheinen dann hier.</string>
     <string name="stats_untimed_filtered">Für diesen Filter ist nichts erfasst. Ändere ihn oder setze ihn oben zurück, oder starte den Timer bei einer dieser Aufgaben.</string>
+    <string name="edit_section_qualify">Einordnung</string>
+    <string name="edit_section_when">Daten und Zeit</string>
+    <string name="edit_summary_subtasks">%1$d Unteraufgabe(n)</string>
+    <string name="edit_summary_blockers">%1$d Blocker</string>
+    <string name="edit_summary_scheduled">geplant %1$s</string>
+    <string name="edit_summary_project">Projekt %1$s</string>
+    <string name="edit_summary_recurring">wiederkehrend</string>
+    <string name="edit_summary_pinned">fixiert um %1$s</string>
+    <string name="blockers_add">Blocker hinzufügen…</string>
+    <string name="blockers_remove">„%1$s“ entfernen</string>
+    <string name="blockers_more">… und %1$d weitere: Suche verfeinern.</string>
+    <string name="edit_summary_unqualified">einzuordnen</string>
+    <string name="edit_summary_split_advice">Tipp: aufteilen</string>
+    <string name="edit_summary_invalid">zu korrigieren</string>
+    <string name="edit_summary_deadline">Frist %1$s</string>
+    <string name="edit_summary_estimate">%1$s geschätzt</string>
+    <string name="edit_summary_spent">%1$s aufgewendet</string>
+    <string name="edit_summary_model">das Modell schlägt %1$s vor</string>
+    <string name="spent_floor_running">Mindestens %1$s: ein Timer läuft.</string>
+    <string name="spent_floor_timed">Mindestens %1$s erfasst.</string>
+    <string name="spent_tracked_hint">davon %1$s erfasst</string>
+    <string name="spent_corrected">Aufgewendete Zeit für „%1$s“: %2$s → %3$s</string>
 </resources>

@@ -165,6 +165,7 @@ class M4ScreensUiTest {
         // La bonne ligne : la fiche ouverte est celle de « Delta », la seule tâche ouverte.
         onNode(hasSetTextAction() and hasText("Delta")).assertExists()
 
+        openSheetSection("Qualification")
         onNodeWithText("How to estimate points?").performScrollTo().performClick()
         waitText("for you ≈ 45 min (median of 3 task(s))")
         onNodeWithText("e.g. “Gamma” · e.g. “Beta”").assertExists()

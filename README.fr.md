@@ -445,7 +445,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 
 - **Chrono par tâche** (un seul à la fois), en direct sur la ligne, dans
   « Maintenant », la carte « En ce moment » et le titre de la fenêtre ; il
-  survit à la fermeture de l’application et au redémarrage du téléphone.
+  survit à la fermeture de l’application et au redémarrage du téléphone. Le
+  temps passé se corrige dans la fiche (« Dates et temps ») : à la hausse pour
+  du travail non chronométré, à la baisse après un chrono oublié (les sessions
+  les plus récentes sont raccourcies, avec annulation).
 - **Trois alertes** : dépassement de l’estimé, chrono oublié, pause
   suggérée. Un bandeau dans l’application, et une notification système :
   Android (notification permanente avec chronomètre, même application
@@ -574,7 +577,7 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 - **Première tâche guidée** : au premier lancement (ou depuis la vue Jour tant
   que tu n’as aucune tâche à toi), Kairos te guide dans la vraie fiche d’une
   tâche, champ par champ (titre, priorité, points de Fibonacci, type,
-  estimation, dates, options avancées), puis te montre où elle se place dans la
+  dates et temps, découpage), puis te montre où elle se place dans la
   journée et te félicite une fois qu’elle est réellement créée. Rien n’est
   écrit si tu renonces.
 - **Démonstration interactive** : « Essayer en démonstration » dans
@@ -635,7 +638,7 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 - **Votre travail perso compte** : si un membre est « C’est moi », vos tâches
   personnelles entrent dans votre charge et vos prévisions d’équipe (marquées
   « Perso »), sans quitter l’espace Perso ; « Compter dans l’équipe » (fiche
-  de la tâche, options avancées) en exclut une. Vos réunions de la vue Jour
+  de la tâche, « Qualification ») en exclut une. Vos réunions de la vue Jour
   réduisent votre capacité, et les prévisions proposent « Mon travail ».
 - Les prévisions et la charge tiennent compte des **tâches récurrentes**
   (chaque occurrence à venir sur l’horizon) et du **temps déjà passé** sur

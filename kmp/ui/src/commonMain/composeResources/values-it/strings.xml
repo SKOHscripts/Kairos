@@ -278,7 +278,6 @@
     <string name="split_advice_none">Dividila in sottoattività: ancora nessuna attività completata a %1$d punti, nulla dice se questo livello è stimato bene.</string>
     <string name="split_section_title">Suddivisione e concatenazione</string>
     <string name="split_section_hint">Le sottoattività suddividono questo lavoro: è finito quando lo sono loro. «Bloccata da» lo concatena ad altre attività: attende che siano completate.</string>
-    <string name="blockers_search">Cerca un’attività</string>
     <string name="blockers_search_none">Nessuna attività corrisponde a «%1$s».</string>
     <string name="split_advice_action">Dividi in sottoattività</string>
     <string name="done_hint">Già terminate oggi.</string>
@@ -309,9 +308,8 @@
     <string name="why_score">Punteggio</string>
     <string name="why_note">Il punteggio più alto passa per primo. Una scadenza vicina fa salire il punteggio; un’attività grande lo divide.</string>
     <string name="timeline_title">Agenda</string>
-    <string name="edit_advanced">Altre opzioni</string>
     <string name="field_scheduled">Programmata per</string>
-    <string name="field_manual_time">Tempo trascorso, inserito a mano (min)</string>
+    <string name="field_manual_time">Tempo trascorso (min)</string>
     <string name="field_recurrence">Ripetizione</string>
     <string name="task_rec_none">nessuna</string>
     <string name="task_rec_daily">giornaliera</string>
@@ -334,7 +332,7 @@
     <string name="subtask_restore">Annulla l’eliminazione</string>
     <string name="subtask_deleted_description">Eliminata quando salvi: %1$s</string>
     <string name="field_blockers">Bloccata da</string>
-    <string name="field_blockers_hint">Finché un’attività selezionata è ancora da fare, questa resta in attesa sotto «Bloccate» e non viene ordinata.</string>
+    <string name="field_blockers_hint">Finché una di queste attività è da fare, questa attende in «Bloccate» e non viene ordinata.</string>
     <string name="field_blockers_cycle">%1$s (già in attesa di questa attività)</string>
     <string name="field_blockers_none">nessun’altra attività</string>
     <string name="field_day_invalid">Giorno atteso tra 1 e 31</string>
@@ -1311,7 +1309,7 @@
     <string name="guide_you_do_title">Fare in ordine</string>
     <string name="guide_you_do_body">«Prossima» mostra l’attività da fare, le successive sono ordinate per punteggio attorno alle tue riunioni. «Perché in questa posizione?» spiega ogni posizione.</string>
     <string name="guide_you_time_title">Tracciare il tempo</string>
-    <string name="guide_you_time_body">Avvia il timer su un’attività: Kairos misura il tempo reale, ti avvisa quando sfori e lo confronta con la tua stima.</string>
+    <string name="guide_you_time_body">Avvia il timer su un’attività: Kairos misura il tempo reale, ti avvisa quando sfori e lo confronta con la tua stima. Un timer dimenticato o tempo non cronometrato si corregge nella scheda, «Date e tempi».</string>
     <string name="guide_you_stats_title">Settimana e statistiche</string>
     <string name="guide_you_stats_body">La Settimana mostra i sette giorni a colpo d’occhio. Le statistiche confrontano tempo stimato e tempo reale per affinare le tue stime.</string>
     <string name="guide_you_data_title">I tuoi dati e il tuo manager</string>
@@ -1503,7 +1501,7 @@
     <string name="coach_minutes_title">Stima: in minuti</string>
     <string name="coach_minutes_body">Facoltativa. Senza di essa, Kairos prende la durata dei tuoi punti, poi la durata predefinita delle Impostazioni. Dopo alcune occorrenze cronometrate può proporti la durata reale.</string>
     <string name="coach_deadline_title">Date: scadenza e giorno previsto</string>
-    <string name="coach_deadline_body">La scadenza fa salire il punteggio man mano che si avvicina. «Programmata per», nelle opzioni avanzate, tiene l’attività per il giorno in cui puoi iniziarla.</string>
+    <string name="coach_deadline_body">La scadenza fa salire il punteggio man mano che si avvicina. «Programmata per», nella stessa sezione, tiene l’attività per il giorno in cui puoi iniziarla.</string>
     <string name="coach_type_title">Tipo: a cosa serve</string>
     <string name="coach_type_body">Il tipo raggruppa le tue statistiche e può suggerire una durata. Con la priorità e i punti, fa uscire l’attività da «Da elaborare» (si sceglie anche lì). I tipi si gestiscono nelle Impostazioni.</string>
     <string name="coach_more_title">Per approfondire</string>
@@ -1986,4 +1984,26 @@
     <string name="stats_untimed_title">Ancora niente di cronometrato</string>
     <string name="stats_untimed_body">Avvia il timer su un’attività (▷ sulla sua riga): il tempo nei giorni, la calibrazione delle tue stime, il loro scarto settimanale, la ripartizione per tipo e le tue ore di lavoro appariranno qui.</string>
     <string name="stats_untimed_filtered">Niente di cronometrato per questo filtro. Cambialo o reimpostalo qui sopra, oppure avvia il timer su una di queste attività.</string>
+    <string name="edit_section_qualify">Qualificazione</string>
+    <string name="edit_section_when">Date e tempi</string>
+    <string name="edit_summary_subtasks">%1$d sottoattività</string>
+    <string name="edit_summary_blockers">%1$d blocco/i</string>
+    <string name="edit_summary_scheduled">programmata %1$s</string>
+    <string name="edit_summary_project">progetto %1$s</string>
+    <string name="edit_summary_recurring">ricorrente</string>
+    <string name="edit_summary_pinned">fissata alle %1$s</string>
+    <string name="blockers_add">Aggiungi un blocco…</string>
+    <string name="blockers_remove">Rimuovi «%1$s»</string>
+    <string name="blockers_more">… e altre %1$d: affina la ricerca.</string>
+    <string name="edit_summary_unqualified">da qualificare</string>
+    <string name="edit_summary_split_advice">consiglio: suddividere</string>
+    <string name="edit_summary_invalid">da correggere</string>
+    <string name="edit_summary_deadline">scadenza %1$s</string>
+    <string name="edit_summary_estimate">%1$s stimate</string>
+    <string name="edit_summary_spent">%1$s trascorse</string>
+    <string name="edit_summary_model">il modello propone %1$s</string>
+    <string name="spent_floor_running">Almeno %1$s: un timer è in corso.</string>
+    <string name="spent_floor_timed">Almeno %1$s cronometrate.</string>
+    <string name="spent_tracked_hint">di cui %1$s cronometrate</string>
+    <string name="spent_corrected">Tempo trascorso su «%1$s»: %2$s → %3$s</string>
 </resources>
