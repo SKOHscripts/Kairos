@@ -76,6 +76,9 @@ traiter ».
   débordement.
 - Une tâche qui traîne (en retard depuis trop longtemps, ou sans date et
   intouchée depuis longtemps) porte « traîne depuis N j ».
+- Une tâche sans aucune date gagne de l'urgence avec l'âge : 30 jours après
+  sa création (réglable, 0 = coupé), elle compte comme due ce jour-là, pour
+  le score seulement, jamais « en retard » (`taches-qui-trainent.md`).
 - Plus de P0 non bloquées que le seuil des réglages (5 par défaut) : un
   bandeau rappelle que le signal de priorité se dilue.
 
@@ -117,12 +120,13 @@ traiter ».
 - `priorityValue` : `base ^ (2 − priorité)` (priorité bornée à 0…2) ; sans
   priorité, `base ^ −1`.
 - `timeCriticality` : rampe linéaire vers la date la plus proche (échéance
-  ou programmée) : 0 au-delà de `urgencyHorizonDays`, `urgencyPeak` à
+  ou programmée, sinon l'**échéance implicite** `implicitDeadline` : création
+  en date UTC + `implicitDeadlineDays`, `taches-qui-trainent.md`) : 0 au-delà de `urgencyHorizonDays`, `urgencyPeak` à
   échéance ou dépassée, `peak × (horizon − jours) / horizon` entre les deux.
 - `effort` : points ; sinon minutes ÷ 30 bornées à 1…21 ; sinon
   `defaultFibonacciPoints`. La provenance est gardée (`EffortSource`).
 - `wsjfBreakdown` / `wsjfScore` : `(valeur + criticité) ÷ effort`, avec la
-  date citée (échéance d'abord à date égale) et le nombre de jours, pour
+  date citée (échéance d'abord à date égale, `IMPLICIT` à défaut) et le nombre de jours, pour
   « Pourquoi à cette place ? ».
 - `SortKey` (plus petite = plus urgente) : palier (0 en retard, 1 sinon),
   −score, priorité (999 si absente), échéance (`9999-12-31` si absente), id.
@@ -203,7 +207,9 @@ n'est demandé.
 
 `daysStale` : en retard depuis plus de `staleOverdueDays` (la plus ancienne
 des deux dates), ou, sans aucune date, `updatedAt` plus vieux que
-`staleUntouchedDays` ; sinon `null`.
+`staleUntouchedDays` ; sinon `null`. Signal d'affichage, jamais une clé de
+tri ; l'âge entre dans le score par l'échéance implicite seulement
+(`taches-qui-trainent.md`), qui lit `createdAt`.
 
 ### Tests contre fichiers d'or
 
@@ -216,6 +222,10 @@ exacte (scores comparés en `Double` relus depuis leur forme texte) :
 `scheduling_matches_golden`, `dependencies_match_golden`,
 `calendar_matches_golden`. `StatsDifferentialTest.dashboard_matches_golden`
 rejoue `stats.json` (jalon M4, voir `statistiques.md`).
+
+`DifferentialTest` les rejoue avec `implicitDeadlineDays = 0` (2026-11-11) :
+ils décrivent le moteur sans échéance implicite, couverte par
+`ImplicitDeadlineTest` (`taches-qui-trainent.md` § Décisions).
 
 Les 480 scénarios restent l'invariant « rien ne change sans réglage » : tout
 chantier qui touche le moteur doit les garder verts. Leur script de

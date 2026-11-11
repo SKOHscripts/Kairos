@@ -40,7 +40,8 @@ l'écran Notes ne dit pas qu'il est l'étape « capturer », et la méthode n'es
     commencer ;
   - **« Un jour peut-être »** : pas de liste à part ; Notes en tient lieu : une note peut y rester aussi longtemps qu'il
     faut avant de devenir une tâche (précision du propriétaire, 2026-11-10), « Archiver » la classe sans suite ;
-  - **la revue hebdomadaire** : Kairos ne la guide pas pas à pas ; la vue Semaine et les Stats en donnent la matière.
+  - **la revue hebdomadaire** : Kairos ne la guide pas pas à pas ; la vue Semaine et les Stats en donnent la matière, et le
+    backlog sans date de la vue Semaine liste ce qui traîne (`taches-qui-trainent.md`).
   Le dialogue défile sur un petit écran et montre une **barre de défilement** (le pouce du menu des types, `vue-jour.md`)
   dès que tout ne tient pas ; « Fermer » le ferme.
 - **Aide « ? »** de l'espace Perso : une entrée « La méthode GTD » (« Les cinq étapes et où elles sont dans Kairos »), qui
@@ -63,7 +64,7 @@ l'écran Notes ne dit pas qu'il est l'étape « capturer », et la méthode n'es
 
 ### Hors périmètre
 
-- Une revue hebdomadaire guidée, des listes par contexte au sens de GTD, une liste « Un jour peut-être » distincte.
+- Une revue hebdomadaire guidée pas à pas (la liste de ce qui traîne n'en est pas une : `taches-qui-trainent.md`), des listes par contexte au sens de GTD, une liste « Un jour peut-être » distincte.
 - Un changement du comportement de Notes ou de « À traiter » : seuls des textes et le dialogue s'ajoutent.
 - L'espace Équipe.
 

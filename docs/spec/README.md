@@ -20,6 +20,7 @@ dans `docs/spec-v3/`, est le seul.
 | [`modele-donnees.md`](modele-donnees.md) | Modèle (tâches, créneaux, dépendances, sessions, notes, réglages), stockage SQLDelight, ouverture et migrations, dépôt, exemples. | M1 |
 | [`vue-jour.md`](vue-jour.md) | Vue Jour : capture (tâche, créneau), « À traiter » et « Comment qualifier ? », « Maintenant », agenda ordonné, sections secondaires, « Pourquoi à cette place ? », filtres, backlog, frise, édition complète (guide des points, durées suggérées, sous-tâches existantes), raccourcis, autre jour. | M1, M2, M4, 3.3.0 (#69) |
 | [`ordonnancement.md`](ordonnancement.md) | Moteur : score WSJF, placement dans la journée, creux, deep work, jours ouvrés et fériés, ancienneté ; tests sur fichiers d'or figés. | M2 |
+| [`taches-qui-trainent.md`](taches-qui-trainent.md) | Ce qui traîne : échéance implicite des tâches sans date (score), revue du backlog dans le Bilan. | 4.1.0 |
 | [`dependances.md`](dependances.md) | Blocage, cycles, urgence héritée (chemin critique), bloqueurs dans l'édition. | M2 |
 | [`sous-taches.md`](sous-taches.md) | Sous-tâches (découper) face aux dépendances (enchaîner) : fil d'Ariane complet, priorité imposée, durées et échéances agrégées, conseil de découpage, section « Découpage et enchaînement » de la fiche. | #201, 4.1.0 |
 | [`recurrence.md`](recurrence.md) | Tâches récurrentes (à la complétion, « le N du mois »), créneaux récurrents, « Décaler ». | M2 |
