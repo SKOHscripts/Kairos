@@ -557,6 +557,8 @@
     <string name="setting_implicit_deadline_help">Задача без срока и без запланированной даты считается для рейтинга так, будто её срок наступает через это число дней после создания: со временем она поднимается. 0 отключает. Если срок изучается по твоему ритму, это значение действует, пока истории мало.</string>
     <string name="setting_implicit_deadline_auto">Изучать по моему ритму</string>
     <string name="setting_implicit_deadline_auto_help">Берёт возраст, к которому выполнены 4 из 5 твоих задач без даты, но не меньше горизонта срочности. Нужно 30 личных задач.</string>
+    <string name="settings_linger_learned">Изучено по твоему ритму: %1$d дн. 4 из 5 твоих задач без даты выполняются раньше этого возраста; задача старше — зависла.</string>
+    <string name="settings_linger_pending">Пока мало истории, чтобы изучить (30 личных задач): действует заданное значение, %1$d дн.</string>
     <string name="setting_default_points">Баллы по умолчанию</string>
     <string name="setting_default_points_help">Усилие задачи без баллов и без длительности (делитель рейтинга).</string>
     <string name="setting_dip_enabled">Включить послеобеденный спад</string>

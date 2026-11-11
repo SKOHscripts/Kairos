@@ -14,6 +14,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import com.skohscripts.kairos.core.engine.DurationEstimator
+import com.skohscripts.kairos.core.forecast.Survival
+import com.skohscripts.kairos.ui.generated.resources.settings_linger_learned
+import com.skohscripts.kairos.ui.generated.resources.settings_linger_pending
 import com.skohscripts.kairos.core.engine.model.ModelGate
 import com.skohscripts.kairos.core.engine.model.ModelParams
 import com.skohscripts.kairos.ui.app.AppServices
@@ -80,4 +83,22 @@ internal fun modelStatusText(status: DurationEstimator.Companion.ModelStatus): S
         gate.passed -> stringResource(Res.string.learning_model_status_ok, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
         else -> stringResource(Res.string.learning_model_status_not_better, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
     }
+}
+
+/**
+ * L'échéance implicite apprise du rythme, sous son interrupteur (docs/spec/taches-qui-trainent.md § Échéance apprise) : la
+ * valeur que le score utilise, ou le repli faute d'historique. Lu sur les données **enregistrées** de l'espace Perso.
+ */
+@Composable
+internal fun LingerStatusLine(services: AppServices) {
+    val personal by services.repository.personalSnapshot.collectAsState()
+    val learned = remember(personal) { Survival.lingerDays(personal, services.clock.now(), TimeZone.currentSystemDefault()) }
+    Text(
+        if (learned != null) {
+            stringResource(Res.string.settings_linger_learned, learned)
+        } else {
+            stringResource(Res.string.settings_linger_pending, personal.settings.implicitDeadlineDays)
+        },
+        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }

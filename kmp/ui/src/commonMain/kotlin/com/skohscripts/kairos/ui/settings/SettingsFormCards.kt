@@ -269,7 +269,7 @@ private val STATS = Section(Res.string.settings_section_stats, null, KairosIcons
 private val ADVANCED = listOf(
     Section(
         Res.string.settings_section_wsjf, Res.string.settings_section_wsjf_body, KairosIcons.Leaderboard,
-        listOf("priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "implicitDeadlineDays", "implicitDeadlineAuto", "defaultFibonacciPoints"), advanced = true,
+        listOf("priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "defaultFibonacciPoints", "implicitDeadlineDays", "implicitDeadlineAuto"), advanced = true,
     ),
     Section(
         Res.string.settings_section_dip,
@@ -344,6 +344,8 @@ internal fun SettingsFormCards(
     onChange: (String, String) -> Unit,
     /** Sous l'interrupteur « Estimer par machine learning » : l'état de la vérification (docs/spec/estimateur-modele.md § Interface). */
     learningStatus: @Composable () -> Unit = {},
+    /** Sous « L'apprendre de mon rythme » : l'échéance implicite apprise (docs/spec/taches-qui-trainent.md). */
+    lingerStatus: @Composable () -> Unit = {},
 ) {
     when (category) {
         SettingsCategory.DAY -> {
@@ -366,7 +368,9 @@ internal fun SettingsFormCards(
                 }
             }
             SectionCard(GUARDS, values, errors, onChange)
-            AdvancedGroup(values, errors, onChange)
+            AdvancedGroup(values, errors, onChange) {
+                if (values["implicitDeadlineAuto"] == "true" && (values["implicitDeadlineDays"]?.toIntOrNull() ?: 0) > 0) lingerStatus()
+            }
         }
         SettingsCategory.TRACKING -> {
             GuideSpot(GuideSection.SETTINGS_CHRONO) { SectionCard(CHRONO, values, errors, onChange) }
@@ -417,7 +421,7 @@ private fun shown(key: String, values: Map<String, String>): Boolean {
  * s'ouvrent d'office quand un de leurs champs est en erreur (un enregistrement refusé ne doit pas cacher le champ fautif).
  */
 @Composable
-private fun AdvancedGroup(values: Map<String, String>, errors: Map<String, FieldError>, onChange: (String, String) -> Unit) {
+private fun AdvancedGroup(values: Map<String, String>, errors: Map<String, FieldError>, onChange: (String, String) -> Unit, scoreStatus: @Composable () -> Unit) {
     val advanced = ADVANCED
     var userOpen by rememberSaveable { mutableStateOf(false) }
     val open = userOpen || advanced.any { section -> section.keys.any { it in errors } }
@@ -429,7 +433,7 @@ private fun AdvancedGroup(values: Map<String, String>, errors: Map<String, Field
                 Text(stringResource(Res.string.settings_advanced_body), style = MaterialTheme.typography.bodySmall)
             }
         }
-        if (open) advanced.forEach { section -> SectionCard(section, values, errors, onChange) }
+        if (open) advanced.forEach { section -> SectionCard(section, values, errors, onChange, after = if (section === advanced.first()) scoreStatus else ({})) }
     }
 }
 

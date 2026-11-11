@@ -257,7 +257,7 @@ fun SettingsScreen(services: AppServices, nav: SettingsNav = remember { Settings
                         if (services.updates == null && services.downloadPage) DownloadPageCard()
                         services.shortcuts?.let { ShortcutCard(it) }
                     }
-                    SettingsCategory.DAY, SettingsCategory.PLANNING, SettingsCategory.TRACKING -> SettingsFormCards(category, values, errors, onChange) { ModelStatusLine(services) }
+                    SettingsCategory.DAY, SettingsCategory.PLANNING, SettingsCategory.TRACKING -> SettingsFormCards(category, values, errors, onChange, learningStatus = { ModelStatusLine(services) }, lingerStatus = { LingerStatusLine(services) })
                     SettingsCategory.TEAM -> TeamSettingsCard(values, errors, savedEnabled = current.teamModeEnabled, services = services, onChange = onChange)
                     SettingsCategory.DATA -> {
                         GuideSpot(GuideSection.SETTINGS_DATA) { DataCard(services) }

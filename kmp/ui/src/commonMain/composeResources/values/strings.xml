@@ -558,6 +558,8 @@
     <string name="setting_implicit_deadline_help">A task with neither a deadline nor a scheduled date counts, for its score, as if it were due this many days after its creation: it eventually comes back up. 0 turns it off. When learned from your pace, this value is used until there is enough history.</string>
     <string name="setting_implicit_deadline_auto">Learn it from my pace</string>
     <string name="setting_implicit_deadline_auto_help">Uses the age by which 4 of your 5 undated tasks get done, never below the urgency horizon. Needs 30 personal tasks.</string>
+    <string name="settings_linger_learned">Learned from your pace: %1$d d. 4 of your 5 undated tasks get done before this age; older, a task lingers.</string>
+    <string name="settings_linger_pending">Not enough history to learn it yet (30 personal tasks): the set value, %1$d d, applies.</string>
     <string name="setting_default_points">Default points</string>
     <string name="setting_default_points_help">Effort of a task with neither points nor duration (divides the score).</string>
     <string name="setting_dip_enabled">Enable the afternoon dip</string>
