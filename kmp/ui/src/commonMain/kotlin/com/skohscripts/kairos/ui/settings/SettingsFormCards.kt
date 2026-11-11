@@ -162,8 +162,6 @@ import com.skohscripts.kairos.ui.generated.resources.setting_urgency_horizon
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_horizon_help
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_peak
 import com.skohscripts.kairos.ui.generated.resources.setting_implicit_deadline
-import com.skohscripts.kairos.ui.generated.resources.setting_implicit_deadline_auto
-import com.skohscripts.kairos.ui.generated.resources.setting_implicit_deadline_auto_help
 import com.skohscripts.kairos.ui.generated.resources.setting_implicit_deadline_help
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_peak_help
 import com.skohscripts.kairos.ui.generated.resources.setting_workday_end
@@ -186,7 +184,6 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "urgencyHorizonDays" to FieldText(Res.string.setting_urgency_horizon, Res.string.setting_urgency_horizon_help),
     "urgencyPeak" to FieldText(Res.string.setting_urgency_peak, Res.string.setting_urgency_peak_help),
     "implicitDeadlineDays" to FieldText(Res.string.setting_implicit_deadline, Res.string.setting_implicit_deadline_help),
-    "implicitDeadlineAuto" to FieldText(Res.string.setting_implicit_deadline_auto, Res.string.setting_implicit_deadline_auto_help),
     "defaultFibonacciPoints" to FieldText(Res.string.setting_default_points, Res.string.setting_default_points_help),
     "cognitiveDipEnabled" to FieldText(Res.string.setting_dip_enabled),
     "cognitiveDipStartHour" to FieldText(Res.string.setting_dip_start),
@@ -269,7 +266,7 @@ private val STATS = Section(Res.string.settings_section_stats, null, KairosIcons
 private val ADVANCED = listOf(
     Section(
         Res.string.settings_section_wsjf, Res.string.settings_section_wsjf_body, KairosIcons.Leaderboard,
-        listOf("priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "defaultFibonacciPoints", "implicitDeadlineDays", "implicitDeadlineAuto"), advanced = true,
+        listOf("priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "defaultFibonacciPoints", "implicitDeadlineDays"), advanced = true,
     ),
     Section(
         Res.string.settings_section_dip,
@@ -344,8 +341,8 @@ internal fun SettingsFormCards(
     onChange: (String, String) -> Unit,
     /** Sous l'interrupteur « Estimer par machine learning » : l'état de la vérification (docs/spec/estimateur-modele.md § Interface). */
     learningStatus: @Composable () -> Unit = {},
-    /** Sous « L'apprendre de mon rythme » : l'échéance implicite apprise (docs/spec/taches-qui-trainent.md). */
-    lingerStatus: @Composable () -> Unit = {},
+    /** Sous l'échéance implicite : la valeur calculée du rythme ; [manual] si le champ est rempli (docs/spec/taches-qui-trainent.md). */
+    lingerStatus: @Composable (manual: Boolean) -> Unit = {},
 ) {
     when (category) {
         SettingsCategory.DAY -> {
@@ -369,7 +366,7 @@ internal fun SettingsFormCards(
             }
             SectionCard(GUARDS, values, errors, onChange)
             AdvancedGroup(values, errors, onChange) {
-                if (values["implicitDeadlineAuto"] == "true" && (values["implicitDeadlineDays"]?.toIntOrNull() ?: 0) > 0) lingerStatus()
+                lingerStatus(values["implicitDeadlineDays"].orEmpty().isNotBlank())
             }
         }
         SettingsCategory.TRACKING -> {

@@ -66,21 +66,23 @@ class LingerDaysTest {
     }
 
     @Test
-    fun offWhenNotLearnedOrDisabled() {
+    fun computedWhateverTheSetValue() {
+        // Les Réglages la montrent pour info à côté d'une valeur saisie : le calcul ne lit que l'horizon.
         val tasks = (0 until 40).map { task(it) }
-        assertNull(linger(tasks, Settings(taskTypes = "", implicitDeadlineAuto = false)))
-        assertNull(linger(tasks, Settings(taskTypes = "", implicitDeadlineDays = 0)))
+        assertEquals(31, linger(tasks, Settings(taskTypes = "", implicitDeadlineDays = 45)))
+        assertEquals(31, linger(tasks, Settings(taskTypes = "", implicitDeadlineDays = 0)))
     }
 
     @Test
-    fun theDayViewScoresWithTheLearnedValue() {
+    fun theDayViewScoresWithTheLearnedValueOnlyWhenNoneIsSet() {
         val tasks = (0 until 40).map { task(it) }
         val day = LocalDate(2026, 11, 11)
         val learned = DayView.build(KairosSnapshot(tasks = tasks, settings = Settings(taskTypes = "")), day, null, utc, instant = now)
         assertEquals(31, learned.scoringSettings.implicitDeadlineDays)
         assertTrue(learned.implicitDeadlineLearned)
-        val manual = DayView.build(KairosSnapshot(tasks = tasks, settings = Settings(taskTypes = "", implicitDeadlineAuto = false)), day, null, utc, instant = now)
-        assertEquals(30, manual.scoringSettings.implicitDeadlineDays)
+        // Une valeur saisie l'emporte toujours.
+        val manual = DayView.build(KairosSnapshot(tasks = tasks, settings = Settings(taskTypes = "", implicitDeadlineDays = 45)), day, null, utc, instant = now)
+        assertEquals(45, manual.scoringSettings.implicitDeadlineDays)
         assertFalse(manual.implicitDeadlineLearned)
     }
 }

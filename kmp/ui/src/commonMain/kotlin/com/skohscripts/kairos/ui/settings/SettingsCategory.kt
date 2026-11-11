@@ -42,7 +42,7 @@ enum class SettingsCategory(val title: StringResource, val hint: StringResource,
         private val DAY_KEYS = setOf("defaultTaskDurationMinutes", "meetingBufferMinutes", "workdayStartHour", "workdayEndHour", "holidaysFr", "extraHolidays")
         private val PLANNING_KEYS = setOf(
             "taskTypes", "staleOverdueDays", "staleUntouchedDays", "priorityOverloadThreshold",
-            "priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "implicitDeadlineDays", "implicitDeadlineAuto", "defaultFibonacciPoints",
+            "priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "implicitDeadlineDays", "defaultFibonacciPoints",
             "cognitiveDipEnabled", "cognitiveDipStartHour", "cognitiveDipTroughHour", "cognitiveDipEndHour", "cognitiveDipPenalty",
         )
         private val TRACKING_KEYS = setOf("timerIdleAlertMinutes", "timerAutoStopMinutes", "pomodoroFocusMinutes", "timerAlertSound", "statsWindowWeeks")

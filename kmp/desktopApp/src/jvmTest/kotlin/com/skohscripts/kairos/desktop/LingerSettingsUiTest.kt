@@ -2,6 +2,13 @@ package com.skohscripts.kairos.desktop
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -68,16 +75,25 @@ class LingerSettingsUiTest {
     }
 
     @Test
-    fun theLearnedValueIsShown() = runComposeUiTest {
-        openScore(services(40))
-        // 40 tâches faites de 0 à 39 j : 4 sur 5 le sont avant 31 j.
-        onNodeWithText("Learned from your pace: 31 d", substring = true).performScrollTo().assertExists()
+    fun anEmptyFieldAppliesTheLearnedValueAndATypedOneWins() = runComposeUiTest {
+        val services = services(40)
+        openScore(services)
+        // 40 tâches faites de 0 à 39 j : 4 sur 5 le sont avant 31 j. Le champ reste vide : rien ne se remplit.
+        onNodeWithText("Applied, learned from your pace: 31 d", substring = true).performScrollTo().assertExists()
+        val field = onNode(hasSetTextAction() and hasText("Implicit deadline of undated tasks (days)")).performScrollTo()
+        field.assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("")))
+
+        // Une valeur saisie l'emporte ; la valeur calculée reste dite, pour info.
+        field.performTextInput("45")
+        onNodeWithText("Your value applies. For your information, your pace would give 31 d", substring = true).performScrollTo().assertExists()
+        onNodeWithText("Save").performClick()
+        waitUntil(timeoutMillis = 15_000) { services.repository.snapshot.value.settings.implicitDeadlineDays == 45 }
     }
 
     @Test
     fun theFallbackIsSaidWithoutHistory() = runComposeUiTest {
         openScore(services(5))
         onNodeWithText("Not enough history to learn it yet", substring = true).performScrollTo().assertExists()
-        onNodeWithText("the set value, 30 d, applies", substring = true).assertExists()
+        onNodeWithText("the default 30 d apply", substring = true).assertExists()
     }
 }

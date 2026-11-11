@@ -187,8 +187,8 @@ data class DayView(
             filter: DayFilter = DayFilter(),
             instant: Instant = (now ?: day.atTime(0, 0)).toInstant(timeZone),
         ): DayView {
-            // Échéance implicite apprise de l'historique : le moteur la reçoit par les réglages, comme toute autre valeur.
-            val learnedLinger = Survival.lingerDays(snapshot, instant, timeZone)
+            // Échéance implicite apprise de l'historique, seulement si l'utilisateur n'en a pas saisi : le moteur la reçoit par les réglages.
+            val learnedLinger = if (snapshot.settings.implicitDeadlineDays == null) Survival.lingerDays(snapshot, instant, timeZone) else null
             val settings = learnedLinger?.let { snapshot.settings.copy(implicitDeadlineDays = it) } ?: snapshot.settings
             val holidays = Workdays.holidaysFor(day, settings.holidaysFr, settings.extraHolidays)
             val stored = snapshot.tasks.filter { it.status != TaskStatus.ARCHIVED }

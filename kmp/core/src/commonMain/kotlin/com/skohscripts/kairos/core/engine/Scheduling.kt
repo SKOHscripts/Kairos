@@ -67,13 +67,13 @@ object Scheduling {
     }
 
     /**
-     * Échéance implicite d'une tâche **sans aucune date** : création (date UTC, comme `Staleness`) + `implicitDeadlineDays`,
+     * Échéance implicite d'une tâche **sans aucune date** : création (date UTC, comme `Staleness`) + `Settings.implicitDeadline`,
      * `null` si le réglage vaut 0. Elle ne nourrit que la criticité, jamais le palier « en retard » : sinon toute vieille tâche
      * passerait devant tout (docs/spec/taches-qui-trainent.md).
      */
     fun implicitDeadline(task: Task, settings: Settings): LocalDate? {
-        if (task.deadline != null || task.scheduledDate != null || settings.implicitDeadlineDays <= 0) return null
-        return task.createdAt.toLocalDateTime(TimeZone.UTC).date.plus(settings.implicitDeadlineDays, DateTimeUnit.DAY)
+        if (task.deadline != null || task.scheduledDate != null || settings.implicitDeadline <= 0) return null
+        return task.createdAt.toLocalDateTime(TimeZone.UTC).date.plus(settings.implicitDeadline, DateTimeUnit.DAY)
     }
 
     /** Traîne : sans date, et son échéance implicite est atteinte (revue du Bilan). */

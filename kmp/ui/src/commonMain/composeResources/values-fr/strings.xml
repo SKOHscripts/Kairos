@@ -556,11 +556,10 @@
     <string name="setting_urgency_peak">Poids maximal de l’urgence</string>
     <string name="setting_urgency_peak_help">Ce qu’ajoute une échéance atteinte, dans la même unité que la valeur de la priorité.</string>
     <string name="setting_implicit_deadline">Échéance implicite des tâches sans date (jours)</string>
-    <string name="setting_implicit_deadline_help">Une tâche sans échéance ni date programmée compte, pour son score, comme si elle était due ce nombre de jours après sa création : elle finit par remonter. 0 la coupe. Apprise de ton rythme, cette valeur sert tant que l’historique ne suffit pas.</string>
-    <string name="setting_implicit_deadline_auto">L’apprendre de mon rythme</string>
-    <string name="setting_implicit_deadline_auto_help">Prend l’âge auquel 4 de tes tâches sans date sur 5 sont faites, jamais sous l’horizon d’urgence. Il faut 30 tâches perso.</string>
-    <string name="settings_linger_learned">Apprise de ton rythme : %1$d j. 4 de tes tâches sans date sur 5 sont faites avant cet âge ; plus vieille, une tâche traîne.</string>
-    <string name="settings_linger_pending">Pas encore assez d’historique pour l’apprendre (30 tâches perso) : la valeur réglée, %1$d j, s’applique.</string>
+    <string name="setting_implicit_deadline_help">Une tâche sans échéance ni date programmée compte, pour son score, comme si elle était due ce nombre de jours après sa création : elle finit par remonter. Vide : Kairos l’apprend de ton rythme (30 j faute d’historique). 0 la coupe.</string>
+    <string name="settings_linger_learned">Appliquée, apprise de ton rythme : %1$d j. 4 de tes tâches sans date sur 5 sont faites avant cet âge ; plus vieille, une tâche traîne.</string>
+    <string name="settings_linger_pending">Pas encore assez d’historique pour l’apprendre (30 tâches perso) : %1$d j par défaut s’appliquent.</string>
+    <string name="settings_linger_info">Ta valeur s’applique. Pour info, ton rythme donnerait %1$d j : 4 de tes tâches sans date sur 5 sont faites avant. Vide le champ pour l’utiliser.</string>
     <string name="setting_default_points">Points par défaut</string>
     <string name="setting_default_points_help">Effort d’une tâche sans points ni durée (diviseur du score).</string>
     <string name="setting_dip_enabled">Activer le creux de l’après-midi</string>

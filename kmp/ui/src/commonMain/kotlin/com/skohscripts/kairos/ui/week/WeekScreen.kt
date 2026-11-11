@@ -266,9 +266,9 @@ private fun BacklogList(tasks: List<Task>, settings: Settings, learned: Boolean,
         }
         if (open) {
             Text(stringResource(Res.string.backlog_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (settings.implicitDeadlineDays > 0) {
+            if (settings.implicitDeadline > 0) {
                 Text(
-                    stringResource(if (learned) Res.string.backlog_implicit_hint_learned else Res.string.backlog_implicit_hint, settings.implicitDeadlineDays),
+                    stringResource(if (learned) Res.string.backlog_implicit_hint_learned else Res.string.backlog_implicit_hint, settings.implicitDeadline),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),

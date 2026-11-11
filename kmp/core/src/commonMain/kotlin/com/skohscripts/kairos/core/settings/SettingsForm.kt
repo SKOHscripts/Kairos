@@ -34,6 +34,8 @@ class SettingField internal constructor(
     internal val write: (Settings, String) -> Settings,
     /** Contrôle propre à un champ texte, en plus de sa nature (`null` : texte libre). */
     internal val validate: ((String) -> FieldError?)? = null,
+    /** Nombre facultatif : vide est valide (`null`). */
+    val optional: Boolean = false,
 )
 
 enum class FieldErrorKind { REQUIRED, NOT_INTEGER, NOT_NUMBER, TOO_SMALL, TOO_LARGE, INVALID_DATE, INVALID_COLOR, INVALID_TIME, DUPLICATE, DUPLICATE_ARCHIVED, UNKNOWN_CONTEXT }
@@ -59,6 +61,10 @@ data class SettingsValidation(
 object SettingsForm {
     private fun int(key: String, min: Int?, max: Int? = null, get: (Settings) -> Int, set: (Settings, Int) -> Settings) =
         SettingField(key, FieldKind.INT, min?.toDouble(), max?.toDouble(), read = { get(it).toString() }, write = { s, v -> set(s, v.trim().toInt()) })
+
+    /** Entier facultatif : vide, il est valide et s'écrit `null` (« Kairos choisit »). */
+    private fun optionalInt(key: String, min: Int?, get: (Settings) -> Int?, set: (Settings, Int?) -> Settings) =
+        SettingField(key, FieldKind.INT, min?.toDouble(), optional = true, read = { get(it)?.toString().orEmpty() }, write = { s, v -> set(s, v.trim().toIntOrNull()) })
 
     private fun decimal(key: String, min: Double, exclusive: Boolean, get: (Settings) -> Double, set: (Settings, Double) -> Settings) =
         SettingField(key, FieldKind.DECIMAL, min, null, exclusive, read = { formatDecimal(get(it)) }, write = { s, v -> set(s, parseDecimal(v)!!) })
@@ -401,8 +407,7 @@ object SettingsForm {
         decimal("priorityValueBase", 0.0, true, { it.priorityValueBase }) { s, v -> s.copy(priorityValueBase = v) },
         int("urgencyHorizonDays", 0, get = { it.urgencyHorizonDays }) { s, v -> s.copy(urgencyHorizonDays = v) },
         decimal("urgencyPeak", 0.0, false, { it.urgencyPeak }) { s, v -> s.copy(urgencyPeak = v) },
-        int("implicitDeadlineDays", 0, get = { it.implicitDeadlineDays }) { s, v -> s.copy(implicitDeadlineDays = v) },
-        bool("implicitDeadlineAuto", { it.implicitDeadlineAuto }) { s, v -> s.copy(implicitDeadlineAuto = v) },
+        optionalInt("implicitDeadlineDays", 0, { it.implicitDeadlineDays }) { s, v -> s.copy(implicitDeadlineDays = v) },
         int("defaultFibonacciPoints", 1, get = { it.defaultFibonacciPoints }) { s, v -> s.copy(defaultFibonacciPoints = v) },
         bool("cognitiveDipEnabled", { it.cognitiveDipEnabled }) { s, v -> s.copy(cognitiveDipEnabled = v) },
         int("cognitiveDipStartHour", 0, 23, { it.cognitiveDipStartHour }) { s, v -> s.copy(cognitiveDipStartHour = v) },
@@ -571,7 +576,7 @@ object SettingsForm {
             FieldKind.DATES -> text.split(',').map { it.trim() }.firstOrNull { it.isNotEmpty() && parseDate(it) == null }
                 ?.let { FieldError(FieldErrorKind.INVALID_DATE, it) }
             FieldKind.INT, FieldKind.DECIMAL -> {
-                if (text.isEmpty()) return FieldError(FieldErrorKind.REQUIRED)
+                if (text.isEmpty()) return if (f.optional) null else FieldError(FieldErrorKind.REQUIRED)
                 val number = if (f.kind == FieldKind.INT) {
                     text.toIntOrNull()?.toDouble() ?: return if (Regex("""-?\d+""").matches(text)) {
                         // Un entier trop long pour être lu : « Au plus … », pas « un entier est attendu ».

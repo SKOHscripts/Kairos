@@ -17,6 +17,8 @@ import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.core.forecast.Survival
 import com.skohscripts.kairos.ui.generated.resources.settings_linger_learned
 import com.skohscripts.kairos.ui.generated.resources.settings_linger_pending
+import com.skohscripts.kairos.ui.generated.resources.settings_linger_info
+import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.engine.model.ModelGate
 import com.skohscripts.kairos.core.engine.model.ModelParams
 import com.skohscripts.kairos.ui.app.AppServices
@@ -86,19 +88,18 @@ internal fun modelStatusText(status: DurationEstimator.Companion.ModelStatus): S
 }
 
 /**
- * L'échéance implicite apprise du rythme, sous son interrupteur (docs/spec/taches-qui-trainent.md § Échéance apprise) : la
- * valeur que le score utilise, ou le repli faute d'historique. Lu sur les données **enregistrées** de l'espace Perso.
+ * L'échéance implicite calculée du rythme, sous son champ (docs/spec/taches-qui-trainent.md § Échéance apprise), pour info :
+ * champ vide ([manual] faux), la valeur appliquée ou le repli faute d'historique ; valeur saisie, ce que le rythme
+ * donnerait (rien sans historique). Calculée sur les données **enregistrées** de l'espace Perso.
  */
 @Composable
-internal fun LingerStatusLine(services: AppServices) {
+internal fun LingerStatusLine(services: AppServices, manual: Boolean) {
     val personal by services.repository.personalSnapshot.collectAsState()
     val learned = remember(personal) { Survival.lingerDays(personal, services.clock.now(), TimeZone.currentSystemDefault()) }
-    Text(
-        if (learned != null) {
-            stringResource(Res.string.settings_linger_learned, learned)
-        } else {
-            stringResource(Res.string.settings_linger_pending, personal.settings.implicitDeadlineDays)
-        },
-        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    val text = when {
+        manual -> learned?.let { stringResource(Res.string.settings_linger_info, it) } ?: return
+        learned != null -> stringResource(Res.string.settings_linger_learned, learned)
+        else -> stringResource(Res.string.settings_linger_pending, Settings.DEFAULT_IMPLICIT_DEADLINE_DAYS)
+    }
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }

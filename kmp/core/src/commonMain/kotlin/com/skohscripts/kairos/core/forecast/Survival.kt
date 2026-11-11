@@ -73,11 +73,11 @@ object Survival {
     /**
      * Échéance implicite apprise (docs/spec/taches-qui-trainent.md § Échéance apprise) : l'âge où la part encore ouverte des
      * tâches sans date (toutes, faute de [MIN_GROUP]) tombe à [LINGER_OPEN], au moins l'horizon d'urgence ; `null` si
-     * l'apprentissage est coupé, l'échéance à 0, l'historique trop court, ou si la part ne descend jamais si bas.
+     * l'historique est trop court ou si la part ne descend jamais si bas. Calculée quels que soient les réglages : c'est
+     * l'appelant qui ne l'applique qu'à un champ vide, et les Réglages la montrent aussi à côté d'une valeur saisie.
      */
     fun lingerDays(snapshot: KairosSnapshot, now: Instant, timeZone: TimeZone): Int? {
         val settings = snapshot.settings
-        if (!settings.implicitDeadlineAuto || settings.implicitDeadlineDays <= 0) return null
         val all = lives(snapshot.tasks, snapshot.workSessions, now, timeZone)
         val undated = all.filter { it.undated }
         val group = if (undated.size >= MIN_GROUP) undated else all

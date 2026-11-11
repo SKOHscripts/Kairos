@@ -554,11 +554,10 @@
     <string name="setting_urgency_peak">Peso massimo dell’urgenza</string>
     <string name="setting_urgency_peak_help">Ciò che aggiunge una scadenza raggiunta, nella stessa unità del valore della priorità.</string>
     <string name="setting_implicit_deadline">Scadenza implicita delle attività senza data (giorni)</string>
-    <string name="setting_implicit_deadline_help">Un’attività senza scadenza né data programmata conta, per il punteggio, come se scadesse questo numero di giorni dopo la creazione: finisce per risalire. 0 la disattiva. Se appresa dal tuo ritmo, questo valore vale finché lo storico non basta.</string>
-    <string name="setting_implicit_deadline_auto">Impararla dal mio ritmo</string>
-    <string name="setting_implicit_deadline_auto_help">Usa l’età entro cui 4 attività senza data su 5 vengono fatte, mai sotto l’orizzonte di urgenza. Servono 30 attività personali.</string>
-    <string name="settings_linger_learned">Appreso dal tuo ritmo: %1$d g. 4 tue attività senza data su 5 vengono fatte prima di questa età; più vecchia, un’attività resta ferma.</string>
-    <string name="settings_linger_pending">Storico ancora insufficiente per impararlo (30 attività personali): vale il valore impostato, %1$d g.</string>
+    <string name="setting_implicit_deadline_help">Un’attività senza scadenza né data programmata conta, per il punteggio, come se scadesse questo numero di giorni dopo la creazione: finisce per risalire. Vuoto: Kairos lo impara dal tuo ritmo (30 g senza storico sufficiente). 0 la disattiva.</string>
+    <string name="settings_linger_learned">Applicata, appresa dal tuo ritmo: %1$d g. 4 tue attività senza data su 5 vengono fatte prima di questa età; più vecchia, un’attività resta ferma.</string>
+    <string name="settings_linger_pending">Storico ancora insufficiente per impararla (30 attività personali): valgono %1$d g predefiniti.</string>
+    <string name="settings_linger_info">Vale il tuo valore. Per informazione, il tuo ritmo darebbe %1$d g: 4 tue attività senza data su 5 vengono fatte prima. Svuota il campo per usarlo.</string>
     <string name="setting_default_points">Punti predefiniti</string>
     <string name="setting_default_points_help">Sforzo di un’attività senza punti né durata (divisore del punteggio).</string>
     <string name="setting_dip_enabled">Attiva il calo del pomeriggio</string>
