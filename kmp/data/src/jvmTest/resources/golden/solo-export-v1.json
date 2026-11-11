@@ -15,6 +15,7 @@
         "urgencyHorizonDays": 14,
         "urgencyPeak": 8.0,
         "implicitDeadlineDays": 30,
+        "implicitDeadlineAuto": true,
         "defaultFibonacciPoints": 3,
         "cognitiveDipEnabled": true,
         "cognitiveDipStartHour": 13,

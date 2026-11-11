@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.core.forecast
 
+import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskRecurrence
 import com.skohscripts.kairos.core.model.TaskSpace
@@ -36,7 +37,7 @@ object Survival {
     data class Outlook(val ageDays: Int, val donePerTen: Int, val atRisk: Int, val samePriority: Boolean)
 
     /** Une vie de tâche : son âge en jours à la fin de l'observation, et si elle a été faite ([done]) ou est encore ouverte. */
-    internal class Life(val days: Int, val done: Boolean, val priority: Int?)
+    internal class Life(val days: Int, val done: Boolean, val priority: Int?, val undated: Boolean = false)
 
     /** Les vies des tâches perso non récurrentes, préparées une fois pour toutes les questions. */
     class Model internal constructor(private val lives: List<Life>, private val today: LocalDate, private val timeZone: TimeZone) {
@@ -63,7 +64,39 @@ object Survival {
      * modification ; à faire : observée jusqu'à [now] ; archivée : observée jusqu'à sa dernière modification, sans dire
      * qu'elle a été faite.
      */
-    fun prepare(tasks: List<Task>, sessions: List<WorkSession>, now: Instant, timeZone: TimeZone): Model {
+    fun prepare(tasks: List<Task>, sessions: List<WorkSession>, now: Instant, timeZone: TimeZone): Model =
+        Model(lives(tasks, sessions, now, timeZone), now.toLocalDateTime(timeZone).date, timeZone)
+
+    /** Part encore ouverte à laquelle une tâche sans date « traîne » : plus lente que 4 sur 5 (80ᵉ centile). */
+    const val LINGER_OPEN = 0.2
+
+    /**
+     * Échéance implicite apprise (docs/spec/taches-qui-trainent.md § Échéance apprise) : l'âge où la part encore ouverte des
+     * tâches sans date (toutes, faute de [MIN_GROUP]) tombe à [LINGER_OPEN], au moins l'horizon d'urgence ; `null` si
+     * l'apprentissage est coupé, l'échéance à 0, l'historique trop court, ou si la part ne descend jamais si bas.
+     */
+    fun lingerDays(snapshot: KairosSnapshot, now: Instant, timeZone: TimeZone): Int? {
+        val settings = snapshot.settings
+        if (!settings.implicitDeadlineAuto || settings.implicitDeadlineDays <= 0) return null
+        val all = lives(snapshot.tasks, snapshot.workSessions, now, timeZone)
+        val undated = all.filter { it.undated }
+        val group = if (undated.size >= MIN_GROUP) undated else all
+        if (group.size < MIN_GROUP) return null
+        // Une passe de Kaplan-Meier (même calcul que [survival]) : le premier âge où la part ouverte tombe assez bas.
+        var open = 1.0
+        var atRisk = group.size
+        for ((age, same) in group.groupBy { it.days }.toList().sortedBy { it.first }) {
+            val done = same.count { it.done }
+            if (done > 0) {
+                open *= 1.0 - done.toDouble() / atRisk
+                if (open <= LINGER_OPEN) return maxOf(age, settings.urgencyHorizonDays)
+            }
+            atRisk -= same.size
+        }
+        return null
+    }
+
+    private fun lives(tasks: List<Task>, sessions: List<WorkSession>, now: Instant, timeZone: TimeZone): List<Life> {
         val lastEnd = HashMap<Long, Instant>()
         for (s in sessions) {
             val end = s.endedAt ?: continue
@@ -72,14 +105,14 @@ object Survival {
         }
         fun days(task: Task, until: Instant) =
             maxOf(0, task.createdAt.toLocalDateTime(timeZone).date.daysUntil(until.toLocalDateTime(timeZone).date))
-        val lives = tasks.filter(::eligible).map { t ->
+        return tasks.filter(::eligible).map { t ->
+            val undated = t.deadline == null && t.scheduledDate == null
             when (t.status) {
-                TaskStatus.DONE -> Life(days(t, lastEnd[t.id]?.takeIf { it >= t.createdAt } ?: t.updatedAt), done = true, t.priority)
-                TaskStatus.TODO -> Life(days(t, now), done = false, t.priority)
-                TaskStatus.ARCHIVED -> Life(days(t, t.updatedAt), done = false, t.priority)
+                TaskStatus.DONE -> Life(days(t, lastEnd[t.id]?.takeIf { it >= t.createdAt } ?: t.updatedAt), done = true, t.priority, undated)
+                TaskStatus.TODO -> Life(days(t, now), done = false, t.priority, undated)
+                TaskStatus.ARCHIVED -> Life(days(t, t.updatedAt), done = false, t.priority, undated)
             }
         }
-        return Model(lives, now.toLocalDateTime(timeZone).date, timeZone)
     }
 
     /** Part des tâches de [lives] encore ouvertes après [days] jours (Kaplan-Meier ; les âges dans l'ordre croissant). */

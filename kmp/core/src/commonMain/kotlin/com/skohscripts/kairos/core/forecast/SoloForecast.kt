@@ -171,7 +171,9 @@ object SoloForecast {
     ): Result? {
         val capacity = capacity(snapshot, day, now, timeZone)
         if (!capacity.available) return null
-        val view = if (extra.isEmpty()) snapshot else snapshot.copy(tasks = snapshot.tasks + extra)
+        val all = if (extra.isEmpty()) snapshot else snapshot.copy(tasks = snapshot.tasks + extra)
+        // Même ordre que la vue Jour : échéance implicite apprise du rythme, sans la tâche essayée (docs/spec/taches-qui-trainent.md).
+        val view = Survival.lingerDays(snapshot, now, timeZone)?.let { all.copy(settings = all.settings.copy(implicitDeadlineDays = it)) } ?: all
         val queue = queue(view, day)
         if (queue.isEmpty()) return null
         val settings = view.settings

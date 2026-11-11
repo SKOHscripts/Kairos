@@ -26,6 +26,8 @@ data class Settings(
     val urgencyPeak: Double = 8.0,
     /** Échéance implicite d'une tâche sans date, en jours après sa création ; 0 = coupée (docs/spec/taches-qui-trainent.md). */
     val implicitDeadlineDays: Int = 30,
+    /** Échéance implicite apprise du rythme (80ᵉ centile des tâches sans date), [implicitDeadlineDays] en repli (docs/spec/taches-qui-trainent.md). */
+    val implicitDeadlineAuto: Boolean = true,
     val defaultFibonacciPoints: Int = 3,
     val cognitiveDipEnabled: Boolean = true,
     val cognitiveDipStartHour: Int = 13,
