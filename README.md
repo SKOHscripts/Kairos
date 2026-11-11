@@ -682,7 +682,7 @@ version that brought it and the platforms it exists on.
 | Follow | Plan the week | 3.0.0 | All |
 | Follow | The month at a glance | 3.8.0 | All |
 | Follow | Move a task from the week | 3.7.0 | All |
-| Follow | Week and statistics | 3.0.0 | All |
+| Follow | Recap and statistics | 3.0.0 | All |
 | Follow | See how things evolve | 3.8.0 | All |
 | Follow | Correct your estimates | 3.8.0 | All |
 | Follow | Statistics your way | 3.7.0 | All |

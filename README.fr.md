@@ -729,7 +729,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Planifier la semaine | 3.0.0 | Toutes |
 | Suivre | Le mois d’un coup d’œil | 3.8.0 | Toutes |
 | Suivre | Déplacer une tâche depuis la semaine | 3.7.0 | Toutes |
-| Suivre | Semaine et statistiques | 3.0.0 | Toutes |
+| Suivre | Bilan et statistiques | 3.0.0 | Toutes |
 | Suivre | Voir les choses évoluer | 3.8.0 | Toutes |
 | Suivre | Corriger ses estimations | 3.8.0 | Toutes |
 | Suivre | Des statistiques à ta mesure | 3.7.0 | Toutes |

@@ -13,7 +13,7 @@ Les valeurs de la charte (rôles, formes, « où va la couleur ») viennent de
 
 ### Objectif / problème
 
-Kairos a plusieurs vues (Accueil, Notes, Jour, Semaine, Statistiques, Réglages) qui
+Kairos a plusieurs vues (Accueil, Notes, Jour, Bilan, Statistiques, Réglages) qui
 doivent partager une identité et une navigation cohérentes sur un téléphone,
 une fenêtre de bureau et un onglet de navigateur. Un nouvel utilisateur doit
 aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
@@ -21,7 +21,8 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
 ### Comportement attendu (utilisateur)
 
 - **Cinq destinations** : **Accueil** en tête, puis l'ordre du flux GTD :
-  Notes, Jour, Semaine, Stats. Chacune a une icône et un libellé. La
+  Notes, Jour, Bilan (« Semaine » jusqu'au 2026-11-11, `bilan.md` : les vues Semaine et Mois, avec le bilan de la
+  période), Stats. Chacune a une icône et un libellé. La
   destination affichée est mise en évidence (indicateur coloré + icône
   pleine). L'application s'ouvre sur **l'Accueil** (2026-10-10 ; avant :
   Jour), dans l'espace où on l'a quittée.
@@ -54,7 +55,7 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   nom), la version, la licence (MIT, données locales), un lien vers le code
   source, « Soutenir Kairos » (`soutien.md`) et « Donner un avis » (`retours.md`). Un bouton retour, le retour système Android ou Échap le ferment.
 - Les cinq destinations sont portées : Accueil (`accueil.md`), Notes
-  (`notes-capture.md`), Jour (`vue-jour.md`), Semaine (`vue-semaine.md`),
+  (`notes-capture.md`), Jour (`vue-jour.md`), Bilan (`vue-semaine.md`, `vue-mois.md`, `bilan.md`),
   Stats (`statistiques.md`) ; les Réglages (`reglages.md`) sont un écran
   secondaire.
 - Au premier lancement, un accueil présente Kairos et les exemples

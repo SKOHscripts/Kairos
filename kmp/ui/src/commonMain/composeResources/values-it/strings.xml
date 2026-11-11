@@ -8,14 +8,14 @@
     <string name="nav_home">Home</string>
     <string name="nav_notes">Note</string>
     <string name="nav_day">Giorno</string>
-    <string name="nav_week">Settimana</string>
+    <string name="nav_week">Bilancio</string>
     <string name="nav_stats">Statistiche</string>
     <string name="nav_settings">Impostazioni</string>
     <string name="nav_navigation">Navigazione principale</string>
 
     <string name="title_notes">Note</string>
     <string name="title_day">Oggi</string>
-    <string name="title_week">Settimana</string>
+    <string name="title_week">Bilancio</string>
     <string name="title_stats">Statistiche</string>
     <string name="title_settings">Impostazioni</string>
     <string name="title_about">Info e guida</string>
@@ -1265,7 +1265,7 @@
     <string name="help_open_team_tour_hint">Membri, backlog, monitoraggio, previsioni e scambi</string>
     <string name="help_notes">Annota qui un’idea, una cosa da fare, un messaggio, senza pensarci. Più tardi trasforma una nota in attività: arriva nella vista Giorno, da elaborare.</string>
     <string name="help_day">«Prossima» ti dice cosa fare. Le attività da elaborare aspettano priorità, punti e tipo; il punteggio (valore diviso per impegno) stabilisce l’ordine. Avvia il timer per misurare il tempo reale.</string>
-    <string name="help_week">I sette giorni della settimana: scadenze, attività fatte, fasce orarie e tempo reale. «Mese» mostra l’intero mese: attività previste, scadenze, giorni troppo carichi, festivi e giorni liberi. Tocca un giorno per aprirlo nella vista Giorno.</string>
+    <string name="help_week">Il bilancio del periodo e cosa Kairos impara da te, poi i sette giorni della settimana: scadenze, attività fatte, fasce orarie. «Mese» mostra l’intero mese: attività previste, scadenze, giorni troppo carichi, festivi e giorni liberi. Tocca un giorno per aprirlo nella vista Giorno.</string>
     <string name="help_stats">Ciò che fai davvero: produttività, tempo impiegato per tipo di attività e calibrazione delle tue stime (i tuoi punti a confronto con il tempo reale).</string>
     <string name="help_settings">Le impostazioni sono raggruppate per categoria: generale, giornata e orari, pianificazione, timer e statistiche, team, dati. Una modifica viene mantenuta da una categoria all’altra finché non premi «Salva», in basso.</string>
     <string name="help_team_board">Il monitoraggio del team: chi fa cosa, l’avanzamento e i segnali (ritardi, blocchi, attività senza stima). Tocchi un’attività per vederne i dettagli, riassegnarla o inserirne l’avanzamento.</string>
@@ -1310,8 +1310,8 @@
     <string name="guide_you_do_body">«Prossima» mostra l’attività da fare, le successive sono ordinate per punteggio attorno alle tue riunioni. «Perché in questa posizione?» spiega ogni posizione.</string>
     <string name="guide_you_time_title">Tracciare il tempo</string>
     <string name="guide_you_time_body">Avvia il timer su un’attività: Kairos misura il tempo reale, ti avvisa quando sfori e lo confronta con la tua stima. Un timer dimenticato o tempo non cronometrato si corregge nella scheda, «Date e tempi».</string>
-    <string name="guide_you_stats_title">Settimana e statistiche</string>
-    <string name="guide_you_stats_body">La Settimana mostra i sette giorni a colpo d’occhio. Le statistiche confrontano tempo stimato e tempo reale per affinare le tue stime.</string>
+    <string name="guide_you_stats_title">Bilancio e statistiche</string>
+    <string name="guide_you_stats_body">Il Bilancio riassume la settimana o il mese e dice cosa il modello ha imparato dal tuo tempo reale. Le statistiche confrontano tempo stimato e tempo reale per affinare le tue stime.</string>
     <string name="guide_you_data_title">I tuoi dati e il tuo manager</string>
     <string name="guide_you_data_body">Esporta regolarmente i tuoi dati (Impostazioni → Dati). Hai ricevuto un file dal tuo manager? Importalo nello stesso posto, poi «Rinvia l’avanzamento…». Guidi un team? Attivalo in Impostazioni → Team.</string>
     <string name="guide_team_members_title">I membri</string>
@@ -1545,7 +1545,7 @@
     <string name="card_sync_title">Sincronizza i tuoi dispositivi</string>
     <string name="card_sync_body">Collega lo stesso file su ogni dispositivo (Impostazioni → Dati, in una cartella Syncthing o Nextcloud…): Kairos lo unisce ai tuoi dati, conserva tutto da entrambe le parti e mostra cosa rivedere. Aggiorna prima tutti i dispositivi alla 4.0.</string>
     <string name="card_month_title">Il mese a colpo d’occhio</string>
-    <string name="card_month_body">Nella vista Settimana, «Mese» mostra ogni giorno del mese: attività previste, scadenze, giornate troppo cariche, festivi e giorni liberi. Tocca un giorno per aprirlo.</string>
+    <string name="card_month_body">Nel Bilancio, «Mese» mostra ogni giorno del mese: attività previste, scadenze, giornate troppo cariche, festivi e giorni liberi. Tocca un giorno per aprirlo.</string>
     <string name="card_correct_title">Correggi le tue stime</string>
     <string name="card_correct_body">Nelle Statistiche, «Correggi le stime…» sostituisce la stima delle attività completate con il tempo cronometrato, dopo un’anteprima in cui deselezioni ciò che vuoi tenere; «Annulla» ripristina le vecchie.</string>
     <string name="card_trends_title">Guarda come evolvono le cose</string>
@@ -1912,13 +1912,13 @@
     <string name="gtd_step_organize_name">Organizzare</string>
     <string name="gtd_step_organize_body">Collocare ogni azione secondo ciò che conta. In Kairos: priorità, punti e scadenza in «Da elaborare»; poi Kairos ordina la lista da solo.</string>
     <string name="gtd_step_reflect_name">Fare il punto</string>
-    <string name="gtd_step_reflect_body">Rivedere il sistema regolarmente per continuare a fidarti. In Kairos: le viste Settimana e Statistiche.</string>
+    <string name="gtd_step_reflect_body">Rivedere il sistema regolarmente per continuare a fidarti. In Kairos: il Bilancio e le Statistiche.</string>
     <string name="gtd_step_engage_name">Fare</string>
     <string name="gtd_step_engage_body">Scegliere cosa fare adesso, e farlo. In Kairos: «Prossima» nella vista Giorno, con il suo timer.</string>
     <string name="gtd_diff_title">Cosa fa Kairos diversamente</string>
     <string name="gtd_diff_order">L’ordine: GTD ti lascia scegliere nelle tue liste; Kairos calcola l’ordine (priorità, dimensione, scadenza) e ti dice da dove cominciare.</string>
     <string name="gtd_diff_someday">«Prima o poi/forse»: nessuna lista a parte. Le Note ne fanno le veci: una nota può restarci tutto il tempo necessario prima di diventare un’attività, e «Archivia» la mette da parte.</string>
-    <string name="gtd_diff_review">La revisione settimanale: Kairos non la guida passo per passo; la vista Settimana e le Statistiche te ne danno il materiale.</string>
+    <string name="gtd_diff_review">La revisione settimanale: Kairos non la guida passo per passo; il Bilancio e le Statistiche te ne danno il materiale.</string>
     <string name="gtd_label_capture">Passo 1 di 5 di GTD · Raccogliere</string>
     <string name="gtd_label_process">Passi 2 e 3 di GTD · Chiarire, organizzare</string>
     <string name="gtd_label_reflect">Passo 4 di GTD · Fare il punto</string>

@@ -17,7 +17,7 @@ libres ou fériés, où les échéances s'accumulent, où tombe une série mensu
 
 ### Comportement attendu (utilisateur)
 
-- La destination « Semaine » s'ouvre sur une bascule « Semaine » / « Mois » (« Week » / « Month ») ; la vue Mois n'est
+- La destination « Bilan » (« Semaine » jusqu'au 2026-11-11, `bilan.md`) s'ouvre sur une bascule « Semaine » / « Mois » (« Week » / « Month ») ; la vue Mois n'est
   pas une sixième destination. Passer de la semaine au mois montre le mois de la semaine affichée ; revenir à la
   semaine montre la semaine du 1er du mois affiché (la semaine courante si c'est le mois courant). Le mode choisi reste
   le temps de la session ; changer de destination ramène à la période courante, dans ce mode.

@@ -53,6 +53,10 @@ d'œil, détaillable à la demande.
 - **Carte d'un jour** (vue Semaine) : le « — » ne s'affiche plus quand le jour a un créneau ou une journée de calendrier
   (il disait « rien » sous une liste de créneaux).
 
+- **Destination « Bilan »** : l'onglet « Semaine » de la navigation s'appelle « Bilan » (« Recap », « Bilanz »,
+  « Balance », « Bilancio », « Итоги », les noms de la carte), avec la même icône ; la bascule « Semaine » / « Mois » et
+  les titres de période (« Semaine · du lundi … », « Mois · … ») ne changent pas : ils disent le contenu, l'onglet dit
+  l'usage (faire le point, étape 4 de GTD).
 ### Critères de succès
 
 - Fait, avancé, créneaux regroupés et terminés seulement, reste et retard, temps par tâche dans la période, temps par
@@ -111,7 +115,12 @@ d'œil, détaillable à la demande.
   unique remplace les cinq cartes de temps vides (`statistiques.md` § Ordre et cartes vides).
 - Vue Jour : « Décaler » rejoint le menu « Déplacer… » de la ligne (`vue-jour.md` § Lisibilité de la ligne).
 
+- Destination : `nav_week` et `title_week` valent « Bilan » ; l'enum `Destination.WEEK` et les clés ne changent pas.
+  Les textes qui nomment l'onglet (guide, GTD, cartes) disent « Bilan » ; « vue Semaine » (le mode) reste.
 ### Décisions et pièges tracés
+- **« Bilan » plutôt que « Semaine »** (propriétaire, 2026-11-11) : la page sert à faire le point, semaine ou mois ;
+  « Semaine » ne disait ni le mois ni le bilan. Le nom anglais suit celui de la carte (« Recap ») : « Reflect », le
+  nom de l'étape GTD, est un verbe.
 
 - **Chiffres toujours visibles, détail à la demande** (2026-11-11) : la semaine courante sert d'abord à planifier, la
   grille doit rester haute ; une semaine passée ne sert qu'au bilan, il s'ouvre donc seul. Écarté : un troisième mode

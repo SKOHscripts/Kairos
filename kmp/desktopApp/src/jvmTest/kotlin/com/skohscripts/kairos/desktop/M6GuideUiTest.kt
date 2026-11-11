@@ -132,7 +132,7 @@ class M6GuideUiTest {
         setContent { KairosApp(Platform.DESKTOP) { services } }
         waitText("What is Kairos for?")
         assertEquals(0, onAllNodesWithContentDescription("Help").fetchSemanticsNodes().size)
-        listOf("Home", "Notes", "Day", "Week", "Stats").forEach { assertTrue(count(it) >= 1, it) }
+        listOf("Home", "Notes", "Day", "Recap", "Stats").forEach { assertTrue(count(it) >= 1, it) }
 
         // Les Réglages : roue crantée, écran secondaire avec son aide et sa flèche retour.
         openSettings()
