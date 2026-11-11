@@ -9,14 +9,14 @@
     <string name="nav_home">Home</string>
     <string name="nav_notes">Notes</string>
     <string name="nav_day">Day</string>
-    <string name="nav_week">Week</string>
+    <string name="nav_week">Recap</string>
     <string name="nav_stats">Stats</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_navigation">Main navigation</string>
 
     <string name="title_notes">Notes</string>
     <string name="title_day">Today</string>
-    <string name="title_week">Week</string>
+    <string name="title_week">Recap</string>
     <string name="title_stats">Statistics</string>
     <string name="title_settings">Settings</string>
     <string name="title_about">About &amp; guide</string>
@@ -1266,7 +1266,7 @@
     <string name="help_open_team_tour_hint">Members, backlog, tracking, forecasts and exchanges</string>
     <string name="help_notes">Jot down an idea, a to-do, a message here, without thinking. Later, turn a note into a task: it lands in the Day view, to be processed.</string>
     <string name="help_day">“Up next” tells you what to do. Tasks to process are waiting for their priority, points and type; the score (value divided by effort) sets the order. Start the timer to measure real time.</string>
-    <string name="help_week">The seven days of the week: deadlines, finished tasks, time slots and real time. “Month” shows the whole month: planned tasks, deadlines, overloaded days, public holidays and days off. Tap a day to open it in the Day view.</string>
+    <string name="help_week">The recap of the period and what Kairos learns from you, then the seven days of the week: deadlines, finished tasks, time slots. “Month” shows the whole month: planned tasks, deadlines, overloaded days, public holidays and days off. Tap a day to open it in the Day view.</string>
     <string name="help_stats">What you really do: throughput, time spent by task type, and the calibration of your estimates (your points against real time).</string>
     <string name="help_settings">Settings are grouped by category: general, day and hours, planning, timer and statistics, team, data. A change is kept from one category to the next until you press “Save” at the bottom.</string>
     <string name="help_team_board">Team tracking: who does what, progress and signals (delays, blockers, unestimated tasks). Tap a task to see its details, reassign it or enter its progress.</string>
@@ -1311,8 +1311,8 @@
     <string name="guide_you_do_body">“Up next” shows the task to do, the next ones are ranked by score around your meetings. “Why this position?” explains each rank.</string>
     <string name="guide_you_time_title">Track time</string>
     <string name="guide_you_time_body">Start the timer on a task: Kairos measures real time, warns you when you go over and compares it with your estimate. A forgotten timer or untimed work is corrected in the task sheet, “Dates and time”.</string>
-    <string name="guide_you_stats_title">Week and statistics</string>
-    <string name="guide_you_stats_body">The Week shows the seven days at a glance. The statistics compare estimated and real time to sharpen your estimates.</string>
+    <string name="guide_you_stats_title">Recap and statistics</string>
+    <string name="guide_you_stats_body">The Recap sums up the week or the month and says what the model has learned from your real time. The statistics compare estimated and real time to sharpen your estimates.</string>
     <string name="guide_you_data_title">Your data and your manager</string>
     <string name="guide_you_data_body">Export your data regularly (Settings → Data). Received a file from your manager? Import it in the same place, then “Send back progress…”. Leading a team? Turn it on in Settings → Team.</string>
     <string name="guide_team_members_title">The members</string>
@@ -1546,7 +1546,7 @@
     <string name="card_sync_title">Sync between your devices</string>
     <string name="card_sync_body">Link the same file on each device (Settings → Data, in a Syncthing or Nextcloud folder…): Kairos merges it with your data, keeps everything from both sides and shows what to review. Update every device to 4.0 first.</string>
     <string name="card_month_title">The month at a glance</string>
-    <string name="card_month_body">In the Week view, “Month” shows every day of the month: planned tasks, deadlines, overloaded days, public holidays and days off. Tap a day to open it.</string>
+    <string name="card_month_body">In the Recap, “Month” shows every day of the month: planned tasks, deadlines, overloaded days, public holidays and days off. Tap a day to open it.</string>
     <string name="card_correct_title">Correct your estimates</string>
     <string name="card_correct_body">In Statistics, “Correct the estimates…” replaces the estimate of finished tasks with the timed duration, after a preview where you untick what to keep; “Undo” brings the old ones back.</string>
     <string name="card_trends_title">See how things evolve</string>
@@ -1913,13 +1913,13 @@
     <string name="gtd_step_organize_name">Organize</string>
     <string name="gtd_step_organize_body">Put each action where it belongs, by what matters. In Kairos: priority, points and deadline in “To process”; Kairos then sorts the list itself.</string>
     <string name="gtd_step_reflect_name">Reflect</string>
-    <string name="gtd_step_reflect_body">Review the system regularly so you keep trusting it. In Kairos: the Week view and Stats.</string>
+    <string name="gtd_step_reflect_body">Review the system regularly so you keep trusting it. In Kairos: Recap and Stats.</string>
     <string name="gtd_step_engage_name">Engage</string>
     <string name="gtd_step_engage_body">Choose what to do now, and do it. In Kairos: “Up next” in the Day view, with its timer.</string>
     <string name="gtd_diff_title">What Kairos does differently</string>
     <string name="gtd_diff_order">Order: GTD lets you pick from your lists; Kairos computes the order (priority, size, deadline) and tells you what to start with.</string>
     <string name="gtd_diff_someday">“Someday/maybe”: no separate list. Notes plays that role: a note can stay there as long as it needs before it becomes a task, and “Archive” files it away.</string>
-    <string name="gtd_diff_review">Weekly review: Kairos does not walk you through it step by step; the Week view and Stats give you what you need for it.</string>
+    <string name="gtd_diff_review">Weekly review: Kairos does not walk you through it step by step; Recap and Stats give you what you need for it.</string>
     <string name="gtd_label_capture">GTD step 1 of 5 · Capture</string>
     <string name="gtd_label_process">GTD steps 2 and 3 · Clarify, organize</string>
     <string name="gtd_label_reflect">GTD step 4 · Reflect</string>
@@ -2007,4 +2007,25 @@
     <string name="spent_floor_timed">At least %1$s timed.</string>
     <string name="spent_tracked_hint">including %1$s timed</string>
     <string name="spent_corrected">Time spent on “%1$s”: %2$s → %3$s</string>
+    <string name="model_card_title">What Kairos learns</string>
+    <string name="model_card_hint">The model that estimates your durations, from the time you actually track.</string>
+    <string name="model_card_off">Machine-learning estimates are off: Settings → Learned durations.</string>
+    <string name="model_card_computing">Computing…</string>
+    <string name="model_kpi_corpus">tasks learned (+ over the period)</string>
+    <string name="model_kpi_corpus_value">%1$d (+%2$d)</string>
+    <string name="model_kpi_error">model error · default %1$s</string>
+    <string name="model_kpi_coverage">within the range (latest tasks)</string>
+    <string name="model_kpi_period">period tasks within the range</string>
+    <string name="model_history_title">Convergence</string>
+    <string name="model_history_summary">Over %1$d week(s): from %2$s to %3$s error (default duration: %4$s).</string>
+    <string name="model_history_row">%1$s · default %2$s · %3$d tasks</string>
+    <string name="model_history_few">not enough tasks yet (%1$d)</string>
+    <string name="model_bias">Over the period: ×%1$s the estimated time (%2$s).</string>
+    <string name="model_sources">Your open tasks: %1$s.</string>
+    <string name="model_source_model">%1$d by machine learning</string>
+    <string name="model_source_series">%1$d by series</string>
+    <string name="model_source_title">%1$d by title</string>
+    <string name="model_contested">The model disputes %1$d typed duration(s).</string>
+    <string name="card_model_review_title">What Kairos learns</string>
+    <string name="card_model_review_body">In the Recap, a card shows where the model that estimates your durations stands: tasks learned, error against the default duration, range kept, and how it converged week after week.</string>
 </resources>

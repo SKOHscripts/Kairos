@@ -89,7 +89,7 @@ class TeamSpaceUiTest {
 
     private fun ComposeUiTest.selectorShown() = onAllNodesWithContentDescription("Space").fetchSemanticsNodes().isNotEmpty()
 
-    private val personalDestinations = listOf("Home", "Notes", "Day", "Week", "Stats")
+    private val personalDestinations = listOf("Home", "Notes", "Day", "Recap", "Stats")
     private val teamDestinations = listOf("Home", "Tracking", "Backlog", "Team", "Forecast")
 
     /** Ouvre les Réglages depuis l'espace courant (roue crantée de la barre du haut, la même dans les deux espaces). */
@@ -159,7 +159,7 @@ class TeamSpaceUiTest {
         onNodeWithContentDescription("Team").performClick()
         waitText("Team tracking")
         teamDestinations.forEach { assertTrue(count(it) >= 1, it) }
-        listOf("Notes", "Week", "Stats").forEach { assertEquals(0, count(it), it) }
+        listOf("Notes", "Recap", "Stats").forEach { assertEquals(0, count(it), it) }
         // Jalon E3 : sans membre, le Suivi explique comment le remplir (plus de « disponible dans une prochaine version »).
         onNodeWithText("Add members in Team (Members tab)", substring = true).assertExists()
         waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.settings.team!!.lastSpace == TeamSettings.SPACE_TEAM }

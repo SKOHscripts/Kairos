@@ -568,6 +568,9 @@ La provenance est visible partout où la durée l'est, avec les mêmes règles q
   modèle** (distincte de celle des séries) et une description d'accessibilité : « Estimée par le modèle d'après 5 tâches
   proches, entre 30 et 60 minutes ». L'intervalle n'est pas dans le badge (largeur) mais dans les surfaces suivantes.
 - `ui/day/NowCard.kt` : la même durée fiable, mêmes règles.
+- `ui/recap/ModelCard.kt` (2026-11-11, `bilan.md` § Ce que Kairos apprend) : l'état de la vérification hors des Réglages,
+  la même phrase (`modelStatusText`, partagée avec `ModelStatusLine`), avec la convergence semaine par semaine, la
+  fourchette tenue sur la période et les durées saisies contestées.
 - `ui/day/Why.kt` : ligne de provenance en phrase complète (fiable : durée, intervalle, nombre et titres de quelques voisins ;
   non fiable : la raison de la garde, « le modèle ne fait pas encore mieux que la durée par défaut sur tes dernières
   tâches », « pas assez de tâches faites (12 sur 20 nécessaires) » ou « pas assez de tâches proches (2, 3 nécessaires) »).

@@ -109,7 +109,7 @@ class DemoUiTest {
         assertEquals(0, count("Home"))
         assertEquals(0, onAllNodesWithContentDescription("Settings").fetchSemanticsNodes().size)
         assertEquals(0, onAllNodesWithContentDescription("Help").fetchSemanticsNodes().size)
-        listOf("Notes", "Day", "Week", "Stats").forEach { assertEquals(1, count(it), it) }
+        listOf("Notes", "Day", "Recap", "Stats").forEach { assertEquals(1, count(it), it) }
         assertEquals(1, count("Exit"))
         // Panneau : région vivante polie ; repère « Ici » ; cibles de 48 dp.
         onNode(hasText("Step 1 of 7", substring = true) and SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite)).assertExists()

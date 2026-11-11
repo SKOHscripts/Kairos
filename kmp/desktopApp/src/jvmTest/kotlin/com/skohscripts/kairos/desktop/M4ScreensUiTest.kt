@@ -112,8 +112,8 @@ class M4ScreensUiTest {
             services.repository.updateTask(id, TaskEdit("Quarterly review", priority = 1, points = 2, deadline = due, pinDay = due))
         }
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
-        waitText("Week")
-        onAllNodesWithText("Week").onFirst().performClick()
+        waitText("Recap")
+        onAllNodesWithText("Recap").onFirst().performClick()
         waitText("Week · from Monday, September 28, 2026")
         onNodeWithText("Quarterly review", substring = true).assertExists()
 
@@ -126,7 +126,7 @@ class M4ScreensUiTest {
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Back to today").fetchSemanticsNodes().isEmpty() }
 
         // Semaine suivante puis précédente : le titre suit.
-        onAllNodesWithText("Week").onFirst().performClick()
+        onAllNodesWithText("Recap").onFirst().performClick()
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithContentDescription("Next week").fetchSemanticsNodes().isNotEmpty() }
         onNodeWithContentDescription("Next week").performClick()
         waitText("Week · from Monday, October 5, 2026")

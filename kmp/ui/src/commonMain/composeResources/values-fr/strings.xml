@@ -10,14 +10,14 @@
     <string name="nav_home">Accueil</string>
     <string name="nav_notes">Notes</string>
     <string name="nav_day">Jour</string>
-    <string name="nav_week">Semaine</string>
+    <string name="nav_week">Bilan</string>
     <string name="nav_stats">Stats</string>
     <string name="nav_settings">Réglages</string>
     <string name="nav_navigation">Navigation principale</string>
 
     <string name="title_notes">Notes</string>
     <string name="title_day">Aujourd’hui</string>
-    <string name="title_week">Semaine</string>
+    <string name="title_week">Bilan</string>
     <string name="title_stats">Statistiques</string>
     <string name="title_settings">Réglages</string>
     <string name="title_about">À propos et guide</string>
@@ -1268,7 +1268,7 @@
     <string name="help_open_team_tour_hint">Membres, backlog, suivi, prévisions et échanges</string>
     <string name="help_notes">Note ici une idée, un à-faire, un message, sans réfléchir. Plus tard, transforme une note en tâche : elle arrive dans la vue Jour, à traiter.</string>
     <string name="help_day">« Maintenant » te dit quoi faire. Les tâches à traiter attendent leur priorité, leurs points et leur type ; le score (valeur divisée par effort) règle l’ordre. Lance le chrono pour mesurer le temps réel.</string>
-    <string name="help_week">Les sept jours de la semaine : échéances, tâches faites, créneaux et temps réel. « Mois » montre le mois entier : tâches prévues, échéances, jours trop chargés, fériés et jours libres. Touche un jour pour l’ouvrir dans la vue Jour.</string>
+    <string name="help_week">Le bilan de la période et ce que Kairos apprend de toi, puis les sept jours de la semaine : échéances, tâches faites, créneaux. « Mois » montre le mois entier : tâches prévues, échéances, jours trop chargés, fériés et jours libres. Touche un jour pour l’ouvrir dans la vue Jour.</string>
     <string name="help_stats">Ce que tu fais vraiment : débit, temps passé par type de tâche et calibration de tes estimations (tes points comparés au temps réel).</string>
     <string name="help_settings">Les réglages sont rangés par catégorie : général, journée et horaires, planification, chrono et statistiques, équipe, données. Une modification est gardée d’une catégorie à l’autre jusqu’à « Enregistrer », en bas.</string>
     <string name="help_team_board">Le suivi de l’équipe : qui fait quoi, l’avancement et les signaux (retards, blocages, tâches non estimées). Touchez une tâche pour la détailler, la réaffecter ou saisir son avancement.</string>
@@ -1313,8 +1313,8 @@
     <string name="guide_you_do_body">« Maintenant » montre la tâche à faire, les suivantes sont rangées par score autour de tes réunions. « Pourquoi à cette place ? » explique chaque position.</string>
     <string name="guide_you_time_title">Suivre le temps</string>
     <string name="guide_you_time_body">Lance le chrono sur une tâche : Kairos mesure le temps réel, te prévient quand tu dépasses et le compare à ton estimation. Un chrono oublié ou du temps non chronométré se corrige dans la fiche, « Dates et temps ».</string>
-    <string name="guide_you_stats_title">Semaine et statistiques</string>
-    <string name="guide_you_stats_body">La Semaine montre les sept jours d’un coup d’œil. Les statistiques comparent le temps estimé et le temps réel pour affiner tes estimations.</string>
+    <string name="guide_you_stats_title">Bilan et statistiques</string>
+    <string name="guide_you_stats_body">Le Bilan résume la semaine ou le mois et dit ce que le modèle a appris de ton temps réel. Les statistiques comparent le temps estimé et le temps réel pour affiner tes estimations.</string>
     <string name="guide_you_data_title">Tes données et ton manager</string>
     <string name="guide_you_data_body">Exporte régulièrement tes données (Réglages → Données). Tu reçois un fichier de ton manager ? Importe-le au même endroit, puis « Renvoyer l’avancement… ». Tu encadres une équipe ? Active-la dans Réglages → Équipe.</string>
     <string name="guide_team_members_title">Les membres</string>
@@ -1548,7 +1548,7 @@
     <string name="card_sync_title">Synchroniser tes appareils</string>
     <string name="card_sync_body">Lie le même fichier sur chaque appareil (Réglages → Données, dans un dossier Syncthing ou Nextcloud…) : Kairos le fusionne avec tes données, garde tout ce qui existe des deux côtés et montre ce qu’il faut revoir. Mets d’abord tous tes appareils à jour en 4.0.</string>
     <string name="card_month_title">Le mois d’un coup d’œil</string>
-    <string name="card_month_body">Dans la vue Semaine, « Mois » montre chaque jour du mois : tâches prévues, échéances, journées trop chargées, fériés et jours libres. Touche un jour pour l’ouvrir.</string>
+    <string name="card_month_body">Dans le Bilan, « Mois » montre chaque jour du mois : tâches prévues, échéances, journées trop chargées, fériés et jours libres. Touche un jour pour l’ouvrir.</string>
     <string name="card_correct_title">Corriger ses estimations</string>
     <string name="card_correct_body">Dans les Statistiques, « Corriger les estimations… » remplace l’estimation de tâches terminées par le temps chronométré, après un aperçu où l’on décoche ce qu’on garde ; « Annuler » rend les anciennes.</string>
     <string name="card_trends_title">Voir les choses évoluer</string>
@@ -1915,13 +1915,13 @@
     <string name="gtd_step_organize_name">Organiser</string>
     <string name="gtd_step_organize_body">Ranger chaque action selon ce qui compte. Dans Kairos : priorité, points et échéance dans « À traiter » ; Kairos range ensuite la liste lui-même.</string>
     <string name="gtd_step_reflect_name">Faire le point</string>
-    <string name="gtd_step_reflect_body">Revoir régulièrement le système pour lui garder ta confiance. Dans Kairos : les vues Semaine et Stats.</string>
+    <string name="gtd_step_reflect_body">Revoir régulièrement le système pour lui garder ta confiance. Dans Kairos : le Bilan et les Stats.</string>
     <string name="gtd_step_engage_name">Faire</string>
     <string name="gtd_step_engage_body">Choisir quoi faire maintenant, et le faire. Dans Kairos : « À faire maintenant » dans la vue Jour, avec son chrono.</string>
     <string name="gtd_diff_title">Ce que Kairos fait autrement</string>
     <string name="gtd_diff_order">L’ordre : GTD te laisse choisir dans tes listes ; Kairos calcule l’ordre (priorité, taille, échéance) et te dit par quoi commencer.</string>
     <string name="gtd_diff_someday">« Un jour peut-être » : pas de liste à part. Notes en tient lieu : une note peut y rester aussi longtemps qu’il faut avant de devenir une tâche, et « Archiver » la classe sans suite.</string>
-    <string name="gtd_diff_review">La revue hebdomadaire : Kairos ne la guide pas pas à pas ; la vue Semaine et les Stats t’en donnent la matière.</string>
+    <string name="gtd_diff_review">La revue hebdomadaire : Kairos ne la guide pas pas à pas ; le Bilan et les Stats t’en donnent la matière.</string>
     <string name="gtd_label_capture">Étape 1 sur 5 de GTD · Capturer</string>
     <string name="gtd_label_process">Étapes 2 et 3 de GTD · Clarifier, organiser</string>
     <string name="gtd_label_reflect">Étape 4 de GTD · Faire le point</string>
@@ -2009,4 +2009,25 @@
     <string name="spent_floor_timed">Au moins %1$s chronométrées.</string>
     <string name="spent_tracked_hint">dont %1$s chronométrées</string>
     <string name="spent_corrected">Temps passé de « %1$s » : %2$s → %3$s</string>
+    <string name="model_card_title">Ce que Kairos apprend</string>
+    <string name="model_card_hint">Le modèle qui estime tes durées, d’après le temps que tu chronomètres vraiment.</string>
+    <string name="model_card_off">L’estimation par machine learning est coupée : Réglages → Durées apprises.</string>
+    <string name="model_card_computing">Calcul…</string>
+    <string name="model_kpi_corpus">tâches apprises (+ sur la période)</string>
+    <string name="model_kpi_corpus_value">%1$d (+%2$d)</string>
+    <string name="model_kpi_error">erreur du modèle · défaut %1$s</string>
+    <string name="model_kpi_coverage">dans la fourchette (dernières tâches)</string>
+    <string name="model_kpi_period">tâches de la période dans la fourchette</string>
+    <string name="model_history_title">Convergence</string>
+    <string name="model_history_summary">En %1$d semaine(s) : de %2$s à %3$s d’erreur (durée par défaut : %4$s).</string>
+    <string name="model_history_row">%1$s · défaut %2$s · %3$d tâches</string>
+    <string name="model_history_few">pas encore assez de tâches (%1$d)</string>
+    <string name="model_bias">Sur la période : ×%1$s le temps estimé (%2$s).</string>
+    <string name="model_sources">Tes tâches ouvertes : %1$s.</string>
+    <string name="model_source_model">%1$d par machine learning</string>
+    <string name="model_source_series">%1$d par série</string>
+    <string name="model_source_title">%1$d par titre</string>
+    <string name="model_contested">Le modèle conteste %1$d durée(s) saisie(s).</string>
+    <string name="card_model_review_title">Ce que Kairos apprend</string>
+    <string name="card_model_review_body">Dans le Bilan, une carte dit où en est le modèle qui estime tes durées : tâches apprises, erreur face à la durée par défaut, fourchette tenue, et sa convergence semaine après semaine.</string>
 </resources>

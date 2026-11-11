@@ -28,7 +28,7 @@ dans `docs/spec-v3/`, est le seul.
 | [`synchronisation.md`](synchronisation.md) | Synchronisation par fichier lié : fusion automatique à la lecture (dernier écrivain par champ, sans pierres tombales), « À revoir », durées apprises partagées. | 4.0.0 (#88, #100) |
 | [`estimateur-modele.md`](estimateur-modele.md) | Estimateur de durées par modèle local et explicable (voisins par ressemblance de titre, intervalle bas–haut), garde par rétro-test, alimentation des prévisions d'équipe. | 4.0.0 (#99) |
 | [`fiche-tache.md`](fiche-tache.md) | Fiche d'édition d'une tâche : groupes titrés, sections repliables résumées, « Bloquée par » en puces et recherche. | 4.1.0 (#233) |
-| [`bilan.md`](bilan.md) | Bilan de la semaine et du mois : carte « Bilan » (fait, avancé, réunions, reste, temps par type), « Copier le bilan », en-tête de période sur une ligne. | 4.1.0 (#233) |
+| [`bilan.md`](bilan.md) | Bilan de la semaine et du mois : destination « Bilan » (ex-Semaine), carte « Ce que Kairos apprend » (état et convergence du modèle), carte « Bilan » (fait, avancé, réunions, reste, temps par type), « Copier le bilan », en-tête de période sur une ligne. | 4.1.0 (#233) |
 | [`previsions-taches.md`](previsions-taches.md) | Prévisions par tâche : fourchettes vérifiées sur l'historique, date de fin probable d'une tâche (équipe et solo), semaine réaliste, restant quand une tâche dérape. | 4.1.0 (#232) |
 | [`widgets-android.md`](widgets-android.md) | Widgets Android « Maintenant » et « Journée » : plan du jour sur l'écran d'accueil, terminer une tâche (double toucher), chrono, capture ; `RemoteViews`, sans permission ni dépendance. | 3.12.0 (#150) |
 | [`rappels.md`](rappels.md) | Rappels (désactivés par défaut) : avant une tâche à heure fixe, à la tâche suivante du plan, récapitulatif du jour (3.12.0, #151) ; notifications Android (alarmes inexactes), bureau et web tant que Kairos est ouvert. | 3.8.0 (#103) |
@@ -36,7 +36,7 @@ dans `docs/spec-v3/`, est le seul.
 | [`methode-gtd.md`](methode-gtd.md) | La méthode GTD expliquée : étape de chaque écran, dialogue « La méthode GTD », écarts de Kairos avec GTD. | #235 |
 | [`notes-capture.md`](notes-capture.md) | Notes : capture libre, conversion en tâche (titre et description), modification, archivage, suppression. | M4 |
 | [`vue-semaine.md`](vue-semaine.md) | Vue Semaine : sept jours (échéances, fait, créneaux), temps réel de la semaine, navigation vers un autre jour. | M4 |
-| [`vue-mois.md`](vue-mois.md) | Vue Mois (bascule de la destination Semaine) : grille du mois, tâches prévues, échéances, surcharge, fériés et jours libres, listes, ouverture d'un jour. | 3.8.0 (#107) |
+| [`vue-mois.md`](vue-mois.md) | Vue Mois (bascule de la destination Bilan, ex-Semaine) : grille du mois, tâches prévues, échéances, surcharge, fériés et jours libres, listes, ouverture d'un jour. | 3.8.0 (#107) |
 | [`statistiques.md`](statistiques.md) | Statistiques : chiffres clés, débit, calibration et biais, temps par type, meilleures heures par type (3.5), flux, complétude ; repères du guide des points ; tests sur fichiers d'or figés. | M4 |
 | [`reglages.md`](reglages.md) | Écran Réglages : catégories (liste puis sous-écrans, deux volets dès 840 dp), sections, champs, bornes, validation par champ et entre champs, un seul « Enregistrer ». | M5, catégories 2026-10-22 |
 | [`accueil.md`](accueil.md) | Accueil au premier lancement (présentation, exemples) ; bouton « ? » et aide de l'écran, page Accueil (raison d'être, fonctionnalités), visite guidée. | M5, E6 |

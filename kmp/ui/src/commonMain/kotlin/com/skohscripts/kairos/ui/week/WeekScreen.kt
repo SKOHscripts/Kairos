@@ -78,6 +78,7 @@ import com.skohscripts.kairos.ui.generated.resources.week_realistic
 import com.skohscripts.kairos.ui.generated.resources.recap_title_week
 import com.skohscripts.kairos.ui.recap.PeriodHeader
 import com.skohscripts.kairos.ui.recap.RecapCard
+import com.skohscripts.kairos.ui.recap.ModelCard
 import com.skohscripts.kairos.core.recap.Recap
 import com.skohscripts.kairos.ui.generated.resources.week_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
@@ -185,6 +186,8 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
                 null
             }
             RecapCard(recap, stringResource(Res.string.recap_title_week), stringResource(Res.string.week_title, Dates.dayMonth(monday, language)), today, language, forecast)
+            // Ce que le modèle apprend (docs/spec/bilan.md § Ce que Kairos apprend) : une carte à part, hors du bilan copié.
+            ModelCard(services, stored, monday, sunday, today, language)
             BacklogList(backlog.map { it.title }, backlogOpen) { backlogOpen = !backlogOpen }
             // Sept colonnes égales quand elles tiennent (140 dp chacune au moins), sinon autant de colonnes égales de
             // 160 dp au moins que la largeur en permet : les cartes remplissent la ligne, sans moitié droite vide.

@@ -88,7 +88,7 @@ class GtdUiTest {
         onNodeWithText("GTD steps 2 and 3 · Clarify, organize").performScrollTo().performClick()
         dialogShowsTheMethodThenCloses()
         // Semaine, puis Stats : l'étape 4.
-        onAllNodesWithText("Week")[0].performClick()
+        onAllNodesWithText("Recap")[0].performClick()
         waitText("GTD step 4 · Reflect")
         onNodeWithText("GTD step 4 · Reflect").performClick()
         dialogShowsTheMethodThenCloses()
