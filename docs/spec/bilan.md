@@ -46,6 +46,7 @@ d'œil, détaillable à la demande.
 - **Filtre** (vue Semaine) : il réduit les tâches du bilan et leur temps (bilan d'un projet pour la réunion de ce
   projet) ; les créneaux, qui n'ont ni projet ni type, restent tous.
 - Espace Perso seulement, comme les deux vues.
+- La même passe d'ergonomie allège la ligne de tâche de la vue Jour (`vue-jour.md` § Lisibilité de la ligne).
 - **En-tête de période** (les deux vues) : une seule ligne « ‹  Semaine du 09/11  › » (deux boutons à icône de 48 dp,
   décrits « Semaine précédente » / « Semaine suivante », « Mois précédent » / « Mois suivant »), et, hors de la période
   courante, « Revenir à aujourd'hui ». Remplace le titre suivi d'une ligne de deux grands boutons à texte.
@@ -108,6 +109,8 @@ d'œil, détaillable à la demande.
 - Stats : « Corriger les estimations… » et « Chronos à vérifier (n)… » partagent une ligne (`CorrectionButtons`,
   `FlowRow`) sous la calibration au lieu de s'empiler ; « Flux et backlog » remonte sous les chiffres clés et une carte
   unique remplace les cinq cartes de temps vides (`statistiques.md` § Ordre et cartes vides).
+- Vue Jour : « Décaler » rejoint le menu « Déplacer… » de la ligne (`vue-jour.md` § Lisibilité de la ligne).
+
 ### Décisions et pièges tracés
 
 - **Chiffres toujours visibles, détail à la demande** (2026-11-11) : la semaine courante sert d'abord à planifier, la
