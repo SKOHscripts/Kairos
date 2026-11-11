@@ -212,6 +212,7 @@ Chacun est prouvé par un test (à créer ; nom entre parenthèses).
 - **Un fichier par appareil** dans un dossier (alternative écartée), **la fusion de texte à la main** (description d'une
   tâche modifiée des deux côtés : on choisit une version, on ne les mêle pas), **l'historique des modifications** et
   l'annulation d'une fusion (la sauvegarde automatique en tient lieu).
+- Calendriers connectés en ligne (4.1.0, non implémenté) : leurs créneaux voyagent par ce fichier comme des calendriers importés ; l'état de connexion reste hors portée et les conflits de leurs créneaux ne sont pas consignés dans « À revoir » : voir `connexions-en-ligne.md` § Plusieurs appareils (impacts à reporter ici à l'implémentation).
 
 ## 2. Solution technique
 
@@ -517,7 +518,7 @@ tour suivant les valeurs sont égales, donc sans conflit.
 
 ### Stockage (`data`, schéma 13)
 
-Additif (`12.sqm`, marqueur `sync_state` de `KairosStore.MARKERS`, test `ExchangeMigrationTest.everyMigrationHasAMarker`; Numérotation : `11.sqm` (schéma 12) est déjà pris par la migration de la couleur par défaut (`apparence.md`) ; `connexions-en-ligne.md` et `synchronisation.md` visent toutes deux `12.sqm` (schéma 13) : celle qui est implémentée en second prend le numéro suivant.), vide
+Additif (`12.sqm`, marqueur `sync_state` de `KairosStore.MARKERS`, test `ExchangeMigrationTest.everyMigrationHasAMarker` ; numérotation : `11.sqm` = couleur par défaut, schéma 12 ; `12.sqm` = cette spec, schéma 13, implémentée en 4.0.0 ; `connexions-en-ligne.md` (4.1.0, non implémentée) prend `13.sqm`, schéma 14), vide
 pour qui ne synchronise pas, **sans toucher à aucune table existante** (donc sans changer l'ordre positionnel des insertions) :
 
 - `sync_state(key TEXT PRIMARY KEY, value TEXT NOT NULL)` : `device`, `label`, `clock`, `seen` (JSON), `lastMerge` (JSON : heure,

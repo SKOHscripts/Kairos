@@ -39,7 +39,7 @@ les `VTIMEZONE` du fichier **sans table** Windows → IANA.
 
 **Rouvert le 2026-10-26 par `connexions-en-ligne.md`** (4.1.0, décidée, à implémenter) : toute affirmation « sans permission réseau » de
 cette spec vaut **jusqu'à la 4.0**. La 4.1.0 ajoute la permission `INTERNET` (un seul APK, fonctions en ligne désactivées par défaut :
-lien ICS, CalDAV, Microsoft 365 et Google par OAuth, nouvelles versions d'Android). Les étapes 1 (fichier) et 2 (téléphone) ne changent pas
+lien ICS, CalDAV, Microsoft 365 et Google par OAuth). Les étapes 1 (fichier) et 2 (téléphone) ne changent pas
 et restent sans réseau.
 
 ## 1. Besoin métier (cahier des charges)
