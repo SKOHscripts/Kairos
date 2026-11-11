@@ -3,7 +3,7 @@
 _Rôle : garantir qu'une tâche sans date ne s'enfonce pas indéfiniment sous les tâches datées, et donner un endroit où
 faire le point sur ce qui attend. Fichiers couverts : `kmp/core/.../core/engine/Scheduling.kt` (`implicitDeadline`,
 `timeCriticality`, `wsjfBreakdown`, `isLingering`), `kmp/core/.../core/model/Settings.kt` (`implicitDeadlineDays`,
-`implicitDeadlineAuto`), `kmp/core/.../core/forecast/Survival.kt` (`lingerDays`), `kmp/core/.../core/day/DayView.kt`,
+`implicitDeadline`), `kmp/core/.../core/forecast/Survival.kt` (`lingerDays`), `kmp/core/.../core/day/DayView.kt`,
 `kmp/core/.../core/forecast/SoloForecast.kt` (`run`),
 `kmp/core/.../core/settings/SettingsForm.kt`, `kmp/ui/.../settings/SettingsFormCards.kt`, `kmp/ui/.../settings/SettingsCategory.kt`,
 `kmp/ui/.../day/Why.kt` (`dateLabel`), `kmp/ui/.../week/WeekScreen.kt` (`BacklogList`, `MovableTask`, `moveTargets`),
@@ -32,23 +32,27 @@ correction groupée) sans avancer d'un pas.
 ### Comportement attendu (utilisateur)
 
 - **Échéance implicite.** Une tâche **sans échéance ni date programmée** compte, pour son score seulement, comme si elle
-  était due **30 jours après sa création** (réglage « Échéance implicite des tâches sans date », 30 j par défaut, 0 =
-  coupée, ≥ 0). Elle gagne donc de l'urgence comme une tâche datée : rien pendant les premiers jours, puis la même rampe
+  était due **N jours après sa création** (réglage « Échéance implicite des tâches sans date » : vide par défaut, N
+  appris de ton rythme, ci-dessous ; une valeur saisie s'applique telle quelle ; 0 = coupée, ≥ 0). Elle gagne donc de l'urgence comme une tâche datée : rien pendant les premiers jours, puis la même rampe
   (horizon d'urgence des réglages, 14 j par défaut) jusqu'au maximum à 30 j. Une tâche oubliée finit par revenir d'elle-même,
   à sa taille : à valeur égale, une grosse tâche reste derrière une petite.
-- **Apprise de ton rythme** (interrupteur « L'apprendre de mon rythme » sous la valeur réglée, activé par défaut). 30 j est
-  arbitraire : Kairos le remplace par l'âge auquel **4 tâches sans date sur 5** que tu crées ont été faites (80ᵉ
+- **Apprise de ton rythme** quand le champ est vide. Un nombre fixe serait arbitraire : Kairos prend l'âge auquel **4 tâches sans date sur 5** que tu crées ont été faites (80ᵉ
   centile de leur durée de vie). Une tâche plus vieille que ça est dans le cinquième le plus lent : elle traîne. La
   valeur suit ton historique et change avec lui ; elle ne descend jamais sous l'horizon d'urgence (14 j par défaut),
   pour qu'une tâche neuve n'ait pas d'urgence le jour de sa création. Tant que l'historique ne suffit pas (moins de 30
-  tâches perso, ou moins de 4 sur 5 jamais faites), la valeur réglée (30 j) sert. Les tâches encore ouvertes comptent :
-  elles n'ont pas fini leur vie, elles ne sont pas ignorées. Espace Perso seulement : l'espace Équipe garde la valeur
-  réglée.
-- **La valeur apprise est dite dans les Réglages**, sous l'interrupteur (Planification → « Avancé : comment les tâches
-  sont ordonnées » → Score de priorité) : « Apprise de ton rythme : 29 j. 4 de tes tâches sans date sur 5 sont faites
-  avant cet âge ; plus vieille, une tâche traîne. », ou, faute d'historique, « Pas encore assez d'historique pour
-  l'apprendre (30 tâches perso) : la valeur réglée, 30 j, s'applique. ». Rien quand l'apprentissage est coupé (le champ
-  dit la valeur) ou l'échéance à 0. Sans cela, le champ affiche 30 pendant que le score en utilise une autre.
+  tâches perso, ou plus d'1 sur 5 jamais faite), 30 j servent. Les tâches encore ouvertes comptent : elles n'ont pas
+  fini leur vie, elles ne sont pas ignorées. Espace Perso seulement : l'espace Équipe prend la valeur saisie, ou 30 j.
+- **Une valeur saisie à la main l'emporte toujours** (décision du propriétaire, 2026-11-11) : rien ne se remplit tout
+  seul, le champ reste vide tant qu'on n'y écrit rien, et le vider rend la main au rythme.
+- **La valeur calculée est dite dans les Réglages**, sous le champ (Planification → « Avancé : comment les tâches sont
+  ordonnées » → Score de priorité), pour info :
+  - champ vide, historique suffisant : « Appliquée, apprise de ton rythme : 29 j. 4 de tes tâches sans date sur 5 sont
+    faites avant cet âge ; plus vieille, une tâche traîne. » ;
+  - champ vide, historique court : « Pas encore assez d'historique pour l'apprendre (30 tâches perso) : 30 j par défaut
+    s'appliquent. » ;
+  - valeur saisie (0 compris), historique suffisant : « Ta valeur s'applique. Pour info, ton rythme donnerait 29 j : 4 de
+    tes tâches sans date sur 5 sont faites avant. Vide le champ pour l'utiliser. » ;
+  - valeur saisie, historique court : rien (le champ dit la valeur).
 - **Jamais « en retard ».** L'échéance implicite ne fait pas passer la tâche dans le palier dur des retards, ne colore pas
   sa ligne, n'est affichée nulle part comme une date, et ne compte ni dans les vues Semaine et Mois, ni comme échéance
   dans les prévisions, ni dans « traîne » de la vue Jour : seul le score la voit. **L'ordre**, lui, change partout où le
@@ -83,10 +87,11 @@ correction groupée) sans avancer d'un pas.
 - « Traîne » : vraie à partir de `N` jours sans date, fausse pour une tâche datée ou avec le réglage à 0
   (`ImplicitDeadlineTest`).
 - Échéance apprise : le 80ᵉ centile de Kaplan-Meier des tâches sans date ; les tâches ouvertes comptent (une médiane des
-  seules faites serait plus courte) ; repli sur toutes les tâches perso sous 30 tâches sans date, sur la valeur réglée
-  sous 30 tâches ou si la part ouverte ne descend jamais à 1 sur 5 ; jamais sous l'horizon ; rien si l'apprentissage est
-  coupé ou la valeur à 0 ; la vue Jour score avec la valeur apprise et le dit (`LingerDaysTest`).
-- Les Réglages disent la valeur apprise, ou le repli faute d'historique (`LingerSettingsUiTest`).
+  seules faites serait plus courte) ; repli sur toutes les tâches perso sous 30 tâches sans date, rien sous 30 tâches ou
+  si la part ouverte ne descend jamais à 1 sur 5 ; jamais sous l'horizon ; la vue Jour score avec la valeur apprise si
+  le champ est vide, avec la valeur saisie sinon (`LingerDaysTest`).
+- Un champ vide est accepté et enregistré vide ; les Réglages disent la valeur apprise, le repli faute d'historique, ou,
+  avec une valeur saisie, la valeur calculée pour info (`LingerSettingsUiTest`, `SettingsFormTest`).
 - Les 480 scénarios d'or restent identiques, rejoués réglage coupé (`DifferentialTest`).
 - La revue montre le décompte, la pastille et l'ordre par âge ; toucher une tâche puis « aujourd'hui » la programme
   (`BacklogReviewUiTest`) ; textes dans les six langues (`StringsParityTest`) ; carte, puce et ligne du README
@@ -101,13 +106,14 @@ correction groupée) sans avancer d'un pas.
 - Une revue guidée pas à pas, tâche par tâche : la liste suffit, et elle est déjà dans l'onglet où l'on fait le point.
 - La vue Mois : elle sert à planifier ; la revue est dans la vue Semaine, avec l'ancienne liste.
 - L'espace Équipe : le manager voit son backlog entier, trié par score, et l'échéance implicite y joue avec la valeur
-  réglée ; l'apprendre du rythme de l'équipe demanderait sa propre mesure (tâches d'équipe, plusieurs personnes).
+  saisie, ou 30 j ; l'apprendre du rythme de l'équipe demanderait sa propre mesure (tâches d'équipe, plusieurs personnes).
 
 ## 2. Solution technique
 
 ### Score (`Scheduling`)
 
-- `Settings.implicitDeadlineDays: Int = 30` (0 = coupé).
+- `Settings.implicitDeadlineDays: Int? = null` (`null` = appris, 0 = coupé) ; `Settings.implicitDeadline` la lit,
+  `DEFAULT_IMPLICIT_DEADLINE_DAYS` (30) à défaut, comme `timerAutoStop`. Le moteur ne lit que `implicitDeadline`.
 - `implicitDeadline(task, settings): LocalDate?` : `null` si la tâche a une échéance ou une date programmée, ou si le
   réglage vaut 0 ou moins ; sinon la date **UTC** de `createdAt` plus `N` jours (même convention que `Staleness`).
 - `timeCriticality` : la date la plus proche est l'échéance ou la date programmée, sinon l'échéance implicite ; la rampe
@@ -124,15 +130,15 @@ correction groupée) sans avancer d'un pas.
 
 ### Échéance apprise (`Survival.lingerDays`)
 
-- `Settings.implicitDeadlineAuto: Boolean = true`.
-- `Survival.lingerDays(snapshot, now, timeZone): Int?` : `null` si `implicitDeadlineAuto` est faux ou
-  `implicitDeadlineDays ≤ 0`. Sinon, les vies des tâches perso non récurrentes (les mêmes que `prepare` : faite = fin de
+- `Survival.lingerDays(snapshot, now, timeZone): Int?` : la valeur calculée, quels que soient les réglages (sauf
+  l'horizon, plancher). Les vies des tâches perso non récurrentes (les mêmes que `prepare` : faite = fin de
   sa dernière session, à défaut dernière modification ; à faire = jusqu'à [now] ; archivée = observée sans être faite),
   restreintes aux tâches **sans date** (ni échéance ni date programmée) s'il y en a au moins `MIN_GROUP` (30), sinon
   toutes ; sous 30 vies, `null`. Rend le premier âge où la part encore ouverte de Kaplan-Meier (`survival`) tombe à
   `LINGER_OPEN` (0,2) ou moins, au moins `urgencyHorizonDays` ; `null` si elle n'y tombe jamais.
-- `DayView.build` remplace `implicitDeadlineDays` de ses réglages par `lingerDays` (instant et fuseau de l'appel) avant
-  tout calcul de score, et l'expose : `implicitDeadlineDays` (effectif, 0 = coupé) et `implicitDeadlineLearned`.
+- `DayView.build`, si `implicitDeadlineDays` est `null`, y pose `lingerDays` (instant et fuseau de l'appel) avant tout
+  calcul de score, et l'expose : `scoringSettings` (réglages effectifs) et `implicitDeadlineLearned`. Une valeur saisie
+  n'est jamais remplacée.
 - `SoloForecast.run` fait de même sur l'instantané qu'il simule (file des prévisions, « fin probable », impact d'une
   tâche) : l'ordre des prévisions reste celui de la vue Jour.
 - L'espace Équipe (`LoadPlan`, `TeamBoard`, `AssignmentSuggestion`) lit ses réglages tels quels.
@@ -140,7 +146,7 @@ correction groupée) sans avancer d'un pas.
 ### Revue (`WeekScreen`)
 
 - `BacklogList` reçoit les tâches (plus leurs seuls titres), triées par `createdAt` croissant, et les réglages
-  effectifs de la vue Jour (`implicitDeadlineDays` remplacé par celui de `DayView`). Titre : `backlog_title` et le
+  effectifs de la vue Jour (`DayView.scoringSettings`). Titre : `backlog_title` et le
   nombre, ou `backlog_title_lingering` (« Backlog, sans date (%1$d) · qui traînent : %2$d ») si au moins une traîne.
 - Chaque ligne est un `MovableTask(task, from = null, move)` ; ligne qui traîne : `WarnBadge(tag_stale, âge)`, l'âge
   étant les jours depuis la date UTC de `createdAt`.
@@ -150,13 +156,14 @@ correction groupée) sans avancer d'un pas.
 
 ### Réglage
 
-`int("implicitDeadlineDays", 0)` puis `bool("implicitDeadlineAuto")` dans `SettingsForm`, en fin de section du score
-du groupe avancé (après `defaultFibonacciPoints` : la ligne d'état suit l'interrupteur), textes
-`setting_implicit_deadline`, `setting_implicit_deadline_help`, `setting_implicit_deadline_auto` et
-`setting_implicit_deadline_auto_help`. `LingerStatusLine(services)` (`ui/settings/ModelStatusLine.kt`, à côté de la ligne
-du modèle) lit l'instantané Perso **enregistré**, comme `ModelStatusLine`, et rend `settings_linger_learned` ou
-`settings_linger_pending` ; `SettingsFormCards(lingerStatus)` la pose après la section du score (`SectionCard(after)`)
-quand le formulaire a l'interrupteur actif et une échéance > 0.
+`optionalInt("implicitDeadlineDays", 0)` dans `SettingsForm` : un champ entier facultatif (`SettingField.optional`) ;
+vide, il passe la validation et s'écrit `null`. En fin de section du score du groupe avancé (après
+`defaultFibonacciPoints` : la ligne d'état suit le champ), textes `setting_implicit_deadline` et
+`setting_implicit_deadline_help`. `LingerStatusLine(services, manual)` (`ui/settings/ModelStatusLine.kt`, à côté de la
+ligne du modèle) calcule `lingerDays` sur l'instantané Perso **enregistré**, comme `ModelStatusLine`, et rend
+`settings_linger_learned`, `settings_linger_pending` (champ vide) ou `settings_linger_info` (valeur saisie, rien sans
+historique) ; `SettingsFormCards(lingerStatus)` la pose après la section du score (`SectionCard(after)`) et lui dit si le
+champ du formulaire est rempli.
 
 ### Décisions et pièges tracés
 
@@ -190,6 +197,11 @@ quand le formulaire a l'interrupteur actif et une échéance > 0.
   compte parmi les datées : biais accepté, elle a cessé d'être sans date.
 - **Plancher à l'horizon d'urgence** : sous lui, une tâche aurait de l'urgence dès sa création ; un historique où tout se
   fait le jour même mettrait toute tâche sans date au maximum.
+- **La saisie l'emporte, sans interrupteur** (décision du propriétaire, 2026-11-11, après un premier essai avec un
+  interrupteur « L'apprendre de mon rythme ») : le champ affichait 30 pendant que le score utilisait 29, et une valeur
+  saisie pouvait être ignorée. Un champ vide par défaut dit « Kairos choisit » ; un nombre dit « je choisis ». La valeur
+  calculée reste visible dessous dans les deux cas. Écarté : préremplir le champ avec la valeur apprise (la valeur
+  bougerait sous les yeux, et l'enregistrer la figerait sans le vouloir).
 - **Calculée hors du moteur**, comme l'affinité des meilleures heures : `Scheduling` reste sans statistiques, la valeur
   arrive par les réglages. Pas de mémoire : recalculée à chaque construction de la vue (une passe sur les tâches et les
   sessions). Les vies sont celles de « Ce qui finit par se faire » (`Survival.lives`, partagé avec `prepare`).

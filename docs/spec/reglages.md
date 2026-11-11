@@ -60,7 +60,7 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
      (seuils « traîne » en retard et sans date, seuil de surcharge P0), puis le groupe replié **« Avancé : comment
      les tâches sont ordonnées »** (`planning-personnalise.md` lot A, ouvert d'office quand un de ses champs est en
      erreur) : **Score de priorité** (base de valeur, horizon d'urgence, poids maximal de l'urgence, échéance implicite des tâches
-     sans date et son apprentissage du rythme, `taches-qui-trainent.md`, points par défaut) et **Creux de l'après-midi** (activé, début, creux le plus profond, fin, force de la pénalité).
+     sans date, vide = apprise du rythme, `taches-qui-trainent.md`, points par défaut) et **Creux de l'après-midi** (activé, début, creux le plus profond, fin, force de la pénalité).
   4. **Chrono et statistiques** : **Alertes du chrono** (dans cet ordre depuis 4.2.0 : pause du pomodoro, chrono oublié, arrêt
      automatique du chrono après 0-1 440 min, 240 par défaut, 0 = jamais, `temps-reel-chrono.md` § Garde-fou, cloches avec
      les alertes, `temps-reel-chrono.md` § Cloches),
