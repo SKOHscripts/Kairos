@@ -105,12 +105,14 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
     chronométré ; à droite de la liste en largeur bureau, en bas sinon.
 
 **Ligne de tâche** (toutes sections) : coche ronde ; corps : heure (agenda),
-la lignée pour une sous-tâche (« A › C › » : tous ses ancêtres, `sous-taches.md`), titre, puis étiquettes (projet, type,
-durée, « échéance 30 sept. », « programmée 2 oct. », icône de récurrence,
+la lignée pour une sous-tâche (« A › C › » : tous ses ancêtres, `sous-taches.md`), titre, puis étiquettes (projet en
+pastille ; type, durée, « échéance 30 sept. » et « programmée 2 oct. » en **une phrase atténuée** séparée par des points
+médians, « Développement · 45 min · échéance 13 nov. », 4.1.0, § Lisibilité de la ligne ; icône de récurrence,
 temps passé ou minuteur vivant, « traîne depuis N j ») qui passent à la ligne, puis la description sur une
 ligne, dépliable d'un clic ; colonne « clés » alignée à droite : score (qui
 s'ouvre sur « Pourquoi à cette place ? »), priorité (P0 en rouge), points ;
-actions : chrono et décaler (tâches à faire), modifier (une ligne de « Fait »,
+actions : chrono, puis déplacer (menu qui commence par « Décaler », tâche perso) ou décaler seul (tâche d'équipe), à
+faire seulement ; modifier (une ligne de « Fait »,
 sans action, garde une marge de 12 dp au bord droit). En largeur étroite
 (< 600 dp), la colonne « clés » passe sous le corps **et les actions la
 rejoignent** sur une même ligne (clés à gauche, actions à droite, `RowActions`) :
@@ -316,6 +318,24 @@ chaque entrée une case (rôle et état lus par le lecteur d'écran), le champ a
   `WarnBadge` (contour et icône, jamais d'ambre), `ErrorBadge` (conflit),
   `PriorityBadge`, score en chiffre primaire (`ScoreBadge`, menu déroulant
   MD3 de 300 dp).
+- **Lisibilité de la ligne** (4.1.0, issue #233, décisions rouvertes avec l'accord du propriétaire le 2026-11-11) : les
+  lignes portaient de plus en plus d'informations de même poids. Trois changements dans `TaskRow` / `TaskTags` /
+  `ScoreBadge` : (1) fond `surfaceContainer` au lieu de `surfaceContainerLow` (une ligne bloquée garde surface et
+  contour) : les bords des lignes séparent de nouveau les tâches, en clair comme en sombre ; (2) type, durée saisie,
+  échéance et date programmée forment un seul `Muted` joint par « · » (liste `facts`), la durée apprise (`LearnedBadge`)
+  suit ; les pastilles restent aux signaux (projet, épinglée, chemin critique, bloque, temps passé, avertissements) ;
+  (3) le score n'a plus de fond (`Color.Transparent`, zone cliquable arrondie) : il redevient le « chiffre primaire sans
+  pastille » de la charte, que le code ne suivait plus. (4) « Décaler » rejoint le menu de « Déplacer… » : une tâche perso à
+  faire n'a plus que trois icônes (chrono, déplacer, modifier). Le menu s'ouvre sur « Décaler au prochain jour ouvré »,
+  un séparateur, puis les dates (« Demain · … », « Lundi prochain · … », « Dans une semaine · … », « Choisir une date… ») ;
+  le bouton garde sa description « Déplacer vers un autre jour… » et la marque `DemoSpot.MOVE`. Une tâche d'équipe
+  assignée à « moi », qui n'a pas de « Déplacer… », garde l'icône « Décaler » seule (trois icônes aussi). Les deux actions
+  gardent leur effet : « Décaler » repousse l'échéance (et programme une tâche perso ce jour-là), une date du menu ne
+  programme que la tâche. Écartés : un menu « ⋮ » qui cacherait aussi « Modifier » (31 tests et la visite visent
+  l'icône, et c'est l'action la plus fréquente après le chrono), toucher la ligne pour la modifier (le score et la
+  description sont déjà cliquables dans le corps : cibles imbriquées), masquer la description (les exemples s'expliquent
+  par elle). Preuve : `DayScreenUiTest.snoozeIsTheFirstChoiceOfTheRowCalendar` (plus d'icône « Décaler » sur la ligne perso, le
+  premier choix du menu repousse l'échéance et programme la tâche).
 - `NowCard` : `primaryContainer`, `Button` « Fait », `OutlinedButton`
   du chrono, `TextButton` « Décaler », badges du bilan (vert « ok » pour les
   faites), temps du jour, état des alertes. `RunningCard` (« En ce
@@ -413,7 +433,8 @@ chaque entrée une case (rôle et état lus par le lecteur d'écran), le champ a
   Paris.
 - **Pas de « Décaler » sur une tâche faite** (sans utilité dans « Fait »).
 - **« Décaler » programme la tâche** (décision du propriétaire, lot A ; écartés : ne changer que l'échéance, qui laissait la
-  tâche dans « Aujourd'hui », et fusionner avec « Déplacer… »). `KairosRepository.snooze` pose `scheduledDate` = la nouvelle
+  tâche dans « Aujourd'hui », et fusionner son **effet** avec « Déplacer… » ; en 4.1.0 seul le **bouton** est fusionné,
+  chaque action gardant son effet, § Lisibilité de la ligne). `KairosRepository.snooze` pose `scheduledDate` = la nouvelle
   échéance pour une tâche **personnelle** seulement : `scheduledDate` n'est pas un champ d'équipe (la requalification d'une
   tâche d'équipe reste celle de l'échéance).
 - **Le filtre « une tâche, une section » est dans `DayView`**, pas dans le moteur : `Scheduling.buildDaySchedule` garde sa

@@ -188,7 +188,8 @@ réseau. **Ajouter une icône dans le script, jamais à la main.** Variante plei
   navigation en pilule.
 - Cartes : `OutlinedCard` (surface + contour `outlineVariant`) ou `Card`
   « filled » (`surfaceContainerLow`, élévation 0) pour la capture, les lignes
-  de tâche et de note, les tuiles de statistiques et les **cartes de
+  de note (les lignes de tâche de la vue Jour sont un cran au-dessus, `surfaceContainer`, pour se détacher de la page,
+  `docs/spec/vue-jour.md` § Lisibilité de la ligne), les tuiles de statistiques et les **cartes de
   section des Réglages**. Pas de contour dans un contour : un bloc à
   contour ne contient pas d'autre bloc à contour (ses champs exceptés).
 - **Élévation** : une carte ne porte **jamais d'ombre**, son plan se lit par la
@@ -208,7 +209,7 @@ réseau. **Ajouter une icône dans le script, jamais à la main.** Variante plei
 
 - Hiérarchie MD3 : bouton plein (action principale), à contour, tonal, de
   texte (action tertiaire, « Décaler », « Plus tard »), bouton-icône pour
-  les actions de ligne (chrono, décaler, modifier) ; destruction en couleur
+  les actions de ligne (chrono, déplacer avec « Décaler » en tête de son menu, modifier) ; destruction en couleur
   d'erreur, avec confirmation.
 - **Densité** (`docs/spec/densite.md`) : tout passe par les enveloppes
   `Kairos*` de `theme/KairosComponents.kt`, jamais par les composants

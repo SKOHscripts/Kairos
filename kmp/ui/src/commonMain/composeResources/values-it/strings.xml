@@ -1517,7 +1517,7 @@
     <string name="coach_placed_slot_title">La sua fascia oraria</string>
     <string name="coach_placed_slot_body">Kairos dispone l’attività in uno spazio libero della giornata, con la sua durata. La linea del tempo mostra dove, tra le tue fasce orarie e le attività fissate.</string>
     <string name="coach_placed_row_title">La riga dell’attività</string>
-    <string name="coach_placed_row_body">La spunta completa l’attività, ▷ avvia il timer, «Rimanda» la sposta al prossimo giorno lavorativo e la matita la modifica. Priorità, punti, durata e scadenza sono mostrati sulla riga.</string>
+    <string name="coach_placed_row_body">La spunta completa l’attività, ▷ avvia il timer, il calendario la rimanda al prossimo giorno lavorativo o la sposta al giorno che scegli, e la matita la modifica. Priorità, punti, durata e scadenza sono mostrati sulla riga.</string>
     <string name="congrats_title">La tua prima attività è creata!</string>
     <string name="congrats_body">Bravo: è nella tua giornata, classificata da Kairos. Fai le cose in ordine e le prossime richiederanno pochi secondi.</string>
     <string name="congrats_timer">Avvia il timer</string>
@@ -1751,7 +1751,7 @@
     <string name="card_subtasks_edit_title">Sottoattività modificabili</string>
     <string name="card_subtasks_edit_body">La scheda di un’attività elenca le sue sottoattività: rinominale, spuntale, eliminale o aggiungine altre senza lasciare l’attività principale.</string>
     <string name="card_snooze_title">Rimanda e sposta</string>
-    <string name="card_snooze_body">«Rimanda» porta un’attività al giorno lavorativo successivo e la toglie da Oggi fino ad allora; «Sposta…» la programma nel giorno che scegli, con «Annulla».</string>
+    <string name="card_snooze_body">Il calendario di una riga di attività propone prima «Rimanda al prossimo giorno lavorativo», che rimanda la scadenza e toglie l’attività da Oggi fino ad allora, poi le date in cui programmarla senza toccarne la scadenza, con «Annulla».</string>
     <string name="card_placement_title">Collocazione nella giornata</string>
     <string name="card_placement_body">Le attività riempiono i vuoti della giornata con la loro durata e un margine dopo ogni riunione; un’attività a ora fissa non si sposta mai e lo sforamento viene segnalato.</string>
     <string name="card_afternoon_dip_title">Calo pomeridiano</string>

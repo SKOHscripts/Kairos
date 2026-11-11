@@ -54,7 +54,7 @@ déroutant sans explication.
    mise en évidence, et le coach explique sa **position** : le score, son rang, son
    créneau dans la frise, « Pourquoi à cette place ? », puis les éléments de la
    ligne (priorité, points, durée, badges, échéance, boutons Faire, Chrono,
-   Décaler).
+   calendrier qui décale ou déplace, `vue-jour.md` § Lisibilité de la ligne).
 5. **Félicitations** : un dialogue chaleureux, une fois la tâche **réellement
    créée**, propose la suite (« Lancer le chrono », « Découvrir Kairos »). Pas
    d'animation décorative.
@@ -165,7 +165,7 @@ où elle est placée » et « Découvrir Kairos » (hub), ou « Fermer ».
 
 « Me montrer où elle est placée » lance trois étapes sur la vue Jour (`FirstTaskCoach.placement(placed)`), dans un panneau
 en bas d'écran : son rang (le score, « Pourquoi à cette place ? ») ; son créneau (la frise) ; la ligne (coche, chrono,
-« Décaler », crayon, badges). Une tâche absente de l'agenda du jour (« À traiter » faute de priorité, de points ou de type, ou « Plus
+calendrier « Décaler » / « Déplacer… », crayon, badges ; texte `coach_placed_row_body`). Une tâche absente de l'agenda du jour (« À traiter » faute de priorité, de points ou de type, ou « Plus
 tard ») remplace la première étape par « Pas encore placée » qui dit pourquoi. Pendant ces étapes, `RowContext.highlight`
 cerne la ligne de la tâche (2 dp primaire) et la liste défile jusqu'à elle (`ListBuilder` retient la place de chaque ligne,
 `rowPositions`).

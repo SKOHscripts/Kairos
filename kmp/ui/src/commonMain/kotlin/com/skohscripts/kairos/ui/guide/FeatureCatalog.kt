@@ -343,7 +343,7 @@ object FeatureCatalog {
         "Subtasks" to "subtasks",
         "Recurrence" to "recurrence",
         "Skipped months" to "skipped_months",
-        "\"Snooze\"" to "snooze",
+        "Snooze and move" to "snooze",
         "Blockers" to "dependencies",
         "Score" to "score",
         "Placement" to "placement",

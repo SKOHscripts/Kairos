@@ -91,7 +91,7 @@ class SubtasksUiTest {
         }
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         // La première sous-tâche de l'agenda : sa lignée, et l'échéance qui vient de sa mère.
-        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("due Nov 20 (from “Alpha”)", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("due Nov 20 (from “Alpha”)", substring = true, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
         onNode(androidx.compose.ui.test.hasScrollToIndexAction())
             .performScrollToNode(androidx.compose.ui.test.hasText("Parent tasks in progress", substring = true))
         onNodeWithText("Parent tasks in progress", substring = true).performClick()

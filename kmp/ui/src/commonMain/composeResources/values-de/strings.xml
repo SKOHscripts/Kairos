@@ -1517,7 +1517,7 @@
     <string name="coach_placed_slot_title">Ihr Zeitfenster</string>
     <string name="coach_placed_slot_body">Kairos legt die Aufgabe mit ihrer Dauer in eine Lücke des Tages. Die Zeitleiste zeigt, wo, zwischen deinen Zeitfenstern und fixierten Aufgaben.</string>
     <string name="coach_placed_row_title">Die Aufgabenzeile</string>
-    <string name="coach_placed_row_body">Das Häkchen schließt die Aufgabe ab, ▷ startet den Timer, „Aufschieben“ verschiebt sie auf den nächsten Arbeitstag und der Stift bearbeitet sie. Priorität, Punkte, Dauer und Frist stehen in der Zeile.</string>
+    <string name="coach_placed_row_body">Das Häkchen schließt die Aufgabe ab, ▷ startet den Timer, der Kalender schiebt sie auf den nächsten Arbeitstag auf oder auf den Tag deiner Wahl, und der Stift bearbeitet sie. Priorität, Punkte, Dauer und Frist stehen in der Zeile.</string>
     <string name="congrats_title">Deine erste Aufgabe ist erstellt!</string>
     <string name="congrats_body">Gut gemacht: Sie liegt in deinem Tag, von Kairos eingeordnet. Erledige die Dinge der Reihe nach, dann dauern die nächsten nur Sekunden.</string>
     <string name="congrats_timer">Timer starten</string>
@@ -1751,7 +1751,7 @@
     <string name="card_subtasks_edit_title">Bearbeitbare Unteraufgaben</string>
     <string name="card_subtasks_edit_body">Das Blatt einer Aufgabe listet ihre Unteraufgaben: umbenennen, abhaken, löschen oder neue hinzufügen, ohne die übergeordnete Aufgabe zu verlassen.</string>
     <string name="card_snooze_title">Aufschieben und verschieben</string>
-    <string name="card_snooze_body">„Aufschieben“ legt eine Aufgabe auf den nächsten Arbeitstag und nimmt sie bis dahin aus „Heute“; „Verschieben…“ setzt sie auf einen Tag deiner Wahl, mit „Rückgängig“.</string>
+    <string name="card_snooze_body">Der Kalender einer Aufgabenzeile bietet zuerst „Auf den nächsten Arbeitstag verschieben“ an, das die Frist verschiebt und die Aufgabe bis dahin aus Heute nimmt, dann Daten, um sie einzuplanen, ohne ihre Frist zu ändern, mit „Rückgängig“.</string>
     <string name="card_placement_title">Platzierung im Tag</string>
     <string name="card_placement_body">Aufgaben füllen die Lücken deines Tages mit ihrer Dauer und einem Puffer nach jeder Besprechung; eine Aufgabe mit fester Uhrzeit bewegt sich nie, und ein Überlauf wird angezeigt.</string>
     <string name="card_afternoon_dip_title">Nachmittagstief</string>

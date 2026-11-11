@@ -298,10 +298,11 @@ supprimée.
   d’aujourd’hui le dit alors, une ligne par série (« 2 occurrences mensuelles
   ont été sautées : Note de frais ») : les recréer (déjà en retard) ou les
   ignorer, avec annulation. Rien n’est recréé sans demander.
-- **« Décaler »** : atterrit toujours sur un jour ouvré, et la tâche quitte
-  « Aujourd’hui » jusque-là. **« Déplacer… »** programme une tâche pour un
-  autre jour (demain, lundi prochain, dans une semaine, ou une date au choix)
-  et propose d’annuler.
+- **Décaler et déplacer** : le bouton calendrier d’une ligne de tâche propose
+  d’abord **« Décaler au prochain jour ouvré »** (l’échéance passe toujours à
+  un jour ouvré, et la tâche quitte « Aujourd’hui » jusque-là), puis des dates
+  où la programmer (demain, lundi prochain, dans une semaine, ou une date au
+  choix) sans toucher son échéance, avec annulation.
 - **Bloqueurs** : après avoir bloqué une tâche, Kairos dit où elle est allée
   (« Bloquées » s’ouvre) ; la tâche qui bloque porte un badge « Bloque … ». Une
   recherche retrouve la tâche à attendre dans une longue liste.

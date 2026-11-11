@@ -1520,7 +1520,7 @@
     <string name="coach_placed_slot_title">Son créneau</string>
     <string name="coach_placed_slot_body">Kairos range la tâche dans un trou de la journée, avec sa durée. La frise montre où, parmi tes créneaux et tes tâches épinglées.</string>
     <string name="coach_placed_row_title">La ligne de la tâche</string>
-    <string name="coach_placed_row_body">La coche termine la tâche, ▷ lance le chrono, « Décaler » la repousse au prochain jour ouvré et le crayon la modifie. Priorité, points, durée et échéance sont affichés sur la ligne.</string>
+    <string name="coach_placed_row_body">La coche termine la tâche, ▷ lance le chrono, le calendrier la décale au prochain jour ouvré ou la déplace au jour de ton choix, et le crayon la modifie. Priorité, points, durée et échéance sont affichés sur la ligne.</string>
     <string name="congrats_title">Ta première tâche est créée  !</string>
     <string name="congrats_body">Bravo : elle est dans ta journée, classée par Kairos. Fais les choses dans l’ordre, et les suivantes prendront quelques secondes.</string>
     <string name="congrats_timer">Lancer le chrono</string>
@@ -1754,7 +1754,7 @@
     <string name="card_subtasks_edit_title">Sous-tâches modifiables</string>
     <string name="card_subtasks_edit_body">La fiche d’une tâche liste ses sous-tâches : renomme-les, coche-les, supprime-les ou ajoutes-en, sans quitter la tâche mère.</string>
     <string name="card_snooze_title">Décaler et déplacer</string>
-    <string name="card_snooze_body">« Décaler » envoie une tâche au jour ouvré suivant et la retire d’Aujourd’hui d’ici là ; « Déplacer… » la programme au jour de ton choix, avec « Annuler ».</string>
+    <string name="card_snooze_body">Le calendrier d’une ligne de tâche propose d’abord « Décaler au prochain jour ouvré », qui repousse l’échéance et retire la tâche d’Aujourd’hui d’ici là, puis des dates où la programmer sans toucher son échéance, avec « Annuler ».</string>
     <string name="card_placement_title">Placement dans la journée</string>
     <string name="card_placement_body">Les tâches remplissent les trous de ta journée avec leur durée et une marge après chaque réunion ; une tâche à heure fixe ne bouge jamais, et le débordement est signalé.</string>
     <string name="card_afternoon_dip_title">Creux de l’après-midi</string>

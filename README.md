@@ -284,9 +284,11 @@ also be edited, archived without follow-up, or deleted.
   says so, one line per series ("2 monthly occurrences were skipped: Expense
   report"): recreate them (already overdue) or ignore them, with an undo.
   Nothing is recreated without asking.
-- **"Snooze"**: always lands on a working day, and the task leaves "Today"
-  until then. **"Move…"** schedules a task for another day (tomorrow, next
-  Monday, in a week, or any date) and offers to undo it.
+- **Snooze and move**: a task row's calendar button first offers **"Move to
+  the next working day"** (snooze: the deadline moves, always to a working
+  day, and the task leaves "Today" until then), then dates to schedule it on
+  (tomorrow, next Monday, in a week, or any date) without touching its
+  deadline, with an undo.
 - **Blockers**: after blocking a task, Kairos says where it went ("Blocked"
   opens); the blocking task shows a "Blocks …" badge. A search field finds the
   task to wait for in a long list.

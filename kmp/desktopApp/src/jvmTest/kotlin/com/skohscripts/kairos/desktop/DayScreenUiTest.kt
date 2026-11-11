@@ -154,6 +154,28 @@ class DayScreenUiTest {
     }
 
     @Test
+    fun snoozeIsTheFirstChoiceOfTheRowCalendar() = runComposeUiTest {
+        // « Décaler » n'a plus d'icône à lui sur une ligne perso : c'est le premier choix du menu « Déplacer… »
+        // (docs/spec/vue-jour.md § Lisibilité de la ligne). Il repousse l'échéance, contrairement aux dates du menu.
+        val services = services()
+        val repository = services.repository
+        runBlocking {
+            val id = repository.createTask("Call back")!!
+            repository.setPriority(id, 1)
+            repository.setPoints(id, 2)
+            repository.setTaskType(id, "Development")
+        }
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithContentDescription("Move to another day…").fetchSemanticsNodes().isNotEmpty() }
+        assertEquals(0, onAllNodesWithContentDescription("Move to the next working day").fetchSemanticsNodes().size, "plus d'icône « Décaler » sur la ligne")
+        onAllNodesWithContentDescription("Move to another day…")[0].performClick()
+        onNodeWithText("Move to the next working day").performClick()
+        waitUntil(timeoutMillis = 5_000) { repository.snapshot.value.tasks.single().deadline != null }
+        assertEquals("2026-09-30", repository.snapshot.value.tasks.single().deadline.toString())
+        assertEquals("2026-09-30", repository.snapshot.value.tasks.single().scheduledDate.toString())
+    }
+
+    @Test
     fun moveSchedulesATaskOnAnotherDayAndCanBeUndone() = runComposeUiTest {
         val services = services()
         val repository = services.repository

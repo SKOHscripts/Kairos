@@ -1518,7 +1518,7 @@
     <string name="coach_placed_slot_title">Its slot</string>
     <string name="coach_placed_slot_body">Kairos lays the task into a gap of the day, with its duration. The timeline shows where, among your slots and pinned tasks.</string>
     <string name="coach_placed_row_title">The task row</string>
-    <string name="coach_placed_row_body">The tick finishes the task, ▷ starts the timer, “Snooze” moves it to the next working day and the pencil edits it. Priority, points, duration and deadline are shown on the row.</string>
+    <string name="coach_placed_row_body">The tick finishes the task, ▷ starts the timer, the calendar snoozes it to the next working day or moves it to the day you pick, and the pencil edits it. Priority, points, duration and deadline are shown on the row.</string>
     <string name="congrats_title">Your first task is created!</string>
     <string name="congrats_body">Well done: it is in your day, ranked by Kairos. Do things in order, and the next ones take seconds.</string>
     <string name="congrats_timer">Start the timer</string>
@@ -1752,7 +1752,7 @@
     <string name="card_subtasks_edit_title">Editable subtasks</string>
     <string name="card_subtasks_edit_body">A task’s sheet lists its subtasks: rename, check or delete them, or add new ones, without leaving the parent.</string>
     <string name="card_snooze_title">Snooze and move</string>
-    <string name="card_snooze_body">“Snooze” sends a task to the next working day and takes it out of Today until then; “Move…” schedules it for the day of your choice, with “Undo”.</string>
+    <string name="card_snooze_body">A task row’s calendar first offers “Move to the next working day”, which pushes the deadline back and takes the task off Today until then, then dates to schedule it on without touching its deadline, with “Undo”.</string>
     <string name="card_placement_title">Placement in the day</string>
     <string name="card_placement_body">Tasks fill the gaps of your day with their duration and a buffer after each meeting; a task at a fixed time never moves, and overflow is flagged.</string>
     <string name="card_afternoon_dip_title">Afternoon dip</string>

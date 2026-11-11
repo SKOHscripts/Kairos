@@ -1517,7 +1517,7 @@
     <string name="coach_placed_slot_title">Su franja</string>
     <string name="coach_placed_slot_body">Kairos coloca la tarea en un hueco del día, con su duración. La línea de tiempo muestra dónde, entre tus franjas y tus tareas fijadas.</string>
     <string name="coach_placed_row_title">La fila de la tarea</string>
-    <string name="coach_placed_row_body">La marca termina la tarea, ▷ inicia el cronómetro, «Posponer» la pasa al siguiente día laborable y el lápiz la edita. Prioridad, puntos, duración y fecha límite se muestran en la fila.</string>
+    <string name="coach_placed_row_body">La marca termina la tarea, ▷ inicia el cronómetro, el calendario la pospone al siguiente día laborable o la pasa al día que elijas, y el lápiz la edita. Prioridad, puntos, duración y fecha límite se muestran en la fila.</string>
     <string name="congrats_title">¡Tu primera tarea está creada!</string>
     <string name="congrats_body">Bien hecho: está en tu día, clasificada por Kairos. Haz las cosas en orden y las siguientes llevarán unos segundos.</string>
     <string name="congrats_timer">Iniciar el cronómetro</string>
@@ -1751,7 +1751,7 @@
     <string name="card_subtasks_edit_title">Subtareas editables</string>
     <string name="card_subtasks_edit_body">La ficha de una tarea lista sus subtareas: renómbralas, márcalas, elimínalas o añade otras sin salir de la tarea principal.</string>
     <string name="card_snooze_title">Posponer y mover</string>
-    <string name="card_snooze_body">«Posponer» lleva una tarea al siguiente día laborable y la quita de Hoy hasta entonces; «Mover…» la programa el día que elijas, con «Deshacer».</string>
+    <string name="card_snooze_body">El calendario de una fila de tarea ofrece primero «Posponer al próximo día laborable», que aplaza la fecha límite y saca la tarea de Hoy hasta entonces, y luego fechas para programarla sin tocar su fecha límite, con «Deshacer».</string>
     <string name="card_placement_title">Colocación en el día</string>
     <string name="card_placement_body">Las tareas llenan los huecos de tu día con su duración y un margen tras cada reunión; una tarea a hora fija nunca se mueve y el desbordamiento se señala.</string>
     <string name="card_afternoon_dip_title">Bajón de la tarde</string>
