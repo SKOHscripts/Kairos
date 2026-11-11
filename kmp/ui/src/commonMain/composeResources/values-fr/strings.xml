@@ -304,6 +304,8 @@
     <string name="why_scheduled_tomorrow">Date programmée demain</string>
     <string name="why_scheduled_in">Date programmée dans %1$d j</string>
     <string name="why_no_date">Aucune échéance</string>
+    <string name="why_implicit_in">Sans date : remonte comme une échéance dans %1$d j</string>
+    <string name="why_implicit_reached">Sans date depuis trop longtemps : urgence au maximum</string>
     <string name="why_effort_points">Effort %1$s pts</string>
     <string name="why_effort_minutes">Effort déduit de la durée</string>
     <string name="why_effort_default">Effort par défaut</string>

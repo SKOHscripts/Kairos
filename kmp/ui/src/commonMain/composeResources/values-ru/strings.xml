@@ -302,6 +302,8 @@
     <string name="why_scheduled_tomorrow">Запланирована на завтра</string>
     <string name="why_scheduled_in">Запланирована через %1$d дн.</string>
     <string name="why_no_date">Срока нет</string>
+    <string name="why_implicit_in">Без даты: поднимется как срок через %1$d дн.</string>
+    <string name="why_implicit_reached">Слишком долго без даты: максимальная срочность</string>
     <string name="why_effort_points">Трудоемкость: %1$s б.</string>
     <string name="why_effort_minutes">Трудоемкость исходя из длительности</string>
     <string name="why_effort_default">Трудоемкость по умолчанию</string>

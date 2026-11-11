@@ -302,6 +302,8 @@
     <string name="why_scheduled_tomorrow">Morgen geplant</string>
     <string name="why_scheduled_in">In %1$d T. geplant</string>
     <string name="why_no_date">Keine Frist</string>
+    <string name="why_implicit_in">Ohne Datum: steigt wie eine Frist in %1$d T.</string>
+    <string name="why_implicit_reached">Zu lange ohne Datum: maximale Dringlichkeit</string>
     <string name="why_effort_points">Aufwand %1$s Pkt.</string>
     <string name="why_effort_minutes">Aufwand aus der Dauer abgeleitet</string>
     <string name="why_effort_default">Standardaufwand</string>

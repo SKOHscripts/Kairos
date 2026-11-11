@@ -302,6 +302,8 @@
     <string name="why_scheduled_tomorrow">Programmata per domani</string>
     <string name="why_scheduled_in">Programmata tra %1$d g</string>
     <string name="why_no_date">Nessuna scadenza</string>
+    <string name="why_implicit_in">Senza data: risale come una scadenza tra %1$d g</string>
+    <string name="why_implicit_reached">Senza data da troppo tempo: urgenza massima</string>
     <string name="why_effort_points">Impegno %1$s pt</string>
     <string name="why_effort_minutes">Impegno ricavato dalla durata</string>
     <string name="why_effort_default">Impegno predefinito</string>

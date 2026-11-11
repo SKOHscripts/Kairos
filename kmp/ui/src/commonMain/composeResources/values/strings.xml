@@ -303,6 +303,8 @@
     <string name="why_scheduled_tomorrow">Scheduled tomorrow</string>
     <string name="why_scheduled_in">Scheduled in %1$d d</string>
     <string name="why_no_date">No deadline</string>
+    <string name="why_implicit_in">No date: rises like a deadline in %1$d d</string>
+    <string name="why_implicit_reached">Undated for too long: maximum urgency</string>
     <string name="why_effort_points">Effort %1$s pts</string>
     <string name="why_effort_minutes">Effort from the duration</string>
     <string name="why_effort_default">Default effort</string>
