@@ -2006,4 +2006,25 @@
     <string name="spent_floor_timed">Almeno %1$s cronometrate.</string>
     <string name="spent_tracked_hint">di cui %1$s cronometrate</string>
     <string name="spent_corrected">Tempo trascorso su «%1$s»: %2$s → %3$s</string>
+    <string name="model_card_title">Cosa impara Kairos</string>
+    <string name="model_card_hint">Il modello che stima le tue durate, in base al tempo che cronometri davvero.</string>
+    <string name="model_card_off">La stima con machine learning è disattivata: Impostazioni → Durate apprese.</string>
+    <string name="model_card_computing">Calcolo…</string>
+    <string name="model_kpi_corpus">attività apprese (+ nel periodo)</string>
+    <string name="model_kpi_corpus_value">%1$d (+%2$d)</string>
+    <string name="model_kpi_error">errore del modello · predefinita %1$s</string>
+    <string name="model_kpi_coverage">nell’intervallo (ultime attività)</string>
+    <string name="model_kpi_period">attività del periodo nell’intervallo</string>
+    <string name="model_history_title">Convergenza</string>
+    <string name="model_history_summary">In %1$d settimana/e: da %2$s a %3$s di errore (durata predefinita: %4$s).</string>
+    <string name="model_history_row">%1$s · predefinita %2$s · %3$d attività</string>
+    <string name="model_history_few">non ancora abbastanza attività (%1$d)</string>
+    <string name="model_bias">Nel periodo: ×%1$s il tempo stimato (%2$s).</string>
+    <string name="model_sources">Le tue attività aperte: %1$s.</string>
+    <string name="model_source_model">%1$d con machine learning</string>
+    <string name="model_source_series">%1$d per serie</string>
+    <string name="model_source_title">%1$d per titolo</string>
+    <string name="model_contested">Il modello contesta %1$d durata/e inserita/e.</string>
+    <string name="card_model_review_title">Cosa impara Kairos</string>
+    <string name="card_model_review_body">Nel Bilancio, una scheda mostra a che punto è il modello che stima le tue durate: attività apprese, errore rispetto alla durata predefinita, intervallo rispettato e la sua convergenza settimana dopo settimana.</string>
 </resources>

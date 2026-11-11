@@ -79,6 +79,7 @@ import kotlinx.datetime.minus
 import com.skohscripts.kairos.core.recap.Recap
 import com.skohscripts.kairos.ui.recap.PeriodHeader
 import com.skohscripts.kairos.ui.recap.RecapCard
+import com.skohscripts.kairos.ui.recap.ModelCard
 import com.skohscripts.kairos.ui.generated.resources.recap_title_month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -115,6 +116,7 @@ fun MonthScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> 
             // Bilan du mois (docs/spec/bilan.md, issue #233).
             val recap = remember(snapshot, month.first, today) { Recap.build(snapshot, month.first, last, now, timeZone) }
             RecapCard(recap, stringResource(Res.string.recap_title_month), title, today, language)
+            ModelCard(services, stored, month.first, last, today, language)
             Text(stringResource(Res.string.month_legend), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             MonthGrid(month, today, language, onOpenDay)
             MonthLists(month, today, language, onOpenDay)

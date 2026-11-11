@@ -2006,4 +2006,25 @@
     <string name="spent_floor_timed">Al menos %1$s cronometradas.</string>
     <string name="spent_tracked_hint">de ellas %1$s cronometradas</string>
     <string name="spent_corrected">Tiempo dedicado a «%1$s»: %2$s → %3$s</string>
+    <string name="model_card_title">Lo que aprende Kairos</string>
+    <string name="model_card_hint">El modelo que estima tus duraciones, a partir del tiempo que cronometras de verdad.</string>
+    <string name="model_card_off">La estimación por machine learning está desactivada: Ajustes → Duraciones aprendidas.</string>
+    <string name="model_card_computing">Calculando…</string>
+    <string name="model_kpi_corpus">tareas aprendidas (+ en el periodo)</string>
+    <string name="model_kpi_corpus_value">%1$d (+%2$d)</string>
+    <string name="model_kpi_error">error del modelo · por defecto %1$s</string>
+    <string name="model_kpi_coverage">dentro del rango (últimas tareas)</string>
+    <string name="model_kpi_period">tareas del periodo dentro del rango</string>
+    <string name="model_history_title">Convergencia</string>
+    <string name="model_history_summary">En %1$d semana(s): de %2$s a %3$s de error (duración por defecto: %4$s).</string>
+    <string name="model_history_row">%1$s · por defecto %2$s · %3$d tareas</string>
+    <string name="model_history_few">aún no hay suficientes tareas (%1$d)</string>
+    <string name="model_bias">En el periodo: ×%1$s el tiempo estimado (%2$s).</string>
+    <string name="model_sources">Tus tareas abiertas: %1$s.</string>
+    <string name="model_source_model">%1$d por machine learning</string>
+    <string name="model_source_series">%1$d por serie</string>
+    <string name="model_source_title">%1$d por título</string>
+    <string name="model_contested">El modelo discute %1$d duración(es) introducida(s).</string>
+    <string name="card_model_review_title">Lo que aprende Kairos</string>
+    <string name="card_model_review_body">En el Balance, una tarjeta muestra dónde está el modelo que estima tus duraciones: tareas aprendidas, error frente a la duración por defecto, rango cumplido y su convergencia semana a semana.</string>
 </resources>

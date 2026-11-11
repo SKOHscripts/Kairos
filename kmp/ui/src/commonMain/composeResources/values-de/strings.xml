@@ -2006,4 +2006,25 @@
     <string name="spent_floor_timed">Mindestens %1$s erfasst.</string>
     <string name="spent_tracked_hint">davon %1$s erfasst</string>
     <string name="spent_corrected">Aufgewendete Zeit für „%1$s“: %2$s → %3$s</string>
+    <string name="model_card_title">Was Kairos lernt</string>
+    <string name="model_card_hint">Das Modell, das deine Dauern schätzt, nach der Zeit, die du wirklich erfasst.</string>
+    <string name="model_card_off">Die Schätzung per Machine Learning ist aus: Einstellungen → Gelernte Dauern.</string>
+    <string name="model_card_computing">Berechnung…</string>
+    <string name="model_kpi_corpus">gelernte Aufgaben (+ im Zeitraum)</string>
+    <string name="model_kpi_corpus_value">%1$d (+%2$d)</string>
+    <string name="model_kpi_error">Modellfehler · Standard %1$s</string>
+    <string name="model_kpi_coverage">in der Spanne (letzte Aufgaben)</string>
+    <string name="model_kpi_period">Aufgaben des Zeitraums in der Spanne</string>
+    <string name="model_history_title">Konvergenz</string>
+    <string name="model_history_summary">In %1$d Woche(n): von %2$s auf %3$s Fehler (Standarddauer: %4$s).</string>
+    <string name="model_history_row">%1$s · Standard %2$s · %3$d Aufgaben</string>
+    <string name="model_history_few">noch nicht genug Aufgaben (%1$d)</string>
+    <string name="model_bias">Im Zeitraum: ×%1$s der geschätzten Zeit (%2$s).</string>
+    <string name="model_sources">Deine offenen Aufgaben: %1$s.</string>
+    <string name="model_source_model">%1$d per Machine Learning</string>
+    <string name="model_source_series">%1$d nach Serie</string>
+    <string name="model_source_title">%1$d nach Titel</string>
+    <string name="model_contested">Das Modell bezweifelt %1$d eingegebene Dauer(n).</string>
+    <string name="card_model_review_title">Was Kairos lernt</string>
+    <string name="card_model_review_body">In der Bilanz zeigt eine Karte, wo das Modell steht, das deine Dauern schätzt: gelernte Aufgaben, Fehler gegenüber der Standarddauer, eingehaltene Spanne und seine Konvergenz Woche für Woche.</string>
 </resources>

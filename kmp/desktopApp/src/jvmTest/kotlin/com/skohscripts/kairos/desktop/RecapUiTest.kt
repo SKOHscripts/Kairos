@@ -111,7 +111,7 @@ class RecapUiTest {
         onNodeWithText("1 h 30").assertExists()
         // Semaine courante : le détail est replié.
         onNodeWithText("Done (1)").assertDoesNotExist()
-        onNodeWithText("Details").performClick()
+        onAllNodesWithText("Details").onFirst().performClick()
         waitText("Done (1)")
         onNodeWithText("Meetings and time slots (1)").assertExists()
         onNodeWithText("Left (1)").assertExists()

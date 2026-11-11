@@ -1,12 +1,16 @@
 # Bilan de la semaine et du mois
 
 _Rôle : dire en une carte ce qui s'est passé sur la période affichée (fait, avancé, réunions, reste), prêt à être lu ou
-collé en réunion hebdomadaire ; et alléger l'en-tête des vues Semaine et Mois qui le portent. Fichiers couverts :
+collé en réunion hebdomadaire ; dire dans une seconde carte ce que le modèle d'estimation a appris et comment il progresse ;
+alléger l'en-tête des vues Semaine et Mois qui les portent, dans la destination renommée « Bilan ». Fichiers couverts :
 `kmp/core/src/commonMain/.../core/recap/Recap.kt` (modèle, pur), `kmp/ui/.../recap/RecapCard.kt` (carte, texte copié,
-en-tête de période `PeriodHeader`), leur appel dans `week/WeekScreen.kt` et `month/MonthScreen.kt`. Tests :
-`core/.../recap/RecapTest.kt`, `desktopApp/.../RecapUiTest.kt`._
+en-tête de période `PeriodHeader`), `kmp/core/.../recap/ModelReview.kt` (ce que le modèle a appris, pur),
+`kmp/ui/.../recap/ModelCard.kt`, leur appel dans `week/WeekScreen.kt` et `month/MonthScreen.kt`, le libellé de la
+destination (`nav_week`, `title_week`). Tests : `core/.../recap/RecapTest.kt`, `core/.../recap/ModelReviewTest.kt`,
+`desktopApp/.../RecapUiTest.kt`, `desktopApp/.../ModelCardUiTest.kt`._
 
-État : 4.1.0 (issue #233), implémentée. Dépend des prévisions par tâche (#232, `previsions-taches.md` § Étape C) pour la
+État : 4.1.0 (issue #233), implémentée ; carte « Ce que Kairos apprend » et destination « Bilan » ajoutées le 2026-11-11
+(demande du propriétaire, sans issue). Dépend des prévisions par tâche (#232, `previsions-taches.md` § Étape C) pour la
 ligne « Réaliste ».
 
 ## 1. Besoin métier (cahier des charges)
@@ -57,6 +61,26 @@ d'œil, détaillable à la demande.
   « Balance », « Bilancio », « Итоги », les noms de la carte), avec la même icône ; la bascule « Semaine » / « Mois » et
   les titres de période (« Semaine · du lundi … », « Mois · … ») ne changent pas : ils disent le contenu, l'onglet dit
   l'usage (faire le point, étape 4 de GTD).
+- **Carte « Ce que Kairos apprend »**, sous le bilan, semaine comme mois. Le modèle d'estimation des durées apprend de
+  chaque tâche terminée chronométrée ; la carte dit où il en est, en restant honnête sur les petits nombres :
+  - toujours visibles, quatre chiffres : « tâches apprises » (le corpus, et « +5 sur la période ») ; « erreur du modèle »
+    (erreur médiane sur les dernières tâches vérifiées, avec celle de la durée par défaut : « défaut : 47 % ») ;
+    « dans la fourchette » (« 24 / 30 ») ; « tâches de la période dans la fourchette » (« 3 / 4 », ou « — » si aucune
+    de la période n'a été vérifiée) ;
+  - dessous, la phrase d'état des Réglages, la même (« Vérifié sur tes 30 dernières tâches : 31 % d'écart médian contre
+    47 % avec la durée par défaut. ») : jamais deux discours ;
+  - « Détail » : la **convergence**, l'erreur du modèle à la fin de chacune des huit dernières semaines, comme s'il
+    avait été vérifié ce jour-là avec ce qu'il savait alors (« Semaine du 19/10 : 41 % · défaut 49 % · 62 tâches »,
+    « pas encore assez de tâches » sous le seuil), avec le résumé « Il y a 8 semaines : 58 %, aujourd'hui : 31 %. » ;
+    ce que la période dit de tes estimations (« Sur la période : ×1.30 le temps estimé, 5 tâches », « peu fiable » sous
+    3) ; les durées apprises de tes tâches ouvertes par origine (« 12 par machine learning · 5 par série · 3 par titre ») ;
+    « Le modèle conteste 3 durées saisies » avec « Revoir… » (la revue des Réglages) ;
+  - modèle pas encore prêt (moins de 12 tâches apprises) : la phrase dit combien il en manque, sans chiffres d'erreur ;
+  - modèle coupé (durées apprises ou machine learning désactivés dans les Réglages) : une seule ligne « L'estimation
+    par machine learning est coupée : Réglages → Durées apprises. », sans chiffres ;
+  - le calcul est lourd (le modèle reconstruit huit fois) : il se fait hors de l'affichage, la carte dit « Calcul… »
+    jusqu'au résultat ; espace Perso seulement, comme le reste du bilan.
+
 ### Critères de succès
 
 - Fait, avancé, créneaux regroupés et terminés seulement, reste et retard, temps par tâche dans la période, temps par
@@ -68,6 +92,11 @@ d'œil, détaillable à la demande.
   `MonthViewUiTest`).
 - Captures `desktop-week-recap.png`, `desktop-week-recap-narrow.png` et `desktop-week-recap-past.png` (base à
   historique), regardées.
+
+- Carte du modèle : point d'une date passée sans fuite du futur (une tâche finie après la date ne change pas ce point),
+  corpus, tâches de la période apprises et vérifiées, biais de la période, durées apprises par origine
+  (`ModelReviewTest`) ; la carte montre les chiffres, le détail ouvre la convergence, modèle coupé : une ligne
+  (`ModelCardUiTest`) ; la destination s'appelle « Recap » (`M4ScreensUiTest`, `MonthViewUiTest`).
 
 ### Hors périmètre / différé
 
@@ -115,9 +144,36 @@ d'œil, détaillable à la demande.
   unique remplace les cinq cartes de temps vides (`statistiques.md` § Ordre et cartes vides).
 - Vue Jour : « Décaler » rejoint le menu « Déplacer… » de la ligne (`vue-jour.md` § Lisibilité de la ligne).
 
+### Ce que Kairos apprend (`core/recap/ModelReview.kt`, `ui/recap/ModelCard.kt`)
+
+- `ModelReview.asOf(snapshot, instant)` : la base telle qu'elle était à `instant` pour le modèle : une tâche terminée
+  après redevient « à faire », les sessions commencées après disparaissent, une session à cheval est arrêtée à
+  `instant` (le temps saisi à la main, sans date, reste aux tâches terminées avant).
+- `ModelReview.build(snapshot, start, end, now, timeZone, weeks = 8)` rend `Review` : `status`
+  (`DurationEstimator.modelStatus`, `null` si coupé), `learnedInPeriod` (échantillons dont la tâche est terminée dans
+  la période, date locale de `updatedAt`), `checked` / `inside` (parmi les candidats de `ModelGate.candidates`, ceux de
+  la période, et ceux dont `ModelGate.score` ≤ l'étirement de la garde : la fourchette **calibrée** que l'utilisateur
+  voit), `bias` (`TaskStats.estimationBias` des tâches terminées de la période), `bySource` (durées apprises fiables
+  des tâches ouvertes sans estimation, par `DurationEstimator.Source`), `contested` (`EstimateChanges.proposals`), et
+  `history` : un `Point` par fin de semaine (dimanche) des `weeks` dernières jusqu'à `min(end, aujourd'hui)`, statut
+  calculé sur `asOf(fin de ce dimanche)` avec un `ModelCache.NONE` (rien n'évince le cache partagé).
+- `ModelCard(services, start, end)` : `rememberComputed` (hors composition, `Dispatchers.Default`), `Panel` avec
+  icône `Model`, quatre `Figure`, `modelStatusText` partagé avec `ModelStatusLine` (Réglages), « Détail » (`BarRow` par
+  semaine, fraction = erreur, date au-dessus sous 420 dp), pourcentages à espace insécable (`pct`), bouton « Revoir… » qui ouvre `EstimateReviewDialog`.
 - Destination : `nav_week` et `title_week` valent « Bilan » ; l'enum `Destination.WEEK` et les clés ne changent pas.
   Les textes qui nomment l'onglet (guide, GTD, cartes) disent « Bilan » ; « vue Semaine » (le mode) reste.
+
 ### Décisions et pièges tracés
+
+- **Une carte à part pour le modèle, pas dans le bilan** (2026-11-11) : le bilan se copie pour une réunion, l'état du
+  modèle n'y a pas sa place ; même page, même motif (chiffres, puis détail). Écarté : une section du bilan.
+- **La convergence par reconstruction, pas par un journal** : rien n'enregistre l'erreur du modèle au fil du temps ; la
+  reconstruire à chaque fin de semaine sur la base « telle qu'elle était » donne la courbe sans nouveau stockage ni
+  export. Huit semaines : au-delà, le calcul s'allonge sans rien dire de plus sur la convergence récente.
+- **La fourchette calibrée pour la période** : « dans la fourchette » compte avec l'étirement de la garde, comme les
+  fourchettes montrées dans la fiche et « Pourquoi » ; compter avec l'intervalle brut contredirait l'écran.
+- **Modèle coupé : une ligne, pas de carte vide** : l'utilisateur qui l'a coupé sait pourquoi il n'y a rien ; la ligne
+  dit où le rallumer.
 - **« Bilan » plutôt que « Semaine »** (propriétaire, 2026-11-11) : la page sert à faire le point, semaine ou mois ;
   « Semaine » ne disait ni le mois ni le bilan. Le nom anglais suit celui de la carte (« Recap ») : « Reflect », le
   nom de l'étape GTD, est un verbe.

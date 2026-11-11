@@ -2007,4 +2007,25 @@
     <string name="spent_floor_timed">At least %1$s timed.</string>
     <string name="spent_tracked_hint">including %1$s timed</string>
     <string name="spent_corrected">Time spent on “%1$s”: %2$s → %3$s</string>
+    <string name="model_card_title">What Kairos learns</string>
+    <string name="model_card_hint">The model that estimates your durations, from the time you actually track.</string>
+    <string name="model_card_off">Machine-learning estimates are off: Settings → Learned durations.</string>
+    <string name="model_card_computing">Computing…</string>
+    <string name="model_kpi_corpus">tasks learned (+ over the period)</string>
+    <string name="model_kpi_corpus_value">%1$d (+%2$d)</string>
+    <string name="model_kpi_error">model error · default %1$s</string>
+    <string name="model_kpi_coverage">within the range (latest tasks)</string>
+    <string name="model_kpi_period">period tasks within the range</string>
+    <string name="model_history_title">Convergence</string>
+    <string name="model_history_summary">Over %1$d week(s): from %2$s to %3$s error (default duration: %4$s).</string>
+    <string name="model_history_row">%1$s · default %2$s · %3$d tasks</string>
+    <string name="model_history_few">not enough tasks yet (%1$d)</string>
+    <string name="model_bias">Over the period: ×%1$s the estimated time (%2$s).</string>
+    <string name="model_sources">Your open tasks: %1$s.</string>
+    <string name="model_source_model">%1$d by machine learning</string>
+    <string name="model_source_series">%1$d by series</string>
+    <string name="model_source_title">%1$d by title</string>
+    <string name="model_contested">The model disputes %1$d typed duration(s).</string>
+    <string name="card_model_review_title">What Kairos learns</string>
+    <string name="card_model_review_body">In the Recap, a card shows where the model that estimates your durations stands: tasks learned, error against the default duration, range kept, and how it converged week after week.</string>
 </resources>

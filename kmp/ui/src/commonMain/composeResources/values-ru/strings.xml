@@ -2006,4 +2006,25 @@
     <string name="spent_floor_timed">Не меньше %1$s по таймеру.</string>
     <string name="spent_tracked_hint">из них %1$s по таймеру</string>
     <string name="spent_corrected">Затраченное время на «%1$s»: %2$s → %3$s</string>
+    <string name="model_card_title">Чему учится Kairos</string>
+    <string name="model_card_hint">Модель, которая оценивает длительности по времени, которое ты действительно засекаешь.</string>
+    <string name="model_card_off">Оценка машинным обучением выключена: Настройки → Запомненные длительности.</string>
+    <string name="model_card_computing">Расчет…</string>
+    <string name="model_kpi_corpus">изучено задач (+ за период)</string>
+    <string name="model_kpi_corpus_value">%1$d (+%2$d)</string>
+    <string name="model_kpi_error">ошибка модели · по умолчанию %1$s</string>
+    <string name="model_kpi_coverage">в диапазоне (последние задачи)</string>
+    <string name="model_kpi_period">задачи периода в диапазоне</string>
+    <string name="model_history_title">Сходимость</string>
+    <string name="model_history_summary">За %1$d нед.: от %2$s до %3$s ошибки (длительность по умолчанию: %4$s).</string>
+    <string name="model_history_row">%1$s · по умолчанию %2$s · %3$d задач</string>
+    <string name="model_history_few">пока мало задач (%1$d)</string>
+    <string name="model_bias">За период: ×%1$s от оценки (%2$s).</string>
+    <string name="model_sources">Твои открытые задачи: %1$s.</string>
+    <string name="model_source_model">%1$d машинным обучением</string>
+    <string name="model_source_series">%1$d по серии</string>
+    <string name="model_source_title">%1$d по названию</string>
+    <string name="model_contested">Модель оспаривает введенные длительности: %1$d.</string>
+    <string name="card_model_review_title">Чему учится Kairos</string>
+    <string name="card_model_review_body">В «Итогах» карточка показывает, где находится модель, которая оценивает длительности: изученные задачи, ошибка по сравнению с длительностью по умолчанию, попадание в диапазон и сходимость неделя за неделей.</string>
 </resources>

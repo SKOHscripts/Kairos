@@ -37,16 +37,7 @@ internal fun ModelStatusLine(services: AppServices) {
     val snapshot by services.repository.snapshot.collectAsState()
     val status = remember(snapshot) { DurationEstimator.modelStatus(snapshot, services.clock.now(), timeZone = TimeZone.currentSystemDefault()) } ?: return
     val gate = status.gate
-    fun percent(x: Double) = floor(x * 100.0 + 0.5).toInt()
-    val text = when {
-        // Ce qui manque, en nombre de tâches (2026-11-03) : le compte restant d'abord, puis l'avancement.
-        status.corpus < ModelParams.MIN_CORPUS ->
-            stringResource(Res.string.learning_model_status_few, ModelParams.MIN_CORPUS - status.corpus, status.corpus, ModelParams.MIN_CORPUS)
-        gate.reason == ModelGate.Reason.TOO_FEW_SAMPLES ->
-            stringResource(Res.string.learning_model_status_unverified, ModelParams.GATE_MIN - gate.evaluated, gate.evaluated, ModelParams.GATE_MIN)
-        gate.passed -> stringResource(Res.string.learning_model_status_ok, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
-        else -> stringResource(Res.string.learning_model_status_not_better, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
-    }
+    val text = modelStatusText(status)
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     // Fourchette vérifiée (docs/spec/previsions-taches.md § Étape A) : dite dès que la garde a ses candidats.
     if (gate.reason != ModelGate.Reason.TOO_FEW_SAMPLES && status.corpus >= ModelParams.MIN_CORPUS) {
@@ -68,4 +59,25 @@ internal fun ModelStatusLine(services: AppServices) {
         KairosOutlinedButton(onClick = { review = true }) { Text(stringResource(Res.string.settings_review_button, proposals.size)) }
     }
     if (review) EstimateReviewDialog(services, emptyList()) { review = false }
+}
+
+/** Pourcentage arrondi d'une erreur relative (0,31 → 31). */
+internal fun percent(x: Double): Int = floor(x * 100.0 + 0.5).toInt()
+
+/**
+ * La phrase d'état du modèle : ce qui manque, la vérification réussie ou non. Partagée par les Réglages et la carte « Ce que
+ * Kairos apprend » du bilan (docs/spec/bilan.md) : les deux ne disent jamais autre chose.
+ */
+@Composable
+internal fun modelStatusText(status: DurationEstimator.Companion.ModelStatus): String {
+    val gate = status.gate
+    return when {
+        // Ce qui manque, en nombre de tâches (2026-11-03) : le compte restant d'abord, puis l'avancement.
+        status.corpus < ModelParams.MIN_CORPUS ->
+            stringResource(Res.string.learning_model_status_few, ModelParams.MIN_CORPUS - status.corpus, status.corpus, ModelParams.MIN_CORPUS)
+        gate.reason == ModelGate.Reason.TOO_FEW_SAMPLES ->
+            stringResource(Res.string.learning_model_status_unverified, ModelParams.GATE_MIN - gate.evaluated, gate.evaluated, ModelParams.GATE_MIN)
+        gate.passed -> stringResource(Res.string.learning_model_status_ok, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
+        else -> stringResource(Res.string.learning_model_status_not_better, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
+    }
 }

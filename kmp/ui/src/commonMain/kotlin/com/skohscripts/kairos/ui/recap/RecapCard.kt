@@ -171,7 +171,7 @@ internal fun RecapCard(recap: Recap, title: String, heading: String, today: Loca
 
 /** Un chiffre du bilan : la valeur, son libellé dessous ; [warn] ajoute l'icône d'avertissement (jamais la couleur seule). */
 @Composable
-private fun Figure(value: String, label: String, modifier: Modifier, warn: Boolean = false) {
+internal fun Figure(value: String, label: String, modifier: Modifier, warn: Boolean = false) {
     Column(modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (warn) Icon(KairosIcons.Warning, contentDescription = null, modifier = Modifier.size(18.dp).padding(end = 4.dp))
@@ -183,7 +183,7 @@ private fun Figure(value: String, label: String, modifier: Modifier, warn: Boole
 
 /** Section du détail, omise si elle est vide ; le titre porte l'effectif (« Fait (3) »). */
 @Composable
-private fun Section(title: String, count: Int, counted: Boolean = true, content: @Composable () -> Unit) {
+internal fun Section(title: String, count: Int, counted: Boolean = true, content: @Composable () -> Unit) {
     if (count == 0) return
     Column(verticalArrangement = Arrangement.spacedBy(KairosSpacing.xs), modifier = Modifier.padding(top = KairosSpacing.s)) {
         Text(if (counted) "$title ($count)" else title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.heading())

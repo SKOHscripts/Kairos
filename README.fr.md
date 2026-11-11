@@ -399,6 +399,13 @@ son estimation vient des seules tâches d’équipe terminées.
   ce qui a été fait avec son temps, ce qui a avancé, les réunions et créneaux
   regroupés par titre, et ce qui reste. « Copier le bilan » le met en texte
   dans le presse-papiers, prêt pour la réunion hebdomadaire.
+- **Ce que Kairos apprend** : dans l’onglet Bilan (ex-Semaine), une seconde
+  carte dit où en est le modèle des durées : tâches apprises, son erreur
+  médiane face à la durée par défaut, combien de fois le temps réel est tombé
+  dans sa fourchette, et comment il a convergé semaine après semaine,
+  reconstruit tel qu’il était à chaque date. Elle dit aussi comment tes
+  estimations ont tenu sur la période et quelles durées saisies le modèle
+  conteste.
 - **Jours ouvrés et fériés** : calendrier français intégré, dates
   supplémentaires dans les Réglages.
 
@@ -723,6 +730,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Fin probable d’une tâche | 4.1.0 | Toutes |
 | Suivre | Chronos à vérifier | 4.1.0 | Toutes |
 | Suivre | Bilan de la semaine et du mois | 4.1.0 | Toutes |
+| Suivre | Ce que Kairos apprend | 4.1.0 | Toutes |
 | Suivre | Quand tu travailles chaque type | 3.5.0 | Toutes |
 | Suivre | Tes heures les plus efficaces | 3.9.0 | Toutes |
 | Suivre | Ta journée sur l’écran d’accueil | 3.12.0 | Android |
