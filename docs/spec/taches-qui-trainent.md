@@ -33,8 +33,10 @@ correction groupée) sans avancer d'un pas.
   (horizon d'urgence des réglages, 14 j par défaut) jusqu'au maximum à 30 j. Une tâche oubliée finit par revenir d'elle-même,
   à sa taille : à valeur égale, une grosse tâche reste derrière une petite.
 - **Jamais « en retard ».** L'échéance implicite ne fait pas passer la tâche dans le palier dur des retards, ne colore pas
-  sa ligne, n'est affichée nulle part comme une date, et ne compte ni dans les vues Semaine et Mois, ni dans les
-  prévisions, ni dans « traîne » de la vue Jour : seul le score la voit.
+  sa ligne, n'est affichée nulle part comme une date, et ne compte ni dans les vues Semaine et Mois, ni comme échéance
+  dans les prévisions, ni dans « traîne » de la vue Jour : seul le score la voit. **L'ordre**, lui, change partout où le
+  score trie : vue Jour, file des prévisions (« fin probable », semaine réaliste), plan de charge, suggestion de
+  répartition et « Prêtes » de l'espace Équipe.
 - **« Pourquoi à cette place ? »** la nomme : « Sans date : remonte comme une échéance dans 9 j », puis, une fois
   atteinte, « Sans date depuis trop longtemps : urgence au maximum ».
 - **Revue de ce qui traîne** (onglet Bilan, vue Semaine, étape « Faire le point » de GTD). La liste repliée « Backlog,
@@ -90,8 +92,10 @@ correction groupée) sans avancer d'un pas.
 - `isOverdue`, `urgencyBucket`, `sortKey.tier`, `sortKey.deadline`, `isEligibleToday` : inchangés (vraies dates
   seulement).
 - `isLingering(task, day, settings)` : échéance implicite atteinte (`≤ day`).
-- Tout ce qui lit `wsjfScore` ou `sortKey` en profite sans changement : vue Jour, placement, urgence héritée des
-  dépendances, backlog d'équipe.
+- Tout ce qui lit `wsjfScore` ou `sortKey` en profite sans changement : vue Jour (`DayView`), placement, urgence
+  héritée des dépendances, file des prévisions solo (`SoloForecast.queue`), plan de charge (`LoadPlan`), suggestion de
+  répartition (`AssignmentSuggestion`), « Prêtes » d'équipe (`TeamBoard`). Une sous-tâche sans date dont la mère est
+  datée hérite de l'échéance avant le score (`TaskTree.inheritedDeadlines` dans `DayView`) : pas d'échéance implicite.
 
 ### Revue (`WeekScreen`)
 

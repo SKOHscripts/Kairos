@@ -172,7 +172,8 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
 - Assigner puis réaffecter puis remettre au backlog produit trois
   événements, dans l'ordre, avec les bons « de → vers »
   (`TeamRepositoryTest.reassignmentIsJournaled`).
-- Le tri des Prêtes est celui de `Scheduling.sortKey` sur les mêmes
+- Le tri des Prêtes est celui de `Scheduling.sortKey` (échéance implicite des tâches sans date comprise depuis le
+  2026-11-11, `taches-qui-trainent.md`) sur les mêmes
   réglages (`TeamBoardTest.backlogUsesTheWsjfOrder`).
 - Avec une liste des catégories, une tâche sans catégorie reste dans « À
   qualifier » même avec priorité et points (« Manque : catégorie »), et en
