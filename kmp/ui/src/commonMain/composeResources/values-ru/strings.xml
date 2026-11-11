@@ -283,6 +283,8 @@
     <string name="done_hint">Уже завершены сегодня.</string>
     <string name="backlog_title">Бэклог, без даты</string>
     <string name="backlog_hint">Задачи без срока и без запланированной даты: они заполняют свободные места в расписании по рейтингу, но ни один день недельного вида их не показывает. Задай срок или запланированную дату, чтобы привязать их к дню.</string>
+    <string name="backlog_title_lingering">Бэклог, без даты (%1$d) · висят: %2$d</string>
+    <string name="backlog_implicit_hint">Через %1$d дн. без даты задача поднимается, будто её срок наступил: висящие его прошли. Коснись задачи, чтобы запланировать её.</string>
     <string name="filter_title">Поиск / фильтр</string>
     <string name="filter_active">фильтр включен</string>
     <string name="filter_search">Поиск</string>

@@ -283,6 +283,8 @@
     <string name="done_hint">Già terminate oggi.</string>
     <string name="backlog_title">Backlog, senza data</string>
     <string name="backlog_hint">Attività senza scadenza né data programmata: riempiono i vuoti dell’agenda in base al punteggio, ma nessun giorno della settimana le mostra. Imposta una scadenza o una data programmata per legarle a un giorno.</string>
+    <string name="backlog_title_lingering">Backlog, senza data (%1$d) · ferme da tempo: %2$d</string>
+    <string name="backlog_implicit_hint">Dopo %1$d g senza data, un’attività risale come se fosse in scadenza: quelle ferme da tempo l’hanno superata. Tocca un’attività per programmarla.</string>
     <string name="filter_title">Cerca / filtra</string>
     <string name="filter_active">filtro attivo</string>
     <string name="filter_search">Cerca</string>

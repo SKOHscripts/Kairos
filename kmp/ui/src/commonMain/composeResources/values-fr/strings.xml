@@ -285,6 +285,8 @@
     <string name="done_hint">Déjà terminées aujourd’hui.</string>
     <string name="backlog_title">Backlog, sans date</string>
     <string name="backlog_hint">Tâches sans échéance ni date programmée : elles comblent les trous de l’agenda selon leur score, mais aucun jour de la semaine ne les affiche. Pose une échéance ou une date programmée pour les attacher à un jour.</string>
+    <string name="backlog_title_lingering">Backlog, sans date (%1$d) · qui traînent : %2$d</string>
+    <string name="backlog_implicit_hint">Sans date depuis %1$d j, une tâche remonte comme si elle était due : celles qui traînent l’ont dépassé. Touche une tâche pour la programmer.</string>
     <string name="filter_title">Rechercher / filtrer</string>
     <string name="filter_active">filtre actif</string>
     <string name="filter_search">Recherche</string>
