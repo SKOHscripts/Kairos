@@ -218,7 +218,7 @@ object StoreScreenshots {
     private const val FORECAST_SCROLL = 24f
 
     /** Défilement (en crans de molette) de la fiche de la capture 2, pour que l'estimation par machine learning soit à l'écran. */
-    private const val SHEET_SCROLL = 40f
+    private const val SHEET_SCROLL = 22f
 
     /** Défilement (en crans de molette) de la capture de la page « histoire » : la liste ordonnée sous la carte « maintenant ». */
     private const val STORY_SCROLL = 21f
