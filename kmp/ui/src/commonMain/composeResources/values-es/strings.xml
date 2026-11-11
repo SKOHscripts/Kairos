@@ -553,7 +553,9 @@
     <string name="setting_urgency_peak">Peso máximo de la urgencia</string>
     <string name="setting_urgency_peak_help">Lo que añade una fecha límite alcanzada, en la misma unidad que el valor de la prioridad.</string>
     <string name="setting_implicit_deadline">Fecha límite implícita de las tareas sin fecha (días)</string>
-    <string name="setting_implicit_deadline_help">Una tarea sin fecha límite ni fecha programada cuenta, para su puntuación, como si venciera este número de días después de su creación: acaba volviendo a subir. 0 lo desactiva.</string>
+    <string name="setting_implicit_deadline_help">Una tarea sin fecha límite ni fecha programada cuenta, para su puntuación, como si venciera este número de días después de su creación: acaba volviendo a subir. 0 lo desactiva. Si se aprende de tu ritmo, este valor se usa mientras el historial no basta.</string>
+    <string name="setting_implicit_deadline_auto">Aprenderlo de mi ritmo</string>
+    <string name="setting_implicit_deadline_auto_help">Toma la edad a la que se hacen 4 de cada 5 de tus tareas sin fecha, nunca por debajo del horizonte de urgencia. Hacen falta 30 tareas personales.</string>
     <string name="setting_default_points">Puntos por defecto</string>
     <string name="setting_default_points_help">Esfuerzo de una tarea sin puntos ni duración (divisor de la puntuación).</string>
     <string name="setting_dip_enabled">Activar el bajón de la tarde</string>
