@@ -229,6 +229,8 @@ fun DayScreen(
     // d'un « Pourquoi ? », sur les données enregistrées (sans les calendriers du téléphone, qu'elle ne lit pas).
     val forecast = remember(stored, today) { lazy { SoloForecast.run(stored, today, services.clock.now(), timeZone, seed = today.toEpochDays().toLong()) } }
     val survival = remember(stored, today) { lazy { Survival.prepare(stored.tasks, stored.workSessions, services.clock.now(), timeZone) } }
+    // « Et si j'accepte ? » : la file rejouée sans puis avec la tâche de la fiche, à la graine du jour.
+    val whatIf: (Task) -> SoloForecast.Impact? = { draft -> SoloForecast.impact(stored, today, services.clock.now(), timeZone, today.toEpochDays().toLong(), draft) }
     // Occurrences passées : ce que lit le restant d'une tâche qui dérape (carte « En ce moment »).
     val history = remember(stored) { DurationEstimator.history(stored, services.clock.now(), timeZone) }
     val notifyState by services.notifier.state.collectAsState()
@@ -630,6 +632,7 @@ fun DayScreen(
             task = draft,
             day = day,
             today = today,
+            whatIf = whatIf,
             taskTypes = snapshot.settings.taskTypeList,
             candidates = view.openTasks,
             blockerIds = emptySet(),
@@ -699,6 +702,7 @@ fun DayScreen(
                 day = day,
                 today = today,
                 rollup = view.rollups[id],
+                whatIf = whatIf.takeIf { task.space == TaskSpace.PERSONAL && task.origin == null && task.status == TaskStatus.TODO },
                 splitHistory = splitHistory.takeIf { task.space == TaskSpace.PERSONAL },
                 learned = view.learned[id],
                 learning = snapshot.settings.learning ?: LearningSettings(),

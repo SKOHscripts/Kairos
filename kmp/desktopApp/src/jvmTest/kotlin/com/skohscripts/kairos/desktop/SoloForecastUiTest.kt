@@ -1,4 +1,5 @@
 package com.skohscripts.kairos.desktop
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -154,6 +155,53 @@ class SoloForecastUiTest {
         waitText("Lingering", substring = true)
         onAllNodesWithContentDescription("Why this position?", substring = true).onFirst().performClick()
         waitText("of your 21 tasks of the same priority still open after 60 days, 0 in 10 were done", substring = true)
+    }
+
+    @Test
+    fun theSheetSaysWhatAcceptingATaskCosts() = runComposeUiTest {
+        val services = services()
+        setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
+        waitText("Open 1", substring = true)
+        onAllNodesWithContentDescription("Edit").onFirst().performClick()
+        waitText("Edit task")
+        // Rien n'est calculé ni dit avant le clic.
+        assertTrue(onAllNodesWithText("Likely finish:", substring = true).fetchSemanticsNodes().isEmpty())
+        onNodeWithText("What if I take it on?").performScrollTo().performClick()
+        waitText("Likely finish:", substring = true)
+        // Trois tâches de 1 h 30 pour vendredi à 2 h par jour : aucune échéance ne tombe.
+        waitText("None of your deadlines suffers from it.")
+    }
+
+    @Test
+    fun aForgottenTimerIsListedTickedAppliedAndUndone() = runComposeUiTest {
+        // Estimée 30 min, chronométrée 6 h d'une traite : un chrono oublié.
+        val start = now - 2.days
+        val end = start + 360.minutes
+        val task = Task(1, "Forgotten", status = TaskStatus.DONE, priority = 1, fibonacciPoints = 3, estimatedMinutes = 30, createdAt = start, updatedAt = end)
+        val repository = runBlocking {
+            KairosRepository.open(KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)), { KairosSnapshot() }, clock).also {
+                it.replaceAll(KairosSnapshot(tasks = listOf(task), workSessions = listOf(WorkSession(1, 1, start, end, start))))
+            }
+        }
+        val files = object : FileService {
+            override suspend fun saveText(suggestedName: String, text: String) = false
+            override suspend fun openText(): String? = null
+        }
+        val services = AppServices(repository, files, { _, _ -> }, clock = clock)
+        fun ended() = repository.snapshot.value.workSessions.single().endedAt
+        setContent { KairosApp(Platform.DESKTOP, Destination.STATS, TeamDestination.BOARD) { services } }
+        waitText("Timers to check (1)…")
+        onNodeWithText("Timers to check (1)…").performScrollTo().performClick()
+        waitText("6 h → 30 min", substring = true)
+        // Rien n'est coché d'office : une longue session peut être vraie.
+        onNodeWithText("Apply (0)").assertIsNotEnabled()
+        onNodeWithText("Forgotten").performClick()
+        waitText("Apply (1)")
+        onNodeWithText("Apply (1)").performClick()
+        waitUntil(timeoutMillis = 15_000) { ended() == start + 30.minutes }
+        waitText("Undo")
+        onNodeWithText("Undo").performClick()
+        waitUntil(timeoutMillis = 15_000) { ended() == end }
     }
 
     @Test

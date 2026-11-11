@@ -271,6 +271,30 @@ object SoloForecast {
         return Result(day, runs, seed, capacity, factors.size, unestimated, outlooks)
     }
 
+    /** Une échéance que la tâche acceptée met en danger : tenue [beforePerTen] fois sur 10 sans elle, [afterPerTen] avec. */
+    data class Hurt(val taskId: Long, val title: String, val beforePerTen: Int, val afterPerTen: Int)
+
+    /** « Et si j'accepte ? » : la fin probable de la tâche ([outlook]) et les échéances des autres qui en souffrent, les plus touchées d'abord. */
+    class Impact(val runs: Int, val outlook: Outlook?, val hurt: List<Hurt>)
+
+    /**
+     * Ce que change [draft] (une tâche nouvelle, ou une tâche existante telle qu'on s'apprête à l'enregistrer) : la file est
+     * rejouée **sans** elle puis **avec** elle, à la même graine, donc avec les mêmes tirages pour les autres tâches et pour les
+     * jours ; tout écart vient d'elle seule. `null` : historique chronométré trop court.
+     */
+    fun impact(snapshot: KairosSnapshot, day: LocalDate, now: Instant, timeZone: TimeZone, seed: Long, draft: Task, runs: Int = DEFAULT_RUNS): Impact? {
+        val without = snapshot.copy(tasks = snapshot.tasks.filter { it.id != draft.id })
+        val after = run(without, day, now, timeZone, seed, runs, extra = listOf(draft.copy(status = TaskStatus.TODO, space = TaskSpace.PERSONAL))) ?: return null
+        val before = run(without, day, now, timeZone, seed, runs)
+        val titles = without.tasks.associate { it.id to it.title }
+        val hurt = after.outlooks.mapNotNull { (id, o) ->
+            val onTime = o.onTimeDraws ?: return@mapNotNull null
+            val was = before?.outlooks?.get(id)?.onTimeDraws ?: return@mapNotNull null
+            Hurt(id, titles[id].orEmpty(), was * 10 / runs, onTime * 10 / runs).takeIf { id != draft.id && it.afterPerTen < it.beforePerTen }
+        }.sortedWith(compareByDescending<Hurt> { it.beforePerTen - it.afterPerTen }.thenBy { it.taskId })
+        return Impact(runs, after.outlooks[draft.id], hurt)
+    }
+
     /**
      * Ce que la semaine commençant le lundi [monday] doit contenir : les minutes restantes des tâches perso à faire dont
      * l'échéance ou la date programmée tombe dans la semaine (durée saisie, apprise fiable, ou par défaut).

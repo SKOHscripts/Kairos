@@ -150,6 +150,28 @@ class SoloForecastTest {
     }
 
     @Test
+    fun acceptingATaskNamesTheDeadlinesItPutsAtRisk() {
+        // 120 min par jour, estimations justes : trois tâches de 60 min à rendre mardi tiennent tout juste (deux lundi, une mardi).
+        val s = snapshot((1L..3L).map { open(it, deadline = day(1)) } + open(4))
+        fun draft(minutes: Int, priority: Int) = Task(-1, "Demande", priority = priority, estimatedMinutes = minutes, deadline = day(0), createdAt = now, updatedAt = now)
+        // Une demande urgente de 3 h pour aujourd'hui passe devant et finit mardi : il ne reste mardi qu'une heure, pour la
+        // première ; les deux autres échéances tombent.
+        val big = assertNotNull(SoloForecast.impact(s, monday, now, zone, seed = 1L, draft(180, priority = 0)))
+        assertEquals(listOf(2L, 3L), big.hurt.map { it.taskId })
+        assertTrue(big.hurt.all { it.beforePerTen == 10 && it.afterPerTen == 0 }, big.hurt.toString())
+        assertEquals("Ouverte 2", big.hurt.first().title)
+        assertEquals(day(1), big.outlook!!.p50, "elle-même ne tient pas son échéance d'aujourd'hui")
+        assertEquals(0, big.outlook.onTimeDraws)
+        // La même, de 15 min et sans urgence particulière, ne coûte rien à personne : la tâche sans échéance n'est jamais citée.
+        val small = SoloForecast.impact(s, monday, now, zone, seed = 1L, draft(15, priority = 2).copy(deadline = null))!!
+        assertEquals(emptyList(), small.hurt)
+        // Une tâche déjà dans la file : « avec » est comparé à « sans elle », pas à elle-même.
+        val existing = SoloForecast.impact(s, monday, now, zone, seed = 1L, s.tasks.first { it.id == 4L }.copy(priority = 0, estimatedMinutes = 180, deadline = day(0)))!!
+        assertEquals(listOf(2L, 3L), existing.hurt.map { it.taskId })
+        assertNull(SoloForecast.impact(snapshot(listOf(open(1)), history().let { it.first to emptyList() }), monday, now, zone, 1L, draft(60, 1)))
+    }
+
+    @Test
     fun tooLittleTrackedTimeGivesNoForecastAtAll() {
         // Trois semaines actives seulement : rien n'est affiché plutôt qu'une date fragile.
         val past = history()

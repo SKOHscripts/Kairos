@@ -382,8 +382,16 @@ son estimation vient des seules tâches d’équipe terminées.
   tâche qui traîne combien de ses semblables ont fini par être faites, et les
   prévisions d’équipe donnent à chaque tâche sa fourchette de fin et sa marge.
   Les fourchettes sont vérifiées sur tes dernières tâches faites et ajustées
-  pour tenir 8 fois sur 10. Rien n’est affiché sans assez d’historique
-  chronométré, et rien n’est jamais écrit dans une tâche.
+  pour tenir 8 fois sur 10. Avant de dire oui à une tâche de plus, « Et si
+  j’accepte ? », dans la fiche, rejoue la file sans elle puis avec elle et
+  nomme les échéances qu’elle mettrait en danger. Rien n’est affiché sans
+  assez d’historique chronométré, et rien n’est jamais écrit dans une tâche.
+- **Chronos à vérifier** : un chrono oublié fausse tout ce qui apprend de ton
+  temps réel. Dans les Stats, « Chronos à vérifier… » liste les sessions bien
+  plus longues que ce que leur tâche prend d’habitude (plus de trois fois, et
+  au moins une heure de plus) et propose de les ramener à la durée
+  habituelle ; rien n’est coché d’office, et « Annuler » rend les durées
+  d’avant.
 - **Jours ouvrés et fériés** : calendrier français intégré, dates
   supplémentaires dans les Réglages.
 
@@ -702,7 +710,8 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Cloches du pomodoro | 4.2.0 | Toutes |
 | Suivre | Durées apprises | 3.4.0 | Toutes |
 | Suivre | Estimation par machine learning | 4.0.0 | Toutes |
-| Suivre | Fin probable d’une tâche | 4.2.0 | Toutes |
+| Suivre | Fin probable d’une tâche | 4.1.0 | Toutes |
+| Suivre | Chronos à vérifier | 4.1.0 | Toutes |
 | Suivre | Quand tu travailles chaque type | 3.5.0 | Toutes |
 | Suivre | Tes heures les plus efficaces | 3.9.0 | Toutes |
 | Suivre | Ta journée sur l’écran d’accueil | 3.12.0 | Android |

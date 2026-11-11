@@ -1952,4 +1952,16 @@
     <string name="why_survival_all">It lingers: of your %1$d tasks still open after %2$d days, %3$d in 10 were done within the next 3 months.</string>
     <string name="card_task_forecast_title">Likely finish date</string>
     <string name="card_task_forecast_body">“When will it be done?” Kairos replays your task queue with the time you really track, idle days included, and answers with a range in “Why this position?”: never a single date. The Week view says what a week can really hold, the timer what comparable tasks took when yours overruns, and team forecasts give each task its finish. Ranges are checked against your last tasks.</string>
+    <string name="stats_suspect_open">Timers to check (%1$d)…</string>
+    <string name="stats_suspect_title">Timers to check</string>
+    <string name="stats_suspect_intro">These sessions ran far longer than their task usually takes: often a forgotten timer. Tick the ones to bring back to the usual duration. Learned durations, statistics and forecasts will follow.</string>
+    <string name="stats_suspect_row">%1$s: %2$s → %3$s</string>
+    <string name="stats_suspect_done">Timers fixed: %1$d</string>
+    <string name="whatif_open">What if I take it on?</string>
+    <string name="whatif_none">None of your deadlines suffers from it.</string>
+    <string name="whatif_hurt">“%1$s”: deadline met %2$d times in 10 instead of %3$d.</string>
+    <string name="whatif_more">… and %1$d more deadline(s) affected.</string>
+    <string name="whatif_unavailable">Not enough tracked time yet to tell: it takes some in 4 of your last 8 weeks.</string>
+    <string name="card_suspect_timers_title">Timers to check</string>
+    <string name="card_suspect_timers_body">A forgotten timer skews everything that learns from your real time. In Stats, “Timers to check…” lists the sessions far longer than their task usually takes and offers to bring them back to the usual duration. Nothing is fixed without your say, and “Undo” restores the previous durations.</string>
 </resources>

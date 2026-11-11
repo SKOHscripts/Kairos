@@ -1954,4 +1954,16 @@
     <string name="why_survival_all">Elle traîne : parmi tes %1$d tâches encore ouvertes après %2$d jours, %3$d sur 10 ont été faites dans les 3 mois suivants.</string>
     <string name="card_task_forecast_title">Fin probable d’une tâche</string>
     <string name="card_task_forecast_body">« Quand sera-t-elle finie ? » Kairos rejoue ta file de tâches avec le temps que tu chronomètres vraiment, jours sans travail compris, et répond par une fourchette dans « Pourquoi à cette place ? » : jamais une date seule. La vue Semaine dit ce qu’une semaine peut réellement contenir, le chrono ce qu’ont pris les tâches comparables quand la tienne dérape, et les prévisions d’équipe donnent la fin de chaque tâche. Les fourchettes sont vérifiées sur tes dernières tâches.</string>
+    <string name="stats_suspect_open">Chronos à vérifier (%1$d)…</string>
+    <string name="stats_suspect_title">Chronos à vérifier</string>
+    <string name="stats_suspect_intro">Ces sessions ont duré bien plus que ce que leur tâche prend d’habitude : souvent un chrono oublié. Coche celles à ramener à la durée habituelle. Les durées apprises, les statistiques et les prévisions en tiendront compte.</string>
+    <string name="stats_suspect_row">%1$s : %2$s → %3$s</string>
+    <string name="stats_suspect_done">Chronos corrigés : %1$d</string>
+    <string name="whatif_open">Et si j’accepte ?</string>
+    <string name="whatif_none">Aucune de tes échéances n’en souffre.</string>
+    <string name="whatif_hurt">« %1$s » : échéance tenue %2$d fois sur 10 au lieu de %3$d.</string>
+    <string name="whatif_more">… et %1$d autre(s) échéance(s) touchée(s).</string>
+    <string name="whatif_unavailable">Pas encore assez de temps chronométré pour le dire : il en faut sur 4 de tes 8 dernières semaines.</string>
+    <string name="card_suspect_timers_title">Chronos à vérifier</string>
+    <string name="card_suspect_timers_body">Un chrono oublié fausse tout ce qui apprend de ton temps réel. Dans les Stats, « Chronos à vérifier… » liste les sessions bien plus longues que ce que leur tâche prend d’habitude et propose de les ramener à la durée habituelle. Rien n’est corrigé sans ton accord, et « Annuler » rend les durées d’avant.</string>
 </resources>

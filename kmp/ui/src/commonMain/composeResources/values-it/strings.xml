@@ -1951,4 +1951,16 @@
     <string name="why_survival_all">Si trascina: delle tue %1$d attività ancora aperte dopo %2$d giorni, %3$d su 10 sono state fatte nei 3 mesi successivi.</string>
     <string name="card_task_forecast_title">Fine probabile di un’attività</string>
     <string name="card_task_forecast_body">«Quando sarà finita?» Kairos ripercorre la tua coda di attività con il tempo che cronometri davvero, giorni senza lavoro compresi, e risponde con un intervallo in «Perché in questa posizione?»: mai una data sola. La vista Settimana dice che cosa una settimana può davvero contenere, il cronometro quanto hanno richiesto le attività comparabili quando la tua sfora, e le previsioni di squadra danno la fine di ogni attività. Gli intervalli sono verificati sulle tue ultime attività.</string>
+    <string name="stats_suspect_open">Cronometri da verificare (%1$d)…</string>
+    <string name="stats_suspect_title">Cronometri da verificare</string>
+    <string name="stats_suspect_intro">Queste sessioni sono durate molto più di quanto la loro attività richiede di solito: spesso un cronometro dimenticato. Spunta quelle da riportare alla durata abituale. Durate apprese, statistiche e previsioni ne terranno conto.</string>
+    <string name="stats_suspect_row">%1$s: %2$s → %3$s</string>
+    <string name="stats_suspect_done">Cronometri corretti: %1$d</string>
+    <string name="whatif_open">E se accetto?</string>
+    <string name="whatif_none">Nessuna delle tue scadenze ne risente.</string>
+    <string name="whatif_hurt">«%1$s»: scadenza rispettata %2$d volte su 10 invece di %3$d.</string>
+    <string name="whatif_more">… e altre %1$d scadenze coinvolte.</string>
+    <string name="whatif_unavailable">Non c’è ancora abbastanza tempo cronometrato per dirlo: ne serve in 4 delle tue ultime 8 settimane.</string>
+    <string name="card_suspect_timers_title">Cronometri da verificare</string>
+    <string name="card_suspect_timers_body">Un cronometro dimenticato falsa tutto ciò che impara dal tuo tempo reale. Nelle Statistiche, «Cronometri da verificare…» elenca le sessioni molto più lunghe di quanto la loro attività richiede di solito e propone di riportarle alla durata abituale. Nulla viene corretto senza il tuo consenso, e «Annulla» ripristina le durate precedenti.</string>
 </resources>

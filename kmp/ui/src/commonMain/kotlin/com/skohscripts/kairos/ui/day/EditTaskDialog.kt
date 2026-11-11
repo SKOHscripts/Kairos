@@ -1,5 +1,16 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.core.forecast.SoloForecast
+import com.skohscripts.kairos.ui.generated.resources.whatif_open
+import com.skohscripts.kairos.ui.generated.resources.whatif_none
+import com.skohscripts.kairos.ui.generated.resources.whatif_hurt
+import com.skohscripts.kairos.ui.generated.resources.whatif_more
+import com.skohscripts.kairos.ui.generated.resources.whatif_unavailable
+import com.skohscripts.kairos.ui.generated.resources.why_finish_out
+import com.skohscripts.kairos.ui.generated.resources.why_finish_single
+import com.skohscripts.kairos.ui.generated.resources.why_finish_range
+import com.skohscripts.kairos.ui.generated.resources.why_finish_deadline
+import com.skohscripts.kairos.ui.app.uiLanguage
 import com.skohscripts.kairos.ui.generated.resources.review_apply
 import com.skohscripts.kairos.ui.generated.resources.sheet_model_differs
 import com.skohscripts.kairos.core.engine.model.EstimateChanges
@@ -211,6 +222,11 @@ internal fun EditTaskDialog(
     proposalTargets: List<TeamOrigin> = emptyList(),
     /** Dernier choix de « Enchaîner » des nouvelles sous-tâches (docs/spec/sous-taches.md § File, `Settings.subtaskChain`). */
     chainSubtasks: Boolean = false,
+    /**
+     * « Et si j'accepte ? » (docs/spec/previsions-taches.md § Étape F) : ce que la tâche, telle que la fiche la décrit, change
+     * aux échéances des autres ; `null` masque le bouton (tâche d'équipe ou reçue).
+     */
+    whatIf: ((Task) -> SoloForecast.Impact?)? = null,
 ) {
     var title by remember { mutableStateOf(task.title) }
     var description by remember { mutableStateOf(task.description) }
@@ -405,6 +421,27 @@ internal fun EditTaskDialog(
                                 Icon(KairosIcons.Model, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Text(stringResource(Res.string.review_apply, duration(e.minutes)), modifier = Modifier.padding(start = 6.dp))
                             }
+                        }
+                        // « Et si j'accepte ? » : calculé sur action, avec les champs tels qu'ils sont saisis ; rien n'est enregistré.
+                        if (whatIf != null) {
+                            var asked by remember { mutableStateOf(false) }
+                            var impact by remember { mutableStateOf<SoloForecast.Impact?>(null) }
+                            KairosTextButton(
+                                onClick = {
+                                    impact = whatIf(
+                                        task.copy(
+                                            title = title, priority = priority, fibonacciPoints = points, taskType = type,
+                                            estimatedMinutes = minutes.toIntOrNull(), deadline = parsedDeadline, scheduledDate = parsedScheduled,
+                                        ),
+                                    )
+                                    asked = true
+                                },
+                                contentPadding = KairosButtonIconPadding,
+                            ) {
+                                Icon(KairosIcons.Event, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Text(stringResource(Res.string.whatif_open), modifier = Modifier.padding(start = 6.dp))
+                            }
+                            if (asked) WhatIfLines(impact)
                         }
                         // Durée apprise : une puce qui ne remplit le champ que sur action (on ne remplit que ce qui est vide) ; peu
                         // fiable, elle est dite mais pas proposée.
@@ -717,5 +754,33 @@ private fun ProposalSection(targets: List<TeamOrigin>, selected: String?, onChan
             }
         }
         Text(stringResource(Res.string.proposal_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** La réponse de « Et si j'accepte ? » : la fin probable de la tâche, puis les échéances des autres qui en souffrent (trois au plus, le reste compté). */
+@Composable
+private fun WhatIfLines(impact: SoloForecast.Impact?) {
+    val language = uiLanguage()
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    if (impact == null) {
+        Text(stringResource(Res.string.whatif_unavailable), style = MaterialTheme.typography.bodySmall, color = muted)
+        return
+    }
+    impact.outlook?.let { o ->
+        val p50 = o.p50
+        val p85 = o.p85
+        val finish = when {
+            p50 == null || p85 == null -> stringResource(Res.string.why_finish_out)
+            p50 == p85 -> stringResource(Res.string.why_finish_single, Dates.dayShort(p85, language))
+            else -> stringResource(Res.string.why_finish_range, Dates.dayShort(p50, language), Dates.dayShort(p85, language))
+        }
+        val deadline = o.onTimeDraws?.let { " " + stringResource(Res.string.why_finish_deadline, it * 10 / impact.runs) }.orEmpty()
+        Text(finish + deadline, style = MaterialTheme.typography.bodySmall)
+    }
+    if (impact.hurt.isEmpty()) {
+        Text(stringResource(Res.string.whatif_none), style = MaterialTheme.typography.bodySmall, color = muted)
+    } else {
+        impact.hurt.take(3).forEach { Text(stringResource(Res.string.whatif_hurt, it.title, it.afterPerTen, it.beforePerTen), style = MaterialTheme.typography.bodySmall) }
+        if (impact.hurt.size > 3) Text(stringResource(Res.string.whatif_more, impact.hurt.size - 3), style = MaterialTheme.typography.bodySmall, color = muted)
     }
 }

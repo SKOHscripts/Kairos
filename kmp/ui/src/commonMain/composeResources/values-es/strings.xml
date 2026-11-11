@@ -1951,4 +1951,16 @@
     <string name="why_survival_all">Se alarga: de tus %1$d tareas aún abiertas tras %2$d días, %3$d de cada 10 se hicieron en los 3 meses siguientes.</string>
     <string name="card_task_forecast_title">Fin probable de una tarea</string>
     <string name="card_task_forecast_body">«¿Cuándo estará hecha?» Kairos repite tu cola de tareas con el tiempo que cronometras de verdad, días sin trabajo incluidos, y responde con un intervalo en «¿Por qué en este lugar?»: nunca una fecha sola. La vista Semana dice lo que una semana puede contener de verdad, el cronómetro lo que llevaron las tareas comparables cuando la tuya se alarga, y las previsiones de equipo dan el fin de cada tarea. Los intervalos se comprueban con tus últimas tareas.</string>
+    <string name="stats_suspect_open">Cronómetros por revisar (%1$d)…</string>
+    <string name="stats_suspect_title">Cronómetros por revisar</string>
+    <string name="stats_suspect_intro">Estas sesiones duraron mucho más de lo que su tarea suele llevar: a menudo un cronómetro olvidado. Marca las que quieras devolver a la duración habitual. Las duraciones aprendidas, las estadísticas y las previsiones lo tendrán en cuenta.</string>
+    <string name="stats_suspect_row">%1$s: %2$s → %3$s</string>
+    <string name="stats_suspect_done">Cronómetros corregidos: %1$d</string>
+    <string name="whatif_open">¿Y si acepto?</string>
+    <string name="whatif_none">Ninguno de tus plazos se resiente.</string>
+    <string name="whatif_hurt">«%1$s»: plazo cumplido %2$d de cada 10 veces en lugar de %3$d.</string>
+    <string name="whatif_more">… y %1$d plazo(s) más afectado(s).</string>
+    <string name="whatif_unavailable">Aún no hay suficiente tiempo cronometrado para decirlo: hace falta en 4 de tus últimas 8 semanas.</string>
+    <string name="card_suspect_timers_title">Cronómetros por revisar</string>
+    <string name="card_suspect_timers_body">Un cronómetro olvidado falsea todo lo que aprende de tu tiempo real. En Estadísticas, «Cronómetros por revisar…» lista las sesiones mucho más largas de lo que su tarea suele llevar y propone devolverlas a la duración habitual. Nada se corrige sin tu acuerdo, y «Deshacer» devuelve las duraciones anteriores.</string>
 </resources>

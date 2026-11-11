@@ -337,6 +337,22 @@ class KairosRepository(
     }
 
     /**
+     * « Chronos à vérifier… » (docs/spec/previsions-taches.md § Étape G) : pose en une transaction la fin de chaque session de
+     * [ends] (identifiant → fin), bornée entre son début et maintenant. Seules des sessions **terminées** de tâches de
+     * l'espace Perso, non reçues d'un manager, sont touchées ; un autre identifiant est ignoré. Sert aussi à l'annulation
+     * (les fins d'avant). Rend le nombre de sessions écrites.
+     */
+    suspend fun setSessionEnds(ends: Map<Long, Instant>): Int {
+        val mine = state.value.tasks.filter { it.space == TaskSpace.PERSONAL && it.origin == null }.mapTo(HashSet()) { it.id }
+        val targets = state.value.workSessions.filter { it.id in ends && it.endedAt != null && it.taskId in mine }
+        if (targets.isEmpty()) return 0
+        write {
+            for (s in targets) queries.setSessionEnd(minOf(maxOf(ends.getValue(s.id), s.startedAt), clock.now()).store(), s.id)
+        }
+        return targets.size
+    }
+
+    /**
      * « Corriger les estimations… » (docs/spec/statistiques.md, issue #101) : pose en une transaction l'estimation de chaque
      * tâche de [values] (identifiant → minutes, `null` = sans estimation ; ≤ 0 → sans). Seules des tâches **faites** de
      * l'espace Perso, non reçues d'un manager, sont touchées ; un autre identifiant est ignoré. `updatedAt` n'est **pas**

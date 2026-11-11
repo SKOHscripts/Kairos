@@ -123,6 +123,9 @@ saisi, celui de la calibration). Toutes les tâches terminées, quelles que soie
 - Appliquer écrit les estimations cochées, sans changer la date de fin des tâches ; le message « Estimations
   corrigées : N » propose « Annuler », qui rend à chacune son estimation d'avant (« sans » compris).
 
+**Chronos à vérifier** (4.1.0, issue #232) : sous la calibration aussi, « Chronos à vérifier (n)… » propose de ramener
+à leur durée habituelle les sessions manifestement oubliées (`previsions-taches.md` § Étape G).
+
 ### Critères de succès
 
 - Sorties identiques aux fichiers d'or (tableau de bord, repères du guide,

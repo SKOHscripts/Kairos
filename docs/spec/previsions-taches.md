@@ -4,7 +4,7 @@ _Rôle : répondre « quand sera-t-elle finie ? » tâche par tâche, en solo co
 une durée sans fourchette ; et dire ce qui reste quand une tâche dérape. Fichiers couverts : voir chaque étape (§ 2).
 Skill associée : `.claude/skills/kairos-monte-carlo/`._
 
-État : **issue #232**, spécifiée et **implémentée le 2026-11-11**, par étapes A à E (une par commit).
+État : **issue #232**, spécifiée et **implémentée le 2026-11-11**, par étapes A à G (une par commit), livrée en 4.1.0.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -49,7 +49,16 @@ Kairos sait estimer une **durée** (`estimateur-modele.md`) et, pour une équipe
 7. **Ce qui finit par se faire.** Pour une tâche qui traîne (pastille « traîne depuis »), « Pourquoi à cette place ? »
    ajoute : « Elle traîne : parmi tes 21 tâches de même priorité encore ouvertes après 60 jours, 2 sur 10 ont été faites
    dans les 3 mois suivants. » Moins de 10 tâches encore ouvertes à cet âge : rien n'est dit.
-8. **Honnêteté** (règle commune) : chaque sortie porte son effectif et sa source en une phrase ; sous son minimum de
+8. **Et si j'accepte ?** Dans la fiche d'une tâche perso (nouvelle ou à faire), le bouton « Et si j'accepte ? » rejoue
+   la file sans elle puis avec elle, telle que la fiche la décrit à cet instant (priorité, durée, échéance, date
+   programmée) : sa fin probable, puis les échéances des autres qui en souffrent (« « Rapport » : échéance tenue 5 fois
+   sur 10 au lieu de 8. », trois au plus, « … et 2 autre(s) échéance(s) touchée(s). ») ou « Aucune de tes échéances
+   n'en souffre. » Rien n'est enregistré ; sans assez de temps chronométré, la fiche le dit.
+9. **Chronos à vérifier.** Dans les Stats, sous la calibration, « Chronos à vérifier (n)… » liste les sessions terminées
+   bien plus longues que ce que leur tâche prend d'habitude (« mar. 10/11 : 6 h → 30 min »), **décochées** ; « Appliquer
+   (N) » ramène les sessions cochées à la durée habituelle, « Annuler » rend les fins d'avant. Le bouton n'apparaît que
+   s'il y en a.
+10. **Honnêteté** (règle commune) : chaque sortie porte son effectif et sa source en une phrase ; sous son minimum de
    données elle **n'est pas affichée** (ou est marquée « peu fiable » là où une valeur existait déjà). Rien n'est jamais
    écrit dans une tâche ; aucune de ces sorties ne change le plan de la journée.
 
@@ -152,8 +161,7 @@ Fichiers : `core/forecast/SoloForecast.kt` (pur), `ui/day/DayScreen.kt`, `TaskRo
   erreur ; jour : numéro absolu du jour, domaine capacité) : tirages **communs** entre deux calculs de même graine.
 - **Résultat** : `Result(day, runs, seed, capacity, factorSamples, unestimated, outlooks)` ; `Outlook(p50, p85,
   todayDraws, onTimeDraws)` par tâche (rang le plus proche ; date nulle = hors horizon ; `onTimeDraws` nul sans
-  échéance). `extra` ajoute des tâches hypothétiques (identifiants négatifs) à la file : la brique de « et si
-  j'accepte ? », sans interface à ce jour.
+  échéance). `extra` ajoute des tâches hypothétiques à la file (étape F).
 - **Semaine** : `Capacity.weekMinutes(15)` et `(85)` (rang le plus proche sur huit semaines : la 2e et la 7e) ;
   `SoloForecast.committedMinutes(snapshot, lundi, …)` : minutes restantes des tâches perso à faire, non mères, dont la
   date programmée (à défaut l'échéance) tombe dans la semaine, comme la grille de la vue Semaine.
@@ -200,11 +208,39 @@ Tests : `SurvivalTest` (`core`), `SoloForecastUiTest.aLingeringTaskSaysHowManyLi
 - **Interface** : `DayScreen` garde un `Lazy` du modèle ; `ScoreBadge` ne le reçoit que pour une tâche qui traîne
   (`DayView.staleDays`) : `why_survival_same`, `why_survival_all`.
 
+### Étape F : et si j'accepte ? (livrée le 2026-11-11)
+
+Fichiers : `core/forecast/SoloForecast.kt` (`impact`, `Impact`, `Hurt`), `ui/day/EditTaskDialog.kt` (`whatIf`,
+`WhatIfLines`), `DayScreen.kt`. Tests : `SoloForecastTest.acceptingATaskNamesTheDeadlinesItPutsAtRisk`,
+`SoloForecastUiTest.theSheetSaysWhatAcceptingATaskCosts`.
+
+- `SoloForecast.impact(snapshot, jour, …, graine, brouillon)` : `run` sur l'instantané **sans** la tâche du brouillon,
+  puis le même avec le brouillon en `extra`, à la même graine (tirages communs : tout écart vient du brouillon). `Hurt`
+  pour chaque autre tâche à échéance dont le nombre de fois sur 10 baisse, les plus touchées d'abord ; `Impact(runs,
+  outlook, hurt)` ; `null` sans historique suffisant.
+- La fiche passe le brouillon construit de ses champs courants ; le calcul ne se fait qu'au clic. Proposé pour une tâche
+  perso nouvelle ou à faire, non reçue ; jamais pour une tâche d'équipe.
+
+### Étape G : chronos à vérifier (livrée le 2026-11-11)
+
+Fichiers : `core/stats/SuspectSessions.kt` (pur), `data/.../Kairos.sq` (`setSessionEnd`), `KairosRepository.setSessionEnds`,
+`ui/stats/SuspectSessionsDialog.kt`, `StatsScreen.kt`. Tests : `SuspectSessionsTest` (`core`),
+`KairosRepositoryTest.trimmingSessionsWritesClosedPersonalSessionsOnlyWithinTheirBoundsAndCanBeUndone` (`data`),
+`SoloForecastUiTest.aForgottenTimerIsListedTickedAppliedAndUndone`.
+
+- `SuspectSessions.find(snapshot, maintenant, fuseau)` : sessions **terminées** de tâches perso non reçues dont la durée
+  dépasse `FACTOR` = 3 × la durée habituelle de la tâche **et** de `MIN_EXCESS_MINUTES` = 60 min au moins. Durée
+  habituelle : l'estimation saisie, sinon le haut de la fourchette apprise fiable (chaîne des durées apprises, qui
+  n'inclut jamais le temps de la tâche elle-même) ; sans l'une ni l'autre, la session n'est pas proposée. Les
+  `MAX_SHOWN` = 50 plus récentes ; `Suspect(session, task, minutes, usualMinutes, proposedEnd = début + durée habituelle)`.
+- `KairosRepository.setSessionEnds(id → fin)` : une transaction, sessions terminées de tâches perso non reçues seulement,
+  fin bornée entre le début et maintenant ; sert aussi à l'annulation. Pas de migration (une requête de plus).
+
 ### Catalogue et README
 
-Une carte `task_forecast` (« Fin probable d'une tâche », chapitre Suivre, `since` = 4.2.0, six langues), sa puce et sa
-ligne de tableau dans les deux README (`FeatureCatalogTest`). L'issue vise la 4.3.0, mais `noCardIsNewerThanTheApp`
-refuse plus d'une version mineure d'avance sur l'application (4.1.0) : à passer à 4.3.0 si le chantier sort là.
+Deux cartes, chapitre Suivre, `since` = 4.1.0 (version en cours, choix du propriétaire du 2026-11-11), six langues :
+`task_forecast` (« Fin probable d'une tâche ») et `suspect_timers` (« Chronos à vérifier »), chacune avec sa puce et sa
+ligne de tableau dans les deux README (`FeatureCatalogTest`).
 
 ### Décisions et pièges tracés
 
@@ -241,8 +277,6 @@ refuse plus d'une version mineure d'avance sur l'application (4.1.0) : à passer
 - **Raccourcis connus** : les occurrences futures des tâches récurrentes et les tâches d'équipe assignées à « moi »
   ne sont pas dans la file (prévision optimiste pour qui en a beaucoup) ; l'ordre de la file est celui d'aujourd'hui
   (l'urgence qui monte à l'approche d'une échéance n'est pas rejouée).
-- **Dans « Pourquoi ? » seulement, pas dans la fiche** : la fiche d'édition n'a pas la file sous la main ; à rouvrir
-  avec « et si j'accepte ? ».
 - **Restant = durée totale des comparables plus longues, pas « estimé − passé »** (étape D) : c'est la médiane d'une
   durée sachant qu'elle dépasse le temps passé, lue dans l'historique, sans loi. Écarté : un rapport global « quand tu
   dépasses, tu finis à × 1,4 » en repli (il demanderait l'estimation des tâches faites, que les échantillons ne
@@ -253,4 +287,13 @@ refuse plus d'une version mineure d'avance sur l'application (4.1.0) : à passer
   part « faite » est surestimée. La phrase dit « parmi tes tâches », pas « tes chances ».
 - **Fin d'une tâche faite = sa dernière session** quand elle existe : `updatedAt` bouge à chaque retouche
   (`SurvivalTest.theLastSessionDatesTheEndRatherThanALaterEdit`). Les statistiques gardent leur règle (`statistiques.md`).
+- **Chronos décochés par défaut** (étape G), à l'inverse de « Corriger les estimations » : une longue session peut être
+  vraie, et raccourcir du temps réel est plus lourd que changer une estimation. Le modèle propose, l'utilisateur décide.
+- **Ramener à la durée habituelle, pas supprimer** : la tâche a bien été travaillée ; la durée habituelle est la
+  meilleure valeur sans autre information, et « Annuler » existe.
+- **Piège : synchronisation.** La fusion garde la **première** fin d'une session arrêtée des deux côtés
+  (`synchronisation.md`) : un raccourcissement se propage, mais son annulation ne revient pas sur un appareil qui a déjà
+  fusionné la fin courte.
+- **« Et si j'accepte ? » dans la fiche, au clic** : deux simulations ne se lancent pas à chaque frappe ; la réponse
+  porte sur les champs tels qu'ils sont à l'instant du clic.
 - **P50 et P85 seulement, en « fois sur »** : pas de P95 ni de pourcentage à l'unité en solo.

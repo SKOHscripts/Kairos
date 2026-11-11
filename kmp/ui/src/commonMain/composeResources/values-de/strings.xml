@@ -1951,4 +1951,16 @@
     <string name="why_survival_all">Sie zieht sich: Von deinen %1$d Aufgaben, die nach %2$d Tagen noch offen waren, wurden %3$d von 10 in den folgenden 3 Monaten erledigt.</string>
     <string name="card_task_forecast_title">Wahrscheinliches Ende einer Aufgabe</string>
     <string name="card_task_forecast_body">„Wann ist sie fertig?“ Kairos spielt deine Aufgabenliste mit der Zeit durch, die du wirklich erfasst, Tage ohne Arbeit eingeschlossen, und antwortet in „Warum an dieser Stelle?“ mit einer Spanne: nie ein einzelnes Datum. Die Wochenansicht sagt, was eine Woche wirklich fasst, der Timer, was vergleichbare Aufgaben brauchten, wenn deine überzieht, und die Teamprognosen nennen das Ende jeder Aufgabe. Die Spannen werden an deinen letzten Aufgaben geprüft.</string>
+    <string name="stats_suspect_open">Timer prüfen (%1$d)…</string>
+    <string name="stats_suspect_title">Timer prüfen</string>
+    <string name="stats_suspect_intro">Diese Sitzungen dauerten viel länger, als ihre Aufgabe sonst braucht: oft ein vergessener Timer. Hake die an, die auf die übliche Dauer gekürzt werden sollen. Gelernte Dauern, Statistiken und Prognosen richten sich danach.</string>
+    <string name="stats_suspect_row">%1$s: %2$s → %3$s</string>
+    <string name="stats_suspect_done">Timer korrigiert: %1$d</string>
+    <string name="whatif_open">Und wenn ich zusage?</string>
+    <string name="whatif_none">Keine deiner Fristen leidet darunter.</string>
+    <string name="whatif_hurt">„%1$s“: Frist in %2$d von 10 Fällen gehalten statt in %3$d.</string>
+    <string name="whatif_more">… und %1$d weitere betroffene Frist(en).</string>
+    <string name="whatif_unavailable">Noch nicht genug erfasste Zeit, um das zu sagen: nötig ist welche in 4 deiner letzten 8 Wochen.</string>
+    <string name="card_suspect_timers_title">Timer prüfen</string>
+    <string name="card_suspect_timers_body">Ein vergessener Timer verfälscht alles, was aus deiner echten Zeit lernt. In den Statistiken listet „Timer prüfen…“ die Sitzungen auf, die viel länger dauerten, als ihre Aufgabe sonst braucht, und bietet an, sie auf die übliche Dauer zu kürzen. Nichts wird ohne deine Zustimmung korrigiert, und „Rückgängig“ stellt die vorherigen Dauern wieder her.</string>
 </resources>
