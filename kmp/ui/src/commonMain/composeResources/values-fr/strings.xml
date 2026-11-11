@@ -1881,7 +1881,7 @@
     <string name="card_model_body">Un modèle de machine learning, entraîné sur l’appareil, donne à une tâche au titre nouveau une durée d’après tes tâches faites qui lui ressemblent, avec une fourchette et la liste de ces tâches. Il ne s’applique qu’une fois qu’il bat la durée par défaut sur ton historique, apprend ton rythme selon le jour et l’heure, et te prévient quand les estimations changent. Rien ne quitte l’appareil. Une IA ? Non, du machine learning : robuste et local, il s’entraîne à chaque tâche que tu termines, léger et très rapide.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, estimé par machine learning (%2$s à %3$s)</string>
-    <string name="forecast_model_estimated">Dont %1$d tâche(s) estimée(s) par machine learning (fourchette apprise)</string>
+    <string name="forecast_model_estimated">Dont %1$d tâche(s) à fourchette apprise (série, titre ou machine learning)</string>
     <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
     <string name="why_model_rhythm">Ton rythme : %1$s.</string>
     <string name="model_rhythm_weekday">%1$s % le %2$s</string>
@@ -1934,4 +1934,36 @@
     <string name="gtd_open_hint">Les cinq étapes et où elles sont dans Kairos</string>
     <string name="card_gtd_title">La méthode GTD dans Kairos</string>
     <string name="card_gtd_body">Kairos suit GTD : capturer, clarifier, organiser, faire le point, faire. Chaque écran dit de quelle étape il s’agit, et « La méthode GTD » sur Notes les explique, avec ce que Kairos fait autrement.</string>
+    <string name="learning_model_coverage">Fourchette vérifiée sur tes %1$d dernières tâches : %2$d dedans avant ajustement ; ajustée pour en contenir 8 sur 10.</string>
+    <string name="learning_model_coverage_pending">Fourchette pas encore vérifiée : %1$d tâches comparables sur %2$d nécessaires.</string>
+    <string name="forecast_task_finish_title">Fin par tâche</string>
+    <string name="forecast_task_finish_hint">Fin probable de chaque tâche, les plus tardives d’abord : une fois sur deux avant la première date, 85 fois sur 100 avant la seconde.</string>
+    <string name="forecast_task_finish_range">Entre le %1$s et le %2$s</string>
+    <string name="forecast_task_finish_single">Le %1$s</string>
+    <string name="forecast_task_finish_out">Hors horizon</string>
+    <string name="forecast_task_finish_margin">marge : %1$d j</string>
+    <string name="forecast_task_finish_late">dépasse de %1$d j</string>
+    <string name="why_finish_range">Fin probable : entre %1$s et %2$s, si rien de plus urgent n’arrive.</string>
+    <string name="why_finish_single">Fin probable : %1$s au plus tard, 85 fois sur 100, si rien de plus urgent n’arrive.</string>
+    <string name="why_finish_out">Fin probable : pas avant un an, au rythme de tes dernières semaines.</string>
+    <string name="why_finish_deadline">Échéance tenue %1$d fois sur 10.</string>
+    <string name="why_finish_source">D’après tes 8 dernières semaines : %1$s chronométrées par jour travaillé (%2$d tirages).</string>
+    <string name="week_realistic">Réaliste : %1$s à %2$s (tes 8 dernières semaines) · %3$s à échéance ou programmées cette semaine</string>
+    <string name="now_running_remaining">Tes %5$d tâches comparables qui ont duré plus de %1$s ont pris %2$s au total (entre %3$s et %4$s).</string>
+    <string name="why_survival_same">Elle traîne : parmi tes %1$d tâches de même priorité encore ouvertes après %2$d jours, %3$d sur 10 ont été faites dans les 3 mois suivants.</string>
+    <string name="why_survival_all">Elle traîne : parmi tes %1$d tâches encore ouvertes après %2$d jours, %3$d sur 10 ont été faites dans les 3 mois suivants.</string>
+    <string name="card_task_forecast_title">Fin probable d’une tâche</string>
+    <string name="card_task_forecast_body">« Quand sera-t-elle finie ? » Kairos rejoue ta file de tâches avec le temps que tu chronomètres vraiment, jours sans travail compris, et répond par une fourchette dans « Pourquoi à cette place ? » : jamais une date seule. La vue Semaine dit ce qu’une semaine peut réellement contenir, le chrono ce qu’ont pris les tâches comparables quand la tienne dérape, et les prévisions d’équipe donnent la fin de chaque tâche. Les fourchettes sont vérifiées sur tes dernières tâches.</string>
+    <string name="stats_suspect_open">Chronos à vérifier (%1$d)…</string>
+    <string name="stats_suspect_title">Chronos à vérifier</string>
+    <string name="stats_suspect_intro">Ces sessions ont duré bien plus que ce que leur tâche prend d’habitude : souvent un chrono oublié. Coche celles à ramener à la durée habituelle. Les durées apprises, les statistiques et les prévisions en tiendront compte.</string>
+    <string name="stats_suspect_row">%1$s : %2$s → %3$s</string>
+    <string name="stats_suspect_done">Chronos corrigés : %1$d</string>
+    <string name="whatif_open">Et si j’accepte ?</string>
+    <string name="whatif_none">Aucune de tes échéances n’en souffre.</string>
+    <string name="whatif_hurt">« %1$s » : échéance tenue %2$d fois sur 10 au lieu de %3$d.</string>
+    <string name="whatif_more">… et %1$d autre(s) échéance(s) touchée(s).</string>
+    <string name="whatif_unavailable">Pas encore assez de temps chronométré pour le dire : il en faut sur 4 de tes 8 dernières semaines.</string>
+    <string name="card_suspect_timers_title">Chronos à vérifier</string>
+    <string name="card_suspect_timers_body">Un chrono oublié fausse tout ce qui apprend de ton temps réel. Dans les Stats, « Chronos à vérifier… » liste les sessions bien plus longues que ce que leur tâche prend d’habitude et propose de les ramener à la durée habituelle. Rien n’est corrigé sans ton accord, et « Annuler » rend les durées d’avant.</string>
 </resources>

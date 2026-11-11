@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.core.engine.model
 
 import com.skohscripts.kairos.core.engine.DurationEstimator
+import com.skohscripts.kairos.core.engine.HistoryEstimates
 import com.skohscripts.kairos.core.engine.EstimatorChain
 import com.skohscripts.kairos.core.engine.SeriesEstimator
 import com.skohscripts.kairos.core.engine.TitleEstimator
@@ -30,6 +31,9 @@ class Backtest(val history: List<DurationEstimator.Sample>, val settings: Settin
         val chain: Int,
         val low: Int?,
         val high: Int?,
+        /** L'intervalle d'origine, avant l'étirement de la garde. */
+        val rawLow: Int? = null,
+        val rawHigh: Int? = null,
     )
 
     private val t0 = Instant.parse("2026-09-28T07:00:00Z")
@@ -48,12 +52,14 @@ class Backtest(val history: List<DurationEstimator.Sample>, val settings: Settin
     fun gate(i: Int): ModelGate.Result {
         val model = ArrayList<Double>()
         val default = ArrayList<Double>()
+        val scores = ArrayList<Double>()
         for (j in maxOf(ModelParams.GATE_PREFIX_MIN, i - ModelParams.GATE_SIZE) until i) {
             val p = prefixPredictions[j]?.takeIf { it.sufficient } ?: continue
             model.add(ModelGate.error(p.minutes, history[j].minutes))
             default.add(ModelGate.error(settings.defaultTaskDurationMinutes, history[j].minutes))
+            scores.add(ModelGate.score(p.minutes, p.low, p.high, history[j].minutes))
         }
-        return ModelGate.fromErrors(model, default)
+        return ModelGate.fromErrors(model, default, scores)
     }
 
     fun steps(): List<Step> {
@@ -66,12 +72,17 @@ class Backtest(val history: List<DurationEstimator.Sample>, val settings: Settin
             val title = TitleEstimator.estimate(task, prefix, settings)?.takeIf { it.reliable }?.minutes
             val withoutModel = WITHOUT_MODEL.estimate(task, prefix, settings)?.takeIf { it.reliable }?.minutes
             val p = prefixPredictions[i]
-            val reliable = p != null && i >= ModelParams.MIN_CORPUS && p.sufficient && gate(i).passed
+            val gate = gate(i)
+            val reliable = p != null && i >= ModelParams.MIN_CORPUS && p.sufficient && gate.passed
+            // L'intervalle livré : étiré par la garde du même préfixe, comme `ModelEstimator.estimate`.
+            val k = gate.stretch
             Step(
                 i, truth.minutes, default, title ?: default, withoutModel ?: default,
                 model = p?.minutes ?: default, modelReliable = reliable,
                 chain = withoutModel ?: (if (reliable) p!!.minutes else default),
-                low = p?.low, high = p?.high,
+                low = p?.let { minOf(HistoryEstimates.roundToFive(it.minutes - (it.minutes - it.low) * k).coerceAtLeast(5), it.minutes) },
+                high = p?.let { maxOf(HistoryEstimates.roundToFive(it.minutes + (it.high - it.minutes) * k), it.minutes) },
+                rawLow = p?.low, rawHigh = p?.high,
             )
         }
     }

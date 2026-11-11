@@ -1,10 +1,13 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.ui.guide.GtdStepButton
 import com.skohscripts.kairos.ui.guide.GtdStep
 import com.skohscripts.kairos.ui.sync.SyncReviewBanner
 import com.skohscripts.kairos.ui.sync.SyncReviewDialog
 import com.skohscripts.kairos.data.EditBase
+import com.skohscripts.kairos.core.forecast.SoloForecast
+import com.skohscripts.kairos.core.forecast.Survival
 import com.skohscripts.kairos.core.engine.model.EstimateChanges
 import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.guide.demo.LocalDemoTour
@@ -222,6 +225,14 @@ fun DayScreen(
     val day = selectedDay ?: today
     val estimates = remember(snapshot) { Estimates.of(snapshot.tasks, snapshot.workSessions, now) }
     val view = remember(snapshot, minute, filter, day) { DayView.build(snapshot, day, minute, timeZone, filter, instant = now) }
+    // Fin probable des tâches perso : graine = le jour (stable dans la journée, refaisable) ; calculée à la première ouverture
+    // d'un « Pourquoi ? », sur les données enregistrées (sans les calendriers du téléphone, qu'elle ne lit pas).
+    val forecast = remember(stored, today) { lazy { SoloForecast.run(stored, today, services.clock.now(), timeZone, seed = today.toEpochDays().toLong()) } }
+    val survival = remember(stored, today) { lazy { Survival.prepare(stored.tasks, stored.workSessions, services.clock.now(), timeZone) } }
+    // « Et si j'accepte ? » : la file rejouée sans puis avec la tâche de la fiche, à la graine du jour.
+    val whatIf: (Task) -> SoloForecast.Impact? = { draft -> SoloForecast.impact(stored, today, services.clock.now(), timeZone, today.toEpochDays().toLong(), draft) }
+    // Occurrences passées : ce que lit le restant d'une tâche qui dérape (carte « En ce moment »).
+    val history = remember(stored) { DurationEstimator.history(stored, services.clock.now(), timeZone) }
     val notifyState by services.notifier.state.collectAsState()
     val notifyHints by services.notifier.hints.collectAsState()
     val scope = rememberCoroutineScope()
@@ -381,6 +392,8 @@ fun DayScreen(
         val twoColumns = maxWidth >= TWO_COLUMNS
         val mainWidth = if (twoColumns) minOf(maxWidth - 340.dp, 840.dp) else minOf(maxWidth, 840.dp)
         val ctx = RowContext(
+            forecast = forecast,
+            survival = survival,
             view = view,
             language = language,
             compact = mainWidth < COMPACT_ROWS,
@@ -584,7 +597,7 @@ fun DayScreen(
                     rows("backlog", view.backlog) { TaskRow(it, ctx) }
                 }
                 if (!twoColumns) {
-                    block("running") { RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } }) }
+                    block("running") { RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } }, history = history, settings = snapshot.settings) }
                     block("timeline") { TimelineCard(view, language) }
                 }
             }
@@ -593,7 +606,7 @@ fun DayScreen(
                     Modifier.width(320.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = KairosSpacing.l),
                     verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
                 ) {
-                    RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } })
+                    RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } }, history = history, settings = snapshot.settings)
                     TimelineCard(view, language)
                 }
             }
@@ -619,6 +632,7 @@ fun DayScreen(
             task = draft,
             day = day,
             today = today,
+            whatIf = whatIf,
             taskTypes = snapshot.settings.taskTypeList,
             candidates = view.openTasks,
             blockerIds = emptySet(),
@@ -688,6 +702,7 @@ fun DayScreen(
                 day = day,
                 today = today,
                 rollup = view.rollups[id],
+                whatIf = whatIf.takeIf { task.space == TaskSpace.PERSONAL && task.origin == null && task.status == TaskStatus.TODO },
                 splitHistory = splitHistory.takeIf { task.space == TaskSpace.PERSONAL },
                 learned = view.learned[id],
                 learning = snapshot.settings.learning ?: LearningSettings(),

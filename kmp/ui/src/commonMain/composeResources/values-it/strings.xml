@@ -1878,7 +1878,7 @@
     <string name="card_model_body">Un modello di machine learning, addestrato sul dispositivo, dà a un’attività con un titolo nuovo una durata dalle tue attività completate che le somigliano, con un intervallo e l’elenco di quelle attività. Si applica solo quando fa meglio della durata predefinita sul tuo storico, impara il tuo ritmo secondo giorno e ora, e ti avvisa quando le stime cambiano. Nulla lascia il dispositivo. IA? No, machine learning: robusto e locale, si allena a ogni attività che completi, leggero e velocissimo.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, stimato dal machine learning (da %2$s a %3$s)</string>
-    <string name="forecast_model_estimated">Di cui %1$d attività stimata/e dal machine learning (intervallo appreso)</string>
+    <string name="forecast_model_estimated">Di cui %1$d attività con intervallo appreso (serie, titolo o machine learning)</string>
     <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
     <string name="why_model_rhythm">Il tuo ritmo: %1$s.</string>
     <string name="model_rhythm_weekday">%1$s% il %2$s</string>
@@ -1931,4 +1931,36 @@
     <string name="gtd_open_hint">I cinque passi e dove sono in Kairos</string>
     <string name="card_gtd_title">Il metodo GTD in Kairos</string>
     <string name="card_gtd_body">Kairos segue GTD: raccogliere, chiarire, organizzare, fare il punto, fare. Ogni schermata dice quale passo è, e «Il metodo GTD» nelle Note li spiega, con ciò che Kairos fa diversamente.</string>
+    <string name="learning_model_coverage">Intervallo verificato sulle tue ultime %1$d attività: %2$d dentro prima della correzione; corretto per contenerne 8 su 10.</string>
+    <string name="learning_model_coverage_pending">Intervallo non ancora verificato: %1$d attività comparabili su %2$d necessarie.</string>
+    <string name="forecast_task_finish_title">Fine per attività</string>
+    <string name="forecast_task_finish_hint">Fine probabile di ogni attività, le più tardive per prime: una volta su due prima della prima data, 85 volte su 100 prima della seconda.</string>
+    <string name="forecast_task_finish_range">Tra il %1$s e il %2$s</string>
+    <string name="forecast_task_finish_single">Il %1$s</string>
+    <string name="forecast_task_finish_out">Oltre l’orizzonte</string>
+    <string name="forecast_task_finish_margin">margine: %1$d g</string>
+    <string name="forecast_task_finish_late">%1$d g di ritardo</string>
+    <string name="why_finish_range">Fine probabile: tra %1$s e %2$s, se non arriva nulla di più urgente.</string>
+    <string name="why_finish_single">Fine probabile: entro %1$s, 85 volte su 100, se non arriva nulla di più urgente.</string>
+    <string name="why_finish_out">Fine probabile: non prima di un anno, al ritmo delle tue ultime settimane.</string>
+    <string name="why_finish_deadline">Scadenza rispettata %1$d volte su 10.</string>
+    <string name="why_finish_source">Dalle tue ultime 8 settimane: %1$s cronometrati per giorno lavorato (%2$d estrazioni).</string>
+    <string name="week_realistic">Realistico: da %1$s a %2$s (le tue ultime 8 settimane) · %3$s in scadenza o programmate questa settimana</string>
+    <string name="now_running_remaining">Le tue %5$d attività comparabili durate più di %1$s hanno richiesto %2$s in tutto (tra %3$s e %4$s).</string>
+    <string name="why_survival_same">Si trascina: delle tue %1$d attività della stessa priorità ancora aperte dopo %2$d giorni, %3$d su 10 sono state fatte nei 3 mesi successivi.</string>
+    <string name="why_survival_all">Si trascina: delle tue %1$d attività ancora aperte dopo %2$d giorni, %3$d su 10 sono state fatte nei 3 mesi successivi.</string>
+    <string name="card_task_forecast_title">Fine probabile di un’attività</string>
+    <string name="card_task_forecast_body">«Quando sarà finita?» Kairos ripercorre la tua coda di attività con il tempo che cronometri davvero, giorni senza lavoro compresi, e risponde con un intervallo in «Perché in questa posizione?»: mai una data sola. La vista Settimana dice che cosa una settimana può davvero contenere, il cronometro quanto hanno richiesto le attività comparabili quando la tua sfora, e le previsioni di squadra danno la fine di ogni attività. Gli intervalli sono verificati sulle tue ultime attività.</string>
+    <string name="stats_suspect_open">Cronometri da verificare (%1$d)…</string>
+    <string name="stats_suspect_title">Cronometri da verificare</string>
+    <string name="stats_suspect_intro">Queste sessioni sono durate molto più di quanto la loro attività richiede di solito: spesso un cronometro dimenticato. Spunta quelle da riportare alla durata abituale. Durate apprese, statistiche e previsioni ne terranno conto.</string>
+    <string name="stats_suspect_row">%1$s: %2$s → %3$s</string>
+    <string name="stats_suspect_done">Cronometri corretti: %1$d</string>
+    <string name="whatif_open">E se accetto?</string>
+    <string name="whatif_none">Nessuna delle tue scadenze ne risente.</string>
+    <string name="whatif_hurt">«%1$s»: scadenza rispettata %2$d volte su 10 invece di %3$d.</string>
+    <string name="whatif_more">… e altre %1$d scadenze coinvolte.</string>
+    <string name="whatif_unavailable">Non c’è ancora abbastanza tempo cronometrato per dirlo: ne serve in 4 delle tue ultime 8 settimane.</string>
+    <string name="card_suspect_timers_title">Cronometri da verificare</string>
+    <string name="card_suspect_timers_body">Un cronometro dimenticato falsa tutto ciò che impara dal tuo tempo reale. Nelle Statistiche, «Cronometri da verificare…» elenca le sessioni molto più lunghe di quanto la loro attività richiede di solito e propone di riportarle alla durata abituale. Nulla viene corretto senza il tuo consenso, e «Annulla» ripristina le durate precedenti.</string>
 </resources>

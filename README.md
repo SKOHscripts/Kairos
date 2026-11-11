@@ -351,6 +351,24 @@ only.
   tells you when estimates change, and offers to review typed estimates it
   disagrees with. Everything is computed on the device, from your history only
   ([details](#on-device-machine-learning-how-long-your-tasks-really-take)).
+- **Likely finish date**: “when will it be done?” Kairos replays your task
+  queue with the time you really track over your last 8 weeks, idle days
+  included, and durations drawn within their ranges; “Why this position?” then
+  gives a range (“between Tue 11/17 and Fri 11/20, if nothing more urgent
+  comes up”), never a single date, and how often the deadline is met. The Week
+  view says what a week can really hold (“Realistic: 12 h to 22 h”), the
+  timer what comparable tasks took when yours overruns, a lingering task how
+  many like it were ever done, and team forecasts give each task its own
+  finish range and margin. Ranges are checked against your last finished
+  tasks and adjusted to hold 8 times in 10. Before you say yes to one more
+  task, “What if I take it on?” in the task sheet replays the queue without
+  and with it and names the deadlines it would put at risk. Nothing is shown
+  without enough tracked history, and nothing is ever written into a task.
+- **Timers to check**: a forgotten timer skews everything that learns from
+  your real time. In Stats, “Timers to check…” lists the sessions that ran far
+  longer than their task usually takes (more than three times, and at least an
+  hour more) and offers to bring them back to the usual duration; nothing is
+  ticked for you, and “Undo” restores the previous durations.
 - **Working days and holidays**: built-in French calendar, with extra dates
   in Settings.
 
@@ -645,6 +663,8 @@ version that brought it and the platforms it exists on.
 | Follow | Pomodoro bells | 4.2.0 | All |
 | Follow | Learned durations | 3.4.0 | All |
 | Follow | Machine-learning estimates | 4.0.0 | All |
+| Follow | Likely finish date | 4.1.0 | All |
+| Follow | Timers to check | 4.1.0 | All |
 | Follow | When you work on each type | 3.5.0 | All |
 | Follow | Your most efficient hours | 3.9.0 | All |
 | Follow | Your day on the home screen | 3.12.0 | Android |

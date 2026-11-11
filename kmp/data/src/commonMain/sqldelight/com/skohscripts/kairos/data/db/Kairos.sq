@@ -418,6 +418,9 @@ UPDATE work_session SET ended_at = ? WHERE ended_at IS NULL;
 closeSessionAt:
 UPDATE work_session SET ended_at = ? WHERE id = ? AND ended_at IS NULL;
 
+setSessionEnd:
+UPDATE work_session SET ended_at = ? WHERE id = ? AND ended_at IS NOT NULL;
+
 insertWorkSession:
 INSERT INTO work_session (task_id, started_at, ended_at, created_at) VALUES (?, ?, NULL, ?);
 

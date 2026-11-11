@@ -47,6 +47,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.skohscripts.kairos.core.forecast.SoloForecast
 import com.skohscripts.kairos.core.day.DayFilter
 import com.skohscripts.kairos.core.day.DayView
 import com.skohscripts.kairos.core.week.WeekDay
@@ -73,6 +74,7 @@ import com.skohscripts.kairos.ui.generated.resources.week_nothing
 import com.skohscripts.kairos.ui.generated.resources.week_scheduled
 import com.skohscripts.kairos.ui.generated.resources.week_prev
 import com.skohscripts.kairos.ui.generated.resources.week_see_day
+import com.skohscripts.kairos.ui.generated.resources.week_realistic
 import com.skohscripts.kairos.ui.generated.resources.week_spent
 import com.skohscripts.kairos.ui.generated.resources.week_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
@@ -171,6 +173,17 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // Semaine réaliste (docs/spec/previsions-taches.md § Étape C) : la semaine courante ou à venir, avec assez d'historique.
+            val monday = week.monday
+            val realistic = remember(stored, today) { SoloForecast.capacity(stored, today, now, timeZone) }
+            if (realistic.available && monday.plus(DatePeriod(days = 6)) >= today) {
+                val committed = remember(stored, monday) { SoloForecast.committedMinutes(stored, monday, now, timeZone) }
+                Text(
+                    stringResource(Res.string.week_realistic, duration(realistic.weekMinutes(15)), duration(realistic.weekMinutes(85)), duration(committed)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             FilterCard(
                 filter, filterOpen || filter.active, { filterOpen = !(filterOpen || filter.active) }, { filter = it },
                 projects, snapshot.settings.taskTypeList, remember { FocusRequester() }, LocalPlatform.current != Platform.ANDROID,

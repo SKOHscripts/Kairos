@@ -102,6 +102,7 @@ internal class EffortModel(
         val memberCount = setup.memberIds.size
         val ends = IntArray(count)
         val taskEnds = if (setup.keepTaskEnds) ShortArray(count * n) else null
+        val endsByTask = if (setup.keepTaskEnds) ShortArray(count * n) else null
         val late = ByteArray(count * deadlines)
         val last = ByteArray(count * memberCount)
 
@@ -158,11 +159,13 @@ internal class EffortModel(
             ends[i] = if (n == 0) 0 else worst
             if (taskEnds != null) {
                 for (j in 0 until n) taskEnds[i * n + j] = endOf[j].toShort()
+                // Avant le tri : la même fin, rangée à la place de sa tâche (date par tâche, docs/spec/previsions-taches.md § Étape B).
+                taskEnds.copyInto(endsByTask!!, i * n, i * n, (i + 1) * n)
                 taskEnds.sort(i * n, (i + 1) * n)
             }
             for (j in 0 until n) if (endOf[j] == worst && owner[j] >= 0) last[i * memberCount + owner[j]] = 1
         }
-        return DrawBatch(from, count, ends, taskEnds, late, last)
+        return DrawBatch(from, count, ends, taskEnds, late, last, endsByTask)
     }
 
     private companion object {

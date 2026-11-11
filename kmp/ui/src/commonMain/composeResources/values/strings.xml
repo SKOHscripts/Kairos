@@ -1879,7 +1879,7 @@
     <string name="card_model_body">A machine-learning model, trained on your device, gives a task with a new title a duration from your finished tasks that look like it, with a range and the list of those tasks. It applies only once it beats the default duration on your own history, learns your pace by day and time, and tells you when estimates change. Nothing leaves the device. AI? No, machine learning: robust and local, it trains on every task you finish, light and very fast.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, estimated by machine learning (%2$s to %3$s)</string>
-    <string name="forecast_model_estimated">Including %1$d task(s) estimated by machine learning (learned range)</string>
+    <string name="forecast_model_estimated">Including %1$d task(s) with a learned range (series, title or machine learning)</string>
     <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
     <string name="why_model_rhythm">Your pace: %1$s.</string>
     <string name="model_rhythm_weekday">%1$s% on %2$s</string>
@@ -1932,4 +1932,36 @@
     <string name="gtd_open_hint">The five steps and where they are in Kairos</string>
     <string name="card_gtd_title">The GTD method in Kairos</string>
     <string name="card_gtd_body">Kairos follows GTD: capture, clarify, organize, reflect, engage. Each screen says which step it is, and “The GTD method” on Notes explains them, with what Kairos does differently.</string>
+    <string name="learning_model_coverage">Range checked on your last %1$d tasks: %2$d fell inside before adjustment; adjusted to hold 8 in 10.</string>
+    <string name="learning_model_coverage_pending">Range not checked yet: %1$d comparable tasks out of %2$d needed.</string>
+    <string name="forecast_task_finish_title">Finish date per task</string>
+    <string name="forecast_task_finish_hint">Likely finish of each task, latest first: one time in two before the first date, 85 times in 100 before the second.</string>
+    <string name="forecast_task_finish_range">Between %1$s and %2$s</string>
+    <string name="forecast_task_finish_single">On %1$s</string>
+    <string name="forecast_task_finish_out">Beyond the horizon</string>
+    <string name="forecast_task_finish_margin">margin: %1$d d</string>
+    <string name="forecast_task_finish_late">%1$d d late</string>
+    <string name="why_finish_range">Likely finish: between %1$s and %2$s, if nothing more urgent comes up.</string>
+    <string name="why_finish_single">Likely finish: by %1$s, 85 times in 100, if nothing more urgent comes up.</string>
+    <string name="why_finish_out">Likely finish: not within a year, at the pace of your last weeks.</string>
+    <string name="why_finish_deadline">Deadline met %1$d times in 10.</string>
+    <string name="why_finish_source">From your last 8 weeks: %1$s tracked per day worked (%2$d draws).</string>
+    <string name="week_realistic">Realistic: %1$s to %2$s (your last 8 weeks) · %3$s due or scheduled this week</string>
+    <string name="now_running_remaining">Your %5$d comparable tasks that ran longer than %1$s took %2$s in all (between %3$s and %4$s).</string>
+    <string name="why_survival_same">It lingers: of your %1$d tasks of the same priority still open after %2$d days, %3$d in 10 were done within the next 3 months.</string>
+    <string name="why_survival_all">It lingers: of your %1$d tasks still open after %2$d days, %3$d in 10 were done within the next 3 months.</string>
+    <string name="card_task_forecast_title">Likely finish date</string>
+    <string name="card_task_forecast_body">“When will it be done?” Kairos replays your task queue with the time you really track, idle days included, and answers with a range in “Why this position?”: never a single date. The Week view says what a week can really hold, the timer what comparable tasks took when yours overruns, and team forecasts give each task its finish. Ranges are checked against your last tasks.</string>
+    <string name="stats_suspect_open">Timers to check (%1$d)…</string>
+    <string name="stats_suspect_title">Timers to check</string>
+    <string name="stats_suspect_intro">These sessions ran far longer than their task usually takes: often a forgotten timer. Tick the ones to bring back to the usual duration. Learned durations, statistics and forecasts will follow.</string>
+    <string name="stats_suspect_row">%1$s: %2$s → %3$s</string>
+    <string name="stats_suspect_done">Timers fixed: %1$d</string>
+    <string name="whatif_open">What if I take it on?</string>
+    <string name="whatif_none">None of your deadlines suffers from it.</string>
+    <string name="whatif_hurt">“%1$s”: deadline met %2$d times in 10 instead of %3$d.</string>
+    <string name="whatif_more">… and %1$d more deadline(s) affected.</string>
+    <string name="whatif_unavailable">Not enough tracked time yet to tell: it takes some in 4 of your last 8 weeks.</string>
+    <string name="card_suspect_timers_title">Timers to check</string>
+    <string name="card_suspect_timers_body">A forgotten timer skews everything that learns from your real time. In Stats, “Timers to check…” lists the sessions far longer than their task usually takes and offers to bring them back to the usual duration. Nothing is fixed without your say, and “Undo” restores the previous durations.</string>
 </resources>

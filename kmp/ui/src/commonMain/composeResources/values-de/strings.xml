@@ -1878,7 +1878,7 @@
     <string name="card_model_body">Ein auf dem Gerät trainiertes Modell für maschinelles Lernen gibt einer Aufgabe mit neuem Titel eine Dauer aus deinen erledigten Aufgaben, die ihr ähneln, mit einer Spanne und der Liste dieser Aufgaben. Es gilt erst, wenn es auf deinem Verlauf besser ist als die Standarddauer, lernt dein Tempo nach Tag und Uhrzeit und meldet, wenn sich Schätzungen ändern. Nichts verlässt das Gerät. KI? Nein, maschinelles Lernen: robust und lokal, es trainiert mit jeder erledigten Aufgabe weiter, leicht und sehr schnell.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, durch maschinelles Lernen geschätzt (%2$s bis %3$s)</string>
-    <string name="forecast_model_estimated">Davon %1$d durch maschinelles Lernen geschätzte Aufgabe(n) (gelernte Spanne)</string>
+    <string name="forecast_model_estimated">Davon %1$d Aufgabe(n) mit gelernter Spanne (Serie, Titel oder maschinelles Lernen)</string>
     <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
     <string name="why_model_rhythm">Dein Tempo: %1$s.</string>
     <string name="model_rhythm_weekday">%1$s% am %2$s</string>
@@ -1931,4 +1931,36 @@
     <string name="gtd_open_hint">Die fünf Schritte und wo sie in Kairos sind</string>
     <string name="card_gtd_title">Die GTD-Methode in Kairos</string>
     <string name="card_gtd_body">Kairos folgt GTD: erfassen, klären, organisieren, durchsehen, erledigen. Jeder Bildschirm sagt, welcher Schritt er ist, und „Die GTD-Methode“ in den Notizen erklärt sie, samt dem, was Kairos anders macht.</string>
+    <string name="learning_model_coverage">Spanne an deinen letzten %1$d Aufgaben geprüft: %2$d lagen vor der Anpassung darin; angepasst, damit 8 von 10 darin liegen.</string>
+    <string name="learning_model_coverage_pending">Spanne noch nicht geprüft: %1$d vergleichbare Aufgaben von %2$d nötigen.</string>
+    <string name="forecast_task_finish_title">Ende je Aufgabe</string>
+    <string name="forecast_task_finish_hint">Wahrscheinliches Ende jeder Aufgabe, die spätesten zuerst: in einem von zwei Fällen vor dem ersten Datum, in 85 von 100 vor dem zweiten.</string>
+    <string name="forecast_task_finish_range">Zwischen %1$s und %2$s</string>
+    <string name="forecast_task_finish_single">Am %1$s</string>
+    <string name="forecast_task_finish_out">Außerhalb des Horizonts</string>
+    <string name="forecast_task_finish_margin">Puffer: %1$d T</string>
+    <string name="forecast_task_finish_late">%1$d T zu spät</string>
+    <string name="why_finish_range">Wahrscheinliches Ende: zwischen %1$s und %2$s, falls nichts Dringenderes dazukommt.</string>
+    <string name="why_finish_single">Wahrscheinliches Ende: spätestens %1$s, in 85 von 100 Fällen, falls nichts Dringenderes dazukommt.</string>
+    <string name="why_finish_out">Wahrscheinliches Ende: nicht innerhalb eines Jahres, beim Tempo deiner letzten Wochen.</string>
+    <string name="why_finish_deadline">Frist in %1$d von 10 Fällen gehalten.</string>
+    <string name="why_finish_source">Nach deinen letzten 8 Wochen: %1$s erfasst je Arbeitstag (%2$d Ziehungen).</string>
+    <string name="week_realistic">Realistisch: %1$s bis %2$s (deine letzten 8 Wochen) · %3$s diese Woche fällig oder geplant</string>
+    <string name="now_running_remaining">Deine %5$d vergleichbaren Aufgaben, die länger als %1$s dauerten, brauchten insgesamt %2$s (zwischen %3$s und %4$s).</string>
+    <string name="why_survival_same">Sie zieht sich: Von deinen %1$d Aufgaben gleicher Priorität, die nach %2$d Tagen noch offen waren, wurden %3$d von 10 in den folgenden 3 Monaten erledigt.</string>
+    <string name="why_survival_all">Sie zieht sich: Von deinen %1$d Aufgaben, die nach %2$d Tagen noch offen waren, wurden %3$d von 10 in den folgenden 3 Monaten erledigt.</string>
+    <string name="card_task_forecast_title">Wahrscheinliches Ende einer Aufgabe</string>
+    <string name="card_task_forecast_body">„Wann ist sie fertig?“ Kairos spielt deine Aufgabenliste mit der Zeit durch, die du wirklich erfasst, Tage ohne Arbeit eingeschlossen, und antwortet in „Warum an dieser Stelle?“ mit einer Spanne: nie ein einzelnes Datum. Die Wochenansicht sagt, was eine Woche wirklich fasst, der Timer, was vergleichbare Aufgaben brauchten, wenn deine überzieht, und die Teamprognosen nennen das Ende jeder Aufgabe. Die Spannen werden an deinen letzten Aufgaben geprüft.</string>
+    <string name="stats_suspect_open">Timer prüfen (%1$d)…</string>
+    <string name="stats_suspect_title">Timer prüfen</string>
+    <string name="stats_suspect_intro">Diese Sitzungen dauerten viel länger, als ihre Aufgabe sonst braucht: oft ein vergessener Timer. Hake die an, die auf die übliche Dauer gekürzt werden sollen. Gelernte Dauern, Statistiken und Prognosen richten sich danach.</string>
+    <string name="stats_suspect_row">%1$s: %2$s → %3$s</string>
+    <string name="stats_suspect_done">Timer korrigiert: %1$d</string>
+    <string name="whatif_open">Und wenn ich zusage?</string>
+    <string name="whatif_none">Keine deiner Fristen leidet darunter.</string>
+    <string name="whatif_hurt">„%1$s“: Frist in %2$d von 10 Fällen gehalten statt in %3$d.</string>
+    <string name="whatif_more">… und %1$d weitere betroffene Frist(en).</string>
+    <string name="whatif_unavailable">Noch nicht genug erfasste Zeit, um das zu sagen: nötig ist welche in 4 deiner letzten 8 Wochen.</string>
+    <string name="card_suspect_timers_title">Timer prüfen</string>
+    <string name="card_suspect_timers_body">Ein vergessener Timer verfälscht alles, was aus deiner echten Zeit lernt. In den Statistiken listet „Timer prüfen…“ die Sitzungen auf, die viel länger dauerten, als ihre Aufgabe sonst braucht, und bietet an, sie auf die übliche Dauer zu kürzen. Nichts wird ohne deine Zustimmung korrigiert, und „Rückgängig“ stellt die vorherigen Dauern wieder her.</string>
 </resources>

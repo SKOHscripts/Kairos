@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import androidx.compose.runtime.remember
 import com.skohscripts.kairos.ui.guide.GtdStepText
 import com.skohscripts.kairos.ui.guide.GtdStep
 import com.skohscripts.kairos.ui.guide.demo.DemoSpot
@@ -30,6 +31,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.skohscripts.kairos.core.engine.DurationEstimator
+import com.skohscripts.kairos.core.engine.model.Remaining
+import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.day.DayView
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.ui.generated.resources.Res
@@ -46,6 +50,7 @@ import com.skohscripts.kairos.ui.generated.resources.alerts_hint_exact
 import com.skohscripts.kairos.ui.generated.resources.alerts_hint_exact_action
 import com.skohscripts.kairos.ui.generated.resources.alerts_unavailable
 import com.skohscripts.kairos.ui.generated.resources.now_running_empty
+import com.skohscripts.kairos.ui.generated.resources.now_running_remaining
 import com.skohscripts.kairos.ui.generated.resources.now_running_estimate
 import com.skohscripts.kairos.ui.generated.resources.now_running_label
 import com.skohscripts.kairos.ui.generated.resources.stats_spent_today
@@ -100,7 +105,15 @@ private fun AlertsOptIn(state: NotifyState, onEnable: () -> Unit, hints: Set<Not
  * la tâche du chrono, son minuteur vivant, l'estimé, « Arrêter le chrono ».
  */
 @Composable
-internal fun RunningCard(view: DayView, clock: Clock, onStop: () -> Unit, modifier: Modifier = Modifier) {
+internal fun RunningCard(
+    view: DayView,
+    clock: Clock,
+    onStop: () -> Unit,
+    modifier: Modifier = Modifier,
+    /** Occurrences passées et réglages, pour dire ce qui reste quand la tâche dérape (docs/spec/previsions-taches.md § Étape D). */
+    history: List<DurationEstimator.Sample> = emptyList(),
+    settings: Settings? = null,
+) {
     val scheme = MaterialTheme.colorScheme
     Card(
         colors = CardDefaults.cardColors(containerColor = scheme.inverseSurface, contentColor = scheme.inverseOnSurface),
@@ -120,8 +133,18 @@ internal fun RunningCard(view: DayView, clock: Clock, onStop: () -> Unit, modifi
             val minutes by rememberLiveMinutes(running.startedAt, view.runningBaseMinutes, clock)
             Text(duration(minutes), style = MaterialTheme.typography.displaySmall)
             // L'estimation attendue : explicite, sinon la durée apprise fiable (docs/spec/durees-apprises.md).
-            (task.estimatedMinutes?.takeIf { it > 0 } ?: view.learned[task.id]?.takeIf { it.reliable }?.minutes)?.let {
-                Text(stringResource(Res.string.now_running_estimate, duration(it)), style = MaterialTheme.typography.bodySmall)
+            (task.estimatedMinutes?.takeIf { it > 0 } ?: view.learned[task.id]?.takeIf { it.reliable }?.minutes)?.let { expected ->
+                Text(stringResource(Res.string.now_running_estimate, duration(expected)), style = MaterialTheme.typography.bodySmall)
+                // Dépassée : ce qu'ont pris, au total, les tâches comparables qui ont duré plus longtemps que le temps déjà passé.
+                val left = remember(task.id, minutes, expected, history, settings) {
+                    if (settings == null) null else Remaining.of(task, minutes, expected, history, settings)
+                }
+                left?.let {
+                    Text(
+                        stringResource(Res.string.now_running_remaining, duration(it.spentMinutes), duration(it.minutes), duration(it.low), duration(it.high), it.samples),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
             DemoMark(DemoSpot.TIMER_STOP) {
                 KairosButton(

@@ -65,6 +65,13 @@ import com.skohscripts.kairos.ui.generated.resources.forecast_deadlines_empty
 import com.skohscripts.kairos.ui.generated.resources.forecast_deadlines_hint
 import com.skohscripts.kairos.ui.generated.resources.forecast_deadlines_more
 import com.skohscripts.kairos.ui.generated.resources.forecast_deadlines_title
+import com.skohscripts.kairos.ui.generated.resources.forecast_task_finish_title
+import com.skohscripts.kairos.ui.generated.resources.forecast_task_finish_hint
+import com.skohscripts.kairos.ui.generated.resources.forecast_task_finish_range
+import com.skohscripts.kairos.ui.generated.resources.forecast_task_finish_single
+import com.skohscripts.kairos.ui.generated.resources.forecast_task_finish_out
+import com.skohscripts.kairos.ui.generated.resources.forecast_task_finish_margin
+import com.skohscripts.kairos.ui.generated.resources.forecast_task_finish_late
 import com.skohscripts.kairos.ui.generated.resources.forecast_finish_hint
 import com.skohscripts.kairos.ui.generated.resources.forecast_finish_title
 import com.skohscripts.kairos.ui.generated.resources.forecast_histogram_description
@@ -316,6 +323,50 @@ internal fun DeadlinesPanel(result: ForecastResult, names: ForecastNames, riskPe
 }
 
 private const val DEADLINES_SHOWN = 8
+
+/** Fin par tâche (docs/spec/previsions-taches.md § Étape B) : jamais une date seule, sauf si les deux percentiles coïncident. */
+@Composable
+internal fun TaskFinishPanel(result: ForecastResult, names: ForecastNames, language: String) {
+    val finishes = remember(result) { result.taskFinishes() }
+    if (finishes.isEmpty()) return
+    Panel(KairosIcons.Event, stringResource(Res.string.forecast_task_finish_title), stringResource(Res.string.forecast_task_finish_hint)) {
+        var all by remember { mutableStateOf(false) }
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            (if (all) finishes else finishes.take(DEADLINES_SHOWN)).forEach { f ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(names.task(f.taskId), style = MaterialTheme.typography.bodyLarge)
+                        val p50 = f.p50
+                        val p85 = f.p85
+                        Muted(
+                            when {
+                                p50 == null || p85 == null -> stringResource(Res.string.forecast_task_finish_out)
+                                p50 == p85 -> stringResource(Res.string.forecast_task_finish_single, dateLabel(p85, result.day, language))
+                                else -> stringResource(Res.string.forecast_task_finish_range, dateLabel(p50, result.day, language), dateLabel(p85, result.day, language))
+                            },
+                        )
+                    }
+                    f.marginDays?.let { margin ->
+                        Flag(
+                            if (margin < 0) stringResource(Res.string.forecast_task_finish_late, -margin) else stringResource(Res.string.forecast_task_finish_margin, margin),
+                            flagged = margin < 0,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            }
+        }
+        if (finishes.size > DEADLINES_SHOWN) {
+            KairosTextButton(onClick = { all = !all }) {
+                Text(stringResource(if (all) Res.string.forecast_deadlines_less else Res.string.forecast_deadlines_more, finishes.size - DEADLINES_SHOWN))
+            }
+        }
+    }
+}
 
 @Composable
 private fun DeadlineRow(d: DeadlineOutlook, title: String, day: LocalDate, language: String) {

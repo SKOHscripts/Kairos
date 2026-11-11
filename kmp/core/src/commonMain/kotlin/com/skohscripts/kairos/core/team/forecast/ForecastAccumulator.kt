@@ -22,6 +22,8 @@ class DrawBatch internal constructor(
     internal val late: ByteArray,
     /** Par tirage et par membre du périmètre : 1 = finit le dernier (ex æquo compris). */
     internal val last: ByteArray,
+    /** Fin de chaque tâche du périmètre, par tirage, **dans l'ordre du périmètre** (date par tâche) ; `null` si non gardées ou modèle par débit. */
+    internal val endsByTask: ShortArray? = null,
 )
 
 /**
@@ -35,6 +37,7 @@ class ForecastAccumulator internal constructor(private val setup: MonteCarlo.Set
     private val scope = setup.scopeSize
     private val ends = IntArray(total)
     private val taskEnds: ShortArray? = if (setup.keepTaskEnds) ShortArray(total * scope) else null
+    private val byTask: ShortArray? = if (setup.keepTaskEnds && setup.taskLevel) ShortArray(total * scope) else null
     private val deadlineTasks = setup.deadlineTaskIds.size
     private val lateCounts = IntArray(deadlineTasks)
     private val lateDistribution = IntArray(4)
@@ -52,6 +55,7 @@ class ForecastAccumulator internal constructor(private val setup: MonteCarlo.Set
         val count = minOf(batch.count, total - batch.from).coerceAtLeast(0)
         batch.ends.copyInto(ends, batch.from, 0, count)
         if (taskEnds != null && batch.taskEnds != null) batch.taskEnds.copyInto(taskEnds, batch.from * scope, 0, count * scope)
+        if (byTask != null && batch.endsByTask != null) batch.endsByTask.copyInto(byTask, batch.from * scope, 0, count * scope)
         for (i in 0 until count) {
             // Un tirage ajouté deux fois ne compte qu'une fois : l'agrégat reste celui des tirages distincts.
             if (present[batch.from + i]) continue
@@ -127,7 +131,7 @@ class ForecastAccumulator internal constructor(private val setup: MonteCarlo.Set
             allOnTimeProbability = if (n == 0 || !setup.taskLevel) 1.0 else lateDistribution[0].toDouble() / n,
             toQualify = setup.toQualify,
             modelEstimated = setup.modelEstimated,
-            samples = ForecastSamples(sorted, taskEnds?.let { stored -> gather(stored, n) }, scope),
+            samples = ForecastSamples(sorted, taskEnds?.let { stored -> gather(stored, n) }, scope, byTask?.let { gather(it, n) }, setup.scopeIds),
         )
     }
 

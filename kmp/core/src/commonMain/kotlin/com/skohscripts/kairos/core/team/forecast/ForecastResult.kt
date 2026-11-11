@@ -77,6 +77,13 @@ data class LateSet(val taskIds: List<Long>, val draws: Int)
 data class FinishedBy(val date: LocalDate, val atLeast50: Int, val atLeast85: Int, val atLeast95: Int, val total: Int)
 
 /**
+ * Fin probable d'**une** tâche (docs/spec/previsions-taches.md § Étape B) : une fois sur deux au plus tard le [p50], 85 fois sur
+ * 100 au plus tard le [p85] (`null` = hors horizon). [marginDays] : jours entre le [p85] et l'échéance (négatif : dépassée
+ * 85 fois sur 100) ; `null` sans échéance ou hors horizon.
+ */
+data class TaskFinish(val taskId: Long, val p50: LocalDate?, val p85: LocalDate?, val marginDays: Int?)
+
+/**
  * Échantillons gardés pour répondre après coup (histogramme, « combien d'ici une
  * date ») : fins du périmètre triées et, par tirage, fins de chaque tâche triées
  * (en jours depuis le jour de la simulation, [OUT] = pas dans le garde-fou).
@@ -86,6 +93,9 @@ class ForecastSamples internal constructor(
     internal val sortedEnds: IntArray,
     internal val taskEnds: ShortArray?,
     val scopeSize: Int,
+    /** Fins par tirage dans l'ordre de [scopeIds] (modèle par effort) ; `null` si non gardées. Dérivé des mêmes tirages : hors de l'égalité. */
+    internal val endsByTask: ShortArray? = null,
+    internal val scopeIds: LongArray = LongArray(0),
 ) {
     val draws: Int get() = sortedEnds.size
 
@@ -155,6 +165,31 @@ data class ForecastResult(
         val offset = Percentiles.nearestRank(samples.sortedEnds, percent) ?: return null
         return if (offset >= ForecastSamples.OUT) null else day.plus(DatePeriod(days = offset))
     }
+
+    /**
+     * La fin probable de la tâche [taskId] du périmètre, ou `null` : hors périmètre, modèle par débit (il ne connaît pas les
+     * tâches une à une), ou fins par tâche non gardées. Rang le plus proche sur les fins de cette tâche dans chaque tirage.
+     */
+    fun taskFinish(taskId: Long): TaskFinish? {
+        val ends = samples.endsByTask ?: return null
+        val n = samples.scopeSize
+        val j = samples.scopeIds.indexOf(taskId)
+        if (j < 0 || samples.draws == 0) return null
+        val own = IntArray(samples.draws) { ends[it * n + j].toInt() }
+        own.sort()
+        fun date(percent: Int): LocalDate? =
+            Percentiles.nearestRank(own, percent)!!.let { if (it >= ForecastSamples.OUT) null else day.plus(DatePeriod(days = it)) }
+        val p85 = date(85)
+        val deadline = deadlines.firstOrNull { it.taskId == taskId }?.deadline
+        return TaskFinish(taskId, date(50), p85, if (p85 == null || deadline == null) null else p85.daysUntil(deadline))
+    }
+
+    /** La fin probable de chaque tâche du périmètre, les plus tardives d'abord (hors horizon en tête, puis P85, P50, identifiant) ; vide si [taskFinish] ne sait pas. */
+    fun taskFinishes(): List<TaskFinish> = samples.scopeIds.toList().mapNotNull { taskFinish(it) }.sortedWith(
+        compareByDescending<TaskFinish> { offsetOf(it.p85) }.thenByDescending { offsetOf(it.p50) }.thenBy { it.taskId },
+    )
+
+    private fun offsetOf(date: LocalDate?): Int = if (date == null) Int.MAX_VALUE else day.daysUntil(date)
 
     /** Les 10 (ou [limit]) tâches les plus souvent en retard : criticité décroissante, puis identifiant. */
     fun mostCritical(limit: Int = 10): List<DeadlineOutlook> =

@@ -606,6 +606,41 @@ class KairosRepositoryTest {
     }
 
     @Test
+    fun trimmingSessionsWritesClosedPersonalSessionsOnlyWithinTheirBoundsAndCanBeUndone() = runTest {
+        // Issue #232, « Chronos à vérifier… » : action explicite, annulable.
+        val repo = empty()
+        val start = Instant.parse("2026-09-20T10:00:00Z")
+        val end = Instant.parse("2026-09-20T18:00:00Z")
+        repo.replaceAll(
+            KairosSnapshot(
+                tasks = listOf(
+                    Task(1, "Perso", status = TaskStatus.DONE, createdAt = start, updatedAt = start),
+                    Task(2, "Équipe", status = TaskStatus.DONE, space = TaskSpace.TEAM, createdAt = start, updatedAt = start),
+                    Task(3, "En cours", createdAt = start, updatedAt = start),
+                ),
+                workSessions = listOf(
+                    WorkSession(1, 1, start, end, start),
+                    WorkSession(2, 2, start, end, start),
+                    WorkSession(3, 3, start, null, start),
+                    WorkSession(4, 1, start, end, start),
+                ),
+            ),
+        )
+        val trimmed = Instant.parse("2026-09-20T10:30:00Z")
+        // La session d'équipe, la session ouverte et un identifiant inconnu sont ignorés ; une fin avant le début est ramenée au début.
+        assertEquals(2, repo.setSessionEnds(mapOf(1L to trimmed, 2L to trimmed, 3L to trimmed, 4L to Instant.parse("2026-09-19T00:00:00Z"), 99L to trimmed)))
+        val sessions = repo.snapshot.value.workSessions.associateBy { it.id }
+        assertEquals(trimmed, sessions.getValue(1).endedAt)
+        assertEquals(end, sessions.getValue(2).endedAt)
+        assertNull(sessions.getValue(3).endedAt)
+        assertEquals(start, sessions.getValue(4).endedAt)
+        // Annulation : la fin d'avant.
+        assertEquals(1, repo.setSessionEnds(mapOf(1L to end)))
+        assertEquals(end, repo.snapshot.value.workSessions.single { it.id == 1L }.endedAt)
+        assertEquals(0, repo.setSessionEnds(emptyMap()))
+    }
+
+    @Test
     fun onlyOneTimerRunsAtATime() = runTest {
         val repo = empty()
         val a = repo.createTask("A")!!

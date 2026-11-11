@@ -31,7 +31,8 @@ interface DurationEstimator {
     /**
      * La durée apprise : [minutes] (arrondie à 5 min), le nombre d'occurrences retenues [samples] et si elle est [reliable]
      * (au moins [LearningSettings.minSamples] occurrences retenues). Une durée peu fiable s'affiche mais ne s'applique pas.
-     * [low], [high] et [evidence] : source [Source.MODEL] seulement (intervalle et preuve), nuls pour la série et le titre.
+     * [low] et [high] : l'intervalle (nuls pour une série ou un titre d'une seule occurrence) ; [evidence] : source
+     * [Source.MODEL] seulement.
      */
     data class Estimate(
         val minutes: Int,
@@ -147,6 +148,9 @@ interface DurationEstimator {
             return first.mapValues { it.value.toLocalDateTime(timeZone) }
         }
 
+        /** Les occurrences passées du [snapshot] au temps [now] : ce que lit `Remaining.of` (docs/spec/previsions-taches.md § Étape D). */
+        fun history(snapshot: KairosSnapshot, now: Instant, timeZone: TimeZone? = null): List<Sample> = past(snapshot, now, timeZone)
+
         private fun past(snapshot: KairosSnapshot, now: Instant, timeZone: TimeZone?): List<Sample> = samples(
             snapshot.tasks,
             TimeTracking.spentMinutesByTask(snapshot.workSessions, now, snapshot.tasks),
@@ -229,9 +233,9 @@ interface DurationEstimator {
         /** L'intervalle d'une estimation du modèle, en minutes (prévisions d'équipe, docs/spec/estimateur-modele.md § Prévisions). */
         data class Spread(val minutes: Int, val low: Int, val high: Int)
 
-        /** Les intervalles des estimations **fiables** de source [Source.MODEL] : ce que les prévisions tirent tâche par tâche. */
+        /** Les intervalles des estimations **fiables** (modèle, et série ou titre d'au moins deux occurrences) : ce que les prévisions tirent tâche par tâche. */
         fun spreads(estimates: Map<Long, Estimate>): Map<Long, Spread> =
-            estimates.filterValues { it.reliable && it.source == Source.MODEL && it.low != null && it.high != null }
+            estimates.filterValues { it.reliable && it.low != null && it.high != null }
                 .mapValues { (_, e) -> Spread(e.minutes, e.low!!, e.high!!) }
 
         /** L'instantané où les durées apprises fiables valent estimation ([withLearnedEstimates]), et les intervalles du modèle. */

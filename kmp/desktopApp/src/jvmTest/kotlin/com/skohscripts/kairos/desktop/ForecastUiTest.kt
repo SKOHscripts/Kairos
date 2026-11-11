@@ -156,7 +156,11 @@ class ForecastUiTest {
         assertTrue(count("Computed on", substring = true) >= 1)
         assertEquals(expected, services.teamUi.forecast!!.result)
         // Les panneaux par tâche du modèle par effort.
-        listOf("Deadlines", "Criticality", "Bottleneck", "Most likely outcome", "How many by…").forEach { assertEquals(1, count(it), it) }
+        listOf("Finish date per task", "Deadlines", "Criticality", "Bottleneck", "Most likely outcome", "How many by…").forEach { assertEquals(1, count(it), it) }
+        // Fin par tâche : la tâche la plus tardive, avec sa fourchette (jamais une date seule quand les percentiles diffèrent).
+        val latest = expected.taskFinishes().first()
+        val range = if (latest.p50 == latest.p85) "On ${text(latest.p85!!)}" else "Between ${text(latest.p50!!)} and ${text(latest.p85!!)}"
+        assertTrue(count(range) >= 1, range)
     }
 
     @Test
@@ -182,7 +186,7 @@ class ForecastUiTest {
         run()
         waitText("does not know the tasks one by one", substring = true)
         assertEquals(ForecastModel.THROUGHPUT, services.teamUi.forecast!!.result.model)
-        listOf("Deadlines", "Criticality", "Bottleneck", "Most likely outcome").forEach { assertEquals(0, count(it), it) }
+        listOf("Finish date per task", "Deadlines", "Criticality", "Bottleneck", "Most likely outcome").forEach { assertEquals(0, count(it), it) }
         assertEquals(1, count("How many by…"))
     }
 

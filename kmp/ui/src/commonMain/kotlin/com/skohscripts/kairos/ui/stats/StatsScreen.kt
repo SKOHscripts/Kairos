@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.stats
 
+import com.skohscripts.kairos.core.stats.SuspectSessions
+import com.skohscripts.kairos.ui.generated.resources.stats_suspect_open
+import com.skohscripts.kairos.ui.generated.resources.stats_suspect_done
 import com.skohscripts.kairos.ui.guide.GtdStepButton
 import com.skohscripts.kairos.ui.guide.GtdStep
 import com.skohscripts.kairos.core.stats.StatsTrends
@@ -124,6 +127,22 @@ fun StatsScreen(services: AppServices) {
     val undo = LocalUndoMessages.current
     val corrections = remember(snapshot) { EstimateCorrection.candidates(snapshot, now) }
     var correcting by remember { mutableStateOf(false) }
+    // Chronos à vérifier (docs/spec/previsions-taches.md § Étape G) : comme les estimations, tout l'historique, quels que soient la période et les filtres.
+    val suspects = remember(snapshot) { SuspectSessions.find(snapshot, now, TimeZone.currentSystemDefault()) }
+    var checking by remember { mutableStateOf(false) }
+    if (checking) {
+        SuspectSessionsDialog(suspects, onDismiss = { checking = false }) { chosen ->
+            checking = false
+            scope.launch {
+                val count = services.repository.setSessionEnds(chosen.associate { it.session.id to it.proposedEnd })
+                if (count > 0) {
+                    undo(getString(Res.string.stats_suspect_done, count), getString(Res.string.action_revert)) {
+                        scope.launch { services.repository.setSessionEnds(chosen.associate { it.session.id to it.session.endedAt!! }) }
+                    }
+                }
+            }
+        }
+    }
     val caption = listOfNotNull(
         stringResource(Res.string.app_name),
         Dates.long(today, language),
@@ -201,6 +220,12 @@ fun StatsScreen(services: AppServices) {
                     KairosOutlinedButton(onClick = { correcting = true }, contentPadding = KairosButtonIconPadding) {
                         Icon(KairosIcons.EditNote, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(Res.string.stats_correct_open), modifier = Modifier.padding(start = 6.dp))
+                    }
+                }
+                if (card == StatsCard.CALIBRATION && suspects.isNotEmpty()) {
+                    KairosOutlinedButton(onClick = { checking = true }, contentPadding = KairosButtonIconPadding) {
+                        Icon(KairosIcons.Schedule, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text(stringResource(Res.string.stats_suspect_open, suspects.size), modifier = Modifier.padding(start = 6.dp))
                     }
                 }
             }

@@ -51,6 +51,8 @@ import com.skohscripts.kairos.core.day.DayView
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskRecurrence
 import com.skohscripts.kairos.core.engine.DurationEstimator
+import com.skohscripts.kairos.core.forecast.SoloForecast
+import com.skohscripts.kairos.core.forecast.Survival
 import com.skohscripts.kairos.core.model.LearningSettings
 import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.ui.generated.resources.learned_badge_description
@@ -112,6 +114,10 @@ internal class RowContext(
     val learning: LearningSettings = LearningSettings(),
     /** La tâche que l'accompagnement de la première tâche explique (docs/spec/premiere-tache.md) : sa ligne est cernée, jamais par la couleur seule (le panneau la nomme). */
     val highlight: Long? = null,
+    /** La file solo rejouée, pour la fin probable de « Pourquoi à cette place ? » ; calculée à la demande. */
+    val forecast: Lazy<SoloForecast.Result?>? = null,
+    /** Les vies des tâches perso, pour dire d'une tâche qui traîne ce qui finit par se faire ; calculées à la demande. */
+    val survival: Lazy<Survival.Model>? = null,
 )
 
 /**
@@ -425,7 +431,7 @@ private fun TimeSpent(task: Task, ctx: RowContext) {
 private fun KeyBadges(task: Task, ctx: RowContext) {
     // FlowRow : à 360 dp, score, priorité et points passent à la ligne plutôt que d'écraser un libellé.
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp), itemVerticalAlignment = Alignment.CenterVertically) {
-        if (task.status == TaskStatus.TODO) ctx.view.why[task.id]?.let { ScoreBadge(task, it, ctx.language, ctx.view.learned[task.id], ctx.learning, ctx.view.schedule.scheduled.firstOrNull { s -> s.task.id == task.id }?.affinity) }
+        if (task.status == TaskStatus.TODO) ctx.view.why[task.id]?.let { ScoreBadge(task, it, ctx.language, ctx.view.learned[task.id], ctx.learning, ctx.view.schedule.scheduled.firstOrNull { s -> s.task.id == task.id }?.affinity, ctx.forecast, ctx.survival.takeIf { (ctx.view.staleDays[task.id] ?: 0) > 0 }) }
         task.priority?.let { PriorityBadge(it) }
         task.fibonacciPoints?.let { Badge(Levels.pointsShort(it), nowrap = true) }
     }

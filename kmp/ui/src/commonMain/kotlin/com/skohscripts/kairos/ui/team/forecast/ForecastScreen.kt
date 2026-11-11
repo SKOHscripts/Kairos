@@ -336,6 +336,7 @@ private fun ResultSection(
         if (result.scopeSize > 0) {
             FinishedByPanel(result, language)
             if (result.taskLevel) {
+                TaskFinishPanel(result, names, language)
                 DeadlinesPanel(result, names, riskPercent, language)
                 CriticalityPanel(result, names)
                 BottleneckPanel(result, names)

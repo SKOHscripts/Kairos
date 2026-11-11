@@ -1878,7 +1878,7 @@
     <string name="card_model_body">Модель машинного обучения, обученная на устройстве, даёт задаче с новым названием длительность по похожим выполненным задачам, с диапазоном и списком этих задач. Она применяется, только если на твоей истории точнее длительности по умолчанию, учит твой ритм по дням и часам и сообщает, когда оценки меняются. Ничего не покидает устройство. ИИ? Нет, машинное обучение: надёжное и локальное, оно обучается на каждой выполненной задаче, лёгкое и очень быстрое.</string>
     <!-- Prévisions d'équipe et estimateur par modèle (docs/spec/estimateur-modele.md § Prévisions) -->
     <string name="effort_model">%1$s, оценено машинным обучением (от %2$s до %3$s)</string>
-    <string name="forecast_model_estimated">В том числе задач, оцененных машинным обучением (выученный диапазон): %1$d</string>
+    <string name="forecast_model_estimated">В том числе задач с выученным диапазоном (серия, название или машинное обучение): %1$d</string>
     <!-- Rythme selon le jour et l'heure (docs/spec/estimateur-modele.md § Rythme, besoin 11) -->
     <string name="why_model_rhythm">Твой ритм: %1$s.</string>
     <string name="model_rhythm_weekday">%1$s% (%2$s)</string>
@@ -1931,4 +1931,36 @@
     <string name="gtd_open_hint">Пять шагов и где они в Kairos</string>
     <string name="card_gtd_title">Метод GTD в Kairos</string>
     <string name="card_gtd_body">Kairos следует GTD: собрать, прояснить, упорядочить, обзор, делать. Каждый экран говорит, какой это шаг, а «Метод GTD» в заметках объясняет их и то, чем Kairos отличается.</string>
+    <string name="learning_model_coverage">Диапазон проверен на последних %1$d задачах: до поправки в него попали %2$d; поправлен, чтобы попадали 8 из 10.</string>
+    <string name="learning_model_coverage_pending">Диапазон ещё не проверен: сопоставимых задач %1$d из %2$d нужных.</string>
+    <string name="forecast_task_finish_title">Срок по каждой задаче</string>
+    <string name="forecast_task_finish_hint">Вероятный срок каждой задачи, сначала самые поздние: в одном случае из двух до первой даты, в 85 из 100 до второй.</string>
+    <string name="forecast_task_finish_range">Между %1$s и %2$s</string>
+    <string name="forecast_task_finish_single">%1$s</string>
+    <string name="forecast_task_finish_out">За горизонтом</string>
+    <string name="forecast_task_finish_margin">запас: %1$d дн.</string>
+    <string name="forecast_task_finish_late">опоздание: %1$d дн.</string>
+    <string name="why_finish_range">Вероятный срок: между %1$s и %2$s, если не появится ничего более срочного.</string>
+    <string name="why_finish_single">Вероятный срок: не позже %1$s в 85 случаях из 100, если не появится ничего более срочного.</string>
+    <string name="why_finish_out">Вероятный срок: не раньше чем через год при темпе последних недель.</string>
+    <string name="why_finish_deadline">Срок соблюдается в %1$d случаях из 10.</string>
+    <string name="why_finish_source">По последним 8 неделям: %1$s по таймеру за рабочий день (прогонов: %2$d).</string>
+    <string name="week_realistic">Реалистично: от %1$s до %2$s (последние 8 недель) · %3$s со сроком или запланировано на эту неделю</string>
+    <string name="now_running_remaining">Ваши сопоставимые задачи (%5$d), длившиеся дольше %1$s, заняли всего %2$s (от %3$s до %4$s).</string>
+    <string name="why_survival_same">Она затянулась: из ваших задач того же приоритета, ещё открытых через %2$d дн. (%1$d), %3$d из 10 были сделаны в следующие 3 месяца.</string>
+    <string name="why_survival_all">Она затянулась: из ваших задач, ещё открытых через %2$d дн. (%1$d), %3$d из 10 были сделаны в следующие 3 месяца.</string>
+    <string name="card_task_forecast_title">Вероятный срок задачи</string>
+    <string name="card_task_forecast_body">«Когда она будет готова?» Kairos проигрывает очередь задач с тем временем, которое вы реально отмечаете таймером, включая дни без работы, и отвечает диапазоном в «Почему на этом месте?»: никогда одной датой. Вид «Неделя» показывает, сколько неделя вмещает на деле, таймер — сколько заняли сопоставимые задачи, когда ваша затянулась, а командные прогнозы дают срок каждой задачи. Диапазоны проверяются на ваших последних задачах.</string>
+    <string name="stats_suspect_open">Проверить таймеры (%1$d)…</string>
+    <string name="stats_suspect_title">Проверить таймеры</string>
+    <string name="stats_suspect_intro">Эти сеансы длились намного дольше, чем обычно занимает их задача: часто это забытый таймер. Отметьте те, которые нужно сократить до обычной длительности. Выученные длительности, статистика и прогнозы это учтут.</string>
+    <string name="stats_suspect_row">%1$s: %2$s → %3$s</string>
+    <string name="stats_suspect_done">Исправлено таймеров: %1$d</string>
+    <string name="whatif_open">А если взяться?</string>
+    <string name="whatif_none">Ни один из ваших сроков не страдает.</string>
+    <string name="whatif_hurt">«%1$s»: срок соблюдается в %2$d случаях из 10 вместо %3$d.</string>
+    <string name="whatif_more">… и ещё затронуто сроков: %1$d.</string>
+    <string name="whatif_unavailable">Пока недостаточно времени по таймеру, чтобы ответить: оно нужно в 4 из последних 8 недель.</string>
+    <string name="card_suspect_timers_title">Проверка таймеров</string>
+    <string name="card_suspect_timers_body">Забытый таймер искажает всё, что учится на вашем реальном времени. В статистике «Проверить таймеры…» показывает сеансы намного длиннее обычного для их задачи и предлагает сократить их до обычной длительности. Ничего не исправляется без вашего согласия, а «Отменить» возвращает прежние длительности.</string>
 </resources>
