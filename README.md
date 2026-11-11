@@ -384,9 +384,10 @@ only.
   your estimates held over the period and which typed durations the model
   disputes.
 - **What lingers**: a task with no date no longer sinks for good under the
-  dated ones: 30 days after its creation it counts as if it were due (an
-  implicit deadline, for its score only, never “overdue”; adjustable, 0 turns
-  it off). In the Recap tab, the “Backlog, no date” list puts the oldest first,
+  dated ones: once it is older than 4 of your 5 undated tasks when done, it
+  counts as if it were due (an implicit deadline, learned from your own pace,
+  30 days until there is enough history; for its score only, never “overdue”;
+  adjustable, 0 turns it off). In the Recap tab, the “Backlog, no date” list puts the oldest first,
   counts and marks the tasks that linger, and a tap schedules one, today
   included.
 - **Working days and holidays**: built-in French calendar, with extra dates

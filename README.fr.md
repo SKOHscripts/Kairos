@@ -407,9 +407,10 @@ son estimation vient des seules tâches d’équipe terminées.
   estimations ont tenu sur la période et quelles durées saisies le modèle
   conteste.
 - **Ce qui traîne** : une tâche sans date ne s’enfonce plus pour toujours sous
-  les tâches datées : 30 jours après sa création, elle compte comme si elle
-  était due (une échéance implicite, pour son score seulement, jamais « en
-  retard » ; réglable, 0 la coupe). Dans l’onglet Bilan, la liste « Backlog,
+  les tâches datées : plus vieille que 4 de tes tâches sans date sur 5 une fois
+  faites, elle compte comme si elle était due (une échéance implicite, apprise
+  de ton rythme, 30 jours tant que l’historique ne suffit pas ; pour son score
+  seulement, jamais « en retard » ; réglable, 0 la coupe). Dans l’onglet Bilan, la liste « Backlog,
   sans date » met les plus anciennes d’abord, compte et signale celles qui
   traînent, et un toucher en programme une, aujourd’hui compris.
 - **Jours ouvrés et fériés** : calendrier français intégré, dates

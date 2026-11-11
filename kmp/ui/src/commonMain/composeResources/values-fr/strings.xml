@@ -2040,5 +2040,5 @@
     <string name="card_model_review_title">Ce que Kairos apprend</string>
     <string name="card_model_review_body">Dans le Bilan, une carte dit où en est le modèle qui estime tes durées : tâches apprises, erreur face à la durée par défaut, fourchette tenue, et sa convergence semaine après semaine.</string>
     <string name="card_lingering_title">Ce qui traîne</string>
-    <string name="card_lingering_body">Une tâche sans date remonte d’elle-même : au bout de 30 jours, elle compte comme si elle était due. Dans le Bilan, le backlog sans date liste les plus anciennes d’abord, signale celles qui traînent, et un toucher en programme une.</string>
+    <string name="card_lingering_body">Une tâche sans date remonte d’elle-même : plus vieille que 4 de tes tâches sans date sur 5 une fois faites, elle compte comme si elle était due. Dans le Bilan, le backlog sans date liste les plus anciennes d’abord, signale celles qui traînent, et un toucher en programme une.</string>
 </resources>
