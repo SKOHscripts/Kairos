@@ -283,6 +283,9 @@
     <string name="done_hint">Уже завершены сегодня.</string>
     <string name="backlog_title">Бэклог, без даты</string>
     <string name="backlog_hint">Задачи без срока и без запланированной даты: они заполняют свободные места в расписании по рейтингу, но ни один день недельного вида их не показывает. Задай срок или запланированную дату, чтобы привязать их к дню.</string>
+    <string name="backlog_title_lingering">Бэклог, без даты (%1$d) · висят: %2$d</string>
+    <string name="backlog_implicit_hint">Через %1$d дн. без даты задача поднимается, будто её срок наступил: висящие его прошли. Коснись задачи, чтобы запланировать её.</string>
+    <string name="backlog_implicit_hint_learned">Через %1$d дн. без даты задача старше 4 из 5 твоих выполненных задач без даты: она поднимается, будто её срок наступил. Коснись задачи, чтобы запланировать её.</string>
     <string name="filter_title">Поиск / фильтр</string>
     <string name="filter_active">фильтр включен</string>
     <string name="filter_search">Поиск</string>
@@ -302,6 +305,8 @@
     <string name="why_scheduled_tomorrow">Запланирована на завтра</string>
     <string name="why_scheduled_in">Запланирована через %1$d дн.</string>
     <string name="why_no_date">Срока нет</string>
+    <string name="why_implicit_in">Без даты: поднимется как срок через %1$d дн.</string>
+    <string name="why_implicit_reached">Слишком долго без даты: максимальная срочность</string>
     <string name="why_effort_points">Трудоемкость: %1$s б.</string>
     <string name="why_effort_minutes">Трудоемкость исходя из длительности</string>
     <string name="why_effort_default">Трудоемкость по умолчанию</string>
@@ -548,6 +553,11 @@
     <string name="setting_urgency_horizon_help">За сколько дней до срока срочность начинает расти.</string>
     <string name="setting_urgency_peak">Максимальный вес срочности</string>
     <string name="setting_urgency_peak_help">Что добавляет наступивший срок, в тех же единицах, что и ценность приоритета.</string>
+    <string name="setting_implicit_deadline">Неявный срок задач без даты (дни)</string>
+    <string name="setting_implicit_deadline_help">Задача без срока и без запланированной даты считается для рейтинга так, будто её срок наступает через это число дней после создания: со временем она поднимается. Пусто: Kairos изучает значение по твоему ритму (30 дн., пока истории мало). 0 отключает.</string>
+    <string name="settings_linger_learned">Применяется, изучено по твоему ритму: %1$d дн. 4 из 5 твоих задач без даты выполняются раньше этого возраста; задача старше — зависла.</string>
+    <string name="settings_linger_pending">Пока мало истории, чтобы изучить (30 личных задач): действуют %1$d дн. по умолчанию.</string>
+    <string name="settings_linger_info">Действует твоё значение. Для сведения: твой ритм дал бы %1$d дн.: 4 из 5 твоих задач без даты выполняются раньше. Очисти поле, чтобы использовать его.</string>
     <string name="setting_default_points">Баллы по умолчанию</string>
     <string name="setting_default_points_help">Усилие задачи без баллов и без длительности (делитель рейтинга).</string>
     <string name="setting_dip_enabled">Включить послеобеденный спад</string>
@@ -2027,4 +2037,6 @@
     <string name="model_contested">Модель оспаривает введенные длительности: %1$d.</string>
     <string name="card_model_review_title">Чему учится Kairos</string>
     <string name="card_model_review_body">В «Итогах» карточка показывает, где находится модель, которая оценивает длительности: изученные задачи, ошибка по сравнению с длительностью по умолчанию, попадание в диапазон и сходимость неделя за неделей.</string>
+    <string name="card_lingering_title">Что зависло</string>
+    <string name="card_lingering_body">Задача без даты поднимается сама: когда она старше 4 из 5 твоих выполненных задач без даты, она считается так, будто её срок наступил. В «Итогах» бэклог без даты показывает сначала самые старые, отмечает зависшие, и одно касание планирует задачу.</string>
 </resources>

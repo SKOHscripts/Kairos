@@ -285,6 +285,9 @@
     <string name="done_hint">Déjà terminées aujourd’hui.</string>
     <string name="backlog_title">Backlog, sans date</string>
     <string name="backlog_hint">Tâches sans échéance ni date programmée : elles comblent les trous de l’agenda selon leur score, mais aucun jour de la semaine ne les affiche. Pose une échéance ou une date programmée pour les attacher à un jour.</string>
+    <string name="backlog_title_lingering">Backlog, sans date (%1$d) · qui traînent : %2$d</string>
+    <string name="backlog_implicit_hint">Sans date depuis %1$d j, une tâche remonte comme si elle était due : celles qui traînent l’ont dépassé. Touche une tâche pour la programmer.</string>
+    <string name="backlog_implicit_hint_learned">Sans date depuis %1$d j, une tâche est plus vieille que 4 de tes tâches sans date sur 5 une fois faites : elle remonte comme si elle était due. Touche une tâche pour la programmer.</string>
     <string name="filter_title">Rechercher / filtrer</string>
     <string name="filter_active">filtre actif</string>
     <string name="filter_search">Recherche</string>
@@ -304,6 +307,8 @@
     <string name="why_scheduled_tomorrow">Date programmée demain</string>
     <string name="why_scheduled_in">Date programmée dans %1$d j</string>
     <string name="why_no_date">Aucune échéance</string>
+    <string name="why_implicit_in">Sans date : remonte comme une échéance dans %1$d j</string>
+    <string name="why_implicit_reached">Sans date depuis trop longtemps : urgence au maximum</string>
     <string name="why_effort_points">Effort %1$s pts</string>
     <string name="why_effort_minutes">Effort déduit de la durée</string>
     <string name="why_effort_default">Effort par défaut</string>
@@ -550,6 +555,11 @@
     <string name="setting_urgency_horizon_help">Nombre de jours avant l’échéance où l’urgence commence à monter.</string>
     <string name="setting_urgency_peak">Poids maximal de l’urgence</string>
     <string name="setting_urgency_peak_help">Ce qu’ajoute une échéance atteinte, dans la même unité que la valeur de la priorité.</string>
+    <string name="setting_implicit_deadline">Échéance implicite des tâches sans date (jours)</string>
+    <string name="setting_implicit_deadline_help">Une tâche sans échéance ni date programmée compte, pour son score, comme si elle était due ce nombre de jours après sa création : elle finit par remonter. Vide : Kairos l’apprend de ton rythme (30 j faute d’historique). 0 la coupe.</string>
+    <string name="settings_linger_learned">Appliquée, apprise de ton rythme : %1$d j. 4 de tes tâches sans date sur 5 sont faites avant cet âge ; plus vieille, une tâche traîne.</string>
+    <string name="settings_linger_pending">Pas encore assez d’historique pour l’apprendre (30 tâches perso) : %1$d j par défaut s’appliquent.</string>
+    <string name="settings_linger_info">Ta valeur s’applique. Pour info, ton rythme donnerait %1$d j : 4 de tes tâches sans date sur 5 sont faites avant. Vide le champ pour l’utiliser.</string>
     <string name="setting_default_points">Points par défaut</string>
     <string name="setting_default_points_help">Effort d’une tâche sans points ni durée (diviseur du score).</string>
     <string name="setting_dip_enabled">Activer le creux de l’après-midi</string>
@@ -2030,4 +2040,6 @@
     <string name="model_contested">Le modèle conteste %1$d durée(s) saisie(s).</string>
     <string name="card_model_review_title">Ce que Kairos apprend</string>
     <string name="card_model_review_body">Dans le Bilan, une carte dit où en est le modèle qui estime tes durées : tâches apprises, erreur face à la durée par défaut, fourchette tenue, et sa convergence semaine après semaine.</string>
+    <string name="card_lingering_title">Ce qui traîne</string>
+    <string name="card_lingering_body">Une tâche sans date remonte d’elle-même : plus vieille que 4 de tes tâches sans date sur 5 une fois faites, elle compte comme si elle était due. Dans le Bilan, le backlog sans date liste les plus anciennes d’abord, signale celles qui traînent, et un toucher en programme une.</string>
 </resources>

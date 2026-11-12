@@ -32,7 +32,10 @@ un autre jour.
   listes des jours, jamais la grille.
 - « Backlog, sans date (N) », replié : les tâches à faire sans échéance ni
   date programmée, non bloquées, qui sinon n'apparaîtraient nulle part dans
-  la grille.
+  la grille. Depuis le 2026-11-11, c'est la revue de ce qui traîne
+  (`taches-qui-trainent.md`) : « · qui traînent : N » au titre, plus
+  anciennes d'abord, « traîne depuis N j », toucher une tâche ouvre « Déplacer »
+  (aujourd'hui compris).
 - Sept cartes, du lundi au dimanche (« mar. 29/09 ») ; aujourd'hui en
   conteneur secondaire avec un contour. Dans chaque carte : les créneaux
   (« Déjeuner (12h00-13h00) », occurrences des récurrents comprises ; un créneau importé d'un calendrier ou lu dans un
@@ -105,8 +108,8 @@ Depuis le jalon E1 de l'espace Équipe, l'écran de la vue Semaine lit `reposito
   la courante). Changer de destination remet les deux à `null` ;
   `onOpenDay(jour)` pose `day` et va sur « Jour ».
 - `WeekScreen(services, nav, onOpenDay)` : colonne défilante de 1 400 dp au
-  plus ; `PeriodHeader` (`bilan.md`), `FilterCard`, `RecapCard`, puis backlog de la
-  vue Jour (`DayView.build(...).backlog` d'aujourd'hui) ; grille :
+  plus ; `PeriodHeader` (`bilan.md`), `FilterCard`, `RecapCard`, `ModelCard`, puis backlog de la
+  vue Jour (`DayView.build(...).backlog` d'aujourd'hui, `BacklogList`, `taches-qui-trainent.md` § Revue) ; grille :
   `BoxWithConstraints`, `Row` à cartes `weight(1f)` et hauteur
   intrinsèque si 7 × 140 dp + 6 × 8 dp tiennent, sinon `FlowRow`
   (`maxItemsInEachRow` = colonnes) de cartes de largeur égale, autant de

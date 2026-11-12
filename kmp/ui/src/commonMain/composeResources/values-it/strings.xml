@@ -283,6 +283,9 @@
     <string name="done_hint">Già terminate oggi.</string>
     <string name="backlog_title">Backlog, senza data</string>
     <string name="backlog_hint">Attività senza scadenza né data programmata: riempiono i vuoti dell’agenda in base al punteggio, ma nessun giorno della settimana le mostra. Imposta una scadenza o una data programmata per legarle a un giorno.</string>
+    <string name="backlog_title_lingering">Backlog, senza data (%1$d) · ferme da tempo: %2$d</string>
+    <string name="backlog_implicit_hint">Dopo %1$d g senza data, un’attività risale come se fosse in scadenza: quelle ferme da tempo l’hanno superata. Tocca un’attività per programmarla.</string>
+    <string name="backlog_implicit_hint_learned">Dopo %1$d g senza data, un’attività è più vecchia di 4 tue attività senza data su 5 una volta fatte: risale come se fosse in scadenza. Tocca un’attività per programmarla.</string>
     <string name="filter_title">Cerca / filtra</string>
     <string name="filter_active">filtro attivo</string>
     <string name="filter_search">Cerca</string>
@@ -302,6 +305,8 @@
     <string name="why_scheduled_tomorrow">Programmata per domani</string>
     <string name="why_scheduled_in">Programmata tra %1$d g</string>
     <string name="why_no_date">Nessuna scadenza</string>
+    <string name="why_implicit_in">Senza data: risale come una scadenza tra %1$d g</string>
+    <string name="why_implicit_reached">Senza data da troppo tempo: urgenza massima</string>
     <string name="why_effort_points">Impegno %1$s pt</string>
     <string name="why_effort_minutes">Impegno ricavato dalla durata</string>
     <string name="why_effort_default">Impegno predefinito</string>
@@ -548,6 +553,11 @@
     <string name="setting_urgency_horizon_help">Numero di giorni prima della scadenza in cui l’urgenza inizia a salire.</string>
     <string name="setting_urgency_peak">Peso massimo dell’urgenza</string>
     <string name="setting_urgency_peak_help">Ciò che aggiunge una scadenza raggiunta, nella stessa unità del valore della priorità.</string>
+    <string name="setting_implicit_deadline">Scadenza implicita delle attività senza data (giorni)</string>
+    <string name="setting_implicit_deadline_help">Un’attività senza scadenza né data programmata conta, per il punteggio, come se scadesse questo numero di giorni dopo la creazione: finisce per risalire. Vuoto: Kairos lo impara dal tuo ritmo (30 g senza storico sufficiente). 0 la disattiva.</string>
+    <string name="settings_linger_learned">Applicata, appresa dal tuo ritmo: %1$d g. 4 tue attività senza data su 5 vengono fatte prima di questa età; più vecchia, un’attività resta ferma.</string>
+    <string name="settings_linger_pending">Storico ancora insufficiente per impararla (30 attività personali): valgono %1$d g predefiniti.</string>
+    <string name="settings_linger_info">Vale il tuo valore. Per informazione, il tuo ritmo darebbe %1$d g: 4 tue attività senza data su 5 vengono fatte prima. Svuota il campo per usarlo.</string>
     <string name="setting_default_points">Punti predefiniti</string>
     <string name="setting_default_points_help">Sforzo di un’attività senza punti né durata (divisore del punteggio).</string>
     <string name="setting_dip_enabled">Attiva il calo del pomeriggio</string>
@@ -2027,4 +2037,6 @@
     <string name="model_contested">Il modello contesta %1$d durata/e inserita/e.</string>
     <string name="card_model_review_title">Cosa impara Kairos</string>
     <string name="card_model_review_body">Nel Bilancio, una scheda mostra a che punto è il modello che stima le tue durate: attività apprese, errore rispetto alla durata predefinita, intervallo rispettato e la sua convergenza settimana dopo settimana.</string>
+    <string name="card_lingering_title">Ciò che resta fermo</string>
+    <string name="card_lingering_body">Un’attività senza data risale da sola: quando è più vecchia di 4 tue attività senza data su 5 una volta fatte, conta come se fosse in scadenza. Nel Bilancio, il backlog senza data mostra prima le più vecchie, segnala quelle ferme da tempo e un tocco ne programma una.</string>
 </resources>

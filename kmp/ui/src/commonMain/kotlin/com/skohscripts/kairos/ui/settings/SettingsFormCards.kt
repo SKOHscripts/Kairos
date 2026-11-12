@@ -161,6 +161,8 @@ import com.skohscripts.kairos.ui.generated.resources.setting_update_check
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_horizon
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_horizon_help
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_peak
+import com.skohscripts.kairos.ui.generated.resources.setting_implicit_deadline
+import com.skohscripts.kairos.ui.generated.resources.setting_implicit_deadline_help
 import com.skohscripts.kairos.ui.generated.resources.setting_urgency_peak_help
 import com.skohscripts.kairos.ui.generated.resources.setting_workday_end
 import com.skohscripts.kairos.ui.generated.resources.setting_workday_end_help
@@ -181,6 +183,7 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "priorityValueBase" to FieldText(Res.string.setting_priority_base, Res.string.setting_priority_base_help),
     "urgencyHorizonDays" to FieldText(Res.string.setting_urgency_horizon, Res.string.setting_urgency_horizon_help),
     "urgencyPeak" to FieldText(Res.string.setting_urgency_peak, Res.string.setting_urgency_peak_help),
+    "implicitDeadlineDays" to FieldText(Res.string.setting_implicit_deadline, Res.string.setting_implicit_deadline_help),
     "defaultFibonacciPoints" to FieldText(Res.string.setting_default_points, Res.string.setting_default_points_help),
     "cognitiveDipEnabled" to FieldText(Res.string.setting_dip_enabled),
     "cognitiveDipStartHour" to FieldText(Res.string.setting_dip_start),
@@ -263,7 +266,7 @@ private val STATS = Section(Res.string.settings_section_stats, null, KairosIcons
 private val ADVANCED = listOf(
     Section(
         Res.string.settings_section_wsjf, Res.string.settings_section_wsjf_body, KairosIcons.Leaderboard,
-        listOf("priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "defaultFibonacciPoints"), advanced = true,
+        listOf("priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "defaultFibonacciPoints", "implicitDeadlineDays"), advanced = true,
     ),
     Section(
         Res.string.settings_section_dip,
@@ -338,6 +341,8 @@ internal fun SettingsFormCards(
     onChange: (String, String) -> Unit,
     /** Sous l'interrupteur « Estimer par machine learning » : l'état de la vérification (docs/spec/estimateur-modele.md § Interface). */
     learningStatus: @Composable () -> Unit = {},
+    /** Sous l'échéance implicite : la valeur calculée du rythme ; [manual] si le champ est rempli (docs/spec/taches-qui-trainent.md). */
+    lingerStatus: @Composable (manual: Boolean) -> Unit = {},
 ) {
     when (category) {
         SettingsCategory.DAY -> {
@@ -360,7 +365,9 @@ internal fun SettingsFormCards(
                 }
             }
             SectionCard(GUARDS, values, errors, onChange)
-            AdvancedGroup(values, errors, onChange)
+            AdvancedGroup(values, errors, onChange) {
+                lingerStatus(values["implicitDeadlineDays"].orEmpty().isNotBlank())
+            }
         }
         SettingsCategory.TRACKING -> {
             GuideSpot(GuideSection.SETTINGS_CHRONO) { SectionCard(CHRONO, values, errors, onChange) }
@@ -411,7 +418,7 @@ private fun shown(key: String, values: Map<String, String>): Boolean {
  * s'ouvrent d'office quand un de leurs champs est en erreur (un enregistrement refusé ne doit pas cacher le champ fautif).
  */
 @Composable
-private fun AdvancedGroup(values: Map<String, String>, errors: Map<String, FieldError>, onChange: (String, String) -> Unit) {
+private fun AdvancedGroup(values: Map<String, String>, errors: Map<String, FieldError>, onChange: (String, String) -> Unit, scoreStatus: @Composable () -> Unit) {
     val advanced = ADVANCED
     var userOpen by rememberSaveable { mutableStateOf(false) }
     val open = userOpen || advanced.any { section -> section.keys.any { it in errors } }
@@ -423,7 +430,7 @@ private fun AdvancedGroup(values: Map<String, String>, errors: Map<String, Field
                 Text(stringResource(Res.string.settings_advanced_body), style = MaterialTheme.typography.bodySmall)
             }
         }
-        if (open) advanced.forEach { section -> SectionCard(section, values, errors, onChange) }
+        if (open) advanced.forEach { section -> SectionCard(section, values, errors, onChange, after = if (section === advanced.first()) scoreStatus else ({})) }
     }
 }
 

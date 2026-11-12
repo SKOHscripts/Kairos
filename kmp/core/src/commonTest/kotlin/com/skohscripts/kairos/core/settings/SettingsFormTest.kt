@@ -105,6 +105,16 @@ class SettingsFormTest {
     }
 
     @Test
+    fun the_implicit_deadline_may_stay_empty() {
+        // Vide : Kairos l'apprend (docs/spec/taches-qui-trainent.md) ; une valeur saisie, 0 compris, est gardée.
+        assertEquals("", SettingsForm.values(base)["implicitDeadlineDays"])
+        assertNull(validate("implicitDeadlineDays" to " ").settings!!.implicitDeadlineDays)
+        assertEquals(45, validate("implicitDeadlineDays" to "45").settings!!.implicitDeadlineDays)
+        assertEquals(0, validate("implicitDeadlineDays" to "0").settings!!.implicitDeadlineDays)
+        assertEquals(FieldError(FieldErrorKind.TOO_SMALL, "0"), validate("implicitDeadlineDays" to "-1").fieldErrors["implicitDeadlineDays"])
+    }
+
+    @Test
     fun each_field_reports_its_own_error_and_nothing_is_saved() {
         val result = validate(
             "defaultTaskDurationMinutes" to "0", "workdayEndHour" to "24", "urgencyHorizonDays" to "",

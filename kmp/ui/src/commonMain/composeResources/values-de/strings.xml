@@ -283,6 +283,9 @@
     <string name="done_hint">Heute bereits abgeschlossen.</string>
     <string name="backlog_title">Backlog, ohne Datum</string>
     <string name="backlog_hint">Aufgaben ohne Frist und ohne geplantes Datum: Sie füllen die Lücken des Kalenders nach Score, aber kein Tag der Wochenansicht zeigt sie an. Gib ihnen eine Frist oder ein geplantes Datum, um sie an einen Tag zu binden.</string>
+    <string name="backlog_title_lingering">Backlog, ohne Datum (%1$d) · liegen brach: %2$d</string>
+    <string name="backlog_implicit_hint">Nach %1$d T. ohne Datum steigt eine Aufgabe, als wäre sie fällig: Die brachliegenden haben das überschritten. Tippe auf eine Aufgabe, um sie zu planen.</string>
+    <string name="backlog_implicit_hint_learned">Nach %1$d T. ohne Datum ist eine Aufgabe älter als 4 von 5 deiner erledigten undatierten Aufgaben: Sie steigt, als wäre sie fällig. Tippe auf eine Aufgabe, um sie zu planen.</string>
     <string name="filter_title">Suchen / filtern</string>
     <string name="filter_active">Filter aktiv</string>
     <string name="filter_search">Suche</string>
@@ -302,6 +305,8 @@
     <string name="why_scheduled_tomorrow">Morgen geplant</string>
     <string name="why_scheduled_in">In %1$d T. geplant</string>
     <string name="why_no_date">Keine Frist</string>
+    <string name="why_implicit_in">Ohne Datum: steigt wie eine Frist in %1$d T.</string>
+    <string name="why_implicit_reached">Zu lange ohne Datum: maximale Dringlichkeit</string>
     <string name="why_effort_points">Aufwand %1$s Pkt.</string>
     <string name="why_effort_minutes">Aufwand aus der Dauer abgeleitet</string>
     <string name="why_effort_default">Standardaufwand</string>
@@ -548,6 +553,11 @@
     <string name="setting_urgency_horizon_help">Anzahl der Tage vor der Frist, ab denen die Dringlichkeit steigt.</string>
     <string name="setting_urgency_peak">Maximales Gewicht der Dringlichkeit</string>
     <string name="setting_urgency_peak_help">Was eine erreichte Frist hinzufügt, in derselben Einheit wie der Wert der Priorität.</string>
+    <string name="setting_implicit_deadline">Implizite Frist undatierter Aufgaben (Tage)</string>
+    <string name="setting_implicit_deadline_help">Eine Aufgabe ohne Frist und ohne geplantes Datum zählt für ihren Score, als wäre sie so viele Tage nach ihrer Erstellung fällig: Sie steigt irgendwann wieder auf. Leer: Kairos lernt den Wert aus deinem Rhythmus (30 T. ohne genug Historie). 0 schaltet das aus.</string>
+    <string name="settings_linger_learned">Angewendet, aus deinem Rhythmus gelernt: %1$d T. 4 von 5 deiner undatierten Aufgaben werden vor diesem Alter erledigt; ist eine älter, liegt sie brach.</string>
+    <string name="settings_linger_pending">Noch nicht genug Historie zum Lernen (30 persönliche Aufgaben): Es gelten standardmäßig %1$d T.</string>
+    <string name="settings_linger_info">Dein Wert gilt. Zur Info: Dein Rhythmus ergäbe %1$d T.: 4 von 5 deiner undatierten Aufgaben werden vorher erledigt. Leere das Feld, um ihn zu nutzen.</string>
     <string name="setting_default_points">Standardpunkte</string>
     <string name="setting_default_points_help">Aufwand einer Aufgabe ohne Punkte und ohne Dauer (teilt den Score).</string>
     <string name="setting_dip_enabled">Nachmittagstief aktivieren</string>
@@ -2027,4 +2037,6 @@
     <string name="model_contested">Das Modell bezweifelt %1$d eingegebene Dauer(n).</string>
     <string name="card_model_review_title">Was Kairos lernt</string>
     <string name="card_model_review_body">In der Bilanz zeigt eine Karte, wo das Modell steht, das deine Dauern schätzt: gelernte Aufgaben, Fehler gegenüber der Standarddauer, eingehaltene Spanne und seine Konvergenz Woche für Woche.</string>
+    <string name="card_lingering_title">Was liegen bleibt</string>
+    <string name="card_lingering_body">Eine Aufgabe ohne Datum steigt von selbst: Ist sie älter als 4 von 5 deiner erledigten undatierten Aufgaben, zählt sie, als wäre sie fällig. In der Bilanz zeigt der Backlog ohne Datum die ältesten zuerst, markiert die brachliegenden, und ein Tippen plant eine ein.</string>
 </resources>

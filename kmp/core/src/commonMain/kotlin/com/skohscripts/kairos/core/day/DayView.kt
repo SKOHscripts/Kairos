@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.core.day
 
+import com.skohscripts.kairos.core.forecast.Survival
+import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.engine.Dependencies
 import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.core.engine.Recurrence
@@ -163,6 +165,10 @@ data class DayView(
     val inheritedDeadline: Map<Long, String> = emptyMap(),
     /** Agrégat de chaque tâche qui a des sous-tâches (docs/spec/sous-taches.md § Agrégation) : nombre, durées, temps passé. */
     val rollups: Map<Long, TaskTree.Rollup> = emptyMap(),
+    /** Réglages du score : ceux de l'instantané, échéance implicite apprise comprise (docs/spec/taches-qui-trainent.md). */
+    val scoringSettings: Settings = Settings(),
+    /** L'échéance implicite de [scoringSettings] vient du rythme (`Survival.lingerDays`), pas de la valeur réglée. */
+    val implicitDeadlineLearned: Boolean = false,
 ) {
     /** Bandeau de surcharge : plus de P0 non bloquées que le seuil des réglages. */
     val priorityOverload: Boolean get() = priorityOverloadCount > priorityOverloadThreshold
@@ -181,7 +187,9 @@ data class DayView(
             filter: DayFilter = DayFilter(),
             instant: Instant = (now ?: day.atTime(0, 0)).toInstant(timeZone),
         ): DayView {
-            val settings = snapshot.settings
+            // Échéance implicite apprise de l'historique, seulement si l'utilisateur n'en a pas saisi : le moteur la reçoit par les réglages.
+            val learnedLinger = if (snapshot.settings.implicitDeadlineDays == null) Survival.lingerDays(snapshot, instant, timeZone) else null
+            val settings = learnedLinger?.let { snapshot.settings.copy(implicitDeadlineDays = it) } ?: snapshot.settings
             val holidays = Workdays.holidaysFor(day, settings.holidaysFr, settings.extraHolidays)
             val stored = snapshot.tasks.filter { it.status != TaskStatus.ARCHIVED }
             // Échéance héritée (docs/spec/sous-taches.md § Échéance) : une sous-tâche à faire sans échéance, ou plus tardive que
@@ -317,6 +325,8 @@ data class DayView(
                 dayMarks = snapshot.dayMarks.filter { it.covers(day) }.sortedBy { it.title },
                 inheritedDeadline = deadlineFrom.mapValues { it.value.title },
                 rollups = rollups,
+                scoringSettings = settings,
+                implicitDeadlineLearned = learnedLinger != null,
                 spentByTask = spent,
                 running = running,
                 runningTask = runningTask,

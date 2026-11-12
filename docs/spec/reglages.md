@@ -59,8 +59,8 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
      quatre valent leur défaut), **Garde-fous**
      (seuils « traîne » en retard et sans date, seuil de surcharge P0), puis le groupe replié **« Avancé : comment
      les tâches sont ordonnées »** (`planning-personnalise.md` lot A, ouvert d'office quand un de ses champs est en
-     erreur) : **Score de priorité** (base de valeur, horizon d'urgence, poids maximal de l'urgence, points par
-     défaut) et **Creux de l'après-midi** (activé, début, creux le plus profond, fin, force de la pénalité).
+     erreur) : **Score de priorité** (base de valeur, horizon d'urgence, poids maximal de l'urgence, échéance implicite des tâches
+     sans date, vide = apprise du rythme, `taches-qui-trainent.md`, points par défaut) et **Creux de l'après-midi** (activé, début, creux le plus profond, fin, force de la pénalité).
   4. **Chrono et statistiques** : **Alertes du chrono** (dans cet ordre depuis 4.2.0 : pause du pomodoro, chrono oublié, arrêt
      automatique du chrono après 0-1 440 min, 240 par défaut, 0 = jamais, `temps-reel-chrono.md` § Garde-fou, cloches avec
      les alertes, `temps-reel-chrono.md` § Cloches),
@@ -173,7 +173,7 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
   `TEXT` normalisé par `UiLanguage.normalize`, jamais refusé), bornes
   incluses, borne basse exclue (`minExclusive`), lecture et écriture.
   Bornes de `app/config.py` : durée par défaut ≥ 1 ; marge, horizon, poids
-  de l'urgence, seuils « traîne » et de surcharge, pénalité du creux, seuils
+  de l'urgence, échéance implicite, seuils « traîne » et de surcharge, pénalité du creux, seuils
   du chrono ≥ 0 ; heures 0-23 ; base de valeur > 0 ; points par défaut ≥ 1 ;
   fenêtre des stats ≥ 1.
 - `values(settings)` : texte de chaque champ (« 4 » plutôt que « 4.0 »,

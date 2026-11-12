@@ -62,6 +62,10 @@ import com.skohscripts.kairos.ui.day.PriorityBadge
 import com.skohscripts.kairos.ui.day.duration
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.backlog_hint
+import com.skohscripts.kairos.ui.generated.resources.backlog_implicit_hint
+import com.skohscripts.kairos.ui.generated.resources.backlog_implicit_hint_learned
+import com.skohscripts.kairos.ui.generated.resources.backlog_title_lingering
+import com.skohscripts.kairos.ui.generated.resources.tag_stale
 import com.skohscripts.kairos.ui.generated.resources.backlog_title
 import com.skohscripts.kairos.ui.generated.resources.week_block
 import com.skohscripts.kairos.ui.generated.resources.view_month
@@ -88,6 +92,7 @@ import com.skohscripts.kairos.ui.theme.LocalKairosExtraColors
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.daysUntil
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
@@ -98,6 +103,8 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import com.skohscripts.kairos.core.engine.Scheduling
+import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskSpace
 import com.skohscripts.kairos.core.model.TaskStatus
@@ -135,7 +142,8 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
     var filterOpen by remember { mutableStateOf(false) }
     var backlogOpen by remember { mutableStateOf(false) }
     val week = remember(snapshot, nav.week, filter, today) { WeekView.build(snapshot, nav.week ?: today, now, timeZone, filter) }
-    val backlog = remember(snapshot, filter, today) { DayView.build(snapshot, today, null, timeZone, filter, instant = now).backlog }
+    // Backlog et réglages du score (échéance implicite apprise du rythme, docs/spec/taches-qui-trainent.md).
+    val todayView = remember(snapshot, filter, today) { DayView.build(snapshot, today, null, timeZone, filter, instant = now) }
     val projects = remember(snapshot) { snapshot.tasks.map { it.projectTag }.filter { it.isNotEmpty() }.distinct().sorted() }
     val scope = rememberCoroutineScope()
     val undo = LocalUndoMessages.current
@@ -188,7 +196,7 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
             RecapCard(recap, stringResource(Res.string.recap_title_week), stringResource(Res.string.week_title, Dates.dayMonth(monday, language)), today, language, forecast)
             // Ce que le modèle apprend (docs/spec/bilan.md § Ce que Kairos apprend) : une carte à part, hors du bilan copié.
             ModelCard(services, stored, monday, sunday, today, language)
-            BacklogList(backlog.map { it.title }, backlogOpen) { backlogOpen = !backlogOpen }
+            BacklogList(todayView.backlog, todayView.scoringSettings, todayView.implicitDeadlineLearned, move, backlogOpen) { backlogOpen = !backlogOpen }
             // Sept colonnes égales quand elles tiennent (140 dp chacune au moins), sinon autant de colonnes égales de
             // 160 dp au moins que la largeur en permet : les cartes remplissent la ligne, sans moitié droite vide.
             BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -238,16 +246,42 @@ internal fun WeekMonthSwitch(nav: NavState, today: LocalDate) {
     }
 }
 
+/**
+ * Revue de ce qui traîne (docs/spec/taches-qui-trainent.md) : le backlog sans date, du plus ancien au plus récent ; une
+ * tâche dont l'échéance implicite est atteinte porte « traîne depuis N j » ; toucher une tâche ouvre « Déplacer ».
+ */
 @Composable
-private fun BacklogList(titles: List<String>, open: Boolean, onToggle: () -> Unit) {
+private fun BacklogList(tasks: List<Task>, settings: Settings, learned: Boolean, move: MoveContext, open: Boolean, onToggle: () -> Unit) {
+    val sorted = remember(tasks) { tasks.sortedBy { it.createdAt } }
+    val lingering = sorted.count { Scheduling.isLingering(it, move.today, settings) }
     Column {
         KairosTextButton(onClick = onToggle, modifier = Modifier.expandedState(open), contentPadding = KairosButtonIconPadding) {
             Icon(if (open) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
-            Text("${stringResource(Res.string.backlog_title)} (${titles.size})", modifier = Modifier.padding(start = 4.dp))
+            val title = if (lingering > 0) {
+                stringResource(Res.string.backlog_title_lingering, sorted.size, lingering)
+            } else {
+                "${stringResource(Res.string.backlog_title)} (${sorted.size})"
+            }
+            Text(title, modifier = Modifier.padding(start = 4.dp))
         }
         if (open) {
             Text(stringResource(Res.string.backlog_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            titles.forEach { Text("• $it", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp)) }
+            if (settings.implicitDeadline > 0) {
+                Text(
+                    stringResource(if (learned) Res.string.backlog_implicit_hint_learned else Res.string.backlog_implicit_hint, settings.implicitDeadline),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+            sorted.forEach { task ->
+                MovableTask(task, from = null, move) {
+                    Text(task.title, style = MaterialTheme.typography.bodyMedium)
+                    if (Scheduling.isLingering(task, move.today, settings)) {
+                        WarnBadge(stringResource(Res.string.tag_stale, task.createdAt.toLocalDateTime(TimeZone.UTC).date.daysUntil(move.today)))
+                    }
+                }
+            }
         }
     }
 }
@@ -326,8 +360,9 @@ private class MoveContext(val days: List<WeekDay>, val today: LocalDate, val lan
 /**
  * Jours proposés par « Déplacer » depuis le jour [from] : ceux de la semaine affichée à partir d'aujourd'hui, sauf [from]
  * (programmer hier ramènerait la tâche dans « Aujourd'hui » de la vue Jour ; « Choisir une date… » reste libre).
+ * [from] nul : tâche sans date du backlog, aujourd'hui compris.
  */
-internal fun moveTargets(days: List<WeekDay>, from: LocalDate, today: LocalDate): List<WeekDay> =
+internal fun moveTargets(days: List<WeekDay>, from: LocalDate?, today: LocalDate): List<WeekDay> =
     days.filter { it.date >= today && it.date != from }
 
 /**
@@ -336,7 +371,7 @@ internal fun moveTargets(days: List<WeekDay>, from: LocalDate, today: LocalDate)
  * colonne de 140 dp. Une tâche d'équipe reste une ligne inerte (pas de date programmée, pas de faux bouton).
  */
 @Composable
-private fun MovableTask(task: Task, from: LocalDate, move: MoveContext, content: @Composable ColumnScope.() -> Unit) {
+private fun MovableTask(task: Task, from: LocalDate?, move: MoveContext, content: @Composable ColumnScope.() -> Unit) {
     if (task.space != TaskSpace.PERSONAL || task.status != TaskStatus.TODO) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp), content = content)
         return
