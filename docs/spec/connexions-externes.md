@@ -39,7 +39,7 @@ les `VTIMEZONE` du fichier **sans table** Windows → IANA.
 
 **Rouvert le 2026-10-26 par `connexions-en-ligne.md`** (4.1.0, décidée, à implémenter) : toute affirmation « sans permission réseau » de
 cette spec vaut **jusqu'à la 4.0**. La 4.1.0 ajoute la permission `INTERNET` (un seul APK, fonctions en ligne désactivées par défaut :
-lien ICS, CalDAV, Microsoft 365 et Google par OAuth, nouvelles versions d'Android). Les étapes 1 (fichier) et 2 (téléphone) ne changent pas
+lien ICS, CalDAV, Microsoft 365 et Google par OAuth). Les étapes 1 (fichier) et 2 (téléphone) ne changent pas
 et restent sans réseau.
 
 ## 1. Besoin métier (cahier des charges)
@@ -133,6 +133,8 @@ par le calendrier du téléphone, jamais par le réseau.
   (confirmation « Retirer « Nom » et ses N créneaux ? », passés et badges
   compris). Un fichier qui n'est pas un calendrier : « Ce fichier n'est pas
   un calendrier (.ics). »
+  Pour une connexion O1 Android/bureau, la liste montre l'hôte et `lastSyncAt`, pas la date d'import.
+  Elle masque « Réimporter » ; « Retirer » efface aussi les secrets. Voir `connexions-en-ligne.md`.
 - **Fuseau horaire** : les heures sont converties dans le fuseau de
   l'appareil au moment de l'import, puis figées. Après un changement de
   fuseau, on réimporte.
@@ -403,6 +405,8 @@ par le calendrier du téléphone, jamais par le réseau.
   analyse hors du fil d'interface ; pas un calendrier →
   `calendars_not_calendar`), liste des calendriers (`ImportedCalendars.of`)
   avec « Réimporter » et « Retirer » (`AlertDialog`).
+  Pour une source connectée, `CalendarsCard` lit `repository.connections`, affiche `lastSyncAt` et masque le réimport fichier.
+  Le retrait passe par `services.online.remove` pour effacer les secrets et la ligne de connexion.
 - `CalendarImportDialog(services, plan, onDone, presetName)` : l'aperçu décrit
   en partie 1 ; « Masquer les titres » reprend le choix du calendrier que le
   nom désigne ; « Remplace… » suit le nom saisi ; message

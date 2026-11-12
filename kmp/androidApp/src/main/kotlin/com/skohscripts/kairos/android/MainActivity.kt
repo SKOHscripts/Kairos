@@ -25,12 +25,14 @@ import androidx.compose.ui.platform.LocalContext
 import com.skohscripts.kairos.ui.KairosApp
 import com.skohscripts.kairos.ui.Platform
 import com.skohscripts.kairos.ui.app.CrashReportScreen
+import com.skohscripts.kairos.ui.app.ConnectionWatcher
 import com.skohscripts.kairos.ui.app.FileService
 import com.skohscripts.kairos.ui.app.mimeOf
 import com.skohscripts.kairos.ui.navigation.Destination
 import com.skohscripts.kairos.ui.theme.KairosTheme
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -41,6 +43,7 @@ class MainActivity : ComponentActivity(), FileService {
     private var crashReport: String? = null
     private var pendingSave: CompletableDeferred<Uri?>? = null
     private var pendingOpen: CompletableDeferred<Uri?>? = null
+    private var connectionWatcher: Job? = null
 
     // Sélecteurs du système (Storage Access Framework) : aucune permission de stockage. Un par type de fichier : le
     // type fixe l'extension que le fournisseur ajoute au nom (un `.csv` enregistré en JSON devenait `.csv.json`).
@@ -118,6 +121,17 @@ class MainActivity : ComponentActivity(), FileService {
         )
     }
 
+    override fun onStart() {
+        super.onStart()
+        if (crashReport != null) return
+        connectionWatcher = KairosProcess.scope.launch {
+            val services = KairosProcess.services(this@MainActivity).await()
+            val sync = services.connectionSync ?: return@launch
+            // Use a child scope so stopping also cancels a watcher waiting for services.
+            ConnectionWatcher(sync, this, now = { services.clock.now() }).start().join()
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         KairosProcess.activity = this
@@ -131,12 +145,15 @@ class MainActivity : ComponentActivity(), FileService {
             (services.calendars as? AndroidCalendarService)?.refresh()
             // Premier plan : le fichier lié est relu tout de suite, puis toutes les minutes (docs/spec/synchronisation.md).
             (services.linkedStorage as? LinkedFileSync)?.setVisible(true)
+            services.connectionSync?.runDue(services.clock.now())
         }
     }
 
     // Arrière-plan : le fichier lié reçoit tout de suite ce qui attendait son délai (docs/spec/export-import.md).
     override fun onStop() {
         super.onStop()
+        connectionWatcher?.cancel()
+        connectionWatcher = null
         if (crashReport != null) return
         KairosProcess.scope.launch {
             val linked = KairosProcess.services(this@MainActivity).await().linkedStorage as? LinkedFileSync ?: return@launch

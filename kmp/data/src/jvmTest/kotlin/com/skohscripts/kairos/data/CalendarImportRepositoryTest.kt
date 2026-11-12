@@ -140,6 +140,7 @@ class CalendarImportRepositoryTest {
         java.sql.DriverManager.getConnection("jdbc:sqlite:${file.path}").use { c ->
             c.createStatement().use { st ->
                 listOf(
+                    "DROP TABLE calendar_connection",
                     "DROP TABLE sync_state", "DROP TABLE sync_identity", "DROP TABLE sync_mark", "DROP TABLE sync_review", "DROP TABLE migration_mark", "DROP TABLE day_mark", "DROP TABLE calendar_source", "DROP INDEX time_block_source",
                     "ALTER TABLE time_block DROP COLUMN source_uid", "ALTER TABLE time_block DROP COLUMN source_id", "PRAGMA user_version = 10",
                 ).forEach(st::execute)

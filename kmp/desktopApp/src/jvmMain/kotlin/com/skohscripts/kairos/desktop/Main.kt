@@ -86,7 +86,10 @@ fun main(args: Array<String>) {
                 val listener = object : java.awt.event.WindowAdapter() {
                     override fun windowIconified(e: java.awt.event.WindowEvent) { DesktopServices.current?.setVisible(false) }
                     override fun windowDeiconified(e: java.awt.event.WindowEvent) { DesktopServices.current?.setVisible(true) }
-                    override fun windowActivated(e: java.awt.event.WindowEvent) { DesktopServices.current?.resume() }
+                    override fun windowActivated(e: java.awt.event.WindowEvent) {
+                        DesktopServices.current?.resume()
+                        DesktopServices.resumeConnections()
+                    }
                 }
                 awtWindow.addWindowListener(listener)
                 onDispose { awtWindow.removeWindowListener(listener) }

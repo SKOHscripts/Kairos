@@ -1,39 +1,46 @@
-# Connexions en ligne : lien ICS, CalDAV, Microsoft 365, Google, nouvelles versions
+# Connexions en ligne : lien ICS, CalDAV, Microsoft 365, Google
 
-_Rôle : permettre à Kairos, sur demande et connexion par connexion, de lire un calendrier distant (lien ICS, serveur CalDAV,
-Microsoft 365, Google Agenda) et, sur Android, de vérifier les nouvelles versions ; **rouvrir explicitement** la règle « l'APK
-Android n'a aucune permission réseau » (`connexions-externes.md`, décision du 2026-10-24) en gardant l'application entièrement
-utilisable hors ligne et sans aucune activité réseau tant que rien n'est activé. Fichiers couverts (prévus, aucun n'existe
-encore) : `kmp/core/.../core/connections/` (`ConnectionKind.kt`, `SyncSchedule.kt`, `HttpPolicy.kt`, `CalDavXml.kt`,
-`CalDavQueries.kt`, `GraphEvents.kt`, `GoogleEvents.kt`, `OAuthPkce.kt`, `Sha256.kt`, `Providers.kt`), `core/calendar/CalendarImport.kt`
-(`SkipReason.DECLINED`), `core/updates/UpdateCheck.kt` (réutilisé) ; `kmp/data/` (`Kairos.sq`, `12.sqm`, `KairosStore.kt`,
-`Mappers.kt`, `KairosRepository.syncCalendar` / `recordSyncFailure` / `disconnectCalendar`) ; `kmp/ui/.../ui/app/`
-(`HttpFetcher.kt`, `SecretStore.kt`, `OnlineGate.kt`, `ConnectionSync.kt`, `ConnectionWatcher.kt`, `OAuthFlow.kt`, `Updates.kt`),
-`ui/settings/OnlineConnections.kt` (carte « Connexions en ligne »), `ui/settings/SettingsScreen.kt` (carte « Mises à jour » d'Android) ;
-`kmp/androidApp/` (`AndroidHttp.kt`, `AndroidSecrets.kt`, `SyncJobService.kt`, `MainActivity.kt` pour le retour OAuth,
-`AndroidManifest.xml`, `res/xml/network_security_config.xml`, `res/xml/data_extraction_rules.xml`) ; `kmp/desktopApp/`
-(`DesktopHttp.kt`, `DesktopSecrets.kt`, `LoopbackRedirect.kt`, module `jdk.httpserver` du runtime embarqué) ;
-`kmp/webApp/.../kairos-web.js` (`fetchText`) ; `fdroid/com.skohscripts.kairos.yml`, `fastlane/metadata/android/`. Tests :
-voir § Critères de succès._
+_Rôle : permettre à Kairos, sur demande et connexion par connexion, de lire un calendrier distant.
+Rouvrir explicitement la règle « l'APK Android n'a aucune permission réseau » (`connexions-externes.md`, décision du 2026-10-24).
+L'application reste entièrement utilisable hors ligne, sans activité réseau de calendrier tant que rien n'est activé.
+Fichiers O1 : `core/connections/{ConnectionModel,HttpPolicy,SyncSchedule}.kt`, `data/{KairosRepository,KairosStore,Mappers}.kt`,
+`Kairos.sq`, `13.sqm`, `ui/app/{HttpFetcher,SecretStore,OnlineConnections,OnlineGate,ConnectionSync,ConnectionWatcher,DefaultOnlineConnections,AppServices}.kt`,
+`ui/settings/{OnlineConnectionsCard,CalendarImport,SettingsScreen}.kt`, `androidApp/{AndroidHttp,AndroidSecrets,ConnectionScheduler,SyncJobService,MainActivity}.kt`,
+le manifeste et les règles XML de réseau et sauvegarde, `desktopApp/{DesktopHttp,DesktopSecrets,DesktopServices,Main}.kt`.
+Les fichiers CalDAV, OAuth et web décrits plus bas restent prévus, non écrits.
+Tests O1 : voir § Critères de succès._
 
-État : décidée le 2026-10-26, **à implémenter (4.1.0)** : prévue d'abord pour la 4.0.0, reportée à la 4.1.0 par le
-propriétaire le 2026-11-04 (la 4.0.0 sort avec la synchronisation et l'estimateur par modèle, toujours sans permission réseau). Issues #139 (connexion en ligne à un calendrier), #144 (vérification
-des nouvelles versions sur Android), parent #140. Choix du propriétaire du 2026-10-26 : **un seul APK avec la permission
-`INTERNET`** (celui de F-Droid et des releases GitHub), **toutes les fonctions en ligne désactivées par défaut**, activées une
-par une dans les Réglages. Rien n'est encore écrit : le code et les autres specs décrivent la 4.0 (sans `INTERNET`), voir
-§ Impacts sur les specs existantes.
+État au 2026-11-12 : **O1 (socle et lien ICS Android/bureau) implémenté sur la branche `feat/online-ics-link`, PR de code à venir**.
+La tranche web de O1, CalDAV (O2), Microsoft (O3) et Google (O4) restent **spécifiés, non implémentés**.
+Prévue d'abord pour la 4.0.0, reportée à la 4.1.0 par le propriétaire le 2026-11-04.
+La 4.0.0 sort avec la synchronisation et l'estimateur par modèle, toujours sans permission réseau.
+#139 suit les jalons ci-dessous ; @pyroMain404 propose l'implémentation dans #212 ; parent #140.
+#144 a été fermée « not planned » par le propriétaire le 2026-11-06.
+Le propriétaire confirme le 2026-11-11 la 4.1.0 en fin de semaine : betas par nouvelle fonctionnalité, finale ensuite, sans livraison simultanée obligatoire.
+Choix du propriétaire du 2026-10-26 : **un seul APK avec `INTERNET`**, pour F-Droid et GitHub.
+**Toutes les connexions de calendrier sont désactivées par défaut**, activées une par une dans les Réglages.
+Les reports O1 dans les specs de données, synchronisation, calendriers, réglages et démonstration sont faits.
+Les autres impacts restent listés en fin de document.
+
+- [x] **O1 Android/bureau** : socle, carte et lien ICS implémentés sur branche ; pas encore publiés.
+- [ ] **O1 web** : lien ICS et persistance à implémenter.
+- [ ] **O2** : CalDAV sur Android et bureau.
+- [ ] **O3** : Microsoft 365, bloqué sur l'inscription Entra du propriétaire ; ne pas commencer avant l'identifiant de client.
+- [ ] **O4** : Google, bloqué sur Google Cloud et la vérification OAuth du propriétaire ; même condition de démarrage.
+
+Sans identifiant de client, le connecteur concerné n'est ni compilé ni proposé.
+Si les inscriptions manquent, la 4.1.0 livre O1+O2 sans `NonFreeNet` ; O3/O4 passent en 4.2.0.
 
 ## 1. Besoin métier (cahier des charges)
 
 ### Objectif / problème
 
 La 3.10.0 a fait entrer les réunions dans Kairos par un fichier `.ics` (réimporté à la main) ou par les calendriers du
-téléphone. Cela laisse deux manques, signalés par les utilisateurs (#139, #144) :
+téléphone. Cela laisse un manque, signalé par les utilisateurs (#139) :
 
 - **Rester à jour sans recommencer.** Un fichier exporté vieillit le jour même ; un calendrier du téléphone n'existe que sur
   Android et que si l'application de calendrier y copie les événements (Outlook pour Android le désactive par défaut, une
   organisation peut l'interdire). Sur le bureau, rien ne remplace le geste « exporter, importer ».
-- **Savoir qu'une version est sortie.** Le bureau le dit ; Android seulement par un lien vers la page de téléchargement (3.9.0).
 
 La seule réponse est que Kairos aille chercher l'information lui-même, donc ouvre le réseau. Cela change une **décision
 fondatrice** : Kairos 3 s'est présenté comme « sans compte, sans réseau » (F-Droid, fiches, README), et la 3.10.0 a refusé la
@@ -51,8 +58,8 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 
 #### Principes visibles
 
-- **Aucune activité réseau tant qu'aucune connexion n'est active** : à l'installation, après une mise à jour, après un import
-  de données. Une installation de la 4.1.0 qui n'ouvre pas les Réglages se comporte comme la 4.0.
+- **Aucune activité réseau de calendrier tant qu'aucune connexion n'est active** : installation, mise à jour, import de données.
+  Sans activation, les calendriers restent hors ligne. La vérification existante du bureau reste inchangée.
 - **Une permission d'installation, une garantie dans l'application.** La permission réseau d'Android est accordée à
   l'installation et ne se demande pas ensuite : le consentement se donne donc dans Kairos, connexion par connexion. Qui veut
   une garantie au niveau du système peut restreindre le réseau de l'application (pare-feu, réglage de son appareil).
@@ -67,8 +74,9 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 - **Réglages → Données → carte « Connexions en ligne »**, après la carte « Calendriers » (celle de la 3.10.0). Phrase d'ouverture :
   « Kairos ne se connecte à rien tant que vous n’ajoutez pas de connexion. Chaque connexion est en lecture seule, et ses
   identifiants restent sur cet appareil. »
-- Cinq façons d'ajouter une connexion. Chacune s'ouvre par un dialogue qui **dit ce qui est envoyé, à qui**, avec « Annuler » et
-  un bouton d'activation ; rien n'est envoyé avant ce bouton.
+- O1 propose uniquement le lien ICS sur Android et bureau. Le dialogue d'activation apparaît quand aucune connexion n'existe.
+  Sinon, l'ajout passe directement à la saisie ; « Aperçu » autorise la lecture, sans écriture persistante.
+  CalDAV et OAuth restent le comportement spécifié des jalons suivants.
 
 | Connexion | Plateformes | Texte avant activation |
 |---|---|---|
@@ -76,24 +84,24 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 | **Serveur CalDAV** : Nextcloud, Radicale, SOGo, Synology… | Android, bureau | « Kairos se connectera à ce serveur avec cet identifiant et lira les calendriers que vous cochez. Le mot de passe est gardé chiffré sur cet appareil et n’est envoyé qu’à ce serveur. Utilisez de préférence un mot de passe d’application. » |
 | **Microsoft 365 / Outlook.com** | Android, bureau | « Kairos ouvrira la page de connexion de Microsoft dans votre navigateur. Kairos ne voit jamais votre mot de passe ; il reçoit seulement l’autorisation de lire vos calendriers (« Calendars.Read », lecture seule). Microsoft sait que Kairos se connecte. » |
 | **Google Agenda** | Android, bureau | Même forme, avec Google et les autorisations de lecture des agendas et de leurs événements. |
-| **Nouvelles versions** (Android ; sur le bureau elle existe déjà) | Android, bureau | « Kairos demandera à GitHub quelle est la dernière version publiée. GitHub voit votre adresse IP et la version de Kairos ; rien d’autre n’est envoyé. » |
 
-- **Nouvelles versions** : Réglages → Général → carte « Mises à jour » (là où le bureau l'a déjà), pas dans « Connexions en ligne »,
-  dont une ligne renvoie à cet endroit. La web n'a aucune connexion de ce type (la page est toujours la dernière).
-- **Web** : seul le lien ICS est proposé (voir § Solution technique, Web). CalDAV, Microsoft et Google n'y apparaissent pas.
+- **Web, prévu** : seul le lien ICS sera proposé (voir § Web). Aucun service en ligne n'y est encore branché.
 
 #### Ajouter une connexion de calendrier
 
 1. **Lien ICS** : coller l'adresse (`webcal://` accepté, lu comme `https://`). Un lien `http://` est refusé avec « Ce lien
    n’est pas chiffré (http). N’importez que ce que vous seriez prêt à voir lu par d’autres. » et un bouton « Utiliser quand même »
-   (jamais proposé avec un identifiant, voir § Sécurité).
+   (jamais proposé avec un identifiant, voir § Politique d'adresse et journal).
    **CalDAV** : adresse du serveur, identifiant, mot de passe ; Kairos liste les calendriers (nom), **aucun coché par défaut**.
    **Microsoft / Google** : « Se connecter » ouvre le navigateur du système ; au retour, la liste des calendriers du compte,
    **aucun coché par défaut**.
-2. **Aperçu avant toute écriture**, le même que l'import d'un fichier (`CalendarImportDialog`) : nom du calendrier (prérempli
-   par le nom du calendrier distant, modifiable), « Masquer les titres », « N créneaux du JJ/MM au JJ/MM », journées entières,
-   événements écartés par raison (la raison « refusés » s'ajoute aux autres pour les connexions qui la connaissent). « Ajouter »
-   et « Annuler ». **Une sauvegarde automatique précède l'ajout** (comme tout import) : sans elle, rien n'est écrit.
+2. **Aperçu avant toute écriture** : O1 utilise un dialogue dédié, avec les mêmes données que l'import de fichier.
+   Il montre le nom distant modifiable (60 caractères maximum), « Masquer les titres », les créneaux, journées et raisons d'écart.
+   « Ajouter » et « Annuler » terminent l'aperçu. Une sauvegarde automatique précède l'ajout ; son échec interdit toute écriture.
+   La raison « refusés » reste prévue pour les API Microsoft et Google, pas pour O1.
+   Si un calendrier du même nom existe sans connexion ici, l'aperçu annonce :
+   « Ce calendrier existe déjà : la connexion s'y rattache et remplacera ses événements à venir ».
+   « Ajouter » rattache alors la connexion au calendrier existant. Sinon, un calendrier déjà connecté impose un suffixe « (2) », « (3) »…
 3. Le calendrier apparaît dans la liste de la carte, avec ses événements.
 
 #### Une connexion au quotidien
@@ -103,18 +111,28 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 - **Fréquence**, par calendrier : « À la main », « À l’ouverture » (**défaut**), « Toutes les heures », « Toutes les 6 heures »,
   « Une fois par jour ». « À l’ouverture » : au lancement et au retour dans l'application, au plus une fois tous les 15 minutes.
   Les trois fréquences régulières jouent aussi **application fermée sur Android** (tâche du système), et tant que l'application
-  est ouverte sur le bureau et le web.
-- Boutons : « Synchroniser maintenant » (passe outre la fréquence), un interrupteur « Synchroniser » (pause sans rien perdre),
+  est ouverte sur le bureau ; le même fonctionnement reste prévu pour le web.
+- Boutons : « Synchroniser maintenant » passe outre fréquence et délai d'échec, mais pas la pause ni l'absence de secret ;
+  l'interrupteur « Synchroniser » met la connexion en pause sans perdre les événements ;
   « Déconnecter » (garde les événements lus comme un calendrier importé, efface identifiants et lien), « Retirer » (efface tout, comme
   la carte « Calendriers » : confirmation « Retirer « Nom » et ses N créneaux ? »).
-- **Synchroniser = réimporter** (`connexions-externes.md`) : les créneaux du calendrier **à partir d'aujourd'hui** et ses badges pas
-  finis sont remplacés par ce que le serveur dit ; ce qui est passé reste (trace des journées). Les créneaux saisis à la main
-  et les autres calendriers ne sont jamais touchés.
-- Créneaux en lecture seule, sauf suppression, comme à l'import ; la confirmation dit « « Titre » reviendra à la prochaine
-  synchronisation de « Nom » ».
+- **Synchroniser** remet les événements à venir en accord avec le serveur, sans réécrire ceux qui sont identiques.
+  Les créneaux à partir d'aujourd'hui et les badges pas finis suivent le serveur ; le passé reste.
+  Les créneaux saisis à la main et les autres calendriers ne changent jamais.
+- Créneaux en lecture seule, sauf suppression, comme à l'import. O1 conserve la confirmation existante :
+  « « Titre » reviendra au prochain import de « Nom » ». Le retour effectif se fait à la prochaine synchronisation.
 - Les calendriers connectés comptent partout comme les calendriers importés (planning, vue Semaine et Mois, charge de « moi »,
   widgets et rappels de l'espace Perso). Un événement reçu à la fois par une connexion et par le téléphone n'apparaît qu'une
   fois (celui du téléphone, `connexions-externes.md`).
+
+#### Plusieurs appareils
+
+- La connexion reste sur cet appareil. Les événements passent par le fichier lié comme ceux d'un calendrier importé.
+- Le deuxième appareil reçoit le calendrier sans connexion. Ajouter une connexion du même nom la rattache à ce calendrier.
+- Deux appareils connectés au même calendrier ne remplissent jamais « À revoir » avec leurs différences d'événements.
+  Les autres conflits, notamment le nom du calendrier et « Masquer les titres », restent visibles.
+- Supprimer un événement d'un calendrier connecté ne le retire pas du serveur.
+  Il revient à la prochaine synchronisation, puis sur les autres appareils par le fichier lié.
 
 #### Hors ligne et erreurs
 
@@ -131,29 +149,18 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 | Lien disparu (404, 410) | « Ce lien n’existe plus. » |
 | Le serveur répond autre chose qu’un calendrier | « Cette adresse ne renvoie pas un calendrier. » |
 | Trop de requêtes (429), serveur en panne (5xx) | « Le serveur est indisponible. Nouvel essai plus tard. » |
-| Redirection vers un autre serveur (lien ICS) | « Ce lien renvoie vers un autre serveur : <hôte>. » avec « Suivre » et « Annuler » |
-| Identifiants absents de cet appareil (base copiée d'ailleurs) | « Les identifiants de cette connexion ne sont pas sur cet appareil. » avec « Se reconnecter » |
+| Redirection vers un autre serveur (lien ICS) | À l'aperçu : hôte, « Suivre » et « Annuler ». En synchronisation : erreur et « Remplacer le lien ». |
+| Identifiants absents de cet appareil (base copiée d'ailleurs) | « Les identifiants de cette connexion ne sont pas sur cet appareil. » ; O1 propose « Remplacer le lien ». |
 
 - Après un échec, les essais automatiques espacent : au moins 15 minutes, 6 heures après 5 échecs de suite, et jamais avant
-  la date que le serveur demande (429 avec `Retry-After`, plafonnée à 24 heures). « Synchroniser maintenant » passe outre.
-
-#### Nouvelles versions sur Android
-
-- Concerne seulement un APK **installé à la main** (la définition de la 3.9.0, `mises-a-jour.md`). Installé par F-Droid ou un autre
-  magasin, la carte n'apparaît pas et **rien ne se vérifie jamais** : le magasin s'en charge.
-- Réglages → Général → « Mises à jour » : interrupteur **« Vérifier les nouvelles versions », désactivé par défaut** sur Android
-  (actif par défaut sur le bureau, comme aujourd'hui). Texte d'activation : voir le tableau ci-dessus.
-- **Désactivée** : la carte de la 3.9.0 (« Version installée », « Voir la dernière version »), dont l'aide devient « Par défaut,
-  Kairos ne se connecte pas : la page de téléchargement dit quelle est la dernière version. »
-- **Activée** : la carte devient celle du bureau (version installée, résultat de la dernière vérification, « Vérifier maintenant ») et
-  « Voir la dernière version » disparaît ; le bandeau de nouvelle version du bureau apparaît (« Kairos X.Y.Z est disponible (tu as
-  A.B.C). », « Télécharger », « Plus tard »), « Télécharger » ouvrant la page de téléchargement dans la langue de l'interface.
-- La vérification a lieu à l'ouverture et tant que l'application est ouverte, au plus toutes les 6 heures, comme sur le bureau ;
-  **jamais application fermée** (aucune tâche de fond, aucune notification).
+  le délai du serveur (`Retry-After` numérique en secondes, plafonné à 24 heures). La forme date HTTP n'est pas interprétée.
+  « Synchroniser maintenant » passe outre ces délais, pas la pause.
 
 ### Contraintes
 
-- `INTERNET` est la **seule** permission ajoutée. Aucune permission d'état du réseau, aucune alarme exacte, aucun service au premier plan.
+- `INTERNET` est la seule permission ajoutée **par cette fonctionnalité**, dans la PR O1, pas avant.
+  L'APK 4.1.0 gagne aussi `SCHEDULE_EXACT_ALARM` pour les alertes du chrono (`temps-reel-chrono.md`).
+  Les connexions n'ajoutent aucune permission d'état du réseau, alarme exacte ou service au premier plan.
 - Aucun SDK propriétaire ni Google Play Services : les connexions Microsoft et Google passent par le **navigateur du système**
   et un flux OAuth 2.0 avec PKCE écrit dans Kairos.
 - `core` reste pur : aucune requête, aucune horloge, aucun secret (`architecture.md`).
@@ -165,61 +172,50 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 
 ### Critères de succès
 
-Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n'a **aucun accès réseau**, tout passe par un client simulé) :
+Les classes ci-dessous existent dans `kmp/*/src/jvmTest`. Leurs transports sont simulés ; cette liste ne remplace pas une preuve sur appareil.
 
-- **Rien sans geste.** Sur une base neuve, sur une base migrée de la 4.0 et après un import d'export (même un export de bureau dont
-  `updateCheckEnabled` vaut vrai), le client simulé ne reçoit **aucune requête** (`NoConnectionNoRequestTest`). Seul le code de
-  `ui/app/` et des modules de plateforme touche au réseau (`NetworkIsolationTest`, analyse des sources).
-- **Politique d'adresse** : `https` exigé ; `http` refusé sauf lien ICS sans identifiant confirmé ; `webcal` lu comme `https` ;
-  redirections : au plus 5, même hôte suivi, autre hôte demandé (ICS) ou refusé (CalDAV, OAuth), `https` vers `http` toujours refusé
-  (`HttpPolicyTest`).
-- **Lien ICS** : réponse 200 → plan identique à l'import du même texte ; 304 avec `ETag` → rien d'écrit ; `ETag` ignoré dès que le
-  jour a changé ; corps qui n'est pas un calendrier ou tronqué (pas de `END:VCALENDAR`) → erreur, **rien d'écrit** ; plus de
-  16 Mio → erreur (`ConnectionSyncTest`).
-- **CalDAV** : découverte (`.well-known/caldav`, `current-user-principal`, `calendar-home-set`), liste des calendriers, `REPORT`
-  `calendar-query` sur l'horizon, fusion des `VCALENDAR` en un seul texte lu par `CalendarImport.plan`, séries et exceptions
-  comprises, sur des réponses réelles de Nextcloud, Radicale et SOGo recopiées en constantes (`CalDavXmlTest`, `CalDavSyncTest`) ;
-  XML avec `DOCTYPE` ou entité refusé (`CalDavXmlTest`).
-- **Microsoft** et **Google** : correspondance des événements des deux API vers le plan (libres, annulés, refusés écartés ; journée
-  entière en badge ; provisoire occupé ; pagination ; `nextLink` vers un autre hôte refusé) sur des réponses recopiées
-  (`GraphEventsTest`, `GoogleEventsTest`).
-- **OAuth** : le vecteur de l'annexe B de la RFC 7636 (`code_challenge`) ; `state` incorrect, réponse sans code, retour d'une autre
-  application refusés ; jeton rafraîchi une seule fois pour plusieurs synchronisations simultanées ; `invalid_grant` → état à
-  reconnecter, aucune boucle (`OAuthPkceTest`, `Sha256Test`, `OAuthFlowTest`).
-- **Échéancier** : « À l'ouverture » au plus tous les 15 minutes ; intervalles réguliers ; espacement après échecs et `Retry-After` ;
-  connexion en pause ou « À la main » jamais due sans demande (`SyncScheduleTest`).
-- **Données** : migration vers le schéma 13 sans créneau modifié ; **export d'une base sans connexion identique à l'octet près** ;
-  un calendrier connecté s'exporte comme un calendrier importé (sans type, adresse, identifiant, jeton, ETag) et se réimporte comme tel ;
-  aucune table ni colonne de connexion dans l'export ; secrets orphelins purgés au lancement ; connexion sans secret → état
-  « identifiants absents », aucune requête (`ConnectionRepositoryTest`, `SecretStoreTest`).
-- **Secrets** : aller-retour chiffré, altération détectée, absence de la clé = secrets absents (jamais une exception) ; fichier de
-  secrets hors du dossier de données choisi par l'utilisateur (`SecretStoreTest`, `DesktopSecretsTest`).
-- **Journal** : une synchronisation qui échoue n'écrit ni adresse, ni chemin, ni identifiant, ni jeton, ni titre (`ConnectionLogTest`).
-- **Android** : le manifeste déclare exactement `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `READ_CALENDAR`,
-  `SCHEDULE_EXACT_ALARM` (alertes du chrono, #219, `temps-reel-chrono.md`), `INTERNET`
-  (`ManifestPermissionsTest`, et `aapt2 dump permissions` sur l'APK de release en CI) ; trafic en clair autorisé par la configuration réseau mais
-  gardé par `HttpPolicy` ; aucune autre permission.
-- **Nouvelles versions Android** : désactivée par défaut ; absente et inerte pour une installation par un magasin même si le
-  réglage est vrai ; la carte change à l'activation ; « Télécharger » ouvre la page de la langue ; l'état est indépendant de
-  `Settings.updateCheckEnabled` (`UpdateCheckAndroidUiTest`, `InstallSourceTest`, `UpdateCheckTest` inchangés).
-- **Interface** : dialogue d'activation (texte et bouton), aperçu et sauvegarde préalable, liste, fréquence, pause, déconnexion,
-  retrait, erreurs sous la connexion (`OnlineConnectionsUiTest`, client et magasin de secrets simulés) ; textes dans les six langues
-  (`StringsParityTest`) ; 360 dp sans débordement et cibles de 48 dp (captures `connections-*` de l'auto-test).
-- **Isolation** : sur une base à gestion d'équipe activée, une synchronisation n'écrit aucune ligne `team_*` et ne change pas
-  `personalSnapshot` hors des créneaux de son calendrier ; ni créneau synchronisé ni donnée de connexion dans un paquet ou un rapport
-  d'équipe (`TeamIsolationTest` étendu, `ConnectionRepositoryTest`).
+- `HttpPolicyTest` : adresses, consentement HTTP, redirections et journal sans secret.
+- `SyncScheduleTest` : fréquences, pause, forçage, secrets absents et espacement des échecs.
+- `ConnectionRepositoryTest` : migration 13→14, différentiel, identité, date d'import, export, notifications, transaction et cycle de vie local.
+- `SyncReviewConnectedTest` : conflits et éléments conservés connectés exclus, autres conflits maintenus, convergence de deux appareils.
+- `ConnectionSyncScopeTest` : métadonnées locales hors portée du fichier lié.
+- `OnlineGateTest` : porte fermée, origine, pause, aperçu autorisé, codes HTTP, calendrier complet, ETag et redirections.
+- `ConnectionSyncTest` : succès et 304, erreurs sans perte, secret absent, verrou, sauvegarde, purge, rollback et arrêt du watcher.
+- `NetworkIsolationTest` : réseau de calendrier limité à la porte et aux transports de plateforme.
+- `OnlineConnectionsCardTest` : correspondance distincte entre chaque erreur et son texte localisé ; ce n'est pas un test d'interface interactif.
+- `DesktopSecretsTest` : chiffrement, lecture, suppression, enveloppe altérée et clé perdue sans remplacement du chiffrat.
+- `ExchangeMigrationTest.everyMigrationHasAMarker` : marqueur structurel pour chaque migration.
+- `StringsParityTest` : parité des ressources de texte.
+- `FeatureCatalogTest.readmeFeaturesAreCovered` : carte du catalogue et fonctionnalité documentée.
+
+Les scénarios O1 d'interface, les captures étroites et la vérification réelle des transports et du planificateur restent à vérifier.
+Le manifeste source déclare `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`, `READ_CALENDAR` et `INTERNET`.
+Le contrôle de l'APK final avec `aapt2 dump permissions` reste nécessaire ; aucun test dédié de manifeste n'est revendiqué.
+Le test de convergence existant est `SyncReviewConnectedTest.twoDevicesConverge`, pas une classe autonome de simulation.
+L'isolation des échanges d'équipe reste celle des créneaux importés ; aucun nouveau test `TeamIsolationTest` dédié aux connexions n'est revendiqué.
+
+Tests à écrire à l'implémentation des jalons restants :
+
+- **CalDAV** : `CalDavXmlTest`, `CalDavSyncTest` : découverte, fusion des calendriers, répétitions et refus des entités XML.
+- **Microsoft / Google** : `GraphEventsTest`, `GoogleEventsTest` : événements, disponibilités, journées entières et pagination.
+- **OAuth** : `OAuthPkceTest`, `Sha256Test`, `OAuthFlowTest` : RFC 7636, état, retour, rafraîchissement unique et révocation.
+- **Web** : lecture CORS et persistance après l'arbitrage de § Web.
 - **À vérifier à la main, sur appareil** (la CI ne voit ni un vrai fournisseur ni un vrai système) : un lien Outlook publié, un lien Google,
   un Nextcloud et un Radicale réels ; connexion Microsoft (compte personnel et compte d'organisation) et Google par le navigateur,
   retour dans Kairos, révocation côté fournisseur ; tâche de fond sur Android en veille profonde ; mode avion ; trousseau de chaque
   système de bureau ; installation par F-Droid et par APK à la main.
+- **Preuve de chaque PR** : réponses réelles capturées, nettoyées de toute donnée personnelle, rejouées par un faux `HttpFetcher` en CI sans réseau.
+  La description de PR donne un bref compte rendu manuel : fournisseur, plateforme, version du système, gestes et résultat observé.
+  Ne jamais donner de lien réel, chemin d'URL ou jeton.
+  Le propriétaire n'a aucun compte de calendrier : il peut essayer un flux ICS public et un Radicale local, pas Microsoft ou Google.
 
 ### Hors périmètre / différé
 
 - **Écrire vers un calendrier distant** (créer une réunion, poser un créneau de deep work) : jamais dans cette spec.
-- **Notification poussée** (push), webhooks, serveur Kairos, relais, compte Kairos, synchronisation des données entre appareils
-  (#88, `export-import.md`) : aucun.
+- **Notification poussée** (push), webhooks, serveur Kairos, relais, compte Kairos : aucun.
+  Le fichier lié existant continue de transporter les événements (`synchronisation.md`), jamais la connexion.
 - **Télémétrie, statistiques d'usage, rapport de plantage distant** : aucun. Le projet ne reçoit rien.
-- **Téléchargement ou installation automatique d'une version** : la vérification ne fait que signaler (`mises-a-jour.md`).
+- Vérification des nouvelles versions sur Android (#144) : fermée « not planned » par le propriétaire le 2026-11-06 ; Android n'a aucune vérification, le bureau garde la sienne (`mises-a-jour.md`). Ne pas rouvrir sans nouvelle décision.
 - **Garder une connexion d'un appareil à l'autre** (export, sauvegarde, dossier de données synchronisé) : une base copiée ailleurs
   retrouve ses calendriers mais pas leurs connexions, à refaire.
 - **Identifiant d'application OAuth personnalisé** (organisation qui exige sa propre inscription) : piste, non retenue pour l'instant.
@@ -234,16 +230,16 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
 
 ### Permission, manifeste et réseau d'Android (`androidApp`)
 
-- `AndroidManifest.xml` : `<uses-permission android:name="android.permission.INTERNET" />`, **seule** nouvelle permission ; le
-  commentaire de tête du manifeste (qui dit aujourd'hui « Aucune permission réseau ») est réécrit en même temps (§ Impacts).
+- `AndroidManifest.xml` déclare `INTERNET` dans O1 ; son commentaire décrit le consentement explicite et la garde `HttpPolicy`.
+  C'est la seule permission ajoutée par cette fonctionnalité ; `SCHEDULE_EXACT_ALARM` vient du chrono.
 - `android:networkSecurityConfig="@xml/network_security_config"` : `base-config` avec `trust-anchors` = **`system` seulement**
   (jamais `user`), et `cleartextTrafficPermitted="true"`. Le clair est autorisé **au niveau du système parce que le système ne peut
   pas confirmer une adresse choisie à l'exécution** ; la garde est `HttpPolicy` (ci-dessous), seul chemin vers le réseau
   (`NetworkIsolationTest`). Alternative écartée : interdire `http` partout (le propriétaire veut pouvoir confirmer un lien clair).
 - Sauvegarde automatique d'Android (`allowBackup="true"`, déjà) : `data_extraction_rules.xml` et `fullBackupContent` **excluent**
   les préférences `online-secrets` (un chiffrat restauré sur un autre appareil serait illisible : autant ne pas le copier).
-- Retour OAuth : `intent-filter` (`VIEW`, `DEFAULT`, `BROWSABLE`) sur `MainActivity` pour le schéma de redirection de chaque
-  fournisseur (`Providers.kt`, § OAuth). `MainActivity` est déjà `singleTop` : le retour arrive à `onNewIntent`.
+- Retour OAuth (O3/O4, non implémenté) : `intent-filter` (`VIEW`, `DEFAULT`, `BROWSABLE`) sur `MainActivity`.
+  Les schémas de `Providers.kt` et le traitement par `onNewIntent` restent prévus.
 - Tâche de fond : `SyncJobService` (`JobService`, `android:permission="android.permission.BIND_JOB_SERVICE"`, attribut du service, pas
   une permission demandée). `JobScheduler` plutôt que `WorkManager` (dépendance et fusion de permissions) ou `AlarmManager`
   (§ Décisions).
@@ -254,87 +250,172 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
   `HttpRequest(method, url, headers, body, timeoutMillis)` et `HttpResponse(status, headers, body: ByteArray)` ; ne suit **aucune**
   redirection (la politique les traite), n'envoie aucun cookie et n'en garde aucun, décompresse `gzip`, plafonne le corps à
   `MAX_BODY_BYTES` = 16 Mio, délais 10 s de connexion et 30 s au total. Implémentations : Android `HttpURLConnection` (framework), bureau
-  `java.net.http` (déjà au runtime, proxy du système, `bureau-avance.md`), web `fetch` (`kairos-web.js`), tests simulé.
-- `OnlineGate` enveloppe un `HttpFetcher` : **toute** requête de l'application y passe. Il refuse (`GateClosed`, sans appel réseau) toute
-  requête dont l'origine n'est pas une connexion **activée** (`ConnectionId` d'un calendrier synchronisé non en pause, ou la
-  vérification des versions activée) ; il applique `HttpPolicy` (adresse, redirections, en-têtes) et le journal sans secret.
-- `NetworkIsolationTest` (JVM, analyse des sources) : seuls `ui/app/` (`OnlineGate`, `ConnectionSync`, `OAuthFlow`, `Updates`) et
-  les fichiers `*Http.kt` des applications importent `java.net.*`, `HttpURLConnection`, `java.net.http` ou `fetch`. `core`, `data` et
-  le reste de `ui` n'y ont pas accès.
+  `java.net.http` (proxy du système) ; le transport web `fetch` reste prévu, non implémenté. Tests : transport simulé.
+- `OnlineGate.fetch` refuse (`GateClosed`, sans réseau) toute source sans ligne activée, ou dont l'hôte ne correspond pas à l'origine.
+  La porte vérifie encore l'activation avant chaque requête et redirection.
+  `preview(...)`, interne et en lecture seule, autorise l'aperçu demandé par l'utilisateur sans connexion persistée.
+  Les deux entrées appliquent `HttpPolicy`. Le réseau historique du bureau reste inchangé.
+- `NetworkIsolationTest` (JVM, analyse des sources) limite le nouveau réseau à `ui/app/` (`OnlineGate`, `ConnectionSync`, `DefaultOnlineConnections`)
+  et aux fichiers `*Http.kt` des applications. `core`, `data` et le reste de `ui` n'y accèdent pas.
+  Le test distingue explicitement le chemin historique de vérification du bureau, hors de cette fonctionnalité.
 
 ### Modèle (`core/connections`, `core/model`)
 
 - `ConnectionKind` : `FILE` (calendrier importé, comportement de la 3.10.0, **défaut**), `URL`, `CALDAV`, `OAUTH` ; `OAuthProvider` :
   `MICROSOFT`, `GOOGLE`. `SyncInterval` : `MANUAL`, `ON_OPEN` (défaut), `HOURLY` (60 min), `SIX_HOURS` (360), `DAILY` (1 440).
-- `CalendarSource` (3.10.0 : `id`, `name`, `hideTitles`, `importedAt`, `createdAt`) gagne, tous **non exportés**, avec valeurs par défaut
-  telles qu'un calendrier importé ne change pas :
+- `CalendarSource` reste inchangé : `id`, `name`, `hideTitles`, `importedAt`, `createdAt`.
+  Le nouveau modèle local `CalendarConnection` correspond à une ligne de `calendar_connection`, jamais à un objet du `KairosSnapshot`.
+  Sans ligne associée, le calendrier est `FILE`. Une ligne décrit seulement `URL`, `CALDAV` ou `OAUTH`.
 
-| Champ (colonne) | Rôle | Défaut |
-|---|---|---|
-| `kind` (`kind`) | `FILE`, `URL`, `CALDAV`, `OAUTH` | `FILE` |
-| `provider` | `MICROSOFT` / `GOOGLE` pour `OAUTH` | nul |
-| `host` | nom d'hôte affiché (jamais le chemin ni la requête) | nul |
-| `account` | identifiant opaque du compte (CalDAV, OAuth) dans le magasin de secrets | nul |
-| `syncEnabled` | interrupteur « Synchroniser » | vrai |
-| `interval` | `SyncInterval` | `ON_OPEN` |
-| `lastAttemptAt` / `lastSyncAt` | dernier essai / dernière réussite (instants UTC) | nul |
-| `lastError` | `ConnectionError` du dernier essai, nul si réussi | nul |
-| `failures`, `nextAttemptAt` | échecs de suite ; pas d'essai automatique avant | 0, nul |
-| `etag`, `plannedOn` | `ETag` de la dernière réponse ; jour du plan qui l'a produite | nul |
-| `insecureConfirmed`, `redirectHost` | lien `http` confirmé ; hôte de redirection accepté | faux, nul |
+| Champ du modèle | Colonne de `calendar_connection` | Rôle | Défaut |
+|---|---|---|---|
+| `sourceId` | `source_id` | clé primaire, identifiant de `calendar_source` | obligatoire |
+| `kind` | `kind` | type de connexion | obligatoire, aucun défaut `FILE` |
+| `provider` | `provider` | `MICROSOFT` / `GOOGLE` pour `OAUTH` | nul |
+| `host` | `host` | hôte affiché, sans chemin ni requête | nul |
+| `account` | `account` | clé opaque du compte dans le magasin de secrets | nul |
+| `syncEnabled` | `sync_enabled` | interrupteur « Synchroniser » après ajout explicite | vrai |
+| `interval` | `interval` | `SyncInterval` | `ON_OPEN` |
+| `lastAttemptAt` / `lastSyncAt` | `last_attempt_at` / `last_sync_at` | dernier essai / réussite, instants UTC | nul |
+| `lastError` | `last_error` | `ConnectionError`, nul si réussi | nul |
+| `failures` / `nextAttemptAt` | `failures` / `next_attempt_at` | échecs successifs / borne du prochain essai | 0 / nul |
+| `etag` / `plannedOn` | `etag` / `planned_on` | ETag / jour du plan | nul |
+| `insecureConfirmed` / `redirectHost` | `insecure_confirmed` / `redirect_host` | HTTP confirmé / hôte accepté | faux / nul |
 
 - **Adresse, identifiant, mot de passe, jetons, identifiant du calendrier distant : jamais dans la base.** Le lien ICS est un secret
   (les adresses « publiées » d'Outlook et « secrètes » de Google donnent l'agenda à qui les connaît) ; l'identifiant du calendrier CalDAV
   contient souvent le nom d'utilisateur. La base ne garde que l'hôte à afficher.
 - `ConnectionError` : `OFFLINE`, `TLS`, `AUTH`, `REAUTH`, `GONE`, `NOT_CALENDAR`, `TRUNCATED`, `TOO_BIG`, `UNAVAILABLE` (5xx, 429),
   `REDIRECT_HOST`, `INSECURE_REDIRECT`, `NO_SECRET`, `UNSUPPORTED` (serveur CalDAV sans `calendar-query`). Chacun a son texte (§ Hors ligne).
-- `SyncSchedule.due(source, maintenant, force)` (pur) : faux si `syncEnabled` est faux ou si le magasin de secrets n'a pas les
-  identifiants ; vrai si `force` ; `MANUAL` jamais ; avant `nextAttemptAt` jamais ; `ON_OPEN` après 15 minutes depuis `lastAttemptAt` ;
-  sinon `maintenant − lastAttemptAt ≥ interval`. `SyncSchedule.afterFailure(source, erreur, retryAfter, maintenant)` calcule `failures`
+- `SyncSchedule.due(connection, now, force, hasSecret)` (pur) : faux si `syncEnabled` est faux ou si les secrets manquent ;
+  vrai si `force` ; `MANUAL` jamais ; avant `nextAttemptAt` jamais ; `ON_OPEN` après 15 minutes depuis `lastAttemptAt` ;
+  sinon `now − lastAttemptAt ≥ interval`. `SyncSchedule.afterFailure(connection, error, retryAfterSeconds, now)` calcule `failures`
   et `nextAttemptAt` (≥ 15 minutes, 6 heures dès 5 échecs, `Retry-After` plafonné à 24 heures).
-- `CalendarImport.plan` (3.10.0) gagne `SkipReason.DECLINED` (« refusés »), inutilisé par l'import de fichier (un export ne dit pas
-  quel participant est l'utilisateur) et rempli par les API Microsoft et Google, qui le disent. `ExternalBlocks` (téléphone) écarte
-  déjà les refusés ; l'import de fichier ne change pas.
+- `SkipReason.DECLINED` reste prévu pour O3/O4, non implémenté. L'import de fichier et O1 gardent leurs raisons actuelles.
+  `ExternalBlocks` (téléphone) écarte déjà les refusés.
 
 ### Stockage (`data`)
 
-- Schéma 13 (`12.sqm`, additif ; marqueur de `KairosStore`) : les colonnes ci-dessus sur `calendar_source`, toutes `NULL` ou avec
-  défaut. Les bases existantes : tous les calendriers restent `FILE`.
-  Numérotation : `11.sqm` (schéma 12) est déjà pris par la migration de la couleur par défaut (`apparence.md`) ; `connexions-en-ligne.md` et `synchronisation.md` visent toutes deux `12.sqm` (schéma 13) : celle qui est implémentée en second prend le numéro suivant.
-- `KairosRepository.syncCalendar(sourceId, plan, today, etag, now)` : **une transaction** qui remplace les créneaux de début
-  ≥ `today 00:00` et les journées de fin ≥ `today` **de cette source seulement** (la même règle que `importCalendar`), insère le plan
-  (titres vides si `hideTitles`), met `imported_at`, `last_sync_at`, `last_attempt_at`, `etag`, `planned_on`, `failures = 0`,
-  `last_error = NULL`. `recordSyncFailure(sourceId, erreur, now, nextAttemptAt)` n'écrit **que** des métadonnées : aucun événement
-  ne bouge. `disconnectCalendar(id)` remet `kind = FILE` et efface les champs de connexion, garde créneaux et journées.
-  `removeCalendar(id)` (3.10.0) inchangée. La création d'une connexion passe par `importCalendar`/`syncCalendar` après la sauvegarde
-  préalable de l'aperçu.
-- Nom unique : une connexion dont le nom existe déjà reçoit « (2) », « (3)… » (l'identité d'un calendrier importé est son nom,
-  `connexions-externes.md`).
-- `ExportCodec` **ne change pas** : `calendarSources` écrit `id`, `name`, `hideTitles`, `importedAt` comme avant ; un calendrier
-  connecté s'y trouve donc comme un calendrier importé (`kind` absent = `FILE` à la relecture). Le format n'est pas modifié,
-  `formatVersion` non plus. **L'export d'une base sans connexion reste identique à l'octet près.** Les sauvegardes automatiques
-  (`saveBackup`) passent par le même codec : une restauration rend les événements, pas les connexions.
-- Importer un export (même celui d'un bureau) n'active rien : `Settings.updateCheckEnabled` (vrai par défaut, exporté) reste le réglage
-  **du bureau**. Sur Android la vérification des versions a son propre état (ci-dessous).
+- Schéma 14 : `13.sqm` crée `calendar_connection`, table additive vide pour les bases existantes.
+  `11.sqm` (schéma 12, couleur par défaut) et `12.sqm` (schéma 13, fichier lié) sont déjà implémentées.
+  `KairosStore.MARKERS` commence par le marqueur structurel `calendar_connection` pour la version 14.
+  `ExchangeMigrationTest.everyMigrationHasAMarker` couvre cette convention.
+  Les fixtures qui reconstruisent un ancien schéma depuis le schéma courant retirent aussi `calendar_connection`.
+  Sinon, son marqueur fait détecter la version 14 et saute les migrations attendues.
+- `KairosRepository.syncCalendar(sourceId, plan, today, etag, now)` applique le plan et les métadonnées locales dans une transaction.
+  `recordSyncFailure(sourceId, error, now, failures, nextAttemptAt)` ne change que les métadonnées locales, jamais les événements.
+  `disconnectCalendar(id)` efface la ligne de connexion, garde les créneaux et journées.
+  `removeCalendar(id)` efface aussi cette ligne dans sa transaction.
+  Le détail du différentiel, du rattachement et du cycle de vie figure dans la section suivante.
+- `ExportCodec` ne change pas : `calendarSources` garde ses champs actuels, dont `createdAt` et les marques du format synchronisé.
+  Aucune connexion n'entre dans l'export, la sauvegarde automatique ou le paquet d'équipe.
+  Le format et `formatVersion` ne changent pas. Un import d'export n'active aucune connexion.
+
+### Connexions et synchronisation du fichier lié (plusieurs appareils)
+
+Les mécanismes D1–D6 ci-dessous sont implémentés dans O1 sur la branche, au 2026-11-12.
+
+#### État local et remplacement des lignes (D1)
+
+`KairosRepository.replaceRows` efface puis recrée `calendar_source` (`deleteAllCalendarSources`).
+Ses appelants sont `replaceAll`, `restoreSynced`, `merge`, sa réparation `SyncRepair`, `resolveReview` et `deleteKept`.
+Des colonnes de connexion sur `calendar_source` disparaîtraient donc à chaque fusion.
+La table séparée `calendar_connection` n'est pas réinsérée par `replaceRows` et reste hors du snapshot, des exports et de la portée synchronisée.
+`source_id` désigne l'identifiant local du calendrier, sans suppression en cascade lors du remplacement transitoire des sources.
+
+`SnapshotMerge.lower` reprend `known[kind][uid]` pour les éléments connus.
+Un nouvel élément reçoit le plus grand identifiant du genre + 1.
+Les calendriers déjà connus gardent donc leur identifiant local à la fusion.
+
+Seul `replaceAll` efface toutes les connexions : import d'export, restauration de sauvegarde ou « Remplacer ».
+Ces opérations peuvent apporter des identifiants étrangers ; les calendriers reçus deviennent `FILE`.
+Les secrets devenus orphelins sont purgés au lancement.
+`restoreSynced` recharge l'état synchronisé de cet appareil, avec ses identifiants ; il conserve les lignes locales existantes.
+`merge`, sa réparation, `resolveReview` et `deleteKept` les conservent aussi.
+Chaque transaction purge ensuite les lignes dont la source a disparu, après réinsertion des sources.
+
+#### Différentiel et date affichée (D2, D3)
+
+`syncCalendar` passe par `write`. Il compare les identités des événements de cette source avec celles du plan.
+Il insère les nouveaux, met à jour les champs modifiés (titre, fin, journée entière), et laisse les lignes identiques intactes.
+Il supprime seulement les absents du serveur : créneaux de début ≥ `today 00:00`, journées de fin ≥ `today`, de cette source seulement.
+Un changement de début change l'identité ; il suit les mêmes règles d'insertion et de suppression.
+Le passé reste intact, comme les créneaux manuels et les autres calendriers.
+
+Une réponse inchangée n'écrit aucune ligne de créneau ou de journée, ne change aucun `id` et ne pose aucune marque de synchronisation.
+Seules les métadonnées locales de réussite avancent : `last_sync_at`, `last_attempt_at`, `etag`, `planned_on`, `failures = 0`, `last_error = NULL`.
+Le réimport manuel de fichier (`importCalendar`, 3.10.0) garde son comportement.
+
+`SyncRecords.lift(CalendarSource)` partage `name`, `hideTitles` et `importedAt`.
+Une synchronisation connectée n'écrit donc jamais `imported_at` : les heures propres à deux appareils provoqueraient des conflits permanents.
+Cette date reste celle de l'ajout ; seul « Réimporter » d'un fichier continue de la modifier.
+La liste affiche `calendar_connection.last_sync_at` pour un calendrier connecté, `CalendarSource.importedAt` sinon.
+
+#### Autorité du serveur et conflits (D4)
+
+`KairosRepository.recordReview` filtre `out.conflicts` et `out.kept` après la fusion.
+Pour un créneau ou une journée, il retrouve le calendrier dans l'état fusionné.
+Si ce calendrier possède une ligne `calendar_connection` ici, il ne consigne ni conflit ni élément conservé.
+Le filtre s'applique aussi à une connexion en pause : sa présence, non sa fréquence, désigne l'autorité du serveur.
+La marque la plus haute gagne comme aujourd'hui ; la prochaine synchronisation rétablit ensuite la valeur du serveur.
+
+Les autres enregistrements restent listés, notamment les calendriers eux-mêmes (`name`, `hideTitles`).
+Sur un appareil sans connexion pour ce calendrier, les conflits restent également listés.
+Supprimer ici un événement connecté ne le supprime pas du serveur : il revient au prochain passage.
+L'« ajout gagnant » le fait ensuite revenir partout ; ce retour attendu ne produit pas d'élément « À revoir » ici.
+
+#### Rattachement par le nom (D5)
+
+L'identité existante du calendrier est `cal:<nom en minuscules sans blancs>` (`synchronisation.md`, § Identité).
+Les créneaux ont pour uid `ics:<uid du calendrier>:<UID iCalendar>:<début>`, les journées `mark:<uid du calendrier>:<UID>:<début>`.
+Si le nom existe sans connexion ici, « Ajouter » rattache la nouvelle connexion au calendrier existant après sauvegarde automatique.
+L'aperçu avertit du remplacement de ses événements à venir (§ Ajouter une connexion de calendrier).
+Le rattachement garde les identités et `imported_at` ; il applique ensuite le différentiel, comme le périmètre de « Réimporter ».
+Si le calendrier du même nom est déjà connecté ici, le nom reçoit le premier suffixe libre « (2) », « (3) »…
+
+`connectCalendar(..., beforeCommit)` applique le plan sous transaction, puis appelle `beforeCommit(id)` avant d'insérer la connexion.
+`DefaultOnlineConnections.addIcs` y écrit le secret `url:<id>`. Une exception annule la transaction et déclenche le nettoyage du secret.
+La sauvegarde précède cette transaction ; son échec empêche l'ajout.
+
+#### Un seul écrivain et portée inchangée (D6)
+
+`syncCalendar` utilise `write`, donc le même verrou que la fusion du fichier lié.
+Fusion et application du plan ne s'entrelacent jamais.
+Un changement d'événement suit le chemin habituel `changed`, puis l'écriture du fichier lié après 2 secondes.
+Sans changement partagé, aucune écriture du fichier lié : les seules métadonnées locales ne doivent pas déclencher ce chemin.
+`write` conserve sa notification après chaque écriture pour les appelants existants (`notifyOnlyIfChanged = false` par défaut).
+Seules les opérations en ligne choisissent `notifyOnlyIfChanged = true`.
+Sous le même verrou, `write` lit, réconcilie et publie le snapshot ; il compare le résultat au snapshot précédent.
+Il appelle `onChanged` seulement si ce snapshot partagé diffère pour ces opérations ; les flux locaux restent publiés.
+
+`SyncScope.of(snapshot, data)` conserve les calendriers, créneaux importés et journées de leurs sources dans sa portée.
+`calendar_connection` n'a aucun `RecordKind` et n'entre ni dans `SyncScope` ni dans `SyncRecords`.
+Les champs `kind`, ETag, dates, erreurs, fréquence et consentement restent locaux.
+Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classement actuel.
 
 ### Secrets (`ui/app/SecretStore.kt` et plateformes)
 
 - `SecretStore` : `get(key)`, `put(key, value)`, `delete(key)`, `keys()`, `level` (`HARDWARE`, `SYSTEM`, `FILE`, `NONE`, pour dire la
   vérité à l'utilisateur). Clés : `url:<idSource>` (lien ICS), `remote:<idSource>` (identifiant du calendrier distant), `account:<compte>`
-  (JSON : serveur, identifiant, mot de passe CalDAV ; ou jetons OAuth : `access`, `refresh`, `expiresAt`). Une valeur illisible
+  (format JSON prévu pour CalDAV et OAuth : serveur, identifiant, mot de passe ou jetons `access`, `refresh`, `expiresAt`). Une valeur illisible
   (clé perdue, fichier altéré) est **absente**, jamais une exception : la connexion passe en `NO_SECRET`.
-- `OnlineConnections.purgeOrphans()` au lancement supprime les clés dont la source ou le compte n'existe plus ; « Retirer » et
-  « Déconnecter » effacent les clés de la connexion (et le compte quand plus aucune source ne s'y rattache) avant de toucher la base.
+- `DefaultOnlineConnections.purgeOrphans()` au lancement supprime les clés sans ligne `calendar_connection` correspondante, puis les comptes sans connexion restante.
+  Vérifier la ligne de connexion, pas seulement la source : un remplacement peut réutiliser son identifiant sans conserver la connexion.
+  « Retirer » et « Déconnecter » effacent leurs clés, et le compte sans autre connexion, avant de toucher la base.
 - **Android** (`AndroidSecrets`) : clé AES-256 `AES/GCM/NoPadding` dans l'**Android Keystore** (alias `kairos-secrets`, non
-  exportable), valeurs chiffrées (IV + texte chiffré en Base64) dans les préférences `online-secrets`. API du framework, aucune
-  dépendance (`androidx.security:security-crypto`, dépréciée, écartée). Niveau `SYSTEM` (`HARDWARE` si le Keystore le dit).
+  exportable), valeurs chiffrées (IV + texte chiffré en Base64) dans les préférences `online-secrets`.
+  Le nom de clé sert de données authentifiées GCM ; une lecture ne régénère jamais une clé perdue.
+  API du framework, aucune dépendance. Niveau `HARDWARE` ou `SYSTEM`, `NONE` si le niveau est illisible.
 - **Bureau** (`DesktopSecrets`) : valeurs chiffrées en AES-256-GCM dans `secrets.bin`, **dans le dossier utilisateur par défaut de Kairos
   (`platformdirs`), jamais dans le dossier de données choisi** (qui peut être synchronisé, `bureau-avance.md`) ni dans une copie
   portable. La clé est confiée, par ordre : Windows, DPAPI (`ProtectedData`, portée utilisateur, par PowerShell, entrée standard) ;
   macOS, trousseau de session (`security`, la clé passe brièvement en argument : limite connue) ; Linux, `secret-tool` (libsecret) s'il est
-  présent ; sinon un fichier `secrets.key` aux droits `600` (niveau `FILE`, la carte dit « Identifiants protégés par les droits du fichier
-  seulement. »). Aucune bibliothèque JNA ni trousseau tiers.
-- **Web** : aucun magasin de secrets (`level = NONE`) ; seul le lien ICS est gardé (§ Web).
+  présent ; sinon un fichier `secrets.key` aux droits POSIX `600`, ou avec une ACL réservée au propriétaire sur un système non-POSIX.
+  L'absence de mécanisme de droits privés fait échouer la création. Niveau `FILE` : avertissement dans la carte.
+  Windows garde la clé protégée par DPAPI dans `secrets.dpapi` ; l'entrée standard transporte la clé vers PowerShell.
+  Un `secrets.key` existant garde priorité. Une clé système perdue n'est jamais remplacée si un chiffrat existe.
+  Le magasin rend alors les secrets absents et conserve le chiffrat récupérable. Aucune bibliothèque JNA ni trousseau tiers.
+- **Web, prévu** : aucun magasin de secrets (`level = NONE`) ; persistance éventuelle du seul lien ICS selon l'arbitrage de § Web.
 
 ### Politique d'adresse et journal (`core/connections/HttpPolicy.kt`, pur)
 
@@ -343,25 +424,26 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
   d'identifiant dans l'adresse (`https://user:pass@…` refusé) ; port 1-65535.
 - Redirections traitées par `OnlineGate`, jamais par la bibliothèque (`HttpFetcher` n'en suit aucune) : au plus 5 ; même hôte (ou
   `http` → `https` du même hôte) suivie ; **autre hôte** : lien ICS → `REDIRECT_HOST` et demande à l'utilisateur, le choix retenu dans
-  `redirectHost` ; CalDAV, OAuth, vérification des versions → refusée ; `https` → `http` toujours refusée (`INSECURE_REDIRECT`).
+  `redirectHost` ; CalDAV et OAuth → refusée ; `https` → `http` toujours refusée (`INSECURE_REDIRECT`).
   L'en-tête `Authorization` n'est envoyé qu'à l'hôte configuré, jamais après une redirection.
-- En-têtes : `User-Agent: Kairos` pour les calendriers (sans version : rien à pister), `Kairos/<version>` pour GitHub (déjà ainsi sur
-  le bureau, GitHub l'exige), `Accept-Encoding: gzip`, `If-None-Match` si un `ETag` existe et que le plan est du jour.
-- **Journal** (le journal du bureau, `bureau-avance.md`, et le journal Android s'il existe) : hôte, méthode, code de statut, durée, taille.
-  **Jamais** le chemin ni la requête de l'adresse, un en-tête, un corps, un jeton, un identifiant, un titre d'événement. Les messages
-  d'erreur montrés à l'utilisateur citent l'hôte seulement.
+- En-têtes : `User-Agent: Kairos` pour les calendriers (sans version : rien à pister),
+  `Accept-Encoding: gzip`, `If-None-Match` si un `ETag` existe et que le plan est du jour.
+- **Journal** : `HttpPolicy.logLine` ne produit que hôte, méthode, statut, durée et taille.
+  `OnlineGate` accepte un callback de journal ; `DefaultOnlineConnections` conserve actuellement son callback vide par défaut.
+  Aucun chemin, requête, en-tête, corps, jeton, identifiant ou titre n'est journalisé.
 
 ### Lien ICS
 
-- `ConnectionSync.sync(source)` : lit `url:<id>`, `GET` ; 200 → `IcsParser.isCalendar` et présence de `END:VCALENDAR`, sinon `NOT_CALENDAR`
+- `ConnectionSync.run(sourceId, force)` : lit `url:<id>`, `GET` via la porte ; 200 → `IcsParser.isCalendar` et présence de `END:VCALENDAR`, sinon `NOT_CALENDAR`
   ou `TRUNCATED` ; `CalendarImport.plan(texte, aujourd'hui, fuseau)` (hors du fil d'interface, `Dispatchers.Default`) puis
   `syncCalendar` ; 304 (même jour) → seules `last_attempt_at` et `last_sync_at` avancent ; 404/410 → `GONE` ; 401/403 → `AUTH` (le lien est
   un secret : il ne se « reconnecte » pas, on le remplace) ; 429/5xx → `UNAVAILABLE`. **Le corps n'est jamais conservé**, seul le plan l'est.
 - `ETag` : le plan dépend du jour (horizon de 6 mois glissant) : un 304 d'un jour antérieur n'est donc pas pris, la requête repart sans
   `If-None-Match` au moins une fois par jour.
 - Nom proposé : `X-WR-CALNAME`, sinon l'hôte.
+- L'aperçu garde l'adresse finale validée après redirections dans `url:<id>`, pas l'adresse initiale.
 
-### CalDAV (`core/connections/CalDav*.kt`, pur ; requêtes par `ConnectionSync`)
+### CalDAV (O2 spécifié, non implémenté ; `core/connections/CalDav*.kt` prévus)
 
 - Authentification `Basic`, en `https` seulement. Adresse saisie → découverte : `PROPFIND` de l'adresse (`/.well-known/caldav` en
   repli) pour `current-user-principal`, puis `calendar-home-set`, puis `PROPFIND` profondeur 1 des calendriers (`resourcetype` contenant
@@ -378,7 +460,7 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
   agenda personnel ; `etag` ne sert pas ici.
 - Limite connue : un serveur sans `calendar-query` → `UNSUPPORTED`, avec le conseil du lien ICS.
 
-### Microsoft 365 et Google par OAuth 2.0 (`OAuthFlow`, `OAuthPkce`, `Providers`)
+### Microsoft 365 et Google par OAuth 2.0 (O3/O4 spécifiés, non implémentés)
 
 - **Flux** (RFC 7636, RFC 8252) : Kairos génère un `code_verifier` (32 octets aléatoires fournis en paramètre à `core`, 43 caractères
   `base64url`), le `code_challenge` (`S256`, `Sha256` en Kotlin pur) et un `state` (16 octets) ; ouvre l'adresse d'autorisation dans le
@@ -409,8 +491,8 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
   requête rejouée une fois ; `invalid_grant` ou refus de rafraîchir → `REAUTH`, plus aucune requête automatique jusqu'à « Se reconnecter ».
 - **Retrait** : les jetons locaux sont effacés ; Google est prévenu au mieux (`/revoke`, sans bloquer) ; Microsoft n'a pas de point de
   révocation public pour ce flux : la carte renvoie, dans son aide, vers la page des applications du compte pour révoquer.
-- **Ce qu'il faut côté fournisseur** (à faire par le propriétaire avant d'embarquer le connecteur ; les identifiants de client sont **publics**
-  et vivent dans `Providers.kt`, jamais de secret de client dans le dépôt) :
+- **Ce qu'il faut côté fournisseur** : le propriétaire termine l'inscription avant de commencer le connecteur.
+  Les identifiants de client sont publics, dans `Providers.kt` ; aucun secret de client ne va dans le dépôt.
   - **Microsoft** : une inscription d'application dans Microsoft Entra (gratuite), « comptes de n'importe quel annuaire
     d'organisation et comptes Microsoft personnels », plateforme « Applications mobiles et de bureau » avec les adresses de redirection
     (schéma propre à l'application pour Android, `http://localhost` pour le bureau), « Autoriser les flux de client public » = oui,
@@ -430,65 +512,64 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
 
 ### Synchronisation (`ConnectionSync`, `ConnectionWatcher`, tâche de fond)
 
-- `ConnectionSync` (suspendu, `ui/app`) : `run(source, force)` — une synchronisation à la fois (verrou), 60 s au plus par source ;
-  lit les secrets, appelle `OnlineGate`, calcule le plan hors du fil d'interface, écrit par `syncCalendar` ou note l'échec par
-  `recordSyncFailure`. `runDue(now)` parcourt les sources dues, **séquentiellement**.
-- `ConnectionWatcher` (coquille, comme `UpdateWatcher`) : au lancement, au retour dans l'application (`onResume`, reprise de la fenêtre) et
-  toutes les 30 minutes tant que l'application est ouverte : `runDue`. L'horloge est celle des services (testable).
+- `ConnectionSync.run(sourceId, force)` : verrou unique, 60 s au plus par source ; seul `URL` est pris en charge dans O1.
+  Il lit les secrets, appelle la porte, calcule le plan hors du fil d'interface, puis écrit réussite ou échec.
+  `runDue(now)` parcourt les sources séquentiellement ; un secret absent pose `NO_SECRET` sans requête.
+- `ConnectionWatcher.start()` rend un `Job`, réutilise le job actif et lance `runDue` immédiatement, puis toutes les 30 minutes.
+  Android le démarre dans `MainActivity.onStart` et l'annule dans `onStop` ; `onResume` lance aussi `runDue`.
+  Le bureau démarre le watcher avec ses services et relance `runDue` au retour du focus de la fenêtre.
 - **Android, application fermée** : `ConnectionScheduler.apply(sources)` pose, à chaque changement des connexions, **une seule**
   `JobInfo` périodique (`setPeriodic`, période = la plus courte des fréquences régulières actives, 60 minutes au moins, `setPersisted(true)` — il
-  profite de `RECEIVE_BOOT_COMPLETED`, déjà déclarée —, `setRequiresBatteryNotLow(true)`), ou l'annule s'il n'y en a aucune. **Aucune
-  contrainte de réseau du planificateur** (elle demanderait vraisemblablement `ACCESS_NETWORK_STATE`, à vérifier à l'implémentation) :
-  une tentative hors ligne échoue vite et sera rejouée. `SyncJobService.onStartJob` ouvre les services par `KairosProcess` (base ouverte
+  profite de `RECEIVE_BOOT_COMPLETED`, déjà déclarée —, `setRequiresBatteryNotLow(true)`), ou l'annule s'il n'y en a aucune.
+  Aucune contrainte réseau du planificateur, donc pas de permission `ACCESS_NETWORK_STATE`.
+  Une tentative hors ligne échoue et sera rejouée. `SyncJobService.onStartJob` ouvre les services par `KairosProcess` (base ouverte
   une fois par processus, comme `ChronoReceiver`) et lance `runDue`. Aucune alarme exacte, aucun service au premier plan, aucune notification.
+  `onStopJob` annule le job courant et demande sa reprise ; une exception inattendue demande aussi une reprise au système.
   Le widget (`widgets-android.md`) et les rappels (`rappels.md`) lisent `personalSnapshot` : ils suivent la synchronisation sans rien ajouter.
-- **Bureau et web** : seulement `ConnectionWatcher`, application ouverte. Le bureau ne lance aucun processus de fond.
+- Le planificateur conserve le job existant si sa période est inchangée ; les métadonnées ne repoussent donc pas son exécution.
+- **Bureau** : application ouverte uniquement, sans processus de fond. Le watcher web reste prévu.
 - **Un échec ne bloque jamais** : l'écran n'attend pas ; l'erreur est écrite en base et lue par la carte.
 - Pas de sauvegarde à chaque synchronisation (§ Décisions) ; la première, à l'ajout, a la sienne.
 
-### Nouvelles versions sur Android (`Updates.kt`, `SettingsScreen.kt`)
-
-- Réutilise sans le changer `UpdateCheck` (URL de l'API de GitHub, `parseLatest`, `isNewer`, `due` à 6 heures, `downloadPage`),
-  `UpdateWatcher` et `UpdateBanner` ; `AndroidUpdates` est l'équivalent de `DesktopUpdates` (état dans `updates.json` du dossier de
-  données Android, GET par `OnlineGate`).
-- État **propre à Android** : préférence `online-updates` des préférences de l'application (comme `phone-calendars`), **jamais**
-  `Settings.updateCheckEnabled` : celui-ci vaut vrai par défaut, voyage dans l'export et activerait le réseau en important l'export d'un bureau.
-  Aujourd'hui `UpdateWatcher` lit `settings.updateCheckEnabled` et `UpdatesCard` l'écrit par le formulaire des Réglages ; à l'implémentation,
-  `UpdateService` expose `enabled` et `setEnabled` : le service du bureau les adosse à `Settings.updateCheckEnabled` (comportement inchangé), celui
-  d'Android à la préférence ; `UpdateWatcher` et `UpdatesCard` n'utilisent plus que le service. Sur Android, `UpdatesCard` n'inscrit donc rien
-  dans le formulaire et l'interrupteur agit tout de suite (pas de « Enregistrer »).
-- Garde : `AppServices.downloadPage` (installation à la main, 3.9.0) est **condition** de l'existence du service (`AppServices.updates` non
-  nul) ; installé par un magasin, `AppServices.updates` reste nul et aucune requête n'est possible (`OnlineGate` ne connaît pas cette
-  origine). `DownloadPageCard` (3.9.0) n'est plus montrée que si le service existe et que l'interrupteur est éteint ; sinon `UpdatesCard`.
-- Pas de tâche de fond ni de notification pour cette fonction.
-
-### Web (`kairos-web.js`, `WebServices`)
+### Web (tranche O1 spécifiée, non implémentée)
 
 - Seul le **lien ICS** est proposé, via `fetch` : il marche si le serveur envoie `Access-Control-Allow-Origin`, ce que ni Outlook, ni Google, ni
   la plupart des serveurs de calendrier ne font toujours ; sinon `TypeError`, que le navigateur ne distingue pas d'une panne de réseau. Message :
   « Le navigateur n’a pas pu lire ce lien (hors ligne, ou serveur qui n’autorise pas les pages web). » L'aide de la section le dit **avant**
   l'ajout. Pas d'`If-None-Match` (il déclencherait une requête préliminaire inutile).
-- Le lien est gardé dans IndexedDB, avec la poignée du fichier lié (`export-import.md`) : c'est l'unique donnée de connexion que le web
-  garde, et l'aide le dit (« Cette adresse est gardée dans ce navigateur. »). **Aucun identifiant, mot de passe ni jeton n'est jamais gardé
-  sur le web.**
+- Le stockage prévu du lien utilise IndexedDB, à côté de la poignée du fichier lié (`export-import.md`), sous réserve de l'arbitrage ci-dessous.
+  Si cette persistance est retenue, l'aide dit « Cette adresse est gardée dans ce navigateur. »
+  Aucun identifiant, mot de passe ni jeton n'est jamais gardé sur le web.
+- **Point ouvert à régler dans la tranche web de O1** : la base est en mémoire, rechargée depuis l'export OPFS sans connexion.
+  `export-import.md` (§ Web) décrit ce démarrage ; `synchronisation.md` précise `restoreSynced` pour un instantané synchronisé.
+  Une ligne `calendar_connection` seule disparaîtrait donc au rechargement.
+  Deux pistes restent à arbitrer : garder les métadonnées (lien, fréquence, interrupteur) dans IndexedDB, puis recréer la ligne par nom ;
+  ou limiter la connexion web à la session. Aucun des deux comportements n'est encore décidé.
 - **CalDAV et OAuth n'y sont pas proposés**, pour trois raisons : (1) aucun magasin de secrets (tout script de l'origine lit IndexedDB et
   `localStorage`, un mot de passe ou un jeton de rafraîchissement y serait lisible) ; (2) les serveurs CalDAV n'envoient en général pas les
   en-têtes CORS et exigent des requêtes préliminaires pour `PROPFIND`/`REPORT` ; (3) un flux OAuth de page web demande une inscription
   « application monopage » distincte et des jetons de rafraîchissement à vie courte. La version web reste le recours du poste verrouillé :
   les fichiers `.ics` y fonctionnent.
-- La vérification des versions n'existe pas (`mises-a-jour.md`, « sans objet »).
 
-### Interface (`ui/settings/OnlineConnections.kt`, `kairos-ecran`)
+### Interface (`ui/settings/OnlineConnectionsCard.kt`)
 
-- `OnlineConnectionsCard` (catégorie Données, après `CalendarsCard`) : phrase d'ouverture ; « Ajouter une connexion » (menu des connexions
-  disponibles sur la plateforme) ; liste des calendriers connectés (`CalendarSource.kind ≠ FILE`) ; ligne d'état de chaque calendrier ; renvoi
-  « La vérification des nouvelles versions se règle dans Général → Mises à jour. » (Android et bureau).
-- Dialogues : activation (le texte du tableau ci-dessus, `AlertDialog`), saisie (champs : `OutlinedTextField`, mot de passe masqué,
-  `KeyboardType.Password`), choix des calendriers (cases, aucune cochée), aperçu (`CalendarImportDialog` étendu, bouton « Ajouter »), erreurs.
-- Couleurs par `MaterialTheme.colorScheme` seulement ; l'erreur est une ligne de texte avec icône (`Warning`, ajoutée à `make_icons.py` si absente),
+- `AppServices.online` et `connectionSync` sont nullables, ajoutés en dernier avec `null` par défaut.
+  La démonstration les fixe tous deux à `null` ; le web ne fournit actuellement aucun service en ligne.
+- `OnlineConnectionsCard` apparaît dans Données après `CalendarsCard` seulement si `services.online != null`.
+  O1 propose uniquement le lien ICS ; les connexions affichent date locale de réussite, hôte, fréquence, pause et erreurs.
+- O1 possède ses dialogues d'activation, saisie, confirmation HTTP/redirection et aperçu ; il ne réutilise pas `CalendarImportDialog`.
+  Le plan d'aperçu est transitoire ; après rotation, il est relu, tandis que les champs modifiables restent sauvegardés.
+  « Remplacer le lien » apparaît pour `AUTH`, `GONE`, `NO_SECRET` et `REDIRECT_HOST`.
+  Le remplacement prévisualise le lien, restaure l'ancien secret si l'écriture échoue, puis force une synchronisation.
+  Une connexion en pause reste en pause, même pour une demande manuelle.
+- `CalendarsCard` affiche `lastSyncAt` plutôt que `importedAt` pour une connexion et masque son bouton fichier « Réimporter ».
+  Son retrait passe par le service en ligne pour effacer aussi les secrets.
+  Avec `services.online != null`, son texte d'introduction (`calendars_body_online`) ne dit plus « Kairos ne se connecte à aucun compte » : il garde la
+  première phrase seule ; sans service en ligne (web), le texte historique reste.
+- Couleurs par `MaterialTheme.colorScheme` seulement ; l'erreur est une ligne de texte avec l'icône existante `Warning`,
   **pas** de conteneur d'erreur : ce sont des incidents attendus, pas des échecs de l'application (`DESIGN_SYSTEM.md`). Cibles de 48 dp.
-- Carte du guide `online_connections` (chapitre Organiser, `since = "4.1.0"`, ouvre Réglages → Données) ; carte `FeatureCatalog` et
-  `README_FEATURES` à l'implémentation (`FeatureCatalogTest.readmeFeaturesAreCovered`).
+- Carte du guide `online_connections` implémentée (Organiser, `since = "4.1.0"`, Android/bureau, cible Réglages → Données).
+  `FeatureCatalog.README_FEATURES` contient « Online connections ».
 - Textes dans les six langues (`values*/strings.xml`), apostrophe typographique `’`.
 
 ### Isolation du mode solo et de l'espace Équipe
@@ -496,7 +577,7 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
 - **Mode solo** : tant qu'aucune connexion n'est ajoutée, aucune ligne de connexion n'existe, aucune tâche de fond n'est planifiée,
   `ConnectionWatcher` ne trouve rien de dû, l'export est identique à l'octet près. `Settings` n'a aucun champ nouveau.
 - **Espace Équipe** : les créneaux synchronisés sont des créneaux importés de l'espace Perso (`personalView`, `equipe.md`) ; la synchronisation
-  n'écrit que `calendar_source`, `time_block`, `day_mark`. Elle ne lit ni n'écrit aucune table `team_*`, ne passe par aucun filtre d'équipe et
+  n'écrit que les tables de calendrier Perso et `calendar_connection`. Elle ne lit ni n'écrit aucune table `team_*`, ne passe par aucun filtre d'équipe et
   ne voit pas `teamView`. Aucune adresse, aucun hôte, aucun nom de calendrier connecté, aucun secret n'entre dans un paquet, un rapport ou une
   sauvegarde d'équipe (`equipe-echanges.md`) ; la charge de « moi » compte les créneaux synchronisés comme les créneaux importés
   (`connexions-externes.md`). Aucun collègue ne reçoit rien.
@@ -504,45 +585,42 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
 ### F-Droid, distribution et publication
 
 - **Un seul APK** (`distribution.md`) : celui de F-Droid et des releases GitHub, même signature, reproductible (`publication.md`). `INTERNET` n'est
-  pas conditionné par une variante ou un drapeau de construction. Les identifiants de client OAuth sont des constantes publiques du code source.
+  pas conditionné par une variante ou un drapeau. Les identifiants OAuth resteront des constantes publiques lors de O3/O4.
 - **Anti-fonctionnalités** : l'étiquette est **par application**, pas par fonction. Dès que le code d'un connecteur dédié à un service non
   libre (Microsoft, Google) est dans l'APK, **tous** les utilisateurs de la fiche F-Droid la voient, même s'ils n'activent rien. Donc :
   - `NonFreeNet` est **déclaré** dans la recette (`AntiFeatures: NonFreeNet`, description anglaise : « Optional, off-by-default connectors
     to Microsoft 365 and Google Calendar ») dans la **version qui embarque le premier de ces connecteurs**, et pas avant ;
   - le lien ICS et CalDAV sont des protocoles génériques : aucune étiquette à eux seuls ;
-  - la vérification des versions est **désactivée par défaut** et **absente d'une installation par F-Droid** : pas d'étiquette `Tracking` (qui
-    vise un appel réseau sans accord ou actif par défaut) ; une relecture de fdroiddata qui en jugerait autrement se traite en déclarant
-    l'étiquette, **jamais en la taisant** ;
   - aucune étiquette n'est omise « pour ne pas faire peur » : la règle de `connexions-externes.md` (« une anti-fonctionnalité non déclarée
     entraîne un refus ») s'applique à chaque version.
   `fdroid_check.sh` fait passer `fdroid lint` et `rewritemeta` sur la recette canonique avec l'étiquette ; la fiche Fastlane et la page
   de téléchargement cessent de dire « aucune permission réseau » (§ Impacts).
-- **Jalons** (dans la 4.1.0) : O1 socle (permission, `OnlineGate`, secrets, schéma 13) + lien ICS + nouvelles versions d'Android ; O2 CalDAV ;
-  O3 Microsoft ; O4 Google. O3 et O4 attendent l'inscription du fournisseur (ci-dessus) : si elle n'est pas prête, la 4.1.0 sort avec O1 et O2
-  (sans `NonFreeNet`) et O3/O4 suivent en 4.2.0 ; la permission, elle, ne reviendra jamais en arrière dans une version mineure.
+- **Jalons** : O1-O4 selon la checklist de l'État. O1 apporte `INTERNET`, pas avant.
+  Les inscriptions conditionnent le démarrage de O3/O4 ; faute d'inscription, O1+O2 sortent en 4.1.0 sans `NonFreeNet`.
+  `INTERNET` est la seule permission de cette fonctionnalité ; `SCHEDULE_EXACT_ALARM` vient des alertes du chrono.
+  La permission réseau ne revient pas en arrière dans une version mineure.
 - **Version** : prévue `4.1.0` (`kairos.versionCode` 40100, formule de `distribution.md`) : elle change une décision fondatrice, mais arrive dans une version mineure : la 4.0.0 a déjà ouvert la série majeure
-  (choix du 2026-11-04 ; la règle « jamais en arrière dans une version mineure » vaut à partir de la 4.1.0). Note de version
-  Fastlane `40100.txt` dans les six langues, qui **dit** l'ajout de la permission réseau et que tout est désactivé par défaut. README anglais et
-  français (feature) à l'implémentation.
+  (choix du 2026-11-04 ; la règle « jamais en arrière dans une version mineure » vaut à partir de la 4.1.0).
+  La PR de publication doit encore ajouter `40100.txt` dans les six langues et actualiser la recette F-Droid et les textes d'anti-fonctionnalité.
+  Au 2026-11-12, ces notes sont absentes ; la recette existe mais ne contient pas `NonFreeNet`.
+  O1 seul ne justifie pas cette étiquette ; elle sera ajoutée seulement avec Microsoft ou Google.
 
 ### Décisions et pièges tracés
 
-- **Rouvrir « sans permission réseau »** (propriétaire, 2026-10-26, #139, #144) : remplace la décision du 2026-10-24 de
+- **Rouvrir « sans permission réseau »** (propriétaire, 2026-10-26, #139) : remplace la décision du 2026-10-24 de
   `connexions-externes.md` ; contreparties acceptées : la fiche F-Droid et les textes de publication ne disent plus « aucune permission
   réseau », `NonFreeNet` apparaît avec les connecteurs Microsoft et Google, la permission arrive avec la 4.1.0 (prévue pour la 4.0.0, report du 2026-11-04). Le calendrier du téléphone (3.10.0)
   et le fichier `.ics` restent, hors ligne, la voie de qui ne veut pas du réseau.
 - **Un seul APK avec `INTERNET`**, plutôt que deux APK (un « sans réseau », un « en ligne »). Écarté : deux identifiants d'application ou deux
   signatures, donc des données non partagées, une fiche F-Droid double, une reproductibilité à prouver deux fois, et des utilisateurs qui ne savent
-  pas lequel prendre. Le prix est dit plus haut : une permission au lieu de zéro.
+  pas lequel prendre. Le prix est une permission réseau accordée même sans connexion active.
 - **`INTERNET` demandée à l'exécution : impossible sur Android.** C'est une permission « normale », accordée à l'installation, qu'on ne peut ni
   demander ni refuser ensuite. Le consentement est donc dans Kairos (interrupteurs, dialogue qui dit ce qui est envoyé), et la garantie est
-  dans le code (`OnlineGate`, `NoConnectionNoRequestTest`, `NetworkIsolationTest`), pas dans le système.
-- **Désactivé par défaut, y compris sur le bureau pour les calendriers** ; seule la vérification des versions du bureau reste active par défaut
-  (acquise depuis M5), et son interrupteur d'Android part désactivé : l'asymétrie est voulue.
-- **Réglage d'Android à part de `Settings.updateCheckEnabled`.** Ce champ est exporté, vrai par défaut et propre au bureau : l'utiliser aurait
-  activé le réseau en important un export. Les préférences de l'application (`phone-calendars` en est l'exemple) ne voyagent pas.
-- **Pas de `ACCESS_NETWORK_STATE`, pas de contrainte de réseau du planificateur** : une seule permission en plus. Une tentative hors ligne échoue
-  sans coût et reprend plus tard.
+  dans le code (`OnlineGateTest.closedGateNeverTouchesTransport`, `NetworkIsolationTest`), pas dans le système.
+- **Calendriers désactivés par défaut sur toutes les plateformes** : l'ajout explicite vaut consentement.
+  Écarté : déduire une activation d'un import. Le comportement historique du bureau reste hors de ce changement.
+- **Pas de `ACCESS_NETWORK_STATE`, pas de contrainte réseau du planificateur** : ne pas ajouter de permission pour détecter une panne.
+  Une tentative hors ligne échoue et reprend plus tard. Écarté : élargir les permissions des connexions.
 - **`JobScheduler`, pas `WorkManager`, pas `AlarmManager`.** `WorkManager` ajoute une dépendance et fusionne ses propres permissions dans le manifeste ;
   `AlarmManager` sans permission exacte (`rappels.md`) fonctionnerait mais réveillerait le téléphone sans condition. `JobScheduler` est le
   mécanisme du système pour un travail périodique, sans permission exacte, avec reprise au redémarrage déjà couverte.
@@ -550,12 +628,12 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
   runtime depuis M5) font ce qu'il faut (`GET`, `POST`, et `PROPFIND`/`REPORT` sous réserve du piège ci-dessous pour Android) ; Ktor serait une dépendance de plus (graphe de construction
   reproductible, taille de l'APK de 2 Mo) pour un code partagé que l'interface `HttpFetcher` donne déjà ; AppAuth, libre, tire des
   dépendances pour un flux d'une page de code qu'on teste mieux chez soi ; un lecteur XML maison de quelques dizaines de lignes est le seul
-  qui marche en wasm et sans XXE. Piège connu, **à trancher à l'implémentation de O2 par un essai réel** (Android 8 à 16) : `HttpURLConnection` d'Android
-  peut refuser les méthodes `PROPFIND` et `REPORT` (`setRequestMethod` n'accepte que des méthodes standard). Ordre de repli : (1) la méthode
-  passe telle quelle ; (2) une écriture HTTP/1.1 minimale sur la `SSLSocket` du système (certificats du système, mêmes règles `HttpPolicy`), dans
-  `AndroidHttp.kt` seulement ; (3) ajouter OkHttp (libre, Apache 2.0, Maven Central) : **décision du propriétaire**, car dépendance nouvelle. Écarté :
-  la réflexion sur le champ `method` (restrictions d'API cachées) et `X-HTTP-Method-Override` (non pris en charge par Radicale). Le bureau
-  (`java.net.http`) accepte ces méthodes.
+  qui marche en wasm et sans XXE. Le propriétaire confirme cette contrainte le 2026-11-06 ([#212](https://github.com/SKOHscripts/Kairos/issues/212#issuecomment-6687966751)).
+  Piège de O2 : `HttpURLConnection` peut refuser `PROPFIND` et `REPORT`.
+  Tester réellement sur Android 8 à 16 : (1) méthode telle quelle ; (2) HTTP/1.1 minimal sur `SSLSocket` système, dans `AndroidHttp.kt` seulement.
+  (3) OkHttp reste le dernier recours, avec **accord explicite du propriétaire après cet essai réel**, jamais une décision implicite d'implémentation.
+  Écartés : réflexion sur `method` (API cachées) et `X-HTTP-Method-Override` (Radicale ne le prend pas en charge).
+  Le bureau (`java.net.http`) accepte ces méthodes.
 - **Lien ICS et URL de calendrier = secrets.** Ils donnent l'agenda à qui les a ; ils sont chiffrés comme un mot de passe, absents de la base,
   de l'export, des journaux et de l'affichage (hôte seul).
 - **Ne rien écrire si la réponse n'est pas un calendrier complet** : un portail captif ou une page de connexion répond 200 en HTML ; un calendrier
@@ -577,40 +655,84 @@ Chacun est prouvé par le test nommé (à écrire à l'implémentation ; la CI n
   verrait le mot de passe (interdit par les deux fournisseurs et par l'esprit du flux) ; une page de redirection hébergée suppose un serveur du projet.
 - **`Déconnecter` ≠ `Retirer`** : on peut vouloir cesser de se connecter sans perdre la trace de ses journées. Déconnecter fait du calendrier un calendrier
   importé ordinaire (réimport d'un fichier toujours possible).
-- **Les connexions ne sont pas exportées.** Une base copiée, restaurée ou synchronisée par dossier retrouve ses événements gelés, pas ses accès :
-  c'est le prix de « aucun secret ni adresse hors de l'appareil ». Les secrets du bureau sont hors du dossier de données choisi pour la même raison.
+- **Les connexions ne sont pas exportées** : l'appareil destinataire reçoit les événements, pas les accès.
+  Écarté : transporter les secrets avec les données. Le maintien des connexions déjà locales suit D1, pas un effacement à chaque fusion.
 - **Corps de réponse plafonné à 16 Mio** (`MAX_BODY_BYTES`) : un fichier de 5 000 événements fait environ 3 Mio ; au-delà, c'est une
   erreur de serveur, pas un agenda.
 - **Dates des journées entières de Microsoft Graph** : l'API les rend à minuit dans un fuseau ; la date retenue est celle de `start.dateTime` telle
   qu'écrite, sans conversion. **À vérifier sur de vrais comptes** (créés dans un autre fuseau) avant livraison de O3.
 - **Hors périmètre de cette spec, noté** : le journal et la vue « État de la connexion » en détail (historique des synchronisations) ; le
   mode « sans réponse du serveur depuis N jours » signalé en badge ; un identifiant d'application OAuth personnalisé.
+- **D1 — Table locale séparée** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+  Choisi : `calendar_connection`, selon § État local et remplacement des lignes, pour survivre aux fusions.
+  Écartés : colonnes sur `calendar_source`, connexion dans le snapshot ou l'export ; leur cycle de vie ne convient pas.
+- **D2 — Différentiel par identité** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+  Choisi : § Différentiel et date affichée, pour éviter des écritures et identifiants nouveaux chaque heure.
+  Écarté : effacer puis réinsérer les événements identiques.
+- **D3 — Date de réussite locale** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+  Choisi : § Différentiel et date affichée, pour éviter les conflits d'horodatage entre appareils.
+  Écarté : rafraîchir le champ partagé `importedAt`.
+- **D4 — Serveur autoritaire pour les événements connectés** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+  Choisi : § Autorité du serveur et conflits, pour ne pas demander de résoudre des valeurs transitoires.
+  Écarté : remplir « À revoir » avec ces divergences.
+- **D5 — Rattachement au calendrier existant** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+  Choisi : § Rattachement par le nom, pour garder l'identité reçue du fichier lié.
+  Écarté : créer systématiquement un doublon suffixé.
+- **D6 — Verrou commun, état hors portée** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+  Choisi : § Un seul écrivain et portée inchangée, pour sérialiser les données sans partager l'état de l'appareil.
+  Écartés : écrivain parallèle et nouveau genre de synchronisation pour les connexions.
+- **D7 — Périmètre réduit aux calendriers** (propriétaire, 2026-11-06, [#212](https://github.com/SKOHscripts/Kairos/issues/212#issuecomment-6687966751)).
+  Choisi : le retrait tracé une seule fois dans § Hors périmètre, pour respecter la clôture du propriétaire.
+  Écarté : maintenir la proposition abandonnée.
+- **D8 — Permission avec O1 seulement** (propriétaire, 2026-11-06, [#212](https://github.com/SKOHscripts/Kairos/issues/212#issuecomment-6687966751)).
+  Choisi : `INTERNET` dans la première PR réseau ; seule permission de cette fonctionnalité, distincte du chrono.
+  Écarté : ajouter une permission inutilisée dans une PR préalable.
+- **D9 — Inscriptions avant O3/O4** (propriétaire, 2026-11-06, [#212](https://github.com/SKOHscripts/Kairos/issues/212#issuecomment-6687966751)).
+  Choisi : jalons bloqués jusqu'aux identifiants, selon l'État et § OAuth, pour livrer des connecteurs utilisables.
+  Écarté : commencer ou embarquer un connecteur sans inscription ; repli O1+O2 puis 4.2.0.
+- **D10 — Chaque PR apporte sa preuve** (propriétaire, 2026-11-06, [#212](https://github.com/SKOHscripts/Kairos/issues/212#issuecomment-6687966751)).
+  Choisi : captures nettoyées et rapport manuel (§ Critères de succès), car le propriétaire n'a pas les comptes nécessaires.
+  Écarté : reporter toute vérification réelle sur le propriétaire.
+- **Aperçu autorisé distinct** (2026-11-12) : choisi `preview` sans ligne persistée, pour lire avant l'ajout ; écartée une connexion temporaire.
+- **Secret avant commit** (2026-11-12) : choisi `beforeCommit` dans la transaction, pour annuler l'ajout si le secret échoue ; écartée l'écriture après commit.
+- **Cycle visible du watcher** (2026-11-12) : choisi un `Job` annulable et les reprises natives, pour arrêter le travail invisible ; écarté un watcher Android permanent.
+- **Notification D2/D6 ciblée** (2026-11-12) : choisi le comparatif de snapshot optionnel pour les écritures en ligne ; écarté un changement global de `write`.
+- **Fixtures d'ancien schéma** (2026-11-12) : choisi de retirer aussi `calendar_connection`, pour éviter le marqueur 14 ; écarté le seul retrait de `sync_*`.
+- **Clé de bureau privée** (2026-11-12) : choisi POSIX `600` ou ACL propriétaire et conservation du chiffrat sans clé ; écartés droits publics et régénération silencieuse.
+- **Services optionnels** (2026-11-12) : choisi deux champs nullables en fin d'`AppServices`, pour garder les services sans réseau ; écartée leur reprise en démonstration.
+- **Date et actions cohérentes** (2026-11-12) : choisi `lastSyncAt` et aucun réimport fichier pour une connexion ; écartée l'affichage d'une date partagée artificielle.
 
-### Impacts sur les specs existantes (à reporter à l'implémentation)
+### Points ouverts
 
-Déjà reportés **le 2026-10-26** (une phrase « rouvert le 2026-10-26 par `connexions-en-ligne.md` » qui précise « jusqu'à la 4.0 ») :
-`connexions-externes.md` (§ Contraintes, § Paliers, § Hors périmètre, § Décisions), `distribution.md` (§ Comportement attendu et
-§ Android, manifeste), `publication.md` (description des fiches, recette et anti-fonctionnalités, § Décisions), `architecture.md`
-(dépendances et invariants), `mises-a-jour.md` (§ Comportement attendu, § Hors périmètre, § Décisions), `fdroid/README.md` (permissions et
-anti-fonctionnalités). Ces phrases décrivent la décision ; le code reste celui de la 4.0 jusqu'à l'implémentation, et **chaque phrase est
-à passer au présent (jalon livré) quand le code existe**.
+- O1 web : persistance des métadonnées dans IndexedDB avec rattachement par nom, ou connexion limitée à la session (§ Web).
+- O2 Android : résultat des essais réels de `PROPFIND`/`REPORT`, avant tout recours soumis à accord à OkHttp.
+- O3/O4 : inscriptions du propriétaire, adresses de retour et vérification des portées (§ OAuth).
 
-Restent à reporter **à l'implémentation**, hors du périmètre de la rédaction de cette spec :
+### Impacts restants sur les specs existantes
 
-- `README.md` et `README.fr.md` (feature : connexions en ligne, nouvelles versions d'Android ; les affirmations « sans réseau »), `docs/ROADMAP.md`
-  (ligne 4.1.0 : #139 et #144 spécifiées), `docs/spec/README.md` (index : ajouter `connexions-en-ligne.md`, ajuster la ligne de
-  `connexions-externes.md`) ;
-- `soutien.md` (« Aucune permission réseau ajoutée à l'APK », « l'APK reste sans permission réseau » : vrai de la fonction de don, pas de
-  l'APK), `equipe.md` (décision 1 « sans permission réseau » et hors périmètre : l'espace Équipe reste sans réseau ni échange automatique ; la
-  permission est celle des calendriers et des versions), `equipe-echanges.md` (« Kairos n'a pas de permission réseau » : le transport des échanges reste
-  un fichier), `bureau-avance.md` (proxy sur Android : désormais le proxy du système s'applique aussi à Android ; « aucun réseau » du diagnostic
-  reste vrai de l'envoi), `rappels.md` (« sans permission réseau » : formulation à préciser), `ordonnancement.md` (« événements de calendrier
-  externes : par le réseau, hors périmètre »), `demarrage.md` (rapport de plantage : « aucun réseau » reste vrai, la phrase n'a plus pour
-  raison l'absence de `INTERNET`), `export-import.md` (les connexions ne sont pas exportées), `reglages.md` (carte « Connexions en ligne » de la
-  catégorie Données, interrupteur d'Android dans « Mises à jour »), `modele-donnees.md` (schéma 13), `i18n.md` (nouveaux textes),
-  `accessibilite.md` (cibles et libellés de la carte), `visite-guidee.md` (carte du guide) ;
-- `docs/plan-v3-kotlin.md` : **historique**, conservé tel quel (il dit « pas de `INTERNET` » au jalon M0) ; une phrase renvoie à cette spec ;
-- `fdroid/com.skohscripts.kairos.yml` (`AntiFeatures: NonFreeNet`, dans la version qui embarque Microsoft ou Google), `fastlane/metadata/android/*/full_description.txt`
-  (retirer « aucune permission réseau », dire les connexions facultatives et désactivées par défaut), `changelogs/40100.txt` (six langues),
-  `site/` (accroche « sans compte, sans réseau »), `AndroidManifest.xml` (commentaire de tête et permission), `kmp/gradle.properties`
-  (version), `kmp/desktopApp/build.gradle.kts` (`jdk.httpserver`).
+Les reports O1 dans `synchronisation.md`, `modele-donnees.md`, `connexions-externes.md`, `reglages.md` et `visite-guidee.md` sont effectués.
+Les éléments ci-dessous restent à reporter au jalon ou à la publication concernés :
+
+- `architecture.md` : exceptions réseau de plateforme, `core` pur, absence de nouvelle dépendance.
+- `distribution.md` : APK unique, `INTERNET` avec O1, consentement par connexion.
+- `publication.md` et `fdroid/README.md` : permission réseau facultativement utilisée, chrono avec `SCHEDULE_EXACT_ALARM`, anti-fonctionnalités selon les connecteurs embarqués.
+- `README.md` et `README.fr.md` : fonctionnalité des connexions en ligne, formulations « sans réseau », puce et tableau correspondants.
+  `FeatureCatalog`, six langues et carte du guide doivent rester cohérents (`liste-fonctionnalites.md`).
+- `docs/ROADMAP.md` : #139 suit O1-O4, #212 porte l'implémentation ; 4.1.0 confirmée, O3/O4 conditionnels.
+  `docs/spec/README.md` : index et renvoi depuis `connexions-externes.md`.
+- `soutien.md` : l'absence de permission ajoutée concerne le don, pas l'ensemble de l'APK.
+- `equipe.md`, `equipe-echanges.md` et les specs `equipe*.md` concernées : l'espace Équipe reste sans réseau ni échange automatique.
+  Les permissions concernent les calendriers et le chrono ; paquets et rapports ne contiennent aucune connexion.
+- `export-import.md` : aucune donnée de connexion exportée ; préciser le stockage web après arbitrage de O1.
+- `bureau-avance.md` : proxy système aussi pour le réseau de calendrier du bureau ; diagnostic sans envoi distant inchangé.
+- `rappels.md` : préciser que les rappels n'utilisent pas le réseau.
+  `ordonnancement.md` : créneaux connectés traités comme les créneaux importés.
+  `demarrage.md` : rapport de plantage sans envoi, sans invoquer l'absence globale de `INTERNET`.
+- `i18n.md` : textes dans les six langues.
+  `accessibilite.md` : cibles et libellés de la carte.
+  `visite-guidee.md` : carte `online_connections` (les services de démonstration sont déjà documentés).
+- `docs/plan-v3-kotlin.md` : conserver l'historique M0, ajouter seulement un renvoi vers cette décision lors de l'implémentation.
+- `fdroid/com.skohscripts.kairos.yml` : `NonFreeNet` à l'embarquement de Microsoft ou Google seulement.
+  `fastlane/metadata/android/*/full_description.txt`, note finale dans les six langues et `site/` : remplacer l'absence de réseau par les connexions facultatives.
+  `kmp/desktopApp/build.gradle.kts` : `jdk.httpserver` avec OAuth (le manifeste O1 est déjà modifié).
+  Ne modifier version ou tags que dans le cycle de publication prévu.

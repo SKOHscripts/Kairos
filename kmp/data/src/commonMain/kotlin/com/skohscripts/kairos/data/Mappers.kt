@@ -1,5 +1,11 @@
 package com.skohscripts.kairos.data
 
+import com.skohscripts.kairos.core.connections.CalendarConnection
+import com.skohscripts.kairos.core.connections.ConnectionKind
+import com.skohscripts.kairos.core.connections.ConnectionError
+import com.skohscripts.kairos.core.connections.OAuthProvider
+import com.skohscripts.kairos.core.connections.SyncInterval
+import com.skohscripts.kairos.data.db.Calendar_connection as ConnectionRow
 import com.skohscripts.kairos.core.model.ExchangeNote
 import com.skohscripts.kairos.core.model.BlockException
 import com.skohscripts.kairos.core.model.BlockKind
@@ -153,6 +159,25 @@ internal fun CalendarSourceRow.toModel() = CalendarSource(
     hideTitles = hide_titles != 0L,
     importedAt = imported_at.instant(),
     createdAt = created_at.instant(),
+)
+
+internal fun ConnectionRow.toModel() = CalendarConnection(
+    sourceId = source_id,
+    kind = ConnectionKind.valueOf(kind),
+    provider = provider?.let(OAuthProvider::valueOf),
+    host = host,
+    account = account,
+    syncEnabled = sync_enabled != 0L,
+    interval = SyncInterval.valueOf(interval),
+    lastAttemptAt = last_attempt_at?.instant(),
+    lastSyncAt = last_sync_at?.instant(),
+    lastError = last_error?.let(ConnectionError::valueOf),
+    failures = failures.toInt(),
+    nextAttemptAt = next_attempt_at?.instant(),
+    etag = etag,
+    plannedOn = planned_on,
+    insecureConfirmed = insecure_confirmed != 0L,
+    redirectHost = redirect_host,
 )
 
 /** Heure locale stockée « 09:30 » (heures d'une exception de créneau). */

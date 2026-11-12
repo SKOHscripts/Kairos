@@ -42,6 +42,7 @@ class WeekHoursMigrationTest {
         first.createMember("Léa", "", 80, 7.0, false)
         val before = first.snapshot.value.members
         // Base de la 3.8.0 : pas de colonne, étiquetée en schéma 9.
+        sql(file.path, "DROP TABLE calendar_connection")
         sql(file.path, "DROP TABLE sync_state", "DROP TABLE sync_identity", "DROP TABLE sync_mark", "DROP TABLE sync_review", "DROP TABLE migration_mark", "DROP TABLE day_mark", "DROP TABLE calendar_source", "DROP INDEX time_block_source", "ALTER TABLE time_block DROP COLUMN source_uid", "ALTER TABLE time_block DROP COLUMN source_id", "ALTER TABLE team_member DROP COLUMN week_hours", "ALTER TABLE task DROP COLUMN note_out", "ALTER TABLE task DROP COLUMN note_in", "ALTER TABLE task DROP COLUMN proposed_to", "PRAGMA user_version = 9")
         val repo = open(file.path)
         assertEquals(KairosDatabase.Schema.version.toInt(), userVersion(file.path))
