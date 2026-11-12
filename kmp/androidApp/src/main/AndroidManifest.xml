@@ -1,28 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Aucune permission réseau : Kairos 3 sur Android ne fait aucun appel réseau
-     (pas de INTERNET), donc aucune anti-fonctionnalité F-Droid
-     (docs/spec/distribution.md § Android). Trois permissions pour le chrono
-     (docs/spec/temps-reel-chrono.md § Android) : notifier (demandée à
-     l'opt-in des alertes, jamais au démarrage) et remettre la notification et
-     les alarmes après un redémarrage. Alarmes exactes des alertes du chrono
-     (4.1.0, issue #219) : SCHEDULE_EXACT_ALARM, accordée d'office sur Android
-     12 et 13, à accorder par l'utilisateur sur Android 14 et plus (sinon les
-     alarmes restent inexactes) ; jamais USE_EXACT_ALARM. Une quatrième, facultative (3.10.0,
-     docs/spec/connexions-externes.md § Android) : lire les calendriers du
-     téléphone, demandée seulement quand l'utilisateur l'active ; ce n'est pas
-     une permission réseau. Les widgets de l'écran d'accueil (3.12.0, docs/spec/widgets-android.md) n'en ajoutent
-     aucune : deux fournisseurs, un récepteur d'actions privé et le service de la liste « Journée » (réservé au système
-     par BIND_REMOTEVIEWS, un attribut et non une permission demandée). -->
+<!-- Optional calendar connections use INTERNET after explicit activation in Kairos.
+     HttpPolicy enforces consent and redirect rules (docs/spec/connexions-en-ligne.md).
+     ICS links alone require no F-Droid anti-feature.
+     Notifications, boot recovery, exact timer alarms and phone calendars retain their existing permissions. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:name=".KairosApplication"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.Kairos"
         android:enableOnBackInvokedCallback="true">
@@ -76,5 +70,9 @@
             android:name=".widgets.DayWidgetService"
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
+        <service
+            android:name=".SyncJobService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>
