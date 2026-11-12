@@ -62,6 +62,8 @@ class AppServices(
     val deviceLabel: String = "Kairos",
     /** Demande d'autorisation de notifier au premier chrono : une fois par lancement (docs/spec/temps-reel-chrono.md). */
     val notifyPrompt: NotifyPrompt = NotifyPrompt(),
+    val online: OnlineConnections? = null,
+    val connectionSync: ConnectionSync? = null,
 )
 
 /** Choix d'un fichier par l'utilisateur (boîtes de dialogue du système). */
