@@ -1,0 +1,19 @@
+-- Schema 13 -> 14: device-local connections, outside exports and linked-file synchronization.
+CREATE TABLE calendar_connection (
+    source_id INTEGER PRIMARY KEY,
+    kind TEXT NOT NULL,
+    provider TEXT,
+    host TEXT,
+    account TEXT,
+    sync_enabled INTEGER NOT NULL DEFAULT 1,
+    interval TEXT NOT NULL DEFAULT 'ON_OPEN',
+    last_attempt_at TEXT,
+    last_sync_at TEXT,
+    last_error TEXT,
+    failures INTEGER NOT NULL DEFAULT 0,
+    next_attempt_at TEXT,
+    etag TEXT,
+    planned_on TEXT,
+    insecure_confirmed INTEGER NOT NULL DEFAULT 0,
+    redirect_host TEXT
+);

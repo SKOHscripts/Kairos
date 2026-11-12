@@ -87,6 +87,26 @@ CREATE TABLE calendar_source (
     created_at TEXT NOT NULL
 );
 
+-- Device-local connections. Same definition as 13.sqm; no cascading foreign key during source replacement.
+CREATE TABLE calendar_connection (
+    source_id INTEGER PRIMARY KEY,
+    kind TEXT NOT NULL,
+    provider TEXT,
+    host TEXT,
+    account TEXT,
+    sync_enabled INTEGER NOT NULL DEFAULT 1,
+    interval TEXT NOT NULL DEFAULT 'ON_OPEN',
+    last_attempt_at TEXT,
+    last_sync_at TEXT,
+    last_error TEXT,
+    failures INTEGER NOT NULL DEFAULT 0,
+    next_attempt_at TEXT,
+    etag TEXT,
+    planned_on TEXT,
+    insecure_confirmed INTEGER NOT NULL DEFAULT 0,
+    redirect_host TEXT
+);
+
 -- Journées entières des calendriers importés (3.10.0) : badges du jour, sans blocage. Dates « 2026-10-28 », fin incluse.
 -- Même définition que 10.sqm.
 CREATE TABLE day_mark (
@@ -361,6 +381,24 @@ DELETE FROM calendar_source WHERE id = ?;
 deleteAllCalendarSources:
 DELETE FROM calendar_source;
 
+allCalendarConnections:
+SELECT * FROM calendar_connection ORDER BY source_id;
+
+upsertCalendarConnection:
+INSERT OR REPLACE INTO calendar_connection VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteCalendarConnection:
+DELETE FROM calendar_connection WHERE source_id = ?;
+
+deleteAllCalendarConnections:
+DELETE FROM calendar_connection;
+
+deleteOrphanCalendarConnections:
+DELETE FROM calendar_connection WHERE source_id NOT IN (SELECT id FROM calendar_source);
+
+updateCalendarVisibility:
+UPDATE calendar_source SET hide_titles = ? WHERE id = ?;
+
 allDayMarks:
 SELECT * FROM day_mark ORDER BY start, id;
 
@@ -369,6 +407,12 @@ INSERT INTO day_mark VALUES (?, ?, ?, ?, ?, ?, ?);
 
 insertDayMark:
 INSERT INTO day_mark (title, start, end, source_id, source_uid, created_at) VALUES (?, ?, ?, ?, ?, ?);
+
+updateImportedDayMark:
+UPDATE day_mark SET title = ?, end = ? WHERE id = ?;
+
+deleteDayMark:
+DELETE FROM day_mark WHERE id = ?;
 
 -- Réimport : les journées du calendrier qui finissent à partir d'aujourd'hui (dates « AAAA-MM-JJ »).
 deleteUpcomingMarksOfSource:

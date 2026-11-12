@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.data
 
+import com.skohscripts.kairos.core.connections.CalendarConnection
+import com.skohscripts.kairos.core.connections.ConnectionError
 import com.skohscripts.kairos.core.team.exchange.ProposalState
 import com.skohscripts.kairos.core.team.exchange.ProposalDecision
 import com.skohscripts.kairos.core.model.ExchangeNote
@@ -108,6 +110,8 @@ class KairosRepository(
     private val mutex = Mutex()
     private val state = MutableStateFlow(KairosSnapshot())
     private val personal = MutableStateFlow(KairosSnapshot())
+    private val connectionState = MutableStateFlow<List<CalendarConnection>>(emptyList())
+    val connections: StateFlow<List<CalendarConnection>> = connectionState.asStateFlow()
 
     /** Dernier état lu de la base : la base **complète** (export, sauvegardes, écrans d'équipe). */
     val snapshot: StateFlow<KairosSnapshot> = state.asStateFlow()
@@ -653,11 +657,136 @@ class KairosRepository(
         return id
     }
 
+    suspend fun connectCalendar(
+        name: String, hideTitles: Boolean, plan: CalendarPlan, today: LocalDate,
+        connection: CalendarConnection, now: Instant,
+        beforeCommit: ((Long) -> Unit)? = null,
+    ): Long? {
+        val cleaned = name.trim()
+        if (cleaned.isEmpty()) return null
+        var id = 0L
+        write(notifyOnlyIfChanged = true) {
+            val connected = queries.allCalendarConnections().awaitAsList().mapTo(HashSet()) { it.source_id }
+            var selectedName = cleaned
+            var existing = ImportedCalendars.named(state.value, selectedName)
+            if (existing?.id in connected) {
+                var suffix = 2
+                do {
+                    selectedName = "$cleaned (${suffix++})"
+                    existing = ImportedCalendars.named(state.value, selectedName)
+                } while (existing != null)
+            }
+            if (existing == null) {
+                queries.insertCalendarSource(selectedName, if (hideTitles) 1L else 0L, now.store(), now.store())
+                id = queries.lastCalendarSourceId().awaitAsOneOrNull()?.max ?: error("calendar")
+            } else {
+                id = existing.id
+                queries.updateCalendarVisibility(if (hideTitles) 1L else 0L, id)
+            }
+            applyCalendarPlan(id, hideTitles, plan, today, now)
+            beforeCommit?.invoke(id)
+            saveConnection(connection.copy(sourceId = id, lastAttemptAt = now, lastSyncAt = now,
+                lastError = null, failures = 0, nextAttemptAt = null, plannedOn = today.toString()))
+        }
+        return id
+    }
+
+    suspend fun syncCalendar(sourceId: Long, plan: CalendarPlan, today: LocalDate, etag: String?, now: Instant): Boolean {
+        var changed = false
+        write(notifyOnlyIfChanged = true) {
+            val source = state.value.calendarSources.firstOrNull { it.id == sourceId } ?: return@write
+            val connection = queries.allCalendarConnections().awaitAsList().firstOrNull { it.source_id == sourceId }?.toModel()
+                ?: return@write
+            changed = applyCalendarPlan(sourceId, source.hideTitles, plan, today, now)
+            saveConnection(connection.copy(lastAttemptAt = now, lastSyncAt = now, etag = etag,
+                plannedOn = today.toString(), lastError = null, failures = 0, nextAttemptAt = null))
+        }
+        return changed
+    }
+
+    suspend fun touchSync(sourceId: Long, now: Instant) = write(notifyOnlyIfChanged = true) {
+        connections.value.firstOrNull { it.sourceId == sourceId }?.let {
+            saveConnection(it.copy(lastAttemptAt = now, lastSyncAt = now))
+        }
+    }
+
+    suspend fun recordSyncFailure(sourceId: Long, error: ConnectionError, now: Instant, failures: Int, nextAttemptAt: Instant?) = write(notifyOnlyIfChanged = true) {
+        connections.value.firstOrNull { it.sourceId == sourceId }?.let {
+            saveConnection(it.copy(lastAttemptAt = now, lastError = error, failures = failures, nextAttemptAt = nextAttemptAt))
+        }
+    }
+
+    suspend fun updateConnection(connection: CalendarConnection) = write(notifyOnlyIfChanged = true) {
+        if (state.value.calendarSources.any { it.id == connection.sourceId }) saveConnection(connection)
+    }
+
+    suspend fun disconnectCalendar(sourceId: Long) = write(notifyOnlyIfChanged = true) { queries.deleteCalendarConnection(sourceId) }
+
+    private suspend fun saveConnection(c: CalendarConnection) {
+        queries.upsertCalendarConnection(
+            c.sourceId, c.kind.name, c.provider?.name, c.host, c.account, if (c.syncEnabled) 1L else 0L,
+            c.interval.name, c.lastAttemptAt?.store(), c.lastSyncAt?.store(), c.lastError?.name,
+            c.failures.toLong(), c.nextAttemptAt?.store(), c.etag, c.plannedOn,
+            if (c.insecureConfirmed) 1L else 0L, c.redirectHost,
+        )
+    }
+
+    private suspend fun applyCalendarPlan(sourceId: Long, hideTitles: Boolean, plan: CalendarPlan, today: LocalDate, now: Instant): Boolean {
+        var changed = false
+        val blocks = state.value.timeBlocks.filter { (it.source as? BlockSource.Imported)?.calendarId == sourceId }
+        val events = plan.events.associateBy { it.uid to it.start }
+        val knownBlocks = blocks.associateBy { (it.source as BlockSource.Imported).uid to it.start }
+        for (b in blocks) {
+            val event = events[(b.source as BlockSource.Imported).uid to b.start]
+            if (event == null) {
+                if (b.start >= today.atTime(0, 0)) {
+                    queries.deleteTimeBlock(b.id)
+                    queries.deleteExceptionsOfBlock(b.id)
+                    changed = true
+                }
+            } else {
+                val title = if (hideTitles) "" else event.title
+                if (b.title != title || b.end != event.end) {
+                    queries.updateTimeBlock(title, b.start.toString(), event.end.toString(), b.kind.code, b.recurrence.code, b.id)
+                    changed = true
+                }
+            }
+        }
+        for ((key, e) in events) if (key !in knownBlocks) {
+            queries.insertImportedBlock(if (hideTitles) "" else e.title, e.start.toString(), e.end.toString(), now.store(), sourceId, e.uid)
+            changed = true
+        }
+        val marks = state.value.dayMarks.filter { (it.source as? BlockSource.Imported)?.calendarId == sourceId }
+        val days = plan.days.associateBy { it.uid to it.start }
+        val knownMarks = marks.associateBy { (it.source as BlockSource.Imported).uid to it.start }
+        for (m in marks) {
+            val day = days[(m.source as BlockSource.Imported).uid to m.start]
+            if (day == null) {
+                if (m.end >= today) {
+                    queries.deleteDayMark(m.id)
+                    changed = true
+                }
+            } else {
+                val title = if (hideTitles) "" else day.title
+                if (m.title != title || m.end != day.end) {
+                    queries.updateImportedDayMark(title, day.end.toString(), m.id)
+                    changed = true
+                }
+            }
+        }
+        for ((key, d) in days) if (key !in knownMarks) {
+            queries.insertDayMark(if (hideTitles) "" else d.title, d.start.toString(), d.end.toString(), sourceId, d.uid, now.store())
+            changed = true
+        }
+        return changed
+    }
+
     /** « Retirer » un calendrier importé : la source, tous ses créneaux et ses journées (passés compris), rien d'autre. */
     suspend fun removeCalendar(calendarId: Long) = write {
         queries.deleteBlocksOfSource(calendarId)
         queries.deleteMarksOfSource(calendarId)
         queries.deleteCalendarSource(calendarId)
+        queries.deleteCalendarConnection(calendarId)
     }
 
     /** Supprime le créneau ; pour un récurrent, toute la série et ses exceptions. */
@@ -1573,7 +1702,10 @@ class KairosRepository(
      */
     suspend fun replaceAll(snapshot: KairosSnapshot, uids: Map<RecordKind, Map<Long, String>>? = null) =
         // Synchronisée, la base prend les uid du fichier (sinon ceux de migration) : importer = une série de modifications locales.
-        write(rebase = if (syncState.value != null) uids ?: SyncReconcile.legacy(snapshot).uids else null) { replaceRows(snapshot) }
+        write(rebase = if (syncState.value != null) uids ?: SyncReconcile.legacy(snapshot).uids else null) {
+            queries.deleteAllCalendarConnections()
+            replaceRows(snapshot)
+        }
 
     private suspend fun replaceRows(snapshot: KairosSnapshot) {
         queries.deleteAllTasks()
@@ -1645,6 +1777,7 @@ class KairosRepository(
             queries.insertNoteWithId(n.id, n.body, n.status.code, n.convertedTaskId, n.createdAt.store(), n.updatedAt.store())
         }
         queries.writeSettings(json.encodeToString(Settings.serializer(), snapshot.settings))
+        queries.deleteOrphanCalendarConnections()
     }
 
     // --- interne -----------------------------------------------------------------
@@ -1793,15 +1926,20 @@ class KairosRepository(
 
     private fun roundProgress(percent: Int): Int = (percent.coerceIn(0, 100) + 5) / 10 * 10
 
-    private suspend fun write(rebase: Map<RecordKind, Map<Long, String>>? = null, block: suspend () -> Unit) {
+    private suspend fun write(
+        rebase: Map<RecordKind, Map<Long, String>>? = null,
+        notifyOnlyIfChanged: Boolean = false,
+        block: suspend () -> Unit,
+    ) {
         val updated = mutex.withLock {
             val before = state.value
             database.transaction { block() }
             val all = readAll()
             reconcileAfter(before, all, rebase)
-            publish(all)
+            val published = publish(all)
+            published.takeIf { !notifyOnlyIfChanged || it != before }
         }
-        onChanged(updated)
+        if (updated != null) onChanged(updated)
     }
 
     /**
@@ -1971,11 +2109,25 @@ class KairosRepository(
     /** Consigne conflits et éléments conservés dans « À revoir » (dans la transaction de la fusion). */
     private suspend fun recordReview(out: MergeOutcome, now: kotlin.time.Instant) {
         val merged = out.merged
+        val connected = queries.allCalendarConnections().awaitAsList().mapTo(HashSet()) { it.source_id }
+        val ids = merged.data.idsByUid()
+        fun serverOwned(ref: RecordRef?): Boolean {
+            if (ref == null) return false
+            val id = ids[ref.kind]?.get(ref.uid) ?: return false
+            val source = when (ref.kind) {
+                RecordKind.BLOCK -> merged.snapshot.timeBlocks.firstOrNull { it.id == id }?.source
+                RecordKind.DAYMARK -> merged.snapshot.dayMarks.firstOrNull { it.id == id }?.source
+                else -> null
+            }
+            return (source as? BlockSource.Imported)?.calendarId in connected
+        }
         for (c in out.conflicts) {
+            if (serverOwned(c.ref)) continue
             val title = c.ref?.let { SyncEdit.title(merged.snapshot, merged.data, it) }.orEmpty()
             queries.insertSyncReview(c.ref?.kind?.code, c.ref?.uid, c.field, title, c.lostValue, c.loser.toString(), c.keptValue, c.winner.toString(), 0L, now.toString())
         }
         for (k in out.kept) {
+            if (serverOwned(k.ref)) continue
             val title = SyncEdit.title(merged.snapshot, merged.data, k.ref)
             queries.insertSyncReview(k.ref.kind.code, k.ref.uid, "", title, "", "", "", "", 1L, now.toString())
         }
@@ -2039,7 +2191,9 @@ class KairosRepository(
         return presets to origin
     }
 
-    private suspend fun readAll(): KairosSnapshot = KairosSnapshot(
+    private suspend fun readAll(): KairosSnapshot {
+        connectionState.value = queries.allCalendarConnections().awaitAsList().map { it.toModel() }
+        return KairosSnapshot(
         tasks = queries.allTasks().awaitAsList().map { it.toModel() },
         timeBlocks = queries.allTimeBlocks().awaitAsList().map { it.toModel() },
         blockExceptions = queries.allBlockExceptions().awaitAsList().map { it.toModel() },
@@ -2056,6 +2210,7 @@ class KairosRepository(
             ?.let { runCatching { json.decodeFromString(Settings.serializer(), it) }.getOrNull() }
             ?: Settings(),
     )
+    }
 
     private suspend fun recordExamples(posed: KairosSnapshot) = mutex.withLock {
         database.transaction { syncStore.write(SyncStore.EXAMPLES, ExampleMarks.encode(posed)) }
