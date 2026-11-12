@@ -324,7 +324,7 @@ Fichiers : `ui/app/Demo.kt` (`DemoSource`, `DemoSession`, `openDemo`, `forDemo`)
     `notifier = NoNotifier` (ni notification, ni titre de fenêtre clignotant, ni son), `firstLaunch = false`, `teamUi`
     neuf, `systemLanguage` et `applyLanguage` repris (même langue), `deviceLabel` repris (un nom, la démonstration ne
     synchronise rien) ; tous les autres champs vides : ni `dataLocation`,
-    `linkedStorage`, `updates`, `downloadPage`, `dataFolder`, `diagnostics`, `calendars`, `shortcuts`, ni `demo`. Un champ
+    `linkedStorage`, `updates`, `downloadPage`, `dataFolder`, `diagnostics`, `calendars`, `online`, `connectionSync`, `shortcuts`, ni `demo`. Un champ
     de plus dans `AppServices` doit être décidé là : `DemoStepsTest.demoServicesCarryNothingFromTheRealOnes` compare la
     liste des champs.
   - Réglages de la démonstration : ceux d'`ExampleData`, donc des scénarios identiques pour tous ; rappels et équipe

@@ -212,7 +212,8 @@ Chacun est prouvé par un test (à créer ; nom entre parenthèses).
 - **Un fichier par appareil** dans un dossier (alternative écartée), **la fusion de texte à la main** (description d'une
   tâche modifiée des deux côtés : on choisit une version, on ne les mêle pas), **l'historique des modifications** et
   l'annulation d'une fusion (la sauvegarde automatique en tient lieu).
-- Calendriers connectés en ligne (4.1.0, non implémenté) : leurs créneaux voyagent par ce fichier comme des calendriers importés ; l'état de connexion reste hors portée et les conflits de leurs créneaux ne sont pas consignés dans « À revoir » : voir `connexions-en-ligne.md` § Plusieurs appareils (impacts à reporter ici à l'implémentation).
+- Calendriers connectés en ligne : O1 Android/bureau est implémenté sur branche pour la 4.1.0 (`connexions-en-ligne.md`).
+  Les événements voyagent comme des calendriers importés ; l'état de connexion reste local.
 
 ## 2. Solution technique
 
@@ -518,7 +519,7 @@ tour suivant les valeurs sont égales, donc sans conflit.
 
 ### Stockage (`data`, schéma 13)
 
-Additif (`12.sqm`, marqueur `sync_state` de `KairosStore.MARKERS`, test `ExchangeMigrationTest.everyMigrationHasAMarker` ; numérotation : `11.sqm` = couleur par défaut, schéma 12 ; `12.sqm` = cette spec, schéma 13, implémentée en 4.0.0 ; `connexions-en-ligne.md` (4.1.0, non implémentée) prend `13.sqm`, schéma 14), vide
+Additif (`12.sqm`, marqueur `sync_state` de `KairosStore.MARKERS`, test `ExchangeMigrationTest.everyMigrationHasAMarker` ; numérotation : `11.sqm` = schéma 12 ; `12.sqm` = schéma 13 ; O1 ajoute `13.sqm`, schéma 14 et `calendar_connection`), vide
 pour qui ne synchronise pas, **sans toucher à aucune table existante** (donc sans changer l'ordre positionnel des insertions) :
 
 - `sync_state(key TEXT PRIMARY KEY, value TEXT NOT NULL)` : `device`, `label`, `clock`, `seen` (JSON), `lastMerge` (JSON : heure,
@@ -584,8 +585,20 @@ pour qui ne synchronise pas, **sans toucher à aucune table existante** (donc sa
 - **Tests d'isolation** : `SyncRepositoryTest.nothingIsStoredBeforeActivation` (aucune donnée `sync_*`, export en format 1 sans
   champ de synchronisation) et `noTeamDataEntersASoloBase` (fichier d'un manager : ses tâches perso arrivent, ni membre, ni tâche
   d'équipe, ni réglage d'équipe) ; `SyncCodecTest.anExportWithoutSyncIsUnchanged`. Ils remplacent le `SyncIsolationTest` prévu.
-- Les tests de migration qui simulent un schéma antérieur retirent aussi les tables `sync_*` (sinon le marqueur du schéma 13
-  les dispense de migrer) ; « format plus récent » se teste désormais avec le format 4.
+- Les fixtures d'ancien schéma retirent `sync_*` et `calendar_connection` lorsqu'elles partent du schéma courant.
+  Sinon, le marqueur 14 empêche les migrations attendues ; « format plus récent » se teste avec le format 4.
+
+### Connexions locales et fichier lié (O1, 2026-11-12)
+
+- `calendar_connection` reste hors du snapshot, de `SyncScope` et de `SyncRecords` ; la portée et les champs partagés restent inchangés.
+- `replaceAll` efface les connexions. `restoreSynced`, fusion, réparation, résolution et suppression d'élément conservé gardent les connexions locales restantes.
+  `replaceRows` purge les lignes dont la source a disparu après la réinsertion des sources.
+- `recordReview` exclut conflits et éléments conservés des créneaux et journées dont la source possède une connexion locale, même en pause.
+  La résolution des marques reste inchangée ; les autres conflits, dont les champs du calendrier, restent visibles.
+  Sans connexion locale, l'appareil conserve les conflits des événements dans « À revoir ».
+- Les opérations en ligne utilisent `write(notifyOnlyIfChanged = true)` sous le verrou commun.
+  Elles notifient `onChanged` seulement si le snapshot partagé change ; les appelants historiques notifient toujours.
+  Voir `ConnectionRepositoryTest`, `SyncReviewConnectedTest`, `ConnectionSyncScopeTest` et `connexions-en-ligne.md`, décisions D1–D6.
 
 ### Fichier lié : cycle de synchronisation (`LinkedFileSync`)
 
