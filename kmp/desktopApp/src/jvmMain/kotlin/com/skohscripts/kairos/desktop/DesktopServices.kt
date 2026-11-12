@@ -2,6 +2,10 @@ package com.skohscripts.kairos.desktop
 
 import com.skohscripts.kairos.ui.app.DemoSource
 import com.skohscripts.kairos.ui.app.openDemo
+import com.skohscripts.kairos.ui.app.ConnectionWatcher
+import com.skohscripts.kairos.ui.app.DefaultOnlineConnections
+import com.skohscripts.kairos.ui.app.ConnectionSync
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineScope
 import com.skohscripts.kairos.ui.app.LinkedFileSync
@@ -56,8 +60,9 @@ object DesktopServices {
         val language = Locale.getDefault().language
         val opened = KairosStore.open(JdbcSqliteDriver(url))
         val backups = FolderBackups(File(dataDir, "backups"))
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         // Fichier lié (docs/spec/synchronisation.md § Fichier lié : cycle) : branché sur chaque nouvel état, fusionné à chaque lecture.
-        val linked = LinkedFileSync(DesktopLinkedFile(dataDir), CoroutineScope(SupervisorJob() + Dispatchers.IO), clock, osLabel(), backups)
+        val linked = LinkedFileSync(DesktopLinkedFile(dataDir), scope, clock, osLabel(), backups)
         val repository = KairosRepository.open(
             opened,
             examples = { ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language) },
@@ -71,6 +76,13 @@ object DesktopServices {
             current = linked
         }
         diagnostics?.log("db.open ${if (opened.created) "created" else "schema ${KairosDatabase.Schema.version}"} tasks=${repository.snapshot.value.tasks.size}")
+        val online = if (inMemory) null else DefaultOnlineConnections(repository, backups, DesktopHttp, DesktopSecrets(), scope, now = { clock.now() })
+        online?.let {
+            it.purgeOrphans()
+            currentSync = it.sync
+            onlineScope = scope
+            ConnectionWatcher(it.sync, scope, now = { clock.now() }).start()
+        }
         AppServices(
             repository = repository,
             files = DialogFiles,
@@ -97,6 +109,8 @@ object DesktopServices {
                     openDemo(KairosStore.open(driver), lang, close = { driver.close() }, clock = clock)
                 }
             },
+            online = online,
+            connectionSync = online?.sync,
         )
     }
 
@@ -104,6 +118,15 @@ object DesktopServices {
     @Volatile
     var current: LinkedFileSync? = null
         private set
+
+    @Volatile
+    private var currentSync: ConnectionSync? = null
+    @Volatile
+    private var onlineScope: CoroutineScope? = null
+
+    fun resumeConnections() {
+        onlineScope?.launch { currentSync?.runDue(Clock.System.now()) }
+    }
 }
 
 /** Le nom de la plateforme dans le nom de l'appareil (« Windows · 3f9c »). */
