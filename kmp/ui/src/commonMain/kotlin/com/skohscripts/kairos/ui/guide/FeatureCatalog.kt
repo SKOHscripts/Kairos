@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.ui.guide
 
+import com.skohscripts.kairos.ui.generated.resources.card_online_connections_title
+import com.skohscripts.kairos.ui.generated.resources.card_online_connections_body
 import com.skohscripts.kairos.ui.generated.resources.card_gtd_title
 import com.skohscripts.kairos.ui.generated.resources.card_gtd_body
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -260,6 +262,7 @@ object FeatureCatalog {
         FeatureCard("slots_month", GuideChapter.ORGANIZE, { KairosIcons.Repeat }, Res.string.card_slots_month_title, Res.string.card_slots_month_body, GuideTarget.Personal(Destination.DAY), since = "3.8.0"),
         FeatureCard("calendar_import", GuideChapter.ORGANIZE, { KairosIcons.Event }, Res.string.card_calendar_import_title, Res.string.card_calendar_import_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "3.10.0"),
         FeatureCard("phone_calendars", GuideChapter.ORGANIZE, { KairosIcons.Mobile }, Res.string.card_phone_calendars_title, Res.string.card_phone_calendars_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "3.10.0", platforms = setOf(Platform.ANDROID)),
+        FeatureCard("online_connections", GuideChapter.ORGANIZE, { KairosIcons.Sync }, Res.string.card_online_connections_title, Res.string.card_online_connections_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "4.1.0", platforms = setOf(Platform.ANDROID, Platform.DESKTOP)),
         // Synchronisation par fichier (docs/spec/synchronisation.md) : la carte mène à Réglages → Données.
         FeatureCard("sync", GuideChapter.ORGANIZE, { KairosIcons.Sync }, Res.string.card_sync_title, Res.string.card_sync_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "4.0.0"),
         // --- Équipe
@@ -360,6 +363,7 @@ object FeatureCatalog {
         "Monthly slots, one day apart" to "slots_month",
         "Calendar import" to "calendar_import",
         "Phone calendars" to "phone_calendars",
+        "Online connections" to "online_connections",
         "Deep work" to "deep_work",
         "Timeline" to "timeline",
         "Timer per task" to "time",

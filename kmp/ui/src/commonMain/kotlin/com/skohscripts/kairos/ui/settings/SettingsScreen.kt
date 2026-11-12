@@ -262,6 +262,7 @@ fun SettingsScreen(services: AppServices, nav: SettingsNav = remember { Settings
                     SettingsCategory.DATA -> {
                         GuideSpot(GuideSection.SETTINGS_DATA) { DataCard(services) }
                         CalendarsCard(services)
+                        if (services.online != null) OnlineConnectionsCard(services)
                         // Bureau : dossier des données choisi (docs/spec/bureau-avance.md).
                         services.dataFolder?.let { DataFolderCard(it) }
                         RestoreDefaultsCard {
