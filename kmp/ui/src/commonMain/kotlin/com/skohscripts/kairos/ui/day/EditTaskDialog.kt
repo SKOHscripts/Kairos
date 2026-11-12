@@ -1,5 +1,38 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.app.LocalShowcaseTask
+import com.skohscripts.kairos.ui.generated.resources.spent_tracked_hint
+import com.skohscripts.kairos.ui.generated.resources.spent_floor_timed
+import com.skohscripts.kairos.ui.generated.resources.spent_floor_running
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_model
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_spent
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_estimate
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_deadline
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_invalid
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_split_advice
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_unqualified
+import com.skohscripts.kairos.ui.generated.resources.stats_percent
+import kotlin.time.Instant
+import com.skohscripts.kairos.core.model.WorkSession
+import com.skohscripts.kairos.core.engine.TimeTracking
+import com.skohscripts.kairos.core.engine.TimeCorrection
+import com.skohscripts.kairos.ui.generated.resources.team_mark
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_pinned
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_recurring
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_project
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_scheduled
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_blockers
+import com.skohscripts.kairos.ui.generated.resources.edit_summary_subtasks
+import com.skohscripts.kairos.ui.generated.resources.edit_section_when
+import com.skohscripts.kairos.ui.generated.resources.edit_section_qualify
+import com.skohscripts.kairos.ui.theme.KairosSpacing
+import com.skohscripts.kairos.ui.app.heading
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.material3.HorizontalDivider
 import com.skohscripts.kairos.core.forecast.SoloForecast
 import com.skohscripts.kairos.ui.generated.resources.whatif_open
 import com.skohscripts.kairos.ui.generated.resources.whatif_none
@@ -59,8 +92,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import com.skohscripts.kairos.ui.generated.resources.blockers_search_none
-import com.skohscripts.kairos.ui.generated.resources.blockers_search
 import com.skohscripts.kairos.ui.generated.resources.split_section_hint
 import com.skohscripts.kairos.ui.generated.resources.subtasks_chain
 import com.skohscripts.kairos.ui.generated.resources.split_section_title
@@ -113,15 +144,12 @@ import com.skohscripts.kairos.ui.generated.resources.field_project
 import com.skohscripts.kairos.ui.generated.resources.field_title
 import com.skohscripts.kairos.ui.generated.resources.field_type
 import com.skohscripts.kairos.ui.generated.resources.field_category
-import com.skohscripts.kairos.ui.generated.resources.edit_advanced
 import com.skohscripts.kairos.ui.generated.resources.field_blockers
 import com.skohscripts.kairos.ui.generated.resources.team_count_in_team
 import com.skohscripts.kairos.ui.generated.resources.team_count_in_team_hint
 import com.skohscripts.kairos.ui.app.tabLeavesField
 import com.skohscripts.kairos.ui.settings.SwitchRow
-import com.skohscripts.kairos.ui.generated.resources.field_blockers_cycle
 import com.skohscripts.kairos.ui.generated.resources.field_blockers_hint
-import com.skohscripts.kairos.ui.generated.resources.field_blockers_none
 import com.skohscripts.kairos.ui.generated.resources.field_day_invalid
 import com.skohscripts.kairos.ui.generated.resources.field_day_of_month
 import com.skohscripts.kairos.ui.generated.resources.field_day_of_month_hint
@@ -227,6 +255,10 @@ internal fun EditTaskDialog(
      * aux échéances des autres ; `null` masque le bouton (tâche d'équipe ou reçue).
      */
     whatIf: ((Task) -> SoloForecast.Impact?)? = null,
+    /** Sessions de chrono de la tâche, pour le temps passé corrigeable (docs/spec/fiche-tache.md § Temps passé). */
+    sessions: List<WorkSession> = emptyList(),
+    /** L'instant de l'ouverture : le total affiché (un chrono en cours compte jusque-là). */
+    now: Instant = kotlin.time.Clock.System.now(),
 ) {
     var title by remember { mutableStateOf(task.title) }
     var description by remember { mutableStateOf(task.description) }
@@ -237,7 +269,12 @@ internal fun EditTaskDialog(
     var project by remember { mutableStateOf(task.projectTag) }
     var type by remember { mutableStateOf(task.taskType) }
     var scheduled by remember { mutableStateOf(task.scheduledDate?.toString().orEmpty()) }
-    var manual by remember { mutableStateOf(task.manualTimeSpentMinutes?.toString().orEmpty()) }
+    // Temps passé (docs/spec/fiche-tache.md § Temps passé) : le champ montre le total (chrono + saisi), figé à l'ouverture ;
+    // non touché, il n'écrit rien (un chrono qui tourne pendant l'édition ne réécrit pas le temps saisi).
+    val trimmable = task.space == TaskSpace.PERSONAL && task.origin == null
+    val spentBaseline = remember(task.id) { TimeCorrection.total(sessions, task.manualTimeSpentMinutes, now).takeIf { it > 0 }?.toString().orEmpty() }
+    val timedMinutes = remember(task.id) { TimeTracking.totalMinutes(sessions, now) }
+    var spent by remember { mutableStateOf(spentBaseline) }
     var recurrence by remember { mutableStateOf(task.recurrence) }
     var dayOfMonth by remember { mutableStateOf(task.recurrenceDayOfMonth?.toString().orEmpty()) }
     var pin by remember { mutableStateOf(task.pinnedStart?.time?.let(Dates::field).orEmpty()) }
@@ -247,11 +284,11 @@ internal fun EditTaskDialog(
     val originalSubtasks = remember(task.id) { subtasks }
     var subtaskDrafts by remember(task.id) { mutableStateOf(originalSubtasks.map { SubtaskDraft.of(it) }) }
     var blockers by remember { mutableStateOf(blockerIds) }
-    // Un bloqueur ou une date programmée existent déjà : ils sont dans les options avancées, qu'on ouvre d'emblée.
-    var advanced by remember { mutableStateOf(task.scheduledDate != null) }
-    // « Découpage et enchaînement » (docs/spec/sous-taches.md § Section) : ouverte si la tâche a des sous-tâches ou des bloqueurs.
-    var splitting by remember { mutableStateOf(subtasks.isNotEmpty() || blockerIds.isNotEmpty()) }
-    var blockerQuery by remember { mutableStateOf("") }
+    // Sections repliées à l'ouverture, toutes (docs/spec/fiche-tache.md) : leur en-tête dit ce qu'elles contiennent.
+    // Seule exception : la vitrine des captures des magasins (LocalShowcaseTask) ouvre « Dates et temps » pour montrer
+    // l'estimation par machine learning sans interaction (docs/spec/publication.md § Captures).
+    val showcase = LocalShowcaseTask.current == task.id
+    var open by remember { mutableStateOf(if (showcase) setOf(SheetSection.TIME) else emptySet()) }
     val newSubtasksFocus = remember { FocusRequester() }
     var focusNewSubtasks by remember { mutableStateOf(0) }
     LaunchedEffect(focusNewSubtasks) { if (focusNewSubtasks > 0) { withFrameNanos { }; runCatching { newSubtasksFocus.requestFocus() } } }
@@ -271,9 +308,8 @@ internal fun EditTaskDialog(
     var counted by remember { mutableStateOf(countInTeam ?: true) }
     // Création (identifiant 0, docs/spec/premiere-tache.md) : rien n'existe encore, donc pas de « Supprimer » ; le titre est requis.
     val creating = task.id == 0L
-    // Le coach ouvre les options avancées quand il en explique un champ.
-    LaunchedEffect(coach?.step) { if (coach?.current?.opensAdvanced == true) advanced = true }
-    LaunchedEffect(coach?.step) { if (coach?.current?.fields.orEmpty().any { it == EditField.SUBTASKS || it == EditField.BLOCKERS }) splitting = true }
+    // Le coach ouvre la section du champ qu'il explique.
+    LaunchedEffect(coach?.step) { coach?.current?.sections?.let { open = open + it } }
 
     val dayFirst = UiLanguage.dayFirst(uiLanguage())
     val parsedDeadline = Dates.parseDate(deadline, dayFirst)
@@ -284,7 +320,15 @@ internal fun EditTaskDialog(
     val pinInvalid = pin.isNotBlank() && parsedPin == null
     val parsedDayOfMonth = dayOfMonth.toIntOrNull()?.takeIf { it in 1..31 }
     val dayOfMonthInvalid = recurrence == TaskRecurrence.MONTHLY_ON_DAY && parsedDayOfMonth == null
-    val invalid = deadlineInvalid || scheduledInvalid || pinInvalid || dayOfMonthInvalid
+    // Vidé : inchangé (l'ancien « pas de temps saisi ») ; seul un « 0 » explicite ramène le total à zéro.
+    val spentPlan = if (spent.isNotBlank() && spent != spentBaseline) TimeCorrection.plan(sessions, task.manualTimeSpentMinutes, spent.toIntOrNull() ?: 0, now, trimmable) else null
+    val spentInvalid = spentPlan != null && (spent.toIntOrNull() ?: 0) < spentPlan.floor
+    val timeInvalid = deadlineInvalid || scheduledInvalid || pinInvalid || dayOfMonthInvalid || spentInvalid
+    val invalid = timeInvalid
+    // Une section qui contient une erreur ne se replie pas : « Enregistrer » serait grisé sans raison visible.
+    fun toggle(section: SheetSection, locked: Boolean = false) {
+        open = if (section in open) { if (locked) open else open - section } else open + section
+    }
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(
@@ -330,7 +374,7 @@ internal fun EditTaskDialog(
                             description,
                             { description = it },
                             label = { Text(stringResource(Res.string.field_description)) },
-                            minLines = 3,
+                            minLines = 2,
                             modifier = Modifier.fillMaxWidth().tabLeavesField().coachField(EditField.DESCRIPTION, coach),
                         )
                         if (canPropose) ProposalSection(proposalTargets, proposedTo) { proposedTo = it }
@@ -345,125 +389,253 @@ internal fun EditTaskDialog(
                             ExchangeNoteSection(task.noteIn, noteOut, toManager = true) { noteOut = it }
                         }
                         if (team != null) {
-                            TeamTaskFields(
-                                task = task,
-                                sheet = team,
-                                assignee = assignee,
-                                onPickAssignee = { picked ->
-                                    when {
-                                        picked == assignee -> Unit
-                                        // Une tâche en cours chez quelqu'un d'autre : la question se pose avant de changer de titulaire.
-                                        picked != null && task.assigneeId != null && picked != task.assigneeId && task.startedOn != null -> askKeepFor = picked
-                                        else -> { assignee = picked; keepInProgress = false }
-                                    }
-                                },
-                                progress = progress,
-                                onProgress = { progress = it },
-                                coach = coach,
-                            )
-                            if (teamEditing && !creating) ExchangeNoteSection(task.noteIn, noteOut, toManager = false) { noteOut = it }
-                        }
-                        Column(Modifier.coachField(EditField.PRIORITY, coach)) { PriorityPills(priority, { priority = it }, showMeaning = true, floor = remember(task.id, tasksById) { TaskTree.floorTask(task.id, tasksById) }) }
-                        // Durée suggérée (issue #15.6) : choisir un palier calibré
-                        // REMPLACE la durée, même déjà saisie ; on reste libre de la retoucher.
-                        Column(Modifier.coachField(EditField.POINTS, coach), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            PointsPills(points, { chosen ->
-                                points = chosen
-                                chosen?.let(estimates.minutesByPoints::get)?.let { minutes = it.toString() }
-                            })
-                            // Conseil de découpage (docs/spec/sous-taches.md § Conseil) : suit les points choisis ; jamais pour une tâche
-                            // faite ou déjà découpée.
-                            val split = splitHistory?.takeIf { task.status != TaskStatus.DONE }?.let { h ->
-                                SplitAdvice.advise(points, hasSubtasks = subtasks.isNotEmpty() || rollup != null, history = h)
-                            }
-                            split?.let { SplitAdviceLine(it) { splitting = true; focusNewSubtasks++ } }
-                            PointsGuide(estimates.references)
-                        }
-                        // Le type dans l'essentiel (3.14.0, issue #166) : il qualifie la tâche, au même titre que la priorité et les
-                        // points. Suggestion par type (issue #7) : seulement si la durée est encore vide, pour ne jamais écraser une
-                        // estimation saisie à la main.
-                        TypeField(type, taskTypes, label = if (teamEditing) Res.string.field_category else Res.string.field_type, modifier = Modifier.coachField(EditField.TYPE, coach)) { chosen ->
-                            type = chosen
-                            if (minutes.isBlank()) estimates.minutesByType[chosen]?.let { minutes = it.toString() }
-                        }
-                        Column(Modifier.coachField(EditField.DEADLINE, coach)) {
-                            DateField(deadline, { deadline = it }, Res.string.field_deadline, deadlineInvalid, today)
-                            // Échéance d'un ancêtre (docs/spec/sous-taches.md § Échéance) : la borne, et ce qu'elle prend sans la sienne.
-                            val floorTask = remember(task.id, tasksById) { TaskTree.deadlineFloorTask(task.id, tasksById) }
-                            floorTask?.deadline?.let { floorDate ->
-                                Text(
-                                    stringResource(Res.string.deadline_floor, Dates.short(floorDate, uiLanguage(), today), floorTask.title),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            SectionToggle(
+                                stringResource(Res.string.team_mark),
+                                listOfNotNull(
+                                    team.assign.name(assignee),
+                                    progress.roundToInt().takeIf { it > 0 }?.let { stringResource(Res.string.stats_percent, it) },
+                                ),
+                                SheetSection.TEAM in open,
+                            ) { toggle(SheetSection.TEAM) }
+                            if (SheetSection.TEAM in open) {
+                                TeamTaskFields(
+                                    task = task,
+                                    sheet = team,
+                                    assignee = assignee,
+                                    onPickAssignee = { picked ->
+                                        when {
+                                            picked == assignee -> Unit
+                                            // Une tâche en cours chez quelqu'un d'autre : la question se pose avant de changer de titulaire.
+                                            picked != null && task.assigneeId != null && picked != task.assigneeId && task.startedOn != null -> askKeepFor = picked
+                                            else -> { assignee = picked; keepInProgress = false }
+                                        }
+                                    },
+                                    progress = progress,
+                                    onProgress = { progress = it },
+                                    coach = coach,
                                 )
+                                if (teamEditing && !creating) ExchangeNoteSection(task.noteIn, noteOut, toManager = false) { noteOut = it }
                             }
                         }
-                        OutlinedTextField(
-                            minutes,
-                            { value -> minutes = value.filter(Char::isDigit).take(4) },
-                            label = { Text(stringResource(Res.string.field_minutes)) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth().coachField(EditField.MINUTES, coach),
+                        val language = uiLanguage()
+                        // Conseil de découpage (docs/spec/sous-taches.md § Conseil) : suit les points choisis ; jamais pour une tâche
+                        // faite ou déjà découpée. Le résumé de « Qualification » le dit aussi, section repliée.
+                        val split = splitHistory?.takeIf { task.status != TaskStatus.DONE }?.let { h ->
+                            SplitAdvice.advise(points, hasSubtasks = subtasks.isNotEmpty() || rollup != null, history = h)
+                        }
+                        val qualifySummary = listOfNotNull(
+                            priority?.let { Levels.priorityShort(it) },
+                            points?.let { Levels.pointsShort(it) },
+                            type.trim().takeIf { it.isNotEmpty() },
+                            project.trim().takeIf { it.isNotEmpty() }?.let { stringResource(Res.string.edit_summary_project, it) },
                         )
-                        rollup?.let { rollupText(it) }?.let { cost ->
-                            Text(stringResource(Res.string.rollup_sheet, cost), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        // Le modèle s'écarte nettement de la durée saisie : il le dit, et la puce la remplace sur action.
-                        if (proposal != null && minutes == proposal.typed.toString()) {
-                            val e = proposal.estimate
-                            Text(
-                                stringResource(Res.string.sheet_model_differs, duration(e.minutes), duration(e.low ?: e.minutes), duration(e.high ?: e.minutes)),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        SectionToggle(
+                            stringResource(Res.string.edit_section_qualify),
+                            qualifySummary.ifEmpty { listOf(stringResource(Res.string.edit_summary_unqualified)) } +
+                                listOfNotNull(split?.let { stringResource(Res.string.edit_summary_split_advice) }),
+                            SheetSection.QUALIFY in open,
+                        ) { toggle(SheetSection.QUALIFY) }
+                        if (SheetSection.QUALIFY in open) {
+                            Column(Modifier.coachField(EditField.PRIORITY, coach)) { PriorityPills(priority, { priority = it }, showMeaning = true, floor = remember(task.id, tasksById) { TaskTree.floorTask(task.id, tasksById) }) }
+                            // Durée suggérée (issue #15.6) : choisir un palier calibré
+                            // REMPLACE la durée, même déjà saisie ; on reste libre de la retoucher.
+                            Column(Modifier.coachField(EditField.POINTS, coach), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                PointsPills(points, { chosen ->
+                                    points = chosen
+                                    chosen?.let(estimates.minutesByPoints::get)?.let { minutes = it.toString() }
+                                })
+                                split?.let { SplitAdviceLine(it) { open = open + SheetSection.SPLIT; focusNewSubtasks++ } }
+                                PointsGuide(estimates.references)
+                            }
+                            // Suggestion par type (issue #7) : seulement si la durée est encore vide, pour ne jamais écraser une
+                            // estimation saisie à la main.
+                            TypeField(type, taskTypes, label = if (teamEditing) Res.string.field_category else Res.string.field_type, modifier = Modifier.coachField(EditField.TYPE, coach)) { chosen ->
+                                type = chosen
+                                if (minutes.isBlank()) estimates.minutesByType[chosen]?.let { minutes = it.toString() }
+                            }
+                            OutlinedTextField(
+                                project,
+                                { project = it },
+                                label = { Text(stringResource(Res.string.field_project)) },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth().coachField(EditField.PROJECT, coach),
                             )
-                            KairosTextButton(onClick = { minutes = e.minutes.toString() }, contentPadding = KairosButtonIconPadding) {
-                                Icon(KairosIcons.Model, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Text(stringResource(Res.string.review_apply, duration(e.minutes)), modifier = Modifier.padding(start = 6.dp))
-                            }
-                        }
-                        // « Et si j'accepte ? » : calculé sur action, avec les champs tels qu'ils sont saisis ; rien n'est enregistré.
-                        if (whatIf != null) {
-                            var asked by remember { mutableStateOf(false) }
-                            var impact by remember { mutableStateOf<SoloForecast.Impact?>(null) }
-                            KairosTextButton(
-                                onClick = {
-                                    impact = whatIf(
-                                        task.copy(
-                                            title = title, priority = priority, fibonacciPoints = points, taskType = type,
-                                            estimatedMinutes = minutes.toIntOrNull(), deadline = parsedDeadline, scheduledDate = parsedScheduled,
-                                        ),
+                            if (countInTeam != null) {
+                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    SwitchRow(counted, stringResource(Res.string.team_count_in_team)) { counted = it }
+                                    Text(
+                                        stringResource(Res.string.team_count_in_team_hint),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
-                                    asked = true
-                                },
-                                contentPadding = KairosButtonIconPadding,
-                            ) {
-                                Icon(KairosIcons.Event, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Text(stringResource(Res.string.whatif_open), modifier = Modifier.padding(start = 6.dp))
-                            }
-                            if (asked) WhatIfLines(impact)
-                        }
-                        // Durée apprise : une puce qui ne remplit le champ que sur action (on ne remplit que ce qui est vide) ; peu
-                        // fiable, elle est dite mais pas proposée.
-                        if (learned != null && minutes.isBlank()) {
-                            if (learned.source == DurationEstimator.Source.MODEL) {
-                                ModelSuggestion(learned, learning) { minutes = it.toString() }
-                            } else if (learned.reliable) {
-                                KairosTextButton(onClick = { minutes = learned.minutes.toString() }, contentPadding = KairosButtonIconPadding) {
-                                    Icon(KairosIcons.Schedule, contentDescription = null, modifier = Modifier.size(18.dp))
-                                    Text(stringResource(Res.string.learned_use, duration(learned.minutes), learned.samples), modifier = Modifier.padding(start = 6.dp))
                                 }
-                            } else {
-                                Text(stringResource(Res.string.learned_weak, learned.samples), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                        // Dates et temps : tout ce qui touche à la temporalité (docs/spec/fiche-tache.md).
+                        val modelDiffers = proposal != null && minutes == proposal.typed.toString()
+                        SectionToggle(
+                            stringResource(Res.string.edit_section_when),
+                            listOfNotNull(
+                                stringResource(Res.string.edit_summary_invalid).takeIf { timeInvalid },
+                                parsedDeadline?.let { stringResource(Res.string.edit_summary_deadline, Dates.short(it, language, today)) },
+                                minutes.toIntOrNull()?.takeIf { it > 0 }?.let { stringResource(Res.string.edit_summary_estimate, duration(it)) },
+                                parsedScheduled?.let { stringResource(Res.string.edit_summary_scheduled, Dates.short(it, language, today)) },
+                                parsedPin?.let { stringResource(Res.string.edit_summary_pinned, Dates.field(it)) },
+                                stringResource(Res.string.edit_summary_recurring).takeIf { recurrence != TaskRecurrence.NONE },
+                                spent.toIntOrNull()?.takeIf { it > 0 }?.let { stringResource(Res.string.edit_summary_spent, duration(it)) },
+                                proposal?.takeIf { modelDiffers }?.let { stringResource(Res.string.edit_summary_model, duration(it.estimate.minutes)) },
+                            ),
+                            SheetSection.TIME in open,
+                            error = timeInvalid,
+                        ) { toggle(SheetSection.TIME, locked = timeInvalid) }
+                        if (SheetSection.TIME in open) {
+                            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                                // Deux paires côte à côte dès 560 dp, raccourcis de date sous la paire (sinon trois lignes sous la seule date).
+                                val wide = maxWidth >= 560.dp
+                                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    FieldPair(wide, {
+                                        Column(it.coachField(EditField.DEADLINE, coach)) {
+                                            DateField(deadline, { deadline = it }, Res.string.field_deadline, deadlineInvalid, today, shortcuts = !wide)
+                                            // Échéance d'un ancêtre (docs/spec/sous-taches.md § Échéance) : la borne, et ce qu'elle prend sans la sienne.
+                                            val floorTask = remember(task.id, tasksById) { TaskTree.deadlineFloorTask(task.id, tasksById) }
+                                            floorTask?.deadline?.let { floorDate ->
+                                                Text(
+                                                    stringResource(Res.string.deadline_floor, Dates.short(floorDate, language, today), floorTask.title),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                )
+                                            }
+                                        }
+                                    }, {
+                                        OutlinedTextField(
+                                            minutes,
+                                            { value -> minutes = value.filter(Char::isDigit).take(4) },
+                                            label = { Text(stringResource(Res.string.field_minutes)) },
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                            singleLine = true,
+                                            modifier = it.coachField(EditField.MINUTES, coach),
+                                        )
+                                    }, below = { if (wide) DateShortcuts(deadline, { deadline = it }, today) })
+                                    rollup?.let { rollupText(it) }?.let { cost ->
+                                        Text(stringResource(Res.string.rollup_sheet, cost), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    // Le modèle s'écarte nettement de la durée saisie : il le dit, et la puce la remplace sur action.
+                                    if (proposal != null && modelDiffers) {
+                                        val e = proposal.estimate
+                                        Text(
+                                            stringResource(Res.string.sheet_model_differs, duration(e.minutes), duration(e.low ?: e.minutes), duration(e.high ?: e.minutes)),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        KairosTextButton(onClick = { minutes = e.minutes.toString() }, contentPadding = KairosButtonIconPadding) {
+                                            Icon(KairosIcons.Model, contentDescription = null, modifier = Modifier.size(18.dp))
+                                            Text(stringResource(Res.string.review_apply, duration(e.minutes)), modifier = Modifier.padding(start = 6.dp))
+                                        }
+                                    }
+                                    // Durée apprise : une puce qui ne remplit le champ que sur action (on ne remplit que ce qui est vide) ; peu
+                                    // fiable, elle est dite mais pas proposée.
+                                    if (learned != null && minutes.isBlank()) {
+                                        if (learned.source == DurationEstimator.Source.MODEL) {
+                                            ModelSuggestion(learned, learning) { minutes = it.toString() }
+                                        } else if (learned.reliable) {
+                                            KairosTextButton(onClick = { minutes = learned.minutes.toString() }, contentPadding = KairosButtonIconPadding) {
+                                                Icon(KairosIcons.Schedule, contentDescription = null, modifier = Modifier.size(18.dp))
+                                                Text(stringResource(Res.string.learned_use, duration(learned.minutes), learned.samples), modifier = Modifier.padding(start = 6.dp))
+                                            }
+                                        } else {
+                                            Text(stringResource(Res.string.learned_weak, learned.samples), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                    }
+                                    FieldPair(wide, {
+                                        Column(it.coachField(EditField.SCHEDULED, coach)) {
+                                            DateField(scheduled, { scheduled = it }, Res.string.field_scheduled, scheduledInvalid, today, shortcuts = !wide)
+                                        }
+                                    }, {
+                                        OutlinedTextField(
+                                            pin,
+                                            { pin = it },
+                                            label = { Text(stringResource(Res.string.field_pin_time)) },
+                                            isError = pinInvalid,
+                                            supportingText = { Text(stringResource(if (pinInvalid) Res.string.time_invalid else Res.string.field_pin_hint)) },
+                                            singleLine = true,
+                                            modifier = it.coachField(EditField.PIN, coach),
+                                        )
+                                    }, below = { if (wide) DateShortcuts(scheduled, { scheduled = it }, today) })
+                                    RecurrenceField(recurrence, Modifier.coachField(EditField.RECURRENCE, coach)) {
+                                        recurrence = it
+                                        // « Le … du mois » : proposer le jour de l'échéance (sinon du jour affiché) plutôt qu'un champ vide en erreur.
+                                        if (it == TaskRecurrence.MONTHLY_ON_DAY && dayOfMonth.isBlank()) {
+                                            dayOfMonth = ((Dates.parseDate(deadline, dayFirst) ?: day).day).toString()
+                                        }
+                                    }
+                                    if (recurrence == TaskRecurrence.MONTHLY_ON_DAY) {
+                                        OutlinedTextField(
+                                            dayOfMonth,
+                                            { value -> dayOfMonth = value.filter(Char::isDigit).take(2) },
+                                            label = { Text(stringResource(Res.string.field_day_of_month)) },
+                                            isError = dayOfMonthInvalid,
+                                            supportingText = {
+                                                Text(stringResource(if (dayOfMonthInvalid) Res.string.field_day_invalid else Res.string.field_day_of_month_hint))
+                                            },
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                            singleLine = true,
+                                            modifier = Modifier.fillMaxWidth(),
+                                        )
+                                    }
+                                    // Temps passé : le total, corrigeable dans les deux sens (docs/spec/fiche-tache.md § Temps passé).
+                                    OutlinedTextField(
+                                        spent,
+                                        { value -> spent = value.filter(Char::isDigit).take(5) },
+                                        label = { Text(stringResource(Res.string.field_manual_time)) },
+                                        isError = spentInvalid,
+                                        supportingText = when {
+                                            spentInvalid -> ({ Text(stringResource(if (trimmable) Res.string.spent_floor_running else Res.string.spent_floor_timed, duration(spentPlan!!.floor))) })
+                                            timedMinutes > 0 -> ({ Text(stringResource(Res.string.spent_tracked_hint, duration(timedMinutes))) })
+                                            else -> null
+                                        },
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth().coachField(EditField.MANUAL_TIME, coach),
+                                    )
+                                    // « Et si j'accepte ? » : calculé sur action, avec les champs tels qu'ils sont saisis ; rien n'est enregistré.
+                                    if (whatIf != null) {
+                                        var asked by remember { mutableStateOf(false) }
+                                        var impact by remember { mutableStateOf<SoloForecast.Impact?>(null) }
+                                        KairosTextButton(
+                                            onClick = {
+                                                impact = whatIf(
+                                                    task.copy(
+                                                        title = title, priority = priority, fibonacciPoints = points, taskType = type,
+                                                        estimatedMinutes = minutes.toIntOrNull(), deadline = parsedDeadline, scheduledDate = parsedScheduled,
+                                                    ),
+                                                )
+                                                asked = true
+                                            },
+                                            contentPadding = KairosButtonIconPadding,
+                                        ) {
+                                            Icon(KairosIcons.Event, contentDescription = null, modifier = Modifier.size(18.dp))
+                                            Text(stringResource(Res.string.whatif_open), modifier = Modifier.padding(start = 6.dp))
+                                        }
+                                        if (asked) WhatIfLines(impact)
+                                    }
+                                }
                             }
                         }
                         // Découpage et enchaînement (docs/spec/sous-taches.md § Section) : les sous-tâches découpent ce travail, « Bloquée
-                        // par » l'enchaîne à d'autres ; deux relations, une section qui dit le rôle de chacune. Repliée sauf si elle sert.
-                        KairosTextButton(onClick = { splitting = !splitting }, modifier = Modifier.expandedState(splitting), contentPadding = KairosButtonIconPadding) {
-                            Icon(if (splitting) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
-                            Text(stringResource(Res.string.split_section_title), modifier = Modifier.padding(start = 4.dp))
+                        // par » l'enchaîne à d'autres ; deux relations, une section qui dit le rôle de chacune.
+                        val blockerChoices = remember(task.id, candidates, dependencies, tasksById, language) {
+                            BlockerChoices.of(task, candidates, dependencies, tasksById, language)
                         }
-                        if (splitting) {
+                        SectionToggle(
+                            stringResource(Res.string.split_section_title),
+                            listOfNotNull(
+                                originalSubtasks.size.takeIf { it > 0 }?.let { stringResource(Res.string.edit_summary_subtasks, it) },
+                                // Ceux qui ont une puce : un bloqueur déjà fait reste enregistré mais n'est plus proposé ni compté.
+                                blockerChoices.count { it.task.id in blockers }.takeIf { it > 0 }?.let { stringResource(Res.string.edit_summary_blockers, it) },
+                            ),
+                            SheetSection.SPLIT in open,
+                        ) { toggle(SheetSection.SPLIT) }
+                        if (SheetSection.SPLIT in open) {
                             Text(stringResource(Res.string.split_section_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             if (subtaskDrafts.isNotEmpty()) {
                                 SubtaskEditor(subtaskDrafts) { changed -> subtaskDrafts = subtaskDrafts.map { if (it.id == changed.id) changed else it } }
@@ -478,107 +650,9 @@ internal fun EditTaskDialog(
                                 modifier = Modifier.fillMaxWidth().focusRequester(newSubtasksFocus).tabLeavesField().coachField(EditField.SUBTASKS, coach),
                             )
                             Column(Modifier.coachField(EditField.BLOCKERS, coach), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(stringResource(Res.string.field_blockers), style = MaterialTheme.typography.labelLarge)
+                                Text(stringResource(Res.string.field_blockers), style = MaterialTheme.typography.labelLarge, modifier = Modifier.heading())
                                 Text(stringResource(Res.string.field_blockers_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                val language = uiLanguage()
-                                val all = remember(task.id, candidates, dependencies, tasksById, language) {
-                                    BlockerChoices.of(task, candidates, dependencies, tasksById, language)
-                                }
-                                if (all.isEmpty()) {
-                                    Text(stringResource(Res.string.field_blockers_none), style = MaterialTheme.typography.bodySmall)
-                                }
-                                // Recherche (issue #201 : la liste devenait impraticable) : au-delà de quelques tâches ; les cases cochées
-                                // restent visibles quelle que soit la recherche.
-                                if (all.size > BlockerChoices.SEARCH_FROM) {
-                                    OutlinedTextField(
-                                        blockerQuery,
-                                        { blockerQuery = it },
-                                        label = { Text(stringResource(Res.string.blockers_search)) },
-                                        leadingIcon = { Icon(KairosIcons.Search, contentDescription = null) },
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth(),
-                                    )
-                                }
-                                val others = BlockerChoices.filter(all, blockerQuery, blockers)
-                                if (others.isEmpty() && all.isNotEmpty()) {
-                                    Text(stringResource(Res.string.blockers_search_none, blockerQuery.trim()), style = MaterialTheme.typography.bodySmall)
-                                }
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    others.forEach { other ->
-                                        val id = other.task.id
-                                        // Cocher une tâche qui attend déjà celle-ci serait refusé à l'enregistrement : la case est grisée
-                                        // et dit pourquoi (une case déjà cochée reste décochable).
-                                        val locked = other.cyclic && id !in blockers
-                                        LabeledCheckbox(
-                                            id in blockers,
-                                            { checked -> blockers = if (checked) blockers + id else blockers - id },
-                                            if (locked) stringResource(Res.string.field_blockers_cycle, other.label) else other.label,
-                                            enabled = !locked,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        KairosTextButton(onClick = { advanced = !advanced }, modifier = Modifier.expandedState(advanced), contentPadding = KairosButtonIconPadding) {
-                            Icon(if (advanced) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
-                            Text(stringResource(Res.string.edit_advanced), modifier = Modifier.padding(start = 4.dp))
-                        }
-                        if (advanced) {
-                            Column(Modifier.coachField(EditField.SCHEDULED, coach)) { DateField(scheduled, { scheduled = it }, Res.string.field_scheduled, scheduledInvalid, today) }
-                            OutlinedTextField(
-                                project,
-                                { project = it },
-                                label = { Text(stringResource(Res.string.field_project)) },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth().coachField(EditField.PROJECT, coach),
-                            )
-                            OutlinedTextField(
-                                manual,
-                                { value -> manual = value.filter(Char::isDigit).take(5) },
-                                label = { Text(stringResource(Res.string.field_manual_time)) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth().coachField(EditField.MANUAL_TIME, coach),
-                            )
-                            RecurrenceField(recurrence, Modifier.coachField(EditField.RECURRENCE, coach)) {
-                                recurrence = it
-                                // « Le … du mois » : proposer le jour de l'échéance (sinon du jour affiché) plutôt qu'un champ vide en erreur.
-                                if (it == TaskRecurrence.MONTHLY_ON_DAY && dayOfMonth.isBlank()) {
-                                    dayOfMonth = ((Dates.parseDate(deadline, dayFirst) ?: day).day).toString()
-                                }
-                            }
-                            if (recurrence == TaskRecurrence.MONTHLY_ON_DAY) {
-                                OutlinedTextField(
-                                    dayOfMonth,
-                                    { value -> dayOfMonth = value.filter(Char::isDigit).take(2) },
-                                    label = { Text(stringResource(Res.string.field_day_of_month)) },
-                                    isError = dayOfMonthInvalid,
-                                    supportingText = {
-                                        Text(stringResource(if (dayOfMonthInvalid) Res.string.field_day_invalid else Res.string.field_day_of_month_hint))
-                                    },
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                    singleLine = true,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            }
-                            OutlinedTextField(
-                                pin,
-                                { pin = it },
-                                label = { Text(stringResource(Res.string.field_pin_time)) },
-                                isError = pinInvalid,
-                                supportingText = { Text(stringResource(if (pinInvalid) Res.string.time_invalid else Res.string.field_pin_hint)) },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth().coachField(EditField.PIN, coach),
-                            )
-                            if (countInTeam != null) {
-                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                    SwitchRow(counted, stringResource(Res.string.team_count_in_team)) { counted = it }
-                                    Text(
-                                        stringResource(Res.string.team_count_in_team_hint),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
+                                BlockerPicker(blockerChoices, blockers) { blockers = it }
                             }
                         }
                     }
@@ -607,15 +681,16 @@ internal fun EditTaskDialog(
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 16.dp),
+                    // 16 dp et libellés sur une ligne : à 360 dp, « Enregistrer » se coupait en deux entre Supprimer et Annuler.
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
                 ) {
                     if (!creating) {
                         KairosTextButton(onClick = { confirmDelete = true }) {
-                            Text(stringResource(Res.string.action_delete), color = MaterialTheme.colorScheme.error)
+                            Text(stringResource(Res.string.action_delete), color = MaterialTheme.colorScheme.error, maxLines = 1)
                         }
                     }
                     Spacer(Modifier.weight(1f))
-                    KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
+                    KairosTextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel), maxLines = 1) }
                     KairosButton(
                         enabled = !invalid && (!creating || title.isNotBlank()),
                         modifier = Modifier.coachHighlight(coach?.current?.save == true, coach != null),
@@ -635,7 +710,9 @@ internal fun EditTaskDialog(
                                     recurrenceDayOfMonth = parsedDayOfMonth,
                                     pinTime = parsedPin,
                                     pinDay = day,
-                                    manualTimeSpentMinutes = manual.toIntOrNull(),
+                                    // Champ non touché : le temps saisi d'origine, aucune session ; changé : le plan de correction.
+                                    manualTimeSpentMinutes = if (spentPlan == null) task.manualTimeSpentMinutes else spentPlan.manual,
+                                    sessionEnds = spentPlan?.ends.orEmpty(),
                                     newSubtasks = newSubtasks,
                                     chainNewSubtasks = chainNew,
                                     subtaskEdits = subtaskDrafts.edits(originalSubtasks),
@@ -658,7 +735,7 @@ internal fun EditTaskDialog(
                                 onSave(edit)
                             }
                         },
-                    ) { Text(stringResource(Res.string.action_save)) }
+                    ) { Text(stringResource(Res.string.action_save), maxLines = 1, softWrap = false) }
                 }
             }
         }
@@ -782,5 +859,65 @@ private fun WhatIfLines(impact: SoloForecast.Impact?) {
     } else {
         impact.hurt.take(3).forEach { Text(stringResource(Res.string.whatif_hurt, it.title, it.afterPerTen, it.beforePerTen), style = MaterialTheme.typography.bodySmall) }
         if (impact.hurt.size > 3) Text(stringResource(Res.string.whatif_more, impact.hurt.size - 3), style = MaterialTheme.typography.bodySmall, color = muted)
+    }
+}
+
+/**
+ * En-tête d'une section repliable de la fiche : une ligne de toute la largeur (48 dp au moins), le titre, ce que la
+ * section contient ([summary], joint par « · ») et le chevron. Avant, un bouton de texte qui ne disait pas s'il cachait
+ * quelque chose (docs/spec/fiche-tache.md).
+ */
+@Composable
+private fun SectionToggle(title: String, summary: List<String>, open: Boolean, error: Boolean = false, onToggle: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(KairosSpacing.s)) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clip(MaterialTheme.shapes.small)
+                .expandedState(open)
+                .clickable(role = Role.Button, onClick = onToggle)
+                .padding(vertical = KairosSpacing.xs),
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                if (summary.isNotEmpty()) {
+                    // Une erreur dans la section : son résumé le dit en rouge, avec l'icône (jamais la couleur seule).
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (error) Icon(KairosIcons.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(14.dp))
+                        Text(
+                            summary.joinToString(" · "), style = MaterialTheme.typography.bodySmall,
+                            color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2, overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+            Icon(if (open) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
+        }
+    }
+}
+
+/**
+ * Deux champs de « Dates et temps » : côte à côte à poids égaux si [wide], l'un sous l'autre sinon ; [below] (les raccourcis
+ * de date) sous la paire. Chaque champ reçoit son modificateur de largeur.
+ */
+@Composable
+private fun FieldPair(wide: Boolean, first: @Composable (Modifier) -> Unit, second: @Composable (Modifier) -> Unit, below: @Composable () -> Unit = {}) {
+    if (wide) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(KairosSpacing.l), verticalAlignment = Alignment.Top) {
+                first(Modifier.weight(1f))
+                second(Modifier.weight(1f))
+            }
+            below()
+        }
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            first(Modifier.fillMaxWidth())
+            second(Modifier.fillMaxWidth())
+        }
     }
 }

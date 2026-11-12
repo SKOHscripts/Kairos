@@ -14,6 +14,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import com.skohscripts.kairos.core.engine.DurationEstimator
+import com.skohscripts.kairos.core.forecast.Survival
+import com.skohscripts.kairos.ui.generated.resources.settings_linger_learned
+import com.skohscripts.kairos.ui.generated.resources.settings_linger_pending
+import com.skohscripts.kairos.ui.generated.resources.settings_linger_info
+import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.engine.model.ModelGate
 import com.skohscripts.kairos.core.engine.model.ModelParams
 import com.skohscripts.kairos.ui.app.AppServices
@@ -37,16 +42,7 @@ internal fun ModelStatusLine(services: AppServices) {
     val snapshot by services.repository.snapshot.collectAsState()
     val status = remember(snapshot) { DurationEstimator.modelStatus(snapshot, services.clock.now(), timeZone = TimeZone.currentSystemDefault()) } ?: return
     val gate = status.gate
-    fun percent(x: Double) = floor(x * 100.0 + 0.5).toInt()
-    val text = when {
-        // Ce qui manque, en nombre de tâches (2026-11-03) : le compte restant d'abord, puis l'avancement.
-        status.corpus < ModelParams.MIN_CORPUS ->
-            stringResource(Res.string.learning_model_status_few, ModelParams.MIN_CORPUS - status.corpus, status.corpus, ModelParams.MIN_CORPUS)
-        gate.reason == ModelGate.Reason.TOO_FEW_SAMPLES ->
-            stringResource(Res.string.learning_model_status_unverified, ModelParams.GATE_MIN - gate.evaluated, gate.evaluated, ModelParams.GATE_MIN)
-        gate.passed -> stringResource(Res.string.learning_model_status_ok, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
-        else -> stringResource(Res.string.learning_model_status_not_better, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
-    }
+    val text = modelStatusText(status)
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     // Fourchette vérifiée (docs/spec/previsions-taches.md § Étape A) : dite dès que la garde a ses candidats.
     if (gate.reason != ModelGate.Reason.TOO_FEW_SAMPLES && status.corpus >= ModelParams.MIN_CORPUS) {
@@ -68,4 +64,42 @@ internal fun ModelStatusLine(services: AppServices) {
         KairosOutlinedButton(onClick = { review = true }) { Text(stringResource(Res.string.settings_review_button, proposals.size)) }
     }
     if (review) EstimateReviewDialog(services, emptyList()) { review = false }
+}
+
+/** Pourcentage arrondi d'une erreur relative (0,31 → 31). */
+internal fun percent(x: Double): Int = floor(x * 100.0 + 0.5).toInt()
+
+/**
+ * La phrase d'état du modèle : ce qui manque, la vérification réussie ou non. Partagée par les Réglages et la carte « Ce que
+ * Kairos apprend » du bilan (docs/spec/bilan.md) : les deux ne disent jamais autre chose.
+ */
+@Composable
+internal fun modelStatusText(status: DurationEstimator.Companion.ModelStatus): String {
+    val gate = status.gate
+    return when {
+        // Ce qui manque, en nombre de tâches (2026-11-03) : le compte restant d'abord, puis l'avancement.
+        status.corpus < ModelParams.MIN_CORPUS ->
+            stringResource(Res.string.learning_model_status_few, ModelParams.MIN_CORPUS - status.corpus, status.corpus, ModelParams.MIN_CORPUS)
+        gate.reason == ModelGate.Reason.TOO_FEW_SAMPLES ->
+            stringResource(Res.string.learning_model_status_unverified, ModelParams.GATE_MIN - gate.evaluated, gate.evaluated, ModelParams.GATE_MIN)
+        gate.passed -> stringResource(Res.string.learning_model_status_ok, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
+        else -> stringResource(Res.string.learning_model_status_not_better, gate.evaluated, percent(gate.modelError), percent(gate.defaultError))
+    }
+}
+
+/**
+ * L'échéance implicite calculée du rythme, sous son champ (docs/spec/taches-qui-trainent.md § Échéance apprise), pour info :
+ * champ vide ([manual] faux), la valeur appliquée ou le repli faute d'historique ; valeur saisie, ce que le rythme
+ * donnerait (rien sans historique). Calculée sur les données **enregistrées** de l'espace Perso.
+ */
+@Composable
+internal fun LingerStatusLine(services: AppServices, manual: Boolean) {
+    val personal by services.repository.personalSnapshot.collectAsState()
+    val learned = remember(personal) { Survival.lingerDays(personal, services.clock.now(), TimeZone.currentSystemDefault()) }
+    val text = when {
+        manual -> learned?.let { stringResource(Res.string.settings_linger_info, it) } ?: return
+        learned != null -> stringResource(Res.string.settings_linger_learned, learned)
+        else -> stringResource(Res.string.settings_linger_pending, Settings.DEFAULT_IMPLICIT_DEADLINE_DAYS)
+    }
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }

@@ -284,9 +284,11 @@ also be edited, archived without follow-up, or deleted.
   says so, one line per series ("2 monthly occurrences were skipped: Expense
   report"): recreate them (already overdue) or ignore them, with an undo.
   Nothing is recreated without asking.
-- **"Snooze"**: always lands on a working day, and the task leaves "Today"
-  until then. **"Move…"** schedules a task for another day (tomorrow, next
-  Monday, in a week, or any date) and offers to undo it.
+- **Snooze and move**: a task row's calendar button first offers **"Move to
+  the next working day"** (snooze: the deadline moves, always to a working
+  day, and the task leaves "Today" until then), then dates to schedule it on
+  (tomorrow, next Monday, in a week, or any date) without touching its
+  deadline, with an undo.
 - **Blockers**: after blocking a task, Kairos says where it went ("Blocked"
   opens); the blocking task shows a "Blocks …" badge. A search field finds the
   task to wait for in a long list.
@@ -369,6 +371,25 @@ only.
   longer than their task usually takes (more than three times, and at least an
   hour more) and offers to bring them back to the usual duration; nothing is
   ticked for you, and “Undo” restores the previous durations.
+- **Week and month recap**: in the Week and Month views, the “Recap” card sums
+  up the period in four figures (tasks done, time tracked, time in meetings,
+  what is still due); “Details” lists what was done with its time, what moved
+  forward, meetings and time slots grouped by title, and what is left. “Copy
+  the recap” puts it on the clipboard as plain text, ready for the weekly
+  meeting.
+- **What Kairos learns**: in the Recap tab (formerly Week), a second card shows
+  where the duration model stands: tasks learned, its median error against the
+  default duration, how often the real time fell within its range, and how it
+  converged week after week, rebuilt as it was at each date. It also says how
+  your estimates held over the period and which typed durations the model
+  disputes.
+- **What lingers**: a task with no date no longer sinks for good under the
+  dated ones: once it is older than 4 of your 5 undated tasks when done, it
+  counts as if it were due (an implicit deadline, learned from your own pace,
+  30 days until there is enough history; for its score only, never “overdue”;
+  adjustable, 0 turns it off). In the Recap tab, the “Backlog, no date” list puts the oldest first,
+  counts and marks the tasks that linger, and a tap schedules one, today
+  included.
 - **Working days and holidays**: built-in French calendar, with extra dates
   in Settings.
 
@@ -415,7 +436,9 @@ order (critical path). Cycles are refused.
 
 - **Timer per task** (one at a time), live on the row, in "Up next", in the
   "Right now" card and in the window title; it survives closing the app and
-  restarting the phone.
+  restarting the phone. The time spent is corrected in the task sheet
+  ("Dates and time"): raise it for untimed work, lower it after a forgotten
+  timer (the latest sessions are shortened, with an undo).
 - **Three alerts**: going past the estimate, a forgotten timer, a suggested
   break. A banner in the app, and a system notification: Android (ongoing
   notification with a stopwatch, even with the app closed), the desktop
@@ -535,8 +558,8 @@ order (critical path). Cycles are refused.
   enabled.
 - **Guided first task**: on first launch (or from the Day view while you have
   no task of your own), Kairos walks you through the real task sheet, field by
-  field (title, priority, Fibonacci points, type, estimate, dates, advanced
-  options), then shows where your task lands in the day and congratulates you
+  field (title, priority, Fibonacci points, type, estimate, dates and time,
+  splitting), then shows where your task lands in the day and congratulates you
   once it is really created. Nothing is written if you give up.
 - **Interactive demo**: "Try it in a demo" in "Discover Kairos" opens the real
   screens on throwaway examples, in memory, and guides you through capturing,
@@ -587,7 +610,7 @@ order (critical path). Cycles are refused.
   side by side, then applied if you wish.
 - **Your personal work counts**: if a member is "This is me", your personal
   tasks enter your load and your team forecasts (marked "Personal"), without
-  leaving the Personal space; "Count in the team" (task sheet, more options)
+  leaving the Personal space; "Count in the team" (task sheet, "Qualification")
   excludes one. Your meetings in the Day view reduce your capacity, and the
   forecasts offer "My work".
 - Forecasts and load take **recurring tasks** into account (every upcoming
@@ -668,13 +691,16 @@ version that brought it and the platforms it exists on.
 | Follow | Machine-learning estimates | 4.0.0 | All |
 | Follow | Likely finish date | 4.1.0 | All |
 | Follow | Timers to check | 4.1.0 | All |
+| Follow | Week and month recap | 4.1.0 | All |
+| Follow | What Kairos learns | 4.1.0 | All |
+| Follow | What lingers | 4.1.0 | All |
 | Follow | When you work on each type | 3.5.0 | All |
 | Follow | Your most efficient hours | 3.9.0 | All |
 | Follow | Your day on the home screen | 3.12.0 | Android |
 | Follow | Plan the week | 3.0.0 | All |
 | Follow | The month at a glance | 3.8.0 | All |
 | Follow | Move a task from the week | 3.7.0 | All |
-| Follow | Week and statistics | 3.0.0 | All |
+| Follow | Recap and statistics | 3.0.0 | All |
 | Follow | See how things evolve | 3.8.0 | All |
 | Follow | Correct your estimates | 3.8.0 | All |
 | Follow | Statistics your way | 3.7.0 | All |

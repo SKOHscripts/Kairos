@@ -55,8 +55,9 @@ Kairos conseille de découper une tâche que l'historique montre mal estimée.
   peu de tâches terminées pour le savoir. Le seuil est **personnel** : 8 points peut être fiable chez l'un et 5 non chez
   l'autre. Jamais à 1 ou 2 points ; jamais pour une tâche déjà découpée.
 - **Une section dédiée** de la fiche, « Découpage et enchaînement », réunit les sous-tâches (existantes et nouvelles) et
-  « Bloquée par », avec une phrase qui dit le rôle de chacun. « Bloquée par » a une **recherche** : la liste devient
-  impraticable au-delà de quelques tâches.
+  « Bloquée par », avec une phrase qui dit le rôle de chacun. « Bloquée par » se choisit par une **recherche** : les tâches
+  choisies sont des puces, les résultats n'apparaissent qu'une fois quelque chose tapé, six au plus (4.1.0,
+  `fiche-tache.md` ; avant, une liste de cases avec recherche, impraticable avec beaucoup de tâches ouvertes).
 - **File de sous-tâches** (issue #209) : juste avant « Nouvelles sous-tâches », un interrupteur « Enchaîner : chacune
   attend la précédente ». Actif, les nouvelles sous-tâches forment une file **dans l'ordre des lignes** : avec B, C, D,
   C est bloquée par B et D par C (des dépendances « Bloquée par » ordinaires, qu'on retire dans la fiche de chacune).
@@ -72,8 +73,8 @@ Kairos conseille de découper une tâche que l'historique montre mal estimée.
 - Une fille sans échéance d'une mère due le 15 est planifiée comme due le 15 (lot 3).
 - Le conseil apparaît à 8 points quand les tâches de 8 points terminées ont pris de 2 h à 9 h, et pas à 5 points quand
   elles ont toutes pris de 1 h à 1 h 30 (lot 4).
-- Avec trente tâches à faire, trois lettres dans la recherche de « Bloquée par » ne laissent que les tâches qui les
-  contiennent, les cases cochées restant visibles (lot 5).
+- Avec trente tâches à faire, trois lettres dans la recherche de « Bloquée par » ne proposent que les tâches qui les
+  contiennent, six au plus, les tâches choisies restant visibles en puces (lot 5, revu en 4.1.0 par `fiche-tache.md`).
 - Interrupteur actif, trois lignes B, C, D : C est « Bloquée par » B, D par C, et B n'attend rien ; la fiche suivante
   propose l'interrupteur actif. Coupé : trois sous-tâches sans dépendance (lot 6).
 
@@ -173,21 +174,22 @@ Kairos conseille de découper une tâche que l'historique montre mal estimée.
 
 ### Section « Découpage et enchaînement » (lot 5, `EditTaskDialog`)
 
-- Après l'échéance et la durée, avant « Options avancées » : un bouton repliable (`split_section_title`), ouvert d'emblée
-  si la tâche a des sous-tâches ou des bloqueurs. Dedans : la phrase de rôle (`split_section_hint` : « Les sous-tâches
+- Après « Dates et temps » : une section repliable (`split_section_title`), repliée à l'ouverture même si la tâche a
+  des sous-tâches ou des bloqueurs (4.1.0, `fiche-tache.md` : son en-tête les compte ; avant, ouverte d'emblée). Dedans : la phrase de rôle (`split_section_hint` : « Les sous-tâches
   découpent ce travail : il est fini quand elles le sont. « Bloquée par » l'enchaîne à d'autres tâches : il attend
   qu'elles soient faites. »), les sous-tâches existantes (`SubtaskEditor`), « Nouvelles sous-tâches », puis « Bloquée
-  par ». Ces deux champs ont quitté les options avancées (`EditField.SUBTASKS` et `BLOCKERS` sans `advanced`, rangés
-  après `DEADLINE`) ; une étape de coach qui les explique ouvre la section.
-- Recherche : au-delà de `BlockerChoices.SEARCH_FROM` = 6 cases, un champ « Chercher une tâche » (`blockers_search`, icône
-  `Search`) ; `BlockerChoices.filter` garde les cases dont le libellé contient chaque mot, sans casse ni accents
-  (`SearchFold`, comme la liste des fonctionnalités), et **toujours les cochées** ; aucune : « Aucune tâche ne correspond
-  à « … ». » (`blockers_search_none`). L'ordre des cases ne change pas pendant la saisie.
+  par ». Ces deux champs ont quitté les options avancées à l'issue #201 (`EditField.SUBTASKS` et `BLOCKERS`, section
+  `SPLIT`) ; une étape de coach qui les explique ouvre la section.
+- Recherche (4.1.0, `fiche-tache.md`, qui remplace la liste de cases) : `BlockerPicker` montre les tâches choisies en
+  puces et un champ « Ajouter un bloqueur… » (`blockers_add`, icône `Search`) ; `BlockerChoices.page` ne rend rien tant
+  que la recherche est vide, puis les choix non pris dont le libellé contient chaque mot, sans casse ni accents
+  (`SearchFold`, comme la liste des fonctionnalités), six au plus (`PAGE`) et le compte du reste ; aucun : « Aucune tâche
+  ne correspond à « … ». » (`blockers_search_none`). L'ordre des résultats suit celui des choix.
 - Le conseil de découpage porte « Découper en sous-tâches » (`split_advice_action`) : il ouvre la section et place le
   curseur dans « Nouvelles sous-tâches » (`FocusRequester`, après une image).
 - Fonctionnalité : carte `split_advice` (chapitre « Planifier », `since = "4.1.0"`), puce et ligne du tableau des deux
   README ; la carte `subtasks` et les puces « Subtasks » / « Blockers » disent les nouvelles règles.
-- Tests : `BlockerChoicesTest.theSearchIgnoresCaseAndAccentsAndKeepsTheCheckedOnes`,
+- Tests : `BlockerChoicesTest.aSearchShowsAPageOfUnchosenMatches`,
   `SubtasksUiTest.theSectionGathersSubtasksAndBlockersAndBlockersCanBeSearched`,
   `SubtasksUiTest.theAdviceOpensTheSectionOnTheNewSubtasksField` ; `DayScreenUiTest` et `TeamMyWorkUiTest` ouvrent
   la section pour atteindre « Bloquée par ».
@@ -224,8 +226,9 @@ Kairos conseille de découper une tâche que l'historique montre mal estimée.
 - **Une section, deux relations** (issue #201 : « elles se ressemblent, elles servent deux buts ») : réunies parce
   qu'elles font toutes deux le planning, séparées par leurs sous-titres et une phrase qui dit le rôle de chacune.
   Repliée par défaut pour garder la fiche courte, ouverte dès qu'elle porte quelque chose.
-- **Les cochées restent visibles pendant la recherche** : sinon chercher une autre tâche ferait croire qu'on a perdu
-  un bloqueur, et l'on ne pourrait plus le décocher.
+- **Les choisies restent visibles pendant la recherche** : sinon chercher une autre tâche ferait croire qu'on a perdu
+  un bloqueur, et l'on ne pourrait plus le retirer. Depuis 4.1.0 (`fiche-tache.md`), ce sont des puces hors de la liste
+  de résultats ; avant, des cases cochées gardées dans la liste filtrée.
 
 - **Un seuil personnel, pas un nombre de points** (propriétaire, 2026-11-05 : « un utilisateur peut très bien estimer
   une tâche à 8 mais pas à 5 ») : chaque niveau est jugé sur sa propre dispersion et son propre biais. Écarté : conseiller

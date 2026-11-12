@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.ui.test.isDialog
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasScrollToIndexAction
@@ -71,7 +73,12 @@ class SubtaskEditUiTest {
         for (index in 0 until count) {
             onAllNodesWithContentDescription("Edit")[index].performClick()
             waitUntil(timeoutMillis = 5_000) { dialogOpen() }
-            if (onAllNodesWithText("Subtasks").fetchSemanticsNodes().isNotEmpty()) return
+            // Le résumé de la section repliée dit qu'elle a des sous-tâches ; on l'ouvre.
+            // Dans la fiche seulement : la vue Jour derrière dit aussi « sous-tâche(s) » (« Tâches mères en cours »).
+            if (onAllNodes(hasText("subtask(s)", substring = true) and hasAnyAncestor(isDialog())).fetchSemanticsNodes().isNotEmpty()) {
+                openSheetSection("Splitting and sequencing")
+                return
+            }
             onNodeWithText("Cancel").performClick()
             waitUntil(timeoutMillis = 5_000) { !dialogOpen() }
         }

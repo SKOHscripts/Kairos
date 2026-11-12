@@ -37,7 +37,8 @@ champs à contour).
   hauteur.
 - **Sélecteurs segmentés** (« Tâche / Créneau », espaces, périmètres) : 40 dp
   dessinés, aire tactile 48 dp.
-- **Actions de ligne** (chrono, décaler, modifier) : icônes de 20 dp dans un
+- **Actions de ligne** (chrono, déplacer ou décaler, modifier ; « Décaler » est dans le menu de « Déplacer… » depuis
+  la 4.1.0, `vue-jour.md`) : icônes de 20 dp dans un
   bouton-icône de 40 dp (aire tactile 48 dp), pour alléger les lignes de
   tâche.
 - **Réglages** : cartes de section **pleines** (sans contour), champs

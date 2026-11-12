@@ -74,6 +74,13 @@ import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.week.WeekMonthSwitch
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.minus
+import com.skohscripts.kairos.core.recap.Recap
+import com.skohscripts.kairos.ui.recap.PeriodHeader
+import com.skohscripts.kairos.ui.recap.RecapCard
+import com.skohscripts.kairos.ui.recap.ModelCard
+import com.skohscripts.kairos.ui.generated.resources.recap_title_month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
@@ -90,26 +97,26 @@ fun MonthScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> 
     // Calendriers du téléphone (Android) : ajoutés pour le calcul, jamais écrits (docs/spec/connexions-externes.md).
     val snapshot = withDeviceCalendars(services, stored)
     val timeZone = remember { TimeZone.currentSystemDefault() }
-    val today = services.clock.now().toLocalDateTime(timeZone).date
+    val now = services.clock.now()
+    val today = now.toLocalDateTime(timeZone).date
     val language = uiLanguage()
     val month = remember(snapshot, nav.month, today) { MonthView.build(snapshot, nav.month ?: today) }
 
     Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.widthIn(max = 1000.dp).fillMaxWidth().padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.m)) {
             WeekMonthSwitch(nav, today)
-            Text(Dates.monthYear(month.first, language), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-            // Même hauteur, comme la vue Semaine : à 360 dp un libellé passe sur deux lignes.
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(IntrinsicSize.Min)) {
-                KairosOutlinedButton(onClick = { nav.month = MonthView.shift(month.first, -1) }, modifier = Modifier.fillMaxHeight(), contentPadding = KairosButtonIconPadding) {
-                    Icon(KairosIcons.ChevronLeft, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text(stringResource(Res.string.month_prev), modifier = Modifier.padding(start = 4.dp))
-                }
-                Spacer(Modifier.weight(1f))
-                KairosOutlinedButton(onClick = { nav.month = MonthView.shift(month.first, 1) }, modifier = Modifier.fillMaxHeight()) {
-                    Text(stringResource(Res.string.month_next), modifier = Modifier.padding(end = 4.dp))
-                    Icon(KairosIcons.ChevronRight, contentDescription = null, modifier = Modifier.size(18.dp))
-                }
-            }
+            val last = MonthView.shift(month.first, 1).minus(DatePeriod(days = 1))
+            val title = Dates.monthYear(month.first, language)
+            PeriodHeader(
+                title, stringResource(Res.string.month_prev), stringResource(Res.string.month_next),
+                onPrevious = { nav.month = MonthView.shift(month.first, -1) },
+                onNext = { nav.month = MonthView.shift(month.first, 1) },
+                onToday = if (today in month.first..last) null else ({ nav.month = null }),
+            )
+            // Bilan du mois (docs/spec/bilan.md, issue #233).
+            val recap = remember(snapshot, month.first, today) { Recap.build(snapshot, month.first, last, now, timeZone) }
+            RecapCard(recap, stringResource(Res.string.recap_title_month), title, today, language)
+            ModelCard(services, stored, month.first, last, today, language)
             Text(stringResource(Res.string.month_legend), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             MonthGrid(month, today, language, onOpenDay)
             MonthLists(month, today, language, onOpenDay)

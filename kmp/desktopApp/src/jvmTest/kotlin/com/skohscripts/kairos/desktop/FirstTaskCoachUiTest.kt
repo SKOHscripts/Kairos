@@ -117,7 +117,8 @@ class FirstTaskCoachUiTest {
             waitText("Step ${index + 1} of 9")
             tags.forEach { assertTrue(hasTag("edit-field-$it"), "champ « $it » absent de la fiche à l'étape ${index + 1}") }
             if (index == 1) type("Description", "Before Friday")
-            if (index == 4) type("Estimated duration (minutes)", "25")
+            // Étape de la durée (« Dates et temps », ouverte par le coach).
+            if (index == 5) type("Estimated duration (minutes)", "25")
             if (index < fieldsByStep.lastIndex) onNodeWithText("Next").performClick()
         }
         // Les félicitations n'existent pas tant que la tâche ne l'est pas.
@@ -160,6 +161,7 @@ class FirstTaskCoachUiTest {
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         openFromTheInvitation()
         type("Title", "Plan the sprint")
+        openSheetSection("Qualification")
         onNodeWithText("P1 Important", substring = true).performScrollTo().performClick()
         onNodeWithText("3 moderate", substring = true).performScrollTo().performClick()
         pickType()

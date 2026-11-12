@@ -25,6 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +52,8 @@ import com.skohscripts.kairos.ui.generated.resources.why_deadline_tomorrow
 import com.skohscripts.kairos.ui.generated.resources.why_effort_default
 import com.skohscripts.kairos.ui.generated.resources.why_effort_minutes
 import com.skohscripts.kairos.ui.generated.resources.why_effort_points
+import com.skohscripts.kairos.ui.generated.resources.why_implicit_in
+import com.skohscripts.kairos.ui.generated.resources.why_implicit_reached
 import com.skohscripts.kairos.ui.generated.resources.why_no_date
 import com.skohscripts.kairos.ui.generated.resources.why_note
 import com.skohscripts.kairos.ui.generated.resources.why_overdue
@@ -95,10 +99,11 @@ internal fun ScoreBadge(
     val title = stringResource(Res.string.why_title)
     Box {
         Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            // Chiffre primaire sans pastille (charte § Où va la couleur) : une pastille de moins par ligne.
+            color = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.primary,
             shape = CircleShape,
-            modifier = Modifier.clickable { open = true }.semantics { contentDescription = "$score · $title" },
+            modifier = Modifier.clip(CircleShape).clickable { open = true }.semantics { contentDescription = "$score · $title" },
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -189,6 +194,9 @@ internal fun ScoreBadge(
 @Composable
 private fun dateLabel(why: Scheduling.WsjfBreakdown): String {
     val days = why.daysUntil ?: return stringResource(Res.string.why_no_date)
+    if (why.dateKind == Scheduling.DateKind.IMPLICIT) {
+        return if (days > 0) stringResource(Res.string.why_implicit_in, days) else stringResource(Res.string.why_implicit_reached)
+    }
     val deadline = why.dateKind == Scheduling.DateKind.DEADLINE
     return when {
         days < 0 -> stringResource(if (deadline) Res.string.why_deadline_overdue else Res.string.why_scheduled_overdue, -days)

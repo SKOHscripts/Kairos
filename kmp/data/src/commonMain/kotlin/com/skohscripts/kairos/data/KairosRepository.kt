@@ -532,6 +532,29 @@ class KairosRepository(
                 current - (base.blockers - edit.blockerIds) + (edit.blockerIds - base.blockers)
             } ?: edit.blockerIds
             setBlockers(task, blockers)
+            writeSessionEnds(task, edit.sessionEnds)
+        }
+    }
+
+    /** Fins de sessions de [task] : terminées, d'une tâche personnelle non reçue, bornées entre leur début et maintenant. */
+    private suspend fun writeSessionEnds(task: Task, ends: Map<Long, Instant>) {
+        if (ends.isEmpty() || task.space != TaskSpace.PERSONAL || task.origin != null) return
+        val now = clock.now()
+        for (s in state.value.workSessions) {
+            val end = ends[s.id] ?: continue
+            if (s.taskId == task.id && s.endedAt != null) queries.setSessionEnd(minOf(maxOf(end, s.startedAt), now).store(), s.id)
+        }
+    }
+
+    /**
+     * « Annuler » d'une correction du temps passé (docs/spec/fiche-tache.md § Temps passé) : rend en une écriture le temps
+     * saisi à la main [manual] et les fins de sessions [ends] d'avant.
+     */
+    suspend fun restoreSpent(taskId: Long, manual: Int?, ends: Map<Long, Instant>) {
+        val task = find(taskId) ?: return
+        write {
+            updateRow(task.copy(manualTimeSpentMinutes = manual?.takeIf { it >= 0 }), touch = false)
+            writeSessionEnds(task, ends)
         }
     }
 
@@ -2288,6 +2311,12 @@ data class TaskEdit(
     val pinTime: LocalTime? = null,
     val pinDay: LocalDate,
     val manualTimeSpentMinutes: Int? = null,
+    /**
+     * Correction du temps passé à la baisse (docs/spec/fiche-tache.md § Temps passé) : nouvelle fin de chaque session à
+     * raccourcir (identifiant → fin), écrite dans la même transaction ; vide = aucune. Seules les sessions terminées de
+     * cette tâche, si elle est personnelle et non reçue (la règle de [KairosRepository.setSessionEnds]).
+     */
+    val sessionEnds: Map<Long, Instant> = emptyMap(),
     val newSubtasks: String = "",
     /**
      * Enchaîner les [newSubtasks] (docs/spec/sous-taches.md § File, issue #209) : chaque nouvelle sous-tâche attend la

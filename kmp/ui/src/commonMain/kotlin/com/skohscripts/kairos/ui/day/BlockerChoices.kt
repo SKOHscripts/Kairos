@@ -7,21 +7,28 @@ import com.skohscripts.kairos.core.model.TaskTree
 import com.skohscripts.kairos.core.text.SearchFold
 
 /**
- * Une case de la liste « Bloquée par » du dialogue d'édition (docs/spec/dependances.md) : son libellé, et si la cocher
- * créerait un cycle ([cyclic] : la tâche candidate attend déjà, directement ou non, la tâche éditée).
+ * Un choix de « Bloquée par » de la fiche (docs/spec/dependances.md, docs/spec/fiche-tache.md) : son libellé, et si le
+ * prendre créerait un cycle ([cyclic] : la tâche candidate attend déjà, directement ou non, la tâche éditée).
  */
 internal data class BlockerChoice(val task: Task, val label: String, val cyclic: Boolean)
 
 internal object BlockerChoices {
-    /** Nombre de cases au-delà duquel « Bloquée par » a une recherche (docs/spec/sous-taches.md § Section). */
-    const val SEARCH_FROM = 6
+    /** Résultats montrés au plus par une recherche de « Bloquée par » (docs/spec/fiche-tache.md). */
+    const val PAGE = 6
+
+    /** Une page de résultats : les [items] montrés, et combien d'autres correspondent ([more]). */
+    data class Page(val items: List<BlockerChoice>, val more: Int)
 
     /**
-     * Les cases que montre la recherche [query] : celles dont le libellé contient chaque mot, sans casse ni accents
-     * ([SearchFold], comme la liste des fonctionnalités), et toujours les cochées ([checked]), dans l'ordre reçu.
+     * Ce que montre la recherche [query] de « Bloquée par » : `null` tant qu'elle est vide (aucune liste, sinon le mur de
+     * cases revient) ; sinon les choix pas encore pris ([chosen], déjà en puces) dont le libellé contient chaque mot, sans
+     * casse ni accents ([SearchFold]), les [limit] premiers dans l'ordre reçu.
      */
-    fun filter(choices: List<BlockerChoice>, query: String, checked: Set<Long>): List<BlockerChoice> =
-        if (query.isBlank()) choices else choices.filter { it.task.id in checked || SearchFold.matches(query, it.label) }
+    fun page(choices: List<BlockerChoice>, query: String, chosen: Set<Long>, limit: Int = PAGE): Page? {
+        if (query.isBlank()) return null
+        val matches = choices.filter { it.task.id !in chosen && SearchFold.matches(query, it.label) }
+        return Page(matches.take(limit), maxOf(0, matches.size - limit))
+    }
 
     /**
      * Les bloqueurs possibles de [task] parmi [candidates] (elle exclue, et ceux d'un autre espace), dans l'ordre reçu. Libellé : la

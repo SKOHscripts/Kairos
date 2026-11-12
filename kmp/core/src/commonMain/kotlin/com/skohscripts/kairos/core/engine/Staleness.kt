@@ -8,7 +8,8 @@ import kotlinx.datetime.toLocalDateTime
 
 /**
  * Tâches qui traînent : signal d'affichage
- * seulement, jamais une clé de tri.
+ * seulement, jamais une clé de tri. L'âge d'une tâche sans date entre dans le score par une autre voie,
+ * l'échéance implicite (`Scheduling.implicitDeadline`, docs/spec/taches-qui-trainent.md).
  */
 object Staleness {
     /**

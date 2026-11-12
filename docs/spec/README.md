@@ -20,6 +20,7 @@ dans `docs/spec-v3/`, est le seul.
 | [`modele-donnees.md`](modele-donnees.md) | Modèle (tâches, créneaux, dépendances, sessions, notes, réglages), stockage SQLDelight, ouverture et migrations, dépôt, exemples. | M1 |
 | [`vue-jour.md`](vue-jour.md) | Vue Jour : capture (tâche, créneau), « À traiter » et « Comment qualifier ? », « Maintenant », agenda ordonné, sections secondaires, « Pourquoi à cette place ? », filtres, backlog, frise, édition complète (guide des points, durées suggérées, sous-tâches existantes), raccourcis, autre jour. | M1, M2, M4, 3.3.0 (#69) |
 | [`ordonnancement.md`](ordonnancement.md) | Moteur : score WSJF, placement dans la journée, creux, deep work, jours ouvrés et fériés, ancienneté ; tests sur fichiers d'or figés. | M2 |
+| [`taches-qui-trainent.md`](taches-qui-trainent.md) | Ce qui traîne : échéance implicite des tâches sans date (score), revue du backlog dans le Bilan. | 4.1.0 |
 | [`dependances.md`](dependances.md) | Blocage, cycles, urgence héritée (chemin critique), bloqueurs dans l'édition. | M2 |
 | [`sous-taches.md`](sous-taches.md) | Sous-tâches (découper) face aux dépendances (enchaîner) : fil d'Ariane complet, priorité imposée, durées et échéances agrégées, conseil de découpage, section « Découpage et enchaînement » de la fiche. | #201, 4.1.0 |
 | [`recurrence.md`](recurrence.md) | Tâches récurrentes (à la complétion, « le N du mois »), créneaux récurrents, « Décaler ». | M2 |
@@ -27,6 +28,8 @@ dans `docs/spec-v3/`, est le seul.
 | [`connexions-en-ligne.md`](connexions-en-ligne.md) | Connexions en ligne facultatives : **spécifiée, non implémentée**. #139 suit O1 (lien ICS + socle), O2 (CalDAV), O3 (Microsoft 365), O4 (Google par OAuth) ; un seul APK avec `INTERNET`, tout désactivé par défaut, secrets hors base et hors export. | 4.1.0 (#139, implémentation #212) |
 | [`synchronisation.md`](synchronisation.md) | Synchronisation par fichier lié : fusion automatique à la lecture (dernier écrivain par champ, sans pierres tombales), « À revoir », durées apprises partagées. | 4.0.0 (#88, #100) |
 | [`estimateur-modele.md`](estimateur-modele.md) | Estimateur de durées par modèle local et explicable (voisins par ressemblance de titre, intervalle bas–haut), garde par rétro-test, alimentation des prévisions d'équipe. | 4.0.0 (#99) |
+| [`fiche-tache.md`](fiche-tache.md) | Fiche d'édition d'une tâche : groupes titrés, sections repliables résumées, « Bloquée par » en puces et recherche. | 4.1.0 (#233) |
+| [`bilan.md`](bilan.md) | Bilan de la semaine et du mois : destination « Bilan » (ex-Semaine), carte « Ce que Kairos apprend » (état et convergence du modèle), carte « Bilan » (fait, avancé, réunions, reste, temps par type), « Copier le bilan », en-tête de période sur une ligne. | 4.1.0 (#233) |
 | [`previsions-taches.md`](previsions-taches.md) | Prévisions par tâche : fourchettes vérifiées sur l'historique, date de fin probable d'une tâche (équipe et solo), semaine réaliste, restant quand une tâche dérape. | 4.1.0 (#232) |
 | [`widgets-android.md`](widgets-android.md) | Widgets Android « Maintenant » et « Journée » : plan du jour sur l'écran d'accueil, terminer une tâche (double toucher), chrono, capture ; `RemoteViews`, sans permission ni dépendance. | 3.12.0 (#150) |
 | [`rappels.md`](rappels.md) | Rappels (désactivés par défaut) : avant une tâche à heure fixe, à la tâche suivante du plan, récapitulatif du jour (3.12.0, #151) ; notifications Android (alarmes inexactes), bureau et web tant que Kairos est ouvert. | 3.8.0 (#103) |
@@ -34,7 +37,7 @@ dans `docs/spec-v3/`, est le seul.
 | [`methode-gtd.md`](methode-gtd.md) | La méthode GTD expliquée : étape de chaque écran, dialogue « La méthode GTD », écarts de Kairos avec GTD. | #235 |
 | [`notes-capture.md`](notes-capture.md) | Notes : capture libre, conversion en tâche (titre et description), modification, archivage, suppression. | M4 |
 | [`vue-semaine.md`](vue-semaine.md) | Vue Semaine : sept jours (échéances, fait, créneaux), temps réel de la semaine, navigation vers un autre jour. | M4 |
-| [`vue-mois.md`](vue-mois.md) | Vue Mois (bascule de la destination Semaine) : grille du mois, tâches prévues, échéances, surcharge, fériés et jours libres, listes, ouverture d'un jour. | 3.8.0 (#107) |
+| [`vue-mois.md`](vue-mois.md) | Vue Mois (bascule de la destination Bilan, ex-Semaine) : grille du mois, tâches prévues, échéances, surcharge, fériés et jours libres, listes, ouverture d'un jour. | 3.8.0 (#107) |
 | [`statistiques.md`](statistiques.md) | Statistiques : chiffres clés, débit, calibration et biais, temps par type, meilleures heures par type (3.5), flux, complétude ; repères du guide des points ; tests sur fichiers d'or figés. | M4 |
 | [`reglages.md`](reglages.md) | Écran Réglages : catégories (liste puis sous-écrans, deux volets dès 840 dp), sections, champs, bornes, validation par champ et entre champs, un seul « Enregistrer ». | M5, catégories 2026-10-22 |
 | [`accueil.md`](accueil.md) | Accueil au premier lancement (présentation, exemples) ; bouton « ? » et aide de l'écran, page Accueil (raison d'être, fonctionnalités), visite guidée. | M5, E6 |

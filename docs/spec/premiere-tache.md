@@ -48,13 +48,14 @@ déroutant sans explication.
    pourquoi la suite de Fibonacci, avec les repères du guide des points ; (5)
    type, et ce qu'il change pour les horaires (il se choisit aussi dans « À traiter ») ; (6) estimation en minutes :
    durée suggérée et durée apprise ; (7) échéance et date programmée ; (8) aperçu des
-   options avancées (projet, récurrence, heure fixe) et de « Découpage et enchaînement » (bloqueurs, sous-tâches) ;
+   autres champs (projet, récurrence, heure fixe) et de « Découpage et enchaînement » (bloqueurs, sous-tâches) ;
+   chaque étape ouvre la section repliée de ses champs (4.1.0, `fiche-tache.md`) ;
    (9) enregistrer.
 4. **Placement** : après l'enregistrement, la vue Jour s'ouvre sur la tâche,
    mise en évidence, et le coach explique sa **position** : le score, son rang, son
    créneau dans la frise, « Pourquoi à cette place ? », puis les éléments de la
    ligne (priorité, points, durée, badges, échéance, boutons Faire, Chrono,
-   Décaler).
+   calendrier qui décale ou déplace, `vue-jour.md` § Lisibilité de la ligne).
 5. **Félicitations** : un dialogue chaleureux, une fois la tâche **réellement
    créée**, propose la suite (« Lancer le chrono », « Découvrir Kairos »). Pas
    d'animation décorative.
@@ -137,16 +138,14 @@ déroutant sans explication.
 « Enregistrer » exige un titre non vide (titre de la fiche « Première tâche »). Le paramètre optionnel
 `coach: CoachSession?` ajoute le panneau d'explication en bas de la fiche ; sans coach, la fiche est inchangée.
 
-- `EditField` (`ui/day/EditField.kt`) : les quatorze champs de la fiche, dont `advanced` pour ceux des options avancées
-  (le type n'en est plus depuis 3.14.0, issue #166 : il suit les points dans l'essentiel de la fiche, et son étape suit
-  celle des points, avant la durée qu'il peut suggérer) ;
+- `EditField` (`ui/day/EditField.kt`) : les quatorze champs de la fiche, chacun avec sa `section` repliable
+  (`SheetSection` : `TEAM`, `QUALIFY`, `TIME`, `SPLIT` ; titre et description : aucune, toujours visibles, 4.1.0,
+  `fiche-tache.md`) ;
   chacun porte la balise de test `edit-field-<NOM>` (`Modifier.coachField`).
 - `FirstTaskCoach.STEPS` (`ui/guide/FirstTaskCoach.kt`) : neuf `CoachStep`, chacune avec les champs qu'elle explique :
   titre ; description ; priorité ; points ; type ; minutes ; échéance et programmée ; options avancées (projet, temps
   manuel, récurrence, heure fixe, sous-tâches, bloqueurs) ; enregistrer (met « Enregistrer » en évidence).
-  Une étape qui explique un champ avancé ouvre les options avancées ; une étape qui explique les sous-tâches ou les
-  bloqueurs ouvre « Découpage et enchaînement » (ces deux champs n'ont plus `advanced` depuis l'issue #201 et suivent
-  l'échéance dans `EditField`).
+  Une étape ouvre les sections de ses champs (`CoachStep.sections`), qui restent ouvertes pour la suite.
 - Mise en évidence : contour primaire de 2 dp et défilement jusqu'au champ (`BringIntoViewRequester`) ; une marge constante
   est posée dès qu'un coach est là pour que la fiche ne saute pas d'étape en étape ; jamais la couleur seule : le panneau
   nomme l'étape.
@@ -165,7 +164,7 @@ où elle est placée » et « Découvrir Kairos » (hub), ou « Fermer ».
 
 « Me montrer où elle est placée » lance trois étapes sur la vue Jour (`FirstTaskCoach.placement(placed)`), dans un panneau
 en bas d'écran : son rang (le score, « Pourquoi à cette place ? ») ; son créneau (la frise) ; la ligne (coche, chrono,
-« Décaler », crayon, badges). Une tâche absente de l'agenda du jour (« À traiter » faute de priorité, de points ou de type, ou « Plus
+calendrier « Décaler » / « Déplacer… », crayon, badges ; texte `coach_placed_row_body`). Une tâche absente de l'agenda du jour (« À traiter » faute de priorité, de points ou de type, ou « Plus
 tard ») remplace la première étape par « Pas encore placée » qui dit pourquoi. Pendant ces étapes, `RowContext.highlight`
 cerne la ligne de la tâche (2 dp primaire) et la liste défile jusqu'à elle (`ListBuilder` retient la place de chaque ligne,
 `rowPositions`).

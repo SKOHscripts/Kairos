@@ -236,7 +236,7 @@ partout. La liste complète des fonctionnalités lit le même catalogue.
   « jours ouvrés », #109 ; section `SETTINGS_HOLIDAYS`), `settings_categories` (Réglages par catégories, PR #124 ;
   Réglages), `darktheme` (thème sombre, #72 ; section `SETTINGS_APPEARANCE`, icône `DarkMode`).
 - **Cartes de la 3.8.0** (une par nouveauté) : `slots_month` (créneaux mensuels et une seule occurrence, #108 et #110 ;
-  vue Jour, chapitre « Organiser »), `month` (vue Mois, #107 ; destination Semaine, chapitre « Suivre », icône
+  vue Jour, chapitre « Organiser »), `month` (vue Mois, #107 ; destination Bilan, ex-Semaine, chapitre « Suivre », icône
   `CalendarMonth`), `stats_correct` (corriger les estimations, #101 ; Stats, chapitre « Suivre », icône `EditNote`), `stats_trends`
   (évolutions des statistiques, #112 ; Stats, chapitre « Suivre », icône `ShowChart`), `reminders` (rappels, #103 ;
   section `SETTINGS_REMINDERS`, chapitre « Réglages », icône `Alarm`).

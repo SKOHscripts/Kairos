@@ -3,7 +3,6 @@ package com.skohscripts.kairos.core.week
 import com.skohscripts.kairos.core.day.DayFilter
 import com.skohscripts.kairos.core.engine.Recurrence
 import com.skohscripts.kairos.core.engine.Schedule
-import com.skohscripts.kairos.core.engine.TimeTracking
 import com.skohscripts.kairos.core.engine.Workdays
 import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.DayMark
@@ -41,15 +40,13 @@ data class WeekDay(
  * Vue Semaine (docs/spec/vue-semaine.md) :
  * sept jours du lundi au dimanche ; tâches à faire groupées par **échéance**, sauf celles programmées un autre jour
  * (priorité d'abord, sans priorité en dernier), tâches faites par jour de
- * complétion (titre), tâches programmées pour le jour, créneaux du jour (occurrences des récurrents comprises)
- * ; temps chronométré de la semaine, total et par type. Le filtre réduit les
+ * complétion (titre), tâches programmées pour le jour, créneaux du jour (occurrences des récurrents comprises).
+ * Le temps chronométré de la semaine est dans le bilan (`Recap`, docs/spec/bilan.md). Le filtre réduit les
  * listes, jamais la grille.
  */
 data class WeekView(
     val monday: LocalDate,
     val days: List<WeekDay>,
-    val spentMinutes: Int,
-    val spentByType: Map<String, Int>,
 ) {
     companion object {
         fun build(snapshot: KairosSnapshot, anyDay: LocalDate, now: Instant, timeZone: TimeZone, filter: DayFilter = DayFilter()): WeekView {
@@ -78,14 +75,7 @@ data class WeekView(
                     marks = snapshot.dayMarks.filter { it.covers(day) }.sortedBy { it.title },
                 )
             }
-            val sessions = TimeTracking.sessionsInRange(snapshot.workSessions, monday, sunday, timeZone)
-            val typeById = snapshot.tasks.associate { it.id to it.taskType }
-            return WeekView(
-                monday = monday,
-                days = days,
-                spentMinutes = TimeTracking.totalMinutes(sessions, now),
-                spentByType = TimeTracking.spentMinutesByType(sessions, typeById, now).filter { (k, v) -> k.isNotEmpty() && v > 0 },
-            )
+            return WeekView(monday, days)
         }
     }
 }

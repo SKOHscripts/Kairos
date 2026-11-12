@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.desktop
 
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isDialog
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -98,7 +102,8 @@ class TeamMyWorkUiTest {
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithContentDescription("Edit").fetchSemanticsNodes().isNotEmpty() }
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
         waitText("Edit task")
-        onNodeWithText("More options").performScrollTo().performClick()
+        // « Compter dans l'équipe » est dans « Qualification » (docs/spec/fiche-tache.md).
+        openSheetSection("Qualification")
     }
 
     @Test
@@ -138,8 +143,8 @@ class TeamMyWorkUiTest {
         waitText("Tracking")
         onNodeWithContentDescription("Personal").performClick()
         editTheTaskWithMoreOptions()
-        // Les options avancées sont ouvertes : « Heure fixe » y est (« Bloquée par » est passé dans « Découpage et enchaînement »).
-        waitText("Fixed time (HH:MM)", substring = true)
+        // « Qualification » est ouverte : le projet y est, pas l'interrupteur (aucun membre « moi »).
+        waitUntil(timeoutMillis = 15_000) { onAllNodes(hasSetTextAction() and hasText("Project")).fetchSemanticsNodes().isNotEmpty() }
         assertEquals(0, onAllNodesWithText("Count in the team").fetchSemanticsNodes().size)
         assertTrue(s.repository.snapshot.value.tasks.none { it.teamExcluded })
     }

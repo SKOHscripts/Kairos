@@ -110,6 +110,7 @@ class ModelEstimateUiTest {
         }
         onAllNodesWithContentDescription("Edit").onFirst().performClick()
         waitText("Edit task")
+        openSheetSection("Dates and time")
         // L'intitulé dit d'où vient la durée proposée.
         onNodeWithText("Machine-learning estimate").performScrollTo().assertExists()
         // « Tâches proches », repliée : chaque voisin avec sa durée réelle et sa ressemblance.

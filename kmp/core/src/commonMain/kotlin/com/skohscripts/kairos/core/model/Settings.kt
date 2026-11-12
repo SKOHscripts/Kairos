@@ -24,6 +24,11 @@ data class Settings(
     val priorityValueBase: Double = 4.0,
     val urgencyHorizonDays: Int = 14,
     val urgencyPeak: Double = 8.0,
+    /**
+     * Échéance implicite d'une tâche sans date, en jours après sa création ; 0 = coupée ; `null` = apprise du rythme par l'espace
+     * Perso, [DEFAULT_IMPLICIT_DEADLINE_DAYS] faute d'historique (docs/spec/taches-qui-trainent.md). Une valeur saisie l'emporte.
+     */
+    val implicitDeadlineDays: Int? = null,
     val defaultFibonacciPoints: Int = 3,
     val cognitiveDipEnabled: Boolean = true,
     val cognitiveDipStartHour: Int = 13,
@@ -102,6 +107,9 @@ data class Settings(
     /** Durée effective du garde-fou du chrono, en minutes (0 = jamais). */
     val timerAutoStop: Int get() = timerAutoStopMinutes ?: DEFAULT_TIMER_AUTO_STOP_MINUTES
 
+    /** L'échéance implicite que le moteur lit : la valeur saisie (ou apprise, posée par l'appelant), sinon 30 j. */
+    val implicitDeadline: Int get() = implicitDeadlineDays ?: DEFAULT_IMPLICIT_DEADLINE_DAYS
+
     /** L'espace Équipe est activé (valeur enregistrée). */
     val teamModeEnabled: Boolean get() = team?.enabled == true
 
@@ -117,6 +125,7 @@ data class Settings(
     companion object {
         /** Garde-fou du chrono par défaut : 4 h, au-delà de l'alerte « chrono oublié » (3 h), qui prévient donc d'abord. */
         const val DEFAULT_TIMER_AUTO_STOP_MINUTES = 240
+        const val DEFAULT_IMPLICIT_DEADLINE_DAYS = 30
 
         /** L'océan, graine de la charte (docs/DESIGN_SYSTEM.md, docs/spec/apparence.md) ; avant, le miel. */
         const val DEFAULT_THEME_COLOR = "#2F6FED"

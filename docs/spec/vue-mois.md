@@ -17,12 +17,13 @@ libres ou fériés, où les échéances s'accumulent, où tombe une série mensu
 
 ### Comportement attendu (utilisateur)
 
-- La destination « Semaine » s'ouvre sur une bascule « Semaine » / « Mois » (« Week » / « Month ») ; la vue Mois n'est
+- La destination « Bilan » (« Semaine » jusqu'au 2026-11-11, `bilan.md`) s'ouvre sur une bascule « Semaine » / « Mois » (« Week » / « Month ») ; la vue Mois n'est
   pas une sixième destination. Passer de la semaine au mois montre le mois de la semaine affichée ; revenir à la
   semaine montre la semaine du 1er du mois affiché (la semaine courante si c'est le mois courant). Le mode choisi reste
   le temps de la session ; changer de destination ramène à la période courante, dans ce mode.
-- La barre de titre dit « Mois · novembre 2026 » ; en tête, « novembre 2026 », puis « Mois précédent » et « Mois
-  suivant » (même hauteur, comme la vue Semaine), puis une légende : « Dans chaque jour : le nombre de tâches prévues, un
+- La barre de titre dit « Mois · novembre 2026 » ; en tête, une ligne « ‹ novembre 2026 › » (boutons à icône « Mois
+  précédent » et « Mois suivant », « Revenir à aujourd'hui » hors du mois courant ; 4.1.0, `bilan.md`), la carte
+  « Bilan du mois » (4.1.0, issue #233, `bilan.md`), puis une légende : « Dans chaque jour : le nombre de tâches prévues, un
   drapeau pour une échéance, un avertissement si la journée est trop chargée, une icône pour un férié ou un jour libre.
   Touche un jour pour l'ouvrir. »
 - Une grille du lundi au dimanche (en-têtes « lun. » … « dim. »), une case par jour du mois, des cases vides avant le
@@ -64,7 +65,8 @@ libres ou fériés, où les échéances s'accumulent, où tombe une série mensu
 ### Hors périmètre / différé
 
 - Déplacer une tâche depuis la vue Mois (la vue Semaine le fait ; le mois ouvre le jour) ; afficher les titres des
-  tâches dans les cases ; vue Mois de l'espace Équipe ; temps chronométré du mois.
+  tâches dans les cases ; vue Mois de l'espace Équipe. (Le temps chronométré du mois, d'abord différé, est dans la
+  carte « Bilan du mois » depuis la 4.1.0, `bilan.md`.)
 
 ## 2. Solution technique
 
@@ -78,7 +80,7 @@ libres ou fériés, où les échéances s'accumulent, où tombe une série mensu
   `MonthView.leading` = jour de semaine du 1er (lundi = 0) ; `weeks` = cases par sept, `null` hors du mois ;
   `MonthView.shift(1er, ±1)`.
 - `MonthScreen(services, nav, onOpenDay)` lit `repository.personalSnapshot` ; colonne défilante de 1 000 dp au plus ;
-  `WeekMonthSwitch` ; `MonthGrid` (en-tête `Dates.weekdayAbbrev`, sans sémantique ; lignes `Row` à hauteur intrinsèque
+  `WeekMonthSwitch` ; `PeriodHeader` et `RecapCard` (`bilan.md`, du 1er au dernier jour du mois) ; `MonthGrid` (en-tête `Dates.weekdayAbbrev`, sans sémantique ; lignes `Row` à hauteur intrinsèque
   maximale, cases `weight(1f)`) ; `DayCell` : `Surface` `shapes.small`, `heightIn(min = 56.dp)`, `clickable` (rôle
   bouton, « Voir le jour ») et `clearAndSetSemantics` (description `dayDescription`, action), icônes `Flag`, `Warning`
   (`error`), `EventBusy` ; `MonthLists` (sections à titre `heading`, lignes `Line` de 48 dp cliquables).
