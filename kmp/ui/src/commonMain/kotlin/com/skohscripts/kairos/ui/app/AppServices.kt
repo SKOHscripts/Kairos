@@ -62,7 +62,14 @@ class AppServices(
     val deviceLabel: String = "Kairos",
     /** Demande d'autorisation de notifier au premier chrono : une fois par lancement (docs/spec/temps-reel-chrono.md). */
     val notifyPrompt: NotifyPrompt = NotifyPrompt(),
+    /** Widgets de l'écran d'accueil (Android seulement) : un widget Kairos est-il posé ? Lu par les conseils (docs/spec/conseils.md). */
+    val widgets: WidgetProbe? = null,
 )
+
+/** Un widget Kairos est-il posé sur l'écran d'accueil (docs/spec/widgets-android.md, conseil `widgets` de docs/spec/conseils.md) ? */
+fun interface WidgetProbe {
+    fun placed(): Boolean
+}
 
 /** Choix d'un fichier par l'utilisateur (boîtes de dialogue du système). */
 interface FileService {

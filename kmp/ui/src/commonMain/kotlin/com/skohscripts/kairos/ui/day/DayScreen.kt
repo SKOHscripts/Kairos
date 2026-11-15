@@ -116,6 +116,7 @@ import com.skohscripts.kairos.core.model.TaskStatus
 import com.skohscripts.kairos.core.day.EditableBlock
 import com.skohscripts.kairos.ui.LocalPlatform
 import com.skohscripts.kairos.ui.Platform
+import com.skohscripts.kairos.core.guide.Tips
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.StorageBanner
 import com.skohscripts.kairos.ui.generated.resources.Res
@@ -238,6 +239,8 @@ fun DayScreen(
     val notifyState by services.notifier.state.collectAsState()
     val notifyHints by services.notifier.hints.collectAsState()
     val scope = rememberCoroutineScope()
+    // Premier raccourci clavier utilisé, retenu (conseil « Les raccourcis clavier », docs/spec/conseils.md) ; rien ensuite.
+    val shortcutUsed: () -> Unit = { scope.launch { repository.updateGuide { Tips.seen(it, Tips.SCREEN_SHORTCUT) } } }
     val undo = LocalUndoMessages.current
     val showMessage = LocalMessages.current
     val language = uiLanguage()
@@ -384,8 +387,8 @@ fun DayScreen(
             // l'écran : les raccourcis sont donc inactifs pendant la saisie.
             if (e.type != KeyEventType.KeyDown || e.isCtrlPressed || e.isMetaPressed || e.isAltPressed) return@onKeyEvent false
             when (e.key) {
-                Key.N -> { capture.focusTask(); captureRequest++; true }
-                Key.Slash -> { filterOpen = true; searchRequest++; true }
+                Key.N -> { capture.focusTask(); captureRequest++; shortcutUsed(); true }
+                Key.Slash -> { filterOpen = true; searchRequest++; shortcutUsed(); true }
                 else -> false
             }
         },

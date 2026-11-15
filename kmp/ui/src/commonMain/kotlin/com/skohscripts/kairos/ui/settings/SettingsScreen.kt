@@ -17,6 +17,9 @@ import com.skohscripts.kairos.ui.generated.resources.guide_reset_done
 import com.skohscripts.kairos.ui.generated.resources.guide_reset_action
 import com.skohscripts.kairos.ui.generated.resources.guide_reset_body
 import com.skohscripts.kairos.ui.generated.resources.guide_reset_title
+import com.skohscripts.kairos.ui.generated.resources.tips_settings_body
+import com.skohscripts.kairos.ui.generated.resources.tips_settings_switch
+import com.skohscripts.kairos.ui.generated.resources.tips_settings_title
 import com.skohscripts.kairos.ui.app.LocalUndoMessages
 import com.skohscripts.kairos.core.model.GuideSettings
 import com.skohscripts.kairos.ui.guide.GuideSection
@@ -279,6 +282,7 @@ fun SettingsScreen(services: AppServices, nav: SettingsNav = remember { Settings
                         SettingsLinkCard(KairosIcons.PlayArrow, Res.string.settings_discover_entry, Res.string.settings_discover_entry_hint, onDiscover)
                         SettingsLinkCard(KairosIcons.Info, Res.string.settings_about_entry, Res.string.settings_about_entry_hint, onOpenAbout)
                         GuideResetCard(services, current.guide)
+                        TipsCard(services, current.guide)
                         // Bureau : journal de diagnostic (docs/spec/bureau-avance.md).
                         services.diagnostics?.let { DiagnosticsCard(it) }
                     }
@@ -432,7 +436,8 @@ private fun GuideResetCard(services: AppServices, memory: GuideSettings?) {
     val undo = LocalUndoMessages.current
     SettingsCard(spacing = KairosSpacing.m) {
         SettingsCardHeader(KairosIcons.Refresh, stringResource(Res.string.guide_reset_title), stringResource(Res.string.guide_reset_body))
-        KairosOutlinedButton(enabled = memory != null, onClick = {
+        // Rien à effacer quand le guide n'a retenu que l'interrupteur « Conseils », que la remise à zéro garde (docs/spec/conseils.md).
+        KairosOutlinedButton(enabled = memory != null && memory != GuideSettings(tipsOff = memory.tipsOff), onClick = {
             val before = memory ?: return@KairosOutlinedButton
             scope.launch {
                 services.repository.resetGuide()
@@ -442,6 +447,22 @@ private fun GuideResetCard(services: AppServices, memory: GuideSettings?) {
             }
         }) { Text(stringResource(Res.string.guide_reset_action)) }
     }
+}
+
+/**
+ * « Conseils » (docs/spec/conseils.md, issue #221) : l'interrupteur, activé par défaut, à effet immédiat comme la carte du guide
+ * (ce n'est pas un réglage du formulaire) ; il vit dans la mémoire du guide, propre à l'appareil.
+ */
+@Composable
+private fun TipsCard(services: AppServices, memory: GuideSettings?) {
+    val scope = rememberCoroutineScope()
+    // Cible de la carte « Des conseils au bon moment » du catalogue.
+    GuideSpot(GuideSection.SETTINGS_TIPS) { SettingsCard(spacing = KairosSpacing.m) {
+        SettingsCardHeader(KairosIcons.Lightbulb, stringResource(Res.string.tips_settings_title), stringResource(Res.string.tips_settings_body))
+        SwitchRow(memory?.tipsOff != true, stringResource(Res.string.tips_settings_switch)) { on ->
+            scope.launch { services.repository.updateGuide { it.copy(tipsOff = !on) } }
+        }
+    } }
 }
 
 /**
@@ -576,7 +597,16 @@ private fun DataCard(services: AppServices) {
                 scope.launch {
                     val text = ExportCodec.encode(services.repository.snapshot.value, KairosBuild.VERSION_NAME, services.clock.now())
                     val saved = runCatching { services.files.saveText("kairos-export-${fileStamp(services)}.json", text) }
-                    saved.onSuccess { if (it) { services.diagnostics?.log("export ok"); messages(getString(Res.string.export_done)) } }
+                    saved.onSuccess {
+                        if (it) {
+                            services.diagnostics?.log("export ok")
+                            // Date du dernier export, après l'export (il n'en contient donc pas la trace) : conseil « Mettre ses données à
+                            // l'abri » (docs/spec/conseils.md).
+                            val day = services.clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
+                            services.repository.updateGuide { g -> g.copy(lastExport = day) }
+                            messages(getString(Res.string.export_done))
+                        }
+                    }
                         .onFailure { services.diagnostics?.log("export failed"); messages(getString(Res.string.file_error)) }
                 }
             }, contentPadding = KairosButtonIconPadding) {

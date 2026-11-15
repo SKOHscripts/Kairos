@@ -123,6 +123,17 @@ import com.skohscripts.kairos.ui.day.Dates
 import com.skohscripts.kairos.ui.generated.resources.title_day_other
 import com.skohscripts.kairos.ui.generated.resources.title_week_of
 import com.skohscripts.kairos.ui.generated.resources.title_month_of
+import com.skohscripts.kairos.core.guide.Tip
+import com.skohscripts.kairos.core.guide.TipSpace
+import com.skohscripts.kairos.core.guide.Tips
+import com.skohscripts.kairos.core.model.GuideSettings
+import com.skohscripts.kairos.ui.guide.TipContent
+import com.skohscripts.kairos.ui.guide.TipDialog
+import com.skohscripts.kairos.ui.guide.TipWatcher
+import com.skohscripts.kairos.ui.app.updateBannerVisible
+import com.skohscripts.kairos.ui.app.shortcutBannerVisible
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.minus
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -189,6 +200,9 @@ fun AppShell(
     // Première tâche d'équipe accompagnée (issue #97) : étape du coach (`null` = fiche fermée, -1 = coach passé) et tâche créée.
     var teamCoachStep by rememberSaveable { mutableStateOf<Int?>(null) }
     var teamCreated by rememberSaveable { mutableStateOf<Long?>(null) }
+    // Conseil au bon moment (docs/spec/conseils.md) et carte seule du catalogue qu'il peut ouvrir (`GuideTarget.Card`).
+    var tip by remember { mutableStateOf<Tip?>(null) }
+    var singleCard by rememberSaveable { mutableStateOf<String?>(null) }
 
     val snackbar = remember { SnackbarHostState() }
     // Veille du chrono pour toute l'application : les alertes jouent quel que soit l'écran.
@@ -266,6 +280,11 @@ fun AppShell(
         when (target) {
             is GuideTarget.Personal -> {
                 if (team) onSpaceChange(Space.PERSONAL)
+                // Le Bilan d'une semaine passée (conseil « Ta semaine passée ») : la semaine, pas le mois.
+                if (target.weeksBack > 0) {
+                    nav.monthMode = false
+                    nav.week = today.minus(DatePeriod(days = 7 * target.weeksBack))
+                }
                 onNavigate(target.destination)
                 // Après la navigation, qui efface toute demande en attente (KairosApp).
                 nav.guideSpot.pending = target.section
@@ -286,6 +305,8 @@ fun AppShell(
             GuideTarget.FirstTask -> startFirstTask()
             GuideTarget.Demo -> if (services.demo != null) startDemo()
             GuideTarget.Feedback -> feedbackOpen = true
+            GuideTarget.RecurringTask -> startTask(true)
+            is GuideTarget.Card -> singleCard = target.id
         }
     }
     // L'Accueil de l'espace courant (destination de tête, la même page dans les deux espaces).
@@ -471,6 +492,35 @@ fun AppShell(
     }
     guide?.let { kind ->
         GuideDialog(kind, onOpen = { target -> guide = null; openTarget(target) }, onDismiss = { guide = null })
+    }
+    singleCard?.let { id ->
+        val card = FeatureCatalog.cards.firstOrNull { it.id == id }
+        if (card == null) {
+            singleCard = null
+        } else {
+            GuideDialog(listOf(card), "card-$id", onOpen = { target -> singleCard = null; openTarget(target) }, onDismiss = { singleCard = null })
+        }
+    }
+    // Conseils au bon moment (docs/spec/conseils.md) : coquille réelle seulement, une sollicitation à la fois (aucun dialogue,
+    // visite, accompagnement, bandeau, écran secondaire ni chrono en cours).
+    if (demo == null) {
+        val estimateBanner = estimateChanges?.let { EstimateChanges.stillOpen(it, personal.tasks) }.orEmpty().isNotEmpty()
+        val bannerShown = updateBannerVisible(services) || shortcutBannerVisible(services) || estimateBanner
+        val quiet = secondary == null && !helpOpen && guide == null && !discover && !feedbackOpen && !gtdOpen && chapter == null &&
+            teamCoachStep == null && teamCreated == null && !estimateReview && singleCard == null && tip == null && !bannerShown &&
+            !nav.firstTaskRequest && nav.settings.tourStep == null && TimeTracking.runningSession(stored.workSessions) == null
+        val onHome = if (team) teamDestination == TeamDestination.HOME else destination == Destination.HOME
+        TipWatcher(services, if (team) TipSpace.TEAM else TipSpace.PERSONAL, onHome, quiet) { tip = it }
+    }
+    tip?.let { shown ->
+        val tipDay = services.clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val answer: ((GuideSettings) -> GuideSettings) -> Unit = { change -> tip = null; scope.launch { services.repository.updateGuide(change) } }
+        TipDialog(
+            shown,
+            onShow = { answer { Tips.accepted(it, shown.id, tipDay) }; openTarget(TipContent.target(shown.id)) },
+            onLater = { answer { Tips.snoozed(it, shown.id, tipDay) } },
+            onNever = { answer { Tips.dismissed(it, shown.id) } },
+        )
     }
     if (demo?.finished == true) DemoDoneDialog(onExit = onExitDemo, onRestart = onRestartDemo)
     // « Faire pour moi » : les mêmes méthodes du dépôt que l'interface ; « À moi de jouer » : la vue Jour, où sont les repères.

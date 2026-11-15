@@ -67,4 +67,6 @@ fun AppServices.forDemo(session: DemoSession): AppServices = AppServices(
     demo = null,
     // Neuf : la démonstration n'hérite pas de la demande déjà faite ; avec NoNotifier (indisponible), elle ne demande jamais.
     notifyPrompt = NotifyPrompt(),
+    // Aucun conseil dans la démonstration (docs/spec/conseils.md) : rien à sonder.
+    widgets = null,
 )
