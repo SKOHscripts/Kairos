@@ -7,8 +7,10 @@ import kotlin.test.assertTrue
 
 /**
  * Notes de version Fastlane (docs/spec/distribution.md § Cycle des versions) : une version **finale** a sa note dans les six
- * langues des fiches avant d'être taguée ; une préversion n'en a pas besoin (elle ne va ni sur F-Droid ni dans les fiches,
- * ses notes sont celles de la préversion GitHub). Aucune note ne dépasse la limite de F-Droid.
+ * langues des fiches, exigée au tag (« Kairos tag ») ; une préversion n'en a pas besoin (elle ne va ni sur F-Droid ni dans
+ * les fiches, ses notes sont celles de la préversion GitHub). `main` porte la finale à venir pendant tout son développement
+ * (mineures au fil de l'eau, 2026-11-15) : la CI n'exige donc la note de la version déclarée que dans les six langues dès
+ * qu'elle est commencée. Aucune note ne dépasse la limite de F-Droid.
  */
 class ReleaseNotesTest {
     private fun root(): File {
@@ -20,14 +22,13 @@ class ReleaseNotesTest {
     private val locales = listOf("en-US", "fr-FR", "de-DE", "es-ES", "it-IT", "ru-RU")
 
     @Test
-    fun aFinalVersionHasItsNotesInTheSixLanguages() {
+    fun aStartedNoteIsInTheSixLanguages() {
         val version = AppVersion.current
-        if (version.isPrerelease) return
-        val missing = locales.filter { locale ->
-            val note = File(root(), "fastlane/metadata/android/$locale/changelogs/${version.versionCode}.txt")
-            !note.isFile || note.readText().isBlank()
+        val written = locales.filter { locale ->
+            File(root(), "fastlane/metadata/android/$locale/changelogs/${version.versionCode}.txt").let { it.isFile && it.readText().isNotBlank() }
         }
-        assertEquals(emptyList(), missing, "notes de version ${version.versionCode}.txt absentes ou vides pour $version")
+        if (written.isEmpty()) return
+        assertEquals(emptyList(), locales - written.toSet(), "notes de version ${version.versionCode}.txt commencées pour $version, absentes ou vides")
     }
 
     @Test
