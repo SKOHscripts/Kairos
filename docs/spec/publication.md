@@ -348,15 +348,16 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   préversion web sous `preview/`, les polices de
   `kmp/ui/src/commonMain/composeResources/font/` sous `fonts/`, les captures
   des fiches Fastlane sous `screens/fr/` et `screens/en/` (une seule source),
-  la version web stable sous `app/`.
+  la version web stable sous `app/`, et la carte du code sous `code/` (générée par `kmp/tools/make_code_map.py`,
+  `carte-du-code.md`).
 - Cible des liens :
   - une release stable de la version 3 ou plus récente (`v3.*`, `v4.*`…) existe : `releases/download/<son tag>`, pas de
     bandeau, « Utiliser Kairos en ligne » vers `app/` ;
   - sinon, la dernière préversion de ces versions : `releases/download/<son tag>`,
     bandeau « Préversion X » (installée à côté de la version stable sous le nom
     « Kairos Preview »), lien web vers `preview/`.
-- Déclenchement : push sur `main` touchant `kmp/**`, `site/**`, `fastlane/**`
-  ou `pages.yml` ; release publiée à la main ; **fin du workflow « Kairos 3
+- Déclenchement : push sur `main` touchant `kmp/**` (hors `androidApp`, `desktopApp` et `tools`, sauf
+  `tools/make_code_map.py`), `docs/spec/**`, `site/**`, `fastlane/**` ou `pages.yml` ; release publiée à la main ; **fin du workflow « Kairos 3
   release »** ; lancement manuel.
 
 ### Aperçu des liens (`site/og/`, `make_app_icons.py`, `validate_og.py`)

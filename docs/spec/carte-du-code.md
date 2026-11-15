@@ -7,7 +7,7 @@ se met à jour seule. Fichiers couverts : `kmp/tools/make_code_map.py`, `kmp/too
 (§ Carte du code), `README.md` et `README.fr.md` (lien de la section des documents). Tests :
 `test_make_code_map.py` (`python3 -m unittest discover -s kmp/tools -p 'test_*.py'`)._
 
-État : demande du propriétaire du 2026-11-15, spécifiée le 2026-11-15, non implémentée.
+État : demande du propriétaire du 2026-11-15, spécifiée et implémentée le 2026-11-15 ; la page paraît à la première publication du site après la fusion.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -108,3 +108,12 @@ Python 3, bibliothèque standard seulement, comme les autres outils de `kmp/tool
 - **Graphe calculé en Python** : la page reste statique, déterministe et légère ; pas de bibliothèque de graphes
   (interdite par la règle « aucune ressource tierce » du site).
 - **Page en anglais** : public des contributeurs ; les specs restent en français (leurs titres sont cités tels quels).
+- **La page n'embarque que les liens entre paquets** en JSON (décidé à l'implémentation) : fichiers, déclarations et specs
+  sont déjà dans le HTML ; embarquer tout doublait le poids (environ 410 Ko contre 330 Ko).
+- **Arcs bornés** : une dépendance entre deux paquets d'un même module est un arc par la droite, borné à l'écart entre
+  deux colonnes pour ne pas passer sur la suivante.
+- **Jeton « … »** : une spec qui abrège un chemin (`kmp/ui/.../ui/guide/TipDialog.kt`) est lue à partir du dernier
+  « ... » ou « … » ; un nom seul (`Tips.kt`) relie tous les fichiers de ce nom.
+- **Déclenchement de `pages.yml`** : `androidApp` et `desktopApp` restent exclus des déclencheurs (ils ne changent pas la
+  page de téléchargement) ; leur carte se met à jour à la publication suivante. Les specs (`docs/spec/**`) et le
+  générateur déclenchent la publication.
