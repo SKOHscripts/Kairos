@@ -44,9 +44,9 @@ jobs:
             echo "::error::Version demandée $wanted, mais kmp/gradle.properties dit $name : recopie la version de main."
             exit 1
           fi
-          # Le cycle (beta puis finale) : X.Y.Z, ou X.Y.0-beta.N avec N de 1 à 99 (alpha toléré, jamais utilisé).
-          if ! [[ "$name" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ || "$name" =~ ^[0-9]+\.[0-9]+\.0-(alpha|beta)\.([1-9]|[1-9][0-9])$ ]]; then
-            echo "::error::$name n'est pas une version du cycle (X.Y.Z ou X.Y.0-beta.N, N de 1 à 99)."
+          # Le cycle (beta puis finale) : X.Y.Z, ou X.Y.0-beta.N avec N de 1 à 98 (99 marque une finale ; plus d'alpha).
+          if ! [[ "$name" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ || "$name" =~ ^[0-9]+\.[0-9]+\.0-beta\.([1-9]|[1-8][0-9]|9[0-8])$ ]]; then
+            echo "::error::$name n'est pas une version du cycle (X.Y.Z ou X.Y.0-beta.N, N de 1 à 98)."
             exit 1
           fi
           # La formule du versionCode (AppVersion) : AppVersionTest la vérifie aussi, mais un tag ne doit pas partir avant.
@@ -54,9 +54,13 @@ jobs:
           import re, sys
           name, code = sys.argv[1], int(sys.argv[2])
           major, minor, patch, stage, n = re.match(r"(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta)\.(\d+))?$", name).groups()
-          expected = int(major) * 10000 + int(minor) * 100 + int(patch)
-          if stage:
-              expected += (-500 if stage == "beta" else -1000) + int(n)
+          # À partir de la 4.2.0, une seule app pour la beta et la stable (docs/spec/distribution.md § Versionnage).
+          if int(major) * 100 + int(minor) >= 402:
+              expected = int(major) * 1000000 + int(minor) * 10000 + int(patch) * 100 + (int(n) if stage else 99)
+          else:
+              expected = int(major) * 10000 + int(minor) * 100 + int(patch)
+              if stage:
+                  expected += (-500 if stage == "beta" else -1000) + int(n)
           if expected != code:
               sys.exit(f"::error::kairos.versionCode={code}, attendu {expected} pour {name}")
           PY

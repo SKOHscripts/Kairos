@@ -59,7 +59,7 @@ class DesktopUpdates(
         val now = clock.now()
         if (!force && !UpdateCheck.due(saved.lastCheck?.let(Instant::parse), now)) return@withLock
         status.value = UpdateStatus.Checking
-        // « Kairos Preview » lit aussi les préversions (docs/spec/mises-a-jour.md § Préversions).
+        // Une beta installée lit aussi les préversions (docs/spec/mises-a-jour.md § Préversions).
         val url = UpdateCheck.urlFor(installed)
         val result = withContext(Dispatchers.IO) { runCatching { fetch(url) } }
         val (code, body) = result.getOrNull() ?: (-1 to "")

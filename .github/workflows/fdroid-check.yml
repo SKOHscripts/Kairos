@@ -92,7 +92,7 @@ jobs:
       - name: Plateforme Android 37
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
       - name: APK non signé (comme la release)
-        run: ./gradlew --no-daemon :androidApp:assembleRelease -Pkairos.preview=false
+        run: ./gradlew --no-daemon :androidApp:assembleRelease
       - uses: actions/download-artifact@v4
         with:
           name: fdroid-unsigned-apk

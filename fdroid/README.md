@@ -1,8 +1,8 @@
 # Publication de Kairos 3 sur F-Droid
 
 Dossier de soumission, à dérouler par le propriétaire du dépôt **après la release
-`v3.0.0`** (une préversion n’y est jamais proposée : elle porte l’identifiant
-`com.skohscripts.kairos.preview`). État au 2026-09-30 : merge request fdroiddata
+`v3.0.0`** (une préversion n’y est jamais proposée : la recette ne suit que les tags `vX.Y.Z` ; jusqu’à la 4.1, elle
+portait en plus l’identifiant `com.skohscripts.kairos.preview`). État au 2026-09-30 : merge request fdroiddata
 acceptée, en test chez F-Droid. Conception et décisions :
 `docs/spec/publication.md`.
 

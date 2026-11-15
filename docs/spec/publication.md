@@ -7,8 +7,7 @@ GitHub. Fichiers couverts : `fastlane/metadata/android/` (fiches FR/EN),
 `kmp/tools/make_app_icons.py` (icônes des fiches et de la page, aperçu des liens `site/og/`), `kmp/tools/make_badges.py` et
 `validate_badges.py` (boutons de téléchargement, `site/badges/`), `kmp/tools/validate_og.py` (aperçu des liens),
 `fdroid/com.skohscripts.kairos.yml`, `fdroid/README.md`, `site/`,
-`.github/workflows/fdroid-check.yml`, `.github/workflows/metadata.yml`, `.github/workflows/pages.yml`, et la
-propriété `kairos.preview` de `kmp/androidApp/build.gradle.kts`. Versions,
+`.github/workflows/fdroid-check.yml`, `.github/workflows/metadata.yml`, `.github/workflows/pages.yml`. Versions,
 construction et releases : `distribution.md`._
 
 État : **jalon M7** (`3.0.0`) ; mis en place au jalon M6 (`3.0.0-beta.1`). La soumission elle-même (merge
@@ -216,10 +215,10 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
 - Mises à jour : `UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$` (tags finals
   seulement), `UpdateCheckData` lisant `kairos.versionCode` et
   `kairos.versionName` dans `kmp/gradle.properties`, `AutoUpdateMode: Version`.
-- `kairos.preview` (propriété Gradle, `androidApp/build.gradle.kts`) : force
-  l'identifiant définitif (`false`) ou préversion (`true`) ; par défaut, une
-  version avec suffixe est une préversion. Seule la vérification continue s'en
-  sert, pour construire une bêta sous l'identifiant de la recette.
+- Identifiant : `com.skohscripts.kairos` pour toutes les versions, betas comprises, depuis la 4.2.0
+  (`distribution.md` § Décisions « Une seule app pour la beta et la stable ») ; la propriété Gradle `kairos.preview`,
+  qui forçait l'identifiant définitif pour construire une bêta comme la recette, est retirée (passée encore, elle est
+  sans effet).
 
 ### Vérification continue (`fdroid_check.sh`, `fdroid-check.yml`)
 
@@ -233,8 +232,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
      recette doit déjà être sous sa forme canonique (le fichier réécrit est
      comparé à l'original), comme l'exige la CI de fdroiddata ;
   3. copie de la recette : dernière construction réécrite à la version de
-     `gradle.properties` et au commit courant, `gradleprops:
-     [kairos.preview=false]`, `Repo` = copie locale du dépôt (branche
+     `gradle.properties` et au commit courant, sans `gradleprops`, `Repo` = copie locale du dépôt (branche
      `fdroid-check` au commit testé), `Binaries` retiré sauf avec
      `--binaries` ;
   4. `git init` du dossier fdroiddata (`fdroid build` date la construction,
@@ -250,10 +248,10 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   exécution réussie de « Kairos 3 release » déclenchée par un tag **final**
   (sans `-`) : job `build` avec `--binaries`, qui compare au
   `Kairos-android.apk` publié. Une préversion n'est pas comparée à son APK
-  publié (identifiant `.preview`).
+  publié (F-Droid ne publie que les finales).
 - Job `reproducible` (PR et `main`) : le runner construit l'APK comme
   `kmp-release.yml` (Temurin 21, `assembleRelease`), non signé, avec
-  `-Pkairos.preview=false`, et le compare octet pour octet (`cmp`) à celui du
+  et le compare octet pour octet (`cmp`) à celui du
   job `build` ; en cas d'écart, il liste les entrées du zip qui diffèrent
   (nom, CRC) et échoue. La reproductibilité est ainsi vérifiée à chaque
   changement, bien avant la release finale.
