@@ -244,15 +244,15 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   `kmp/tools/**`, sauf `kmp/tools/fdroid_check.sh`) : job `build` (`fdroid_check.sh` dans l'image, APK non signé en
   artefact gardé 1 jour, le temps du job `reproducible`). Une PR qui reçoit un nouveau commit annule le run précédent
   (`concurrency`, 2026-11-06). Les contrôles de textes (`validate_fastlane.py`, `validate_badges.py`, `validate_og.py`)
-  sont dans `metadata.yml` (PR et push sur `main` touchant `fastlane/**`, `site/**`, les README, `kmp/gradle.properties`
-  ou `kmp/tools/*.py`) : une modification de texte ne relance plus la construction F-Droid. Après une
-  exécution réussie de « Kairos 3 release » déclenchée par un tag **final**
+  sont dans le job `metadata` de `metadata.yml` (« Kairos checks », chaque PR et push sur `main`) : une modification de
+  texte ne relance pas la construction F-Droid. Après une
+  exécution réussie de « Kairos release » déclenchée par un tag **final**
   (sans `-`) : job `build` avec `--binaries`, qui compare au
   `Kairos-android.apk` publié. Une préversion n'est pas comparée à son APK
   publié (F-Droid ne publie que les finales).
-- Job `reproducible` (PR et `main`) : le runner construit l'APK comme
-  `kmp-release.yml` (Temurin 21, `assembleRelease`), non signé, avec
-  et le compare octet pour octet (`cmp`) à celui du
+- Jobs `runner` et `reproducible` (PR et `main`) : `runner`, **en parallèle** de `build` (2026-11-15 ; avant, il
+  l'attendait), construit l'APK comme `kmp-release.yml` (Temurin 21, `assembleRelease`), non signé, et le garde en
+  artefact 1 jour ; `reproducible`, après les deux, le compare octet pour octet (`cmp`) à celui du
   job `build` ; en cas d'écart, il liste les entrées du zip qui diffèrent
   (nom, CRC) et échoue. La reproductibilité est ainsi vérifiée à chaque
   changement, bien avant la release finale.
@@ -472,7 +472,8 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   sortie (préversions seules). La page vise un tag v3 nommé.
 - **`workflow_run` plutôt que `release`** : une release créée par un workflow
   avec le jeton par défaut ne déclenche aucun autre workflow. Pages et la
-  comparaison F-Droid suivent donc la fin de « Kairos 3 release ».
+  comparaison F-Droid suivent donc la fin de « Kairos release » (d'un tag poussé seulement : la fin d'un build de test
+  ne les relance pas).
 - **Captures tirées de l'interface Android réelle**, rendue sur la JVM : pas
   d'émulateur en CI, résultat identique d'une machine à l'autre, et les mêmes
   images servent aux magasins et à la page.
