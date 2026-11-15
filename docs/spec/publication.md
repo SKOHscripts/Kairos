@@ -128,12 +128,13 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   calendriers (fichier `.ics`, ou calendriers du téléphone avec l'autorisation **facultative** de lecture du
   calendrier, `connexions-externes.md`).
 - **Une note de version par version finale** (`30000` pour `3.0.0`, `40100` pour `4.1.0`), dans les six langues des
-  fiches, avant son tag (`ReleaseNotesTest`, « Kairos tag ») ; une beta n'en a pas, depuis le cycle des versions du
+  fiches, avant son tag (« Kairos tag » ; la CI ne l'exige plus pour la version déclarée depuis le 2026-11-15,
+  `distribution.md` § Cycle des versions) ; une beta n'en a pas, depuis le cycle des versions du
   2026-11-05 (`distribution.md` § Cycle des versions) : elle ne va ni sur F-Droid ni dans les fiches (la `3.0.0-beta.1`,
   `29501`, en avait une).
 - `validate_fastlane.py` (sans dépendance) vérifie pour chaque langue : fichiers
   présents, non vides, longueurs ; note de version du `kairos.versionCode`
-  courant (sauf préversion) ; icône PNG 512 × 512 ; au moins deux captures PNG numérotées 1, 2…
+  courant dans les six langues dès qu'une existe (absente partout : simple rappel, exigée au tag) ; icône PNG 512 × 512 ; au moins deux captures PNG numérotées 1, 2…
   sans trou, de 320 à 3840 px de côté. Code de sortie 1 au premier écart.
 
 ### Captures (`StoreScreenshots`)

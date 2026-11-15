@@ -45,6 +45,12 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   ou si l'utilisateur perd quelque chose ; mineure dès qu'une fonctionnalité ou un comportement visible change ;
   correctif s'il n'y a que des corrections ; une beta seulement pour un chantier risqué, quand toutes ses
   fonctionnalités sont là, puis plus aucune avant la finale (§ Quel numéro donner à une version).
+- **Version attendue, dite à chaque PR** (demande du propriétaire du 2026-11-15 : choisir le numéro et savoir quand
+  publier s'oublient) : un contrôle calcule, d'après ce qui est fusionné depuis la dernière finale, la version que
+  `main` doit porter et échoue si la PR la contredit, en donnant la commande à lancer. Il dit aussi quand publier : des
+  fonctionnalités qui attendent une finale depuis une semaine ou plus sont signalées. Après le tag d'une finale, une PR
+  passe `main` à la mineure suivante ; le propriétaire la fusionne, ou la change en beta pour un chantier risqué
+  (§ Version attendue).
 - **Une beta**, pour ses testeurs : depuis la 4.2.0, **la même app « Kairos »** que la stable (Android, bureau), qu'elle
   remplace en s'installant par-dessus (décision du 2026-11-15 ; avant, une app « Kairos Preview » à côté de la stable),
   et la préversion web sous `preview/` ; jamais sur F-Droid, l'AUR, ni dans la vérification des mises à jour d'une
@@ -84,7 +90,9 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 - Chaque `versionCode` Android est strictement supérieur au précédent, beta ou finale (une seule app depuis la 4.2.0 ;
   jusqu'à la 4.1, au précédent **de son canal** : les finales entre elles, les préversions entre elles, identifiant
   `.preview`).
-- Une version finale ne se tague pas sans sa note de version dans les six langues (`ReleaseNotesTest`, « Kairos tag »).
+- Une version finale ne se tague pas sans sa note de version dans les six langues (« Kairos tag »).
+- Une PR qui ajoute une fonctionnalité (carte du catalogue) ou change le format du fichier ne passe pas tant que `main`
+  ne porte pas la mineure ou la majeure qui convient (« Kairos version »).
 - Chaque image de bureau empaquetée est **lancée en CI** sur son OS (auto-test)
   avant publication ; un auto-test en échec bloque la release.
 - Un tag produit un APK **signé**, avec toujours la même clé (chaque version s'installe par-dessus la précédente).
@@ -177,8 +185,11 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   beta, il a donc le numéro et le `versionCode` de la finale qui vient sans en être une : accepté, un build de test est
   un fichier d'essai gardé 14 jours, jamais publié (2026-11-15).
 - **Notes de version** : une finale a `fastlane/metadata/android/<langue>/changelogs/<versionCode>.txt` dans les six
-  langues, 500 caractères au plus (`ReleaseNotesTest`, `validate_fastlane.py`) ; une beta n'en a pas (ni F-Droid ni
-  fiches ; notes générées de la préversion GitHub).
+  langues, 500 caractères au plus, exigées **au tag** (« Kairos tag ») ; une beta n'en a pas (ni F-Droid ni fiches ;
+  notes générées de la préversion GitHub). La CI ne les exige plus pour la version déclarée, puisque `main` porte la
+  finale à venir pendant tout son développement (2026-11-15) : `ReleaseNotesTest` et `validate_fastlane.py` vérifient
+  qu'une note commencée existe dans les six langues et la limite de 500 caractères ; une finale déclarée sans note est
+  un rappel (`validate_fastlane.py` l'affiche, « Kairos version » la liste), pas une erreur.
 - **« Kairos tag »** (`.github/workflows/kmp-tag.yml`, lancement manuel sur `main`, champ `version` à recopier) : refuse
   une version qui n'est pas celle de `kmp/gradle.properties`, hors du cycle, un `versionCode` hors formule, un tag qui
   existe déjà, une finale sans ses six notes, et un commit dont la CI (`kmp.yml`) est rouge ou en cours. Puis tag annoté
@@ -231,6 +242,37 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
   - `beta.N+1` quand des correctifs ont été fusionnés et qu'il faut les faire essayer ;
   - la **finale** quand la dernière beta a tourné chez ses testeurs sans régression (repère : une semaine), notes de
     version écrites.
+
+### Version attendue (`kmp/tools/next_version.py`, « Kairos version », 2026-11-15)
+
+- **Dernière finale** : le plus haut tag `vX.Y.Z` sans suffixe, en ordre numérique. Sans tag, rien à contrôler.
+- **Niveau** de ce qui est fusionné depuis cette finale (`git log vX.Y.Z..HEAD`) :
+  - **majeure** si `ExportCodec.SYNC_FORMAT_VERSION` diffère de sa valeur au tag (règle § Quel numéro ;
+    `FormatVersionTest` lie déjà chaque majeure à son format) ;
+  - **mineure** si une carte du catalogue (`FeatureCatalog.kt`, `FeatureCard("id", …, since = "X.Y.0")`) annonce une
+    version au-dessus de la dernière finale : une fonctionnalité est une carte (`CLAUDE.md`, étape 4) ;
+  - **correctif** s'il y a au moins un commit ; aucun sinon.
+- **Contrôle** : la version de `main` sans son suffixe `-beta.N` doit valoir au moins la dernière finale montée du
+  niveau (majeure `(X+1).0.0`, mineure `X.(Y+1).0`, correctif `X.Y.(Z+1)`). Sinon échec, avec la commande
+  `python3 kmp/tools/set_version.py …` à lancer dans la PR. Une version au-dessus n'est pas une erreur (`main` passe à la
+  mineure suivante après chaque finale) : si seuls des correctifs attendent, le contrôle signale qu'un correctif
+  `X.Y.(Z+1)` est possible (§ Quel numéro).
+- **Avertissements**, sans échec : un commit `feat` sans carte nouvelle depuis la finale (un comportement visible qui
+  change fait aussi une mineure, ce que le script ne sait pas voir) ; des cartes qui attendent depuis **7 jours** ou
+  plus (date du premier commit depuis le tag qui touche `FeatureCatalog.kt` ; le repère d'une semaine des betas) :
+  « il est temps de publier ».
+- **Résumé** du job (`$GITHUB_STEP_SUMMARY`, sinon la sortie standard) : dernière finale, version de `main`, version
+  attendue, cartes en attente, notes de version manquantes si `main` porte une finale, et ce qu'il reste à faire pour
+  la publier (notes, puis « Kairos tag »).
+- **Workflow** `.github/workflows/version.yml` (« Kairos version ») : `pull_request` sans filtre de chemins (tout
+  changement compte), `push` sur `main`, `workflow_dispatch` ; `fetch-depth: 0` pour les tags ; `contents: read`.
+  Les fonctions pures du script sont testées par `kmp/tools/test_next_version.py` (`metadata.yml`).
+- **Après le tag d'une finale** : « Kairos tag » ouvre la PR « chore(version): set X.(Y+1).0 » (branche
+  `version/X.(Y+1).0`, `set_version.py`), puis lance `kmp.yml`, `metadata.yml` et `version.yml` sur cette branche (une
+  PR ouverte avec le jeton du workflow ne déclenche aucun workflow). Il faut le réglage du dépôt « Allow GitHub Actions
+  to create and approve pull requests » (Settings → Actions → General) ; sans lui, l'étape échoue sans faire échouer le
+  tag, déjà posé, et le résumé donne la commande. Après une beta, rien n'est ouvert : le résumé rappelle les deux
+  suites (`beta.N+1` ou la finale).
 
 ### Android (`kmp/androidApp`)
 
@@ -568,6 +610,12 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
 
 ### Décisions et pièges tracés
 
+- **Version attendue calculée** (propriétaire, 2026-11-15) : avec des mineures au fil de l'eau, le numéro et le moment
+  de publier se décident plus souvent ; un contrôle à chaque PR (« Kairos version ») et une PR de passage de version
+  après chaque finale évitent de les oublier. Le contrôle lit les cartes du catalogue et le format du fichier, pas les
+  types de commits, qui ne servent qu'à avertir : un `feat(build)` n'est pas une fonctionnalité. Conséquence : la note de
+  version d'une finale n'est plus exigée par la CI, seulement au tag. Écartés : un commit direct du passage de version
+  sur `main` (le jeton du workflow devrait y écrire) ; un simple rappel (rien ne changerait la version).
 - **Mineures au fil de l'eau** (propriétaire, 2026-11-15, à partir de la 4.3.0) : une mineure sort en finale dès
   qu'une ou quelques fonctionnalités sont prêtes ; une beta seulement pour un chantier risqué. Rouvre le cycle « beta
   puis finale » du 2026-11-05, où chaque mineure passait par au moins une beta et un gel des fonctionnalités : en 4.1,
