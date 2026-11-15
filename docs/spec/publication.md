@@ -333,14 +333,21 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   « Arch Linux (AUR) », 4.0.0, `distribution.md` § Paquet Arch Linux) ; macOS : DMG Apple
   Silicon et Intel ; navigateur), lien vers les releases et `SHA256SUMS`,
   captures 1 à 6 et 10 (dont la 2, le machine learning), le thème sombre (défilement horizontal), notes de première installation, « On en parle »
-  (liens texte vers la fiche AlternativeTo et le post r/foss, 2026-10-29), pied de page (licence, source, tickets).
+  (liens texte vers les mentions publiques, liste ci-dessous), pied de page (licence, source, tickets).
 - **« On en parle » / « Mentioned on »** (2026-10-29, demande du propriétaire) : les mentions publiques de Kairos, aussi
   dans le README (anglais et français, juste avant la licence), qui porte en plus le badge AlternativeTo (lien vers la
   fiche avec `utm_source=badge`, image `alternativeto.net/static/badges/badge-compact-color.svg`). Le badge reste au
   README : GitHub sert les images par son propre relais, le visiteur ne contacte pas AlternativeTo. La page de
   téléchargement n'a que des liens texte : elle ne charge aucune ressource d'un tiers (polices servies par la page,
-  même règle). Une nouvelle mention (article, journal LinuxFr…) s'ajoute aux deux README et aux six pages ; ces
-  références servent aussi aux candidatures du type SignPath Foundation (`distribution.md` § Signature Windows).
+  même règle). Une nouvelle mention (article, journal LinuxFr…) s'ajoute aux deux README et aux huit pages qui portent
+  la section (les six pages de téléchargement et les deux pages « histoire », `site/histoire/` et `site/en/story/`),
+  dans le même ordre partout, avec une phrase dans la langue de la page et « (en anglais) » quand la source est en
+  anglais ; ces références servent aussi aux candidatures du type SignPath Foundation (`distribution.md` § Signature
+  Windows). Mentions actuelles, dans l'ordre : la fiche AlternativeTo et le post r/foss (2026-10-29), l'article
+  WhatWeMade, puis trois listes « awesome » (2026-11-15) : `pcqpcq/open-source-android-apps` (catégorie
+  Productivity, lien vers `categories/productivity.md`), `jaywcjlove/awesome-mac` (To-Do Lists, ancre
+  `#to-do-lists`) et `Anil-matcha/awesome-open-source-saas-alternatives` (alternative à Todoist). Les trois listes
+  sont citées dès la proposition, sans attendre la fusion des pull requests (choix du propriétaire du 2026-11-15).
 - Marqueurs remplacés par `pages.yml` : `@@DL@@` (base des téléchargements),
   `@@WEB@@` (`app/` ou `preview/`), `@@NOTICE_FR@@`, `@@NOTICE_EN@@`, `@@NOTICE_ES@@`, `@@NOTICE_DE@@`, `@@NOTICE_RU@@` et
   `@@NOTICE_IT@@` (bandeau de préversion, texte par langue dans le script Python de `pages.yml`). Un marqueur restant fait échouer la construction.

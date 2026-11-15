@@ -882,8 +882,10 @@ cd kmp
 - [AlternativeTo](https://alternativeto.net/software/kairos-by-skohstripts/about/) : la fiche de Kairos, pour la noter ou la proposer
   comme alternative à une autre application.
 - [r/foss](https://www.reddit.com/r/foss/comments/1xiohaj/kairos_a_foss_task_manager_that_schedules_your/) : post de présentation (octobre 2026, en anglais).
-
-- [whatwemade](https://www.whatwemade.app/p/kairos) : article de présentation
+- [WhatWeMade](https://www.whatwemade.app/p/kairos) : article de présentation (en anglais).
+- [open-source-android-apps](https://github.com/pcqpcq/open-source-android-apps/blob/master/categories/productivity.md) : liste d’applications Android libres, catégorie Productivity (en anglais).
+- [awesome-mac](https://github.com/jaywcjlove/awesome-mac#to-do-lists) : liste d’applications macOS, catégorie To-Do Lists (en anglais).
+- [awesome-open-source-saas-alternatives](https://github.com/Anil-matcha/awesome-open-source-saas-alternatives) : alternatives libres aux services en ligne payants, comme alternative à Todoist (en anglais).
 
 ## Licence
 
