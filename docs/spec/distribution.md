@@ -309,9 +309,10 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
   fiche d'un membre et l'éditeur d'absence, chacun en 1200 et 360 px :
   `desktop-team-members[-narrow].png`, `desktop-team-member-sheet[-narrow].png`,
   `desktop-team-absence[-narrow].png`, `equipe.md` ; une démonstration interactive à l'étape de la priorité,
-  `desktop-demo.png` et `desktop-demo-narrow.png` en 360 px, `visite-guidee.md` § Visite interactive). L'auto-test
-  n'affiche pas l'accueil du premier
-  lancement et ne vérifie pas les mises à jour (aucun réseau). Code de
+  `desktop-demo.png` et `desktop-demo-narrow.png` en 360 px, `visite-guidee.md` § Visite interactive ; le dialogue d'un
+  conseil au plus long texte, `desktop-tip.png` en 900 px et `desktop-tip-narrow.png` en 360 px, `conseils.md`). L'auto-test
+  n'affiche pas l'accueil du premier lancement ni de conseil par lui-même (base en mémoire, `AppServices.tips` faux), et
+  ne vérifie pas les mises à jour (aucun réseau). Code de
   sortie 0 ou 1.
 - **Empaquetage** (plugin Compose Desktop, jpackage, runtime Java réduit
   embarquant `java.instrument`, `java.management`, `java.net.http` (depuis
