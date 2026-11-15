@@ -49,7 +49,7 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   préversion GitHub, générées, suffisent) ; une finale a la sienne dans les six langues avant d'être taguée.
 - **Android** : un APK. Tant que la version est une préversion, l'application
   s'appelle « Kairos Preview » et s'installe à côté de la version stable. Aucune
-  permission réseau jusqu'à la 4.0 (rouvert pour la 4.1.0 : un seul APK avec `INTERNET`, fonctions en ligne désactivées par défaut,
+  permission réseau jusqu'à la 4.1 (rouvert pour la 4.2.0 : un seul APK avec `INTERNET`, fonctions en ligne désactivées par défaut,
   `connexions-en-ligne.md`) ; deux permissions pour le chrono (notifier, reprendre
   après un redémarrage), voir `temps-reel-chrono.md`.
 - **Bureau** : un installeur par OS (`.msi`, `.deb`, `.dmg`), qui n'exige pas
@@ -221,7 +221,7 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
   création réelle étant faite par `KairosStore.open` (`modele-donnees.md`).
   Exemples dans la langue du système (`Locale.getDefault()`).
 - Manifeste : **aucune permission réseau** (pas de `INTERNET`) jusqu'à la 4.0 ; **rouvert le 2026-10-26 par
-  `connexions-en-ligne.md`** : la 4.1.0 déclare `INTERNET`, un seul APK, sans variante ni drapeau de construction (à implémenter) ;
+  `connexions-en-ligne.md`** : la 4.2.0 déclare `INTERNET`, un seul APK, sans variante ni drapeau de construction (à implémenter) ;
   `POST_NOTIFICATIONS` (demandée à l'opt-in des alertes) et
   `RECEIVE_BOOT_COMPLETED` pour le chrono (`temps-reel-chrono.md`), avec
   ses deux récepteurs (`ChronoReceiver` non exporté, `BootReceiver`) ; `SCHEDULE_EXACT_ALARM` (4.1.0, #219) : alarmes
