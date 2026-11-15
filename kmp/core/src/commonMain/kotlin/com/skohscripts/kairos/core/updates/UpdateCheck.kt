@@ -21,13 +21,13 @@ object UpdateCheck {
     /** Dernière version **publiée** (GitHub exclut préversions et brouillons de `/latest`). */
     const val LATEST_URL = "https://api.github.com/repos/SKOHscripts/Kairos/releases/latest"
 
-    /** Les dernières releases, préversions comprises : ce que lit une installation « Kairos Preview » (§ Préversions). */
+    /** Les dernières releases, préversions comprises : ce que lit une beta installée (§ Préversions). */
     const val RELEASES_URL = "https://api.github.com/repos/SKOHscripts/Kairos/releases?per_page=20"
 
     /**
      * Ce que demande une installation de [installed] : une version finale ne regarde que les versions finales (`/latest`) ;
-     * une préversion (« Kairos Preview ») regarde aussi les préversions, sinon un testeur n'apprendrait jamais la beta
-     * suivante (docs/spec/mises-a-jour.md § Préversions).
+     * une préversion (beta installée, même app « Kairos » depuis la 4.2.0) regarde aussi les préversions, sinon un testeur
+     * n'apprendrait jamais la beta suivante (docs/spec/mises-a-jour.md § Préversions).
      */
     fun urlFor(installed: AppVersion): String = if (installed.isPrerelease) RELEASES_URL else LATEST_URL
 

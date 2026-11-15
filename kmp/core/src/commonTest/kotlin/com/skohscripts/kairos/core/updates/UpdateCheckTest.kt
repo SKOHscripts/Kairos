@@ -36,7 +36,7 @@ class UpdateCheckTest {
 
     @Test
     fun a_preview_install_also_sees_prereleases() {
-        // Une installation « Kairos Preview » lit la liste des releases et y prend la plus récente, préversion comprise.
+        // Une beta installée lit la liste des releases et y prend la plus récente, préversion comprise.
         val beta = AppVersion.parse("4.1.0-beta.1")!!
         assertEquals(UpdateCheck.RELEASES_URL, UpdateCheck.urlFor(beta))
         assertEquals(UpdateCheck.LATEST_URL, UpdateCheck.urlFor(AppVersion.parse("4.0.0")!!))

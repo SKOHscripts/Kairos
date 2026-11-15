@@ -27,26 +27,27 @@ kotlin {
     }
 }
 
-// Version des paquets de bureau (docs/spec/distribution.md § Versionnage) :
-// MSI et DMG n'acceptent que MAJEUR.MINEUR.CORRECTIF numériques. Une version
-// finale X.Y.Z garde son numéro ; une préversion est un produit distinct
-// (« Kairos Preview », autre identifiant) numéroté 1.0.<versionCode>, toujours
-// croissant d'une préversion à la suivante.
+// Une seule app « Kairos » pour la beta et la stable depuis la 4.2.0 (docs/spec/distribution.md § Bureau) : même produit,
+// mêmes identifiants. MSI, DMG et .deb n'acceptent que trois nombres, qui doivent croître d'une beta à sa finale :
+// X.Y.(Z*100 + s), s = numéro de beta, 99 pour une finale (4.2.0-beta.1 → 4.2.1, 4.2.0 → 4.2.99), la règle
+// d'AppVersion.packageVersion (AppVersionTest.desktopPackageVersionsGrowToo).
 val versionName = providers.gradleProperty("kairos.versionName").get()
-val versionCode = providers.gradleProperty("kairos.versionCode").get()
-val isPreview = versionName.contains('-')
-val appName = if (isPreview) "Kairos Preview" else "Kairos"
+val packageVersionName: String = run {
+    val m = requireNotNull(Regex("""(\d+)\.(\d+)\.(\d+)(?:-beta\.(\d+))?""").matchEntire(versionName)) { "kairos.versionName illisible : $versionName" }
+    val (major, minor, patch, beta) = m.destructured
+    "$major.$minor.${patch.toInt() * 100 + (beta.toIntOrNull() ?: 99)}"
+}
+val appName = "Kairos"
 
 compose.desktop {
     application {
         mainClass = "com.skohscripts.kairos.desktop.MainKt"
-        jvmArgs += listOf("-Dkairos.preview=$isPreview")
         // Classe de fenêtre X11 fixée (WindowClass.kt, docs/spec/raccourci-portable.md).
         jvmArgs += listOf("--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED")
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Dmg)
             packageName = appName
-            packageVersion = if (isPreview) "1.0.$versionCode" else versionName
+            packageVersion = packageVersionName
             description = "Kairos : le bon moment pour chaque tâche"
             vendor = "Corentin Michel"
             copyright = "© 2026 Corentin Michel, licence MIT"
@@ -63,18 +64,18 @@ compose.desktop {
                 menuGroup = appName
                 // Identifiant de mise à niveau FIXE par produit : chaque version
                 // remplace la précédente au lieu de s'installer à côté.
-                upgradeUuid = if (isPreview) "9c4f3a1e-6b2d-4e8a-9f57-3d1c2b8a7e60" else "5b0e2d7c-8a41-4f6b-b3c9-1e7d6a2f4c08"
+                upgradeUuid = "5b0e2d7c-8a41-4f6b-b3c9-1e7d6a2f4c08"
             }
             linux {
                 iconFile.set(project.file("icons/kairos.png"))
-                packageName = if (isPreview) "kairos-preview" else "kairos"
+                packageName = "kairos"
                 debMaintainer = "corentin.michel@mailo.com"
                 menuGroup = "Office"
                 appCategory = "office"
             }
             macOS {
                 iconFile.set(project.file("icons/kairos.icns"))
-                bundleID = if (isPreview) "com.skohscripts.kairos.preview" else "com.skohscripts.kairos"
+                bundleID = "com.skohscripts.kairos"
                 dockName = appName
             }
         }

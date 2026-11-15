@@ -3,7 +3,8 @@
 # Actions → « Kairos tag » → « Run workflow » sur main, en recopiant la version de kmp/gradle.properties : le workflow
 # vérifie tout ce qu'un tag tapé à la main pouvait rater, pose le tag sur le dernier commit de main, puis lance la
 # release. Un tag poussé avec le jeton du workflow (GITHUB_TOKEN) ne déclenche pas les autres workflows : la release est
-# donc lancée explicitement (workflow_dispatch sur la référence du tag, qu'elle traite comme un tag poussé).
+# donc lancée explicitement (workflow_dispatch sur la référence du tag, qu'elle traite comme un tag poussé). Après une
+# finale, ouvre la PR qui passe main à la mineure suivante (docs/spec/distribution.md § Version attendue).
 name: Kairos tag
 
 on:
@@ -17,6 +18,7 @@ on:
 permissions:
   contents: write
   actions: write
+  pull-requests: write
 
 concurrency:
   group: kairos-tag
@@ -44,9 +46,9 @@ jobs:
             echo "::error::Version demandée $wanted, mais kmp/gradle.properties dit $name : recopie la version de main."
             exit 1
           fi
-          # Le cycle (beta puis finale) : X.Y.Z, ou X.Y.0-beta.N avec N de 1 à 99 (alpha toléré, jamais utilisé).
-          if ! [[ "$name" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ || "$name" =~ ^[0-9]+\.[0-9]+\.0-(alpha|beta)\.([1-9]|[1-9][0-9])$ ]]; then
-            echo "::error::$name n'est pas une version du cycle (X.Y.Z ou X.Y.0-beta.N, N de 1 à 99)."
+          # Le cycle (mineures au fil de l'eau, betas facultatives) : X.Y.Z, ou X.Y.0-beta.N avec N de 1 à 98 (99 marque une finale ; plus d'alpha).
+          if ! [[ "$name" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ || "$name" =~ ^[0-9]+\.[0-9]+\.0-beta\.([1-9]|[1-8][0-9]|9[0-8])$ ]]; then
+            echo "::error::$name n'est pas une version du cycle (X.Y.Z ou X.Y.0-beta.N, N de 1 à 98)."
             exit 1
           fi
           # La formule du versionCode (AppVersion) : AppVersionTest la vérifie aussi, mais un tag ne doit pas partir avant.
@@ -54,9 +56,13 @@ jobs:
           import re, sys
           name, code = sys.argv[1], int(sys.argv[2])
           major, minor, patch, stage, n = re.match(r"(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta)\.(\d+))?$", name).groups()
-          expected = int(major) * 10000 + int(minor) * 100 + int(patch)
-          if stage:
-              expected += (-500 if stage == "beta" else -1000) + int(n)
+          # À partir de la 4.2.0, une seule app pour la beta et la stable (docs/spec/distribution.md § Versionnage).
+          if int(major) * 100 + int(minor) >= 402:
+              expected = int(major) * 1000000 + int(minor) * 10000 + int(patch) * 100 + (int(n) if stage else 99)
+          else:
+              expected = int(major) * 10000 + int(minor) * 100 + int(patch)
+              if stage:
+                  expected += (-500 if stage == "beta" else -1000) + int(n)
           if expected != code:
               sys.exit(f"::error::kairos.versionCode={code}, attendu {expected} pour {name}")
           PY
@@ -98,6 +104,35 @@ jobs:
           gh workflow run kmp-release.yml --ref "v$NAME"
           {
             echo "### Kairos $NAME"
-            echo "Tag \`v$NAME\` posé sur \`$SHA\`, release lancée (onglet Actions, « Kairos 3 release »)."
+            echo "Tag \`v$NAME\` posé sur \`$SHA\`, release lancée (onglet Actions, « Kairos release »)."
             if [[ "$NAME" == *-* ]]; then echo "Préversion : ni F-Droid, ni AUR, ni vérification des mises à jour des versions stables."; fi
           } >> "$GITHUB_STEP_SUMMARY"
+      # Après une finale, main passe à la mineure suivante par une PR (docs/spec/distribution.md § Version attendue). Le
+      # tag est déjà posé : un échec ici (réglage « Allow GitHub Actions to create and approve pull requests » absent,
+      # branche existante) ne doit pas faire échouer le lancement, le résumé donne alors la commande.
+      - name: Proposer la version suivante
+        if: ${{ !contains(steps.check.outputs.name, '-') }}
+        continue-on-error: true
+        env:
+          NAME: ${{ steps.check.outputs.name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          next=$(python3 -c "import sys; x, y, _ = map(int, sys.argv[1].split('.')); print(f'{x}.{y + 1}.0')" "$NAME")
+          branch="version/$next"
+          echo "La suite : \`python3 kmp/tools/set_version.py $next\` (ou \`$next-beta.1\` pour un chantier risqué)." >> "$GITHUB_STEP_SUMMARY"
+          git switch -c "$branch"
+          python3 kmp/tools/set_version.py "$next"
+          git commit -am "chore(version): set $next"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title "chore(version): set $next" --body "Kairos $NAME is tagged: main moves to the next minor, $next (docs/spec/distribution.md § Cycle des versions). For risky work, change it to \`$next-beta.1\` before merging (\`python3 kmp/tools/set_version.py $next-beta.1\`)."
+          # Une PR ouverte avec le jeton du workflow ne déclenche aucun workflow : on lance ses contrôles.
+          for workflow in kmp.yml metadata.yml fdroid-check.yml; do gh workflow run "$workflow" --ref "$branch"; done
+          echo "PR ouverte : \`$branch\` → main ($next)." >> "$GITHUB_STEP_SUMMARY"
+      - name: Après une beta
+        if: ${{ contains(steps.check.outputs.name, '-') }}
+        env:
+          NAME: ${{ steps.check.outputs.name }}
+        run: |
+          n=${NAME##*.}
+          echo "La suite : \`python3 kmp/tools/set_version.py ${NAME%.*}.$((n + 1))\` pour une autre beta, ou \`python3 kmp/tools/set_version.py ${NAME%%-*}\` pour la finale." >> "$GITHUB_STEP_SUMMARY"

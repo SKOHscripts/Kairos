@@ -7,8 +7,7 @@ GitHub. Fichiers couverts : `fastlane/metadata/android/` (fiches FR/EN),
 `kmp/tools/make_app_icons.py` (icônes des fiches et de la page, aperçu des liens `site/og/`), `kmp/tools/make_badges.py` et
 `validate_badges.py` (boutons de téléchargement, `site/badges/`), `kmp/tools/validate_og.py` (aperçu des liens),
 `fdroid/com.skohscripts.kairos.yml`, `fdroid/README.md`, `site/`,
-`.github/workflows/fdroid-check.yml`, `.github/workflows/metadata.yml`, `.github/workflows/pages.yml`, et la
-propriété `kairos.preview` de `kmp/androidApp/build.gradle.kts`. Versions,
+`.github/workflows/fdroid-check.yml`, `.github/workflows/metadata.yml`, `.github/workflows/pages.yml`. Versions,
 construction et releases : `distribution.md`._
 
 État : **jalon M7** (`3.0.0`) ; mis en place au jalon M6 (`3.0.0-beta.1`). La soumission elle-même (merge
@@ -129,12 +128,13 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   calendriers (fichier `.ics`, ou calendriers du téléphone avec l'autorisation **facultative** de lecture du
   calendrier, `connexions-externes.md`).
 - **Une note de version par version finale** (`30000` pour `3.0.0`, `40100` pour `4.1.0`), dans les six langues des
-  fiches, avant son tag (`ReleaseNotesTest`, « Kairos tag ») ; une beta n'en a pas, depuis le cycle des versions du
+  fiches, avant son tag (« Kairos tag » ; la CI ne l'exige plus pour la version déclarée depuis le 2026-11-15,
+  `distribution.md` § Cycle des versions) ; une beta n'en a pas, depuis le cycle des versions du
   2026-11-05 (`distribution.md` § Cycle des versions) : elle ne va ni sur F-Droid ni dans les fiches (la `3.0.0-beta.1`,
   `29501`, en avait une).
 - `validate_fastlane.py` (sans dépendance) vérifie pour chaque langue : fichiers
   présents, non vides, longueurs ; note de version du `kairos.versionCode`
-  courant (sauf préversion) ; icône PNG 512 × 512 ; au moins deux captures PNG numérotées 1, 2…
+  courant dans les six langues dès qu'une existe (absente partout : simple rappel, exigée au tag) ; icône PNG 512 × 512 ; au moins deux captures PNG numérotées 1, 2…
   sans trou, de 320 à 3840 px de côté. Code de sortie 1 au premier écart.
 
 ### Captures (`StoreScreenshots`)
@@ -216,10 +216,10 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
 - Mises à jour : `UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$` (tags finals
   seulement), `UpdateCheckData` lisant `kairos.versionCode` et
   `kairos.versionName` dans `kmp/gradle.properties`, `AutoUpdateMode: Version`.
-- `kairos.preview` (propriété Gradle, `androidApp/build.gradle.kts`) : force
-  l'identifiant définitif (`false`) ou préversion (`true`) ; par défaut, une
-  version avec suffixe est une préversion. Seule la vérification continue s'en
-  sert, pour construire une bêta sous l'identifiant de la recette.
+- Identifiant : `com.skohscripts.kairos` pour toutes les versions, betas comprises, depuis la 4.2.0
+  (`distribution.md` § Décisions « Une seule app pour la beta et la stable ») ; la propriété Gradle `kairos.preview`,
+  qui forçait l'identifiant définitif pour construire une bêta comme la recette, est retirée (passée encore, elle est
+  sans effet).
 
 ### Vérification continue (`fdroid_check.sh`, `fdroid-check.yml`)
 
@@ -233,8 +233,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
      recette doit déjà être sous sa forme canonique (le fichier réécrit est
      comparé à l'original), comme l'exige la CI de fdroiddata ;
   3. copie de la recette : dernière construction réécrite à la version de
-     `gradle.properties` et au commit courant, `gradleprops:
-     [kairos.preview=false]`, `Repo` = copie locale du dépôt (branche
+     `gradle.properties` et au commit courant, sans `gradleprops`, `Repo` = copie locale du dépôt (branche
      `fdroid-check` au commit testé), `Binaries` retiré sauf avec
      `--binaries` ;
   4. `git init` du dossier fdroiddata (`fdroid build` date la construction,
@@ -245,15 +244,15 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   `kmp/tools/**`, sauf `kmp/tools/fdroid_check.sh`) : job `build` (`fdroid_check.sh` dans l'image, APK non signé en
   artefact gardé 1 jour, le temps du job `reproducible`). Une PR qui reçoit un nouveau commit annule le run précédent
   (`concurrency`, 2026-11-06). Les contrôles de textes (`validate_fastlane.py`, `validate_badges.py`, `validate_og.py`)
-  sont dans `metadata.yml` (PR et push sur `main` touchant `fastlane/**`, `site/**`, les README, `kmp/gradle.properties`
-  ou `kmp/tools/*.py`) : une modification de texte ne relance plus la construction F-Droid. Après une
-  exécution réussie de « Kairos 3 release » déclenchée par un tag **final**
+  sont dans le job `metadata` de `metadata.yml` (« Kairos checks », chaque PR et push sur `main`) : une modification de
+  texte ne relance pas la construction F-Droid. Après une
+  exécution réussie de « Kairos release » déclenchée par un tag **final**
   (sans `-`) : job `build` avec `--binaries`, qui compare au
   `Kairos-android.apk` publié. Une préversion n'est pas comparée à son APK
-  publié (identifiant `.preview`).
-- Job `reproducible` (PR et `main`) : le runner construit l'APK comme
-  `kmp-release.yml` (Temurin 21, `assembleRelease`), non signé, avec
-  `-Pkairos.preview=false`, et le compare octet pour octet (`cmp`) à celui du
+  publié (F-Droid ne publie que les finales).
+- Jobs `runner` et `reproducible` (PR et `main`) : `runner`, **en parallèle** de `build` (2026-11-15 ; avant, il
+  l'attendait), construit l'APK comme `kmp-release.yml` (Temurin 21, `assembleRelease`), non signé, et le garde en
+  artefact 1 jour ; `reproducible`, après les deux, le compare octet pour octet (`cmp`) à celui du
   job `build` ; en cas d'écart, il liste les entrées du zip qui diffèrent
   (nom, CRC) et échoue. La reproductibilité est ainsi vérifiée à chaque
   changement, bien avant la release finale.
@@ -380,8 +379,9 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   - une release stable de la version 3 ou plus récente (`v3.*`, `v4.*`…) existe : `releases/download/<son tag>`, pas de
     bandeau, « Utiliser Kairos en ligne » vers `app/` ;
   - sinon, la dernière préversion de ces versions : `releases/download/<son tag>`,
-    bandeau « Préversion X » (installée à côté de la version stable sous le nom
-    « Kairos Preview »), lien web vers `preview/`.
+    bandeau « Préversion X » (sur Android, elle remplace la version stable : même app « Kairos » depuis la 4.2.0 ;
+    avant, une app « Kairos Preview » à côté), lien web vers `preview/` ; le texte du bandeau, par langue, est dans le
+    script Python de `pages.yml`.
 - Déclenchement : push sur `main` touchant `kmp/**` (hors `androidApp`, `desktopApp` et `tools`, sauf
   `tools/make_code_map.py`), `docs/spec/**`, `site/**`, `fastlane/**` ou `pages.yml` ; release publiée à la main ; **fin du workflow « Kairos 3
   release »** ; lancement manuel.
@@ -472,7 +472,8 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   sortie (préversions seules). La page vise un tag v3 nommé.
 - **`workflow_run` plutôt que `release`** : une release créée par un workflow
   avec le jeton par défaut ne déclenche aucun autre workflow. Pages et la
-  comparaison F-Droid suivent donc la fin de « Kairos 3 release ».
+  comparaison F-Droid suivent donc la fin de « Kairos release » (d'un tag poussé seulement : la fin d'un build de test
+  ne les relance pas).
 - **Captures tirées de l'interface Android réelle**, rendue sur la JVM : pas
   d'émulateur en CI, résultat identique d'une machine à l'autre, et les mêmes
   images servent aux magasins et à la page.

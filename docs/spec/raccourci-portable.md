@@ -55,7 +55,7 @@ montrer. Sur un poste verrouillé, c'est pourtant la seule version possible
 - Une copie installée (`.deb`, `.msi`, `.dmg`), la version lancée depuis les
   sources et la version web ne proposent rien.
 - L'entrée Linux lance la copie, même si son chemin contient des espaces
-  (« Kairos Preview ») ou des caractères réservés.
+  (« Mes logiciels/Kairos » ; « Kairos Preview » jusqu'à la 4.1) ou des caractères réservés.
 - Retirer supprime exactement ce qui a été créé, rien d'autre.
 
 ### Hors périmètre

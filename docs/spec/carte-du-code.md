@@ -100,7 +100,7 @@ Python 3, bibliothèque standard seulement, comme les autres outils de `kmp/tool
   --stamp "$GITHUB_SHA"`.
 - Déclencheurs : `docs/spec/**` et `kmp/tools/make_code_map.py` s'ajoutent aux chemins (le code `kmp/**` y est déjà) ;
   `!kmp/tools/**` reste, le script étant ré-inclus après lui.
-- `metadata.yml` lance déjà `unittest` sur `kmp/tools/test_*.py` à chaque PR qui touche `kmp/tools/*.py`.
+- `metadata.yml` (« Kairos checks », job `metadata`) lance `unittest` sur `kmp/tools/test_*.py` à chaque PR.
 
 ### Décisions et pièges tracés
 

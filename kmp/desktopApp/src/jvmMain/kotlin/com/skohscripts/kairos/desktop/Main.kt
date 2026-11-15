@@ -47,8 +47,8 @@ fun main(args: Array<String>) {
     val folder = DesktopDataFolder(resolved, DataDirectory.kairosRoot(env, System.getProperty("os.name"), System.getProperty("user.home")))
     val diagnostics = FileDiagnostics(dataDir, resolved.source)
     diagnostics.log("start ${com.skohscripts.kairos.core.KairosBuild.VERSION_NAME} ${System.getProperty("os.name")} java=${System.getProperty("java.version")} folder=${resolved.source.name.lowercase()}")
-    val preview = System.getProperty("kairos.preview") == "true"
-    val appName = if (preview) "Kairos Preview" else "Kairos"
+    // Une seule app pour la beta et la stable depuis la 4.2.0 (docs/spec/distribution.md § Bureau).
+    val appName = "Kairos"
     val portable = PortableCopy.detect(appName = appName)
     // Paquet AUR (docs/spec/distribution.md § Paquet Arch Linux) : pacman met à jour, pas Kairos.
     val managed = SystemPackage.detect()

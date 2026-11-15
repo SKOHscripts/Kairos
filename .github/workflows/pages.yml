@@ -24,7 +24,7 @@ on:
   # La release créée par kmp-release.yml (jeton GITHUB_TOKEN) ne déclenche pas
   # l'événement `release` ci-dessus : on suit la fin de ce workflow.
   workflow_run:
-    workflows: ["Kairos 3 release"]
+    workflows: ["Kairos release"]
     types: [completed]
   workflow_dispatch:
 
@@ -39,6 +39,9 @@ concurrency:
 
 jobs:
   build:
+    # Après « Kairos release », seulement la release d'un tag poussé : un build de test (lancement manuel) ne change pas
+    # la page, et une release lancée par « Kairos tag » relance Pages elle-même (job follow-up).
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -92,12 +95,12 @@ jobs:
           DL="$dl" WEB="$web" PREVIEW="$preview" python3 - "$out" <<'PY'
           import os, sys
           notices = {
-              "FR": "<strong>Préversion {v}.</strong> Aucune version stable n’est encore publiée : les liens ci-dessous mènent à la dernière préversion. Sur Android, elle s’installe à côté de la version stable, sous le nom « Kairos Preview ».",
-              "EN": "<strong>Preview {v}.</strong> No stable release is published yet: the links below lead to the latest preview. On Android it installs next to the stable version, as “Kairos Preview”.",
-              "ES": "<strong>Versión preliminar {v}.</strong> Todavía no hay ninguna versión estable publicada: los enlaces de abajo llevan a la última versión preliminar. En Android se instala junto a la versión estable, con el nombre «Kairos Preview».",
-              "DE": "<strong>Vorabversion {v}.</strong> Es ist noch keine stabile Version veröffentlicht: Die Links unten führen zur neuesten Vorabversion. Unter Android wird sie neben der stabilen Version installiert, unter dem Namen „Kairos Preview“.",
-              "RU": "<strong>Предварительная версия {v}.</strong> Стабильная версия еще не опубликована: ссылки ниже ведут на последнюю предварительную версию. На Android она устанавливается рядом со стабильной версией под названием «Kairos Preview».",
-              "IT": "<strong>Anteprima {v}.</strong> Non è ancora stata pubblicata alcuna versione stabile: i link qui sotto portano all’ultima anteprima. Su Android si installa accanto alla versione stabile, con il nome «Kairos Preview».",
+              "FR": "<strong>Préversion {v}.</strong> Aucune version stable n’est encore publiée : les liens ci-dessous mènent à la dernière préversion. Sur Android, elle remplace la version stable : c’est la même application.",
+              "EN": "<strong>Preview {v}.</strong> No stable release is published yet: the links below lead to the latest preview. On Android it replaces the stable version: it is the same app.",
+              "ES": "<strong>Versión preliminar {v}.</strong> Todavía no hay ninguna versión estable publicada: los enlaces de abajo llevan a la última versión preliminar. En Android sustituye a la versión estable: es la misma aplicación.",
+              "DE": "<strong>Vorabversion {v}.</strong> Es ist noch keine stabile Version veröffentlicht: Die Links unten führen zur neuesten Vorabversion. Unter Android ersetzt sie die stabile Version: Es ist dieselbe App.",
+              "RU": "<strong>Предварительная версия {v}.</strong> Стабильная версия еще не опубликована: ссылки ниже ведут на последнюю предварительную версию. На Android она заменяет стабильную версию: это то же приложение.",
+              "IT": "<strong>Anteprima {v}.</strong> Non è ancora stata pubblicata alcuna versione stabile: i link qui sotto portano all’ultima anteprima. Su Android sostituisce la versione stabile: è la stessa app.",
           }
           pages = {"FR": "index.html", "EN": "en/index.html", "ES": "es/index.html", "DE": "de/index.html", "RU": "ru/index.html", "IT": "it/index.html"}
           v = os.environ["PREVIEW"]

@@ -1,7 +1,7 @@
-# CI de Kairos 3 (kmp/, docs/spec/distribution.md § CI) : tests et builds
-# (bureau, web) à chaque PR et push sur main. L'APK est construit et vérifié par fdroid-check.yml (construction F-Droid
+# CI de Kairos (kmp/, docs/spec/distribution.md § CI) : tests et builds (bureau, web) à chaque PR et push sur main, en
+# trois jobs parallèles (matrice). L'APK est construit et vérifié par fdroid-check.yml (construction F-Droid
 # et reproductibilité), déclenché par les mêmes changements : il n'est pas reconstruit ici.
-name: Kairos 3 (KMP)
+name: Kairos CI
 
 on:
   push:
@@ -19,8 +19,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  ci:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      # Un job rouge n'arrête pas les autres : on voit tout ce qui casse en un lancement.
+      fail-fast: false
+      matrix:
+        include:
+          - name: Tests JVM
+            android: true
+            tasks: ":core:jvmTest :data:jvmTest :ui:jvmTest :desktopApp:jvmTest"
+          # L'estimateur par modèle doit rendre les mêmes valeurs au bit près sur wasm que sur la JVM, dans le budget de
+          # temps (docs/spec/estimateur-modele.md § Déterminisme) : ses tests rapides tournent aussi dans Chrome
+          # (Kotlin/wasm). De même l'horloge, les empreintes et le texte canonique de la synchronisation
+          # (docs/spec/synchronisation.md § Tests). Puis la version web.
+          - name: Tests wasm et web
+            tasks: >-
+              :core:wasmJsBrowserTest
+              --tests com.skohscripts.kairos.core.engine.model.ModelReproducibilityTest
+              --tests com.skohscripts.kairos.core.engine.model.TextFeaturesTest
+              --tests com.skohscripts.kairos.core.engine.model.ModelEstimatorTest
+              --tests com.skohscripts.kairos.core.engine.model.NoFutureInfoTest
+              --tests com.skohscripts.kairos.core.engine.model.ModelPerformanceTest
+              --tests com.skohscripts.kairos.core.sync.HlcTest
+              --tests com.skohscripts.kairos.core.sync.SyncRecordsTest
+              --tests com.skohscripts.kairos.core.sync.SyncRepairTest
+              --tests com.skohscripts.kairos.core.sync.SyncSummaryTest
+              --tests com.skohscripts.kairos.core.sync.SyncOrderTest
+              :webApp:wasmJsBrowserDistribution
+          - name: Bureau
+            tasks: ":desktopApp:createDistributable"
+            selftest: true
     defaults:
       run:
         working-directory: kmp
@@ -34,45 +64,26 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # Compose 1.12 compile contre l'API 37 (docs/spec/architecture.md).
+      # Compose 1.12 compile contre l'API 37 (docs/spec/architecture.md) : les tests JVM configurent le module Android.
       - name: Plateforme Android 37
+        if: matrix.android
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
 
-      - name: Tests (JVM)
-        run: ./gradlew --no-daemon :core:jvmTest :data:jvmTest :ui:jvmTest :desktopApp:jvmTest
-
-      # L'estimateur par modèle doit rendre les mêmes valeurs au bit près sur wasm que sur la JVM, dans le budget de temps
-      # (docs/spec/estimateur-modele.md § Déterminisme) : ses tests rapides tournent aussi dans Chrome (Kotlin/wasm). De même
-      # l'horloge, les empreintes et le texte canonique de la synchronisation (docs/spec/synchronisation.md § Tests).
-      - name: Tests du modèle (wasm, Chrome)
-        run: >
-          ./gradlew --no-daemon :core:wasmJsBrowserTest
-          --tests 'com.skohscripts.kairos.core.engine.model.ModelReproducibilityTest'
-          --tests 'com.skohscripts.kairos.core.engine.model.TextFeaturesTest'
-          --tests 'com.skohscripts.kairos.core.engine.model.ModelEstimatorTest'
-          --tests 'com.skohscripts.kairos.core.engine.model.NoFutureInfoTest'
-          --tests 'com.skohscripts.kairos.core.engine.model.ModelPerformanceTest'
-          --tests 'com.skohscripts.kairos.core.sync.HlcTest'
-          --tests 'com.skohscripts.kairos.core.sync.SyncRecordsTest'
-          --tests 'com.skohscripts.kairos.core.sync.SyncRepairTest'
-          --tests 'com.skohscripts.kairos.core.sync.SyncSummaryTest'
-          --tests 'com.skohscripts.kairos.core.sync.SyncOrderTest'
-
-      - name: Builds (bureau, web)
-        run: >
-          ./gradlew --no-daemon
-          :desktopApp:createDistributable
-          :webApp:wasmJsBrowserDistribution
+      - name: ${{ matrix.name }}
+        env:
+          TASKS: ${{ matrix.tasks }}
+        run: ./gradlew --no-daemon $TASKS
 
       # L'application empaquetée démarre réellement (docs/spec/distribution.md § Auto-test).
       - name: Auto-test de l'application de bureau empaquetée
+        if: matrix.selftest
         run: |
           app_dir=$(ls -d desktopApp/build/compose/binaries/main/app/*/ | head -1)
           name=$(basename "$app_dir")
           KAIROS_DATA_DIR="$RUNNER_TEMP/kairos-data" "$app_dir/bin/$name" --self-test="$RUNNER_TEMP/screens"
 
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && matrix.selftest
         with:
           name: kmp-ci-screens
           path: ${{ runner.temp }}/screens

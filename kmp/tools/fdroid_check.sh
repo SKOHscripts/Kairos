@@ -11,8 +11,8 @@
 # 1. `fdroid lint` et `fdroid rewritemeta` (forme canonique) sur la recette publiée
 #    (fdroid/com.skohscripts.kairos.yml) ;
 # 2. `fdroid build` d'une copie de la recette pointée sur le commit courant et la
-#    version de kmp/gradle.properties, identifiant définitif forcé
-#    (-Pkairos.preview=false) : l'APK non signé est écrit dans $OUT ;
+#    version de kmp/gradle.properties (même identifiant pour une beta depuis la 4.2.0) :
+#    l'APK non signé est écrit dans $OUT ;
 # 3. avec --binaries (tag d'une version finale) : la recette garde `Binaries`,
 #    et `fdroid build` compare lui-même l'APK reconstruit à l'APK publié sur
 #    GitHub (signature recopiée par apksigcopier) : c'est la preuve de
@@ -79,8 +79,8 @@ build = recipe["Builds"][-1]
 build["versionName"] = name
 build["versionCode"] = int(code)
 build["commit"] = commit
-# Une bêta porte l'identifiant « .preview » ; la recette construit le définitif.
-build["gradleprops"] = ["kairos.preview=false"]
+# Plus de propriété « kairos.preview » : une beta porte le même identifiant depuis la 4.2.0 (distribution.md § Décisions).
+build.pop("gradleprops", None)
 recipe["Builds"] = [build]
 recipe["Repo"] = repo
 recipe["CurrentVersion"] = name
