@@ -126,6 +126,7 @@ asynchrone de la base).
 | `make_app_icons.py` | `desktopApp/icons/kairos.{png,ico,icns}`, favicon et icônes de `webApp`, icônes des fiches Fastlane (512 px) et de la page `site/`. | Pillow |
 | `validate_fastlane.py` | Vérifie les fiches `fastlane/metadata/android/` (`publication.md`). | aucune |
 | `fdroid_check.sh` | `fdroid lint` et `fdroid build` de la recette dans l'image des serveurs F-Droid (`publication.md`). | Docker, image `fdroidserver:buildserver` |
+| `make_code_map.py` | Carte du code (`carte-du-code.md`) : index Markdown pour Claude Code (`--index`), page `/code/` du site publiée par `pages.yml` (`--html`). Rien de versionné. | aucune |
 
 Les fichiers d'or des tests du moteur (`core/src/jvmTest/resources/fixtures/` :
 `scheduling.json`, `dependencies.json`, `calendar.json`, `stats.json`) sont
