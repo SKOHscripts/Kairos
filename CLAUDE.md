@@ -113,7 +113,9 @@ bureau Windows/Linux/macOS (JVM), web (Kotlin/Wasm).
   `docs/spec/distribution.md` § Cycle des versions). Cycle (2026-11-15) : mineures
   au fil de l'eau, en finale dès qu'une ou quelques fonctionnalités sont prêtes ;
   des betas `X.Y.0-beta.N` seulement pour un chantier risqué ; `main` porte
-  toujours la prochaine version (juste après une finale, la mineure suivante). Chaque version **finale**
+  toujours la prochaine version (juste après une finale, la mineure suivante,
+  par une PR que « Kairos tag » ouvre ; « Kairos version » dit à chaque PR la
+  version attendue, `kmp/tools/next_version.py`). Chaque version **finale**
   a sa note de version Fastlane dans les six langues
   (`fastlane/metadata/android/*/changelogs/<versionCode>.txt`, `ReleaseNotesTest`) ;
   une beta n'en a pas. Le tag se pose depuis l'onglet Actions (« Kairos tag »,
