@@ -34,7 +34,39 @@ main, header, footer { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
 header { display: flex; align-items: center; gap: 12px; padding-top: 24px; flex-wrap: wrap; }
 header img { width: 48px; height: 48px; }
 header .name { font-size: 28px; font-weight: 500; }
-header nav { margin-left: auto; font-size: 14px; }
+header nav.langs { margin-left: auto; font-size: 14px; }
+
+/* Menu du site (docs/spec/publication.md § Menu du site) : une rangée de liens à 720 px et plus, un bouton « Menu »
+   (details/summary, sans JavaScript) en dessous. L'entrée de la page affichée porte aria-current. */
+.menu { display: flex; flex-wrap: wrap; column-gap: 20px; margin-left: 16px; font-size: 14px; font-weight: 500; }
+.menu a, .menu-narrow nav a {
+  display: inline-flex; align-items: center; min-height: 48px;
+  color: var(--md-on-surface-variant); text-decoration: none;
+}
+.menu a:hover, .menu-narrow nav a:hover { color: var(--md-primary); }
+.menu a[aria-current="page"] { color: var(--md-on-surface); box-shadow: inset 0 -2px 0 var(--md-primary); }
+.menu a:focus-visible, .menu-narrow a:focus-visible, .menu-narrow summary:focus-visible { outline: 3px solid var(--md-primary); outline-offset: 2px; }
+.menu-narrow { display: none; position: relative; }
+.menu-narrow summary {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px 0 12px;
+  border: 1px solid var(--md-outline-variant); border-radius: 24px; cursor: pointer;
+  font-size: 14px; font-weight: 500; list-style: none;
+}
+.menu-narrow summary::-webkit-details-marker { display: none; }
+.menu-narrow summary svg { fill: currentColor; }
+/* La liste dépliée flotte sous le bouton : seul élément flottant de l'en-tête, il porte une ombre (charte). */
+.menu-narrow nav {
+  position: absolute; right: 0; top: 56px; z-index: 10; min-width: 240px; padding: 8px 0;
+  display: flex; flex-direction: column;
+  background: var(--md-surface-container-low); border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.menu-narrow nav a { padding: 0 16px; font-size: 14px; }
+.menu-narrow nav a[aria-current="page"] { color: var(--md-on-surface); background: var(--md-secondary-container); }
+@media (max-width: 719px) {
+  .menu { display: none; }
+  .menu-narrow { display: block; margin-left: auto; }
+  header nav.langs { flex-basis: 100%; margin-left: 0; }
+}
 
 .notice {
   margin: 16px 0 0;

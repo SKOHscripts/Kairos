@@ -85,6 +85,8 @@ jobs:
             dl="$base"
           fi
           echo "Téléchargements : $dl ; web : $web"
+          # La carte du code (étape suivante) reçoit la même entrée « Version web » du menu (docs/spec/publication.md § Menu).
+          echo "KAIROS_WEB=$web" >> "$GITHUB_ENV"
           # Substitution sans interprétation des caractères spéciaux (& / \) du remplacement. Une page par langue
           # (docs/spec/i18n.md) : le français à la racine, les autres dans leur dossier ; les captures sont celles de en-US.
           DL="$dl" WEB="$web" PREVIEW="$preview" python3 - "$out" <<'PY'
@@ -108,11 +110,17 @@ jobs:
                   text = text.replace(key, value)
               assert "@@" not in text, f"marqueur non remplacé dans {path}"
               open(path, "w", encoding="utf-8").write(text)
+          # Pages « histoire » : seule l'entrée « Version web » du menu porte un marqueur.
+          for name in ("histoire/index.html", "en/story/index.html"):
+              path = os.path.join(sys.argv[1], name)
+              text = open(path, encoding="utf-8").read().replace("@@WEB@@", os.environ["WEB"])
+              assert "@@" not in text, f"marqueur non remplacé dans {path}"
+              open(path, "w", encoding="utf-8").write(text)
           PY
       # Carte du code (docs/spec/carte-du-code.md) : paquets, fichiers, dépendances et specs, régénérée à chaque publication.
       # Elle lit aussi androidApp et desktopApp : une modification de ces seuls modules attend la prochaine publication.
       - name: Carte du code
-        run: python3 kmp/tools/make_code_map.py --html "$RUNNER_TEMP/site/code/index.html" --stamp "$GITHUB_SHA"
+        run: python3 kmp/tools/make_code_map.py --html "$RUNNER_TEMP/site/code/index.html" --stamp "$GITHUB_SHA" --web "$KAIROS_WEB"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ runner.temp }}/site
