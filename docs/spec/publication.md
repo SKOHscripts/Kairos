@@ -316,6 +316,25 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   pas de traduction d'un récit à la première personne tant que le propriétaire ne la valide pas. Les validateurs
   (`validate_og.py`, `validate_badges.py`) ne lisent que les `index.html` de langue : ces pages n'en dépendent pas.
   Les README ne gardent qu'un court résumé et le lien (section « Pourquoi j'ai construit Kairos »).
+- **Menu du site (2026-11-15, demande du propriétaire)** : toutes les pages du site (les six pages de téléchargement, les
+  deux pages « histoire » et la carte du code `code/`) portent dans leur en-tête le même menu, dans la langue de la page,
+  à côté du sélecteur de langue qui ne change pas. Six entrées, dans cet ordre : **Télécharger** (la page de
+  téléchargement de la langue), **Histoire** (la page « histoire » de la langue ; en espagnol, allemand, russe et italien,
+  la page anglaise, libellé suivi de la langue, `hreflang="en"`), **Version web** (`app/`, ou `preview/` tant qu'aucune
+  version stable n'existe : le marqueur `@@WEB@@` que `pages.yml` remplace, aussi dans les pages « histoire » ; la carte
+  du code le reçoit par `--web`), **Carte du code** (`code/`), **Code source** (le dépôt GitHub), **Soutenir** (la page de
+  don, la même que l'application, `soutien.md`). L'entrée de la page affichée porte `aria-current="page"`.
+  - Forme : à 720 px et plus, une rangée de liens dans l'en-tête ; en dessous, un **bouton « Menu »** (icône Material
+    Symbols `menu`, SVG en ligne) qui déplie la liste (`<details>` / `<summary>`), sans JavaScript, comme le reste du
+    site. Les deux formes sont dans la page, l'une cachée par CSS selon la largeur ; cibles de 48 px.
+  - Libellés : FR Télécharger, Histoire, Version web, Carte du code, Code source, Soutenir ; EN Download, Story, Web
+    version, Code map, Source code, Support ; ES Descargar, Historia (en inglés), Versión web, Mapa del código, Código
+    fuente, Apoyar ; DE Herunterladen, Geschichte (auf Englisch), Webversion, Code-Karte, Quellcode, Unterstützen ; RU
+    Скачать, История (на английском), Веб-версия, Карта кода, Исходный код, Поддержать ; IT Scarica, Storia (in
+    inglese), Versione web, Mappa del codice, Codice sorgente, Sostieni. La carte du code est en anglais.
+  - `kmp/tools/validate_menu.py` (lancé par `metadata.yml`) vérifie que chaque page versionnée porte les six entrées, dans
+    l'ordre, avec la bonne cible et la bonne entrée courante, dans ses deux formes ; `test_make_code_map.py` vérifie le
+    menu de la carte du code.
 - `site/index.html` (français), `site/en/`, `site/es/`, `site/de/`, `site/ru/` et `site/it/` (`index.html` chacun, 3.11.0),
   versionnés ; chaque page relie les cinq autres (`<nav>`, `hreflang`) et affiche les captures de `screens/en/`,
   en HTML et CSS seuls (`style.css`) ; `os.js` (facultatif) ajoute `current`
