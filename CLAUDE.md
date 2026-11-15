@@ -55,6 +55,15 @@ quatre étapes ci-dessous, dans cet ordre.
   citée par les specs de domaine plutôt que dupliquée.
 - `docs/plan-v3-kotlin.md` garde l'historique des décisions de la réécriture.
 
+## Carte du code
+
+Avant de parcourir le code pour situer une fonctionnalité, lancer
+`python3 kmp/tools/make_code_map.py --index <filtre>` (filtre : un bout de nom de paquet ou de chemin, par exemple
+`guide`, `core/stats`, `team.forecast`) : paquets, fichiers, déclarations de premier niveau, dépendances et specs qui
+les citent, en quelques centaines de lignes. Sans filtre, l'index entier est long (~70 Ko) : filtrer. La même source
+publie la page `https://skohscripts.github.io/Kairos/code/` (`docs/spec/carte-du-code.md`). Un fichier marqué
+« sans spec » est une piste pour la bijectivité.
+
 ## Skills du dépôt (`.claude/skills/`)
 
 - `kairos-spec` : le workflow ci-dessus, pas à pas (gabarit de spec,

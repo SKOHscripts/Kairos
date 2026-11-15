@@ -878,6 +878,8 @@ cd kmp
 
 - Architecture, modules et décisions : [`docs/spec/architecture.md`](docs/spec/architecture.md) ;
   une spécification par domaine dans [`docs/spec/`](docs/spec/README.md).
+- Carte du code, régénérée depuis `main` : paquets, fichiers, dépendances et
+  specs qui les décrivent, sur [skohscripts.github.io/Kairos/code](https://skohscripts.github.io/Kairos/code/).
 - Charte graphique (Material Design 3, thème « océan ») :
   [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 - Versions, releases et paquets : [`docs/spec/distribution.md`](docs/spec/distribution.md) ;

@@ -3,12 +3,13 @@
 _Rôle : répondre aux questions de délai avec leur incertitude, par
 simulation : quand ce lot sera-t-il fini, quelles échéances sont en danger
 et avec quelle probabilité, quelle est l'issue la plus probable, et que
-changerait tel ou tel scénario. Fichiers prévus :
+changerait tel ou tel scénario. Fichiers couverts :
 `kmp/core/.../core/team/forecast/` (`MonteCarlo.kt`, `ThroughputModel.kt`,
 `EffortModel.kt`, `ForecastData.kt`, `Percentiles.kt`, `Scenario.kt`,
-`ForecastResult.kt`), `kmp/data/` (table `team_scenario`),
+`ForecastResult.kt`, `ForecastRandom.kt`), `kmp/data/` (table `team_scenario`),
 `kmp/ui/.../team/forecast/` (`ForecastScreen.kt`, `Histogram.kt`,
-`ScenarioEditor.kt`, `ScenarioComparison.kt`). S'appuie sur le plan de
+`ScenarioEditor.kt`, `ScenarioComparison.kt`, `ForecastController.kt` et `ForecastState.kt` : § Exécution,
+`ModificationDialog.kt` : modifications d'un scénario). S'appuie sur le plan de
 charge de `equipe-charge.md`. Skill Claude Code associée :
 `.claude/skills/kairos-monte-carlo/`._
 

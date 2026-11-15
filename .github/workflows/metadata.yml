@@ -26,5 +26,7 @@ jobs:
       - run: python3 kmp/tools/validate_fastlane.py
       - run: python3 kmp/tools/validate_badges.py
       - run: python3 kmp/tools/validate_og.py
+      # Menu du site (docs/spec/publication.md § Menu du site).
+      - run: python3 kmp/tools/validate_menu.py
       # Règle de nettoyage des artefacts (artifacts-cleanup.yml).
       - run: python3 -m unittest discover -s kmp/tools -p 'test_*.py'

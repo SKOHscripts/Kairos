@@ -4,7 +4,7 @@ _Rôle : l'identité visuelle (thème MD3 « océan », typographie, icônes, lo
 et la coquille commune à tous les écrans (navigation principale, barre
 d'application, retour), plus l'écran « À propos et guide ». Fichiers couverts :
 `kmp/ui/src/commonMain/kotlin/com/skohscripts/kairos/ui/` (`KairosApp.kt`,
-`Platform.kt`, `theme/`, `icons/`, `navigation/`, `screens/`), les polices de
+`Platform.kt`, `theme/`, `icons/`, `navigation/` (dont `Destination.kt` et `NavigationLayout.kt`), `screens/`), les polices de
 `composeResources/font/`, `kmp/tools/make_theme.py`, `kmp/tools/make_icons.py`.
 Les valeurs de la charte (rôles, formes, « où va la couleur ») viennent de
 [`docs/DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md), cité ici plutôt que recopié._

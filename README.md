@@ -830,6 +830,8 @@ The design and contribution documents are written in French.
 
 - Architecture, modules and decisions: [`docs/spec/architecture.md`](docs/spec/architecture.md);
   one specification per domain in [`docs/spec/`](docs/spec/README.md).
+- Code map, regenerated from `main`: packages, files, dependencies and the specs
+  that describe them, on [skohscripts.github.io/Kairos/code](https://skohscripts.github.io/Kairos/code/).
 - Visual identity (Material Design 3, "ocean" theme):
   [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 - Versions, releases and packages: [`docs/spec/distribution.md`](docs/spec/distribution.md);
