@@ -24,7 +24,7 @@ on:
   # La release créée par kmp-release.yml (jeton GITHUB_TOKEN) ne déclenche pas
   # l'événement `release` ci-dessus : on suit la fin de ce workflow.
   workflow_run:
-    workflows: ["Kairos 3 release"]
+    workflows: ["Kairos release"]
     types: [completed]
   workflow_dispatch:
 
@@ -39,6 +39,9 @@ concurrency:
 
 jobs:
   build:
+    # Après « Kairos release », seulement la release d'un tag poussé : un build de test (lancement manuel) ne change pas
+    # la page, et une release lancée par « Kairos tag » relance Pages elle-même (job follow-up).
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

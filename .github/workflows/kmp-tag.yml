@@ -104,7 +104,7 @@ jobs:
           gh workflow run kmp-release.yml --ref "v$NAME"
           {
             echo "### Kairos $NAME"
-            echo "Tag \`v$NAME\` posé sur \`$SHA\`, release lancée (onglet Actions, « Kairos 3 release »)."
+            echo "Tag \`v$NAME\` posé sur \`$SHA\`, release lancée (onglet Actions, « Kairos release »)."
             if [[ "$NAME" == *-* ]]; then echo "Préversion : ni F-Droid, ni AUR, ni vérification des mises à jour des versions stables."; fi
           } >> "$GITHUB_STEP_SUMMARY"
       # Après une finale, main passe à la mineure suivante par une PR (docs/spec/distribution.md § Version attendue). Le
@@ -127,7 +127,7 @@ jobs:
           git push origin "$branch"
           gh pr create --base main --head "$branch" --title "chore(version): set $next" --body "Kairos $NAME is tagged: main moves to the next minor, $next (docs/spec/distribution.md § Cycle des versions). For risky work, change it to \`$next-beta.1\` before merging (\`python3 kmp/tools/set_version.py $next-beta.1\`)."
           # Une PR ouverte avec le jeton du workflow ne déclenche aucun workflow : on lance ses contrôles.
-          for workflow in kmp.yml metadata.yml version.yml; do gh workflow run "$workflow" --ref "$branch"; done
+          for workflow in kmp.yml metadata.yml fdroid-check.yml; do gh workflow run "$workflow" --ref "$branch"; done
           echo "PR ouverte : \`$branch\` → main ($next)." >> "$GITHUB_STEP_SUMMARY"
       - name: Après une beta
         if: ${{ contains(steps.check.outputs.name, '-') }}
