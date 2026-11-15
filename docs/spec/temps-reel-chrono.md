@@ -19,7 +19,7 @@ la section « Alertes du chrono » des Réglages (`reglages.md`), et par platefo
 État : **jalon M3** ; garde-fou du chrono (arrêt automatique) ajouté le 2026-11-06 (issue #220, 4.1.0) ; notifications
 fiabilisées le 2026-11-06 (issue #219 : notification immédiate application ouverte sur Android, alarmes exactes quand
 elles sont accordées, économie d'énergie signalée, `notify-send` sous Linux). Sans serveur : la notification d'alerte est la notification
-native de chaque plateforme (issue #34). Cloches du pomodoro le 2026-11-09 (issue #234, 4.2.0).
+native de chaque plateforme (issue #34). Cloches du pomodoro le 2026-11-09 (issue #234, livrées en 4.1.0 : prévues pour la 4.2.0, fusionnées pendant les betas de la 4.1).
 L'ancienneté (« traîne depuis ») et le bandeau de surcharge sont décrits par
 `ordonnancement.md`.
 
@@ -119,7 +119,7 @@ oublié » ne sonne qu'une fois.
   suivante, toujours à l'instant limite.
 - Les alertes de la session (dépassement, oubli, pause) ne sonnent plus au-delà de la limite : la session est close.
 
-### Cloches (issue #234, 4.2.0)
+### Cloches (issue #234, 4.1.0)
 
 - Les notifications du chrono sortent maintenant à l'heure (#219) ; il leur manquait un **son** pour en faire un vrai
   pomodoro. L'interrupteur « Son » des Réglages ne servait qu'en dernier recours (un bip quand aucune notification ne
@@ -329,7 +329,7 @@ compterait sans fin et ferait sonner les alertes (QA du 2026-11-04,
   `timerAlertSound` ; chaînes réécrites `settings_chrono_body`, `settings_pomodoro`, `settings_sound`, ajoutées
   `settings_pomodoro_help`, `settings_idle_help`, `settings_sound_help`, `notif_channel_bell_single`,
   `notif_channel_bell_double`, dans les six langues.
-- Catalogue : carte `chrono_bells` (chapitre « Suivre », 4.2.0, toutes plateformes, ouvre la carte « Alertes du chrono »),
+- Catalogue : carte `chrono_bells` (chapitre « Suivre », 4.1.0, toutes plateformes, ouvre la carte « Alertes du chrono »),
   puce « Pomodoro bells » du README, lignes des deux tableaux, en anglais et en français.
 
 ### Android

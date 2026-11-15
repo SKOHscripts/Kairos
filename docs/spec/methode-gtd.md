@@ -7,7 +7,7 @@ pour qui ne la connaît pas. Fichiers couverts : `kmp/ui/.../guide/Gtd.kt` (`Gtd
 `kmp/ui/.../guide/HelpDialog.kt` et `kmp/ui/.../navigation/AppShell.kt` (entrée du « ? »), `kmp/ui/.../guide/FeatureCatalog.kt`
 (carte `gtd`). Tests : `GtdUiTest` (desktopApp), `FeatureCatalogTest`, `StringsParityTest`, `ComponentDensityTest`._
 
-État : issue #235 (4.2.0), spécifiée et implémentée le 2026-11-10.
+État : issue #235, spécifiée et implémentée le 2026-11-10, livrée en 4.1.0 (prévue pour la 4.2.0, fusionnée pendant les betas de la 4.1 ; carte passée en 4.1.0 le 2026-11-15, choix du propriétaire).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -46,7 +46,7 @@ l'écran Notes ne dit pas qu'il est l'étape « capturer », et la méthode n'es
   dès que tout ne tient pas ; « Fermer » le ferme.
 - **Aide « ? »** de l'espace Perso : une entrée « La méthode GTD » (« Les cinq étapes et où elles sont dans Kairos »), qui
   ferme l'aide et ouvre le dialogue. Pas dans l'espace Équipe, qui ne suit pas le cycle GTD personnel.
-- Catalogue : une carte « La méthode GTD » (chapitre « Premiers pas », 4.2.0), qui ouvre l'écran Notes.
+- Catalogue : une carte « La méthode GTD » (chapitre « Premiers pas », 4.1.0), qui ouvre l'écran Notes.
 
 ### Critères de succès
 
@@ -91,7 +91,7 @@ l'écran Notes ne dit pas qu'il est l'étape « capturer », et la méthode n'es
 - `HelpDialog(…, onGtd)` : entrée `HelpEntry(Help, gtd_open, gtd_open_hint)` après « Découvrir Kairos », seulement si
   `!team` ; `AppShell` ferme l'aide puis ouvre `GtdDialog`.
 - Catalogue : `FeatureCard("gtd", FIRST_STEPS, Help, card_gtd_title, card_gtd_body, GuideTarget.Personal(Destination.NOTES),
-  since = "4.2.0")`, placée après `capture` ; puce « GTD explained » du README, lignes des tableaux, en anglais et en
+  since = "4.1.0")`, placée après `capture` ; puce « GTD explained » du README, lignes des tableaux, en anglais et en
   français. Notes n'a pas de `GuideSection` : la carte ouvre l'écran sans repère.
 
 ### Décisions
