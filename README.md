@@ -668,7 +668,7 @@ version that brought it and the platforms it exists on.
 | Chapter | Feature | Since | Platforms |
 |---|---|---|---|
 | First steps | Capture without thinking | 3.0.0 | All |
-| First steps | The GTD method in Kairos | 4.2.0 | All |
+| First steps | The GTD method in Kairos | 4.1.0 | All |
 | First steps | Keyboard shortcuts | 3.0.0 | Desktop, Web |
 | First steps | Qualify in one click | 3.0.0 | All |
 | First steps | Do things in order | 3.0.0 | All |
@@ -693,7 +693,7 @@ version that brought it and the platforms it exists on.
 | Follow | Track time | 3.0.0 | All |
 | Follow | Three timer alerts | 3.0.0 | All |
 | Follow | Timer guard | 4.1.0 | All |
-| Follow | Pomodoro bells | 4.2.0 | All |
+| Follow | Pomodoro bells | 4.1.0 | All |
 | Follow | Learned durations | 3.4.0 | All |
 | Follow | Machine-learning estimates | 4.0.0 | All |
 | Follow | Likely finish date | 4.1.0 | All |

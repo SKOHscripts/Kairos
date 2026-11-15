@@ -716,7 +716,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Chapitre | Fonctionnalité | Depuis | Plateformes |
 |---|---|---|---|
 | Premiers pas | Capturer sans réfléchir | 3.0.0 | Toutes |
-| Premiers pas | La méthode GTD dans Kairos | 4.2.0 | Toutes |
+| Premiers pas | La méthode GTD dans Kairos | 4.1.0 | Toutes |
 | Premiers pas | Raccourcis clavier | 3.0.0 | Bureau, Web |
 | Premiers pas | Qualifier en un clic | 3.0.0 | Toutes |
 | Premiers pas | Faire dans l’ordre | 3.0.0 | Toutes |
@@ -741,7 +741,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Suivre le temps | 3.0.0 | Toutes |
 | Suivre | Trois alertes du chrono | 3.0.0 | Toutes |
 | Suivre | Garde-fou du chrono | 4.1.0 | Toutes |
-| Suivre | Cloches du pomodoro | 4.2.0 | Toutes |
+| Suivre | Cloches du pomodoro | 4.1.0 | Toutes |
 | Suivre | Durées apprises | 3.4.0 | Toutes |
 | Suivre | Estimation par machine learning | 4.0.0 | Toutes |
 | Suivre | Fin probable d’une tâche | 4.1.0 | Toutes |
