@@ -1,7 +1,7 @@
 """Version que `main` doit porter (docs/spec/distribution.md § Version attendue).
 
     python3 kmp/tools/next_version.py           # résumé, code 0
-    python3 kmp/tools/next_version.py --check   # code 1 si la version de main est trop basse (CI, « Kairos version »)
+    python3 kmp/tools/next_version.py --check   # code 1 si la version de main est trop basse (CI : job version de « Kairos checks »)
 
 Lit la dernière finale (plus haut tag vX.Y.Z), ce qui a été fusionné depuis (cartes du catalogue, format du fichier,
 commits) et la version déclarée dans kmp/gradle.properties. Sans dépendance ; a besoin des tags (fetch-depth: 0 en CI).
@@ -178,7 +178,7 @@ def main(argv: list[str]) -> int:
     for kind, messages in (("error", report.errors), ("warning", report.warnings), ("notice", report.notices)):
         for message in messages:
             print(f"::{kind}::{message}" if actions else f"{kind} : {message}")
-    summary = ["### Kairos version", *report.lines,
+    summary = ["### Version attendue", *report.lines,
                *(f"- ❌ {m}" for m in report.errors), *(f"- ⚠️ {m}" for m in report.warnings),
                *(f"- {m}" for m in report.notices)]
     path = os.environ.get("GITHUB_STEP_SUMMARY")
