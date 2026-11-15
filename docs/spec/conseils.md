@@ -13,10 +13,8 @@ langues. Tests : `TipsTest`, `TipsPacingTest`, `TipsIsolationTest` (`core`), `Ka
 (`data`), `TipsCatalogTest`, `FeatureCatalogTest`, `StringsParityTest` (`ui`), `TipDialogUiTest`, `DemoStepsTest`
 (`desktopApp`)._
 
-État : issue #221 (jalon 4.2.0), spécifiée le 2026-11-15, **implémentation en cours** : sélecteur, mémoire, interface,
-textes, carte, README, test d'interface, report des impacts et captures de l'auto-test faits le 2026-11-15 ; restent à
-regarder les captures rendues (`desktop-tip.png`, `desktop-tip-narrow.png`, `desktop-settings-about-narrow.png`), puis
-l'état « implémentée » avec la 4.2.0.
+État : issue #221, spécifiée le 2026-11-15, **implémentée en 4.2.0** (PR #245). Périmètre décidé par le propriétaire le
+2026-11-15 : espaces Perso **et** Équipe. Points ouverts tranchés par le propriétaire le 2026-11-15 (§ Décisions validées).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -311,5 +309,4 @@ Reportés dans `visite-guidee.md` (mémoire, `resetGuide`, cibles, sections, car
 `export-import.md` (`lastExport`), `widgets-android.md` et `architecture.md` (`WidgetProbe`, `AppServices.tips`),
 `vue-jour.md` (premier raccourci), `equipe.md` (isolation), `i18n.md` (textes sans pluriel), `navigation-theme.md`
 (`Lightbulb`), `liste-fonctionnalites.md` (concordance), `distribution.md` (captures `desktop-tip.png` et
-`desktop-tip-narrow.png` de l'auto-test), README. Restent l'état « implémentée en 4.2.0 » ici et dans l'index, et les
-notes de version avec la 4.2.0 finale.
+`desktop-tip-narrow.png` de l'auto-test), README. Restent les notes de version, avec la 4.2.0 finale.
