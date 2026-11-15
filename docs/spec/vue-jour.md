@@ -207,7 +207,9 @@ tête. Changer de destination ramène à aujourd'hui.
 **Raccourcis clavier** (bureau et web ; indiqués à côté de leur contrôle,
 masqués sur Android) : `N` met le curseur dans la capture de tâche (en
 revenant au volet « Tâche »), `/` ouvre la recherche et y met le curseur.
-Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt.
+Inactifs pendant une saisie et avec Ctrl, Cmd ou Alt. Le premier raccourci utilisé est retenu
+(`Tips.seen(SCREEN_SHORTCUT)`, mémoire du guide, 4.2.0) : le conseil « Les raccourcis clavier » ne vient plus
+(`conseils.md`).
 
 ### Critères de succès
 

@@ -619,6 +619,15 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   issue préremplie sur GitHub, dans ton navigateur, avec la version de Kairos et
   ta plateforme déjà indiquées ; il reste à te connecter à GitHub et à
   l’envoyer. Kairos n’envoie rien lui-même.
+- **Des conseils au bon moment** : de temps en temps, et seulement quand c’est
+  utile, Kairos te propose une chose à regarder, avec tes chiffres : tes
+  statistiques une fois assez de tâches chronométrées, un réglage (horaires,
+  rappels, thème sombre…) ou une fonctionnalité pas encore essayée, et dans
+  l’espace Équipe un membre surchargé ou des tâches à surveiller. « Montre-moi »
+  t’emmène à l’endroit, « Plus tard » le ramène dans deux semaines, « Ne plus me
+  le proposer » l’écarte. Jamais plus d’un par jour et de deux par semaine, rien
+  les trois premiers jours, jamais pendant un chrono, une visite ou un autre
+  dialogue ; l’interrupteur « Conseils » de Réglages → À propos les coupe.
 
 ### Gestion d’équipe (facultative)
 
@@ -717,6 +726,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Premiers pas | Le guide retient et montre l’endroit | 3.7.0 | Toutes |
 | Premiers pas | Récurrente et Réglages pas à pas | 3.9.0 | Toutes |
 | Premiers pas | Donner un avis | 4.1.0 | Toutes |
+| Premiers pas | Des conseils au bon moment | 4.2.0 | Toutes |
 | Planifier | Priorité, points et estimation | 3.0.0 | Toutes |
 | Planifier | Conseil de découpage | 4.1.0 | Toutes |
 | Planifier | Noms des niveaux | 3.9.0 | Toutes |
@@ -884,8 +894,10 @@ cd kmp
 - [AlternativeTo](https://alternativeto.net/software/kairos-by-skohstripts/about/) : la fiche de Kairos, pour la noter ou la proposer
   comme alternative à une autre application.
 - [r/foss](https://www.reddit.com/r/foss/comments/1xiohaj/kairos_a_foss_task_manager_that_schedules_your/) : post de présentation (octobre 2026, en anglais).
-
-- [whatwemade](https://www.whatwemade.app/p/kairos) : article de présentation
+- [WhatWeMade](https://www.whatwemade.app/p/kairos) : article de présentation (en anglais).
+- [open-source-android-apps](https://github.com/pcqpcq/open-source-android-apps/blob/master/categories/productivity.md) : liste d’applications Android libres, catégorie Productivity (en anglais).
+- [awesome-mac](https://github.com/jaywcjlove/awesome-mac#to-do-lists) : liste d’applications macOS, catégorie To-Do Lists (en anglais).
+- [awesome-open-source-saas-alternatives](https://github.com/Anil-matcha/awesome-open-source-saas-alternatives) : alternatives libres aux services en ligne payants, comme alternative à Todoist (en anglais).
 
 ## Licence
 

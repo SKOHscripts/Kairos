@@ -39,7 +39,8 @@ enum class GuideKind { PERSONAL, TEAM }
  * espaces) sans changer d'espace. [section] : l'endroit de l'écran à montrer (docs/spec/visite-guidee.md, issue #95).
  */
 sealed interface GuideTarget {
-    data class Personal(val destination: Destination, val section: GuideSection? = null) : GuideTarget
+    /** [weeksBack] : le Bilan s'ouvre sur une semaine passée (conseil « Ta semaine passée », docs/spec/conseils.md). */
+    data class Personal(val destination: Destination, val section: GuideSection? = null, val weeksBack: Int = 0) : GuideTarget
     data class Team(val destination: TeamDestination, val exchanges: Boolean = false) : GuideTarget
     data class Settings(val section: GuideSection? = null) : GuideTarget
 
@@ -51,6 +52,15 @@ sealed interface GuideTarget {
 
     /** Ouvre « Donner un avis » (docs/spec/retours.md) : ne change pas d'écran. */
     data object Feedback : GuideTarget
+
+    /** Lance « Créer ma première tâche récurrente » (docs/spec/premiere-tache.md, conseil `recurrence` de docs/spec/conseils.md). */
+    data object RecurringTask : GuideTarget
+
+    /**
+     * Ouvre une seule carte du catalogue dans le dialogue du guide (conseils `widgets` et `shortcuts`, docs/spec/conseils.md) :
+     * ce qu'elle décrit ne se règle pas dans Kairos (un widget se pose depuis le lanceur, un raccourci se tape).
+     */
+    data class Card(val id: String) : GuideTarget
 }
 
 /** Écran qui porte une [GuideSection]. */
@@ -82,7 +92,14 @@ enum class GuideSection(
     SETTINGS_DATA(GuideScreen.SETTINGS, SettingsCategory.DATA),
     SETTINGS_CHRONO(GuideScreen.SETTINGS, SettingsCategory.TRACKING),
     SETTINGS_REMINDERS(GuideScreen.SETTINGS, SettingsCategory.TRACKING),
+
+    /** Carte « Conseils » de « À propos » (docs/spec/conseils.md, carte `tips` du catalogue). */
+    SETTINGS_TIPS(GuideScreen.SETTINGS, SettingsCategory.ABOUT),
     STATS_HOURS(GuideScreen.STATS, missing = Res.string.guide_spot_missing_stats),
+
+    /** Calibration et « Corriger les estimations… » (conseils `stats_calibration` et `stats_correct`, docs/spec/conseils.md). */
+    STATS_CALIBRATION(GuideScreen.STATS, missing = Res.string.guide_spot_missing_stats),
+    STATS_CORRECT(GuideScreen.STATS, missing = Res.string.guide_spot_missing_stats),
 }
 
 /**

@@ -28,6 +28,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -50,6 +51,7 @@ import com.skohscripts.kairos.core.team.TeamWork
 import com.skohscripts.kairos.core.team.forecast.ForecastModel
 import com.skohscripts.kairos.core.team.forecast.ForecastScope
 import com.skohscripts.kairos.core.team.forecast.MonteCarlo
+import com.skohscripts.kairos.core.guide.Tips
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.expandedState
 import com.skohscripts.kairos.ui.app.heading
@@ -101,6 +103,8 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 fun ForecastScreen(services: AppServices) {
+    // Première ouverture retenue (conseil « Les prévisions », docs/spec/conseils.md).
+    LaunchedEffect(Unit) { services.repository.updateGuide { Tips.seen(it, Tips.SCREEN_TEAM_FORECAST) } }
     val ui = services.teamUi
     val base by services.repository.snapshot.collectAsState()
     // Calendriers du téléphone (Android) : ajoutés pour le calcul, jamais écrits (docs/spec/connexions-externes.md).

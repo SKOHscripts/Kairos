@@ -248,6 +248,10 @@ JSON UTF-8 indenté :
   § Précisions (étape 7)) ; une base qui ne synchronise pas les ignore.
 - Messages : snackbar de la coquille (`LocalMessages`).
 
+**Date du dernier export** (4.2.0, `conseils.md`) : après un export réussi, « Exporter » retient la date du jour dans la
+mémoire du guide (`lastExport`, propre à l'appareil), **après** l'écriture du fichier : l'export n'en porte donc pas la
+trace. Le conseil « Mets tes données à l'abri » ne vient pas à qui a exporté depuis moins de 90 jours.
+
 ### Fichiers et sauvegardes par plateforme
 
 | Plateforme | `FileService` | `BackupStore` |

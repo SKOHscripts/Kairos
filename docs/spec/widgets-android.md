@@ -160,6 +160,10 @@ l'heure passée.
 - **Base qui ne s'ouvre pas** : `renderUnavailable` dessine « Ouvrir Kairos » (disposition compacte, sans boutons) sur chaque widget ;
   un toucher ouvre l'application, qui affiche l'erreur. Jamais d'exception dans le lanceur.
 
+**Widget posé** (4.2.0, `conseils.md`) : `AndroidServices` fournit `AppServices.widgets` (`WidgetProbe`), vrai si
+`AppWidgetManager.getAppWidgetIds` rend au moins un widget pour `NowWidgetProvider` ou `DayWidgetProvider` (aucune
+permission). Lu par le conseil « Ta journée sur l'écran d'accueil » ; nul ailleurs et dans la démonstration.
+
 ### Actions (`WidgetActionReceiver`)
 
 - Des `PendingIntent.getBroadcast` **immuables** (`FLAG_IMMUTABLE`), composant explicite (`exported=false`), adresse

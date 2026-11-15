@@ -113,6 +113,8 @@ ICONS = {
     "SettingsBackupRestore": ("settings_backup_restore", False),
     # Guide : l'étiquette « Ici » de la section qu'une carte fait voir (docs/spec/visite-guidee.md, issue #95).
     "Spot": ("my_location", False),
+    # Conseils au bon moment (docs/spec/conseils.md, issue #221) : icône du dialogue et de la carte « Conseils ».
+    "Lightbulb": ("lightbulb", False),
     "TableView": ("table_view", False),
     "Image": ("image", False),
     "Flag": ("flag", False),

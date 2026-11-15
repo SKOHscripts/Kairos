@@ -238,6 +238,9 @@ Tant que l'espace Équipe n'a **jamais été activé** :
 - un **export** est octet pour octet celui qu'aurait produit la version
   d'avant, à `appVersion` et `exportedAt` près (même `formatVersion`,
   mêmes champs, réglages compris, § Export) ;
+- les **conseils** (4.2.0, `conseils.md`) ne lisent que les tâches propres de
+  l'espace Perso ; ceux de l'équipe ne sont évalués que dans l'espace Équipe
+  activé (`TipsIsolationTest`) ;
 - les données d'exemple d'une base neuve ne contiennent rien d'équipe ;
 - l'accueil au premier lancement ne parle pas d'équipe.
 

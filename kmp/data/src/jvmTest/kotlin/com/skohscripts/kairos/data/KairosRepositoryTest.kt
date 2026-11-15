@@ -25,6 +25,7 @@ import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import java.io.File
 import java.nio.file.Files
+import com.skohscripts.kairos.core.guide.Tips
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -185,6 +186,31 @@ class KairosRepositoryTest {
         // Un seul champ retenu : les autres ne sont pas écrits.
         val one = ExportCodec.encode(KairosSnapshot(settings = Settings(guide = GuideSettings(firstTaskDone = true))), "3.7.0", now)
         assertTrue("readChapters" !in one && "newsHidden" !in one)
+    }
+
+    @Test
+    fun tipsMemoryIsWrittenOnlyWhenUsed() = runTest {
+        // Conseils au bon moment (docs/spec/conseils.md § Mémoire) : rien d'écrit tant que le guide n'a rien retenu.
+        val repo = empty()
+        repo.updateGuide { Tips.seen(it, Tips.SCREEN_STATS) }
+        assertEquals(GuideSettings(seenScreens = listOf(Tips.SCREEN_STATS)), repo.snapshot.value.settings.guide)
+        // Un écran déjà retenu n'écrit rien de plus.
+        val before = repo.snapshot.value.settings
+        repo.updateGuide { Tips.seen(it, Tips.SCREEN_STATS) }
+        assertEquals(before, repo.snapshot.value.settings)
+        // « Revoir le guide depuis le début » efface les conseils retenus mais garde l'interrupteur (décision 5).
+        repo.updateGuide { it.copy(tipsOff = true, tipsDismissed = listOf("recap"), lastExport = "2026-11-01") }
+        repo.resetGuide()
+        assertEquals(GuideSettings(tipsOff = true), repo.snapshot.value.settings.guide)
+        // Rallumé, il n'y a plus rien à retenir : nul.
+        repo.updateGuide { it.copy(tipsOff = false) }
+        assertEquals(null, repo.snapshot.value.settings.guide)
+        // Les champs des conseils passent l'export et ne sont pas écrits à leur valeur par défaut.
+        val now = Instant.parse("2026-11-15T07:00:00Z")
+        val memory = Settings(guide = GuideSettings(tipsShown = listOf("2026-11-14"), tipsSnoozed = mapOf("recap" to "2026-11-28"), tipsDone = mapOf("stats_first" to "2026-11-10")))
+        assertEquals(memory, ExportCodec.decode(ExportCodec.encode(KairosSnapshot(settings = memory), "4.2.0", now)).settings)
+        val one = ExportCodec.encode(KairosSnapshot(settings = Settings(guide = GuideSettings(lastExport = "2026-11-01"))), "4.2.0", now)
+        assertTrue("tipsOff" !in one && "seenScreens" !in one && "tipsDismissed" !in one)
     }
 
     // --- Mois sautés (docs/spec/recurrence.md § Avis des mois sautés, issue #111) ----------------------------------------------

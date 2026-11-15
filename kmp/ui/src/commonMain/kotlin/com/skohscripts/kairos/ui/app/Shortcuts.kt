@@ -84,6 +84,15 @@ interface ShortcutService {
     fun decline()
 }
 
+/** Le bandeau du raccourci est-il affiché (même condition que [ShortcutBanner]) ? Les conseils attendent alors (docs/spec/conseils.md). */
+@Composable
+fun shortcutBannerVisible(services: AppServices): Boolean {
+    val shortcuts = services.shortcuts ?: return false
+    val status by shortcuts.status.collectAsState()
+    val declined by shortcuts.declined.collectAsState()
+    return status != ShortcutStatus.CREATED && !declined
+}
+
 /** Proposition de créer (ou mettre à jour) le raccourci, tant qu'il manque et qu'on n'a pas dit « Non merci ». */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

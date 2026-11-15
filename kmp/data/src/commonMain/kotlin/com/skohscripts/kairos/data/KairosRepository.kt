@@ -1577,8 +1577,11 @@ class KairosRepository(
         }
     }
 
-    /** Le guide repart du début : `guide` remis à nul (« Revoir le guide depuis le début »). */
-    suspend fun resetGuide() = updateGuide { GuideSettings() }
+    /**
+     * Le guide repart du début (« Revoir le guide depuis le début ») : tout ce qu'il a retenu est effacé, conseils compris, sauf
+     * l'interrupteur « Conseils » (docs/spec/conseils.md, décision 5) ; `guide` revient à nul s'il n'était pas coupé.
+     */
+    suspend fun resetGuide() = updateGuide { GuideSettings(tipsOff = it.tipsOff) }
 
     /** [settings] avec l'identité de l'équipe posée si elle manque (voir [updateSettings]). */
     @OptIn(ExperimentalUuidApi::class)

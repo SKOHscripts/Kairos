@@ -144,6 +144,11 @@ d'œil, détaillable à la demande.
   unique remplace les cinq cartes de temps vides (`statistiques.md` § Ordre et cartes vides).
 - Vue Jour : « Décaler » rejoint le menu « Déplacer… » de la ligne (`vue-jour.md` § Lisibilité de la ligne).
 
+**Conseils** (4.2.0, `conseils.md`) : la destination retient sa première ouverture, en semaine comme en mois
+(`Tips.seen(SCREEN_RECAP)` dans `DestinationScreen`), lue par le conseil `recap`. Le conseil « Ta semaine passée »
+(`week_review`) l'ouvre en semaine sur la semaine d'il y a sept jours (`GuideTarget.Personal(WEEK, weeksBack = 1)` :
+`nav.monthMode = false`, `nav.week` posé avant la navigation).
+
 ### Ce que Kairos apprend (`core/recap/ModelReview.kt`, `ui/recap/ModelCard.kt`)
 
 - `ModelReview.asOf(snapshot, instant)` : la base telle qu'elle était à `instant` pour le modèle : une tâche terminée

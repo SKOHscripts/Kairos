@@ -81,12 +81,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.skohscripts.kairos.core.guide.Tips
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.uiLanguage
 import com.skohscripts.kairos.ui.day.Dates
@@ -107,6 +109,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun StatsScreen(services: AppServices) {
     val snapshot by services.repository.personalSnapshot.collectAsState()
+    // Première ouverture retenue (conseil « Découvrir les statistiques », docs/spec/conseils.md) ; rien n'est écrit ensuite.
+    LaunchedEffect(Unit) { services.repository.updateGuide { Tips.seen(it, Tips.SCREEN_STATS) } }
     val timeZone = remember { TimeZone.currentSystemDefault() }
     val now = services.clock.now()
     val today = now.toLocalDateTime(timeZone).date
@@ -210,6 +214,8 @@ fun StatsScreen(services: AppServices) {
                 Text(stringResource(if (query.filter.active) Res.string.stats_empty_filtered else Res.string.stats_empty), style = MaterialTheme.typography.bodyLarge)
                 // Aucun panneau : une section demandée par le guide est absente, on le dit (issue #95).
                 MissingGuideSection(GuideSection.STATS_HOURS)
+                MissingGuideSection(GuideSection.STATS_CALIBRATION)
+                MissingGuideSection(GuideSection.STATS_CORRECT)
                 return@Column
             }
             // Sans aucun chrono, cinq cartes vides empilées : une seule carte dit ce que le chrono fera apparaître.
@@ -222,20 +228,37 @@ fun StatsScreen(services: AppServices) {
                             val body = if (query.filter.active) Res.string.stats_untimed_filtered else Res.string.stats_untimed_body
                             Panel(KairosIcons.Schedule, stringResource(Res.string.stats_untimed_title), stringResource(body)) {}
                         }
-                        CorrectionButtons(corrections.size, suspects.size, { correcting = true }, { checking = true })
+                        // La calibration est vide sans chrono : la section demandée par un conseil manque, on le dit.
+                        MissingGuideSection(GuideSection.STATS_CALIBRATION)
+                        SpottedCorrectionButtons(corrections.size, suspects.size, { correcting = true }, { checking = true })
                     }
                     return@forEach
                 }
-                if (card == StatsCard.HOURS) {
+                when (card) {
                     // Panneau que la carte « Quand tu travailles chaque type » fait voir (docs/spec/visite-guidee.md, issue #95).
-                    GuideSpot(GuideSection.STATS_HOURS) { StatsCardView(card, stats, hours, trends, language) }
-                } else {
-                    StatsCardView(card, stats, hours, trends, language)
+                    StatsCard.HOURS -> GuideSpot(GuideSection.STATS_HOURS) { StatsCardView(card, stats, hours, trends, language) }
+                    // Panneau que le conseil « Tes estimations tiennent-elles ? » fait voir (docs/spec/conseils.md).
+                    StatsCard.CALIBRATION -> GuideSpot(GuideSection.STATS_CALIBRATION) { StatsCardView(card, stats, hours, trends, language) }
+                    else -> StatsCardView(card, stats, hours, trends, language)
                 }
                 // Sous la carte, pas dedans : l'image exportée d'une carte ne montre pas de bouton.
-                if (card == StatsCard.CALIBRATION) CorrectionButtons(corrections.size, suspects.size, { correcting = true }, { checking = true })
+                if (card == StatsCard.CALIBRATION) SpottedCorrectionButtons(corrections.size, suspects.size, { correcting = true }, { checking = true })
             }
         }
+    }
+}
+
+/**
+ * Les boutons de correction, cible du conseil « Corriger les estimations » (docs/spec/conseils.md) : mis en valeur s'il y a des
+ * tâches à corriger, sinon la section manque et le message habituel le dit.
+ */
+@Composable
+private fun SpottedCorrectionButtons(corrections: Int, suspects: Int, onCorrect: () -> Unit, onCheck: () -> Unit) {
+    if (corrections == 0) {
+        MissingGuideSection(GuideSection.STATS_CORRECT)
+        CorrectionButtons(corrections, suspects, onCorrect, onCheck)
+    } else {
+        GuideSpot(GuideSection.STATS_CORRECT) { CorrectionButtons(corrections, suspects, onCorrect, onCheck) }
     }
 }
 

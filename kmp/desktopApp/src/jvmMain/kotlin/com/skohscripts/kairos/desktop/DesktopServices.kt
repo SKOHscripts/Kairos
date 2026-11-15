@@ -97,6 +97,8 @@ object DesktopServices {
                     openDemo(KairosStore.open(driver), lang, close = { driver.close() }, clock = clock)
                 }
             },
+            // Conseils au bon moment (docs/spec/conseils.md) : pas dans l'auto-test (base en mémoire), dont les captures sont figées.
+            tips = !inMemory,
         )
     }
 

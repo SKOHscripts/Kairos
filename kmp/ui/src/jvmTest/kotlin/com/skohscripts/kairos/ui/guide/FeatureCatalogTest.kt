@@ -5,6 +5,7 @@ import com.skohscripts.kairos.ui.Platform
 import com.skohscripts.kairos.ui.navigation.Destination
 import com.skohscripts.kairos.ui.navigation.TeamDestination
 import java.io.File
+import com.skohscripts.kairos.core.guide.TipId
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -183,9 +184,11 @@ class FeatureCatalogTest {
         }
         // Une section des Réglages ouvre sa catégorie ; les autres n'en ont pas.
         GuideSection.entries.forEach { assertEquals(it.screen == GuideScreen.SETTINGS, it.settingsCategory != null, it.name) }
-        // Chaque section sert au moins une carte, ou la visite des Réglages (issue #98).
-        val used = cards.mapNotNull { (it.target as? GuideTarget.Personal)?.section ?: (it.target as? GuideTarget.Settings)?.section }.toSet() +
-            SettingsTour.STEPS.mapNotNull { it.section }
+        // Chaque section sert au moins une carte, la visite des Réglages (issue #98) ou un conseil (docs/spec/conseils.md).
+        fun sectionOf(target: GuideTarget) = (target as? GuideTarget.Personal)?.section ?: (target as? GuideTarget.Settings)?.section
+        val used = cards.mapNotNull { sectionOf(it.target) }.toSet() +
+            SettingsTour.STEPS.mapNotNull { it.section } +
+            TipId.entries.mapNotNull { sectionOf(TipContent.target(it)) }
         assertEquals(GuideSection.entries.toSet(), used)
     }
 

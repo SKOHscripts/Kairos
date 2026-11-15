@@ -578,6 +578,15 @@ order (critical path). Cycles are refused.
   (title, context, need, observation or comment) opens a prefilled issue on
   GitHub in your browser, with the Kairos version and your platform already
   filled in; sign in to GitHub and send it. Kairos itself sends nothing.
+- **Tips at the right time**: from time to time, and only when it helps,
+  Kairos suggests one thing worth a look, with your own numbers: your
+  statistics once enough tasks are timed, a setting (working hours, reminders,
+  dark theme…) or a feature you have not tried yet, and in the Team space a
+  member over capacity or tasks to watch. "Show me" takes you to the spot,
+  "Later" brings it back in two weeks, "Don't suggest this again" drops it.
+  Never more than one a day and two a week, nothing during the first three
+  days, never over a timer, a tour or another dialog; the "Tips" switch in
+  Settings → About turns them off.
 
 ### Team management (optional)
 
@@ -669,6 +678,7 @@ version that brought it and the platforms it exists on.
 | First steps | The guide remembers and shows the spot | 3.7.0 | All |
 | First steps | Recurring task and Settings, step by step | 3.9.0 | All |
 | First steps | Give feedback | 4.1.0 | All |
+| First steps | Tips at the right time | 4.2.0 | All |
 | Plan | Priority, points and estimate | 3.0.0 | All |
 | Plan | Split advice | 4.1.0 | All |
 | Plan | Level names | 3.9.0 | All |
@@ -837,8 +847,10 @@ The design and contribution documents are written in French.
 - [AlternativeTo](https://alternativeto.net/software/kairos-by-skohstripts/about/): Kairos's listing, to rate it or suggest it as an
   alternative to another app.
 - [r/foss](https://www.reddit.com/r/foss/comments/1xiohaj/kairos_a_foss_task_manager_that_schedules_your/): presentation post (October 2026).
-
-- [whatwemade](https://www.whatwemade.app/p/kairos) : presentation article
+- [WhatWeMade](https://www.whatwemade.app/p/kairos): presentation article.
+- [open-source-android-apps](https://github.com/pcqpcq/open-source-android-apps/blob/master/categories/productivity.md): a list of open-source Android apps, Productivity category.
+- [awesome-mac](https://github.com/jaywcjlove/awesome-mac#to-do-lists): a list of macOS apps, To-Do Lists category.
+- [awesome-open-source-saas-alternatives](https://github.com/Anil-matcha/awesome-open-source-saas-alternatives): open-source alternatives to paid online services, listed as an alternative to Todoist.
 
 ## License
 
