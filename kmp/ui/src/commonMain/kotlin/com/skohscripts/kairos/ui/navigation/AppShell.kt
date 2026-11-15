@@ -503,7 +503,7 @@ fun AppShell(
     }
     // Conseils au bon moment (docs/spec/conseils.md) : coquille réelle seulement, une sollicitation à la fois (aucun dialogue,
     // visite, accompagnement, bandeau, écran secondaire ni chrono en cours).
-    if (demo == null) {
+    if (demo == null && services.tips) {
         val estimateBanner = estimateChanges?.let { EstimateChanges.stillOpen(it, personal.tasks) }.orEmpty().isNotEmpty()
         val bannerShown = updateBannerVisible(services) || shortcutBannerVisible(services) || estimateBanner
         val quiet = secondary == null && !helpOpen && guide == null && !discover && !feedbackOpen && !gtdOpen && chapter == null &&

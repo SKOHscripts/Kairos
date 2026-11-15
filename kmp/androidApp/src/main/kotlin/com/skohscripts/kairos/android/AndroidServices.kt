@@ -88,6 +88,7 @@ object AndroidServices {
                     runCatching { manager.getAppWidgetIds(ComponentName(context, provider)).isNotEmpty() }.getOrDefault(false)
                 }
             },
+            tips = true,
         )
     }
 

@@ -69,4 +69,5 @@ fun AppServices.forDemo(session: DemoSession): AppServices = AppServices(
     notifyPrompt = NotifyPrompt(),
     // Aucun conseil dans la démonstration (docs/spec/conseils.md) : rien à sonder.
     widgets = null,
+    tips = false,
 )

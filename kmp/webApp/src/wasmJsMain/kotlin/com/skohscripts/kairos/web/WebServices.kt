@@ -108,6 +108,8 @@ object WebServices {
                 val driver = WebWorkerDriver(Worker("kairos-sqljs.worker.js"))
                 openDemo(KairosStore.open(driver), lang, close = { driver.close() }, clock = clock)
             },
+            // Conseils au bon moment (docs/spec/conseils.md).
+            tips = true,
         )
     }
 }

@@ -64,6 +64,11 @@ class AppServices(
     val notifyPrompt: NotifyPrompt = NotifyPrompt(),
     /** Widgets de l'écran d'accueil (Android seulement) : un widget Kairos est-il posé ? Lu par les conseils (docs/spec/conseils.md). */
     val widgets: WidgetProbe? = null,
+    /**
+     * Conseils au bon moment (docs/spec/conseils.md) : proposés par l'application réelle seulement. Faux par défaut, comme
+     * [demo] : les tests et les captures (auto-test, magasins) n'en voient jamais par surprise.
+     */
+    val tips: Boolean = false,
 )
 
 /** Un widget Kairos est-il posé sur l'écran d'accueil (docs/spec/widgets-android.md, conseil `widgets` de docs/spec/conseils.md) ? */
