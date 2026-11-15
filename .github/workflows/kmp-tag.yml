@@ -44,7 +44,7 @@ jobs:
             echo "::error::Version demandée $wanted, mais kmp/gradle.properties dit $name : recopie la version de main."
             exit 1
           fi
-          # Le cycle (beta puis finale) : X.Y.Z, ou X.Y.0-beta.N avec N de 1 à 98 (99 marque une finale ; plus d'alpha).
+          # Le cycle (mineures au fil de l'eau, betas facultatives) : X.Y.Z, ou X.Y.0-beta.N avec N de 1 à 98 (99 marque une finale ; plus d'alpha).
           if ! [[ "$name" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ || "$name" =~ ^[0-9]+\.[0-9]+\.0-beta\.([1-9]|[1-8][0-9]|9[0-8])$ ]]; then
             echo "::error::$name n'est pas une version du cycle (X.Y.Z ou X.Y.0-beta.N, N de 1 à 98)."
             exit 1

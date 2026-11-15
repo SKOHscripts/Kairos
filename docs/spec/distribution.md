@@ -34,15 +34,17 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 - **Chaque version** a un tag : une préversion (`vX.Y.Z-alpha.N`,
   `vX.Y.Z-beta.N`) est publiée en **préversion GitHub**, une version finale
   (`vX.Y.Z`) en release GitHub, avec tous les fichiers.
-- **Cycle des versions** (choix du propriétaire du 2026-11-05) : chaque version mineure ou majeure passe par une ou
-  plusieurs **betas** (`4.1.0-beta.1`, `beta.2`…), puis sa **finale** (`4.1.0`). `main` porte toujours la prochaine
-  version : juste après une finale, elle passe à la beta suivante (`4.1.0` → `4.2.0-beta.1`), si bien que tout ce qui
-  sort de `main` dit ce qu'il est. Le tag se pose depuis l'onglet Actions (« Kairos tag »), qui vérifie avant de poser
+- **Cycle des versions** (choix du propriétaire du 2026-11-15, qui remplace le « beta puis finale » du 2026-11-05) :
+  les **mineures sortent au fil de l'eau**, en finale, dès qu'une ou quelques fonctionnalités sont prêtes (`4.2.0`,
+  `4.3.0`…) : un utilisateur de la stable n'attend pas qu'un lot entier soit fini. Une **beta** (`X.Y.0-beta.N`) n'est
+  plus une étape obligée : elle se réserve à un chantier risqué, à faire essayer avant sa finale. `main` porte toujours
+  la prochaine version : juste après une finale, la mineure suivante (`4.2.0` → `4.3.0`), ou sa beta si le chantier en
+  cours en demande une, si bien que tout ce qui sort de `main` dit ce qu'il est. Le tag se pose depuis l'onglet Actions (« Kairos tag »), qui vérifie avant de poser
   et lance la release. Pas de branche de correctif : un correctif part de `main` avec la version suivante.
 - **Quel numéro** : majeure si une version plus ancienne ne peut plus lire ce que la nouvelle écrit (format du fichier)
   ou si l'utilisateur perd quelque chose ; mineure dès qu'une fonctionnalité ou un comportement visible change ;
-  correctif s'il n'y a que des corrections ; une beta quand toutes les fonctionnalités de la version sont là, puis plus
-  aucune avant la finale (§ Quel numéro donner à une version).
+  correctif s'il n'y a que des corrections ; une beta seulement pour un chantier risqué, quand toutes ses
+  fonctionnalités sont là, puis plus aucune avant la finale (§ Quel numéro donner à une version).
 - **Une beta**, pour ses testeurs : depuis la 4.2.0, **la même app « Kairos »** que la stable (Android, bureau), qu'elle
   remplace en s'installant par-dessus (décision du 2026-11-15 ; avant, une app « Kairos Preview » à côté de la stable),
   et la préversion web sous `preview/` ; jamais sur F-Droid, l'AUR, ni dans la vérification des mises à jour d'une
@@ -149,10 +151,13 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   (`publication.md`) ; chaque versionCode publié a sa note de version
   Fastlane dans les deux langues.
 
-### Cycle des versions (beta puis finale, 2026-11-05)
+### Cycle des versions (mineures au fil de l'eau, 2026-11-15)
 
-- **Étapes** : une ou plusieurs betas `X.Y.0-beta.N` (fonctions complètes, à essayer), puis la finale `X.Y.0`. Les
-  alphas restent lisibles (`AppVersion`) mais ne servent plus. Une préversion n'existe que d'une version en `.0`, avec
+- **Étapes** : une mineure `X.Y.0` sort en finale, sans beta, dès qu'une ou quelques fonctionnalités sont fusionnées
+  avec leurs specs, leurs tests et leurs textes dans les six langues. Une ou plusieurs betas `X.Y.0-beta.N` (fonctions
+  complètes, à essayer) la précèdent seulement pour un chantier risqué (§ Quel numéro donner à une version). Du
+  2026-11-05 au 2026-11-15, chaque mineure passait par au moins une beta (la 4.1.0 en a eu neuf) ; la 4.2.0 garde la
+  sienne (`4.2.0-beta.1`, posée avant la décision, chantier réseau), puis sa finale. Les alphas restent lisibles (`AppVersion`) mais ne servent plus. Une préversion n'existe que d'une version en `.0`, avec
   `N` de 1 à 98 (`AppVersion.MAX_PRERELEASE` ; 99 avant la 4.2.0) : 99 marque une finale dans la formule de la 4.2.0,
   et une beta de correctif (`4.2.1-beta.1`) passerait sous la finale qu'elle précède. Vérifié sur la version
   déclarée (`AppVersionTest.buildVersionIsConsistent`, `prereleaseCodesGrowFromOneMinorToTheNext`), par
@@ -162,12 +167,15 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   et sa finale par-dessus elle. Jusqu'à la 4.1, une beta avait un code sous la finale précédente et s'installait sous
   l'identifiant `.preview` (Android) ou comme produit « Kairos Preview » (bureau) ; ces anciennes installations restent
   des apps à part, que leurs testeurs désinstallent.
-- **`main` en avance** : après le tag d'une finale, le commit suivant de `main` pose la beta suivante
-  (`python3 kmp/tools/set_version.py 4.2.0-beta.1`, qui écrit `kairos.versionName` et `kairos.versionCode` selon la
-  formule ; refuse une préversion hors `.0` ou hors 1-99). Une nouvelle beta : la même commande avec `beta.N+1`, après le
-  tag de la précédente. La finale : `set_version.py X.Y.0`, notes de version dans les six langues, historique ci-dessus
-  et feuille de route, puis le tag. Conséquence : un build de test (`kmp-test-build.yml`) de `main` est une beta, qui
-  remplace la stable (même app, depuis la 4.2.0).
+- **`main` en avance** : après le tag d'une finale, le commit suivant de `main` pose la mineure suivante
+  (`python3 kmp/tools/set_version.py 4.3.0`, qui écrit `kairos.versionName` et `kairos.versionCode` selon la formule),
+  ou sa première beta (`set_version.py 4.3.0-beta.1` ; refuse une préversion hors `.0` ou hors 1-98) si le prochain
+  chantier est risqué. Une nouvelle beta : la même commande avec `beta.N+1`, après le tag de la précédente. La finale :
+  `set_version.py X.Y.0` si `main` n'y est pas déjà, notes de version dans les six langues, historique ci-dessus et
+  feuille de route, puis le tag. Conséquence : un build de test (`kmp-test-build.yml`) de `main` porte le numéro de la
+  prochaine version, beta ou finale à venir, et remplace la stable (même app, depuis la 4.2.0). Entre deux finales sans
+  beta, il a donc le numéro et le `versionCode` de la finale qui vient sans en être une : accepté, un build de test est
+  un fichier d'essai gardé 14 jours, jamais publié (2026-11-15).
 - **Notes de version** : une finale a `fastlane/metadata/android/<langue>/changelogs/<versionCode>.txt` dans les six
   langues, 500 caractères au plus (`ReleaseNotesTest`, `validate_fastlane.py`) ; une beta n'en a pas (ni F-Droid ni
   fiches ; notes générées de la préversion GitHub).
@@ -200,15 +208,20 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
   - Une migration de base **additive** n'en est pas une : la base n'est jamais relue par une version plus ancienne,
     seul le fichier d'export l'est.
 - **Mineure** (`X.Y.0`) : au moins une fonctionnalité nouvelle ou un comportement visible qui change, c'est-à-dire
-  une carte du catalogue `since = "X.Y.0"`, une puce du README ou une spec dont le « Besoin métier » change. Toujours
-  précédée d'au moins une beta. Garde-fou : `FeatureCatalogTest.aFeatureArrivesInAMinorOrMajorVersion` (une carte
+  une carte du catalogue `since = "X.Y.0"`, une puce du README ou une spec dont le « Besoin métier » change. Publiée
+  au fil de l'eau, sans beta, dès qu'une ou quelques fonctionnalités sont prêtes (2026-11-15 ; avant, toujours précédée
+  d'au moins une beta). Garde-fou : `FeatureCatalogTest.aFeatureArrivesInAMinorOrMajorVersion` (une carte
   n'annonce jamais un `X.Y.Z` avec `Z > 0`).
 - **Correctif** (`X.Y.Z`, `Z > 0`) : uniquement des corrections de défauts, sans beta. Ni carte, ni réglage, ni
   migration, ni nouveau texte d'interface (un texte corrigé, oui). Faute de branche de correctif, possible seulement
-  quand `main` ne contient **que** des correctifs depuis la dernière finale : `main`, en `X.(Y+1).0-beta.1` non
-  tagué, passe en `X.Y.(Z+1)` (`set_version.py`), notes de version, tag, puis retour à la beta. Dès qu'une
-  fonctionnalité est fusionnée, un correctif attend la prochaine beta ou finale.
-- **Beta** (`X.Y.0-beta.N`) :
+  quand `main` ne contient **que** des correctifs depuis la dernière finale : `main`, en `X.(Y+1).0` (ou sa beta) non
+  tagué, passe en `X.Y.(Z+1)` (`set_version.py`), notes de version, tag, puis retour à la mineure. Dès qu'une
+  fonctionnalité est fusionnée, un correctif part avec la prochaine mineure, qui peut sortir aussitôt (ou avec la
+  prochaine beta d'un chantier risqué).
+- **Beta** (`X.Y.0-beta.N`), **facultative** depuis le 2026-11-15 : pour un chantier qu'il faut faire essayer avant
+  de le donner à tous (réseau, format du fichier ou schéma de la base, migration, refonte d'un écran central). Elle se
+  décide en passant `main` à la version (`beta.1` plutôt que la finale) et se note dans la feuille de route
+  (`docs/ROADMAP.md`). Ensuite :
   - `beta.1` quand **toutes** les fonctionnalités prévues de la version sont fusionnées, avec leurs specs, leurs
     tests et leurs textes dans les six langues ;
   - à partir de là, **gel des fonctionnalités** : seuls des correctifs entrent dans la version. Une fonctionnalité
@@ -555,6 +568,17 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
 
 ### Décisions et pièges tracés
 
+- **Mineures au fil de l'eau** (propriétaire, 2026-11-15, à partir de la 4.3.0) : une mineure sort en finale dès
+  qu'une ou quelques fonctionnalités sont prêtes ; une beta seulement pour un chantier risqué. Rouvre le cycle « beta
+  puis finale » du 2026-11-05, où chaque mineure passait par au moins une beta et un gel des fonctionnalités : en 4.1,
+  neuf betas ont accumulé les fonctionnalités (les cloches et la méthode GTD, prévues pour la 4.2.0, y sont entrées)
+  pendant que les utilisateurs de la stable (F-Droid, AUR, page de téléchargement) attendaient la finale. La 4.2.0
+  garde sa `4.2.0-beta.1`. Les outils n'ont rien à changer : ni `set_version.py` ni « Kairos tag » n'exigeaient de
+  beta avant une finale. Écartés : publier les fonctionnalités en correctifs (`4.2.1`, `4.2.2`) : le numéro ne dirait
+  plus si une version ajoute quelque chose, et une carte du catalogue n'annonce jamais un `X.Y.Z` avec `Z > 0`
+  (`FeatureCatalogTest.aFeatureArrivesInAMinorOrMajorVersion`) ; des betas plus courtes : la stable attendrait
+  toujours. Contrepartie : moins d'essais avant de donner une fonctionnalité à tous, compensés par la CI, l'auto-test
+  des images et les correctifs `X.Y.Z`, possibles dès le lendemain d'une finale.
 - **Une seule app pour la beta et la stable** (propriétaire, 2026-11-15, à partir de la 4.2.0) : qui veut la dernière
   version, beta ou non, l'a dans la même app « Kairos », sur Android et sur le bureau. Rouvre le canal séparé « Kairos
   Preview » du cycle des versions (2026-11-05). Contreparties : la formule du `versionCode` change (les betas passent
