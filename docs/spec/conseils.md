@@ -9,8 +9,7 @@ couverts (prévus) : `kmp/core/.../core/guide/Tips.kt` (sélecteur pur), `core/m
 `TipDialogUiTest` (`ui`), `StringsParityTest`._
 
 État : issue #221 (jalon 4.2.0), **spécifiée le 2026-11-15, non implémentée**. Périmètre décidé par le propriétaire le
-2026-11-15 : espaces Perso **et** Équipe. La spec attend la relecture du propriétaire (§ Points à valider) avant
-l'implémentation.
+2026-11-15 : espaces Perso **et** Équipe. Points ouverts tranchés par le propriétaire le 2026-11-15 (§ Décisions validées).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -120,12 +119,15 @@ Exemples ; les textes définitifs, avec leurs nombres, vivent dans les ressource
   proposer » définitif, retour après 28 jours des conseils récurrents, priorité entre groupes (`TipsPacingTest`).
 - Isolation : sans espace Équipe activé, un instantané qui contient des données d'équipe donne exactement le même
   résultat qu'un instantané qui n'en a pas, et aucun conseil d'équipe (`TipsIsolationTest.soloNeverReadsTeamData`).
-- Mémoire : nulle par défaut ; une base où aucun conseil n'a été montré, aucun écran suivi ouvert et aucun export fait
-  garde un export identique octet pour octet (`KairosRepositoryTest.tipsMemoryIsWrittenOnlyWhenUsed`,
+- Mémoire : nulle par défaut ; une base où le guide n'a rien retenu (aucun conseil montré, aucun écran suivi ouvert,
+  aucun export fait) garde un export identique octet pour octet (`KairosRepositoryTest.tipsMemoryIsWrittenOnlyWhenUsed`,
   `TeamIsolationTest.soloExportIsByteIdentical` inchangé) ; « Revoir le guide » et « Restaurer les valeurs par défaut »
   effacent ce qu'il faut (`GuideMemoryUiTest`).
 - Interface : dialogue avec les trois boutons, « Montre-moi » met l'endroit en valeur ; aucun conseil pendant un chrono,
   une démonstration, une visite ou un autre dialogue ; interrupteur coupé = aucun conseil (`TipDialogUiTest`).
+- Concordance : chaque conseil désigne une carte du catalogue qui existe, dont les plateformes couvrent les siennes et
+  qui mène au même écran (`TipsCatalogTest`) ; la carte `tips` est reliée au README comme toute fonctionnalité
+  (`FeatureCatalogTest`).
 - Textes dans les six langues (`StringsParityTest`), cibles de 48 dp, 360 dp sans débordement, captures `--self-test`
   (`desktop-tip.png`, `desktop-tip-narrow.png`) regardées.
 
@@ -145,7 +147,9 @@ Exemples ; les textes définitifs, avec leurs nombres, vivent dans les ressource
 
 `core` reste pur : instant, fuseau, faits de plateforme et d'usage arrivent en paramètres.
 
-- `enum class TipId(val group: TipGroup, val space: TipSpace, val recurring: Boolean)`, dans l'ordre de priorité ;
+- `enum class TipId(val group: TipGroup, val space: TipSpace, val recurring: Boolean, val card: String)`, dans l'ordre de
+  priorité ; `card` est l'identifiant de la carte du catalogue que le conseil fait découvrir (`core` ne connaît pas le
+  catalogue, qui vit dans `ui` : le lien est vérifié par test, § Concordance) ;
   `TipGroup { DATA, STATS, SETTINGS, FEATURES, TEAM_RISK, TEAM_FEATURES }`.
 - `data class TipFacts(platform: TipPlatform, darkTheme: Boolean, linkedFile: Boolean, calendarImport: Boolean,
   widgetPlaced: Boolean?)` : ce que seule la plateforme sait (`widgetPlaced` nul hors Android).
@@ -180,7 +184,7 @@ rien n'est retenu) ; `guide` est déjà dans `SyncScope.LOCAL_SETTINGS` (propre 
   `shortcut` au premier raccourci clavier utilisé ;
 - `lastExport: String? = null` : date du dernier export réussi depuis cet appareil.
 
-`KairosRepository.updateGuide` est réutilisé tel quel. `resetGuide()` devient « tout effacer sauf `tipsOff` » (point 6) ;
+`KairosRepository.updateGuide` est réutilisé tel quel. `resetGuide()` devient « tout effacer sauf `tipsOff` » (comportement attendu, point 6) ;
 « Restaurer les valeurs par défaut » remet toujours `guide` à nul.
 
 ### Interface
@@ -227,21 +231,32 @@ rien n'est retenu) ; `guide` est déjà dans `SyncScope.LOCAL_SETTINGS` (propre 
 - **Mémoire propre à l'appareil** (déjà le cas de `guide`) : la synchroniser obligerait à fusionner des dates et des
   listes pour un gain faible.
 
-### Points à valider par le propriétaire
+### Concordance avec le catalogue et le README
 
-1. **Critère d'export identique** : l'issue dit « export inchangé tant qu'aucun conseil n'a été montré ». Retenir les
-   écrans ouverts (`seenScreens`) et le dernier export (`lastExport`) écrit `guide` **avant** tout conseil. Proposition :
-   le critère devient « inchangé tant que le guide n'a rien retenu » (ni conseil, ni écran suivi ouvert, ni export).
-   Alternative : ne retenir les écrans ouverts qu'une fois un premier conseil montré, au prix de proposer `stats_first`
-   à quelqu'un qui a déjà ouvert les Statistiques.
-2. **`lastExport`** : le garder (condition de l'issue) ou s'en passer (proposer `data_safety` dès qu'aucun fichier n'est
-   lié, quitte à ce qu'un utilisateur qui exporte à la main l'écarte une fois).
-3. **Seuils** : ceux des tableaux, issus de l'issue, sauf `work_hours`, `week_review` et `recap` (décisions ci-dessus),
-   et les cinq conseils d'équipe, nouveaux.
-4. **Délai de retour des conseils récurrents** : 28 jours.
-5. **Interrupteur et « Revoir le guide »** : la remise à zéro garde l'interrupteur tel quel.
-6. **Livraison** : est-ce une fonctionnalité du README (une carte `tips` du catalogue, une puce, une ligne du tableau) ?
-   Proposition : oui, chapitre « Premiers pas », `since` 4.2.0.
+Demande du propriétaire (2026-11-15) : les cartes du catalogue, le README et les conseils restent synchronisés.
+
+- Chaque `TipId` porte la carte qu'il fait découvrir (`card`), par exemple `stats_calibration` → `stats`,
+  `stats_correct` → `stats_correct`, `timer` → `time`, `recurrence` → `recurrence`, `widgets` → `widgets`,
+  `team_forecast` → `team_forecast`.
+- `TipsCatalogTest` (module `ui`, qui voit `core` et le catalogue) : la carte existe dans `FeatureCatalog.cards` ; ses
+  plateformes couvrent celles du conseil (un conseil Android n'a pas de carte réservée au bureau) ; la cible du conseil
+  ouvre le même écran que celle de la carte (même destination, ou la même catégorie des Réglages, ou une carte unique) ;
+  chaque conseil d'équipe désigne une carte du chapitre `TEAM`. Supprimer ou déplacer une carte casse donc le test du
+  conseil qui la cite.
+- Les conseils eux-mêmes sont une fonctionnalité : carte `tips` (chapitre « Premiers pas », `since` 4.2.0, icône
+  `Lightbulb`), puce de la section Features et ligne du tableau des deux README, reliées par `README_FEATURES`
+  (`FeatureCatalogTest`, règle de livraison de `visite-guidee.md`).
+
+### Décisions validées (propriétaire, 2026-11-15)
+
+1. **Export identique tant que le guide n'a rien retenu** : retenir un écran suivi ouvert ou un export écrit `guide`
+   avant tout conseil, et c'est voulu. Écarté : ne retenir les écrans qu'après un premier conseil (proposer les
+   Statistiques à qui les a déjà ouvertes).
+2. **`lastExport` gardé** : `data_safety` ne vient pas à qui exporte à la main au moins tous les 90 jours.
+3. **Seuils des tableaux retenus**, y compris les cinq conseils d'équipe.
+4. **Retour des conseils récurrents : 28 jours.**
+5. **« Revoir le guide depuis le début » garde l'interrupteur** ; seule la restauration des valeurs par défaut le remet.
+6. **Fonctionnalité du README**, avec la concordance ci-dessus.
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 
@@ -256,5 +271,5 @@ rien n'est retenu) ; `guide` est déjà dans `SyncScope.LOCAL_SETTINGS` (propre 
 - `equipe.md` : isolation (les conseils d'équipe ne sont lus que dans l'espace Équipe activé).
 - `i18n.md` : clés `tip_*` dans les six langues.
 - `distribution.md` : captures `desktop-tip.png` et `desktop-tip-narrow.png`.
-- `liste-fonctionnalites.md`, README (si point 6 validé) : carte `tips`, puce, ligne du tableau, notes de version.
+- `liste-fonctionnalites.md`, README : carte `tips`, puce, ligne du tableau ; notes de version avec la 4.2.0 finale.
 - `docs/spec/README.md` : ligne de cette spec à mettre à jour (« implémentée en 4.2.0 »).
