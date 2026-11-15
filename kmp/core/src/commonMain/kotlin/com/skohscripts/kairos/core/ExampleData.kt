@@ -30,7 +30,10 @@ object ExampleData {
      * « [Exemple] » / « [Example] » / « [Ejemplo] »… (docs/spec/premiere-tache.md § Déclenchement). Sert à savoir si l'utilisateur a déjà
      * créé une tâche à lui ; dérivé des données, rien n'est mémorisé.
      */
-    fun isExample(task: Task): Boolean = Texts.ALL.any { task.title.startsWith(it.prefix) }
+    fun isExample(task: Task): Boolean = isExampleTitle(task.title)
+
+    /** Vrai pour un titre posé par le jeu d'exemples (tâche, créneau, note), dans l'une quelconque des langues. */
+    fun isExampleTitle(title: String): Boolean = Texts.ALL.any { title.startsWith(it.prefix) }
 
     fun snapshot(today: LocalDate, now: Instant, language: String): KairosSnapshot {
         val t = Texts.of(UiLanguage.lang(language))
