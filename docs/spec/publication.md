@@ -380,8 +380,9 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   - une release stable de la version 3 ou plus récente (`v3.*`, `v4.*`…) existe : `releases/download/<son tag>`, pas de
     bandeau, « Utiliser Kairos en ligne » vers `app/` ;
   - sinon, la dernière préversion de ces versions : `releases/download/<son tag>`,
-    bandeau « Préversion X » (installée à côté de la version stable sous le nom
-    « Kairos Preview »), lien web vers `preview/`.
+    bandeau « Préversion X » (sur Android, elle remplace la version stable : même app « Kairos » depuis la 4.2.0 ;
+    avant, une app « Kairos Preview » à côté), lien web vers `preview/` ; le texte du bandeau, par langue, est dans le
+    script Python de `pages.yml`.
 - Déclenchement : push sur `main` touchant `kmp/**` (hors `androidApp`, `desktopApp` et `tools`, sauf
   `tools/make_code_map.py`), `docs/spec/**`, `site/**`, `fastlane/**` ou `pages.yml` ; release publiée à la main ; **fin du workflow « Kairos 3
   release »** ; lancement manuel.

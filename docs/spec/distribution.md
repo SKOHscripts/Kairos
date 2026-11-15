@@ -43,12 +43,14 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   ou si l'utilisateur perd quelque chose ; mineure dès qu'une fonctionnalité ou un comportement visible change ;
   correctif s'il n'y a que des corrections ; une beta quand toutes les fonctionnalités de la version sont là, puis plus
   aucune avant la finale (§ Quel numéro donner à une version).
-- **Une beta**, pour ses testeurs : l'app « Kairos Preview » à côté de la stable (Android, bureau), la préversion web
-  sous `preview/` ; jamais sur F-Droid, l'AUR, ni dans la vérification des mises à jour d'une version stable, mais une
-  « Kairos Preview » de bureau apprend la beta suivante. Elle n'a pas de note de version dans les fiches (celles de la
+- **Une beta**, pour ses testeurs : depuis la 4.2.0, **la même app « Kairos »** que la stable (Android, bureau), qu'elle
+  remplace en s'installant par-dessus (décision du 2026-11-15 ; avant, une app « Kairos Preview » à côté de la stable),
+  et la préversion web sous `preview/` ; jamais sur F-Droid, l'AUR, ni dans la vérification des mises à jour d'une
+  version stable, mais une beta de bureau installée apprend la beta suivante. Revenir à la stable précédente demande de
+  désinstaller : le plus simple est d'attendre la finale, qui s'installe par-dessus la beta. Elle n'a pas de note de version dans les fiches (celles de la
   préversion GitHub, générées, suffisent) ; une finale a la sienne dans les six langues avant d'être taguée.
-- **Android** : un APK. Tant que la version est une préversion, l'application
-  s'appelle « Kairos Preview » et s'installe à côté de la version stable. Aucune
+- **Android** : un APK, l'application « Kairos », beta comprise (même identifiant depuis la 4.2.0 : une beta remplace la
+  stable). Aucune
   permission réseau jusqu'à la 4.1 (rouvert pour la 4.2.0 : un seul APK avec `INTERNET`, fonctions en ligne désactivées par défaut,
   `connexions-en-ligne.md`) ; deux permissions pour le chrono (notifier, reprendre
   après un redémarrage), voir `temps-reel-chrono.md`.
@@ -71,7 +73,7 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   commit précis** de `main` (par défaut le dernier), en choisissant les plateformes (Android, bureau, web), pour essayer la
   version avant de poser le tag. L'APK de test est signé avec la clé des releases : il s'installe **par-dessus** la
   version en place de son canal et garde ses données, comme le fera la release ; `main` portant la prochaine beta
-  entre deux finales (§ Cycle des versions), c'est en général la « Kairos Preview », installée à côté de la stable. Rien n'est publié : ni release, ni AUR, ni signature
+  entre deux finales (§ Cycle des versions), c'est en général une beta, qui remplace la stable (même app depuis la 4.2.0). Rien n'est publié : ni release, ni AUR, ni signature
   Windows ; les fichiers sont téléchargeables dans les artefacts du lancement, qui portent le commit dans leur nom.
 
 ### Critères de succès
@@ -122,9 +124,14 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   réglages, retrait de l'import de l'ancienne version ; notes `30400.txt` en français et en anglais), puis `3.5.0` (`30500`, issue #64 : plusieurs plages par jour et contextes, carte Statistiques « Quand tu travailles chaque type » ; notes `30500.txt` en français et en anglais), puis `3.6.0` (`30600`, issue #64 : réglage « Meilleures heures », le planning préfère les heures habituelles ou préférées de chaque type ; notes `30600.txt` en français et en anglais), puis `3.7.0` (`30700` : thème sombre, issue #72 ; filtres et export des statistiques, #114 et #113 ; déplacer depuis la vue Semaine, #106 ; fériés des créneaux « jours ouvrés », #109 ; Réglages par catégories, PR #124 ; guide qui retient et montre l'endroit, #94 et #95 ; notes `30700.txt` en français et en anglais), puis `3.8.0` (`30800` : vue Mois, #107 ; créneaux mensuels, #108 ; une seule occurrence d'un créneau, #110 ; évolutions des statistiques, #112 ; corriger les estimations, #101 ; rappels, #103 ; première tâche d'équipe guidée, #97 ; notes `30800.txt` en français et en anglais), puis `3.9.0` (`30900` : noms des niveaux, #93 ; meilleures heures mesurées par l'efficacité, #105 ; accompagnement des récurrences et des Réglages, #98 ; jours et heures par membre, #104 ; notes dans les échanges, #120 ; propositions d'un membre, #121 ; dossier des données, diagnostic et proxy du bureau, #115 ; lien « Voir la dernière version » sur Android, #143 ; notes `30900.txt` en français et en anglais), puis `3.10.0` (`31000` : import d'un calendrier `.ics`, #136 ; fichier lié sur le bureau et Android, #137 ; calendriers du téléphone, #138 ; notes `31000.txt` en français et en anglais), puis `3.11.0` (`31100` : espagnol, allemand, russe et italien, #75 ; fiches du magasin et page web dans ces langues ; notes `31100.txt` dans les six langues), puis `3.12.0` (`31200` : widgets Android, #150 ; récapitulatif du jour, #151 ; couleur par défaut océan ; notes `31200.txt` dans les six langues), puis `3.13.0` (`31300` : liste complète des fonctionnalités, #153 ; avis des mois sautés, #111 ; démonstration interactive, #96 ; décision sur la signature macOS, #116, et signature Windows préparée, #117 ; notes `31300.txt` dans les six langues), puis `3.14.0` (`31400` : type choisi sur place dans « À traiter » et « À qualifier », durée posée une fois la tâche qualifiée, facette « Incomplètes », type dans l'essentiel de la fiche et dans la démonstration, barre de défilement du menu des types, #166 ; notes `31400.txt` dans les six langues), puis `4.0.0` (`40000` : synchronisation entre appareils par le fichier lié, avec fusion, #88, et durées apprises partagées, #100 ; estimations par machine learning sur l'appareil, #99 ; type requis pour sortir de « À traiter », PR #186 ; garde du modèle allégée, PR #187 ; paquet Arch Linux AUR ; corrections de la QA d’avant 4.0, PR #192 ; toujours sans permission réseau, les connexions en ligne étant reportées à la 4.1.0 ; notes `40000.txt` dans les six langues). Puis, avec le cycle des versions (2026-11-05), `main` passe en `4.1.0-beta.1` (`39601`) : sous-tâches et enchaînement (#201), sans note de version (préversion) ; puis `4.1.0-beta.2` (`39602`) : file de sous-tâches enchaînées (#209, exception au gel décidée le 2026-11-05) ; puis `4.1.0-beta.3` à `4.1.0-beta.9` (`39603` à `39609`, sans notes de version) : « Donner un avis » (#211), aperçu des liens de la page de téléchargement par langue (#217), notifications du chrono à l'heure (#219) et garde-fou du chrono (#220), corrections (#193 à #197), page « L'histoire de Kairos », taille du texte (#229), cloches du pomodoro (#234), méthode GTD expliquée (#235), prévisions par tâche et chronos à vérifier (#232), Bilan de la semaine et du mois, fiche par groupes et « Ce que Kairos apprend » (#233), ce qui traîne ; puis `4.1.0` (`40100` : tout ce qui précède depuis la 4.0.0 ; la méthode GTD et les cloches, prévues pour la 4.2.0 et fusionnées pendant les betas, y sont livrées ; toujours sans permission réseau, les connexions en ligne, #139 et #144, étant reportées à la 4.2.0 le 2026-11-15 ; notes `40100.txt` dans les six langues).
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
-- `versionCode` (`AppVersion.versionCode`) : `X*10000 + Y*100 + Z` ; alpha :
-  − 1000 + N ; beta : − 500 + N. Ainsi 3.0.0-alpha.1 = 29001 <
-  3.0.0-beta.1 = 29501 < 3.0.0 = 30000.
+- `versionCode` (`AppVersion.versionCode`), deux formules :
+  - **à partir de la 4.2.0** (décision du 2026-11-15, § Décisions « Une seule app pour la beta et la stable ») :
+    `X*1 000 000 + Y*10 000 + Z*100 + s`, avec `s` = `N` pour une beta (1 à 98) et 99 pour une finale. Ainsi
+    4.2.0-beta.1 = 4 020 001 < 4.2.0-beta.2 = 4 020 002 < 4.2.0 = 4 020 099 < 4.2.1 = 4 020 199 < 4.3.0-beta.1 =
+    4 030 001, et tous au-dessus de 4.1.0 = 40 100 : une beta s'installe par-dessus la stable précédente, sa finale
+    par-dessus elle. Une alpha n'a plus de code (le cycle n'en publie plus) ;
+  - **jusqu'à la 4.1.x** (codes publiés, inchangés) : `X*10000 + Y*100 + Z` ; alpha : − 1000 + N ; beta : − 500 + N.
+    Ainsi 3.0.0-alpha.1 = 29001 < 3.0.0-beta.1 = 29501 < 3.0.0 = 30000.
   `AppVersionTest.buildVersionIsConsistent` échoue si `gradle.properties` ne
   suit pas la formule.
 - `KairosBuild` (généré par `core`) expose la version au code commun.
@@ -138,19 +145,21 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 
 - **Étapes** : une ou plusieurs betas `X.Y.0-beta.N` (fonctions complètes, à essayer), puis la finale `X.Y.0`. Les
   alphas restent lisibles (`AppVersion`) mais ne servent plus. Une préversion n'existe que d'une version en `.0`, avec
-  `N` de 1 à 99 (`AppVersion.MAX_PRERELEASE`) : sinon les codes des préversions ne croissent plus d'une mineure à
-  l'autre (`4.1.1-beta.1` vaudrait `4.1.0-beta.2`, `4.1.0-beta.100` dépasserait `4.2.0-beta.1`). Vérifié sur la version
+  `N` de 1 à 98 (`AppVersion.MAX_PRERELEASE` ; 99 avant la 4.2.0) : 99 marque une finale dans la formule de la 4.2.0,
+  et une beta de correctif (`4.2.1-beta.1`) passerait sous la finale qu'elle précède. Vérifié sur la version
   déclarée (`AppVersionTest.buildVersionIsConsistent`, `prereleaseCodesGrowFromOneMinorToTheNext`), par
   `kmp/tools/set_version.py` et par « Kairos tag ». Un correctif est une version finale (`4.1.1`), sans beta.
-- **Canaux** : une beta a un `versionCode` sous sa finale (`4.1.0-beta.1` = 39601 < `4.1.0` = 40100) et même sous la
-  finale précédente (`4.0.0` = 40000) : sans conséquence, la beta s'installe sous l'identifiant `.preview` (Android) ou
-  comme produit « Kairos Preview » (bureau), dont les codes croissent entre eux.
+- **Canaux** (depuis la 4.2.0) : une seule app. Une beta a un `versionCode` au-dessus de la finale précédente et sous la
+  sienne (`4.1.0` = 40 100 < `4.2.0-beta.1` = 4 020 001 < `4.2.0` = 4 020 099) : elle s'installe par-dessus la stable,
+  et sa finale par-dessus elle. Jusqu'à la 4.1, une beta avait un code sous la finale précédente et s'installait sous
+  l'identifiant `.preview` (Android) ou comme produit « Kairos Preview » (bureau) ; ces anciennes installations restent
+  des apps à part, que leurs testeurs désinstallent.
 - **`main` en avance** : après le tag d'une finale, le commit suivant de `main` pose la beta suivante
   (`python3 kmp/tools/set_version.py 4.2.0-beta.1`, qui écrit `kairos.versionName` et `kairos.versionCode` selon la
   formule ; refuse une préversion hors `.0` ou hors 1-99). Une nouvelle beta : la même commande avec `beta.N+1`, après le
   tag de la précédente. La finale : `set_version.py X.Y.0`, notes de version dans les six langues, historique ci-dessus
   et feuille de route, puis le tag. Conséquence : un build de test (`kmp-test-build.yml`) de `main` est une beta, qui
-  s'installe en « Kairos Preview » à côté de la stable au lieu de la remplacer.
+  remplace la stable (même app, depuis la 4.2.0).
 - **Notes de version** : une finale a `fastlane/metadata/android/<langue>/changelogs/<versionCode>.txt` dans les six
   langues, 500 caractères au plus (`ReleaseNotesTest`, `validate_fastlane.py`) ; une beta n'en a pas (ni F-Droid ni
   fiches ; notes générées de la préversion GitHub).
@@ -165,10 +174,10 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   garde le chemin d'avant (`push` du tag, puis `workflow_run`).
 - **Tags acceptés par la release** : `v[3-9].*` et `v[1-9][0-9].*` (toute version à partir de la 3 ; les `v2.*` sont
   ceux de l'ancienne version) : une 5.0.0 n'aura rien à changer.
-- **Données des testeurs** : la « Kairos Preview » Android a ses propres données (identifiant distinct) ; pour essayer
-  avec les siennes, l'exporter de la stable et l'importer, ou lier le même fichier (synchronisation). Une beta qui
-  change le format du fichier (`formatVersion`) le dit dans les notes de sa préversion : une stable plus ancienne lirait
-  ce fichier comme `TOO_NEW` et cesserait de le fusionner.
+- **Données des testeurs** : depuis la 4.2.0, une beta reprend les données de la stable qu'elle remplace (même app). Une
+  beta qui change le format du fichier (`formatVersion`) ou le schéma de la base le dit dans les notes de sa préversion :
+  une stable plus ancienne lirait ce fichier comme `TOO_NEW` et cesserait de le fusionner. Jusqu'à la 4.1, la « Kairos
+  Preview » Android avait ses propres données (identifiant distinct) ; elles y restent.
 
 ### Quel numéro donner à une version (règles du 2026-11-05)
 
@@ -204,11 +213,9 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
 
 ### Android (`kmp/androidApp`)
 
-- `applicationId` `com.skohscripts.kairos`, suffixé
-  `.preview` si la version contient `-` ; nom `Kairos Preview` ou `Kairos`
-  (`resValue app_name`). La propriété Gradle `kairos.preview` (`true` ou
-  `false`) force l'un ou l'autre (vérification F-Droid d'une bêta,
-  `publication.md`).
+- `applicationId` `com.skohscripts.kairos` et nom `Kairos` (`resValue app_name`) pour toutes les versions, betas
+  comprises, depuis la 4.2.0 (avant : suffixe `.preview` et nom `Kairos Preview` pour une préversion, que la propriété
+  Gradle `kairos.preview` pouvait forcer ; propriété retirée, une recette qui la passe encore n'a aucun effet).
 - `minSdk 26`, `targetSdk 36`, `compileSdk 37`, Java 21.
 - `MainActivity` (`ComponentActivity`) : `enableEdgeToEdge()`, puis
   `setContent { KairosApp(Platform.ANDROID) { services.await() } }`. Les
@@ -268,8 +275,7 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
   5. copie portable (`PortableCopy.detect`) et classe de fenêtre X11
      (`WindowClass.apply`), voir `raccourci-portable.md` ; installation tenue par un gestionnaire de paquets
      (`SystemPackage.detect`, § Paquet Arch Linux) ;
-  6. fenêtre 1200 × 800 dp (minimum 360 × 480 px), titre `Kairos` ou
-     `Kairos Preview` (propriété JVM `kairos.preview`), icône = logo,
+  6. fenêtre 1200 × 800 dp (minimum 360 × 480 px), titre `Kairos` (beta comprise depuis la 4.2.0), icône = logo,
      contenu `KairosApp(Platform.DESKTOP) { DesktopServices.open(dataDir, …,
      portable) }`.
 - **Services** (`DesktopServices.open`) : `JdbcSqliteDriver` sur
@@ -324,12 +330,14 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
     portable ; la release y écrit le marqueur `kairos-portable` (Linux,
     Windows) juste avant d'en faire l'archive, après les installeurs
     (`raccourci-portable.md`) ;
-  - options de la JVM : `-Dkairos.preview=…` et `--add-opens
-    java.desktop/sun.awt.X11=ALL-UNNAMED` (classe de fenêtre X11) ;
-  - version finale : produit `Kairos`, version `X.Y.Z` ; préversion : produit
-    distinct `Kairos Preview` (paquet Linux `kairos-preview`, bundle macOS
-    `com.skohscripts.kairos.preview`, autre `upgradeUuid` Windows), version
-    `1.0.<versionCode>` car MSI et DMG n'acceptent que des numéros ;
+  - option de la JVM : `--add-opens java.desktop/sun.awt.X11=ALL-UNNAMED` (classe de fenêtre X11) ;
+  - un seul produit `Kairos` (paquet Linux `kairos`, bundle macOS `com.skohscripts.kairos`, `upgradeUuid` Windows
+    `5b0e2d7c-…`), betas comprises depuis la 4.2.0. Version des paquets (`packageVersion`) : `X.Y.(Z*100 + s)`, `s` comme
+    pour le `versionCode` (N d'une beta, 99 d'une finale), car MSI, DMG et `.deb` n'acceptent que des numéros et doivent
+    croître d'une beta à sa finale : `4.2.0-beta.1` → 4.2.1, `4.2.0` → 4.2.99, `4.2.1` → 4.2.199, toutes au-dessus de
+    la stable `4.1.0` déjà installée (MSI : troisième nombre ≤ 65 535). L'application, elle, affiche `4.2.0`. Jusqu'à la
+    4.1 : finale `X.Y.Z`, préversion produit distinct `Kairos Preview` (`kairos-preview`, `….preview`, autre
+    `upgradeUuid`) en `1.0.<versionCode>` ;
   - Windows : installation **par utilisateur** (`perUserInstall`, sans droit
     administrateur), raccourci et menu ; `upgradeUuid` fixe par produit ;
   - icônes `desktopApp/icons/kairos.{ico,png,icns}` (`tools/make_app_icons.py`) ;
@@ -337,8 +345,8 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
 
 ### Signature Windows (SignPath Foundation, issue #117)
 
-- **Quoi** : l'installeur `Kairos-windows-x64.msi` et le lanceur `Kairos.exe` (« Kairos Preview.exe » pour une
-  préversion) qu'il contient, ainsi que le lanceur du zip portable, reçoivent une signature Authenticode horodatée.
+- **Quoi** : l'installeur `Kairos-windows-x64.msi` et le lanceur `Kairos.exe` (beta comprise depuis la 4.2.0 ;
+  « Kairos Preview.exe » avant) qu'il contient, ainsi que le lanceur du zip portable, reçoivent une signature Authenticode horodatée.
   Le certificat est celui de **SignPath Foundation**, qui apparaît comme éditeur (offre gratuite des projets libres) ;
   aucune clé n'est dans le dépôt ni sur le runner.
 - **Quand** : dans le job `desktop` de `kmp-release.yml`, sur Windows, **sur un tag seulement** et seulement si
@@ -539,6 +547,14 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
 
 ### Décisions et pièges tracés
 
+- **Une seule app pour la beta et la stable** (propriétaire, 2026-11-15, à partir de la 4.2.0) : qui veut la dernière
+  version, beta ou non, l'a dans la même app « Kairos », sur Android et sur le bureau. Rouvre le canal séparé « Kairos
+  Preview » du cycle des versions (2026-11-05). Contreparties : la formule du `versionCode` change (les betas passent
+  au-dessus de la finale précédente, ce que l'ancienne formule interdisait : les codes 40 101 à 40 199 sont ceux des
+  correctifs 4.1.x) ; qui installe une beta ne revient à la stable précédente qu'en désinstallant ; les installations
+  « Kairos Preview » existantes restent des apps à part (rien n'est prévu pour elles, choix du propriétaire). Écartés :
+  changer seulement le nom (deux icônes « Kairos ») ; un code de beta entre deux finales sans changer la formule (pas de
+  place).
 - **Simplification des workflows** (propriétaire, 2026-11-06) : annulation du run précédent d'une PR, déclencheurs
   resserrés (un texte ne relance plus la construction F-Droid, un script de `kmp/tools/` ne relance plus la CI), APK
   construit seulement par `fdroid-check.yml`. **Gardé** : le re-test sur `main` après fusion (deux PR fusionnées l'une
