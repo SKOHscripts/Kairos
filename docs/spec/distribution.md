@@ -192,7 +192,9 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   un rappel (`validate_fastlane.py` l'affiche, le contrôle de la version attendue la liste), pas une erreur.
 - **« Kairos tag »** (`.github/workflows/kmp-tag.yml`, lancement manuel sur `main`, champ `version` à recopier) : refuse
   une version qui n'est pas celle de `kmp/gradle.properties`, hors du cycle, un `versionCode` hors formule, un tag qui
-  existe déjà, une finale sans ses six notes, et un commit dont la CI (`kmp.yml`) est rouge ou en cours. Puis tag annoté
+  existe déjà, une finale sans ses six notes, et un commit dont la CI (`kmp.yml`) est rouge ou en cours ; une CI absente (commit qui ne touche que la documentation, hors
+  des chemins de `kmp.yml`) passe, la release refaisant les tests (`gh run list` rend alors une liste vide, lue `// empty`
+  depuis le 2026-11-15 : lue `.[0]`, elle donnait « null null », pris pour une CI en cours). Puis tag annoté
   `vX.Y.Z…` sur le dernier commit de `main`, et `gh workflow run kmp-release.yml --ref <tag>`, parce qu'un tag poussé
   avec le jeton du workflow ne déclenche aucun autre workflow. Permissions `contents: write`, `actions: write`.
 - **Après une release lancée ainsi** : le job `follow-up` de `kmp-release.yml` lance `pages.yml` (page de

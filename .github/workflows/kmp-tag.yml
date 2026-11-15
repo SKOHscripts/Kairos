@@ -82,7 +82,7 @@ jobs:
           fi
           # La CI de main ne doit pas être rouge sur ce commit (absente : la release refait tous les tests).
           sha=$(git rev-parse HEAD)
-          state=$(gh run list --workflow kmp.yml --commit "$sha" --json status,conclusion --jq '.[0] | "\(.status) \(.conclusion)"' || true)
+          state=$(gh run list --workflow kmp.yml --commit "$sha" --json status,conclusion --jq '.[0] // empty | "\(.status) \(.conclusion)"' || true)
           case "$state" in
             ""|"completed success") ;;
             "completed "*) echo "::error::La CI (kmp.yml) a échoué sur $sha : $state."; exit 1 ;;
