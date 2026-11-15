@@ -2,9 +2,23 @@
 
 <img align="right" src="site/icon.png" width="140" alt="Kairos logo">
 
-[![Kairos 3](https://github.com/SKOHscripts/Kairos/actions/workflows/kmp.yml/badge.svg)](https://github.com/SKOHscripts/Kairos/actions/workflows/kmp.yml)
-[![Release](https://img.shields.io/github/v/release/SKOHscripts/Kairos)](https://github.com/SKOHscripts/Kairos/releases/latest)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/SKOHscripts/Kairos/kmp.yml?label=CI&branch=main&logo=githubactions&logoColor=white)](https://github.com/SKOHscripts/Kairos/actions/workflows/kmp.yml)
+[![Reproducible build](https://img.shields.io/github/actions/workflow/status/SKOHscripts/Kairos/fdroid-check.yml?label=reproducible%20build&branch=main&logo=fdroid&logoColor=white)](https://github.com/SKOHscripts/Kairos/actions/workflows/fdroid-check.yml)
+[![Release](https://img.shields.io/github/v/release/SKOHscripts/Kairos?label=release&logo=github&logoColor=white)](https://github.com/SKOHscripts/Kairos/releases/latest)
+[![Beta](https://img.shields.io/github/v/release/SKOHscripts/Kairos?label=latest%20incl.%20beta&include_prereleases)](https://github.com/SKOHscripts/Kairos/releases)
+[![F-Droid](https://img.shields.io/f-droid/v/com.skohscripts.kairos?label=F-Droid&logo=fdroid&logoColor=white)](https://f-droid.org/packages/com.skohscripts.kairos/)
+[![Downloads](https://img.shields.io/github/downloads/SKOHscripts/Kairos/total?label=downloads)](https://github.com/SKOHscripts/Kairos/releases)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/SKOHscripts/Kairos?label=commits)](https://github.com/SKOHscripts/Kairos/commits/main)
+[![License: MIT](https://img.shields.io/github/license/SKOHscripts/Kairos?label=license)](LICENSE)
+
+[![privacy: no account · no ads · no tracking](https://img.shields.io/badge/privacy-no%20account%20%C2%B7%20no%20ads%20%C2%B7%20no%20tracking-2F6FED?labelColor=1C2F59)](#data)
+[![data: on your device, offline-first](https://img.shields.io/badge/data-on%20your%20device%2C%20offline--first-2F6FED?labelColor=1C2F59)](#data)
+[![machine learning: on-device](https://img.shields.io/badge/machine%20learning-on--device-2F6FED?labelColor=1C2F59)](#on-device-machine-learning-how-long-your-tasks-really-take)
+[![methods: WSJF · GTD · time blocking](https://img.shields.io/badge/methods-WSJF%20%C2%B7%20GTD%20%C2%B7%20time%20blocking-2F6FED?labelColor=1C2F59)](#scheduling)
+[![platforms: Android · Windows · Linux · macOS · Web](https://img.shields.io/badge/platforms-Android%20%C2%B7%20Windows%20%C2%B7%20Linux%20%C2%B7%20macOS%20%C2%B7%20Web-2F6FED?labelColor=1C2F59)](#install)
+[![languages: EN · FR · ES · DE · RU · IT](https://img.shields.io/badge/languages-EN%20%C2%B7%20FR%20%C2%B7%20ES%20%C2%B7%20DE%20%C2%B7%20RU%20%C2%B7%20IT-2F6FED?labelColor=1C2F59)](#translating-kairos)
+[![Kotlin: Multiplatform + Compose](https://img.shields.io/badge/Kotlin-Multiplatform%20%2B%20Compose-2F6FED?labelColor=1C2F59&logo=kotlin&logoColor=white)](#development)
+[![specs: first, kept in sync](https://img.shields.io/badge/specs-first%2C%20kept%20in%20sync-2F6FED?labelColor=1C2F59)](docs/spec/)
 
 **English** · [Français](README.fr.md)
 
