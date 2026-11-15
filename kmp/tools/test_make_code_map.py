@@ -108,6 +108,15 @@ fun StatsScreen() = Unit
         self.assertIn('data-from="ui:ui.stats" data-to="core:core.model"', page)
         self.assertIn("https://github.com/SKOHscripts/Kairos/blob/main/docs/spec/statistiques.md", page)
 
+    def test_page_carries_the_site_menu(self):
+        packages, specs = cm.build(self.root)
+        page = cm.page(cm.data(packages, specs, None), web="app/")
+        # Les six entrées du menu du site (publication.md § Menu du site), deux fois (rangée et bouton), « Code map » courant.
+        for label, href in [("Download", "../en/"), ("Story", "../en/story/"), ("Web version", "../app/"), ("Code map", "./")]:
+            self.assertEqual(2, page.count(f'href="{href}"'), label)
+        self.assertEqual(2, page.count('href="./" aria-current="page">Code map<'))
+        self.assertIn("../fonts/roboto_regular.ttf", page)
+
 
 if __name__ == "__main__":
     unittest.main()

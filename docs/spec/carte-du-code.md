@@ -47,7 +47,8 @@ se met à jour seule. Fichiers couverts : `kmp/tools/make_code_map.py`, `kmp/too
   justes sur un petit arbre de test (`test_reads_packages_declarations_and_imports`, `test_links_files_to_specs`,
   `test_package_edges_skip_self_and_external`).
 - Le filtre de l'index ne garde que les paquets visés (`test_index_filter`).
-- La page ne charge aucune ressource externe (`test_page_is_self_contained`) et se publie avec le site.
+- La page ne charge aucune ressource externe (`test_page_is_self_contained`), porte le menu du site et les polices du
+  site (`test_page_carries_the_site_menu`), et se publie avec le site.
 
 ### Hors périmètre / différé
 
@@ -75,12 +76,17 @@ Python 3, bibliothèque standard seulement, comme les autres outils de `kmp/tool
   `# …`) est gardé pour la page.
 - **Sorties** : `--index [filtre]` (Markdown, sortie standard), `--html FICHIER` (page), `--json FICHIER` (données, pour
   un usage futur). `--root` désigne le dépôt (par défaut, deux dossiers au-dessus du script). Date et commit viennent de
-  `--stamp` (la CI passe `$GITHUB_SHA`), sinon rien : la sortie reste déterministe.
+  `--stamp` (la CI passe `$GITHUB_SHA`), sinon rien : la sortie reste déterministe. `--web` (`preview/` par défaut) donne
+  la cible de l'entrée « Web version » du menu du site ; `pages.yml` passe la même valeur qu'aux autres pages.
 
 ### Page (`--html`)
 
 - Un seul fichier HTML : CSS et JavaScript en ligne, données en JSON dans un `<script type="application/json">`,
-  polices Roboto servies par le site (`../fonts/`, déjà copiées par `pages.yml`) avec repli sur la police du système.
+  polices Roboto servies par le site (`../fonts/roboto_regular.ttf`, `roboto_medium.ttf`, `roboto_bold.ttf`, les noms de
+  `composeResources/font/` copiés par `pages.yml` ; corrigé le 2026-11-15, la première version cherchait
+  `Roboto-Regular.ttf` et se rabattait sur la police du système) avec repli sur la police du système.
+- En-tête du site : logo (`../icon.png`), nom, et le **menu du site** en anglais, entrée « Code map » courante
+  (`publication.md` § Menu du site ; `menu()`, `test_page_carries_the_site_menu`).
 - **Graphe en SVG**, calculé par le script (pas de mise en page au navigateur) : une colonne par module dans l'ordre des
   dépendances (`core`, `data`, `ui`, puis les trois applications), une boîte par paquet triée par nom, des courbes de
   Bézier pour les dépendances ; le JavaScript ne fait que mettre en valeur (classes CSS) au toucher et filtrer.

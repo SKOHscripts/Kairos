@@ -272,9 +272,9 @@ PAGE = """<!doctype html>
 <title>Kairos code map</title>
 <meta name="description" content="How the Kairos code is organised: modules, packages, files, dependencies and the specs that describe them.">
 <style>
-@font-face { font-family: Roboto; src: url("../fonts/Roboto-Regular.ttf"); font-weight: 400; }
-@font-face { font-family: Roboto; src: url("../fonts/Roboto-Medium.ttf"); font-weight: 500; }
-@font-face { font-family: Roboto; src: url("../fonts/Roboto-Bold.ttf"); font-weight: 700; }
+@font-face { font-family: Roboto; src: url("../fonts/roboto_regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: Roboto; src: url("../fonts/roboto_medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: Roboto; src: url("../fonts/roboto_bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
 :root { --bg: #FAF8FF; --surface: #FFFFFF; --text: #1A1B21; --muted: #44464F; --line: #C5C6D0; --edge: #C5C6D0;
   --primary: #485D92; --on-primary: #FFFFFF; --soft: #DAE2FF; color-scheme: light dark; }
 @media (prefers-color-scheme: dark) { :root { --bg: #121318; --surface: #1A1B21; --text: #E3E2E9; --muted: #C5C6D0;
@@ -313,9 +313,32 @@ li { padding: 6px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere;
 .decls { color: var(--muted); font-size: 13px; }
 .fspecs { font-size: 13px; }
 footer { color: var(--muted); margin-top: 32px; font-size: 13px; }
+/* Menu du site (docs/spec/publication.md § Menu du site), en anglais : rangée de liens à 720 px et plus, bouton en dessous. */
+header { max-width: 1200px; margin: 0 auto; padding: 24px 16px 0; display: flex; align-items: center; gap: 12px; }
+header img { width: 48px; height: 48px; }
+header .name { font-size: 28px; font-weight: 500; }
+.menu { display: flex; flex-wrap: wrap; column-gap: 20px; margin-left: 16px; font-weight: 500; }
+.menu a, .menu-narrow nav a { display: inline-flex; align-items: center; min-height: 48px; color: var(--muted); text-decoration: none; }
+.menu a:hover, .menu-narrow nav a:hover { color: var(--primary); }
+.menu a[aria-current="page"] { color: var(--text); box-shadow: inset 0 -2px 0 var(--primary); }
+.menu-narrow { display: none; position: relative; margin-left: auto; }
+.menu-narrow summary { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px 0 12px;
+  border: 1px solid var(--line); border-radius: 24px; cursor: pointer; font-weight: 500; list-style: none; }
+.menu-narrow summary::-webkit-details-marker { display: none; }
+.menu-narrow summary svg { fill: currentColor; }
+.menu-narrow nav { position: absolute; right: 0; top: 56px; z-index: 10; min-width: 240px; padding: 8px 0; display: flex;
+  flex-direction: column; background: var(--surface); border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+.menu-narrow nav a { padding: 0 16px; }
+.menu-narrow nav a[aria-current="page"] { color: var(--text); background: var(--soft); }
+@media (max-width: 719px) { .menu { display: none; } .menu-narrow { display: block; } }
 </style>
 </head>
 <body>
+<header>
+<img src="../icon.png" alt="">
+<span class="name">Kairos</span>
+@@MENU@@
+</header>
 <main>
 <h1>Kairos code map</h1>
 <p class="lead">How the code is organised: one column per module, one box per package, a line for each package that
@@ -373,13 +396,27 @@ their top-level declarations and the specifications (in French) that describe th
 """
 
 
-def page(model: dict) -> str:
+MENU_ICON = ('<svg aria-hidden="true" width="24" height="24" viewBox="0 -960 960 960">'
+             '<path d="M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>')
+
+
+def menu(web: str) -> str:
+    """Le menu du site (docs/spec/publication.md § Menu du site), en anglais, « Code map » courant ; [web] : `app/` ou `preview/`."""
+    entries = [("Download", "../en/"), ("Story", "../en/story/"), ("Web version", "../" + web), ("Code map", "./"),
+               ("Source code", "https://github.com/SKOHscripts/Kairos"), ("Support", "https://skohscripts.github.io/donate.github.io/")]
+    links = "".join(f'<a href="{html.escape(href)}"' + (' aria-current="page"' if label == "Code map" else "") + f">{label}</a>"
+                    for label, href in entries)
+    return (f'<nav class="menu" aria-label="Menu">{links}</nav>\n'
+            f'<details class="menu-narrow"><summary>{MENU_ICON}Menu</summary><nav aria-label="Menu">{links}</nav></details>')
+
+
+def page(model: dict, web: str = "preview/") -> str:
     stamp = f"Commit {html.escape(model['stamp'][:12])}." if model.get("stamp") else ""
     # Le script de la page n'a besoin que des liens entre paquets ; le reste est déjà dans le HTML. « </ » dans le JSON
     # fermerait la balise script : on l'échappe.
     links = {"packages": [{"id": p["id"], "deps": p["deps"]} for p in model["packages"]]}
     payload = json.dumps(links, ensure_ascii=False, sort_keys=True).replace("</", "<\\/")
-    return (PAGE.replace("@@SVG@@", svg(model)).replace("@@LIST@@", package_list(model))
+    return (PAGE.replace("@@MENU@@", menu(web)).replace("@@SVG@@", svg(model)).replace("@@LIST@@", package_list(model))
             .replace("@@STAMP@@", stamp).replace("@@DATA@@", payload))
 
 
@@ -390,6 +427,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--html", type=pathlib.Path, help="écrit la page publique")
     parser.add_argument("--json", type=pathlib.Path, help="écrit les données")
     parser.add_argument("--stamp", help="commit affiché sur la page")
+    parser.add_argument("--web", default="preview/", help="entrée « Web version » du menu : app/ ou preview/ (pages.yml)")
     args = parser.parse_args(argv)
     packages, specs = build(args.root)
     if args.index is not None:
@@ -397,7 +435,7 @@ def main(argv: list[str] | None = None) -> int:
     model = data(packages, specs, args.stamp)
     if args.html:
         args.html.parent.mkdir(parents=True, exist_ok=True)
-        args.html.write_text(page(model), encoding="utf-8")
+        args.html.write_text(page(model, args.web), encoding="utf-8")
     if args.json:
         args.json.write_text(json.dumps(model, ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     if args.index is None and not args.html and not args.json:
