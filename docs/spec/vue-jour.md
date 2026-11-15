@@ -6,7 +6,7 @@ et fait ses tâches. Fichiers couverts :
 `kmp/ui/src/commonMain/.../ui/day/` (`DayScreen.kt`, `TaskRow.kt`,
 `Why.kt`, `NowCard.kt`, `Timeline.kt`, `Capture.kt`, `Blocks.kt`,
 `Filters.kt`, `Qualify.kt`, `EditTaskDialog.kt`, `SubtaskEditor.kt`, `PointsGuide.kt`,
-`Levels.kt`, `Dates.kt`). Tests : `core/.../day/DayViewTest.kt`,
+`Levels.kt`, `Dates.kt`, `QuietShortcuts.kt`). Tests : `core/.../day/DayViewTest.kt`,
 `ui/.../day/DatesTest.kt`, `desktopApp/.../DayScreenUiTest.kt` (clics et
 clavier réels), `desktopApp/.../M4ScreensUiTest.kt` (autre jour, guide des
 points, durée suggérée), `data/.../SubtaskEditTest.kt` (sous-tâches

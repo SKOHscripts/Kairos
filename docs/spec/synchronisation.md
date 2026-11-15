@@ -2,13 +2,13 @@
 
 _Rôle : faire de la copie tenue à jour dans un fichier lié (3.10.0) le point de rencontre de plusieurs appareils : à chaque
 lecture, Kairos **fusionne** le fichier avec ses données, sans compte, sans serveur, sans permission réseau, et sans jamais
-perdre en silence ce qu'un appareil a fait. Fichiers couverts (à créer ou à modifier à l'implémentation) :
+perdre en silence ce qu'un appareil a fait. Fichiers couverts :
 `kmp/core/.../core/sync/` (`Hlc.kt`, `SyncScope.kt`, `SyncRecords.kt`, `SyncData.kt`, `SyncReconcile.kt`, `SnapshotMerge.kt`,
-`SyncRepair.kt`, `SyncSummary.kt`), `kmp/data/` (`12.sqm`, `Kairos.sq`, `KairosStore.kt`, `ExportCodec.kt`,
+`SyncRepair.kt`, `SyncSummary.kt`, `SyncEdit.kt`, `SyncOrder.kt`), `kmp/data/` (`12.sqm`, `Kairos.sq`, `KairosStore.kt`, `ExportCodec.kt`,
 `KairosRepository.kt`), `kmp/ui/.../app/` (`LinkedFileSync.kt`, `LinkedStorage.kt`, `StorageBanner.kt`, `Replace.kt`),
 `kmp/ui/.../settings/SettingsScreen.kt` (carte « Données »), `kmp/ui/.../sync/` (aperçu et « À revoir »),
 `kmp/desktopApp/.../DesktopLinkedFile.kt`, `kmp/androidApp/.../AndroidLinkedFile.kt`, `kmp/webApp/.../WebServices.kt`
-(`WebLinkedStorage`), `kmp/core/.../engine/DurationEstimator.kt` (ordre des échantillons). Tests (à créer) : `HlcTest`,
+(`WebLinkedStorage`), `kmp/core/.../engine/DurationEstimator.kt` (ordre des échantillons). Tests : `HlcTest`,
 `SyncReconcileTest`, `SnapshotMergeTest`, `SnapshotMergePropertiesTest`, `SyncRepairTest`, `SyncScopeTest`,
 `SyncCodecTest`, `SyncRepositoryTest`, `SyncMigrationTest`, `SyncIsolationTest`, `LinkedFileSyncTest` (étendu),
 `SyncUiTest`, `LearnedDurationsSyncTest`._

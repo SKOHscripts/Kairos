@@ -3,7 +3,8 @@
 _Rôle : dire ce que sont les sous-tâches (découper un travail) face aux dépendances « Bloquée par » (enchaîner des
 travaux), et fixer les règles qui les relient : fil d'Ariane, priorité, durées et échéances agrégées, conseil de
 découpage, section de la fiche, file de sous-tâches enchaînées. Issues #201 et #209 (retours du propriétaire, 2026-11-05). Fichiers couverts :
-`core/model/TaskTree.kt` (arbre des tâches, pur), son usage dans `core/day/DayView.kt` et `ui/day/BlockerChoices.kt`.
+`core/model/TaskTree.kt` (arbre des tâches, pur), son usage dans `core/day/DayView.kt` et `ui/day/BlockerChoices.kt`,
+`ui/day/SubtaskRollup.kt` (`rollupText`, `teamRollup`, `SplitAdviceLine`).
 Les dépendances elles-mêmes sont dans `dependances.md`, la fiche dans `vue-jour.md`, le stockage (`Task.parentId`) dans
 `modele-donnees.md`._
 

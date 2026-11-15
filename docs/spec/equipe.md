@@ -323,6 +323,9 @@ d'équipe, sans changer d'espace (`equipe-moi.md`).
 
 ### Modèle (`core/team/`, pur)
 
+Fichiers : `core/team/TeamMember.kt`, `core/team/MemberAbsence.kt`, `core/team/TeamMembers.kt` (ordre, membres actifs et
+archivés, prochaine absence, tâches ouvertes), `core/team/MemberForm.kt` (saisie d'un membre et ses bornes).
+
 - `TeamMember` : `id`, `uid` (échanges), `name`, `role`,
   `availabilityPercent` (1-100), `hoursPerDay` (décimal, 1-24), `weekHours` (3.9.0 : semaine type, cinq heures du lundi au
   vendredi, `null` = `hoursPerDay` chaque jour, `equipe-charge.md` § Capacité), `isSelf`,
@@ -431,6 +434,11 @@ aussi son événement de journal dans la même transaction,
   décrits par `equipe-echanges.md`.
 
 ### Interface (`ui/team/`, `ui/navigation/`)
+
+Fichiers : `ui/team/SpaceSelector.kt` (sélecteur d'espace), `ui/team/MemberSheetContent.kt` (fiche d'un membre),
+`ui/team/AbsenceEditor.kt` (éditeur d'absence), `ui/team/TeamDates.kt` (dates des absences, `absenceSummary` : « Absent du
+12 au 16 oct. · Congés »), `ui/team/ClearTeamData.kt` (« Supprimer les données d'équipe… »),
+`ui/settings/TeamSettingsCard.kt` (carte Équipe des Réglages).
 
 - `NavEntry` (interface scellée : libellé, titre, icône, icône pleine),
   implémentée par `Destination` (cinq entrées, `navigation-theme.md`) et par

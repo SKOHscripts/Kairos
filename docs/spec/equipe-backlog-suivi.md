@@ -2,11 +2,12 @@
 
 _Rôle : le cycle de vie d'une tâche d'équipe, de sa capture dans le backlog
 à sa fin : qualification, catégorie, assignation, réaffectation, états,
-avancement, tableau de suivi et journal. Fichiers prévus :
+avancement, tableau de suivi et journal. Fichiers couverts :
 `kmp/core/.../core/team/` (`TeamBoard.kt`, `TeamStates.kt`,
 `TeamSignals.kt`, `TeamEvent.kt`), `kmp/data/` (table `team_event`,
 opérations du dépôt), `kmp/ui/.../team/` (`TeamBacklogScreen.kt`,
-`TeamBoardScreen.kt`, `AssignMenu.kt`, `TaskHistory.kt`). Vision,
+`TeamBoardScreen.kt`, `AssignMenu.kt`, `TaskHistory.kt`, `Reassigner.kt` (réaffectation), `TeamActivity.kt` (activité
+récente d'un membre)), jeu d'exemples des captures : `desktopApp/.../TeamSeed.kt`. Vision,
 activation et isolation : `equipe.md`. Charge et suggestion de
 répartition : `equipe-charge.md`._
 

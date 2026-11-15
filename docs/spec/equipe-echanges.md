@@ -5,10 +5,11 @@ eux aussi Kairos, sans serveur ni réseau : le manager envoie à un membre un
 **paquet** de ses tâches ; le membre les traite dans son Kairos personnel et
 renvoie un **rapport** d'avancement que le manager intègre. Fichiers :
 `kmp/data/.../TeamExchangeCodec.kt` (formats), `kmp/core/.../core/
-team/exchange/` (`PackBuilder`, `PackMerge`, `ReportBuilder`,
-`ReportMerge`, `TeamOrigin`, purs), `kmp/ui/.../team/ExchangeDialogs.kt`
+team/exchange/` (`PackBuilder.kt`, `PackMerge.kt`, `ReportBuilder.kt`,
+`ReportMerge.kt`, `TeamOrigin.kt` avec `ReceivedTasks`, purs),
+`core/model/ExchangeNote.kt` (note d'un échange), `kmp/ui/.../team/ExchangeDialogs.kt`
 et `ExchangeFiles.kt`, la carte Données (`SettingsScreen`) et la fiche
-membre.
+membre ; jeu d'exemples des captures : `desktopApp/.../ExchangeSeed.kt`.
 Formats voisins de l'export (`export-import.md`), mais **fusion ciblée** et
 non remplacement._
 
