@@ -88,7 +88,7 @@ jobs:
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
       - name: Plateforme Android 37
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
+        run: (yes || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
       - name: APK non signé (comme la release)
         run: ./gradlew --no-daemon :androidApp:assembleRelease
       - uses: actions/upload-artifact@v4

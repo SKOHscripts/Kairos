@@ -647,6 +647,10 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
   « Kairos Preview » existantes restent des apps à part (rien n'est prévu pour elles, choix du propriétaire). Écartés :
   changer seulement le nom (deux icônes « Kairos ») ; un code de beta entre deux finales sans changer la formule (pas de
   place).
+- **`(yes || true) | sdkmanager`** (2026-11-15) : dans la matrice `build` de la release, le shell `bash` déclaré ajoute
+  `-o pipefail` ; `yes`, tué par « Broken pipe » quand `sdkmanager` se ferme, faisait échouer l'étape « Plateforme
+  Android 37 » du premier tag `v4.2.0-beta.1` (les anciens jobs utilisaient le shell par défaut, sans `pipefail`). Même
+  écriture dans tous les workflows, pour qu'un futur `pipefail` ne la casse pas.
 - **Nettoyage des workflows** (propriétaire, 2026-11-15) : les noms affichés perdent « Kairos 3 » (« Kairos CI »,
   « Kairos release », artefacts `dist-*` au lieu de `kairos3-*`), les fichiers gardent le leur (badge du README, liens
   des specs, historique des lancements). Des matrices là où les jobs ne diffèrent que par leurs paramètres (CI,

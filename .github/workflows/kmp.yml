@@ -67,7 +67,7 @@ jobs:
       # Compose 1.12 compile contre l'API 37 (docs/spec/architecture.md) : les tests JVM configurent le module Android.
       - name: Plateforme Android 37
         if: matrix.android
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
+        run: (yes || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
 
       - name: ${{ matrix.name }}
         env:

@@ -150,7 +150,7 @@ jobs:
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
       - name: Plateforme Android 37
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
+        run: (yes || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
       - name: Tests
         run: ./gradlew --no-daemon :core:jvmTest :data:jvmTest :ui:jvmTest :desktopApp:jvmTest
 
@@ -188,9 +188,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       # --- Android ---
+      # `(yes || true)` : le shell bash déclaré du job ajoute `-o pipefail`, et `yes` finit toujours par « Broken pipe »
+      # quand sdkmanager se ferme ; sans la parenthèse, l'étape échoue sur un SDK pourtant installé (v4.2.0-beta.1).
       - name: Plateforme Android 37
         if: matrix.kind == 'android'
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
+        run: (yes || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
       # Toujours le même keystore (mêmes secrets) : chaque version s'installe par-dessus la précédente. Un tag DOIT être
       # signé ; un build de test sans secrets (fork) produit un APK non signé.
       - name: Keystore de signature
