@@ -2,13 +2,19 @@
 
 _Rôle : proposer, de temps en temps et seulement quand c'est utile, **une** chose à regarder (surtout les statistiques,
 parfois un réglage, parfois une fonctionnalité), avec les chiffres de l'utilisateur, et l'y mener d'un toucher. Fichiers
-couverts (prévus) : `kmp/core/.../core/guide/Tips.kt` (sélecteur pur), `core/model/Settings.kt` (`GuideSettings`),
-`kmp/ui/.../ui/guide/TipDialog.kt`, `ui/guide/TipWatcher.kt`, `ui/guide/GuideContent.kt` (sections et cibles nouvelles),
-`ui/navigation/AppShell.kt`, `ui/settings/SettingsScreen.kt` (carte « Conseils »), ressources des six langues. Tests
-(prévus) : `TipsTest`, `TipsPacingTest`, `TipsIsolationTest` (`core`), `KairosRepositoryTest` (mémoire),
-`TipDialogUiTest` (`ui`), `StringsParityTest`._
+couverts : `kmp/core/.../core/guide/Tips.kt` (sélecteur pur), `core/model/Settings.kt` (`GuideSettings`),
+`core/ExampleData.kt` (`isExampleTitle`), `kmp/data/.../KairosRepository.kt` (`resetGuide`), `kmp/ui/.../ui/guide/TipDialog.kt`
+(`TipContent`, `tipBody`, `TipDialog`), `ui/guide/TipWatcher.kt`, `ui/guide/GuideContent.kt` (sections et cibles nouvelles),
+`ui/guide/FeatureCatalog.kt` (carte `tips`), `ui/navigation/AppShell.kt`, `ui/settings/SettingsScreen.kt` (carte « Conseils »,
+date du dernier export), `ui/stats/StatsScreen.kt`, `ui/screens/DestinationScreen.kt`, `ui/team/forecast/ForecastScreen.kt`,
+`ui/day/DayScreen.kt` (écrans suivis), `ui/app/Updates.kt` et `ui/app/Shortcuts.kt` (bandeaux affichés),
+`ui/app/AppServices.kt` (`WidgetProbe`), `ui/app/Demo.kt`, `androidApp/.../AndroidServices.kt`, ressources des six
+langues. Tests : `TipsTest`, `TipsPacingTest`, `TipsIsolationTest` (`core`), `KairosRepositoryTest.tipsMemoryIsWrittenOnlyWhenUsed`
+(`data`), `TipsCatalogTest`, `FeatureCatalogTest`, `StringsParityTest` (`ui`)._
 
-État : issue #221 (jalon 4.2.0), **spécifiée le 2026-11-15, non implémentée**. Périmètre décidé par le propriétaire le
+État : issue #221 (jalon 4.2.0), spécifiée le 2026-11-15, **implémentation en cours** : sélecteur, mémoire, interface,
+textes, carte et README écrits le 2026-11-15 ; restent le test d'interface `TipDialogUiTest`, les captures `--self-test`
+et le report des impacts (§ Impacts, à reporter). Périmètre décidé par le propriétaire le
 2026-11-15 : espaces Perso **et** Équipe. Points ouverts tranchés par le propriétaire le 2026-11-15 (§ Décisions validées).
 
 ## 1. Besoin métier (cahier des charges)
@@ -36,12 +42,12 @@ Réglages (horaires, rappels, récapitulatif du jour, fichier lié).
    - rien pendant les **3 premiers jours** (comptés depuis la plus ancienne donnée de l'utilisateur, exemples exclus) ;
    - au plus **un conseil par jour** et **deux par période de 7 jours glissants** ;
    - au plus un par lancement de Kairos ;
-   - le conseil apparaît **5 s** après l'ouverture de Kairos, ou en arrivant sur l'Accueil s'il n'a pas pu apparaître à
-     l'ouverture.
+   - le conseil apparaît **5 s** après l'arrivée sur l'Accueil : à l'ouverture de Kairos (l'Accueil est l'écran
+     d'ouverture), ou à un retour sur l'Accueil s'il n'a pas pu apparaître avant.
 3. **Jamais** : pendant qu'un chrono tourne, dans la démonstration, pendant une visite, un chapitre du guide ou un
    accompagnement (première tâche, tâche récurrente, Réglages pas à pas, première tâche d'équipe), par-dessus un autre
-   dialogue, ni pendant qu'un bandeau est affiché (mise à jour, raccourci, stockage du navigateur, estimations qui
-   changent) : **une seule sollicitation à la fois**. Ni dans un écran secondaire (Réglages, liste des fonctionnalités).
+   dialogue, ni pendant qu'un bandeau de la coquille est affiché (mise à jour, raccourci, estimations qui changent) :
+   **une seule sollicitation à la fois**. Ni dans un écran secondaire (Réglages, liste des fonctionnalités).
    Une condition qui manque reporte le conseil au moment suivant (arrivée sur l'Accueil) ; elle ne le consomme pas.
 4. **Priorité** quand plusieurs conseils sont dus : la sûreté des données, puis les statistiques, les réglages, les
    fonctionnalités ; dans un groupe, l'ordre des tableaux ci-dessous.
@@ -90,7 +96,7 @@ Seulement si l'espace Équipe est activé et affiché. « Âge de l'équipe » :
 
 | Id | Conseil | Condition | Mène à |
 |---|---|---|---|
-| `team_signals` | Des tâches à surveiller | ≥ 3 tâches portent un signal « à surveiller » (sans avancement, ballottée, trop d'en-cours) ; revient au plus tous les 28 jours | Équipe → « Suivi » |
+| `team_signals` | Des tâches à surveiller | ≥ 3 tâches portent un signal du suivi (en retard, qui traîne, sans avancement, ballottée) ; revient au plus tous les 28 jours | Équipe → « Suivi » |
 | `team_load` | Un membre est surchargé | un membre actif dépasse le seuil « à surveiller » de charge (90 % par défaut) sur l'horizon ; revient au plus tous les 28 jours | Équipe → « Équipe » (charge des membres) |
 | `team_forecast` | Les prévisions | ≥ 8 tâches d'équipe faites (seuil « échantillons minimum »), au moins une échéance d'équipe, Prévisions jamais ouvertes | Équipe → « Prévisions » |
 | `team_suggest` | La suggestion de répartition | ≥ 5 tâches d'équipe qualifiées et non assignées, au moins 2 membres actifs | Équipe → « Backlog » |
@@ -153,21 +159,30 @@ Exemples ; les textes définitifs, avec leurs nombres, vivent dans les ressource
   `TipGroup { DATA, STATS, SETTINGS, FEATURES, TEAM_RISK, TEAM_FEATURES }`.
 - `data class TipFacts(platform: TipPlatform, darkTheme: Boolean, linkedFile: Boolean, calendarImport: Boolean,
   widgetPlaced: Boolean?)` : ce que seule la plateforme sait (`widgetPlaced` nul hors Android).
-- `data class Tip(id: TipId, numbers: List<Number>, target: TipTarget)` : les nombres du texte (« 12 », « 1,4 »,
-  « Alex », « 137 ») et la cible, une valeur de `core` traduite en `GuideTarget` par l'interface.
+- `data class Tip(id, count, ratio, name, level, variant)` : les chiffres du texte, `count` le nombre principal (« 12 »),
+  `ratio` un rapport (réel ÷ estimé « 1,4 », taux de charge « 137 % »), `name` un nom (type, membre, titre), `level` un
+  niveau de points, `variant` la variante du texte (`stats_correct` par points, `reminders` par heures fixes). La cible
+  n'est pas dans `core` : `TipContent.target(id)` (interface) la donne.
+- `TipId.key` : l'identifiant stable écrit dans la mémoire ; `TipId.platforms` (toutes par défaut ; `widgets` Android,
+  `shortcuts` bureau et web) ; `TipId.space` se déduit du groupe.
 - `object Tips` :
   - `fun due(snapshot, memory: GuideSettings?, facts, space, now, tz): Tip?` : `null` si l'interrupteur est coupé, si le
     rythme l'interdit, sinon le premier conseil de l'espace dont la condition tient et que la mémoire laisse passer
     (non écarté, pas reporté au-delà de `now`, pas déjà accepté sauf récurrent passé son délai) ;
-  - `fun pacingAllows(memory, now, tz, baseAge): Boolean` (3 jours, 1 par jour, 2 par 7 jours) ;
-  - une fonction par condition (`dataSafety`, `statsFirst`…), testable seule.
-- Sources réutilisées, sans recalcul parallèle : `TaskStats.calibrationByType`, `fibonacciCalibration` et `MIN_SAMPLE`
-  (calibration fiable), `EstimateCorrection.candidates` (tâches à corriger), `BestHours` et `MIN_RELIABLE_SESSIONS` /
+  - `fun pacingAllows(memory, today, baseAge): Boolean` (3 jours, 1 par jour, 2 par 7 jours) et
+    `memoryAllows(id, memory, today)` ;
+  - les écritures de la mémoire, pures : `shown` (garde les deux dernières dates), `accepted`, `snoozed`, `dismissed`,
+    `seen` (rend la même instance si l'écran est déjà retenu, donc rien n'est écrit) ;
+  - une fonction privée par condition (`dataSafety`, `statsFirst`…), lue par `due` ; les tests en isolent une en écartant
+    les autres par la mémoire.
+- Sources réutilisées, sans recalcul parallèle : `TaskStats.estimationBias` par type et par niveau de points et `MIN_SAMPLE`
+  (biais fiable ; la « calibration » des Statistiques est un temps médian, sans rapport à l'estimation), `TaskStats.monday`, `EstimateCorrection.candidates` (tâches à corriger), `BestHours` et `MIN_RELIABLE_SESSIONS` /
   `MIN_RELIABLE_MINUTES`, `TimeTracking` (sessions, chrono ouvert), `ExampleData.isExample`, `SearchFold` (titres
-  comparés sans casse ni accents), `TeamSignals`, `TeamLoad` et `Settings.team.loadWarnPercent`, `ExchangeStatus`
-  (dernier paquet par membre).
-- **Isolation** : en espace Perso, `due` reçoit l'instantané Perso (`personalSnapshot`) ; les conditions d'équipe ne
-  sont évaluées que si `settings.teamModeEnabled` et `space == TEAM`. Aucune condition Perso ne lit `members`,
+  comparés sans casse ni accents), `Workdays.holidaysFor`, `TeamSignals`, `TeamLoad` (niveau autre que `OK`, au-delà de
+  `loadWarnPercent`), `TeamMembers.active`, `ExchangeStatus` (dernier paquet par membre).
+- **Isolation** : `due` reçoit l'instantané complet et filtre lui-même : les conditions Perso ne lisent que les tâches
+  `PERSONAL` sans `origin` (exemples exclus) et leurs sessions ; les conditions d'équipe ne sont évaluées que si
+  `settings.teamModeEnabled` et `space == TEAM`. Aucune condition Perso ne lit `members`,
   `teamEvents`, `teamScenarios` ni une tâche dont `space != PERSONAL`.
 
 ### Mémoire : `GuideSettings`
@@ -189,25 +204,36 @@ rien n'est retenu) ; `guide` est déjà dans `SyncScope.LOCAL_SETTINGS` (propre 
 
 ### Interface
 
-- `TipWatcher` (dans `AppShell`, coquille réelle seulement : jamais quand `demo != null`) : une fois par lancement,
-  5 s après la composition, puis à chaque arrivée sur l'Accueil tant qu'aucun conseil n'a été montré dans ce lancement,
-  vérifie les conditions d'affichage du point 3 (aucun dialogue ni état de visite ouvert dans `AppShell`, aucune séance
-  ouverte, aucun bandeau, destination principale), appelle `Tips.due` et pose le conseil dans un état
-  `tip` de la coquille. Il écrit `tipsShown` **au moment où le dialogue s'affiche**.
-- `TipDialog` : `AlertDialog` Material 3 (forme 28 dp, ombre de dialogue), icône du conseil, titre, texte avec les
-  nombres ; boutons « Montre-moi » (`Button`), « Plus tard » (`TextButton`), « Ne plus me le proposer » (`TextButton`)
-  empilés sous 360 dp. « Montre-moi » écrit `tipsDone` puis appelle `openTarget` (le chemin de « Voir l'écran »).
-- Cibles : `GuideTarget` existants, plus `GuideSection` nouvelles `STATS_CALIBRATION`, `STATS_CORRECT` (la ligne
-  « Corriger les estimations… »), `GuideTarget.RecurringTask` (lance « Créer ma première tâche récurrente »),
-  `GuideTarget.Card(id)` (ouvre une seule carte du catalogue dans `GuideDialog`, pour `widgets` et `shortcuts`) et
-  `GuideTarget.Personal(WEEK, recapWeekOffset = -1)` pour la semaine précédente du Bilan.
-- Faits de plateforme : `AppServices.widgets: WidgetProbe?` (Android : `AppWidgetManager.getAppWidgetIds` des deux
-  widgets ; nul ailleurs) ; `linkedStorage`, `calendars` et le thème effectif sont déjà connus. `forDemo` met
-  `widgets` à nul (`DemoStepsTest.demoServicesCarryNothingFromTheRealOnes`).
-- Écrans suivis : `StatsScreen`, le Bilan et `ForecastScreen` ajoutent leur nom à `seenScreens` à la première ouverture ;
-  le premier raccourci clavier ajoute `shortcut`. Un ajout déjà présent n'écrit rien.
-- Export : `DataCard` écrit `lastExport` après un export réussi.
-- Réglages : carte « Conseils » (interrupteur) dans la catégorie « À propos », sous « Revoir le guide depuis le début ».
+- `TipWatcher(services, space, onHome, quiet, onTip)` (dans `AppShell`, coquille réelle seulement : jamais quand
+  `demo != null`) : tant que `onHome` (Accueil de l'espace courant) et `quiet` tiennent `TIP_DELAY_MILLIS` (5 000 ms), il
+  appelle `Tips.due` hors du fil d'interface (`Dispatchers.Default`), écrit `tipsShown` **au moment où le conseil est
+  montré** et le passe à la coquille (état `tip`) ; au plus une fois par lancement (`rememberSaveable`). `quiet` (dans
+  `AppShell`) : ni écran secondaire, ni aide, visite, chapitre, hub, avis, dialogue GTD, carte seule, première tâche
+  d'équipe (coach ou dialogue de fin), revue des estimations, accompagnement de la première tâche demandé, visite des
+  Réglages, conseil déjà ouvert, bandeau (`updateBannerVisible`, `shortcutBannerVisible`, estimations qui changent), ni
+  séance ouverte (`TimeTracking.runningSession`). Une condition qui tombe relance l'attente au retour.
+- Faits de plateforme (`TipWatcher`) : plateforme (`LocalPlatform`), thème effectif lu sur la surface du schéma
+  (luminance < 0,5 : sombre), fichier lié (`linkedStorage` dans un autre état que `NotLinked` ou `Unsupported`),
+  `calendarImport = true` (l'import d'un `.ics` existe partout), `AppServices.widgets?.placed()` (Android :
+  `AppWidgetManager.getAppWidgetIds` des deux widgets ; nul ailleurs). `forDemo` met `widgets` à nul.
+- `TipDialog` : `AlertDialog` Material 3 (balise `TIP_DIALOG_TAG`), icône de la carte du conseil (`TipContent.icon`,
+  repli `Lightbulb`), titre, texte avec les chiffres (`tipBody` : rapports à une décimale par `decimal1`, taux par
+  `percentLabel`) ; « Montre-moi » (`KairosButton`), « Plus tard » et « Ne plus me le proposer » (`KairosTextButton`)
+  empilés à droite. « Montre-moi » écrit `Tips.accepted` puis appelle `openTarget(TipContent.target(id))`, le chemin de
+  « Voir l'écran » ; « Plus tard » et la fermeture écrivent `Tips.snoozed`, « Ne plus me le proposer » `Tips.dismissed`.
+- Cibles (`TipContent.target`) : `GuideTarget` existants, plus les sections `STATS_CALIBRATION` (panneau de calibration)
+  et `STATS_CORRECT` (la ligne « Corriger les estimations… », absente sans tâche à corriger : message d'absence),
+  `GuideTarget.RecurringTask` (lance « Créer ma première tâche récurrente »), `GuideTarget.Card(id)` (une seule carte du
+  catalogue dans `GuideDialog`, pour `widgets` et `shortcuts`) et `GuideTarget.Personal(WEEK, weeksBack = 1)` (le Bilan,
+  en semaine, sur la semaine d'il y a sept jours).
+- Écrans suivis : `StatsScreen` (`stats`), la destination Bilan dans `DestinationScreen` (`recap`, semaine et mois) et
+  `ForecastScreen` (`team_forecast`) écrivent `Tips.seen` à leur ouverture ; les raccourcis `N` et `/` de la vue Jour
+  ajoutent `shortcut`. Un écran déjà retenu n'écrit rien.
+- Export : le bouton « Exporter » des Réglages (catégorie Données) écrit `lastExport` (date du jour) après un export
+  réussi, donc l'export lui-même n'en porte pas la trace.
+- Réglages : carte « Conseils » (`TipsCard` : `SwitchRow` « Proposer des conseils », effet immédiat), dans « À propos »
+  sous « Revoir le guide depuis le début », section `SETTINGS_TIPS` (cible de la carte `tips`). Le bouton « Revoir le
+  guide depuis le début » est inactif quand le guide n'a retenu que l'interrupteur coupé.
 
 ### Décisions et pièges tracés
 
@@ -230,6 +256,18 @@ rien n'est retenu) ; `guide` est déjà dans `SyncScope.LOCAL_SETTINGS` (propre 
 - **Fermer sans choisir = « Plus tard »** : le cas le plus prudent ; un retour système ne vaut pas un refus définitif.
 - **Mémoire propre à l'appareil** (déjà le cas de `guide`) : la synchroniser obligerait à fusionner des dates et des
   listes pour un gain faible.
+- **Le conseil attend l'Accueil** (décidé à l'implémentation) : l'Accueil est l'écran d'ouverture ; n'y guetter que lui
+  garantit qu'aucun accompagnement de la vue Jour ni aucune fiche ouverte n'est en cours, ce que la coquille ne voit pas.
+- **Biais par groupe, pas la « calibration » des Statistiques** (décidé à l'implémentation) : la carte de calibration
+  donne un temps médian par niveau et par type, sans rapport à l'estimation ; `stats_correct` compare donc réel et
+  estimé par `TaskStats.estimationBias` sur chaque groupe, et retient le plus grand écart (logarithme du rapport).
+- **Thème effectif lu sur le schéma** : le réglage « suit le système » ne dit pas ce qui est affiché ; la luminance de
+  la surface, si.
+- **Textes sans pluriels** : les nombres d'un conseil sont toujours d'au moins 3 (seuils), sauf en russe où la tournure
+  « libellé : n » évite les trois formes du pluriel ; le texte de la charge d'équipe ne cite pas l'horizon (« 1
+  semaines »).
+- **Bandeau du stockage du navigateur ignoré** : il vit dans la vue Jour et les Réglages, pas dans la coquille, et le
+  conseil n'apparaît que sur l'Accueil.
 
 ### Concordance avec le catalogue et le README
 
@@ -273,3 +311,5 @@ Demande du propriétaire (2026-11-15) : les cartes du catalogue, le README et le
 - `distribution.md` : captures `desktop-tip.png` et `desktop-tip-narrow.png`.
 - `liste-fonctionnalites.md`, README : carte `tips`, puce, ligne du tableau ; notes de version avec la 4.2.0 finale.
 - `docs/spec/README.md` : ligne de cette spec à mettre à jour (« implémentée en 4.2.0 »).
+- `visite-guidee.md` § Catalogue : carte `tips` (chapitre « Premiers pas », `since` 4.2.0, section `SETTINGS_TIPS`).
+- `navigation-theme.md` § Icônes : `Lightbulb` (`make_icons.py`).
