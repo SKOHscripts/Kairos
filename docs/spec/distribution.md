@@ -79,8 +79,9 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 ### Critères de succès
 
 - Le tag et la version déclarée ne peuvent pas diverger (la release échoue, et « Kairos tag » refuse de le poser).
-- Chaque `versionCode` Android est strictement supérieur au précédent **de son canal** : les finales entre elles
-  (identifiant définitif), les préversions entre elles (identifiant `.preview`).
+- Chaque `versionCode` Android est strictement supérieur au précédent, beta ou finale (une seule app depuis la 4.2.0 ;
+  jusqu'à la 4.1, au précédent **de son canal** : les finales entre elles, les préversions entre elles, identifiant
+  `.preview`).
 - Une version finale ne se tague pas sans sa note de version dans les six langues (`ReleaseNotesTest`, « Kairos tag »).
 - Chaque image de bureau empaquetée est **lancée en CI** sur son OS (auto-test)
   avant publication ; un auto-test en échec bloque la release.
