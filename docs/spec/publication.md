@@ -67,6 +67,17 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
 README ; aucune mention « bientôt sur F-Droid » ne reste ; le test de CI `pages` échoue si un marqueur reste ; la page garde 390 px
 sans débordement (les boutons passent à la ligne) ; les images se lisent sur fond clair et sombre de GitHub.
 
+### Badges d'état du README (2026-11-15)
+
+- Sous le titre des deux README, deux rangées de badges, dans la langue du README (demande du propriétaire du 2026-11-15) :
+  - **l'état du projet, en direct** : CI de `main`, build reproductible (vérification F-Droid), dernière version, dernière
+    version beta comprise, version publiée sur F-Droid, téléchargements, activité des commits, licence ;
+  - **ce qu'est Kairos** : vie privée (sans compte, sans pub, sans pistage), données sur l'appareil et hors ligne d'abord,
+    machine learning sur l'appareil, méthodes (WSJF, GTD, time blocking), plateformes, six langues, Kotlin Multiplatform +
+    Compose, specs d'abord et bijectives.
+- Chaque badge mène à ce qu'il résume (workflow, releases, fiche F-Droid, section du README, `docs/spec/`). Ils ne remplacent
+  pas les boutons de téléchargement, qui restent juste en dessous de l'accroche.
+
 ### Aperçu des liens (2026-11-06, #217)
 
 - Un lien vers la page de téléchargement partagé sur un réseau social, une messagerie ou un forum s'affiche avec une **image
@@ -431,6 +442,20 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
 - **Décisions** : badges dessinés par nous plutôt que les badges officiels (licences à vérifier, pas d'équivalent pour le bureau, un style
   unique et la langue de la page) ; pas de logos de marque (marques déposées) ; tracés plutôt que texte SVG (rendu stable dans une balise `img`) ;
   Obtainium par le redirecteur du projet dans le README seulement, parce que GitHub filtre les schémas personnalisés.
+
+### Badges d'état du README (`README.md`, `README.fr.md`)
+
+- Images de shields.io, pas de fichier dans le dépôt : en direct, `github/actions/workflow/status` (`kmp.yml`,
+  `fdroid-check.yml`, branche `main`), `github/v/release` (avec et sans `include_prereleases`), `f-droid/v`,
+  `github/downloads/…/total`, `github/commit-activity/m`, `github/license` ; statiques, `badge/<libellé>-<message>-2F6FED`
+  avec `labelColor=1C2F59` (l'océan et l'océan profond du fond des icônes), logos Simple Icons (`githubactions`, `fdroid`,
+  `github`, `kotlin`) en blanc. Rangées séparées par une ligne vide.
+- Libellés traduits dans `README.fr.md` (« build reproductible », « téléchargements », « vie privée »…), messages des badges
+  en direct tels que shields.io les écrit.
+- **Décisions** : pas de badge AUR tant que `kairos-bin` n'est pas publié (shields.io répond « package not found ») ; pas
+  d'étoiles (rien sur l'outil) ; « hors ligne d'abord » plutôt que « sans réseau », vrai aussi en 4.2.0 où les connexions en
+  ligne sont facultatives et désactivées par défaut (`connexions-en-ligne.md`). Les images viennent d'un service tiers que
+  GitHub met en cache : le README n'est pas l'application, qui reste sans police ni image distante.
 
 ### Décisions et pièges tracés
 
