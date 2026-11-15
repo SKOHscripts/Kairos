@@ -10,11 +10,12 @@ date du dernier export), `ui/stats/StatsScreen.kt`, `ui/screens/DestinationScree
 `ui/day/DayScreen.kt` (écrans suivis), `ui/app/Updates.kt` et `ui/app/Shortcuts.kt` (bandeaux affichés),
 `ui/app/AppServices.kt` (`WidgetProbe`), `ui/app/Demo.kt`, `androidApp/.../AndroidServices.kt`, ressources des six
 langues. Tests : `TipsTest`, `TipsPacingTest`, `TipsIsolationTest` (`core`), `KairosRepositoryTest.tipsMemoryIsWrittenOnlyWhenUsed`
-(`data`), `TipsCatalogTest`, `FeatureCatalogTest`, `StringsParityTest` (`ui`)._
+(`data`), `TipsCatalogTest`, `FeatureCatalogTest`, `StringsParityTest` (`ui`), `TipDialogUiTest`, `DemoStepsTest`
+(`desktopApp`)._
 
 État : issue #221 (jalon 4.2.0), spécifiée le 2026-11-15, **implémentation en cours** : sélecteur, mémoire, interface,
-textes, carte et README écrits le 2026-11-15 ; restent le test d'interface `TipDialogUiTest`, les captures `--self-test`
-et le report des impacts (§ Impacts, à reporter). Périmètre décidé par le propriétaire le
+textes, carte, README, test d'interface et report des impacts faits le 2026-11-15 ; restent les captures `--self-test`
+(§ Impacts). Périmètre décidé par le propriétaire le
 2026-11-15 : espaces Perso **et** Équipe. Points ouverts tranchés par le propriétaire le 2026-11-15 (§ Décisions validées).
 
 ## 1. Besoin métier (cahier des charges)
@@ -129,8 +130,11 @@ Exemples ; les textes définitifs, avec leurs nombres, vivent dans les ressource
   aucun export fait) garde un export identique octet pour octet (`KairosRepositoryTest.tipsMemoryIsWrittenOnlyWhenUsed`,
   `TeamIsolationTest.soloExportIsByteIdentical` inchangé) ; « Revoir le guide » et « Restaurer les valeurs par défaut »
   effacent ce qu'il faut (`GuideMemoryUiTest`).
-- Interface : dialogue avec les trois boutons, « Montre-moi » met l'endroit en valeur ; aucun conseil pendant un chrono,
-  une démonstration, une visite ou un autre dialogue ; interrupteur coupé = aucun conseil (`TipDialogUiTest`).
+- Interface (`TipDialogUiTest`) : sur l'Accueil, le dialogue montre le titre, le texte avec les chiffres et les trois
+  boutons, et retient la date ; « Montre-moi » accepte et ouvre l'écran (les Statistiques retiennent leur ouverture) ;
+  « Plus tard » reporte de 14 jours, « Ne plus me le proposer » écarte ; aucun conseil pendant un chrono, hors de
+  l'Accueil, interrupteur coupé ou pour des services sans conseils ; l'interrupteur de « À propos » écrit et efface
+  `tipsOff` aussitôt. La démonstration n'en a pas (`DemoStepsTest` : `widgets` et `tips` vides).
 - Concordance : chaque conseil désigne une carte du catalogue qui existe, dont les plateformes couvrent les siennes et
   qui mène au même écran (`TipsCatalogTest`) ; la carte `tips` est reliée au README comme toute fonctionnalité
   (`FeatureCatalogTest`).
@@ -204,8 +208,11 @@ rien n'est retenu) ; `guide` est déjà dans `SyncScope.LOCAL_SETTINGS` (propre 
 
 ### Interface
 
-- `TipWatcher(services, space, onHome, quiet, onTip)` (dans `AppShell`, coquille réelle seulement : jamais quand
-  `demo != null`) : tant que `onHome` (Accueil de l'espace courant) et `quiet` tiennent `TIP_DELAY_MILLIS` (5 000 ms), il
+- `AppServices.tips` (faux par défaut, comme `demo`) : seules les applications réelles l'activent (Android, web, bureau
+  hors auto-test en mémoire) ; les tests et les captures des magasins n'ont donc jamais de conseil par surprise.
+  `forDemo` le met à faux.
+- `TipWatcher(services, space, onHome, quiet, onTip)` (dans `AppShell`, coquille réelle avec `services.tips` seulement :
+  jamais quand `demo != null`) : tant que `onHome` (Accueil de l'espace courant) et `quiet` tiennent `TIP_DELAY_MILLIS` (5 000 ms), il
   appelle `Tips.due` hors du fil d'interface (`Dispatchers.Default`), écrit `tipsShown` **au moment où le conseil est
   montré** et le passe à la coquille (état `tip`) ; au plus une fois par lancement (`rememberSaveable`). `quiet` (dans
   `AppShell`) : ni écran secondaire, ni aide, visite, chapitre, hub, avis, dialogue GTD, carte seule, première tâche
@@ -296,20 +303,12 @@ Demande du propriétaire (2026-11-15) : les cartes du catalogue, le README et le
 5. **« Revoir le guide depuis le début » garde l'interrupteur** ; seule la restauration des valeurs par défaut le remet.
 6. **Fonctionnalité du README**, avec la concordance ci-dessus.
 
-### Impacts sur les specs existantes (à reporter à l'implémentation)
+### Impacts sur les specs existantes (reportés le 2026-11-15)
 
-- `visite-guidee.md` : `GuideSettings` (nouveaux champs), `resetGuide` qui garde `tipsOff`, `GuideTarget.RecurringTask` et
-  `GuideTarget.Card`, sections `STATS_CALIBRATION` et `STATS_CORRECT`, renvoi vers cette spec.
-- `reglages.md` : carte « Conseils » de « À propos », effet immédiat ; « Restaurer les valeurs par défaut » l'efface.
-- `statistiques.md`, `bilan.md`, `equipe-simulation.md` : l'écran retient sa première ouverture (`seenScreens`) ; Bilan
-  ouvrable sur la semaine précédente.
-- `export-import.md` : un export réussi retient sa date (`lastExport`).
-- `widgets-android.md` et `architecture.md` : `AppServices.widgets` (`WidgetProbe`), décidé dans `forDemo`.
-- `vue-jour.md` (raccourcis clavier) : le premier raccourci utilisé est retenu.
-- `equipe.md` : isolation (les conseils d'équipe ne sont lus que dans l'espace Équipe activé).
-- `i18n.md` : clés `tip_*` dans les six langues.
-- `distribution.md` : captures `desktop-tip.png` et `desktop-tip-narrow.png`.
-- `liste-fonctionnalites.md`, README : carte `tips`, puce, ligne du tableau ; notes de version avec la 4.2.0 finale.
-- `docs/spec/README.md` : ligne de cette spec à mettre à jour (« implémentée en 4.2.0 »).
-- `visite-guidee.md` § Catalogue : carte `tips` (chapitre « Premiers pas », `since` 4.2.0, section `SETTINGS_TIPS`).
-- `navigation-theme.md` § Icônes : `Lightbulb` (`make_icons.py`).
+Reportés dans `visite-guidee.md` (mémoire, `resetGuide`, cibles, sections, carte de la 4.2.0), `reglages.md` (carte
+« Conseils »), `statistiques.md`, `bilan.md` et `equipe-simulation.md` (écrans suivis, Bilan de la semaine passée),
+`export-import.md` (`lastExport`), `widgets-android.md` et `architecture.md` (`WidgetProbe`, `AppServices.tips`),
+`vue-jour.md` (premier raccourci), `equipe.md` (isolation), `i18n.md` (textes sans pluriel), `navigation-theme.md`
+(`Lightbulb`), `liste-fonctionnalites.md` (concordance), README. Restent : les captures `desktop-tip.png` et
+`desktop-tip-narrow.png` à ajouter à l'auto-test (`distribution.md`), puis l'état « implémentée en 4.2.0 » ici et dans
+l'index ; les notes de version avec la 4.2.0 finale.

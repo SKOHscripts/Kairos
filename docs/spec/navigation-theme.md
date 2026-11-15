@@ -147,7 +147,7 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   Réglages rangés par catégories (`reglages.md`) : `Tune`, `Sort`, `Timer`, `Database` (catégories), `Translate`,
   `Palette`, `Update`, `Work`, `CalendarViewWeek`, `Workspaces`, `Label`, `LightMode`, `History`, `Shield`,
   `Leaderboard`, `Bedtime`, `SettingsBackupRestore` (titres des cartes) ; guide (`visite-guidee.md`, issue #95) : `Spot`
-  (étiquette « Ici » d'une section montrée) ; export des Stats (`statistiques.md`, issue #113) : `TableView` (CSV),
+  (étiquette « Ici » d'une section montrée), `Lightbulb` (conseils et carte « Conseils », 4.2.0, `conseils.md`) ; export des Stats (`statistiques.md`, issue #113) : `TableView` (CSV),
   `Image` (image d'une carte) ; carte « Thème sombre » du guide (3.7.0) : `DarkMode` ; 3.8.0 : `Flag` (échéances de la vue Mois),
   `CalendarMonth` (carte « Le mois d'un coup d'œil »), `ShowChart` (temps chronométré au fil du temps), `EditNote`
   (« Corriger les estimations… »), `Alarm` (rappels) ; 3.10.0 : `Event` (calendriers importés : carte « Calendriers »,

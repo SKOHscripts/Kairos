@@ -397,6 +397,9 @@ une ».
   `desktop-team-comparison[-narrow]` (historique et scénarios semés par
   `TeamSeed`).
 
+**Conseils** (4.2.0, `conseils.md`) : `ForecastScreen` retient sa première ouverture (`Tips.seen(SCREEN_TEAM_FORECAST)`),
+lue par le conseil d'équipe `team_forecast`.
+
 ### Réglages ajoutés (`TeamSettings`)
 
 `teamSimulationRuns` (5 000, 500-50 000), `teamHistoryWeeks` (12, 1-104),
