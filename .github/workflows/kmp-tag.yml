@@ -3,7 +3,8 @@
 # Actions → « Kairos tag » → « Run workflow » sur main, en recopiant la version de kmp/gradle.properties : le workflow
 # vérifie tout ce qu'un tag tapé à la main pouvait rater, pose le tag sur le dernier commit de main, puis lance la
 # release. Un tag poussé avec le jeton du workflow (GITHUB_TOKEN) ne déclenche pas les autres workflows : la release est
-# donc lancée explicitement (workflow_dispatch sur la référence du tag, qu'elle traite comme un tag poussé).
+# donc lancée explicitement (workflow_dispatch sur la référence du tag, qu'elle traite comme un tag poussé). Après une
+# finale, ouvre la PR qui passe main à la mineure suivante (docs/spec/distribution.md § Version attendue).
 name: Kairos tag
 
 on:
@@ -17,6 +18,7 @@ on:
 permissions:
   contents: write
   actions: write
+  pull-requests: write
 
 concurrency:
   group: kairos-tag
@@ -105,3 +107,32 @@ jobs:
             echo "Tag \`v$NAME\` posé sur \`$SHA\`, release lancée (onglet Actions, « Kairos 3 release »)."
             if [[ "$NAME" == *-* ]]; then echo "Préversion : ni F-Droid, ni AUR, ni vérification des mises à jour des versions stables."; fi
           } >> "$GITHUB_STEP_SUMMARY"
+      # Après une finale, main passe à la mineure suivante par une PR (docs/spec/distribution.md § Version attendue). Le
+      # tag est déjà posé : un échec ici (réglage « Allow GitHub Actions to create and approve pull requests » absent,
+      # branche existante) ne doit pas faire échouer le lancement, le résumé donne alors la commande.
+      - name: Proposer la version suivante
+        if: ${{ !contains(steps.check.outputs.name, '-') }}
+        continue-on-error: true
+        env:
+          NAME: ${{ steps.check.outputs.name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          next=$(python3 -c "import sys; x, y, _ = map(int, sys.argv[1].split('.')); print(f'{x}.{y + 1}.0')" "$NAME")
+          branch="version/$next"
+          echo "La suite : \`python3 kmp/tools/set_version.py $next\` (ou \`$next-beta.1\` pour un chantier risqué)." >> "$GITHUB_STEP_SUMMARY"
+          git switch -c "$branch"
+          python3 kmp/tools/set_version.py "$next"
+          git commit -am "chore(version): set $next"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title "chore(version): set $next" --body "Kairos $NAME is tagged: main moves to the next minor, $next (docs/spec/distribution.md § Cycle des versions). For risky work, change it to \`$next-beta.1\` before merging (\`python3 kmp/tools/set_version.py $next-beta.1\`)."
+          # Une PR ouverte avec le jeton du workflow ne déclenche aucun workflow : on lance ses contrôles.
+          for workflow in kmp.yml metadata.yml version.yml; do gh workflow run "$workflow" --ref "$branch"; done
+          echo "PR ouverte : \`$branch\` → main ($next)." >> "$GITHUB_STEP_SUMMARY"
+      - name: Après une beta
+        if: ${{ contains(steps.check.outputs.name, '-') }}
+        env:
+          NAME: ${{ steps.check.outputs.name }}
+        run: |
+          n=${NAME##*.}
+          echo "La suite : \`python3 kmp/tools/set_version.py ${NAME%.*}.$((n + 1))\` pour une autre beta, ou \`python3 kmp/tools/set_version.py ${NAME%%-*}\` pour la finale." >> "$GITHUB_STEP_SUMMARY"
