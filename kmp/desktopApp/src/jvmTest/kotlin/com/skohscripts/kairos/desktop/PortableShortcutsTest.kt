@@ -88,6 +88,43 @@ class PortableShortcutsTest {
     }
 
     @Test
+    fun anOldKairosPreviewEntryIsReplacedEvenWhenNotRecorded() = runBlocking<Unit> {
+        // Une copie « Kairos Preview » (betas jusqu'à la 4.1) a laissé son entrée, absente de l'état de la copie courante.
+        val dataHome = File(tmp, "share")
+        val env = mapOf("XDG_DATA_HOME" to dataHome.path)
+        val legacy = File(dataHome, "applications/kairos-preview.desktop").apply {
+            parentFile.mkdirs()
+            writeText("[Desktop Entry]\nName=Kairos Preview\nExec=\"/old/Kairos Preview/bin/Kairos Preview\"\nStartupWMClass=${WindowClass.NAME}\n")
+        }
+        val copy = PortableCopy.detect(linuxImage("Kairos").path, "Linux", "Kairos")!!
+        val shortcuts = PortableShortcuts(copy, File(tmp, "data/shortcuts.json"), env)
+        assertEquals(ShortcutStatus.ELSEWHERE, shortcuts.status.value)
+
+        shortcuts.create()
+        assertFalse(legacy.exists())
+        assertTrue(File(dataHome, "applications/kairos.desktop").isFile)
+        assertEquals(ShortcutStatus.CREATED, shortcuts.status.value)
+
+        // Un fichier du même nom qui n'est pas de Kairos (pas sa classe de fenêtre) n'est ni compté ni supprimé.
+        val foreign = legacy.apply { writeText("[Desktop Entry]\nName=Autre chose\n") }
+        assertEquals(ShortcutStatus.CREATED, PortableShortcuts(copy, File(tmp, "data/shortcuts.json"), env).status.value)
+        PortableShortcuts(copy, File(tmp, "data/shortcuts.json"), env).create()
+        assertTrue(foreign.exists())
+    }
+
+    @Test
+    fun theWindowsScriptAlsoRemovesOldKairosPreviewShortcuts() {
+        val root = File(tmp, "W/Kairos").apply { File(this, "app").mkdirs() }
+        File(root, "app/${PortableCopy.MARKER}").writeText("")
+        val copy = PortableCopy.detect(File(root, "Kairos.exe").path, "Windows 11", "Kairos")!!
+        val script = PortableShortcuts.windowsScript(copy)
+        assertTrue("foreach (${'$'}name in @('Kairos Preview'))" in script)
+        assertTrue("-like ('*' + ${'$'}name + '.exe')" in script)
+        // Une copie qui porte elle-même un ancien nom ne supprime pas ses propres raccourcis.
+        assertEquals(emptyList(), PortableShortcuts.legacyNames(PortableCopy(root, File(root, "Kairos Preview.exe"), true, "Kairos Preview")))
+    }
+
+    @Test
     fun noThanksIsRemembered() {
         val state = File(tmp, "data/shortcuts.json")
         val copy = PortableCopy.detect(linuxImage("Kairos").path, "Linux", "Kairos")!!

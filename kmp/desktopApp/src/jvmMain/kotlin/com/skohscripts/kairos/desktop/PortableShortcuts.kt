@@ -38,6 +38,8 @@ class PortableShortcuts(
     override val declined = MutableStateFlow(saved.declined)
 
     private fun statusOf(s: Saved): ShortcutStatus = when {
+        // Une entrée d'un ancien nom ouvre une autre copie, qu'elle soit notée ou non (docs/spec/raccourci-portable.md).
+        legacyEntries().isNotEmpty() -> ShortcutStatus.ELSEWHERE
         s.files.none { File(it).exists() } -> ShortcutStatus.MISSING
         s.launcher == copy.launcher.absolutePath -> ShortcutStatus.CREATED
         else -> ShortcutStatus.ELSEWHERE
@@ -45,8 +47,9 @@ class PortableShortcuts(
 
     override suspend fun create() = withContext(Dispatchers.IO) {
         val files = if (copy.windows) createWindows() else listOf(createLinux())
-        // Un raccourci recréé ailleurs (autre nom de fichier) n'a plus lieu d'être.
+        // Un raccourci recréé ailleurs (autre nom de fichier) n'a plus lieu d'être, ni une entrée d'un ancien nom.
         (saved.files - files.toSet()).forEach { File(it).delete() }
+        legacyEntries().forEach { it.delete() }
         save(saved.copy(launcher = copy.launcher.absolutePath, files = files))
     }
 
@@ -67,10 +70,23 @@ class PortableShortcuts(
         declined.value = s.declined
     }
 
+    /** `$XDG_DATA_HOME/applications` (`~/.local/share/applications` par défaut). */
+    private fun applicationsDir(): File = File(env["XDG_DATA_HOME"]?.takeIf { it.isNotBlank() } ?: "$home/.local/share", "applications")
+
+    /**
+     * Entrées `.desktop` laissées par un ancien nom de l'app ([LEGACY_APP_NAMES]) et écrites par Kairos (elles portent sa
+     * classe de fenêtre) : Linux seulement, Windows les nettoie dans [windowsScript].
+     */
+    private fun legacyEntries(): List<File> {
+        if (copy.windows) return emptyList()
+        return legacyNames(copy).map { File(applicationsDir(), "${PortableCopy.packageNameOf(it)}.desktop") }.filter { file ->
+            file.isFile && runCatching { file.readLines() }.getOrDefault(emptyList()).any { it.trim() == "StartupWMClass=${WindowClass.NAME}" }
+        }
+    }
+
     /** `$XDG_DATA_HOME/applications/<paquet>.desktop`, rendu exécutable. */
     private fun createLinux(): String {
-        val dataHome = env["XDG_DATA_HOME"]?.takeIf { it.isNotBlank() } ?: "$home/.local/share"
-        val file = File(dataHome, "applications/${copy.packageName}.desktop")
+        val file = File(applicationsDir(), "${copy.packageName}.desktop")
         file.parentFile.mkdirs()
         file.writeText(desktopEntry(copy))
         file.setExecutable(true)
@@ -87,6 +103,15 @@ class PortableShortcuts(
     companion object {
         /** Même texte que la description des paquets (`desktopApp/build.gradle.kts`). */
         const val DESCRIPTION = "Kairos : le bon moment pour chaque tâche"
+
+        /**
+         * Anciens noms de l'app dont les raccourcis sont remplacés (docs/spec/distribution.md § Identité de l'app) : les
+         * betas s'appelaient « Kairos Preview » jusqu'à la 4.1. Figé par `kmp/tools/validate_identity.py`.
+         */
+        val LEGACY_APP_NAMES = listOf("Kairos Preview")
+
+        /** Les anciens noms, sauf celui de [copy] elle-même. */
+        internal fun legacyNames(copy: PortableCopy): List<String> = LEGACY_APP_NAMES.filter { it != copy.appName }
 
         fun desktopEntry(copy: PortableCopy): String = buildString {
             appendLine("[Desktop Entry]")
@@ -133,6 +158,16 @@ class PortableShortcuts(
                     ${'$'}link.Save()
                     ${'$'}path
                 }
+                # Raccourcis d'un ancien nom de l'app, s'ils ouvrent bien un lanceur de ce nom (sans sortie : la sortie
+                # liste les fichiers créés).
+                foreach (${'$'}folder in @('Programs', 'Desktop')) {
+                    foreach (${'$'}name in @(${legacyNames(copy).joinToString(", ") { ps(it) }})) {
+                        ${'$'}old = Join-Path ${'$'}shell.SpecialFolders.Item(${'$'}folder) (${'$'}name + '.lnk')
+                        if ((Test-Path -LiteralPath ${'$'}old) -and (${'$'}shell.CreateShortcut(${'$'}old).TargetPath -like ('*' + ${'$'}name + '.exe'))) {
+                            Remove-Item -LiteralPath ${'$'}old
+                        }
+                    }
+                }
             """.trimIndent()
         }
 
@@ -161,7 +196,7 @@ class PortableCopy(
     val appName: String,
 ) {
     /** Nom du fichier `.desktop`, celui du paquet Linux. */
-    val packageName = appName.lowercase().replace(' ', '-')
+    val packageName = packageNameOf(appName)
 
     /** Icône que jpackage place dans l'image Linux. */
     val icon = File(root, "lib/$appName.png")
@@ -169,6 +204,9 @@ class PortableCopy(
     companion object {
         /** Écrit par `kmp-release.yml` dans les seules archives portables, à côté des JAR. */
         const val MARKER = "kairos-portable"
+
+        /** Nom de paquet Linux (et du fichier `.desktop`) d'un nom d'app : « Kairos Preview » → `kairos-preview`. */
+        fun packageNameOf(appName: String) = appName.lowercase().replace(' ', '-')
 
         fun detect(
             appPath: String? = System.getProperty("jpackage.app-path"),
