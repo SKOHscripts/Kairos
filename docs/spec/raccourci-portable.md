@@ -103,8 +103,8 @@ montrer. Sur un poste verrouillé, c'est pourtant la seule version possible
   créés, refus. `status` : `CREATED` si les fichiers existent et visent ce
   lanceur, `ELSEWHERE` s'ils existent pour un autre, `MISSING` sinon.
 - **Linux** : `$XDG_DATA_HOME/applications/kairos.desktop`
-  (`kairos-preview.desktop` pour une préversion ; `~/.local/share` par
-  défaut) : `Type=Application`, `Name` (nom du produit), `Comment` (la
+  (`~/.local/share` par défaut ; une seule entrée `kairos.desktop` depuis la 4.2.0, beta comprise, le nom du fichier
+  venant du nom de l'app ; jusqu'à la 4.1, `kairos-preview.desktop` pour une préversion « Kairos Preview ») : `Type=Application`, `Name` (nom du produit), `Comment` (la
   description du paquet), `Exec` (lanceur entre guillemets, échappé selon la
   Desktop Entry Specification : `"`, `` ` ``, `$`, `\` puis `\` doublé,
   `%` doublé), `Icon` (chemin absolu de `lib/<nom>.png`, l'icône que jpackage
@@ -122,6 +122,10 @@ montrer. Sur un poste verrouillé, c'est pourtant la seule version possible
   `Desktop` (dossiers réels, OneDrive compris), cible et icône = le lanceur
   `.exe`, dossier de travail = la racine ; il rend les chemins créés, gardés
   dans l'état.
+- **Mise à jour** (statut `ELSEWHERE`, bouton « Mettre à jour ») : la même création, qui réécrit les fichiers avec le
+  lanceur et l'icône de la copie courante, puis supprime les fichiers notés dans l'état qui n'ont pas été recréés (un
+  ancien nom, `kairos-preview.desktop` d'une copie « Kairos Preview » qui partageait le dossier de données, par exemple),
+  et note le nouveau lanceur.
 - Retrait : suppression des seuls fichiers notés dans l'état.
 
 ### Décisions et pièges tracés
