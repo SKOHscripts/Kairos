@@ -151,8 +151,9 @@ montrer. Sur un poste verrouillé, c'est pourtant la seule version possible
   (`LocalMessages`) part dans la portée de la coquille, qui survit au bandeau.
 
 - **Anciennes entrées non notées** (2026-11-17) : le propriétaire, passé d'une copie portable « Kairos Preview » 4.1
-  à la beta 4.2.0 « Kairos », n'a pas pu remplacer son entrée de menu par le bandeau : seule l'entrée notée dans
-  `shortcuts.json` était comparée. D'où les anciens noms, et l'identité de l'app figée par `validate_identity.py`
+  à la beta 4.2.0 « Kairos », n'a pas pu remplacer son entrée de menu par le bandeau. Seule l'entrée notée dans
+  `shortcuts.json` était comparée : une entrée « Kairos Preview » absente de l'état (refus, autre dossier de données)
+  restait invisible pour la nouvelle copie. D'où les anciens noms, et l'identité de l'app figée par `validate_identity.py`
   (`distribution.md` § Identité de l'app) : changer un nom ou un identifiant demande désormais de prévoir la migration.
 - **Marqueur plutôt que chemin d'installation** : deviner une copie
   installée à son chemin (`/opt/kairos`, `%LOCALAPPDATA%`) casse dès qu'on
