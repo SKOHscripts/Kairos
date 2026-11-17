@@ -28,6 +28,8 @@ jobs:
       - run: python3 kmp/tools/validate_og.py
       # Menu du site (docs/spec/publication.md § Menu du site).
       - run: python3 kmp/tools/validate_menu.py
+      # Identité de l'app figée (docs/spec/distribution.md § Identité de l'app).
+      - run: python3 kmp/tools/validate_identity.py
       # Scripts de kmp/tools/ (nettoyage des artefacts, carte du code, version attendue…).
       - run: python3 -m unittest discover -s kmp/tools -p 'test_*.py'
 

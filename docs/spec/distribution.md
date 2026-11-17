@@ -601,7 +601,7 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
 
 - `metadata.yml` (« Kairos checks », chaque PR sans filtre de chemins, push sur `main`, lancement manuel ; 2026-11-15,
   avant deux workflows « Metadata » et « Kairos version ») : deux jobs parallèles, `metadata` (fiches, page, README,
-  menu, tests des scripts de `kmp/tools/`, `publication.md` § Vérification continue) et `version` (§ Version attendue).
+  menu, identité de l'app, tests des scripts de `kmp/tools/`, `publication.md` § Vérification continue) et `version` (§ Version attendue).
   Quelques secondes chacun : sans filtre de chemins, rien ne leur échappe.
 - `pages.yml` : ne se déclenche plus pour `kmp/androidApp/**`, `kmp/desktopApp/**` ni `kmp/tools/**`, sans effet sur la page.
 
