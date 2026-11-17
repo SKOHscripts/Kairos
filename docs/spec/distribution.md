@@ -276,6 +276,30 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
   tag, déjà posé, et le résumé donne la commande. Après une beta, rien n'est ouvert : le résumé rappelle les deux
   suites (`beta.N+1` ou la finale).
 
+### Identité de l'app (figée, 2026-11-17)
+
+Les noms et identifiants qui relient une installation à la suivante ne changent pas sans migration (demande du
+propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kairos ») :
+
+| Identifiant | Valeur | Ce qui casse s'il change |
+|---|---|---|
+| Nom de l'app (bureau, `appName` de `desktopApp/build.gradle.kts` et `Main.kt`) | `Kairos` | nom de l'image et du lanceur, icône `lib/Kairos.png`, raccourcis portables (`kairos.desktop`, `Kairos.lnk`) |
+| Paquet Linux (`.deb`) | `kairos` | le nouveau paquet s'installe à côté de l'ancien |
+| Upgrade code Windows (`.msi`) | `5b0e2d7c-8a41-4f6b-b3c9-1e7d6a2f4c08` | le `.msi` s'installe à côté au lieu de remplacer |
+| Bundle macOS | `com.skohscripts.kairos` | deuxième application, réglages système à part |
+| `applicationId` Android | `com.skohscripts.kairos` | deuxième app, données à part, F-Droid perd le suivi |
+| Nom Android (`app_name`) | `Kairos` | nom affiché |
+| Classe de fenêtre X11 (`WindowClass.NAME`) | `kairos` | icône de la barre des tâches (`StartupWMClass`) |
+| Dossier des données (`DataDirectory`) | racine `Kairos`, sous-dossier `v3` | les données semblent perdues |
+| Recette F-Droid | `fdroid/com.skohscripts.kairos.yml` | suivi F-Droid |
+| Anciens noms (`PortableShortcuts.LEGACY_APP_NAMES`) | `Kairos Preview` | les entrées laissées par les betas jusqu'à la 4.1 restent dans les menus |
+
+- **Contrôle** : `kmp/tools/validate_identity.py` (job `metadata` de « Kairos checks ») lit ces valeurs dans les fichiers
+  et échoue sur tout écart, en renvoyant ici ; testé par `test_validate_identity.py`.
+- **Pour en changer un** : prévoir la migration de ce qui casse (colonne de droite) dans le même changement : ancien nom
+  ajouté à `LEGACY_APP_NAMES` (raccourcis portables), paquet, données ; le dire dans les notes de version ; puis
+  mettre à jour la valeur dans `validate_identity.py` et ce tableau.
+
 ### Android (`kmp/androidApp`)
 
 - `applicationId` `com.skohscripts.kairos` et nom `Kairos` (`resValue app_name`) pour toutes les versions, betas

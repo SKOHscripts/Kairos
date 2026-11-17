@@ -37,6 +37,11 @@ montrer. Sur un poste verrouillé, c'est pourtant la seule version possible
 - Si les raccourcis existent mais ouvrent **une autre copie** (nouvelle
   version dézippée ailleurs), le bandeau propose de les mettre à jour vers
   celle-ci (« Mettre à jour »), sauf après « Non merci ».
+- **Anciennes entrées « Kairos Preview »** (demande du propriétaire du 2026-11-17) : jusqu'à la 4.1, une beta portable
+  s'appelait « Kairos Preview » et créait sa propre entrée ; depuis la 4.2.0, beta et stable sont la même app « Kairos ».
+  Une entrée « Kairos Preview » restée dans le menu ouvre une autre copie : le bandeau propose donc « Mettre à jour »,
+  même si cette entrée n'est pas connue de la copie courante, et la mise à jour la retire. Il ne reste qu'une entrée
+  « Kairos ».
 - Réglages → catégorie « Général » → carte **Raccourci** (copie portable seulement, après « Mises à
   jour ») : l'état (aucun raccourci, créé, ouvre une autre copie), et
   « Créer le raccourci » / « Mettre à jour le raccourci » / « Retirer le
@@ -126,6 +131,12 @@ montrer. Sur un poste verrouillé, c'est pourtant la seule version possible
   lanceur et l'icône de la copie courante, puis supprime les fichiers notés dans l'état qui n'ont pas été recréés (un
   ancien nom, `kairos-preview.desktop` d'une copie « Kairos Preview » qui partageait le dossier de données, par exemple),
   et note le nouveau lanceur.
+- **Anciens noms** (`PortableShortcuts.LEGACY_APP_NAMES`, « Kairos Preview ») : sous Linux,
+  `<applications>/kairos-preview.desktop` est une ancienne entrée s'il porte `StartupWMClass=kairos` (écrit par Kairos,
+  pas par un tiers). Elle compte dans le statut (`ELSEWHERE` tant qu'elle existe, même quand `kairos.desktop` vise déjà
+  cette copie) et `create()` la supprime, notée dans l'état ou non. Sous Windows, le script de création supprime aussi
+  `Kairos Preview.lnk` des mêmes dossiers quand sa cible finit par `Kairos Preview.exe` ; pas de détection au démarrage
+  (il faudrait lancer PowerShell à chaque lancement), le nettoyage se fait au prochain « Créer » ou « Mettre à jour ».
 - Retrait : suppression des seuls fichiers notés dans l'état.
 
 ### Décisions et pièges tracés
@@ -139,6 +150,10 @@ montrer. Sur un poste verrouillé, c'est pourtant la seule version possible
   CI). `rememberShortcutAction` lit le texte d'abord ; l'envoi lui-même
   (`LocalMessages`) part dans la portée de la coquille, qui survit au bandeau.
 
+- **Anciennes entrées non notées** (2026-11-17) : le propriétaire, passé d'une copie portable « Kairos Preview » 4.1
+  à la beta 4.2.0 « Kairos », n'a pas pu remplacer son entrée de menu par le bandeau : seule l'entrée notée dans
+  `shortcuts.json` était comparée. D'où les anciens noms, et l'identité de l'app figée par `validate_identity.py`
+  (`distribution.md` § Identité de l'app) : changer un nom ou un identifiant demande désormais de prévoir la migration.
 - **Marqueur plutôt que chemin d'installation** : deviner une copie
   installée à son chemin (`/opt/kairos`, `%LOCALAPPDATA%`) casse dès qu'on
   dézippe au même endroit ; le marqueur écrit par la release est explicite.
