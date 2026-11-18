@@ -570,9 +570,10 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
     classes), puis version web (`:webApp:wasmJsBrowserDistribution`) ;
   - « Bureau » : image de bureau Linux (`createDistributable`) et son **auto-test** ; captures en artefact
     `kmp-ci-screens` (7 jours) ;
-  - « Android Lint » : plateforme Android 37, `:androidApp:lintDebug` (bloc `lint` de `androidApp/build.gradle.kts` :
-    rapport texte dans le journal en plus du HTML ; échec sur une erreur, pas sur un avertissement) ; rapports en artefact
-    `kmp-ci-lint` (7 jours). C'est le seul contrôle propre à Android de la CI : les tests d'interface rendent les écrans
+  - « Android Lint » : plateforme Android 37, `:androidApp:lintDebug` (échec sur une erreur, pas sur un avertissement ;
+    aucune erreur au premier passage, le 2026-11-18, donc pas de baseline) ; le rapport texte est affiché dans le journal
+    par une étape du job (pas par `textOutput = file("stdout")`, obsolète en AGP 9, qui écrit un fichier `stdout` dans
+    le module) ; rapports en artefact `kmp-ci-lint` (7 jours). C'est le seul contrôle propre à Android de la CI : les tests d'interface rendent les écrans
     sur la JVM et `androidApp` n'a pas de tests.
   Les deux jobs de tests ajoutent au résumé du lancement un **tableau des tests** par module et par tâche (tests, échecs,
   ignorés, durée) et la liste des tests en échec : `kmp/tools/report_tests.py`, qui lit les rapports JUnit de Gradle,
