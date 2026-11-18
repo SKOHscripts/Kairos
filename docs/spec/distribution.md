@@ -562,13 +562,21 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
 ### CI et release (GitHub Actions)
 
 - `kmp.yml` (« Kairos CI » ; push sur `main`, PR, lancement manuel ; chemins `kmp/**` hors `kmp/tools/**`, et le
-  workflow lui-même) : JDK 21 Temurin, une **matrice de trois jobs parallèles** (2026-11-15), chacun avec son Gradle :
+  workflow lui-même) : JDK 21 Temurin, une **matrice de quatre jobs parallèles** (2026-11-15 ; le quatrième, Android
+  Lint, le 2026-11-18), chacun avec son Gradle :
   - « Tests JVM » : plateforme Android 37, tests JVM (`core` dont les tests différentiels, `data`, `ui`, `desktopApp`
     dont les tests d'interface de la vue Jour) ;
   - « Tests wasm et web » : tests du modèle et de la synchronisation dans Chrome (`:core:wasmJsBrowserTest`, liste de
     classes), puis version web (`:webApp:wasmJsBrowserDistribution`) ;
   - « Bureau » : image de bureau Linux (`createDistributable`) et son **auto-test** ; captures en artefact
-    `kmp-ci-screens` (7 jours).
+    `kmp-ci-screens` (7 jours) ;
+  - « Android Lint » : plateforme Android 37, `:androidApp:lintDebug` (bloc `lint` de `androidApp/build.gradle.kts` :
+    rapport texte dans le journal en plus du HTML ; échec sur une erreur, pas sur un avertissement) ; rapports en artefact
+    `kmp-ci-lint` (7 jours). C'est le seul contrôle propre à Android de la CI : les tests d'interface rendent les écrans
+    sur la JVM et `androidApp` n'a pas de tests.
+  Les deux jobs de tests ajoutent au résumé du lancement un **tableau des tests** par module et par tâche (tests, échecs,
+  ignorés, durée) et la liste des tests en échec : `kmp/tools/report_tests.py`, qui lit les rapports JUnit de Gradle,
+  lancé même en échec (`if: always()`), sans jamais faire échouer le job ; testé par `test_report_tests.py`.
   `fail-fast: false` : un job rouge n'arrête pas les autres. L'APK n'y est plus construit (2026-11-06) : `fdroid-check.yml`, déclenché par les
   mêmes changements, le construit deux fois (F-Droid et reproductibilité). Une PR qui reçoit un nouveau commit annule le
   run précédent ; un push sur `main` ou un lancement manuel ne s'annule jamais. Un test en échec affiche son message et sa
@@ -582,7 +590,8 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
   `kmp-test-build.yml`, qui en dupliquait les constructions) :
   - `resolve` : le commit construit (sur un tag, celui du tag, qui doit valoir `v` + `kairos.versionName` ; à la main,
     § Build de test), drapeau `prerelease` si la version contient `-`, et les cibles de la matrice ;
-  - `tests` : tests JVM, **en parallèle des constructions** (2026-11-15 ; avant, en tête du job Android) ;
+  - `tests` : tests JVM, **en parallèle des constructions** (2026-11-15 ; avant, en tête du job Android), avec le
+    tableau des tests de `report_tests.py` dans le résumé ;
   - `build`, **une matrice** de six cibles (2026-11-15 ; avant, trois jobs `android`, `web` et `desktop`) :
     `android` (`ubuntu-latest`, plateforme Android 37, keystore depuis `KAIROS_KEYSTORE_BASE64`, échec sur un tag
     sans secret, `assembleRelease` → `Kairos-android.apk`), `web` (`ubuntu-latest`, `Kairos-web.zip`), et le bureau,
@@ -675,6 +684,10 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
   `-o pipefail` ; `yes`, tué par « Broken pipe » quand `sdkmanager` se ferme, faisait échouer l'étape « Plateforme
   Android 37 » du premier tag `v4.2.0-beta.1` (les anciens jobs utilisaient le shell par défaut, sans `pipefail`). Même
   écriture dans tous les workflows, pour qu'un futur `pipefail` ne la casse pas.
+- **Android Lint et tableau des tests** (propriétaire, 2026-11-18, d'après la CI d'un autre projet Android libre) :
+  retenus parce que peu coûteux (un job parallèle de plus, un script sans dépendance). Écartés pour l'instant : des tests
+  instrumentés sur émulateur (+10 à 20 min, et `androidApp` n'a pas encore de tests ; à réserver à la release ou à un
+  lancement nocturne le jour venu) ; les tests unitaires en debug et en release (même code, deux fois le temps).
 - **Nettoyage des workflows** (propriétaire, 2026-11-15) : les noms affichés perdent « Kairos 3 » (« Kairos CI »,
   « Kairos release », artefacts `dist-*` au lieu de `kairos3-*`), les fichiers gardent le leur (badge du README, liens
   des specs, historique des lancements). Des matrices là où les jobs ne diffèrent que par leurs paramètres (CI,
