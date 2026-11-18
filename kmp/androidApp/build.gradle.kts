@@ -52,6 +52,13 @@ android {
         resValues = true
     }
 
+    // Android Lint (job « Android Lint » de la CI, docs/spec/distribution.md § CI et release) : les problèmes s'écrivent
+    // aussi dans le journal du job, pas seulement dans le rapport HTML. Échoue sur une erreur, pas sur un avertissement.
+    lint {
+        textReport = true
+        textOutput = file("stdout")
+    }
+
     // F-Droid et builds reproductibles : pas de bloc de dépendances chiffré par
     // Google dans l'APK (illisible par F-Droid).
     dependenciesInfo {

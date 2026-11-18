@@ -1,5 +1,5 @@
-# CI de Kairos (kmp/, docs/spec/distribution.md § CI) : tests et builds (bureau, web) à chaque PR et push sur main, en
-# trois jobs parallèles (matrice). L'APK est construit et vérifié par fdroid-check.yml (construction F-Droid
+# CI de Kairos (kmp/, docs/spec/distribution.md § CI) : tests, Android Lint et builds (bureau, web) à chaque PR et push
+# sur main, en quatre jobs parallèles (matrice). L'APK est construit et vérifié par fdroid-check.yml (construction F-Droid
 # et reproductibilité), déclenché par les mêmes changements : il n'est pas reconstruit ici.
 name: Kairos CI
 
@@ -29,12 +29,14 @@ jobs:
         include:
           - name: Tests JVM
             android: true
+            report: true
             tasks: ":core:jvmTest :data:jvmTest :ui:jvmTest :desktopApp:jvmTest"
           # L'estimateur par modèle doit rendre les mêmes valeurs au bit près sur wasm que sur la JVM, dans le budget de
           # temps (docs/spec/estimateur-modele.md § Déterminisme) : ses tests rapides tournent aussi dans Chrome
           # (Kotlin/wasm). De même l'horloge, les empreintes et le texte canonique de la synchronisation
           # (docs/spec/synchronisation.md § Tests). Puis la version web.
           - name: Tests wasm et web
+            report: true
             tasks: >-
               :core:wasmJsBrowserTest
               --tests com.skohscripts.kairos.core.engine.model.ModelReproducibilityTest
@@ -51,6 +53,11 @@ jobs:
           - name: Bureau
             tasks: ":desktopApp:createDistributable"
             selftest: true
+          # Ce que seul Android vérifie : API trop récentes pour minSdk, manifeste, permissions, ressources (2026-11-18).
+          - name: Android Lint
+            android: true
+            lint: true
+            tasks: ":androidApp:lintDebug"
     defaults:
       run:
         working-directory: kmp
@@ -74,6 +81,13 @@ jobs:
           TASKS: ${{ matrix.tasks }}
         run: ./gradlew --no-daemon $TASKS
 
+      # Tableau des tests (module, tâche, échecs) dans le résumé du lancement, même en échec.
+      - name: Rapport des tests
+        if: always() && matrix.report
+        env:
+          TITLE: ${{ matrix.name }}
+        run: python3 tools/report_tests.py . --title "$TITLE"
+
       # L'application empaquetée démarre réellement (docs/spec/distribution.md § Auto-test).
       - name: Auto-test de l'application de bureau empaquetée
         if: matrix.selftest
@@ -87,5 +101,13 @@ jobs:
         with:
           name: kmp-ci-screens
           path: ${{ runner.temp }}/screens
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.lint
+        with:
+          name: kmp-ci-lint
+          path: kmp/androidApp/build/reports/lint-results-debug.*
           if-no-files-found: ignore
           retention-days: 7
