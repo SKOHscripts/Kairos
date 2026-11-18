@@ -81,6 +81,12 @@ jobs:
           TASKS: ${{ matrix.tasks }}
         run: ./gradlew --no-daemon $TASKS
 
+      # Les problèmes relevés par le lint dans le journal (AGP écrit toujours ses rapports ; `textOutput = file("stdout")`
+      # est obsolète en AGP 9 et créerait un fichier `androidApp/stdout`).
+      - name: Problèmes relevés par Android Lint
+        if: always() && matrix.lint
+        run: cat androidApp/build/reports/lint-results-debug.txt 2>/dev/null || echo "Pas de rapport texte du lint."
+
       # Tableau des tests (module, tâche, échecs) dans le résumé du lancement, même en échec.
       - name: Rapport des tests
         if: always() && matrix.report
