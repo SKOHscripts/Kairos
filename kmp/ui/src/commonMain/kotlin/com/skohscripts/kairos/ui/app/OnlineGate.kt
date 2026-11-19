@@ -16,8 +16,13 @@ class OnlineGate(
 ) {
     sealed interface Result {
         data object GateClosed : Result
-        /** [text] : le corps décodé une seule fois (vide pour un 304), pour ne pas doubler la mémoire d'un corps de 16 Mo. */
-        data class Success(val response: HttpResponse, val url: String, val text: String) : Result
+        /**
+         * [text] : le corps décodé une seule fois (vide pour un 304), pour ne pas doubler la mémoire d'un corps de 16 Mo.
+         * [url] : l'adresse lue après les redirections ; [storedUrl] : celle à garder pour les synchronisations suivantes, le
+         * lien demandé, sauf si toutes les redirections suivies étaient permanentes (301, 308) : une redirection temporaire
+         * (302, 303, 307) vers une adresse signée qui expire ne doit pas casser la connexion (décision du 2026-11-19).
+         */
+        data class Success(val response: HttpResponse, val url: String, val text: String, val storedUrl: String = url) : Result
         data class Failed(val error: ConnectionError, val retryAfterSeconds: Long? = null) : Result
         data class Confirm(val kind: IcsConfirmation, val host: String) : Result
     }
@@ -42,8 +47,10 @@ class OnlineGate(
                 Result.Confirm(IcsConfirmation.INSECURE_HTTP, HttpPolicy.host(url).orEmpty())
             } else Result.Failed(ConnectionError.UNSUPPORTED)
         }
-        var target = (checked as HttpPolicy.Check.Ok).url
+        val requested = (checked as HttpPolicy.Check.Ok).url
+        var target = requested
         var followed = 0
+        var permanent = true
         while (true) {
             if (!allowed()) return Result.GateClosed
             val headers = mutableMapOf("User-Agent" to "Kairos", "Accept-Encoding" to "gzip")
@@ -58,14 +65,22 @@ class OnlineGate(
                 return Result.Failed(ConnectionError.TOO_BIG)
             } catch (e: HttpTransportException) {
                 log(HttpPolicy.logLine("GET", target, null, start.elapsedNow().inWholeMilliseconds, null))
-                return Result.Failed(if (e.tls) ConnectionError.TLS else ConnectionError.OFFLINE)
+                return Result.Failed(when {
+                    e.invalidAddress -> ConnectionError.UNSUPPORTED
+                    e.tls -> ConnectionError.TLS
+                    else -> ConnectionError.OFFLINE
+                })
             }
             log(HttpPolicy.logLine("GET", target, response.status, start.elapsedNow().inWholeMilliseconds, response.body.size))
             if (response.body.size > MAX_BODY_BYTES) return Result.Failed(ConnectionError.TOO_BIG)
             if (response.status in listOf(301, 302, 303, 307, 308)) {
                 val location = response.headers["location"] ?: return Result.Failed(ConnectionError.UNAVAILABLE)
                 when (val redirect = HttpPolicy.redirect(target, location, connection.kind, followed, connection.redirectHost)) {
-                    is HttpPolicy.Redirect.Follow -> { target = redirect.url; followed++ }
+                    is HttpPolicy.Redirect.Follow -> {
+                        target = redirect.url
+                        followed++
+                        if (response.status !in listOf(301, 308)) permanent = false
+                    }
                     is HttpPolicy.Redirect.AskUser -> return Result.Confirm(IcsConfirmation.REDIRECT_HOST, redirect.host)
                     is HttpPolicy.Redirect.Refuse -> return Result.Failed(redirect.error)
                 }
@@ -77,10 +92,10 @@ class OnlineGate(
                     when {
                         !IcsParser.isCalendar(text) -> Result.Failed(ConnectionError.NOT_CALENDAR)
                         !text.lineSequence().any { it.trim().equals("END:VCALENDAR", ignoreCase = true) } -> Result.Failed(ConnectionError.TRUNCATED)
-                        else -> Result.Success(response, target, text)
+                        else -> Result.Success(response, target, text, if (permanent) target else requested)
                     }
                 }
-                304 -> if (connection.plannedOn == today.toString() && connection.etag != null) Result.Success(response, target, "") else Result.Failed(ConnectionError.UNAVAILABLE)
+                304 -> if (connection.plannedOn == today.toString() && connection.etag != null) Result.Success(response, target, "", if (permanent) target else requested) else Result.Failed(ConnectionError.UNAVAILABLE)
                 401, 403 -> Result.Failed(ConnectionError.AUTH)
                 404, 410 -> Result.Failed(ConnectionError.GONE)
                 else -> Result.Failed(ConnectionError.UNAVAILABLE, response.headers["retry-after"]?.trim()?.toLongOrNull()?.coerceAtLeast(0))

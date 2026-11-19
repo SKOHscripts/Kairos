@@ -28,7 +28,7 @@ object AndroidHttp : HttpFetcher {
         val connection = try {
             URL(request.url).openConnection() as HttpURLConnection
         } catch (error: IOException) {
-            throw HttpTransportException(tls = false, message = "Invalid address", cause = error)
+            throw HttpTransportException(tls = false, message = "Invalid address", cause = error, invalidAddress = true)
         }
         val expired = AtomicBoolean(false)
         coroutineScope {
