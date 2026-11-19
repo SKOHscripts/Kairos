@@ -77,7 +77,7 @@ savoir.
 
 ### Hors périmètre / différé
 
-- Téléchargement, vérification de somme et remplacement automatiques
+- Téléchargement, vérification de somme et remplacement automatiques (rouvert par `mise-a-jour-automatique.md`, spécifiée le 2026-11-19, non implémentée, #249)
   (plan § 6.2) : l'installeur du système remplace l'application.
 - Notification système d'une nouvelle version : le bandeau suffit.
 - Source ou jeton configurables : Kairos est publié sur GitHub seulement.
