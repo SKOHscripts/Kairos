@@ -744,6 +744,6 @@ Les éléments ci-dessous restent à reporter au jalon ou à la publication conc
   `visite-guidee.md` : carte `online_connections` (les services de démonstration sont déjà documentés).
 - `docs/plan-v3-kotlin.md` : conserver l'historique M0, ajouter seulement un renvoi vers cette décision lors de l'implémentation.
 - `fdroid/com.skohscripts.kairos.yml` : `NonFreeNet` à l'embarquement de Microsoft ou Google seulement.
-  `fastlane/metadata/android/*/full_description.txt`, note finale dans les six langues et `site/` : remplacer l'absence de réseau par les connexions facultatives.
+  `fastlane/metadata/android/*/full_description.txt` et `site/` : l'absence de réseau est remplacée par les connexions facultatives (fait avec O1, PR #242). Reste la note finale `40200.txt` dans les six langues, au cycle de publication.
   `kmp/desktopApp/build.gradle.kts` : `jdk.httpserver` avec OAuth (le manifeste O1 est déjà modifié).
   Ne modifier version ou tags que dans le cycle de publication prévu.

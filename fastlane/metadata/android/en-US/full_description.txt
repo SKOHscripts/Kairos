@@ -31,9 +31,9 @@ Off by default, team management adds a second space for the manager, who remains
 
 <b>Your data stays with you</b>
 <ul>
-<li>No account, no ads, no trackers, no network permission.</li>
+<li>No account, no ads, no trackers. The network is used only by the optional online connections, off by default.</li>
 <li>Export and import a JSON file, to back up or switch devices; or keep an up-to-date copy in a folder you sync.</li>
-<li>Meetings from a calendar file (.ics: Outlook, Google, Thunderbird) or, optionally, from your phone’s calendars: Kairos then asks for calendar access, read only, and still never connects to the network.</li>
+<li>Meetings from a calendar file (.ics: Outlook, Google, Thunderbird) or, optionally, from your phone’s calendars: Kairos then asks for calendar access, read only. Importing a file never uses the network.</li>
 </ul>
 
 Kairos is also available for Windows, Linux and macOS, and in the browser. Free software under the MIT licence, in English, French, Spanish, German, Russian and Italian (your choice in the settings; by default your system’s language when it is one of these, English otherwise).

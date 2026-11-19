@@ -31,9 +31,9 @@ Desactivada por defecto, la gestión de equipo añade un segundo espacio para el
 
 <b>Sus datos se quedan con usted</b>
 <ul>
-<li>Sin cuenta, sin anuncios, sin rastreadores, sin permiso de red.</li>
+<li>Sin cuenta, sin anuncios, sin rastreadores. La red solo la usan las conexiones en línea opcionales, desactivadas por defecto.</li>
 <li>Exporte e importe un archivo JSON para hacer copias de seguridad o cambiar de dispositivo; o mantenga una copia al día en una carpeta que sincronice.</li>
-<li>Reuniones a partir de un archivo de calendario (.ics: Outlook, Google, Thunderbird) o, opcionalmente, de los calendarios del teléfono: Kairos solicita entonces acceso al calendario, de solo lectura, y sigue sin conectarse nunca a la red.</li>
+<li>Reuniones a partir de un archivo de calendario (.ics: Outlook, Google, Thunderbird) o, opcionalmente, de los calendarios del teléfono: Kairos solicita entonces acceso al calendario, de solo lectura. La importación de un archivo nunca usa la red.</li>
 </ul>
 
 Kairos también está disponible para Windows, Linux y macOS, y en el navegador. Software libre con licencia MIT, en español, alemán, ruso, italiano, francés e inglés (a su elección en los ajustes; por defecto, el idioma del sistema si es uno de ellos, y si no, inglés).
