@@ -64,8 +64,8 @@ object AndroidServices {
         val online = DefaultOnlineConnections(
             repository, backups, AndroidHttp, AndroidSecrets(context), KairosProcess.scope, now = { clock.now() },
         )
-        online.purgeOrphans()
         val scheduler = ConnectionScheduler(context)
+        KairosProcess.scope.launch { online.purgeOrphans() }
         KairosProcess.scope.launch {
             online.connections.collect { scheduler.apply(it) }
         }

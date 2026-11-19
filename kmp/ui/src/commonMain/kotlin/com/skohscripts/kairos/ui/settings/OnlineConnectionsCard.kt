@@ -35,7 +35,9 @@ import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.StringResource
@@ -142,7 +144,9 @@ internal fun OnlineConnectionsCard(services: AppServices) {
     }
     SettingsCard(spacing = KairosSpacing.m) {
         SettingsCardHeader(KairosIcons.Sync, stringResource(Res.string.online_title), stringResource(Res.string.online_body))
-        if (online.secretLevel == SecretLevel.FILE) Text(stringResource(Res.string.online_file_secrets), style = MaterialTheme.typography.bodyMedium)
+        // Hors du fil d'interface : le premier accès au magasin de secrets peut lancer un processus du système (bureau).
+        val secretLevel by produceState<SecretLevel?>(null, online) { value = withContext(Dispatchers.Default) { online.secretLevel } }
+        if (secretLevel == SecretLevel.FILE) Text(stringResource(Res.string.online_file_secrets), style = MaterialTheme.typography.bodyMedium)
         Box {
             KairosOutlinedButton(enabled = !busy, onClick = { menu = true }) { Text(stringResource(Res.string.online_add_connection)) }
             DropdownMenu(menu, onDismissRequest = { menu = false }) {

@@ -40,6 +40,43 @@ class DesktopSecretsTest {
     }
 
     @Test
+    fun twoDataFoldersNeverShareSecretsOrKeychainEntries() {
+        val first = File("profile-a")
+        val second = File("profile-b")
+        assertTrue(DesktopSecrets.profileId(first) != DesktopSecrets.profileId(second))
+        assertEquals(DesktopSecrets.profileId(first), DesktopSecrets.profileId(File("profile-a/../profile-a")))
+    }
+
+    @Test
+    fun macKeyReachesTheKeychainThroughStandardInputOnly() {
+        val directory = createTempDirectory("desktop-secrets-mac").toFile()
+        try {
+            val commands = mutableListOf<List<String>>()
+            var stored: String? = null
+            val runner = SecretProcessRunner { command, input ->
+                commands += command
+                when {
+                    command.getOrNull(1) == "find-generic-password" ->
+                        stored?.let { SecretProcessResult(0, it) } ?: SecretProcessResult(44, "")
+                    command == listOf("security", "-i") -> {
+                        stored = input.substringAfter("-w ").trim()
+                        SecretProcessResult(0, "")
+                    }
+                    else -> null
+                }
+            }
+            val secrets = DesktopSecrets(directory, "Mac OS X", runner, "online-secrets-test")
+            secrets.put("url:1", "https://example.test/private")
+            assertEquals(SecretLevel.SYSTEM, secrets.level)
+            assertEquals("https://example.test/private", DesktopSecrets(directory, "Mac OS X", runner, "online-secrets-test").get("url:1"))
+            assertTrue(commands.none { command -> command.any { it == stored } }, "the key must not appear in a process argument")
+            assertTrue(commands.any { "online-secrets-test" in it })
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
+
+    @Test
     fun tamperedOrTruncatedEnvelopeIsAbsent() {
         val directory = createTempDirectory("desktop-secrets-tamper").toFile()
         try {

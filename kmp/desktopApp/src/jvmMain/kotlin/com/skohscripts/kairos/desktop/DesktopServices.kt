@@ -76,12 +76,16 @@ object DesktopServices {
             current = linked
         }
         diagnostics?.log("db.open ${if (opened.created) "created" else "schema ${KairosDatabase.Schema.version}"} tasks=${repository.snapshot.value.tasks.size}")
-        val online = if (inMemory) null else DefaultOnlineConnections(repository, backups, DesktopHttp, DesktopSecrets(), scope, now = { clock.now() })
+        // Les secrets suivent le dossier des données (docs/spec/connexions-en-ligne.md § Secrets) : un autre profil n'y touche pas.
+        val online = if (inMemory) null else DefaultOnlineConnections(repository, backups, DesktopHttp, DesktopSecrets(dataDir), scope, now = { clock.now() })
         online?.let {
-            it.purgeOrphans()
             currentSync = it.sync
             onlineScope = scope
-            ConnectionWatcher(it.sync, scope, now = { clock.now() }).start()
+            // Hors du fil d'interface et de `open` : le magasin de secrets peut lancer `secret-tool`, `security` ou PowerShell (10 s au plus).
+            scope.launch {
+                it.purgeOrphans()
+                ConnectionWatcher(it.sync, scope, now = { clock.now() }).start()
+            }
         }
         AppServices(
             repository = repository,

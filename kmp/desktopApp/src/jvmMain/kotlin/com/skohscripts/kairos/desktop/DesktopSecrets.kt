@@ -13,6 +13,7 @@ import java.nio.file.attribute.AclEntryPermission
 import java.nio.file.attribute.AclEntryType
 import java.nio.file.attribute.AclFileAttributeView
 import java.nio.file.attribute.PosixFilePermissions
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
 import java.util.Properties
@@ -43,11 +44,18 @@ class DesktopSecrets internal constructor(
     private val directory: File,
     private val osName: String,
     private val runner: SecretProcessRunner,
+    /** Nom de l'entrée dans le trousseau du système : un par dossier de données. */
+    private val account: String = "online-secrets",
 ) : SecretStore {
-    constructor() : this(
-        DataDirectory.kairosRoot(System.getenv(), System.getProperty("os.name"), System.getProperty("user.home")),
+    /**
+     * Secrets du dossier de données [dataDir] : chiffrat et clé vivent dans le dossier utilisateur de Kairos, sous `secrets/<empreinte>/`,
+     * jamais dans [dataDir] (qui peut être synchronisé par un nuage). Deux profils ne partagent donc ni fichier ni entrée de trousseau.
+     */
+    constructor(dataDir: File) : this(
+        File(DataDirectory.kairosRoot(System.getenv(), System.getProperty("os.name"), System.getProperty("user.home")), "secrets/${profileId(dataDir)}"),
         System.getProperty("os.name"),
         SystemSecretProcessRunner,
+        "online-secrets-${profileId(dataDir)}",
     )
 
     private val file = File(directory, "secrets.bin")
@@ -114,12 +122,18 @@ class DesktopSecrets internal constructor(
         val system = runCatching {
             when {
                 os.startsWith("windows") -> windowsKey()
-                os.startsWith("mac") -> commandKey(
-                    listOf("security", "find-generic-password", "-s", "Kairos", "-a", "online-secrets", "-w"),
-                ) { encoded -> runner.run(listOf("security", "add-generic-password", "-U", "-s", "Kairos", "-a", "online-secrets", "-w", encoded), "")?.exitCode == 0 }
+                os.startsWith("mac") -> {
+                    val lookup = listOf("security", "find-generic-password", "-s", "Kairos", "-a", account, "-w")
+                    commandKey(lookup) { encoded ->
+                        // `security -i` lit la commande sur l'entrée standard : la clé n'apparaît jamais dans les arguments du processus.
+                        // Le code de sortie du mode interactif ne dit pas si la commande a réussi : on relit la clé.
+                        runner.run(listOf("security", "-i"), "add-generic-password -U -s Kairos -a $account -w $encoded\n")
+                        runner.run(lookup, "")?.output == encoded
+                    }
+                }
                 else -> commandKey(
-                    listOf("secret-tool", "lookup", "application", "Kairos", "purpose", "online-secrets"),
-                ) { encoded -> runner.run(listOf("secret-tool", "store", "--label=Kairos", "application", "Kairos", "purpose", "online-secrets"), "$encoded\n")?.exitCode == 0 }
+                    listOf("secret-tool", "lookup", "application", "Kairos", "purpose", account),
+                ) { encoded -> runner.run(listOf("secret-tool", "store", "--label=Kairos", "application", "Kairos", "purpose", account), "$encoded\n")?.exitCode == 0 }
             }
         }.getOrNull()
         if (system != null) return SecretLevel.SYSTEM to system
@@ -175,4 +189,10 @@ class DesktopSecrets internal constructor(
     private fun decodeKey(encoded: String): ByteArray? = runCatching {
         Base64.getDecoder().decode(encoded).takeIf { it.size == 32 }
     }.getOrNull()
+
+    internal companion object {
+        /** Empreinte stable du dossier de données : déplacer le dossier perd ses secrets (la connexion passe en « lien manquant », à remplacer). */
+        fun profileId(dataDir: File): String =
+            MessageDigest.getInstance("SHA-256").digest(dataDir.canonicalPath.toByteArray()).take(8).joinToString("") { "%02x".format(it) }
+    }
 }

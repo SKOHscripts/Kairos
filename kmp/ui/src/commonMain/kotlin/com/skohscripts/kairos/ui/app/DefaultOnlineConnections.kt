@@ -126,7 +126,8 @@ class DefaultOnlineConnections(
             ?.let { secrets.delete("account:$it") }
     }
 
-    fun purgeOrphans() {
+    /** Sous le verrou des écritures : une purge lancée en arrière-plan ne supprime pas le secret d'un ajout en cours (écrit avant la ligne). */
+    suspend fun purgeOrphans() = mutations.withLock {
         val rows = connections.value
         for (key in secrets.keys()) {
             when {
