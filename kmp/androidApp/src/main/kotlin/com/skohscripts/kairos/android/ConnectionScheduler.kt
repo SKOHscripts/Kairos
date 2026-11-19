@@ -24,6 +24,9 @@ class ConnectionScheduler(context: Context) {
             JobInfo.Builder(JOB_ID, service)
                 .setPeriodic(period)
                 .setPersisted(true)
+                // Seulement avec un réseau : hors ligne, un passage compterait comme un échec et repousserait la suivante jusqu'à
+                // 6 h (docs/spec/connexions-en-ligne.md § Synchronisation ; ACCESS_NETWORK_STATE, décision du 2026-11-19).
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
                 .setRequiresBatteryNotLow(true)
                 .build(),
         )
