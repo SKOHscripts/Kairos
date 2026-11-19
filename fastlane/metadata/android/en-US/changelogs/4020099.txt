@@ -1,0 +1,1 @@
+Kairos 4.2: subscribe to an online calendar by its ICS link (Android and desktop): off by default, read-only, and the link stays on the device. Tips at the right time show you what you don’t use yet, never during a timer. Beta and stable are now the same “Kairos” app, and a portable copy replaces the old “Kairos Preview” menu entry. Also: many fixes.
