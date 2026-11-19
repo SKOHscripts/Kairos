@@ -24,7 +24,12 @@ import javax.net.ssl.SSLException
 object AndroidHttp : HttpFetcher {
     override suspend fun fetch(request: HttpRequest): HttpResponse = withContext(Dispatchers.IO) {
         require(request.timeoutMillis > 0)
-        val connection = URL(request.url).openConnection() as HttpURLConnection
+        // `HttpPolicy` accepts addresses that `URL` refuses: a bad address is a transport failure, never an uncaught exception.
+        val connection = try {
+            URL(request.url).openConnection() as HttpURLConnection
+        } catch (error: IOException) {
+            throw HttpTransportException(tls = false, message = "Invalid address", cause = error)
+        }
         val expired = AtomicBoolean(false)
         coroutineScope {
             // A read timeout alone does not stop a server that sends a slow stream.

@@ -56,6 +56,26 @@ class ConnectionSyncTest {
         }
     }
 
+    @Test fun anyExceptionIsRecordedAsAFailureAndTheOtherConnectionsStillRun() = runBlocking {
+        val repository = onlineRepository()
+        val broken = repository.connected()
+        val healthy = repository.connected(CalendarConnection(0, ConnectionKind.URL, host = "other.example"))
+        val secrets = MemorySecrets().apply {
+            put("url:$broken", "https://calendar.example/private")
+            put("url:$healthy", "https://other.example/private")
+        }
+        val http = FakeHttp { request ->
+            if (request.url.startsWith("https://calendar.example")) throw IllegalStateException("parser or transport bug")
+            HttpResponse(200, mapOf("etag" to "ok"), onlineIcs.encodeToByteArray())
+        }
+        val later = onlineNow + kotlin.time.Duration.parse("PT48H")
+        val sync = ConnectionSync(repository, OnlineGate(http, repository), secrets, { later }, TimeZone.UTC)
+        sync.runDue(later)
+        assertEquals(ConnectionError.UNAVAILABLE, repository.connections.value.single { it.sourceId == broken }.lastError)
+        assertEquals(1, repository.connections.value.single { it.sourceId == broken }.failures)
+        assertEquals("ok", repository.connections.value.single { it.sourceId == healthy }.etag)
+    }
+
     @Test fun concurrentRunsUseOneTransportAtATime() = runBlocking {
         val repository = onlineRepository()
         val id = repository.connected()

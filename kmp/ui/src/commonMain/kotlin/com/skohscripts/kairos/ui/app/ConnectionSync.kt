@@ -6,6 +6,7 @@ import com.skohscripts.kairos.core.connections.ConnectionError
 import com.skohscripts.kairos.core.connections.ConnectionKind
 import com.skohscripts.kairos.core.connections.SyncSchedule
 import com.skohscripts.kairos.data.KairosRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.sync.Mutex
@@ -61,8 +62,13 @@ class ConnectionSync(
             }
         } catch (e: TimeoutCancellationException) {
             failed(connection, ConnectionError.OFFLINE, null, instant)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: IllegalArgumentException) {
             failed(connection, ConnectionError.NOT_CALENDAR, null, instant)
+        } catch (e: Exception) {
+            // Anything else (parser, storage, transport) is a failure of this connection with backoff, never a dead watcher or a crash at each launch.
+            failed(connection, ConnectionError.UNAVAILABLE, null, instant)
         }
         Unit
     }
@@ -72,7 +78,13 @@ class ConnectionSync(
             val hasSecret = secrets.get("url:${connection.sourceId}") != null
             if ((connection.syncEnabled && !hasSecret && connection.lastError != ConnectionError.NO_SECRET) ||
                 SyncSchedule.due(connection, now, false, hasSecret)) {
-                run(connection.sourceId, force = false)
+                try {
+                    run(connection.sourceId, force = false)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // `run` already recorded what it could; the remaining connections still synchronize.
+                }
             }
         }
     }

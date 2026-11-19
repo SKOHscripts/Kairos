@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.ProxySelector
 import java.net.URI
+import java.net.URISyntaxException
 import java.net.http.HttpClient
 import java.net.http.HttpRequest as JdkRequest
 import java.net.http.HttpResponse as JdkResponse
@@ -80,6 +81,11 @@ object DesktopHttp : HttpFetcher {
         } catch (error: InterruptedException) {
             Thread.currentThread().interrupt()
             throw HttpTransportException(false, "HTTP interrupted", error)
+        } catch (error: URISyntaxException) {
+            // `HttpPolicy` accepts characters (`|`, `{`) that `java.net.URI` refuses, and a `Location` header can carry them.
+            throw HttpTransportException(false, "Invalid address", error)
+        } catch (error: IllegalArgumentException) {
+            throw HttpTransportException(false, "Invalid request", error)
         }
     }
 }
