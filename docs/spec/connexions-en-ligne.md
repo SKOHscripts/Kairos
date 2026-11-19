@@ -172,16 +172,16 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 
 Les classes ci-dessous existent dans `kmp/*/src/jvmTest`. Leurs transports sont simulés ; cette liste ne remplace pas une preuve sur appareil.
 
-- `HttpPolicyTest` : adresses, consentement HTTP, redirections et journal sans secret.
+- `HttpPolicyTest` : adresses (hôte ASCII seulement), consentement HTTP, redirections et journal sans secret.
 - `SyncScheduleTest` : fréquences, pause, forçage, secrets absents et espacement des échecs.
 - `ConnectionRepositoryTest` : migration 13→14, différentiel, identité, date d'import, export, notifications, transaction et cycle de vie local.
 - `SyncReviewConnectedTest` : conflits et éléments conservés connectés exclus, autres conflits maintenus, convergence de deux appareils.
 - `ConnectionSyncScopeTest` : métadonnées locales hors portée du fichier lié.
 - `OnlineGateTest` : porte fermée, origine, pause, aperçu autorisé, codes HTTP, calendrier complet, ETag et redirections.
-- `ConnectionSyncTest` : succès et 304, erreurs sans perte, secret absent, verrou, sauvegarde, purge, rollback et arrêt du watcher.
+- `ConnectionSyncTest` : succès et 304, erreurs sans perte, secret absent, exception quelconque notée en `UNAVAILABLE` sans arrêter les autres connexions, verrou, sauvegarde, purge, rollback et arrêt du watcher.
 - `NetworkIsolationTest` : réseau de calendrier limité à la porte et aux transports de plateforme.
 - `OnlineConnectionsCardTest` : correspondance distincte entre chaque erreur et son texte localisé ; ce n'est pas un test d'interface interactif.
-- `DesktopSecretsTest` : chiffrement, lecture, suppression, enveloppe altérée et clé perdue sans remplacement du chiffrat.
+- `DesktopSecretsTest` : chiffrement, lecture, suppression, enveloppe altérée et clé perdue sans remplacement du chiffrat, empreinte propre à chaque dossier de données, clé macOS jamais en argument.
 - `ExchangeMigrationTest.everyMigrationHasAMarker` : marqueur structurel pour chaque migration.
 - `StringsParityTest` : parité des ressources de texte.
 - `FeatureCatalogTest.readmeFeaturesAreCovered` : carte du catalogue et fonctionnalité documentée.
@@ -397,19 +397,24 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
   vérité à l'utilisateur). Clés : `url:<idSource>` (lien ICS), `remote:<idSource>` (identifiant du calendrier distant), `account:<compte>`
   (format JSON prévu pour CalDAV et OAuth : serveur, identifiant, mot de passe ou jetons `access`, `refresh`, `expiresAt`). Une valeur illisible
   (clé perdue, fichier altéré) est **absente**, jamais une exception : la connexion passe en `NO_SECRET`.
-- `DefaultOnlineConnections.purgeOrphans()` au lancement supprime les clés sans ligne `calendar_connection` correspondante, puis les comptes sans connexion restante.
+- `DefaultOnlineConnections.purgeOrphans()` (suspendue, sous le verrou des écritures `mutations`, lancée en arrière-plan : au premier accès le magasin du bureau peut lancer un processus du système, et une purge concurrente d'un ajout supprimerait le secret écrit avant la ligne) au lancement supprime les clés sans ligne `calendar_connection` correspondante, puis les comptes sans connexion restante.
   Vérifier la ligne de connexion, pas seulement la source : un remplacement peut réutiliser son identifiant sans conserver la connexion.
   « Retirer » et « Déconnecter » effacent leurs clés, et le compte sans autre connexion, avant de toucher la base.
 - **Android** (`AndroidSecrets`) : clé AES-256 `AES/GCM/NoPadding` dans l'**Android Keystore** (alias `kairos-secrets`, non
   exportable), valeurs chiffrées (IV + texte chiffré en Base64) dans les préférences `online-secrets`.
   Le nom de clé sert de données authentifiées GCM ; une lecture ne régénère jamais une clé perdue.
   API du framework, aucune dépendance. Niveau `HARDWARE` ou `SYSTEM`, `NONE` si le niveau est illisible.
-- **Bureau** (`DesktopSecrets`) : valeurs chiffrées en AES-256-GCM dans `secrets.bin`, **dans le dossier utilisateur par défaut de Kairos
+- **Bureau** (`DesktopSecrets(dataDir)`) : valeurs chiffrées en AES-256-GCM dans `secrets.bin`, **dans le dossier utilisateur par défaut de Kairos
   (`platformdirs`), jamais dans le dossier de données choisi** (qui peut être synchronisé, `bureau-avance.md`) ni dans une copie
-  portable. La clé est confiée, par ordre : Windows, DPAPI (`ProtectedData`, portée utilisateur, par PowerShell, entrée standard) ;
-  macOS, trousseau de session (`security`, la clé passe brièvement en argument : limite connue) ; Linux, `secret-tool` (libsecret) s'il est
+  portable. **Un sous-dossier par dossier de données** : `secrets/<empreinte>/`, l'empreinte étant les 8 premiers octets du SHA-256 du chemin
+  canonique du dossier de données (`DesktopSecrets.profileId`). Deux profils (`--data-dir=`, `KAIROS_DATA_DIR`, copie portable, dossier choisi
+  dans les Réglages) ne partagent ni `secrets.bin`, ni clé, ni entrée de trousseau (le compte du trousseau et l'attribut `purpose` de
+  `secret-tool` portent la même empreinte) : la purge de l'un ne touche pas les liens de l'autre, et un lien ne sert jamais à un autre profil.
+  Limite connue : déplacer ou renommer le dossier de données change l'empreinte ; ses connexions passent en `NO_SECRET` et
+  « Remplacer le lien » les rétablit. La clé est confiée, par ordre : Windows, DPAPI (`ProtectedData`, portée utilisateur, par PowerShell, entrée standard) ;
+  macOS, trousseau de session (`security`, la clé est écrite par `security -i` sur l'entrée standard, jamais en argument visible dans la liste des processus ; le code de sortie du mode interactif ne dit pas si la commande a réussi, la clé est donc relue ; non essayé sur un Mac) ; Linux, `secret-tool` (libsecret) s'il est
   présent ; sinon un fichier `secrets.key` aux droits POSIX `600`, ou avec une ACL réservée au propriétaire sur un système non-POSIX.
-  L'absence de mécanisme de droits privés fait échouer la création. Niveau `FILE` : avertissement dans la carte.
+  L'absence de mécanisme de droits privés fait échouer la création. Niveau `FILE` : avertissement dans la carte, dont la carte lit `secretLevel` hors du fil d'interface (`produceState` sur `Dispatchers.Default`).
   Windows garde la clé protégée par DPAPI dans `secrets.dpapi` ; l'entrée standard transporte la clé vers PowerShell.
   Un `secrets.key` existant garde priorité. Une clé système perdue n'est jamais remplacée si un chiffrat existe.
   Le magasin rend alors les secrets absents et conserve le chiffrat récupérable. Aucune bibliothèque JNA ni trousseau tiers.
@@ -419,7 +424,8 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
 
 - `HttpPolicy.check(url, kind, withCredentials, confirmedInsecure)` : schéma `https` ; `webcal` → `https` ; `http` accepté **seulement**
   pour un lien ICS sans identifiant et confirmé ; jamais d'identifiant, de jeton ou de Basic en `http` ; hôte non vide, pas
-  d'identifiant dans l'adresse (`https://user:pass@…` refusé) ; port 1-65535.
+  d'identifiant dans l'adresse (`https://user:pass@…` refusé) ; port 1-65535 ; **hôte en ASCII** (lettres, chiffres, `.`, `-`, `_`) : une lettre
+  non ASCII permettrait un homographe affiché à l'utilisateur ; un nom internationalisé se colle en `xn--` (punycode).
 - Redirections traitées par `OnlineGate`, jamais par la bibliothèque (`HttpFetcher` n'en suit aucune) : au plus 5 ; même hôte (ou
   `http` → `https` du même hôte) suivie ; **autre hôte** : lien ICS → `REDIRECT_HOST` et demande à l'utilisateur, le choix retenu dans
   `redirectHost` ; CalDAV et OAuth → refusée ; `https` → `http` toujours refusée (`INSECURE_REDIRECT`).
@@ -439,7 +445,10 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
 - `ETag` : le plan dépend du jour (horizon de 6 mois glissant) : un 304 d'un jour antérieur n'est donc pas pris, la requête repart sans
   `If-None-Match` au moins une fois par jour.
 - Nom proposé : `X-WR-CALNAME`, sinon l'hôte.
-- L'aperçu garde l'adresse finale validée après redirections dans `url:<id>`, pas l'adresse initiale.
+- L'aperçu garde l'adresse finale validée après redirections dans `url:<id>`, pas l'adresse initiale (à rouvrir : lien temporaire 302/307 vers une adresse signée qui expire, voir la revue de la PR #242).
+- **Aucune exception ne tue la synchronisation** : `run` note toute autre exception (hors annulation) en `UNAVAILABLE`, avec l'espacement des échecs ; `runDue` poursuit avec les connexions restantes. Les transports convertissent une adresse que `java.net.URI`/`URL` refuse (`|`, `{`, que `HttpPolicy` accepte, ou un en-tête `Location`) en `HttpTransportException`, jamais en exception brute.
+- **Le corps est décodé une fois** : `OnlineGate.Result.Success.text` porte le texte (vide pour un 304) que lisent l'aperçu et `ConnectionSync`, au lieu d'un second `decodeToString` sur 16 Mo.
+- **Écritures de ligne sous le verrou** : `KairosRepository.updateConnection(sourceId) { it.copy(…) }` lit la ligne dans le verrou d'écriture, donc `setInterval`, `setSyncEnabled` et `replaceIcsLink` n'écrasent ni l'ETag ni les dates d'une synchronisation en cours.
 
 ### CalDAV (O2 spécifié, non implémenté ; `core/connections/CalDav*.kt` prévus)
 
@@ -619,6 +628,9 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
   Écarté : déduire une activation d'un import. Le comportement historique du bureau reste hors de ce changement.
 - **Pas de `ACCESS_NETWORK_STATE`, pas de contrainte réseau du planificateur** : ne pas ajouter de permission pour détecter une panne.
   Une tentative hors ligne échoue et reprend plus tard. Écarté : élargir les permissions des connexions.
+  Revue de la PR #242 : `setRequiredNetworkType(NETWORK_TYPE_ANY)` éviterait de compter les essais hors ligne (cinquième échec : 6 h), mais
+  avec `targetSdk` 36 `JobScheduler.schedule` lève une `SecurityException` sans `ACCESS_NETWORK_STATE`
+  (https://developer.android.com/about/versions/14/behavior-changes-14) : non retenu tant que le propriétaire n'ajoute pas cette seconde permission.
 - **`JobScheduler`, pas `WorkManager`, pas `AlarmManager`.** `WorkManager` ajoute une dépendance et fusionne ses propres permissions dans le manifeste ;
   `AlarmManager` sans permission exacte (`rappels.md`) fonctionnerait mais réveillerait le téléphone sans condition. `JobScheduler` est le
   mécanisme du système pour un travail périodique, sans permission exacte, avec reprise au redémarrage déjà couverte.
@@ -664,6 +676,7 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
 - **D1 — Table locale séparée** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
   Choisi : `calendar_connection`, selon § État local et remplacement des lignes, pour survivre aux fusions.
   Écartés : colonnes sur `calendar_source`, connexion dans le snapshot ou l'export ; leur cycle de vie ne convient pas.
+  Accepté (auteur de la PR #242, revue propriétaire à venir) : `replaceAll` écrase les connexions sans les fusionner ; les liens orphelins restent dans le magasin de secrets jusqu'au prochain lancement.
 - **D2 — Différentiel par identité** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
   Choisi : § Différentiel et date affichée, pour éviter des écritures et identifiants nouveaux chaque heure.
   Écarté : effacer puis réinsérer les événements identiques.
