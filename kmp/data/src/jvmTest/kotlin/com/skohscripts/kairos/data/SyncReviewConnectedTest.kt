@@ -31,7 +31,7 @@ class SyncReviewConnectedTest {
         b.syncCalendar(b.connections.value.single().sourceId,
             f.plan.copy(events = f.plan.events.map { it.copy(title = "B") }, days = f.plan.days.map { it.copy(title = "B day") }),
             f.today, null, f.now)
-        a.updateConnection(a.connections.value.single().copy(syncEnabled = false))
+        a.updateConnection(a.connections.value.single().sourceId) { it.copy(syncEnabled = false) }
         a.merge(f.synced(b)) { true }
         assertTrue(a.syncReview.value.isEmpty())
     }

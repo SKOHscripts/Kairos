@@ -136,7 +136,7 @@ class ConnectionRepositoryTest {
         notifications = 0
         repo.touchSync(id, f.now + 1.hours)
         repo.recordSyncFailure(id, ConnectionError.OFFLINE, f.now + 2.hours, 1, f.now + 3.hours)
-        repo.updateConnection(repo.connections.value.single().copy(syncEnabled = false))
+        repo.updateConnection(repo.connections.value.single().sourceId) { it.copy(syncEnabled = false) }
         repo.load()
         assertFalse(repo.connections.value.single().syncEnabled)
         assertEquals(ConnectionError.OFFLINE, repo.connections.value.single().lastError)

@@ -81,25 +81,26 @@ class DefaultOnlineConnections(
     override suspend fun syncNow(sourceId: Long) = sync.run(sourceId, force = true)
 
     override suspend fun setSyncEnabled(sourceId: Long, enabled: Boolean) {
-        mutations.withLock { connections.value.firstOrNull { it.sourceId == sourceId }?.let { repository.updateConnection(it.copy(syncEnabled = enabled)) } }
+        mutations.withLock { repository.updateConnection(sourceId) { it.copy(syncEnabled = enabled) } }
     }
 
     override suspend fun setInterval(sourceId: Long, interval: SyncInterval) {
-        mutations.withLock { connections.value.firstOrNull { it.sourceId == sourceId }?.let { repository.updateConnection(it.copy(interval = interval)) } }
+        mutations.withLock { repository.updateConnection(sourceId) { it.copy(interval = interval) } }
     }
 
     override suspend fun replaceIcsLink(sourceId: Long, link: String, confirmedInsecure: Boolean, acceptedRedirectHost: String?): IcsPreviewResult {
         val preview = previewIcs(link, confirmedInsecure, acceptedRedirectHost)
         if (preview !is IcsPreviewResult.Ready) return preview
         mutations.withLock {
-            val connection = connections.value.firstOrNull { it.sourceId == sourceId } ?: return preview
+            if (connections.value.none { it.sourceId == sourceId }) return preview
             val key = "url:$sourceId"
             val old = secrets.get(key)
             try {
                 secrets.put(key, preview.url)
-                repository.updateConnection(connection.copy(host = preview.host, insecureConfirmed = preview.insecure,
-                    redirectHost = preview.redirectHost, etag = null, plannedOn = null, lastError = null,
-                    failures = 0, nextAttemptAt = null))
+                repository.updateConnection(sourceId) {
+                    it.copy(host = preview.host, insecureConfirmed = preview.insecure, redirectHost = preview.redirectHost,
+                        etag = null, plannedOn = null, lastError = null, failures = 0, nextAttemptAt = null)
+                }
             } catch (e: Throwable) {
                 if (old == null) secrets.delete(key) else secrets.put(key, old)
                 throw e

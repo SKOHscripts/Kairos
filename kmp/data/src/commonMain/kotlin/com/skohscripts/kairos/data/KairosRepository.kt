@@ -739,8 +739,9 @@ class KairosRepository(
         }
     }
 
-    suspend fun updateConnection(connection: CalendarConnection) = write(notifyOnlyIfChanged = true) {
-        if (state.value.calendarSources.any { it.id == connection.sourceId }) saveConnection(connection)
+    /** [change] s'applique à la ligne lue sous le verrou d'écriture : un `touchSync` ou un échec concurrent n'est jamais écrasé. */
+    suspend fun updateConnection(sourceId: Long, change: (CalendarConnection) -> CalendarConnection) = write(notifyOnlyIfChanged = true) {
+        connections.value.firstOrNull { it.sourceId == sourceId }?.let { saveConnection(change(it).copy(sourceId = sourceId)) }
     }
 
     suspend fun disconnectCalendar(sourceId: Long) = write(notifyOnlyIfChanged = true) { queries.deleteCalendarConnection(sourceId) }

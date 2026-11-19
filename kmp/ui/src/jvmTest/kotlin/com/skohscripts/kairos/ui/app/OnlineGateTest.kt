@@ -128,7 +128,7 @@ class OnlineGateTest {
         val http = FakeHttp()
         val gate = OnlineGate(http, repository)
         assertIs<OnlineGate.Result.GateClosed>(gate.fetch(id, "https://other.example/a", onlineToday))
-        repository.updateConnection(repository.connections.value.single().copy(syncEnabled = false))
+        repository.updateConnection(repository.connections.value.single().sourceId) { it.copy(syncEnabled = false) }
         assertIs<OnlineGate.Result.GateClosed>(gate.fetch(id, "https://calendar.example/a", onlineToday))
         assertTrue(http.requests.isEmpty())
     }

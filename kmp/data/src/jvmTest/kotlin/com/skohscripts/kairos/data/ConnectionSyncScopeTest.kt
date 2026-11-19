@@ -17,7 +17,7 @@ class ConnectionSyncScopeTest {
         val before = SyncScope.of(repo.snapshot.value, repo.sync.value)
         val marks = repo.sync.value
         val export = ExportCodec.encode(repo.snapshot.value, "4.1.0", f.now, repo.sync.value)
-        repo.updateConnection(repo.connections.value.single().copy(syncEnabled = false, etag = "private-etag", redirectHost = "other.example"))
+        repo.updateConnection(repo.connections.value.single().sourceId) { it.copy(syncEnabled = false, etag = "private-etag", redirectHost = "other.example") }
         assertEquals(before, SyncScope.of(repo.snapshot.value, repo.sync.value))
         assertEquals(marks, repo.sync.value)
         assertEquals(export, ExportCodec.encode(repo.snapshot.value, "4.1.0", f.now, repo.sync.value))
