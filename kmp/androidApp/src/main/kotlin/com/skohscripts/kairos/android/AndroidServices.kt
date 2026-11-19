@@ -24,7 +24,10 @@ import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.BackupStore
 import com.skohscripts.kairos.ui.app.ChronoNotifier
 import com.skohscripts.kairos.ui.app.FileService
+import com.skohscripts.kairos.ui.app.DefaultOnlineConnections
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
@@ -58,6 +61,14 @@ object AndroidServices {
         val linked = LinkedFileSync(AndroidLinkedFile(context), KairosProcess.scope, clock, "Android", backups)
         val repository = KairosRepository.open(opened, examples = examples, clock = clock, onChanged = { linked.changed(it) })
         linked.start(repository)
+        val online = DefaultOnlineConnections(
+            repository, backups, AndroidHttp, AndroidSecrets(context), KairosProcess.scope, now = { clock.now() },
+        )
+        val scheduler = ConnectionScheduler(context)
+        KairosProcess.scope.launch { online.purgeOrphans() }
+        KairosProcess.scope.launch {
+            online.connections.collect { scheduler.apply(it) }
+        }
         AppServices(
             repository = repository,
             files = files,
@@ -81,6 +92,8 @@ object AndroidServices {
                     openDemo(KairosStore.open(memory), lang, close = { memory.close() }, clock = clock)
                 }
             },
+            online = online,
+            connectionSync = online.sync,
             // Conseil « Ta journée sur l'écran d'accueil » (docs/spec/conseils.md) : un widget Kairos est-il posé ? Aucune permission.
             widgets = WidgetProbe {
                 val manager = AppWidgetManager.getInstance(context)

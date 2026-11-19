@@ -27,7 +27,8 @@ I do now, and in what order, given that a meeting from 1 pm to 2 pm keeps me
 from handling the urgent topic before 2:05 pm?" It sorts your tasks into the
 order to do them, fits them into the gaps of your day, and uses **on-device
 machine learning** to learn how long they really take. No account, no ads, no
-network: your data stays on your device.
+tracking: your data stays on your device. The only network use is the optional
+[online calendar connections](#data), off by default.
 
 **Android, Windows, Linux, macOS, and in the browser.**
 
@@ -53,7 +54,8 @@ network: your data stays on your device.
 - **New in 4.0: sync between your devices.** Link the same file on each
   device, in a Syncthing or Nextcloud folder for example: Kairos merges it with
   each device's data, keeps everything from both sides, and lists what was
-  changed on two devices at once. No account, no server, no network permission.
+  changed on two devices at once. No account, no server: this sync never uses the
+  network.
 - It ranks the day's tasks with a priority score, shown on each one, and
   explains that score in one tap.
 - It places each task in the gaps of the calendar, around meetings, with a
@@ -133,8 +135,8 @@ check against your own data before it changes anything.
 - **Everywhere the duration matters**: the day plan, the "Now" card, the
   overrun alert, triage in "To process", and team forecasts, where each
   model-estimated task is drawn within its own learned range.
-- **Private and explainable by design.** No network, no pre-trained weights, no
-  black box: only your own history, and the same result to the bit on Android,
+- **Private and explainable by design.** Nothing is sent anywhere, no pre-trained
+  weights, no black box: only your own history, and the same result to the bit on Android,
   desktop and web. Measured on simulated histories, it cuts the median error on
   new titles by more than half, and when there is nothing to learn it stays
   within 10% of the default duration.
@@ -432,12 +434,16 @@ order (critical path). Cycles are refused.
   hidden), whole-day events become a badge on the day without blocking time.
   Description, location and attendees are never kept. "Reimport" replaces the
   calendar's slots from today on, never yours; "Remove" takes it all away; an
-  imported slot can be deleted on its own. No network, no account.
+  imported slot can be deleted on its own. No account; the file import never uses
+  the network.
 - **Phone calendars** (Android): Settings → Data → "Use my phone calendars"
   shows the events of the calendars you tick (Google, Exchange, DAVx⁵,
   ICSx⁵, Outlook with "Sync calendars" on) as read-only busy slots, read live
   and never stored or exported. Kairos asks for calendar access only at that
   moment (an optional permission, not a network one).
+- **Online connections** (Android, desktop): Settings → Data subscribes to an
+  ICS calendar link after consent and a preview. Sync is read-only, can be
+  paused or run manually, and keeps the link on this device.
 - **Deep work**: a slot reserved for a single task, the most urgent one; the
   others work around it.
 - **Timeline** of the day: scheduled, busy, pinned, deep work, conflicts, and a
@@ -520,8 +526,9 @@ order (critical path). Cycles are refused.
 
 ### Data
 
-- Everything stays on the device: no network connection (Android does not even
-  have the permission), no account.
+- Everything stays on the device, with no account. The network is used only by
+  the optional **online connections** (Settings → Data, off by default, one
+  consent per calendar); Android declares the `INTERNET` permission for them.
 - **Export and import** (JSON, Settings → Data); an automatic backup precedes
   every import.
 - On the desktop, the **data folder** can be changed (Settings → Data →
@@ -737,6 +744,7 @@ version that brought it and the platforms it exists on.
 | Organize | Monthly slots, and one day apart | 3.8.0 | All |
 | Organize | Import your meetings from a calendar | 3.10.0 | All |
 | Organize | Phone calendars | 3.10.0 | Android |
+| Organize | Online connections | 4.2.0 | Android, Desktop |
 | Organize | Sync between your devices | 4.0.0 | All |
 | Team | Guided first team task | 3.8.0 | All |
 | Team | The members | 3.1.0 | All |

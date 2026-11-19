@@ -27,15 +27,17 @@ Fiche d’identité de l’application :
   à accorder dans les réglages du système sur Android 14 et plus, depuis la 4.1.0),
   `READ_CALENDAR` (facultative : demandée seulement si l’utilisateur active
   les calendriers du téléphone, depuis la 3.10.0) ;
-  **pas** d’accès réseau (jusqu’à la 3.x) ;
-- anti-fonctionnalités : aucune (jusqu’à la 3.x).
+  **pas** d’accès réseau (jusqu’à la 4.0) ;
+- anti-fonctionnalités : aucune (jusqu’à la 4.0).
 
-**Rouvert le 2026-10-26** (décision du propriétaire, `docs/spec/connexions-en-ligne.md`, 4.0.0, spécifiée et non encore implémentée) : un
-seul APK, celui de F-Droid et des releases GitHub, déclarera aussi `INTERNET`, avec toutes les fonctions en ligne désactivées par défaut
-(lien ICS, CalDAV, Microsoft 365 et Google par OAuth sans SDK propriétaire, vérification des nouvelles versions pour un APK installé à la
-main). Pour la fiche F-Droid : `INTERNET` n’est pas une anti-fonctionnalité ; `NonFreeNet` sera déclarée dans la version qui embarque un
-connecteur Microsoft ou Google (service non libre) ; aucune étiquette n’est jamais omise. Le jour de la 4.0.0, ces deux lignes de la fiche
-d’identité et la recette (`AntiFeatures`) changent ensemble.
+**Rouvert le 2026-10-26** (décision du propriétaire, `docs/spec/connexions-en-ligne.md`, spécifiée et non encore implémentée).
+Le propriétaire reporte les connexions en ligne en 4.1.0 le 2026-11-04.
+Un seul APK, celui de F-Droid et des releases GitHub, déclarera aussi `INTERNET`, avec toutes les fonctions en ligne désactivées par défaut
+(lien ICS, CalDAV, Microsoft 365 et Google par OAuth sans SDK propriétaire).
+Pour la fiche F-Droid : `INTERNET` n’est pas une anti-fonctionnalité ; `NonFreeNet` sera déclarée dans la version qui embarque un
+connecteur Microsoft ou Google (service non libre) ; aucune étiquette n’est jamais omise.
+La fiche d’identité et la recette changent avec les connexions en ligne en 4.1.0.
+`AntiFeatures` change dans la version qui embarque un connecteur Microsoft ou Google.
 
 ## F-Droid (fdroiddata)
 

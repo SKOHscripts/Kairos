@@ -69,7 +69,7 @@ le travail en cours.
 - **« À quoi sert Kairos ? »** : la raison d'être en quelques phrases (trop de
   tâches pour le temps disponible ; Kairos décide de l'ordre par un score,
   pose les tâches dans l'agenda, mesure ce qu'on fait vraiment ; données
-  gardées sur l'appareil, sans compte ni réseau).
+  gardées sur l'appareil, sans compte ; le réseau ne sert qu'aux connexions en ligne facultatives).
 - **« Ce que tu peux faire »** : une carte par fonctionnalité principale
   (Capturer, Qualifier, Faire dans l'ordre, Suivre le temps, Voir la
   semaine, Mesurer), chacune avec son icône, une phrase et un chevron : toucher
