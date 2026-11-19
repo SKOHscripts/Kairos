@@ -53,7 +53,7 @@ class ConnectionSync(
                             repository.touchSync(sourceId, instant)
                         } else {
                             val plan = withContext(Dispatchers.Default) {
-                                CalendarImport.plan(result.response.body.decodeToString(), today, zone)
+                                CalendarImport.plan(result.text, today, zone)
                             }
                             repository.syncCalendar(sourceId, plan, today, result.response.headers["etag"], instant)
                         }

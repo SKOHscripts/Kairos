@@ -44,7 +44,7 @@ class DefaultOnlineConnections(
                     is OnlineGate.Result.Failed -> IcsPreviewResult.Failed(result.error, HttpPolicy.host(link))
                     is OnlineGate.Result.Confirm -> IcsPreviewResult.NeedsConfirmation(result.kind, result.host)
                     is OnlineGate.Result.Success -> {
-                        val plan = withContext(Dispatchers.Default) { CalendarImport.plan(result.response.body.decodeToString(), today, zone) }
+                        val plan = withContext(Dispatchers.Default) { CalendarImport.plan(result.text, today, zone) }
                         val host = HttpPolicy.host(result.url).orEmpty()
                         val name = plan.name ?: host
                         val existing = ImportedCalendars.named(repository.snapshot.value, name)

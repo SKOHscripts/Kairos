@@ -16,7 +16,8 @@ class OnlineGate(
 ) {
     sealed interface Result {
         data object GateClosed : Result
-        data class Success(val response: HttpResponse, val url: String) : Result
+        /** [text] : le corps décodé une seule fois (vide pour un 304), pour ne pas doubler la mémoire d'un corps de 16 Mo. */
+        data class Success(val response: HttpResponse, val url: String, val text: String) : Result
         data class Failed(val error: ConnectionError, val retryAfterSeconds: Long? = null) : Result
         data class Confirm(val kind: IcsConfirmation, val host: String) : Result
     }
@@ -76,10 +77,10 @@ class OnlineGate(
                     when {
                         !IcsParser.isCalendar(text) -> Result.Failed(ConnectionError.NOT_CALENDAR)
                         !text.lineSequence().any { it.trim().equals("END:VCALENDAR", ignoreCase = true) } -> Result.Failed(ConnectionError.TRUNCATED)
-                        else -> Result.Success(response, target)
+                        else -> Result.Success(response, target, text)
                     }
                 }
-                304 -> if (connection.plannedOn == today.toString() && connection.etag != null) Result.Success(response, target) else Result.Failed(ConnectionError.UNAVAILABLE)
+                304 -> if (connection.plannedOn == today.toString() && connection.etag != null) Result.Success(response, target, "") else Result.Failed(ConnectionError.UNAVAILABLE)
                 401, 403 -> Result.Failed(ConnectionError.AUTH)
                 404, 410 -> Result.Failed(ConnectionError.GONE)
                 else -> Result.Failed(ConnectionError.UNAVAILABLE, response.headers["retry-after"]?.trim()?.toLongOrNull()?.coerceAtLeast(0))
