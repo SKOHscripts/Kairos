@@ -75,6 +75,7 @@ import com.skohscripts.kairos.ui.generated.resources.calendar_skipped_rule
 import com.skohscripts.kairos.ui.generated.resources.calendar_skipped_too_many
 import com.skohscripts.kairos.ui.generated.resources.calendar_skipped_zone
 import com.skohscripts.kairos.ui.generated.resources.calendars_body
+import com.skohscripts.kairos.ui.generated.resources.calendars_body_online
 import com.skohscripts.kairos.ui.generated.resources.calendars_help
 import com.skohscripts.kairos.ui.generated.resources.calendars_import
 import com.skohscripts.kairos.ui.generated.resources.calendars_not_calendar
@@ -85,6 +86,8 @@ import com.skohscripts.kairos.ui.generated.resources.calendars_remove_title
 import com.skohscripts.kairos.ui.generated.resources.calendars_removed
 import com.skohscripts.kairos.ui.generated.resources.calendars_row
 import com.skohscripts.kairos.ui.generated.resources.calendars_title
+import com.skohscripts.kairos.ui.generated.resources.online_synced
+import com.skohscripts.kairos.ui.generated.resources.online_never_synced
 import com.skohscripts.kairos.ui.generated.resources.file_error
 import com.skohscripts.kairos.ui.generated.resources.import_error_corrupted
 import com.skohscripts.kairos.ui.icons.KairosIcons
@@ -235,6 +238,7 @@ private val SKIP_TEXTS: List<Pair<SkipReason, StringResource>> = listOf(
 @Composable
 internal fun CalendarsCard(services: AppServices) {
     val snapshot by services.repository.snapshot.collectAsState()
+    val connections = services.online?.connections?.collectAsState()?.value.orEmpty()
     val today = calendarToday(services)
     val calendars = ImportedCalendars.of(snapshot, today)
     val scope = rememberCoroutineScope()
@@ -257,26 +261,29 @@ internal fun CalendarsCard(services: AppServices) {
         }
     }
     SettingsCard(spacing = KairosSpacing.m) {
-        SettingsCardHeader(KairosIcons.Event, stringResource(Res.string.calendars_title), stringResource(Res.string.calendars_body))
+        SettingsCardHeader(KairosIcons.Event, stringResource(Res.string.calendars_title), stringResource(if (services.online == null) Res.string.calendars_body else Res.string.calendars_body_online))
         Text(stringResource(Res.string.calendars_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         KairosOutlinedButton(onClick = { pick(null) }, contentPadding = KairosButtonIconPadding) {
             Icon(KairosIcons.Upload, contentDescription = null, modifier = Modifier.size(18.dp))
             Text(stringResource(Res.string.calendars_import), modifier = Modifier.padding(start = 6.dp))
         }
         calendars.forEach { c ->
+            val connection = connections.firstOrNull { it.sourceId == c.source.id }
+            val synced = connection?.lastSyncAt?.toLocalDateTime(TimeZone.currentSystemDefault())
             Column {
                 Text(c.source.name, style = MaterialTheme.typography.bodyLarge)
                 Text(
-                    stringResource(
+                    if (connection == null) stringResource(
                         Res.string.calendars_row,
                         c.upcomingBlocks,
                         Dates.short(c.source.importedAt.toLocalDateTime(TimeZone.currentSystemDefault()).date, language),
-                    ),
+                    ) else if (synced == null) stringResource(Res.string.online_never_synced, connection.host.orEmpty())
+                    else stringResource(Res.string.online_synced, connection.host.orEmpty(), Dates.short(synced.date, language), Dates.time(synced, language)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    KairosTextButton(onClick = { pick(c.source.name) }) { Text(stringResource(Res.string.calendars_reimport)) }
+                    if (connection == null) KairosTextButton(onClick = { pick(c.source.name) }) { Text(stringResource(Res.string.calendars_reimport)) }
                     KairosTextButton(onClick = { removing = c }) { Text(stringResource(Res.string.calendars_remove)) }
                 }
             }
@@ -294,7 +301,8 @@ internal fun CalendarsCard(services: AppServices) {
                 KairosTextButton(onClick = {
                     removing = null
                     scope.launch {
-                        services.repository.removeCalendar(c.source.id)
+                        val online = services.online?.takeIf { connections.any { connection -> connection.sourceId == c.source.id } }
+                        if (online == null) services.repository.removeCalendar(c.source.id) else online.remove(c.source.id)
                         messages(getString(Res.string.calendars_removed, c.source.name))
                     }
                 }) { Text(stringResource(Res.string.calendars_remove), color = MaterialTheme.colorScheme.error) }

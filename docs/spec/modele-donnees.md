@@ -85,6 +85,9 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
 - `CalendarSource` (3.10.0) : `id`, `name`, `hideTitles`, `importedAt`, `createdAt` ; `DayMark` (3.10.0) : `id`,
   `title`, `start`, `end` (dates, fin incluse), `source`, `createdAt` : journée entière d'un calendrier importé, badge
   sans blocage.
+- `CalendarConnection` (`core/connections/`, O1 Android/bureau) : état local d'une source, sans adresse ni secret.
+  Il reste hors de `KairosSnapshot`, des exports et du fichier lié ; `CalendarSource` ne change pas.
+  Le modèle et ses valeurs par défaut figurent dans `connexions-en-ligne.md`.
 - `BlockException` (3.8.0, `recurrence.md` § Une seule occurrence) : `id`, `blockId` (le modèle), `date`, `skipped`
   (faux par défaut), `title`, `start`, `end` (heures locales `LocalTime`, `null` = celles du modèle), `createdAt` ; au
   plus une par `(blockId, date)`.
@@ -159,6 +162,9 @@ quotidien), une note, les réglages par défaut de la langue. Identifiants
   `note.status`. Les colonnes `task.space` et `task.assignee_id` sont **en
   fin de table**, dans une base neuve comme dans une base migrée : les
   insertions avec identifiant sont positionnelles. Références **sans** `FOREIGN KEY` (parti pris de Kairos).
+- `calendar_connection` (schéma 14) : clé primaire `source_id`, type, fournisseur, hôte, compte opaque, activation, fréquence,
+  dates d'essai/réussite, erreur, compteur d'échecs, prochaine tentative, ETag, jour du plan et confirmations HTTP/redirection.
+  Aucun `FOREIGN KEY` en cascade : le remplacement transitoire des sources doit conserver les connexions locales.
 - Types stockés : dates `TEXT` « 2026-09-28 », heures locales `TEXT`
   « 2026-09-28T09:30 », instants `TEXT` ISO UTC (`Mappers.kt`).
 - Code **asynchrone** (`generateAsync`), exigé par le pilote web, utilisé
@@ -178,7 +184,8 @@ quotidien), une note, les réglages par défaut de la langue. Identifiants
    appliquées **dans une seule transaction**.
 3. `PRAGMA user_version` = version du schéma.
 
-`actualVersion` teste des marqueurs, du plus récent au plus ancien : table `calendar_source` (11), colonne `team_member.week_hours` (10), table `time_block_exception` (9), colonne
+`actualVersion` teste des marqueurs, du plus récent au plus ancien : `calendar_connection` (14), `sync_state` (13),
+`migration_mark` (12), `calendar_source` (11), colonne `team_member.week_hours` (10), table `time_block_exception` (9), colonne
 `task.series_id` (8), `task.team_excluded` (7), `task.origin` (6), table `team_scenario` (5),
 `task.progress_percent` (4), table `member_absence` (3), `task.space` (2),
 sinon 1. Chaque nouveau fichier `.sqm` ajoute son marqueur à
@@ -204,6 +211,9 @@ table, sans rétro-remplissage, `durees-apprises.md`). Schéma 9 : `8.sqm` (3.8.
 miel resté par défaut passe à l'océan, `apparence.md` § Couleur par défaut) ; elle crée la table `migration_mark` (une colonne
 `name`, jamais lue ni exportée) comme marqueur structurel : sans marqueur, une migration de données seule serait rejouée à
 chaque ouverture (`ThemeColorMigrationTest`).
+Schéma 13 : `12.sqm` ajoute les tables `sync_*` (`synchronisation.md`).
+Schéma 14 : `13.sqm` ajoute la table locale vide `calendar_connection` (`connexions-en-ligne.md`, `ConnectionRepositoryTest`).
+Les fixtures d'ancien schéma construites depuis le schéma courant retirent aussi cette table ; sinon son marqueur saute les migrations.
 Les
 schémas de référence de chaque version
 (`data/src/commonMain/sqldelight/databases/<n>.db`, générés par

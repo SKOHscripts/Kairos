@@ -74,7 +74,8 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
      données d'équipe… » avec sauvegarde préalable ; désactivation confirmée, `equipe.md`,
      `equipe-backlog-suivi.md`).
   6. **Données** : **Données** (export, import, `export-import.md`), **Calendriers** (3.10.0, import d'un fichier
-     `.ics`, réimport, retrait, `connexions-externes.md`), puis **Réglages par défaut** avec
+     `.ics`, réimport, retrait, `connexions-externes.md`), **Connexions en ligne** (O1 Android/bureau, si les services sont disponibles,
+     lien ICS, fréquence, pause, déconnexion et retrait ; `connexions-en-ligne.md`), puis **Réglages par défaut** avec
      **« Restaurer les valeurs par défaut »**.
   7. **À propos** : **« Découvrir Kairos »** puis **« À propos et guide »**, deux lignes qui ouvrent chacune leur
      écran, puis **« Revoir le guide depuis le début »** (3.7.0, issue #94, `visite-guidee.md` § Persistance) : texte et
