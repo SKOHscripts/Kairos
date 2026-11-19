@@ -7,11 +7,8 @@ plugins {
 // Version : gradle.properties, source unique (la CI de release vérifie le tag).
 val kairosVersionName = providers.gradleProperty("kairos.versionName").get()
 val kairosVersionCode = providers.gradleProperty("kairos.versionCode").get().toInt()
-// Préversion (X.Y.Z-alpha.N / -beta.N) : application distincte « Kairos Preview »,
-// installable à côté de la version stable. `-Pkairos.preview=false` force
-// l'identifiant définitif : la vérification F-Droid d'une bêta construit
-// com.skohscripts.kairos, comme le fera la recette (docs/spec/publication.md).
-val isPreview = providers.gradleProperty("kairos.preview").orNull?.toBooleanStrict() ?: kairosVersionName.contains('-')
+// Une seule app pour la beta et la stable depuis la 4.2.0 (docs/spec/distribution.md § Décisions) : même identifiant et
+// même nom ; le versionCode d'une beta passe au-dessus de la finale précédente, si bien qu'elle s'installe par-dessus.
 
 android {
     namespace = "com.skohscripts.kairos.android"
@@ -23,8 +20,7 @@ android {
         targetSdk = 36
         versionCode = kairosVersionCode
         versionName = kairosVersionName
-        if (isPreview) applicationIdSuffix = ".preview"
-        resValue("string", "app_name", if (isPreview) "Kairos Preview" else "Kairos")
+        resValue("string", "app_name", "Kairos")
     }
 
     // Keystore de release fourni par la CI (toujours la même

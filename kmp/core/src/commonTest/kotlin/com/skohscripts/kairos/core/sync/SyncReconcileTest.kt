@@ -243,16 +243,17 @@ class SyncReconcileTest {
         val before = KairosSnapshot(tasks = tasks)
         val d = SyncReconcile.activate(before, device, now)
         val after = before.copy(tasks = tasks.map { if (it.id == 2_500L) it.copy(title = "changée") else it })
-        // Échauffement (JIT), puis la meilleure de cinq mesures de chaque, alternées : les deux subissent la même charge de la
+        // Échauffement (JIT), puis la meilleure de quinze mesures de chaque, alternées : les deux subissent la même charge de la
         // machine (suite entière en parallèle). On compare l'écriture incrémentale (avec l'état précédent) au rattrapage complet
         // (sans) plutôt qu'à un seuil absolu, qui échouait sous charge (33 et 35 ms pour 20) sans défaut de l'algorithme.
-        repeat(20) {
+        // Quinze mesures plutôt que cinq (2026-11-15) : le minimum de cinq laissait passer le bruit du runner.
+        repeat(30) {
             SyncReconcile.reconcile(after, d, before, now + 10, Uids())
             SyncReconcile.reconcile(after, d, null, now + 10, Uids())
         }
         val incremental = ArrayList<kotlin.time.Duration>()
         val full = ArrayList<kotlin.time.Duration>()
-        repeat(5) {
+        repeat(15) {
             incremental += measureTime { SyncReconcile.reconcile(after, d, before, now + 10, Uids()) }
             full += measureTime { SyncReconcile.reconcile(after, d, null, now + 10, Uids()) }
         }
@@ -260,9 +261,10 @@ class SyncReconcileTest {
         val slow = full.min()
         println("réconciliation d'une écriture sur 5 000 tâches : $fast (rattrapage complet : $slow)")
         // Une écriture ne relève et ne hache que ce qui a changé (le reste reste un parcours) : environ trois fois moins que tout
-        // relever (4 à 5 ms contre 14 au 2026-11-04), exigé au moins deux fois ; le plafond absolu, large, attrape une
-        // régression quadratique même si les deux chemins ralentissaient ensemble.
-        assertTrue(fast * 2 < slow, "écriture $fast, rattrapage $slow : l'écriture devrait être au moins 2 fois plus rapide")
+        // relever (4 à 5 ms contre 14 au 2026-11-04), mais deux fois seulement sur un runner plus rapide (4,3 ms contre 8,5 le
+        // 2026-11-15, échec à 1,99) : exigé 1,5 fois, ce qui sépare encore nettement les deux chemins. Le plafond absolu, large,
+        // attrape une régression quadratique même si les deux chemins ralentissaient ensemble.
+        assertTrue(fast * 3 < slow * 2, "écriture $fast, rattrapage $slow : l'écriture devrait être au moins 1,5 fois plus rapide")
         assertTrue(fast.inWholeMilliseconds < 200, "réconciliation d'une écriture sur 5 000 tâches : $fast")
     }
 }

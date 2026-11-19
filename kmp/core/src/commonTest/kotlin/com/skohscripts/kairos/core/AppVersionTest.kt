@@ -45,9 +45,8 @@ class AppVersionTest {
         val current = AppVersion.current
         assertEquals(current.versionCode, KairosBuild.VERSION_CODE)
         assertEquals(KairosBuild.VERSION_NAME, current.toString())
-        // Préversions (docs/spec/distribution.md § Cycle des versions) : seulement d'une version en .0, numéro de 1 à 99.
-        // Sinon les codes des préversions ne croissent plus : 4.1.1-beta.1 vaudrait 4.1.0-beta.2, 4.1.0-beta.100 dépasserait
-        // 4.2.0-beta.1.
+        // Préversions (docs/spec/distribution.md § Cycle des versions) : seulement d'une version en .0, numéro de 1 à 98 (99
+        // est le dernier chiffre d'une finale) ; une beta de correctif passerait sous la finale qu'elle précède.
         if (current.isPrerelease) {
             assertEquals(0, current.patch, "une préversion annonce une version X.Y.0")
             assertTrue(current.stageNumber in 1..AppVersion.MAX_PRERELEASE, "numéro de préversion de 1 à ${AppVersion.MAX_PRERELEASE}")
@@ -56,9 +55,31 @@ class AppVersionTest {
 
     @Test
     fun prereleaseCodesGrowFromOneMinorToTheNext() {
-        val codes = listOf("4.0.0", "4.1.0-beta.1", "4.1.0-beta.99", "4.1.0", "4.2.0-beta.1", "5.0.0-beta.1", "5.0.0").map { AppVersion.parse(it)!!.versionCode }
-        // Chaque canal (Preview, stable) croît : une beta reste sous sa finale et au-dessus des betas d'avant.
-        assertEquals(listOf(39601, 39699, 39701, 49501), listOf(codes[1], codes[2], codes[4], codes[5]))
-        assertTrue(codes[2] < codes[4] && codes[1] < codes[3] && codes[0] < codes[3] && codes[3] < codes[6])
+        // Jusqu'à la 4.1 (codes publiés, inchangés) : chaque canal (Preview, stable) croît.
+        val old = listOf("4.0.0", "4.1.0-beta.1", "4.1.0-beta.99", "4.1.0").map { AppVersion.parse(it)!!.versionCode }
+        assertEquals(listOf(40000, 39601, 39699, 40100), old)
+    }
+
+    @Test
+    fun fromFourTwoBetasAndFinalsShareOneGrowingLine() {
+        // Une seule app pour la beta et la stable (docs/spec/distribution.md § Versionnage, décision du 2026-11-15) : chaque
+        // beta passe au-dessus de la finale précédente et sous la sienne.
+        val names = listOf("4.1.0", "4.2.0-beta.1", "4.2.0-beta.98", "4.2.0", "4.2.1", "4.3.0-beta.1", "5.0.0-beta.1", "5.0.0")
+        val codes = names.map { AppVersion.parse(it)!!.versionCode }
+        assertEquals(listOf(40100, 4_020_001, 4_020_098, 4_020_099, 4_020_199, 4_030_001, 5_000_001, 5_000_099), codes)
+        assertEquals(codes.sorted(), codes)
+        assertEquals(names.map { AppVersion.parse(it)!! }.sorted(), names.map { AppVersion.parse(it)!! })
+    }
+
+    @Test
+    fun desktopPackageVersionsGrowToo() {
+        // MSI, DMG et .deb : trois nombres, croissants d'une beta à sa finale ; avant la 4.2, l'ancien produit Preview.
+        assertEquals("4.1.0", AppVersion.parse("4.1.0")!!.packageVersion)
+        assertEquals("1.0.39609", AppVersion.parse("4.1.0-beta.9")!!.packageVersion)
+        assertEquals("4.2.1", AppVersion.parse("4.2.0-beta.1")!!.packageVersion)
+        assertEquals("4.2.98", AppVersion.parse("4.2.0-beta.98")!!.packageVersion)
+        assertEquals("4.2.99", AppVersion.parse("4.2.0")!!.packageVersion)
+        assertEquals("4.2.199", AppVersion.parse("4.2.1")!!.packageVersion)
+        assertEquals("4.3.1", AppVersion.parse("4.3.0-beta.1")!!.packageVersion)
     }
 }

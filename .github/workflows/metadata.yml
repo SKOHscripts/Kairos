@@ -1,14 +1,14 @@
-# Contrôles rapides des fiches, de la page et des README (docs/spec/publication.md, docs/spec/distribution.md § CI) :
-# quelques secondes, sans construire l'application. Sortis de fdroid-check.yml pour qu'une modification de texte ne
-# relance plus la construction F-Droid.
-name: Metadata
+# Contrôles rapides de Kairos (docs/spec/distribution.md § CI) : quelques secondes chacun, sans construire l'application,
+# sur chaque PR et chaque push sur main, sans filtre de chemins (rien ne leur échappe). Deux jobs parallèles :
+# - metadata : fiches, page et README (docs/spec/publication.md § Vérification continue), menu du site, tests des scripts
+#   de kmp/tools/ ;
+# - version : la version que main doit porter et quand publier (docs/spec/distribution.md § Version attendue).
+name: Kairos checks
 
 on:
   pull_request:
-    paths: ["fastlane/**", "site/**", "README.md", "README.fr.md", "kmp/gradle.properties", "kmp/tools/*.py", ".github/workflows/metadata.yml"]
   push:
     branches: [main]
-    paths: ["fastlane/**", "site/**", "README.md", "README.fr.md", "kmp/gradle.properties", "kmp/tools/*.py", ".github/workflows/metadata.yml"]
   workflow_dispatch:
 
 concurrency:
@@ -26,5 +26,18 @@ jobs:
       - run: python3 kmp/tools/validate_fastlane.py
       - run: python3 kmp/tools/validate_badges.py
       - run: python3 kmp/tools/validate_og.py
-      # Règle de nettoyage des artefacts (artifacts-cleanup.yml).
+      # Menu du site (docs/spec/publication.md § Menu du site).
+      - run: python3 kmp/tools/validate_menu.py
+      # Identité de l'app figée (docs/spec/distribution.md § Identité de l'app).
+      - run: python3 kmp/tools/validate_identity.py
+      # Scripts de kmp/tools/ (nettoyage des artefacts, carte du code, version attendue…).
       - run: python3 -m unittest discover -s kmp/tools -p 'test_*.py'
+
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Les tags (dernière finale) et l'historique depuis elle.
+          fetch-depth: 0
+      - run: python3 kmp/tools/next_version.py --check

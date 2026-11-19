@@ -61,7 +61,9 @@ ouvert, `FileService`, `BackupStore`, emplacement des données, fichier lié
 (`LinkedStorage` : web, et `LinkedFileSync` sur le bureau et Android,
 `export-import.md`), calendriers du téléphone (`CalendarService`, Android,
 `connexions-externes.md`), horloge, démonstration jetable (`DemoSource` : chaque plateforme ne fournit qu'une base en
-mémoire, `openDemo` et `AppServices.forDemo` sont communs, `visite-guidee.md` § Visite interactive)…), construit par chaque
+mémoire, `openDemo` et `AppServices.forDemo` sont communs, `visite-guidee.md` § Visite interactive), widgets posés
+(`WidgetProbe`, Android) et conseils (`tips`, faux par défaut : seules les applications réelles l'activent, pas l'auto-test
+ni les captures des magasins, `conseils.md`)…), construit par chaque
 application et passé à
 `KairosApp(platform) { … }` sous forme de fonction suspendue (ouverture
 asynchrone de la base).
@@ -92,7 +94,7 @@ asynchrone de la base).
   système, ni réseau, ni fichier. L'heure courante et les réglages sont
   toujours passés en paramètre. C'est ce qui rend possibles les tests
   déterministes du moteur, dont ceux sur fichiers d'or figés.
-- **Réseau** (décidé le 2026-10-26, 4.1.0, à implémenter, `connexions-en-ligne.md`) : jamais dans `core` ni `data`. Une interface
+- **Réseau** (décidé le 2026-10-26, 4.2.0, à implémenter, `connexions-en-ligne.md`) : jamais dans `core` ni `data`. Une interface
   `HttpFetcher` de `ui/app` en est l'unique accès, fournie par chaque application (`HttpURLConnection` sur Android, `java.net.http` sur le bureau,
   `fetch` sur le web) et enveloppée par une porte (`OnlineGate`) qui refuse toute requête hors d'une connexion activée ; un test d'analyse des
   sources garde les imports réseau dans ces fichiers. Jusqu'à la 4.0, l'application Android n'avait pas la permission `INTERNET`.
@@ -105,7 +107,7 @@ asynchrone de la base).
 - **Dépendances** : uniquement des bibliothèques libres publiées sur Maven
   Central ou le dépôt Google. Aucune bibliothèque Google Play Services,
   Firebase, analytics ou rapport de crash distant (**rouvert le 2026-10-26** pour le réseau, pas pour les bibliothèques : les connexions
-  en ligne de la 4.1.0, `connexions-en-ligne.md`, n'ajoutent aucune dépendance et aucun SDK de fournisseur). Les ajouts se font dans
+  en ligne de la 4.2.0, `connexions-en-ligne.md`, n'ajoutent aucune dépendance et aucun SDK de fournisseur). Les ajouts se font dans
   le catalogue de versions, avec une version figée (builds reproductibles).
   Les tests d'interface du bureau utilisent `compose.desktop.uiTestJUnit4`
   (bibliothèque de test de Compose Multiplatform, même version que
@@ -126,6 +128,7 @@ asynchrone de la base).
 | `make_app_icons.py` | `desktopApp/icons/kairos.{png,ico,icns}`, favicon et icônes de `webApp`, icônes des fiches Fastlane (512 px) et de la page `site/`. | Pillow |
 | `validate_fastlane.py` | Vérifie les fiches `fastlane/metadata/android/` (`publication.md`). | aucune |
 | `fdroid_check.sh` | `fdroid lint` et `fdroid build` de la recette dans l'image des serveurs F-Droid (`publication.md`). | Docker, image `fdroidserver:buildserver` |
+| `make_code_map.py` | Carte du code (`carte-du-code.md`) : index Markdown pour Claude Code (`--index`), page `/code/` du site publiée par `pages.yml` (`--html`). Rien de versionné. | aucune |
 
 Les fichiers d'or des tests du moteur (`core/src/jvmTest/resources/fixtures/` :
 `scheduling.json`, `dependencies.json`, `calendar.json`, `stats.json`) sont

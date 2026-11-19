@@ -270,6 +270,11 @@ data class TeamSettings(
  * Mémoire du guide, sous-objet [Settings.guide] : [newsHidden] la version « majeur.mineur » dont la section « Nouveau dans
  * cette version » est masquée, [readChapters] les chapitres du hub parcourus jusqu'au bout (noms de `GuideChapter`),
  * [firstTaskDone] l'accompagnement de la première tâche mené à son terme. Aucun n'est écrit à sa valeur par défaut.
+ *
+ * Conseils au bon moment (docs/spec/conseils.md, issue #221) : [tipsOff] l'interrupteur « Conseils » coupé, [tipsShown] les
+ * deux dernières dates (ISO) où un conseil a été montré, [tipsSnoozed] id → date jusqu'à laquelle il attend (« Plus tard »),
+ * [tipsDone] id → date d'acceptation (« Montre-moi »), [tipsDismissed] les ids écartés pour de bon, [seenScreens] les écrans
+ * suivis déjà ouverts (`Tips.SCREEN_*`), [lastExport] la date du dernier export réussi depuis cet appareil.
  */
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
@@ -277,6 +282,13 @@ data class GuideSettings(
     @EncodeDefault(EncodeDefault.Mode.NEVER) val newsHidden: String? = null,
     @EncodeDefault(EncodeDefault.Mode.NEVER) val readChapters: List<String> = emptyList(),
     @EncodeDefault(EncodeDefault.Mode.NEVER) val firstTaskDone: Boolean = false,
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val tipsOff: Boolean = false,
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val tipsShown: List<String> = emptyList(),
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val tipsSnoozed: Map<String, String> = emptyMap(),
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val tipsDone: Map<String, String> = emptyMap(),
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val tipsDismissed: List<String> = emptyList(),
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val seenScreens: List<String> = emptyList(),
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val lastExport: String? = null,
 )
 
 /**

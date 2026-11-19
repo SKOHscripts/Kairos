@@ -71,8 +71,9 @@ découvrir sans que l'utilisateur ait à lire une documentation.
 6. L'accompagnement de la **première tâche** (`premiere-tache.md`) fait partie
    des chapitres et réutilise ces cartes. Une fois mené à son terme, son invitation ne revient plus (`premiere-tache.md`).
 7. **Repartir de zéro** (3.7.0, issue #94) : Réglages → « À propos » → **« Revoir le guide depuis le début »** efface
-   aussitôt ce que le guide a retenu (chapitres lus, « Nouveau » masqué, accompagnement fait), avec « Annuler » ;
-   « Restaurer les valeurs par défaut » l'efface aussi, à l'enregistrement (`reglages.md`).
+   aussitôt ce que le guide a retenu (chapitres lus, « Nouveau » masqué, accompagnement fait, et depuis la 4.2.0 ce que
+   les conseils ont retenu, sauf l'interrupteur « Conseils », `conseils.md`), avec « Annuler » ; « Restaurer les valeurs
+   par défaut » l'efface aussi, interrupteur compris, à l'enregistrement (`reglages.md`).
 8. **Visite interactive sur une démonstration** (spécifiée le 2026-10-26, issue #96, décision du propriétaire ;
    implémentée en 3.13.0). Le guide décrit mais ne fait pas faire : on lit « Qualifier » sans jamais voir un score bouger. Le
    risque d'une visite qui manipule l'écran est d'agir sur les **vraies** données (tâche parasite, mélange du réel et de
@@ -200,12 +201,16 @@ partout. La liste complète des fonctionnalités lit le même catalogue.
 - **Visites** : `GuideSteps.of(GuideKind.PERSONAL)` = les cartes `tour = true` hors Équipe (six) ; `GuideSteps.of(GuideKind.TEAM)` =
   les cartes `tour = true` du chapitre `TEAM` (les six d'origine ; le chapitre en compte neuf depuis l'inventaire). Les textes des
   douze cartes d'avant gardent leurs chaînes `guide_you_*` et `guide_team_*` ; les autres sont `card_<id>_title` / `card_<id>_body`.
-- **Cibles** (`GuideTarget`) : `Personal(destination, section?)`, `Team(destination, exchanges)`, `Settings(section?)` et
+- **Cibles** (`GuideTarget`) : `Personal(destination, section?, weeksBack)`, `Team(destination, exchanges)`, `Settings(section?)` et
   `FirstTask` (lance l'accompagnement de `premiere-tache.md`, sans changer d'écran ; le bouton devient « Créer ma première
-  tâche »).
+  tâche »), `Demo`, `Feedback`, et depuis la 4.2.0 pour les conseils (`conseils.md` § Interface) `RecurringTask` (lance
+  « Créer ma première tâche récurrente »), `Card(id)` (une seule carte du catalogue dans `GuideDialog`) et `weeksBack`
+  (le Bilan ouvert en semaine, autant de semaines en arrière).
 - **Sections** (`GuideSection`, issue #95) : `DAY_INBOX`, `DAY_AGENDA`, `DAY_NOW`, `DAY_BLOCKED`, `DAY_PARENTS`,
   `SETTINGS_WORKDAY`, `SETTINGS_CONTEXTS`, `SETTINGS_HOURS`, `SETTINGS_HOLIDAYS`, `SETTINGS_BEST_HOURS`, `SETTINGS_LEARNED`, `SETTINGS_LEVELS`,
-  `SETTINGS_APPEARANCE`, `SETTINGS_DATA`, `STATS_HOURS` ; chacune
+  `SETTINGS_APPEARANCE`, `SETTINGS_DATA`, `SETTINGS_CHRONO`, `SETTINGS_REMINDERS`, `SETTINGS_TIPS` (4.2.0, carte « Conseils »),
+  `STATS_HOURS`, `STATS_CALIBRATION` et `STATS_CORRECT` (4.2.0, visées par des conseils seulement : `FeatureCatalogTest`
+  compte les cibles des conseils parmi les usages d'une section) ; chacune
   connaît son écran (`screen`), sa catégorie des Réglages (`settingsCategory`) et son message d'absence (`missing`, pour
   les sections qui peuvent manquer). `AppShell.openTarget` pose la demande dans `NavState.guideSpot`
   (`GuideSpotState.pending`) après avoir ouvert l'écran ; pour les Réglages, `onOpenSettings()` puis
@@ -264,6 +269,9 @@ partout. La liste complète des fonctionnalités lit le même catalogue.
   `guided_walks`) : sa cible `GuideTarget.Feedback` ouvre le dialogue de `retours.md` sans changer d'écran.
   `timer_guard` (garde-fou du chrono, #220 ; chapitre « Suivre », icône `Shield`, après `alerts`) : section
   `SETTINGS_CHRONO` (carte « Alertes du chrono » de Réglages → Chrono et statistiques, `temps-reel-chrono.md` § Garde-fou).
+- **Carte de la 4.2.0** : `tips` (« Des conseils au bon moment », #221 ; chapitre « Premiers pas », icône `Lightbulb`, après
+  `feedback`) : section `SETTINGS_TIPS` (carte « Conseils » de « À propos »). Chaque conseil désigne la carte qu'il fait
+  découvrir (`TipId.card`, `TipsCatalogTest`, `conseils.md` § Concordance).
 - **Comptes de cartes dans les tests** : `M6GuideUiTest` tire les nombres de cartes par chapitre de `FeatureCatalog`
   (une carte ajoutée à une version ne casse plus le test du hub).
 - **Lien avec le README** : `FeatureCatalog.README_FEATURES` associe chaque fonctionnalité en gras de la section
@@ -287,7 +295,11 @@ partout. La liste complète des fonctionnalités lit le même catalogue.
   majeure.mineure dont « Nouveau » est masqué, nul sinon), `readChapters` (noms de `GuideChapter` terminés),
   `firstTaskDone` (accompagnement mené à son terme) ; aucun n'est écrit à sa valeur par défaut.
 - `KairosRepository.updateGuide(change)` : applique `change` à `guide ?: GuideSettings()` et enregistre `null` si le
-  résultat vaut `GuideSettings()` ; n'écrit rien s'il ne change rien. `resetGuide()` remet `guide` à nul.
+  résultat vaut `GuideSettings()` ; n'écrit rien s'il ne change rien. `resetGuide()` efface tout ce que le guide a retenu
+  sauf `tipsOff` (l'interrupteur « Conseils ») : `guide` revient à nul s'il n'était pas coupé.
+- Conseils (4.2.0, issue #221, `conseils.md` § Mémoire) : `tipsOff`, `tipsShown`, `tipsSnoozed`, `tipsDone`,
+  `tipsDismissed`, `seenScreens` et `lastExport`, mêmes règles (rien n'est écrit à la valeur par défaut). La carte « Revoir
+  le guide depuis le début » est inactive quand le guide n'a retenu que l'interrupteur coupé.
 - `FeatureCatalog.newsKey(version)` : `"majeur.mineur"` d'une version lisible (`3.7.1` → `"3.7"`), nul sinon ; la même
   règle que `newIn`.
 - Écritures : `HomeScreen` (« Masquer » → `onHideNews`, la coquille écrit `newsHidden`), `AppShell` (un chapitre du hub

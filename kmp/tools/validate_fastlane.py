@@ -6,10 +6,12 @@ Ce script échoue (code 1) si, pour fr-FR, en-US, es-ES, de-DE, ru-RU et it-IT :
 
 - title.txt (50), short_description.txt (80), full_description.txt (4000)
   manquent, sont vides ou trop longs ;
-- le journal de la version courante (`changelogs/<versionCode>.txt`, 500 au plus)
-  manque — versionCode lu dans kmp/gradle.properties ; une préversion (`X.Y.0-beta.N`)
-  n'en a pas besoin : elle ne va ni sur F-Droid ni dans les fiches (docs/spec/distribution.md
-  § Cycle des versions) ;
+- le journal de la version courante (`changelogs/<versionCode>.txt`, 500 au plus,
+  versionCode lu dans kmp/gradle.properties) existe dans une langue mais pas dans une autre.
+  Absent partout, c'est un rappel, pas une erreur : `main` porte la finale à venir pendant
+  tout son développement et la note n'est exigée qu'au tag (« Kairos tag ») ; une préversion
+  (`X.Y.0-beta.N`) n'en a pas : elle ne va ni sur F-Droid ni dans les fiches
+  (docs/spec/distribution.md § Cycle des versions) ;
 - (fr-FR et en-US seulement) images/icon.png n'est pas un PNG de 512 × 512, ou
   images/phoneScreenshots/ ne contient pas au moins deux PNG, numérotés 1, 2… :
   les autres langues n'ont pas d'images, F-Droid reprend celles de en-US.
@@ -50,6 +52,9 @@ def main() -> None:
     code = version_property("versionCode")
     prerelease = "-" in version_property("versionName")
     errors: list[str] = []
+    written = [loc for loc in LOCALES if (META / loc / "changelogs" / f"{code}.txt").exists()]
+    if not written and not prerelease:
+        print(f"rappel : notes de version {code}.txt à écrire dans les six langues avant le tag")
     for locale in LOCALES:
         folder = META / locale
         for name, limit in LIMITS.items():
@@ -60,7 +65,7 @@ def main() -> None:
             elif len(text) > limit:
                 errors.append(f"{path} : {len(text)} caractères (au plus {limit})")
         changelog = folder / "changelogs" / f"{code}.txt"
-        if prerelease and not changelog.exists():
+        if not written:
             pass
         elif not changelog.exists():
             errors.append(f"journal absent pour versionCode {code} : {changelog}")
@@ -84,7 +89,7 @@ def main() -> None:
     if errors:
         print("\n".join(f"ERREUR : {e}" for e in errors))
         sys.exit(1)
-    note = " ; préversion : journal non exigé" if prerelease else ""
+    note = " ; préversion : journal non exigé" if prerelease else ("" if written else " ; journal exigé au tag")
     print(f"Métadonnées Fastlane valides ({', '.join(LOCALES)}, versionCode {code}{note}).")
 
 

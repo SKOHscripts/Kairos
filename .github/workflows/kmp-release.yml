@@ -1,129 +1,166 @@
-# Release de Kairos (docs/spec/distribution.md § Release) : sur tag vX.Y.Z ou vX.Y.0-beta.N (posé par « Kairos tag »,
-# kmp-tag.yml, ou à la main),
-# APK signé, installeurs et images portables des trois OS de bureau, version
-# web, SHA256SUMS, release GitHub (préversion si le tag a un suffixe), paquet AUR
-# kairos-bin pour une version stable.
-name: Kairos 3 release
+# Release et build de test de Kairos (docs/spec/distribution.md § CI et release, § Build de test).
+#
+# - Sur un tag vX.Y.Z ou vX.Y.0-beta.N (posé par « Kairos tag », kmp-tag.yml, ou à la main) : APK signé, installeurs et
+#   images portables des trois OS de bureau, version web, SHA256SUMS, release GitHub (préversion si le tag a un
+#   suffixe), paquet AUR kairos-bin pour une version stable.
+# - Lancé à la main sur une branche : build de test d'UN commit de la branche (par défaut le dernier), pour l'essayer
+#   avant de poser le tag. Mêmes tests et auto-tests, APK signé avec la clé des releases (installable par-dessus la
+#   version en place), et rien de publié : ni release, ni AUR, ni signature Windows. Les fichiers sont dans les artefacts.
+#
+# Les constructions sont une seule matrice (Android, web, quatre bureaux), dont la liste vient de `resolve` ; les tests
+# tournent à côté, en parallèle, et la release les attend.
+name: Kairos release
 
 on:
   push:
     # Toute version à partir de la 3 (les v2.* sont ceux de l'ancienne version) : une 5.0.0 n'aura rien à changer ici.
     tags: ["v[3-9].*", "v[1-9][0-9].*"]
-  # Lancement manuel : sur main, une construction de validation ; sur la référence d'un tag (ce que fait kmp-tag.yml),
-  # une vraie release (`github.ref_type == 'tag'`).
+  # Sur une branche : un build de test. Sur la référence d'un tag (ce que fait kmp-tag.yml) : une vraie release
+  # (`github.ref_type == 'tag'`), qui ignore les champs.
   workflow_dispatch:
+    inputs:
+      commit:
+        description: "Build de test : commit à construire (SHA court ou long). Vide : le dernier commit de la branche."
+        required: false
+        default: ""
+      android:
+        description: "Android : APK signé avec la clé des releases"
+        type: boolean
+        default: true
+      desktop:
+        description: "Bureau : Linux, Windows, macOS (installeurs et images portables)"
+        type: boolean
+        default: true
+      web:
+        description: "Web : version navigateur (zip)"
+        type: boolean
+        default: true
+
+run-name: ${{ github.ref_type == 'tag' && format('Release {0}', github.ref_name) || format('Build de test {0}', inputs.commit || github.sha) }}
 
 permissions:
   contents: read
 
 jobs:
-  version:
+  resolve:
     runs-on: ubuntu-latest
     outputs:
-      name: ${{ steps.v.outputs.name }}
-      prerelease: ${{ steps.v.outputs.prerelease }}
+      sha: ${{ steps.r.outputs.sha }}
+      name: ${{ steps.r.outputs.name }}
+      prerelease: ${{ steps.r.outputs.prerelease }}
+      release: ${{ steps.r.outputs.release }}
+      label: ${{ steps.r.outputs.label }}
+      artifact: ${{ steps.r.outputs.artifact }}
+      retention: ${{ steps.r.outputs.retention }}
+      targets: ${{ steps.r.outputs.targets }}
     steps:
       - uses: actions/checkout@v4
-      # Le tag doit être la version déclarée dans kmp/gradle.properties (source
-      # unique) ; le versionCode, lui, est vérifié par AppVersionTest.
-      - id: v
+        with:
+          fetch-depth: 0
+      # Les champs passent par l'environnement, jamais interpolés dans le script (injection). Un build de test ne
+      # construit qu'un commit de la branche du lancement : un SHA venu d'ailleurs (fork) ne doit pas être construit avec
+      # la clé de signature. Sur un tag, le tag doit être la version déclarée dans kmp/gradle.properties (source unique) ;
+      # le versionCode, lui, est vérifié par AppVersionTest.
+      - id: r
+        env:
+          COMMIT: ${{ inputs.commit }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          ANDROID: ${{ inputs.android }}
+          DESKTOP: ${{ inputs.desktop }}
+          WEB: ${{ inputs.web }}
         run: |
-          name=$(sed -n 's/^kairos.versionName=//p' kmp/gradle.properties)
-          echo "name=$name" >> "$GITHUB_OUTPUT"
-          if [[ "$name" == *-* ]]; then echo "prerelease=true" >> "$GITHUB_OUTPUT"; else echo "prerelease=false" >> "$GITHUB_OUTPUT"; fi
-          if [ "${{ github.ref_type }}" = "tag" ] && [ "${{ github.ref_name }}" != "v$name" ]; then
-            echo "::error::Le tag ${{ github.ref_name }} ne correspond pas à kairos.versionName=$name (kmp/gradle.properties)."
+          if [ "$REF_TYPE" = "tag" ]; then
+            sha=$GITHUB_SHA
+            ANDROID=true; DESKTOP=true; WEB=true
+          else
+            want="${COMMIT:-$GITHUB_SHA}"
+            if ! sha=$(git rev-parse --verify --quiet "${want}^{commit}"); then
+              echo "::error::Commit introuvable : $want"
+              exit 1
+            fi
+            if ! git merge-base --is-ancestor "$sha" "$GITHUB_SHA"; then
+              echo "::error::Le commit $sha n'appartient pas à la branche $REF_NAME."
+              exit 1
+            fi
+          fi
+          short=$(git rev-parse --short=7 "$sha")
+          name=$(git show "$sha:kmp/gradle.properties" | sed -n 's/^kairos.versionName=//p')
+          if [ "$REF_TYPE" = "tag" ] && [ "$REF_NAME" != "v$name" ]; then
+            echo "::error::Le tag $REF_NAME ne correspond pas à kairos.versionName=$name (kmp/gradle.properties)."
             exit 1
           fi
+          targets=$(ANDROID="$ANDROID" DESKTOP="$DESKTOP" WEB="$WEB" python3 - <<'PY'
+          import json, os
+          on = lambda key: os.environ[key] == "true"
+          targets = []
+          if on("ANDROID"):
+              targets.append({"id": "android", "os": "ubuntu-latest", "kind": "android"})
+          if on("WEB"):
+              targets.append({"id": "web", "os": "ubuntu-latest", "kind": "web"})
+          if on("DESKTOP"):
+              for os_, id_ in (("ubuntu-latest", "linux-x64"), ("windows-latest", "windows-x64"),
+                               ("macos-latest", "macos-arm64"), ("macos-15-intel", "macos-x64")):
+                  targets.append({"id": id_, "os": os_, "kind": "desktop"})
+          print(json.dumps(targets))
+          PY
+          )
+          if [ "$targets" = "[]" ]; then
+            echo "::error::Aucune plateforme cochée."
+            exit 1
+          fi
+          {
+            echo "sha=$sha"
+            echo "name=$name"
+            if [[ "$name" == *-* ]]; then echo "prerelease=true"; else echo "prerelease=false"; fi
+            echo "targets=$targets"
+            if [ "$REF_TYPE" = "tag" ]; then
+              echo "release=true"; echo "label="; echo "artifact=dist"; echo "retention=3"
+            else
+              # Un build de test n'a pas à durer au-delà de la release qu'il prépare.
+              echo "release=false"; echo "label=-test-$short"; echo "artifact=kairos-test-$short"; echo "retention=14"
+            fi
+          } >> "$GITHUB_OUTPUT"
+          if [ "$REF_TYPE" != "tag" ]; then
+            {
+              echo "### Build de test"
+              echo ""
+              echo "- Commit : \`$sha\` (branche \`$REF_NAME\`)"
+              echo "- Version déclarée : \`$name\`"
+              echo "- Android : $ANDROID · bureau : $DESKTOP · web : $WEB"
+              echo "- Fichiers : artefacts \`kairos-test-$short-*\` de ce lancement, gardés 14 jours."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
 
-  android:
-    needs: version
+  # Les tests JVM, en parallèle des constructions : un test en échec rend le lancement rouge sans retarder les fichiers,
+  # et la release les attend.
+  tests:
+    needs: resolve
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: kmp
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
       - name: Plateforme Android 37
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
+        run: (yes || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
       - name: Tests
         run: ./gradlew --no-daemon :core:jvmTest :data:jvmTest :ui:jvmTest :desktopApp:jvmTest
-      # Toujours le même keystore (mêmes secrets) : chaque version s'installe par-dessus
-      # la précédente. Un tag DOIT être signé ; un lancement manuel sans secrets
-      # produit un APK non signé de validation.
-      - name: Keystore de signature
-        id: keystore
-        env:
-          KAIROS_KEYSTORE_BASE64: ${{ secrets.KAIROS_KEYSTORE_BASE64 }}
-        run: |
-          if [ -n "$KAIROS_KEYSTORE_BASE64" ]; then
-            echo "$KAIROS_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/kairos-release.keystore"
-            echo "file=$RUNNER_TEMP/kairos-release.keystore" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.ref_type }}" = "tag" ]; then
-            echo "::error::Secret KAIROS_KEYSTORE_BASE64 absent : une release taguée doit être signée."
-            exit 1
-          else
-            echo "::warning::Secrets de signature absents : APK de validation NON signé."
-          fi
-      - name: APK
-        env:
-          KAIROS_KEYSTORE_FILE: ${{ steps.keystore.outputs.file }}
-          KAIROS_KEYSTORE_PASSWORD: ${{ secrets.KAIROS_KEYSTORE_PASSWORD }}
-          KAIROS_KEY_ALIAS: ${{ secrets.KAIROS_KEY_ALIAS }}
-          KAIROS_KEY_PASSWORD: ${{ secrets.KAIROS_KEY_PASSWORD }}
-        run: |
-          ./gradlew --no-daemon :androidApp:assembleRelease
-          mkdir -p "$RUNNER_TEMP/out"
-          cp androidApp/build/outputs/apk/release/androidApp-release*.apk "$RUNNER_TEMP/out/Kairos-android.apk"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: kairos3-android
-          path: ${{ runner.temp }}/out/*
-          retention-days: 3
 
-  web:
-    needs: version
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: kmp
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-      - uses: gradle/actions/setup-gradle@v4
-      - name: Version web
-        run: |
-          ./gradlew --no-daemon :webApp:wasmJsBrowserDistribution
-          mkdir -p "$RUNNER_TEMP/out"
-          (cd webApp/build/dist/wasmJs/productionExecutable && zip -qr "$RUNNER_TEMP/out/Kairos-web.zip" .)
-      - uses: actions/upload-artifact@v4
-        with:
-          name: kairos3-web
-          path: ${{ runner.temp }}/out/*
-          retention-days: 3
-
-  desktop:
-    needs: version
+  build:
+    needs: resolve
+    name: ${{ matrix.id }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            id: linux-x64
-          - os: windows-latest
-            id: windows-x64
-          - os: macos-latest
-            id: macos-arm64
-          - os: macos-15-intel
-            id: macos-x64
+        include: ${{ fromJSON(needs.resolve.outputs.targets) }}
     runs-on: ${{ matrix.os }}
     # Signature Windows (docs/spec/distribution.md § Signature Windows, issue #117) : l'action SignPath lit l'artefact
     # non signé par l'API des Actions.
@@ -134,26 +171,77 @@ jobs:
       # Vrai seulement quand le propriétaire a configuré SignPath ; sinon (forks, contributeurs) l'installeur reste
       # non signé, comme avant.
       SIGNPATH_READY: ${{ secrets.SIGNPATH_API_TOKEN != '' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
+      # Suffixe des noms de fichiers : vide pour une release, « -test-<court> » pour un build de test.
+      LABEL: ${{ needs.resolve.outputs.label }}
     defaults:
       run:
         shell: bash
         working-directory: kmp
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
+
+      # --- Android ---
+      # `(yes || true)` : le shell bash déclaré du job ajoute `-o pipefail`, et `yes` finit toujours par « Broken pipe »
+      # quand sdkmanager se ferme ; sans la parenthèse, l'étape échoue sur un SDK pourtant installé (v4.2.0-beta.1).
+      - name: Plateforme Android 37
+        if: matrix.kind == 'android'
+        run: (yes || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
+      # Toujours le même keystore (mêmes secrets) : chaque version s'installe par-dessus la précédente. Un tag DOIT être
+      # signé ; un build de test sans secrets (fork) produit un APK non signé.
+      - name: Keystore de signature
+        id: keystore
+        if: matrix.kind == 'android'
+        env:
+          KAIROS_KEYSTORE_BASE64: ${{ secrets.KAIROS_KEYSTORE_BASE64 }}
+          RELEASE: ${{ needs.resolve.outputs.release }}
+        run: |
+          if [ -n "$KAIROS_KEYSTORE_BASE64" ]; then
+            echo "$KAIROS_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/kairos-release.keystore"
+            echo "file=$RUNNER_TEMP/kairos-release.keystore" >> "$GITHUB_OUTPUT"
+          elif [ "$RELEASE" = "true" ]; then
+            echo "::error::Secret KAIROS_KEYSTORE_BASE64 absent : une release taguée doit être signée."
+            exit 1
+          else
+            echo "::warning::Secrets de signature absents : APK de test NON signé (désinstaller Kairos pour l'installer)."
+          fi
+      - name: APK
+        if: matrix.kind == 'android'
+        env:
+          KAIROS_KEYSTORE_FILE: ${{ steps.keystore.outputs.file }}
+          KAIROS_KEYSTORE_PASSWORD: ${{ secrets.KAIROS_KEYSTORE_PASSWORD }}
+          KAIROS_KEY_ALIAS: ${{ secrets.KAIROS_KEY_ALIAS }}
+          KAIROS_KEY_PASSWORD: ${{ secrets.KAIROS_KEY_PASSWORD }}
+        run: |
+          ./gradlew --no-daemon :androidApp:assembleRelease
+          mkdir -p "$RUNNER_TEMP/out"
+          cp androidApp/build/outputs/apk/release/androidApp-release*.apk "$RUNNER_TEMP/out/Kairos-android$LABEL.apk"
+
+      # --- Web ---
+      - name: Version web
+        if: matrix.kind == 'web'
+        run: |
+          ./gradlew --no-daemon :webApp:wasmJsBrowserDistribution
+          mkdir -p "$RUNNER_TEMP/out"
+          (cd webApp/build/dist/wasmJs/productionExecutable && zip -qr "$RUNNER_TEMP/out/Kairos-web$LABEL.zip" .)
+
+      # --- Bureau ---
       - name: fakeroot (paquet .deb)
-        if: runner.os == 'Linux'
+        if: matrix.kind == 'desktop' && runner.os == 'Linux'
         run: sudo apt-get install -y fakeroot > /dev/null
       - name: Installeur et image portable
+        if: matrix.kind == 'desktop'
         run: ./gradlew --no-daemon :desktopApp:packageDistributionForCurrentOS :desktopApp:createDistributable
 
       # Auto-test : l'image empaquetée démarre et rend l'interface (docs/spec/distribution.md § Auto-test).
       - name: Auto-test (Linux, macOS)
-        if: runner.os != 'Windows'
+        if: matrix.kind == 'desktop' && runner.os != 'Windows'
         run: |
           app=desktopApp/build/compose/binaries/main/app
           if [ "$RUNNER_OS" = "macOS" ]; then
@@ -164,7 +252,7 @@ jobs:
           fi
           KAIROS_DATA_DIR="$RUNNER_TEMP/kairos-data" "$exe" --self-test="$RUNNER_TEMP/screens"
       - name: Auto-test (Windows)
-        if: runner.os == 'Windows'
+        if: matrix.kind == 'desktop' && runner.os == 'Windows'
         shell: pwsh
         run: |
           $dir = Get-ChildItem desktopApp/build/compose/binaries/main/app -Directory | Select-Object -First 1
@@ -174,10 +262,11 @@ jobs:
           if ($p.ExitCode -ne 0) { Write-Error "Auto-test en échec ($($p.ExitCode))"; exit 1 }
 
       - name: Nommer les fichiers
+        if: matrix.kind == 'desktop'
         run: |
           out="$RUNNER_TEMP/out"; mkdir -p "$out"
           bin=desktopApp/build/compose/binaries/main
-          id=${{ matrix.id }}
+          id=${{ matrix.id }}$LABEL
           # Marqueur des seules archives portables, après les installeurs : la copie
           # portable propose alors son raccourci (docs/spec/raccourci-portable.md).
           image=$(ls -d "$bin"/app/*/ | head -1)
@@ -200,10 +289,10 @@ jobs:
       # § Signature Windows, issue #117) : sur un tag seulement (chaque demande attend l'approbation manuelle d'un
       # approbateur), et seulement si SignPath est configuré. La configuration d'artefact du projet SignPath est
       # `.signpath/artifact-configuration.xml`. Les fichiers signés remplacent les non signés dans `out`, donc dans la
-      # release et `SHA256SUMS`. L'artefact non signé ne commence pas par `kairos3-` : la release ne le reprend pas.
+      # release et `SHA256SUMS`. L'artefact non signé ne commence pas par `dist-` : la release ne le reprend pas.
       - name: Fichiers à signer (Windows)
         id: unsigned
-        if: runner.os == 'Windows' && github.ref_type == 'tag' && env.SIGNPATH_READY == 'true'
+        if: matrix.id == 'windows-x64' && needs.resolve.outputs.release == 'true' && env.SIGNPATH_READY == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: unsigned-${{ matrix.id }}
@@ -241,20 +330,20 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: kairos3-${{ matrix.id }}
+          name: ${{ needs.resolve.outputs.artifact }}-${{ matrix.id }}
           path: ${{ runner.temp }}/out/*
-          retention-days: 3
+          retention-days: ${{ fromJSON(needs.resolve.outputs.retention) }}
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && matrix.kind == 'desktop'
         with:
           name: screens-${{ matrix.id }}
           path: ${{ runner.temp }}/screens
           if-no-files-found: ignore
-          retention-days: 3
+          retention-days: ${{ fromJSON(needs.resolve.outputs.retention) }}
 
   release:
-    needs: [version, android, web, desktop]
-    if: github.ref_type == 'tag'
+    needs: [resolve, tests, build]
+    if: needs.resolve.outputs.release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -262,28 +351,29 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
-          pattern: kairos3-*
+          pattern: dist-*
           merge-multiple: true
       - name: SHA256SUMS
         working-directory: artifacts
         run: sha256sum Kairos-* > SHA256SUMS && cat SHA256SUMS
       - uses: softprops/action-gh-release@v2
         with:
-          name: Kairos ${{ needs.version.outputs.name }}
-          prerelease: ${{ needs.version.outputs.prerelease == 'true' }}
+          name: Kairos ${{ needs.resolve.outputs.name }}
+          prerelease: ${{ needs.resolve.outputs.prerelease == 'true' }}
           generate_release_notes: true
           files: |
             artifacts/Kairos-*
             artifacts/SHA256SUMS
 
   # Paquet AUR kairos-bin (docs/spec/distribution.md § Paquet Arch Linux) : construit, installé et lancé dans un
-  # conteneur Arch à partir du .deb publié, puis poussé sur l'AUR sur un tag stable si le secret existe. Lancement
-  # manuel : construit et testé seulement.
+  # conteneur Arch à partir du .deb, puis poussé sur l'AUR sur un tag stable si le secret existe. Build de test d'une
+  # version finale avec le bureau : construit et testé seulement.
   aur:
-    needs: [version, desktop, release]
+    needs: [resolve, build, release]
     if: >-
-      always() && needs.version.outputs.prerelease == 'false' && needs.desktop.result == 'success'
-      && (needs.release.result == 'success' || github.ref_type != 'tag')
+      always() && needs.resolve.outputs.prerelease == 'false' && needs.build.result == 'success'
+      && contains(needs.resolve.outputs.targets, 'linux-x64')
+      && (needs.release.result == 'success' || needs.resolve.outputs.release != 'true')
     runs-on: ubuntu-latest
     env:
       AUR_READY: ${{ secrets.AUR_SSH_PRIVATE_KEY != '' }}
@@ -291,12 +381,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: kairos3-linux-x64
+          name: ${{ needs.resolve.outputs.artifact }}-linux-x64
           path: artifacts
       - name: Construire et tester (conteneur Arch)
+        env:
+          NAME: ${{ needs.resolve.outputs.name }}
+          LABEL: ${{ needs.resolve.outputs.label }}
         run: |
           docker run --rm -v "$PWD:/w" -w /w archlinux:base-devel \
-            bash packaging/aur/build.sh "${{ needs.version.outputs.name }}" artifacts/Kairos-linux-x64.deb aur-out
+            bash packaging/aur/build.sh "$NAME" "artifacts/Kairos-linux-x64$LABEL.deb" aur-out
       - uses: actions/upload-artifact@v4
         with:
           name: aur-kairos-bin
@@ -305,7 +398,7 @@ jobs:
           retention-days: 7
           include-hidden-files: true
       - name: Publier sur l'AUR
-        if: github.ref_type == 'tag' && env.AUR_READY == 'true'
+        if: needs.resolve.outputs.release == 'true' && env.AUR_READY == 'true'
         env:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
         run: bash packaging/aur/publish.sh aur-out
@@ -314,8 +407,8 @@ jobs:
   # déclenche pas de façon sûre les workflows qui la suivent (workflow_run). On les lance donc ici : la page de
   # téléchargement, et, pour une version finale, la comparaison F-Droid à l'APK publié.
   follow-up:
-    needs: [version, release]
-    if: github.event_name == 'workflow_dispatch' && github.ref_type == 'tag' && needs.release.result == 'success'
+    needs: [resolve, release]
+    if: github.event_name == 'workflow_dispatch' && needs.resolve.outputs.release == 'true' && needs.release.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -326,5 +419,5 @@ jobs:
       - name: Page de téléchargement
         run: gh workflow run pages.yml --ref main
       - name: Comparaison F-Droid (version finale)
-        if: needs.version.outputs.prerelease == 'false'
+        if: needs.resolve.outputs.prerelease == 'false'
         run: gh workflow run fdroid-check.yml --ref "${{ github.ref_name }}" -f after_release=true

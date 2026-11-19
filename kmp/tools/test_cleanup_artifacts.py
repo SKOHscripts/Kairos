@@ -17,7 +17,7 @@ class PlanTest(unittest.TestCase):
     def test_never_touches_a_run_in_progress(self):
         # Une release en cours (la plus ancienne ou non) garde ses artefacts, et ne compte pas parmi les runs gardés.
         runs = {1: run(1, 10, status="in_progress", day=1), 2: run(2, 10, day=2), 3: run(3, 10, day=3), 4: run(4, 10, day=4)}
-        artifacts = [Artifact(100 + i, f"kairos3-{i}", i) for i in (1, 2, 3, 4)]
+        artifacts = [Artifact(100 + i, f"dist-{i}", i) for i in (1, 2, 3, 4)]
         self.assertEqual([102], [a.id for a in plan(artifacts, runs, keep=2)])
 
     def test_artifacts_of_a_vanished_run_go(self):

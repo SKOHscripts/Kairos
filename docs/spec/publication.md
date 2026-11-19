@@ -7,8 +7,7 @@ GitHub. Fichiers couverts : `fastlane/metadata/android/` (fiches FR/EN),
 `kmp/tools/make_app_icons.py` (icônes des fiches et de la page, aperçu des liens `site/og/`), `kmp/tools/make_badges.py` et
 `validate_badges.py` (boutons de téléchargement, `site/badges/`), `kmp/tools/validate_og.py` (aperçu des liens),
 `fdroid/com.skohscripts.kairos.yml`, `fdroid/README.md`, `site/`,
-`.github/workflows/fdroid-check.yml`, `.github/workflows/metadata.yml`, `.github/workflows/pages.yml`, et la
-propriété `kairos.preview` de `kmp/androidApp/build.gradle.kts`. Versions,
+`.github/workflows/fdroid-check.yml`, `.github/workflows/metadata.yml`, `.github/workflows/pages.yml`. Versions,
 construction et releases : `distribution.md`._
 
 État : **jalon M7** (`3.0.0`) ; mis en place au jalon M6 (`3.0.0-beta.1`). La soumission elle-même (merge
@@ -68,6 +67,17 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
 README ; aucune mention « bientôt sur F-Droid » ne reste ; le test de CI `pages` échoue si un marqueur reste ; la page garde 390 px
 sans débordement (les boutons passent à la ligne) ; les images se lisent sur fond clair et sombre de GitHub.
 
+### Badges d'état du README (2026-11-15)
+
+- Sous le titre des deux README, deux rangées de badges, dans la langue du README (demande du propriétaire du 2026-11-15) :
+  - **l'état du projet, en direct** : CI de `main`, build reproductible (vérification F-Droid), dernière version, dernière
+    version beta comprise, version publiée sur F-Droid, téléchargements, activité des commits, licence ;
+  - **ce qu'est Kairos** : vie privée (sans compte, sans pub, sans pistage), données sur l'appareil et hors ligne d'abord,
+    machine learning sur l'appareil, méthodes (WSJF, GTD, time blocking), plateformes, six langues, Kotlin Multiplatform +
+    Compose, specs d'abord et bijectives.
+- Chaque badge mène à ce qu'il résume (workflow, releases, fiche F-Droid, section du README, `docs/spec/`). Ils ne remplacent
+  pas les boutons de téléchargement, qui restent juste en dessous de l'accroche.
+
 ### Aperçu des liens (2026-11-06, #217)
 
 - Un lien vers la page de téléchargement partagé sur un réseau social, une messagerie ou un forum s'affiche avec une **image
@@ -124,17 +134,18 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   description courte (« … par machine learning local », ≤ 80) ; la description ouvre ensuite sur **« Nouveau en 4.0 : du
   machine learning sur l'appareil »** (l'estimateur par modèle, qui finit sur « Une IA ? Non, du machine learning : … »,
   `estimateur-modele.md`, fonctionnalité majeure de la 4.0, demande du propriétaire du 2026-11-03), puis présente la
-  formule du score, le placement dans la journée, le chrono et ses alertes, les statistiques, et l'absence de compte et de réseau (jusqu'à la 4.0 : la 4.1.0 devra dire les connexions en ligne facultatives,
+  formule du score, le placement dans la journée, le chrono et ses alertes, les statistiques, et l'absence de compte et de réseau (jusqu'à la 4.1 : la 4.2.0 devra dire les connexions en ligne facultatives,
   désactivées par défaut, et la permission réseau, `connexions-en-ligne.md`) ; depuis la 3.10.0, le fichier lié et les
   calendriers (fichier `.ics`, ou calendriers du téléphone avec l'autorisation **facultative** de lecture du
   calendrier, `connexions-externes.md`).
 - **Une note de version par version finale** (`30000` pour `3.0.0`, `40100` pour `4.1.0`), dans les six langues des
-  fiches, avant son tag (`ReleaseNotesTest`, « Kairos tag ») ; une beta n'en a pas, depuis le cycle des versions du
+  fiches, avant son tag (« Kairos tag » ; la CI ne l'exige plus pour la version déclarée depuis le 2026-11-15,
+  `distribution.md` § Cycle des versions) ; une beta n'en a pas, depuis le cycle des versions du
   2026-11-05 (`distribution.md` § Cycle des versions) : elle ne va ni sur F-Droid ni dans les fiches (la `3.0.0-beta.1`,
   `29501`, en avait une).
 - `validate_fastlane.py` (sans dépendance) vérifie pour chaque langue : fichiers
   présents, non vides, longueurs ; note de version du `kairos.versionCode`
-  courant (sauf préversion) ; icône PNG 512 × 512 ; au moins deux captures PNG numérotées 1, 2…
+  courant dans les six langues dès qu'une existe (absente partout : simple rappel, exigée au tag) ; icône PNG 512 × 512 ; au moins deux captures PNG numérotées 1, 2…
   sans trou, de 320 à 3840 px de côté. Code de sortie 1 au premier écart.
 
 ### Captures (`StoreScreenshots`)
@@ -210,16 +221,16 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   `3885399c…2111`). F-Droid reconstruit l'APK, le compare à celui de GitHub
   signature ôtée, et publie le nôtre s'ils sont identiques.
 - **Anti-fonctionnalités** : aucune déclarée jusqu'à la 4.0 (APK sans permission réseau). **Rouvert le 2026-10-26 par
-  `connexions-en-ligne.md`** : la 4.1.0 ajoute `INTERNET` (pas d'étiquette en soi) et déclare `AntiFeatures: NonFreeNet` dans la version qui
+  `connexions-en-ligne.md`** : la 4.2.0 ajoute `INTERNET` (pas d'étiquette en soi) et déclare `AntiFeatures: NonFreeNet` dans la version qui
   embarque un connecteur dédié à Microsoft 365 ou à Google Agenda (service non libre, étiquette par application et non par fonction) ; jamais
   d'anti-fonctionnalité non déclarée. À implémenter dans cette recette, avec `fdroid lint` et `rewritemeta` (§ Vérification continue).
 - Mises à jour : `UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$` (tags finals
   seulement), `UpdateCheckData` lisant `kairos.versionCode` et
   `kairos.versionName` dans `kmp/gradle.properties`, `AutoUpdateMode: Version`.
-- `kairos.preview` (propriété Gradle, `androidApp/build.gradle.kts`) : force
-  l'identifiant définitif (`false`) ou préversion (`true`) ; par défaut, une
-  version avec suffixe est une préversion. Seule la vérification continue s'en
-  sert, pour construire une bêta sous l'identifiant de la recette.
+- Identifiant : `com.skohscripts.kairos` pour toutes les versions, betas comprises, depuis la 4.2.0
+  (`distribution.md` § Décisions « Une seule app pour la beta et la stable ») ; la propriété Gradle `kairos.preview`,
+  qui forçait l'identifiant définitif pour construire une bêta comme la recette, est retirée (passée encore, elle est
+  sans effet).
 
 ### Vérification continue (`fdroid_check.sh`, `fdroid-check.yml`)
 
@@ -233,8 +244,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
      recette doit déjà être sous sa forme canonique (le fichier réécrit est
      comparé à l'original), comme l'exige la CI de fdroiddata ;
   3. copie de la recette : dernière construction réécrite à la version de
-     `gradle.properties` et au commit courant, `gradleprops:
-     [kairos.preview=false]`, `Repo` = copie locale du dépôt (branche
+     `gradle.properties` et au commit courant, sans `gradleprops`, `Repo` = copie locale du dépôt (branche
      `fdroid-check` au commit testé), `Binaries` retiré sauf avec
      `--binaries` ;
   4. `git init` du dossier fdroiddata (`fdroid build` date la construction,
@@ -245,15 +255,15 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   `kmp/tools/**`, sauf `kmp/tools/fdroid_check.sh`) : job `build` (`fdroid_check.sh` dans l'image, APK non signé en
   artefact gardé 1 jour, le temps du job `reproducible`). Une PR qui reçoit un nouveau commit annule le run précédent
   (`concurrency`, 2026-11-06). Les contrôles de textes (`validate_fastlane.py`, `validate_badges.py`, `validate_og.py`)
-  sont dans `metadata.yml` (PR et push sur `main` touchant `fastlane/**`, `site/**`, les README, `kmp/gradle.properties`
-  ou `kmp/tools/*.py`) : une modification de texte ne relance plus la construction F-Droid. Après une
-  exécution réussie de « Kairos 3 release » déclenchée par un tag **final**
+  sont dans le job `metadata` de `metadata.yml` (« Kairos checks », chaque PR et push sur `main`) : une modification de
+  texte ne relance pas la construction F-Droid. Après une
+  exécution réussie de « Kairos release » déclenchée par un tag **final**
   (sans `-`) : job `build` avec `--binaries`, qui compare au
   `Kairos-android.apk` publié. Une préversion n'est pas comparée à son APK
-  publié (identifiant `.preview`).
-- Job `reproducible` (PR et `main`) : le runner construit l'APK comme
-  `kmp-release.yml` (Temurin 21, `assembleRelease`), non signé, avec
-  `-Pkairos.preview=false`, et le compare octet pour octet (`cmp`) à celui du
+  publié (F-Droid ne publie que les finales).
+- Jobs `runner` et `reproducible` (PR et `main`) : `runner`, **en parallèle** de `build` (2026-11-15 ; avant, il
+  l'attendait), construit l'APK comme `kmp-release.yml` (Temurin 21, `assembleRelease`), non signé, et le garde en
+  artefact 1 jour ; `reproducible`, après les deux, le compare octet pour octet (`cmp`) à celui du
   job `build` ; en cas d'écart, il liste les entrées du zip qui diffèrent
   (nom, CRC) et échoue. La reproductibilité est ainsi vérifiée à chaque
   changement, bien avant la release finale.
@@ -316,6 +326,25 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   pas de traduction d'un récit à la première personne tant que le propriétaire ne la valide pas. Les validateurs
   (`validate_og.py`, `validate_badges.py`) ne lisent que les `index.html` de langue : ces pages n'en dépendent pas.
   Les README ne gardent qu'un court résumé et le lien (section « Pourquoi j'ai construit Kairos »).
+- **Menu du site (2026-11-15, demande du propriétaire)** : toutes les pages du site (les six pages de téléchargement, les
+  deux pages « histoire » et la carte du code `code/`) portent dans leur en-tête le même menu, dans la langue de la page,
+  à côté du sélecteur de langue qui ne change pas. Six entrées, dans cet ordre : **Télécharger** (la page de
+  téléchargement de la langue), **Histoire** (la page « histoire » de la langue ; en espagnol, allemand, russe et italien,
+  la page anglaise, libellé suivi de la langue, `hreflang="en"`), **Version web** (`app/`, ou `preview/` tant qu'aucune
+  version stable n'existe : le marqueur `@@WEB@@` que `pages.yml` remplace, aussi dans les pages « histoire » ; la carte
+  du code le reçoit par `--web`), **Carte du code** (`code/`), **Code source** (le dépôt GitHub), **Soutenir** (la page de
+  don, la même que l'application, `soutien.md`). L'entrée de la page affichée porte `aria-current="page"`.
+  - Forme : à 720 px et plus, une rangée de liens dans l'en-tête ; en dessous, un **bouton « Menu »** (icône Material
+    Symbols `menu`, SVG en ligne) qui déplie la liste (`<details>` / `<summary>`), sans JavaScript, comme le reste du
+    site. Les deux formes sont dans la page, l'une cachée par CSS selon la largeur ; cibles de 48 px.
+  - Libellés : FR Télécharger, Histoire, Version web, Carte du code, Code source, Soutenir ; EN Download, Story, Web
+    version, Code map, Source code, Support ; ES Descargar, Historia (en inglés), Versión web, Mapa del código, Código
+    fuente, Apoyar ; DE Herunterladen, Geschichte (auf Englisch), Webversion, Code-Karte, Quellcode, Unterstützen ; RU
+    Скачать, История (на английском), Веб-версия, Карта кода, Исходный код, Поддержать ; IT Scarica, Storia (in
+    inglese), Versione web, Mappa del codice, Codice sorgente, Sostieni. La carte du code est en anglais.
+  - `kmp/tools/validate_menu.py` (lancé par `metadata.yml`) vérifie que chaque page versionnée porte les six entrées, dans
+    l'ordre, avec la bonne cible et la bonne entrée courante, dans ses deux formes ; `test_make_code_map.py` vérifie le
+    menu de la carte du code.
 - `site/index.html` (français), `site/en/`, `site/es/`, `site/de/`, `site/ru/` et `site/it/` (`index.html` chacun, 3.11.0),
   versionnés ; chaque page relie les cinq autres (`<nav>`, `hreflang`) et affiche les captures de `screens/en/`,
   en HTML et CSS seuls (`style.css`) ; `os.js` (facultatif) ajoute `current`
@@ -333,14 +362,21 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   « Arch Linux (AUR) », 4.0.0, `distribution.md` § Paquet Arch Linux) ; macOS : DMG Apple
   Silicon et Intel ; navigateur), lien vers les releases et `SHA256SUMS`,
   captures 1 à 6 et 10 (dont la 2, le machine learning), le thème sombre (défilement horizontal), notes de première installation, « On en parle »
-  (liens texte vers la fiche AlternativeTo et le post r/foss, 2026-10-29), pied de page (licence, source, tickets).
+  (liens texte vers les mentions publiques, liste ci-dessous), pied de page (licence, source, tickets).
 - **« On en parle » / « Mentioned on »** (2026-10-29, demande du propriétaire) : les mentions publiques de Kairos, aussi
   dans le README (anglais et français, juste avant la licence), qui porte en plus le badge AlternativeTo (lien vers la
   fiche avec `utm_source=badge`, image `alternativeto.net/static/badges/badge-compact-color.svg`). Le badge reste au
   README : GitHub sert les images par son propre relais, le visiteur ne contacte pas AlternativeTo. La page de
   téléchargement n'a que des liens texte : elle ne charge aucune ressource d'un tiers (polices servies par la page,
-  même règle). Une nouvelle mention (article, journal LinuxFr…) s'ajoute aux deux README et aux six pages ; ces
-  références servent aussi aux candidatures du type SignPath Foundation (`distribution.md` § Signature Windows).
+  même règle). Une nouvelle mention (article, journal LinuxFr…) s'ajoute aux deux README et aux huit pages qui portent
+  la section (les six pages de téléchargement et les deux pages « histoire », `site/histoire/` et `site/en/story/`),
+  dans le même ordre partout, avec une phrase dans la langue de la page et « (en anglais) » quand la source est en
+  anglais ; ces références servent aussi aux candidatures du type SignPath Foundation (`distribution.md` § Signature
+  Windows). Mentions actuelles, dans l'ordre : la fiche AlternativeTo et le post r/foss (2026-10-29), l'article
+  WhatWeMade, puis trois listes « awesome » (2026-11-15) : `pcqpcq/open-source-android-apps` (catégorie
+  Productivity, lien vers `categories/productivity.md`), `jaywcjlove/awesome-mac` (To-Do Lists, ancre
+  `#to-do-lists`) et `Anil-matcha/awesome-open-source-saas-alternatives` (alternative à Todoist). Les trois listes
+  sont citées dès la proposition, sans attendre la fusion des pull requests (choix du propriétaire du 2026-11-15).
 - Marqueurs remplacés par `pages.yml` : `@@DL@@` (base des téléchargements),
   `@@WEB@@` (`app/` ou `preview/`), `@@NOTICE_FR@@`, `@@NOTICE_EN@@`, `@@NOTICE_ES@@`, `@@NOTICE_DE@@`, `@@NOTICE_RU@@` et
   `@@NOTICE_IT@@` (bandeau de préversion, texte par langue dans le script Python de `pages.yml`). Un marqueur restant fait échouer la construction.
@@ -348,15 +384,17 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   préversion web sous `preview/`, les polices de
   `kmp/ui/src/commonMain/composeResources/font/` sous `fonts/`, les captures
   des fiches Fastlane sous `screens/fr/` et `screens/en/` (une seule source),
-  la version web stable sous `app/`.
+  la version web stable sous `app/`, et la carte du code sous `code/` (générée par `kmp/tools/make_code_map.py`,
+  `carte-du-code.md`).
 - Cible des liens :
   - une release stable de la version 3 ou plus récente (`v3.*`, `v4.*`…) existe : `releases/download/<son tag>`, pas de
     bandeau, « Utiliser Kairos en ligne » vers `app/` ;
   - sinon, la dernière préversion de ces versions : `releases/download/<son tag>`,
-    bandeau « Préversion X » (installée à côté de la version stable sous le nom
-    « Kairos Preview »), lien web vers `preview/`.
-- Déclenchement : push sur `main` touchant `kmp/**`, `site/**`, `fastlane/**`
-  ou `pages.yml` ; release publiée à la main ; **fin du workflow « Kairos 3
+    bandeau « Préversion X » (sur Android, elle remplace la version stable : même app « Kairos » depuis la 4.2.0 ;
+    avant, une app « Kairos Preview » à côté), lien web vers `preview/` ; le texte du bandeau, par langue, est dans le
+    script Python de `pages.yml`.
+- Déclenchement : push sur `main` touchant `kmp/**` (hors `androidApp`, `desktopApp` et `tools`, sauf
+  `tools/make_code_map.py`), `docs/spec/**`, `site/**`, `fastlane/**` ou `pages.yml` ; release publiée à la main ; **fin du workflow « Kairos 3
   release »** ; lancement manuel.
 
 ### Aperçu des liens (`site/og/`, `make_app_icons.py`, `validate_og.py`)
@@ -405,11 +443,25 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   unique et la langue de la page) ; pas de logos de marque (marques déposées) ; tracés plutôt que texte SVG (rendu stable dans une balise `img`) ;
   Obtainium par le redirecteur du projet dans le README seulement, parce que GitHub filtre les schémas personnalisés.
 
+### Badges d'état du README (`README.md`, `README.fr.md`)
+
+- Images de shields.io, pas de fichier dans le dépôt : en direct, `github/actions/workflow/status` (`kmp.yml`,
+  `fdroid-check.yml`, branche `main`), `github/v/release` (avec et sans `include_prereleases`), `f-droid/v`,
+  `github/downloads/…/total`, `github/commit-activity/m`, `github/license` ; statiques, `badge/<libellé>-<message>-2F6FED`
+  avec `labelColor=1C2F59` (l'océan et l'océan profond du fond des icônes), logos Simple Icons (`githubactions`, `fdroid`,
+  `github`, `kotlin`) en blanc. Rangées séparées par une ligne vide.
+- Libellés traduits dans `README.fr.md` (« build reproductible », « téléchargements », « vie privée »…), messages des badges
+  en direct tels que shields.io les écrit.
+- **Décisions** : pas de badge AUR tant que `kairos-bin` n'est pas publié (shields.io répond « package not found ») ; pas
+  d'étoiles (rien sur l'outil) ; « hors ligne d'abord » plutôt que « sans réseau », vrai aussi en 4.2.0 où les connexions en
+  ligne sont facultatives et désactivées par défaut (`connexions-en-ligne.md`). Les images viennent d'un service tiers que
+  GitHub met en cache : le README n'est pas l'application, qui reste sans police ni image distante.
+
 ### Décisions et pièges tracés
 
 - **Aperçu des liens sur fond clair, une image par langue** (2026-11-06, choix du propriétaire, #217) : le fond océan des icônes
   a été essayé et écarté au profit du fond de l'application. Ligne du bas « Gratuit · Open source » plutôt que « Libre · Hors
-  ligne » : « hors ligne » cesse d'être toute la vérité avec les connexions en ligne facultatives de la 4.1.0
+  ligne » : « hors ligne » cesse d'être toute la vérité avec les connexions en ligne facultatives de la 4.2.0
   (`connexions-en-ligne.md`), et « libre » ferait doublon avec « open source ». Images générées par le script des icônes plutôt
   que dessinées à la main : le logo reste le même partout, et un changement d'accroche se régénère.
 
@@ -437,15 +489,16 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   sans désinstaller, donc sans perdre ses données.
   Contrepartie : la construction doit être reproductible, ce que la CI vérifie
   à chaque release finale.
-- **Aucune anti-fonctionnalité jusqu'à la 4.0 ; rouvert pour la 4.1.0** (2026-10-26, `connexions-en-ligne.md`) : ce qui était vrai parce que
+- **Aucune anti-fonctionnalité jusqu'à la 4.1 ; rouvert pour la 4.2.0** (2026-10-26, `connexions-en-ligne.md`) : ce qui était vrai parce que
   l'APK n'avait pas `INTERNET` ne l'est plus automatiquement ; la fiche, la description et la page de téléchargement cessent de dire « aucune
-  permission réseau » à la 4.1.0, et la recette déclare ce que le code embarque.
+  permission réseau » à la 4.2.0, et la recette déclare ce que le code embarque.
 - **Jamais `releases/latest/download`** : « latest » désigne la dernière
   release stable du dépôt, qui n'existe pas tant qu'aucune version stable n'est
   sortie (préversions seules). La page vise un tag v3 nommé.
 - **`workflow_run` plutôt que `release`** : une release créée par un workflow
   avec le jeton par défaut ne déclenche aucun autre workflow. Pages et la
-  comparaison F-Droid suivent donc la fin de « Kairos 3 release ».
+  comparaison F-Droid suivent donc la fin de « Kairos release » (d'un tag poussé seulement : la fin d'un build de test
+  ne les relance pas).
 - **Captures tirées de l'interface Android réelle**, rendue sur la JVM : pas
   d'émulateur en CI, résultat identique d'une machine à l'autre, et les mêmes
   images servent aux magasins et à la page.

@@ -344,6 +344,11 @@ disparue y tombe) : `Profile(type, sessions, minutes, share, lift, peak, reliabl
   `stackedWhenNarrow`, et partage son tracé (`BarTrack`). Sans ces options,
   le rendu des statistiques est inchangé.
 
+**Conseils** (4.2.0, `conseils.md`) : à son ouverture, l'écran retient qu'il a été vu (`Tips.seen(SCREEN_STATS)`, mémoire
+du guide ; rien n'est écrit ensuite). La carte de calibration est la section `STATS_CALIBRATION` et la ligne
+« Corriger les estimations… » la section `STATS_CORRECT` (`SpottedCorrectionButtons` : sans tâche à corriger, la section
+manque et le message d'absence le dit), cibles des conseils `stats_calibration` et `stats_correct`.
+
 ### Évolutions (`StatsTrends`, `core` ; `StatsTrendCards`, `ui` ; 3.8.0)
 
 - `StatsTrends.compute(tâches, sessions, aujourd'hui, semaines, maintenant, fuseau)` sur l'entrée filtrée

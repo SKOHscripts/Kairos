@@ -2,10 +2,11 @@
 
 _Rôle : rendre Kairos utilisable pour tous les usages (travail, maison, rythmes
 variés) sans rien changer pour qui ne touche pas aux réglages. Fichiers
-couverts (à venir) : `kmp/core/.../model/Settings.kt` (`schedule`),
+couverts : `kmp/core/.../model/Settings.kt` (`schedule`),
 `core/engine/Scheduling.kt` (fenêtres), nouveau `core/engine/Schedule.kt`,
 `core/day/DayView.kt`, `core/stats/` (meilleures heures), `core/settings/SettingsForm.kt`,
-`ui/day/DateField.kt`, `ui/day/EditTaskDialog.kt`, `ui/week/WeekScreen.kt`, `ui/settings/`. Tests :
+`ui/day/DateField.kt`, `ui/day/EditTaskDialog.kt`, `ui/week/WeekScreen.kt`, `ui/settings/` (dont `ScheduleCard.kt` : horaires
+par jour et contextes, `BestHoursCard.kt` : meilleures heures). Tests :
 `DifferentialTest`, `TeamIsolationTest`, tests nommés dans les critères._
 
 État : **issue #64**. **Lot A (ergonomie et réglages) : implémenté en 3.4.0**,

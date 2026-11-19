@@ -61,7 +61,7 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
      les tâches sont ordonnées »** (`planning-personnalise.md` lot A, ouvert d'office quand un de ses champs est en
      erreur) : **Score de priorité** (base de valeur, horizon d'urgence, poids maximal de l'urgence, échéance implicite des tâches
      sans date, vide = apprise du rythme, `taches-qui-trainent.md`, points par défaut) et **Creux de l'après-midi** (activé, début, creux le plus profond, fin, force de la pénalité).
-  4. **Chrono et statistiques** : **Alertes du chrono** (dans cet ordre depuis 4.2.0 : pause du pomodoro, chrono oublié, arrêt
+  4. **Chrono et statistiques** : **Alertes du chrono** (dans cet ordre depuis 4.1.0 : pause du pomodoro, chrono oublié, arrêt
      automatique du chrono après 0-1 440 min, 240 par défaut, 0 = jamais, `temps-reel-chrono.md` § Garde-fou, cloches avec
      les alertes, `temps-reel-chrono.md` § Cloches),
      **Rappels** (3.8.0 : « Rappeler les tâches à heure fixe », « Combien de minutes avant » 0-120, 10 par défaut,
@@ -80,7 +80,10 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
   7. **À propos** : **« Découvrir Kairos »** puis **« À propos et guide »**, deux lignes qui ouvrent chacune leur
      écran, puis **« Revoir le guide depuis le début »** (3.7.0, issue #94, `visite-guidee.md` § Persistance) : texte et
      bouton « Recommencer », inactif tant que le guide n'a rien retenu ; il efface aussitôt ce qu'il a retenu (pas
-     besoin d'« Enregistrer ») et un message « Le guide repart du début. » propose « Annuler ».
+     besoin d'« Enregistrer ») et un message « Le guide repart du début. » propose « Annuler ». Puis **« Conseils »**
+     (4.2.0, issue #221, `conseils.md`) : texte et interrupteur « Proposer des conseils », activé par défaut, à effet
+     immédiat comme la carte du guide (rangé dans la mémoire du guide, propre à l'appareil, hors du formulaire) ; « Revoir
+     le guide depuis le début » le garde, « Restaurer les valeurs par défaut » le remet.
 - **Téléphone et fenêtre étroite** (moins de 840 dp de large pour l'écran) : la liste des catégories, sous la phrase
   d'introduction, puis une catégorie à la fois ; la barre du haut prend le titre de la catégorie, et la flèche
   retour (ou le retour système, ou Échap) revient à la liste, puis ferme les Réglages. Rouvrir les Réglages

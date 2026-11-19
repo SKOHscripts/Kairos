@@ -95,6 +95,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_demo_body
 import com.skohscripts.kairos.ui.generated.resources.card_discover_title
 import com.skohscripts.kairos.ui.generated.resources.card_feedback_body
 import com.skohscripts.kairos.ui.generated.resources.card_feedback_title
+import com.skohscripts.kairos.ui.generated.resources.card_tips_body
+import com.skohscripts.kairos.ui.generated.resources.card_tips_title
 import com.skohscripts.kairos.ui.generated.resources.card_first_task_body
 import com.skohscripts.kairos.ui.generated.resources.card_first_task_title
 import com.skohscripts.kairos.ui.generated.resources.card_hours_body
@@ -212,7 +214,7 @@ object FeatureCatalog {
     val cards: List<FeatureCard> = listOf(
         // --- Premiers pas
         FeatureCard("capture", GuideChapter.FIRST_STEPS, { KairosIcons.Notes }, Res.string.guide_you_capture_title, Res.string.guide_you_capture_body, GuideTarget.Personal(Destination.NOTES), tour = true),
-        FeatureCard("gtd", GuideChapter.FIRST_STEPS, { KairosIcons.Help }, Res.string.card_gtd_title, Res.string.card_gtd_body, GuideTarget.Personal(Destination.NOTES), since = "4.2.0"),
+        FeatureCard("gtd", GuideChapter.FIRST_STEPS, { KairosIcons.Help }, Res.string.card_gtd_title, Res.string.card_gtd_body, GuideTarget.Personal(Destination.NOTES), since = "4.1.0"),
         FeatureCard("shortcuts", GuideChapter.FIRST_STEPS, { KairosIcons.Keyboard }, Res.string.card_shortcuts_title, Res.string.card_shortcuts_body, GuideTarget.Personal(Destination.DAY), since = "3.0.0", platforms = setOf(Platform.DESKTOP, Platform.WEB)),
         FeatureCard("qualify", GuideChapter.FIRST_STEPS, { KairosIcons.Edit }, Res.string.guide_you_qualify_title, Res.string.guide_you_qualify_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_INBOX), tour = true),
         FeatureCard("do", GuideChapter.FIRST_STEPS, { KairosIcons.Today }, Res.string.guide_you_do_title, Res.string.guide_you_do_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_AGENDA), tour = true),
@@ -222,6 +224,8 @@ object FeatureCatalog {
         FeatureCard("guide_memory", GuideChapter.FIRST_STEPS, { KairosIcons.Spot }, Res.string.card_guide_memory_title, Res.string.card_guide_memory_body, GuideTarget.Personal(Destination.HOME), since = "3.7.0"),
         FeatureCard("guided_walks", GuideChapter.FIRST_STEPS, { KairosIcons.Repeat }, Res.string.card_guided_walks_title, Res.string.card_guided_walks_body, GuideTarget.Personal(Destination.HOME), since = "3.9.0"),
         FeatureCard("feedback", GuideChapter.FIRST_STEPS, { KairosIcons.Feedback }, Res.string.card_feedback_title, Res.string.card_feedback_body, GuideTarget.Feedback, since = "4.1.0"),
+        // Conseils au bon moment (docs/spec/conseils.md, issue #221) : la carte montre l'interrupteur « Conseils ».
+        FeatureCard("tips", GuideChapter.FIRST_STEPS, { KairosIcons.Lightbulb }, Res.string.card_tips_title, Res.string.card_tips_body, GuideTarget.Settings(GuideSection.SETTINGS_TIPS), since = "4.2.0"),
         // --- Planifier
         FeatureCard("points", GuideChapter.PLAN, { KairosIcons.Balance }, Res.string.card_points_title, Res.string.card_points_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_INBOX)),
         // Conseil de découpage (docs/spec/sous-taches.md § Conseil, issue #201) : dans la fiche, sous les points.
@@ -239,7 +243,7 @@ object FeatureCatalog {
         FeatureCard("time", GuideChapter.FOLLOW, { KairosIcons.Schedule }, Res.string.guide_you_time_title, Res.string.guide_you_time_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_NOW), tour = true),
         FeatureCard("alerts", GuideChapter.FOLLOW, { KairosIcons.NotificationsActive }, Res.string.card_alerts_title, Res.string.card_alerts_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_NOW), since = "3.0.0"),
         FeatureCard("timer_guard", GuideChapter.FOLLOW, { KairosIcons.Shield }, Res.string.card_timer_guard_title, Res.string.card_timer_guard_body, GuideTarget.Settings(GuideSection.SETTINGS_CHRONO), since = "4.1.0"),
-        FeatureCard("chrono_bells", GuideChapter.FOLLOW, { KairosIcons.NotificationsActive }, Res.string.card_chrono_bells_title, Res.string.card_chrono_bells_body, GuideTarget.Settings(GuideSection.SETTINGS_CHRONO), since = "4.2.0"),
+        FeatureCard("chrono_bells", GuideChapter.FOLLOW, { KairosIcons.NotificationsActive }, Res.string.card_chrono_bells_title, Res.string.card_chrono_bells_body, GuideTarget.Settings(GuideSection.SETTINGS_CHRONO), since = "4.1.0"),
         FeatureCard("learned", GuideChapter.FOLLOW, { KairosIcons.TrendingUp }, Res.string.card_learned_title, Res.string.card_learned_body, GuideTarget.Settings(GuideSection.SETTINGS_LEARNED), since = "3.4.0"),
         FeatureCard("model", GuideChapter.FOLLOW, { KairosIcons.Model }, Res.string.card_model_title, Res.string.card_model_body, GuideTarget.Settings(GuideSection.SETTINGS_LEARNED), since = "4.0.0"),
         FeatureCard("task_forecast", GuideChapter.FOLLOW, { KairosIcons.Event }, Res.string.card_task_forecast_title, Res.string.card_task_forecast_body, GuideTarget.Personal(Destination.DAY), since = "4.1.0"),
@@ -409,6 +413,7 @@ object FeatureCatalog {
         "The guide remembers" to "guide_memory",
         "Recurring task and Settings, step by step" to "guided_walks",
         "Give feedback" to "feedback",
+        "Tips at the right time" to "tips",
         "Guided first team task" to "team_first_task",
         "Members" to "team_members",
         "Team backlog" to "team_backlog",

@@ -5,7 +5,7 @@ name: Artifacts cleanup
 
 on:
   workflow_run:
-    workflows: ["Kairos 3 (KMP)", "F-Droid", "Kairos 3 release", "Kairos test build"]
+    workflows: ["Kairos CI", "F-Droid", "Kairos release"]
     types: [completed]
   workflow_dispatch:
 

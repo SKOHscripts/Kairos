@@ -2,9 +2,23 @@
 
 <img align="right" src="site/icon.png" width="140" alt="Logo Kairos">
 
-[![Kairos 3](https://github.com/SKOHscripts/Kairos/actions/workflows/kmp.yml/badge.svg)](https://github.com/SKOHscripts/Kairos/actions/workflows/kmp.yml)
-[![Release](https://img.shields.io/github/v/release/SKOHscripts/Kairos)](https://github.com/SKOHscripts/Kairos/releases/latest)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/SKOHscripts/Kairos/kmp.yml?label=CI&branch=main&logo=githubactions&logoColor=white)](https://github.com/SKOHscripts/Kairos/actions/workflows/kmp.yml)
+[![Build reproductible](https://img.shields.io/github/actions/workflow/status/SKOHscripts/Kairos/fdroid-check.yml?label=build%20reproductible&branch=main&logo=fdroid&logoColor=white)](https://github.com/SKOHscripts/Kairos/actions/workflows/fdroid-check.yml)
+[![Release](https://img.shields.io/github/v/release/SKOHscripts/Kairos?label=version&logo=github&logoColor=white)](https://github.com/SKOHscripts/Kairos/releases/latest)
+[![Beta](https://img.shields.io/github/v/release/SKOHscripts/Kairos?label=derni%C3%A8re%20%28beta%20comprise%29&include_prereleases)](https://github.com/SKOHscripts/Kairos/releases)
+[![F-Droid](https://img.shields.io/f-droid/v/com.skohscripts.kairos?label=F-Droid&logo=fdroid&logoColor=white)](https://f-droid.org/packages/com.skohscripts.kairos/)
+[![Téléchargements](https://img.shields.io/github/downloads/SKOHscripts/Kairos/total?label=t%C3%A9l%C3%A9chargements)](https://github.com/SKOHscripts/Kairos/releases)
+[![Activité](https://img.shields.io/github/commit-activity/m/SKOHscripts/Kairos?label=commits)](https://github.com/SKOHscripts/Kairos/commits/main)
+[![Licence : MIT](https://img.shields.io/github/license/SKOHscripts/Kairos?label=licence)](LICENSE)
+
+[![vie privée: sans compte · sans pub · sans pistage](https://img.shields.io/badge/vie%20priv%C3%A9e-sans%20compte%20%C2%B7%20sans%20pub%20%C2%B7%20sans%20pistage-2F6FED?labelColor=1C2F59)](#données)
+[![données: sur ton appareil, hors ligne](https://img.shields.io/badge/donn%C3%A9es-sur%20ton%20appareil%2C%20hors%20ligne-2F6FED?labelColor=1C2F59)](#données)
+[![machine learning: sur l’appareil](https://img.shields.io/badge/machine%20learning-sur%20l%E2%80%99appareil-2F6FED?labelColor=1C2F59)](#machine-learning-sur-lappareil-pour-la-vraie-durée-de-tes-tâches)
+[![méthodes: WSJF · GTD · time blocking](https://img.shields.io/badge/m%C3%A9thodes-WSJF%20%C2%B7%20GTD%20%C2%B7%20time%20blocking-2F6FED?labelColor=1C2F59)](#ordonnancement)
+[![plateformes: Android · Windows · Linux · macOS · Web](https://img.shields.io/badge/plateformes-Android%20%C2%B7%20Windows%20%C2%B7%20Linux%20%C2%B7%20macOS%20%C2%B7%20Web-2F6FED?labelColor=1C2F59)](#installer)
+[![langues: EN · FR · ES · DE · RU · IT](https://img.shields.io/badge/langues-EN%20%C2%B7%20FR%20%C2%B7%20ES%20%C2%B7%20DE%20%C2%B7%20RU%20%C2%B7%20IT-2F6FED?labelColor=1C2F59)](#traduire-kairos)
+[![Kotlin: Multiplatform + Compose](https://img.shields.io/badge/Kotlin-Multiplatform%20%2B%20Compose-2F6FED?labelColor=1C2F59&logo=kotlin&logoColor=white)](#développement)
+[![specs: d’abord, bijectives](https://img.shields.io/badge/specs-d%E2%80%99abord%2C%20bijectives-2F6FED?labelColor=1C2F59)](docs/spec/)
 
 [English](README.md) · **Français**
 
@@ -623,6 +637,15 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   issue préremplie sur GitHub, dans ton navigateur, avec la version de Kairos et
   ta plateforme déjà indiquées ; il reste à te connecter à GitHub et à
   l’envoyer. Kairos n’envoie rien lui-même.
+- **Des conseils au bon moment** : de temps en temps, et seulement quand c’est
+  utile, Kairos te propose une chose à regarder, avec tes chiffres : tes
+  statistiques une fois assez de tâches chronométrées, un réglage (horaires,
+  rappels, thème sombre…) ou une fonctionnalité pas encore essayée, et dans
+  l’espace Équipe un membre surchargé ou des tâches à surveiller. « Montre-moi »
+  t’emmène à l’endroit, « Plus tard » le ramène dans deux semaines, « Ne plus me
+  le proposer » l’écarte. Jamais plus d’un par jour et de deux par semaine, rien
+  les trois premiers jours, jamais pendant un chrono, une visite ou un autre
+  dialogue ; l’interrupteur « Conseils » de Réglages → À propos les coupe.
 
 ### Gestion d’équipe (facultative)
 
@@ -711,7 +734,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Chapitre | Fonctionnalité | Depuis | Plateformes |
 |---|---|---|---|
 | Premiers pas | Capturer sans réfléchir | 3.0.0 | Toutes |
-| Premiers pas | La méthode GTD dans Kairos | 4.2.0 | Toutes |
+| Premiers pas | La méthode GTD dans Kairos | 4.1.0 | Toutes |
 | Premiers pas | Raccourcis clavier | 3.0.0 | Bureau, Web |
 | Premiers pas | Qualifier en un clic | 3.0.0 | Toutes |
 | Premiers pas | Faire dans l’ordre | 3.0.0 | Toutes |
@@ -721,6 +744,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Premiers pas | Le guide retient et montre l’endroit | 3.7.0 | Toutes |
 | Premiers pas | Récurrente et Réglages pas à pas | 3.9.0 | Toutes |
 | Premiers pas | Donner un avis | 4.1.0 | Toutes |
+| Premiers pas | Des conseils au bon moment | 4.2.0 | Toutes |
 | Planifier | Priorité, points et estimation | 3.0.0 | Toutes |
 | Planifier | Conseil de découpage | 4.1.0 | Toutes |
 | Planifier | Noms des niveaux | 3.9.0 | Toutes |
@@ -735,7 +759,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Suivre le temps | 3.0.0 | Toutes |
 | Suivre | Trois alertes du chrono | 3.0.0 | Toutes |
 | Suivre | Garde-fou du chrono | 4.1.0 | Toutes |
-| Suivre | Cloches du pomodoro | 4.2.0 | Toutes |
+| Suivre | Cloches du pomodoro | 4.1.0 | Toutes |
 | Suivre | Durées apprises | 3.4.0 | Toutes |
 | Suivre | Estimation par machine learning | 4.0.0 | Toutes |
 | Suivre | Fin probable d’une tâche | 4.1.0 | Toutes |
@@ -873,6 +897,8 @@ cd kmp
 
 - Architecture, modules et décisions : [`docs/spec/architecture.md`](docs/spec/architecture.md) ;
   une spécification par domaine dans [`docs/spec/`](docs/spec/README.md).
+- Carte du code, régénérée depuis `main` : paquets, fichiers, dépendances et
+  specs qui les décrivent, sur [skohscripts.github.io/Kairos/code](https://skohscripts.github.io/Kairos/code/).
 - Charte graphique (Material Design 3, thème « océan ») :
   [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 - Versions, releases et paquets : [`docs/spec/distribution.md`](docs/spec/distribution.md) ;
@@ -887,8 +913,10 @@ cd kmp
 - [AlternativeTo](https://alternativeto.net/software/kairos-by-skohstripts/about/) : la fiche de Kairos, pour la noter ou la proposer
   comme alternative à une autre application.
 - [r/foss](https://www.reddit.com/r/foss/comments/1xiohaj/kairos_a_foss_task_manager_that_schedules_your/) : post de présentation (octobre 2026, en anglais).
-
-- [whatwemade](https://www.whatwemade.app/p/kairos) : article de présentation
+- [WhatWeMade](https://www.whatwemade.app/p/kairos) : article de présentation (en anglais).
+- [open-source-android-apps](https://github.com/pcqpcq/open-source-android-apps/blob/master/categories/productivity.md) : liste d’applications Android libres, catégorie Productivity (en anglais).
+- [awesome-mac](https://github.com/jaywcjlove/awesome-mac#to-do-lists) : liste d’applications macOS, catégorie To-Do Lists (en anglais).
+- [awesome-open-source-saas-alternatives](https://github.com/Anil-matcha/awesome-open-source-saas-alternatives) : alternatives libres aux services en ligne payants, comme alternative à Todoist (en anglais).
 
 ## Licence
 

@@ -1,5 +1,10 @@
 package com.skohscripts.kairos.android
 
+import com.skohscripts.kairos.ui.app.WidgetProbe
+import com.skohscripts.kairos.android.widgets.NowWidgetProvider
+import com.skohscripts.kairos.android.widgets.DayWidgetProvider
+import android.content.ComponentName
+import android.appwidget.AppWidgetManager
 import com.skohscripts.kairos.ui.app.DemoSource
 import com.skohscripts.kairos.ui.app.openDemo
 import com.skohscripts.kairos.ui.app.LinkedFileSync
@@ -89,6 +94,14 @@ object AndroidServices {
             },
             online = online,
             connectionSync = online.sync,
+            // Conseil « Ta journée sur l'écran d'accueil » (docs/spec/conseils.md) : un widget Kairos est-il posé ? Aucune permission.
+            widgets = WidgetProbe {
+                val manager = AppWidgetManager.getInstance(context)
+                listOf(NowWidgetProvider::class.java, DayWidgetProvider::class.java).any { provider ->
+                    runCatching { manager.getAppWidgetIds(ComponentName(context, provider)).isNotEmpty() }.getOrDefault(false)
+                }
+            },
+            tips = true,
         )
     }
 

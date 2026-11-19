@@ -4,8 +4,8 @@
 #   icône, captures) et boutons de téléchargement (`validate_badges.py`) ;
 # - build : la recette fdroid/com.skohscripts.kairos.yml passe `fdroid lint` et se
 #   construit dans l'image des serveurs de F-Droid, au commit testé ;
-# - reproducible : l'APK du runner, construit comme la release, est identique à
-#   celui de F-Droid ;
+# - runner, en parallèle de build : l'APK du runner, construit comme la release ;
+# - reproducible, après les deux : l'APK du runner est identique à celui de F-Droid ;
 # - après la release d'une version finale (tag sans suffixe) : même construction,
 #   comparée par `fdroid build` à l'APK signé publié (preuve de reproductibilité
 #   exigée pour que F-Droid distribue notre APK, signature comprise).
@@ -21,7 +21,7 @@ on:
   # Une release créée par un workflow (jeton GITHUB_TOKEN) ne déclenche pas
   # l'événement `release` : on suit donc la fin du workflow de release.
   workflow_run:
-    workflows: ["Kairos 3 release"]
+    workflows: ["Kairos release"]
     types: [completed]
   # Lancé aussi par kmp-release.yml après une release posée par « Kairos tag » (after_release : comparaison à l'APK
   # publié, comme après workflow_run).
@@ -60,8 +60,7 @@ jobs:
           REPO: ${{ github.workspace }}
           OUT: ${{ runner.temp }}/fdroid
           # Comparaison à l'APK publié : seulement après la release d'une version
-          # finale (une préversion porte l'identifiant « .preview », F-Droid ne la
-          # distribue pas).
+          # finale (F-Droid ne distribue pas les préversions).
           BINARIES: ${{ (github.event_name == 'workflow_run' || inputs.after_release) && '--binaries' || '' }}
         run: bash kmp/tools/fdroid_check.sh $BINARIES
       - uses: actions/upload-artifact@v4
@@ -71,12 +70,11 @@ jobs:
           # Ne sert qu'au job reproducible de ce run.
           retention-days: 1
 
-  # Reproductibilité à chaque changement, sans attendre une release : l'APK que
-  # construit F-Droid (job build) doit être identique, octet pour octet, à celui
-  # que construit le runner exactement comme kmp-release.yml (Temurin 21), non
-  # signé et sous l'identifiant définitif.
-  reproducible:
-    needs: build
+  # Reproductibilité à chaque changement, sans attendre une release : l'APK que construit F-Droid (job build) doit être
+  # identique, octet pour octet, à celui que construit le runner exactement comme kmp-release.yml (Temurin 21), non
+  # signé et sous l'identifiant définitif. Le runner construit le sien en même temps que F-Droid (2026-11-15 ; avant, il
+  # attendait la fin de build) ; seule la comparaison attend les deux.
+  runner:
     if: github.event_name != 'workflow_run' && !inputs.after_release
     runs-on: ubuntu-latest
     defaults:
@@ -90,16 +88,32 @@ jobs:
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
       - name: Plateforme Android 37
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
+        run: (yes || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
       - name: APK non signé (comme la release)
-        run: ./gradlew --no-daemon :androidApp:assembleRelease -Pkairos.preview=false
+        run: ./gradlew --no-daemon :androidApp:assembleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runner-unsigned-apk
+          path: kmp/androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk
+          # Ne sert qu'au job reproducible de ce run.
+          retention-days: 1
+
+  reproducible:
+    needs: [build, runner]
+    if: github.event_name != 'workflow_run' && !inputs.after_release
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/download-artifact@v4
         with:
           name: fdroid-unsigned-apk
           path: ${{ runner.temp }}/fdroid
+      - uses: actions/download-artifact@v4
+        with:
+          name: runner-unsigned-apk
+          path: ${{ runner.temp }}/runner
       - name: Comparaison
         run: |
-          ours=androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk
+          ours=$(ls "$RUNNER_TEMP"/runner/*.apk)
           theirs=$(ls "$RUNNER_TEMP"/fdroid/*.apk)
           sha256sum "$ours" "$theirs"
           if ! cmp -s "$ours" "$theirs"; then

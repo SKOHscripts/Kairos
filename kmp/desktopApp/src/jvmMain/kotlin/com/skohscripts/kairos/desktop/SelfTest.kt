@@ -75,6 +75,9 @@ import com.skohscripts.kairos.ui.team.forecast.ForecastSpec
 import com.skohscripts.kairos.ui.team.forecast.ScenarioEditorContent
 import com.skohscripts.kairos.ui.team.forecast.TeamUiState
 import com.skohscripts.kairos.ui.app.AppServices
+import com.skohscripts.kairos.core.guide.Tip
+import com.skohscripts.kairos.core.guide.TipId
+import com.skohscripts.kairos.ui.guide.TipDialog
 import androidx.compose.runtime.remember
 import com.skohscripts.kairos.core.team.forecast.ForecastOptions
 import com.skohscripts.kairos.core.team.forecast.ForecastScope
@@ -377,6 +380,7 @@ object SelfTest {
                 ) { content() }
             }
         }
+        val sampleTip = Tip(TipId.STATS_CORRECT, count = 7, ratio = 1.4, name = "Development")
         val exchangesTab = NavState().apply { exchangesTab = true }
         val memberApp: @Composable () -> Unit = { KairosApp(Platform.DESKTOP, Destination.DAY) { exchange.member } }
         val memberSettings = settingsIn(exchange.member, SettingsCategory.DATA)
@@ -413,8 +417,9 @@ object SelfTest {
             Shot("settings", 900, 1000, settings),
             Shot("settings-narrow", 360, 1000, settings),
             Shot("settings-tracking-narrow", 360, 1200, settingsIn(services, SettingsCategory.TRACKING)),
-            // « À propos » : « Revoir le guide depuis le début » (issue #94), inactif sur une base qui n'a rien retenu.
-            Shot("settings-about-narrow", 360, 900, settingsIn(services, SettingsCategory.ABOUT)),
+            // « À propos » : « Revoir le guide depuis le début » (issue #94), inactif sur une base qui n'a rien retenu, puis
+            // l'interrupteur « Conseils » (docs/spec/conseils.md).
+            Shot("settings-about-narrow", 360, 1100, settingsIn(services, SettingsCategory.ABOUT)),
             Shot("sync-data", 900, 1300, settingsIn(synced, SettingsCategory.DATA)),
             Shot("sync-data-narrow", 360, 1600, settingsIn(synced, SettingsCategory.DATA)),
             Shot("sync-review", 900, 800, overScrim { SyncReviewDialog(synced) {} }),
@@ -427,6 +432,9 @@ object SelfTest {
             // Section montrée par une carte du guide, figée (docs/spec/visite-guidee.md, issue #95) : contour et « Ici ».
             Shot("guide-spot", 900, 2600, spotted(settingsIn(services, SettingsCategory.PLANNING))),
             Shot("guide-spot-narrow", 360, 3400, spotted(settingsIn(services, SettingsCategory.PLANNING))),
+            // Conseil au bon moment (docs/spec/conseils.md) : le plus long texte (type, nombre, rapport) et les trois boutons.
+            Shot("tip", 900, 800, overScrim { TipDialog(sampleTip, onShow = {}, onLater = {}, onNever = {}) }),
+            Shot("tip-narrow", 360, 800, overScrim { TipDialog(sampleTip, onShow = {}, onLater = {}, onNever = {}) }),
             Shot("day-windows", 1200, 1400, plannedDay),
             Shot("calendar-preview", 900, 1000, overScrim { CalendarImportDialog(calendar, calendarPlan, onDone = {}) }),
             Shot("calendar-preview-narrow", 360, 1200, overScrim { CalendarImportDialog(calendar, calendarPlan, onDone = {}) }),

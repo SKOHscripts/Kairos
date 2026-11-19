@@ -4,7 +4,7 @@ _Rôle : l'identité visuelle (thème MD3 « océan », typographie, icônes, lo
 et la coquille commune à tous les écrans (navigation principale, barre
 d'application, retour), plus l'écran « À propos et guide ». Fichiers couverts :
 `kmp/ui/src/commonMain/kotlin/com/skohscripts/kairos/ui/` (`KairosApp.kt`,
-`Platform.kt`, `theme/`, `icons/`, `navigation/`, `screens/`), les polices de
+`Platform.kt`, `theme/`, `icons/`, `navigation/` (dont `Destination.kt` et `NavigationLayout.kt`), `screens/`), les polices de
 `composeResources/font/`, `kmp/tools/make_theme.py`, `kmp/tools/make_icons.py`.
 Les valeurs de la charte (rôles, formes, « où va la couleur ») viennent de
 [`docs/DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md), cité ici plutôt que recopié._
@@ -147,7 +147,7 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   Réglages rangés par catégories (`reglages.md`) : `Tune`, `Sort`, `Timer`, `Database` (catégories), `Translate`,
   `Palette`, `Update`, `Work`, `CalendarViewWeek`, `Workspaces`, `Label`, `LightMode`, `History`, `Shield`,
   `Leaderboard`, `Bedtime`, `SettingsBackupRestore` (titres des cartes) ; guide (`visite-guidee.md`, issue #95) : `Spot`
-  (étiquette « Ici » d'une section montrée) ; export des Stats (`statistiques.md`, issue #113) : `TableView` (CSV),
+  (étiquette « Ici » d'une section montrée), `Lightbulb` (conseils et carte « Conseils », 4.2.0, `conseils.md`) ; export des Stats (`statistiques.md`, issue #113) : `TableView` (CSV),
   `Image` (image d'une carte) ; carte « Thème sombre » du guide (3.7.0) : `DarkMode` ; 3.8.0 : `Flag` (échéances de la vue Mois),
   `CalendarMonth` (carte « Le mois d'un coup d'œil »), `ShowChart` (temps chronométré au fil du temps), `EditNote`
   (« Corriger les estimations… »), `Alarm` (rappels) ; 3.10.0 : `Event` (calendriers importés : carte « Calendriers »,

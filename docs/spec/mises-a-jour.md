@@ -27,9 +27,9 @@ savoir.
 
 - **Bureau seulement.** Au plus toutes les 6 heures, tant que le réglage
   « Vérifier les nouvelles versions » est actif (par défaut), Kairos demande
-  à GitHub la dernière version **publiée** (préversions ignorées). Une installation **« Kairos Preview »** (une
-  préversion, `X.Y.0-beta.N`) regarde aussi les préversions : un testeur apprend la beta suivante, puis la version
-  finale (qui s'installe en « Kairos », à côté de la Preview).
+  à GitHub la dernière version **publiée** (préversions ignorées). Une **beta installée** (`X.Y.0-beta.N`) regarde aussi
+  les préversions : un testeur apprend la beta suivante, puis la version finale, qui s'installe par-dessus (même app
+  « Kairos » depuis la 4.2.0 ; jusqu'à la 4.1, la beta était une app « Kairos Preview » à côté de la stable).
 - Plus récente que la version installée : un bandeau neutre en haut de tous
   les écrans, « Kairos X.Y.Z est disponible (tu as A.B.C). », avec
   « Télécharger » (ouvre la page de la version dans le navigateur) et
@@ -119,7 +119,7 @@ savoir.
 ### Décisions et pièges tracés
 
 - **Préversions** (2026-11-05, avec le cycle beta puis finale, `distribution.md` § Cycle des versions) : `/latest` exclut
-  les préversions par construction ; une « Kairos Preview » qui ne lisait que lui ne voyait jamais la beta suivante, donc
+  les préversions par construction ; une beta installée (« Kairos Preview » jusqu'à la 4.1) qui ne lisait que lui ne voyait jamais la beta suivante, donc
   ses testeurs restaient sur une beta périmée. Elle lit donc la liste des releases. Une version finale garde `/latest` :
   ses utilisateurs ne se voient jamais proposer une beta. Le `DesktopUpdates` passe `urlFor(installée)` et
   `parseFor(installée, corps)` ; le journal dit l'adresse réellement demandée pour le proxy.
@@ -127,7 +127,7 @@ savoir.
 - **Android : un lien, pas une vérification** (2026-10-24, issue #143, choix du propriétaire) : la page de téléchargement
   (GitHub Pages) plutôt que la page des releases choisit le bon fichier et dit la version.
   #144 fermée « not planned » par le propriétaire le 2026-11-06 : aucune vérification, le lien « Voir la dernière version » reste.
-  « Sans permission réseau » vaut jusqu'à la 4.0 ; la 4.1.0 prévoit `INTERNET` pour les connexions de calendriers seulement (`connexions-en-ligne.md`).
+  « Sans permission réseau » vaut jusqu'à la 4.1 ; la 4.2.0 prévoit `INTERNET` pour les connexions de calendriers seulement (`connexions-en-ligne.md`).
 - **« À la main » défini par l'installateur du système** plutôt que par une liste de magasins : un magasin inconnu
   cache la carte (sans dommage), alors qu'une liste de magasins à tenir l'aurait montrée à tort dans F-Droid.
 

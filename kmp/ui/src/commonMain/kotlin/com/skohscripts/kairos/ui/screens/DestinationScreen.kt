@@ -1,6 +1,8 @@
 package com.skohscripts.kairos.ui.screens
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import com.skohscripts.kairos.core.guide.Tips
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.day.DayScreen
 import com.skohscripts.kairos.ui.navigation.Destination
@@ -38,7 +40,11 @@ fun DestinationScreen(
             firstTaskRequest = nav.firstTaskRequest, firstTaskRecurring = nav.firstTaskRecurring,
             onFirstTaskHandled = { nav.firstTaskRequest = false; nav.firstTaskRecurring = false }, onDiscover = onDiscover,
         )
-        Destination.WEEK -> if (nav.monthMode) MonthScreen(services, nav, onOpenDay) else WeekScreen(services, nav, onOpenDay)
+        Destination.WEEK -> {
+            // Première ouverture du Bilan retenue (conseil « Le Bilan de la semaine et du mois », docs/spec/conseils.md).
+            LaunchedEffect(Unit) { services.repository.updateGuide { Tips.seen(it, Tips.SCREEN_RECAP) } }
+            if (nav.monthMode) MonthScreen(services, nav, onOpenDay) else WeekScreen(services, nav, onOpenDay)
+        }
         Destination.STATS -> StatsScreen(services)
     }
 }

@@ -69,6 +69,16 @@ fun UpdateWatcher(services: AppServices) {
     }
 }
 
+/** Le bandeau de mise à jour est-il affiché (même condition que [UpdateBanner]) ? Les conseils attendent alors (docs/spec/conseils.md). */
+@Composable
+fun updateBannerVisible(services: AppServices): Boolean {
+    val updates = services.updates ?: return false
+    val status by updates.status.collectAsState()
+    val dismissed by updates.dismissed.collectAsState()
+    val available = status as? UpdateStatus.Available ?: return false
+    return available.version != dismissed
+}
+
 /** « Kairos X.Y.Z est disponible (tu as A.B.C) » : « Télécharger » ouvre la page de la version, « Plus tard » masque. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

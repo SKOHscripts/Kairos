@@ -55,6 +55,15 @@ quatre étapes ci-dessous, dans cet ordre.
   citée par les specs de domaine plutôt que dupliquée.
 - `docs/plan-v3-kotlin.md` garde l'historique des décisions de la réécriture.
 
+## Carte du code
+
+Avant de parcourir le code pour situer une fonctionnalité, lancer
+`python3 kmp/tools/make_code_map.py --index <filtre>` (filtre : un bout de nom de paquet ou de chemin, par exemple
+`guide`, `core/stats`, `team.forecast`) : paquets, fichiers, déclarations de premier niveau, dépendances et specs qui
+les citent, en quelques centaines de lignes. Sans filtre, l'index entier est long (~70 Ko) : filtrer. La même source
+publie la page `https://skohscripts.github.io/Kairos/code/` (`docs/spec/carte-du-code.md`). Un fichier marqué
+« sans spec » est une piste pour la bijectivité.
+
 ## Skills du dépôt (`.claude/skills/`)
 
 - `kairos-spec` : le workflow ci-dessus, pas à pas (gabarit de spec,
@@ -94,16 +103,19 @@ bureau Windows/Linux/macOS (JVM), web (Kotlin/Wasm).
   vit dans `ui` ; `androidApp`, `desktopApp` et `webApp` ne fournissent que la
   plateforme. Dépendances **libres** uniquement (Maven Central, Google),
   versions figées dans `kmp/gradle/libs.versions.toml` : l'APK doit rester
-  acceptable par F-Droid, **sans permission réseau** (jusqu'à la 4.0 : la 4.1.0 ajoute
+  acceptable par F-Droid, **sans permission réseau** (jusqu'à la 4.1 : la 4.2.0 ajoute
   `INTERNET` avec des connexions en ligne facultatives, désactivées par défaut,
   `docs/spec/connexions-en-ligne.md`, décision du 2026-10-26), et reproductible
   (`docs/spec/publication.md`).
 - **Versions** : `kmp/gradle.properties` est la source unique
   (`kairos.versionName`, `kairos.versionCode`, posés ensemble par
   `python3 kmp/tools/set_version.py X.Y.Z[-beta.N]`, formule et cycle dans
-  `docs/spec/distribution.md` § Cycle des versions). Cycle : une ou plusieurs
-  betas `X.Y.0-beta.N`, puis la finale ; `main` porte toujours la prochaine
-  version (juste après une finale, la beta suivante). Chaque version **finale**
+  `docs/spec/distribution.md` § Cycle des versions). Cycle (2026-11-15) : mineures
+  au fil de l'eau, en finale dès qu'une ou quelques fonctionnalités sont prêtes ;
+  des betas `X.Y.0-beta.N` seulement pour un chantier risqué ; `main` porte
+  toujours la prochaine version (juste après une finale, la mineure suivante,
+  par une PR que « Kairos tag » ouvre ; « Kairos checks » dit à chaque PR la
+  version attendue, `kmp/tools/next_version.py`). Chaque version **finale**
   a sa note de version Fastlane dans les six langues
   (`fastlane/metadata/android/*/changelogs/<versionCode>.txt`, `ReleaseNotesTest`) ;
   une beta n'en a pas. Le tag se pose depuis l'onglet Actions (« Kairos tag »,

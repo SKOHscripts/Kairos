@@ -79,6 +79,9 @@ d'ensemble dans le README. On veut une liste unique, complète, qui s'enrichit �
   fonctionnalité du README à **sa** carte, **une à une** : le test passe de « chaque fonctionnalité a une carte » à « une carte par
   fonctionnalité, une fonctionnalité par carte » (clés et valeurs sans doublon), et ajoute le sens inverse : toute carte est dans le
   README.
+- **Conseils** (4.2.0, `conseils.md` § Concordance) : chaque conseil désigne la carte qu'il fait découvrir (`TipId.card`) ;
+  `TipsCatalogTest` vérifie qu'elle existe, couvre ses plateformes et mène au même écran. La carte `tips` est elle-même
+  une fonctionnalité du README.
 - **Inventaire de départ** (état au 2026-10-26 ; refait le 2026-10-28, résultat au § Inventaire) : 50
   fonctionnalités du README pour 44 cartes, dont 13 fonctionnalités partagent une carte avec une autre ; **7 cartes n'ont aucune entrée du
   README** (`guide_memory`, `besthours_efficiency`, `week_move`, `stats_explore`, `holidays_slots`, `team_assign`,
