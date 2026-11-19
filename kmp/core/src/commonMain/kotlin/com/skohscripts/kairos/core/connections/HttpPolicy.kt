@@ -91,7 +91,7 @@ object HttpPolicy {
         } else {
             val portStart = authority.indexOf(':')
             name = (if (portStart < 0) authority else authority.substring(0, portStart)).lowercase()
-            if (name.isEmpty() || name.any { !it.isLetterOrDigit() && it != '.' && it != '-' && it != '_' }) return Invalid(Reason.BAD_URL)
+            if (name.isEmpty() || name.any { it !in 'a'..'z' && it !in '0'..'9' && it != '.' && it != '-' && it != '_' }) return Invalid(Reason.BAD_URL)
             portText = if (portStart < 0) null else authority.substring(portStart + 1)
         }
         val port = if (portText == null) null else {

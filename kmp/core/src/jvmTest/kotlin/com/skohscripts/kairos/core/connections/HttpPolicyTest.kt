@@ -39,7 +39,7 @@ class HttpPolicyTest {
 
     @Test
     fun malformedHostsAndUnsupportedSchemesAreRefused() {
-        for (url in listOf("", "example.com/calendar", "https:///calendar", "https://", "https://:443/", "https://a b/", "https://example.com\\@other.test/", "https://example.com/\nsecret", "https://%65xample.com/", "https://[::1]other/")) {
+        for (url in listOf("", "example.com/calendar", "https:///calendar", "https://", "https://:443/", "https://a b/", "https://example.com\\@other.test/", "https://example.com/\nsecret", "https://%65xample.com/", "https://[::1]other/", "https://exаmple.com/", "https://bücher.example/")) {
             assertEquals(HttpPolicy.Check.Refused(HttpPolicy.Reason.BAD_URL), check(url), url)
         }
         assertEquals(HttpPolicy.Check.Refused(HttpPolicy.Reason.UNSUPPORTED_SCHEME), check("ftp://example.com/calendar"))
