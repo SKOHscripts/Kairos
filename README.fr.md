@@ -27,8 +27,9 @@
 de 13 h à 14 h m’empêche de traiter le sujet urgent avant 14 h 05 ? » Il range
 tes tâches dans l’ordre où les faire, les place dans les trous de ta journée,
 et apprend par **machine learning, sur ton appareil,** combien de temps elles
-prennent vraiment. Sans compte, sans publicité, sans réseau : tes données
-restent sur ton appareil.
+prennent vraiment. Sans compte, sans publicité, sans pistage : tes données
+restent sur ton appareil. Le seul usage du réseau est celui des
+[connexions de calendrier en ligne](#données) facultatives, désactivées par défaut.
 
 **Android, Windows, Linux, macOS, et dans le navigateur.**
 
@@ -56,7 +57,8 @@ restent sur ton appareil.
   fichier sur chaque appareil, dans un dossier Syncthing ou Nextcloud par
   exemple : Kairos le fusionne avec les données de chaque appareil, garde tout
   ce qui existe des deux côtés, et liste ce qui a été changé sur deux appareils
-  à la fois. Sans compte, sans serveur, sans permission réseau.
+  à la fois. Sans compte, sans serveur : cette synchronisation n’utilise jamais le
+  réseau.
 - Il classe les tâches du jour par un score de priorité, affiché sur chacune,
   et explique ce score en un toucher.
 - Il pose chaque tâche dans les trous de l’agenda, autour des réunions, avec
@@ -139,7 +141,7 @@ soit.
   « Maintenant », l’alerte de dépassement, le tri dans « À traiter », et les
   prévisions d’équipe, où chaque tâche estimée par le modèle est tirée dans sa
   propre fourchette apprise.
-- **Privé et explicable par construction.** Pas de réseau, pas de poids
+- **Privé et explicable par construction.** Rien n’est envoyé nulle part, pas de poids
   pré-entraînés, pas de boîte noire : seulement ton historique, et le même
   résultat au bit près sur Android, le bureau et le web. Mesuré sur des
   historiques simulés, il divise par plus de deux l’erreur médiane sur les titres
@@ -457,7 +459,8 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   jour, sans bloquer de temps. La description, le lieu et les participants ne
   sont jamais gardés. « Réimporter » remplace les créneaux du calendrier à
   partir d’aujourd’hui, jamais les tiens ; « Retirer » l’enlève tout entier ; un
-  créneau importé se supprime seul. Ni réseau, ni compte.
+  créneau importé se supprime seul. Sans compte ; l’import du fichier n’utilise jamais
+  le réseau.
 - **Calendriers du téléphone** (Android) : Réglages → Données → « Utiliser les
   calendriers du téléphone » montre les événements des calendriers cochés
   (Google, Exchange, DAVx⁵, ICSx⁵, Outlook avec « Synchroniser les
@@ -552,8 +555,9 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 
 ### Données
 
-- Tout reste sur l’appareil : aucune connexion réseau (Android n’a même pas la
-  permission), aucun compte.
+- Tout reste sur l’appareil, sans compte. Le réseau ne sert qu’aux **connexions en
+  ligne** facultatives (Réglages → Données, désactivées par défaut, un
+  consentement par calendrier) ; Android déclare la permission `INTERNET` pour elles.
 - **Export et import** JSON (Réglages → Données) ; une sauvegarde automatique
   précède chaque import.
 - Sur le bureau, le **dossier des données** peut changer (Réglages → Données →
@@ -789,7 +793,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Organiser | Créneaux mensuels, et un seul jour à part | 3.8.0 | Toutes |
 | Organiser | Importer tes réunions d’un agenda | 3.10.0 | Toutes |
 | Organiser | Calendriers du téléphone | 3.10.0 | Android |
-| Organiser | Connexions en ligne | 4.1.0 | Android, Bureau |
+| Organiser | Connexions en ligne | 4.2.0 | Android, Bureau |
 | Organiser | Synchroniser tes appareils | 4.0.0 | Toutes |
 | Équipe | Première tâche d’équipe guidée | 3.8.0 | Toutes |
 | Équipe | Les membres | 3.1.0 | Toutes |

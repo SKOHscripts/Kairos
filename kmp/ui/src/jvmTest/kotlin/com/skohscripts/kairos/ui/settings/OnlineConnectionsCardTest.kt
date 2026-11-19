@@ -22,7 +22,7 @@ class OnlineConnectionsCardTest {
     fun theOnlineGuideOpensDataOnlyOnSupportedPlatforms() {
         val card = FeatureCatalog.cards.single { it.id == "online_connections" }
         assertEquals(GuideChapter.ORGANIZE, card.chapter)
-        assertEquals("4.1.0", card.since)
+        assertEquals("4.2.0", card.since)
         assertEquals(setOf(Platform.ANDROID, Platform.DESKTOP), card.platforms)
         assertEquals(GuideTarget.Settings(GuideSection.SETTINGS_DATA), card.target)
         assertEquals("online_connections", FeatureCatalog.README_FEATURES["Online connections"])
