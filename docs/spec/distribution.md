@@ -317,7 +317,9 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
   création réelle étant faite par `KairosStore.open` (`modele-donnees.md`).
   Exemples dans la langue du système (`Locale.getDefault()`).
 - Manifeste : **aucune permission réseau** (pas de `INTERNET`) jusqu'à la 4.0 ; **rouvert le 2026-10-26 par
-  `connexions-en-ligne.md`** : la 4.2.0 déclare `INTERNET`, un seul APK, sans variante ni drapeau de construction (à implémenter) ;
+  `connexions-en-ligne.md`** : la 4.2.0 déclare `INTERNET` (connexions en ligne, désactivées par défaut) et
+  `ACCESS_NETWORK_STATE` (contrainte réseau de leur synchronisation en arrière-plan, permission normale), un seul APK, sans variante ni
+  drapeau de construction ;
   `POST_NOTIFICATIONS` (demandée à l'opt-in des alertes) et
   `RECEIVE_BOOT_COMPLETED` pour le chrono (`temps-reel-chrono.md`), avec
   ses deux récepteurs (`ChronoReceiver` non exporté, `BootReceiver`) ; `SCHEDULE_EXACT_ALARM` (4.1.0, #219) : alarmes

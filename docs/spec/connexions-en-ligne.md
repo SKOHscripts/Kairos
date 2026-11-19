@@ -10,7 +10,8 @@ le manifeste et les règles XML de réseau et sauvegarde, `desktopApp/{DesktopHt
 Les fichiers CalDAV, OAuth et web décrits plus bas restent prévus, non écrits.
 Tests O1 : voir § Critères de succès._
 
-État au 2026-11-12 : **O1 (socle et lien ICS Android/bureau) implémenté sur la branche `spec/online-connections-139-v2` (PR #242)**.
+État : **O1 (socle et lien ICS, Android et bureau) implémenté en 4.2.0** (PR #242 de @pyroMain404, revue et décisions du
+propriétaire du 2026-11-19 : D1 à D6 validés, lien demandé gardé après une redirection temporaire, `ACCESS_NETWORK_STATE`).
 La tranche web de O1, CalDAV (O2), Microsoft (O3) et Google (O4) restent **spécifiés, non implémentés**.
 Prévue d'abord pour la 4.0.0, reportée à la 4.1.0 par le propriétaire le 2026-11-04, puis à la 4.2.0 le 2026-11-15 (la 4.1.0 sort sans permission réseau).
 #139 suit les jalons ci-dessous ; @pyroMain404 propose l'implémentation dans #212 ; parent #140.
@@ -311,7 +312,7 @@ Tests à écrire à l'implémentation des jalons restants :
 
 ### Connexions et synchronisation du fichier lié (plusieurs appareils)
 
-Les mécanismes D1–D6 ci-dessous sont implémentés dans O1 sur la branche, au 2026-11-12.
+Les mécanismes D1–D6 ci-dessous sont implémentés dans O1 (4.2.0) et validés par le propriétaire le 2026-11-19.
 
 #### État local et remplacement des lignes (D1)
 
@@ -445,8 +446,13 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
 - `ETag` : le plan dépend du jour (horizon de 6 mois glissant) : un 304 d'un jour antérieur n'est donc pas pris, la requête repart sans
   `If-None-Match` au moins une fois par jour.
 - Nom proposé : `X-WR-CALNAME`, sinon l'hôte.
-- L'aperçu garde l'adresse finale validée après redirections dans `url:<id>`, pas l'adresse initiale (à rouvrir : lien temporaire 302/307 vers une adresse signée qui expire, voir la revue de la PR #242).
-- **Aucune exception ne tue la synchronisation** : `run` note toute autre exception (hors annulation) en `UNAVAILABLE`, avec l'espacement des échecs ; `runDue` poursuit avec les connexions restantes. Les transports convertissent une adresse que `java.net.URI`/`URL` refuse (`|`, `{`, que `HttpPolicy` accepte, ou un en-tête `Location`) en `HttpTransportException`, jamais en exception brute.
+- **Adresse gardée** (décision du propriétaire du 2026-11-19, revue de la PR #242) : `url:<id>` reçoit le **lien demandé**
+  (`webcal://` déjà réécrit en `https://`), et chaque synchronisation rejoue les redirections, dont celle vers l'hôte accepté
+  (`redirectHost`). L'adresse finale n'est gardée que si **toutes** les redirections suivies à l'aperçu étaient permanentes (301, 308) :
+  `OnlineGate.Result.Success.storedUrl`. Raison : une redirection temporaire (302, 303, 307) vers une adresse signée qui expire
+  aurait cassé la connexion quelques heures plus tard. L'hôte de la connexion et son consentement HTTP sont ceux de l'adresse
+  gardée. Une redirection permanente vue pendant une synchronisation ne change pas l'adresse gardée.
+- **Aucune exception ne tue la synchronisation** : `run` note toute autre exception (hors annulation) en `UNAVAILABLE`, avec l'espacement des échecs ; `runDue` poursuit avec les connexions restantes. Les transports convertissent une adresse que `java.net.URI`/`URL` refuse (`|`, `{`, que `HttpPolicy` accepte, ou un en-tête `Location`) en `HttpTransportException(invalidAddress = true)`, jamais en exception brute ; la porte la note `UNSUPPORTED` (adresse non prise en charge), pas `OFFLINE`, qui ferait croire à une coupure du réseau (2026-11-19).
 - **Le corps est décodé une fois** : `OnlineGate.Result.Success.text` porte le texte (vide pour un 304) que lisent l'aperçu et `ConnectionSync`, au lieu d'un second `decodeToString` sur 16 Mo.
 - **Écritures de ligne sous le verrou** : `KairosRepository.updateConnection(sourceId) { it.copy(…) }` lit la ligne dans le verrou d'écriture, donc `setInterval`, `setSyncEnabled` et `replaceIcsLink` n'écrasent ni l'ETag ni les dates d'une synchronisation en cours.
 
@@ -528,8 +534,9 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
 - **Android, application fermée** : `ConnectionScheduler.apply(sources)` pose, à chaque changement des connexions, **une seule**
   `JobInfo` périodique (`setPeriodic`, période = la plus courte des fréquences régulières actives, 60 minutes au moins, `setPersisted(true)` — il
   profite de `RECEIVE_BOOT_COMPLETED`, déjà déclarée —, `setRequiresBatteryNotLow(true)`), ou l'annule s'il n'y en a aucune.
-  Aucune contrainte réseau du planificateur, donc pas de permission `ACCESS_NETWORK_STATE`.
-  Une tentative hors ligne échoue et sera rejouée. `SyncJobService.onStartJob` ouvre les services par `KairosProcess` (base ouverte
+  Contrainte `setRequiredNetworkType(NETWORK_TYPE_ANY)` : le système ne lance le job qu'avec un réseau, si bien qu'un passage hors
+  ligne ne compte pas comme un échec ; elle exige `ACCESS_NETWORK_STATE` (cible API 34 et plus), permission normale déclarée en
+  4.2.0 (décision du 2026-11-19). L'application ouverte, elle, essaie sans condition : un échec hors ligne y est noté et rejoué. `SyncJobService.onStartJob` ouvre les services par `KairosProcess` (base ouverte
   une fois par processus, comme `ChronoReceiver`) et lance `runDue`. Aucune alarme exacte, aucun service au premier plan, aucune notification.
   `onStopJob` annule le job courant et demande sa reprise ; une exception inattendue demande aussi une reprise au système.
   Le widget (`widgets-android.md`) et les rappels (`rappels.md`) lisent `personalSnapshot` : ils suivent la synchronisation sans rien ajouter.
@@ -626,11 +633,12 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
   dans le code (`OnlineGateTest.closedGateNeverTouchesTransport`, `NetworkIsolationTest`), pas dans le système.
 - **Calendriers désactivés par défaut sur toutes les plateformes** : l'ajout explicite vaut consentement.
   Écarté : déduire une activation d'un import. Le comportement historique du bureau reste hors de ce changement.
-- **Pas de `ACCESS_NETWORK_STATE`, pas de contrainte réseau du planificateur** : ne pas ajouter de permission pour détecter une panne.
-  Une tentative hors ligne échoue et reprend plus tard. Écarté : élargir les permissions des connexions.
-  Revue de la PR #242 : `setRequiredNetworkType(NETWORK_TYPE_ANY)` éviterait de compter les essais hors ligne (cinquième échec : 6 h), mais
-  avec `targetSdk` 36 `JobScheduler.schedule` lève une `SecurityException` sans `ACCESS_NETWORK_STATE`
-  (https://developer.android.com/about/versions/14/behavior-changes-14) : non retenu tant que le propriétaire n'ajoute pas cette seconde permission.
+- **`ACCESS_NETWORK_STATE` et contrainte réseau du planificateur** (propriétaire, 2026-11-19, revue de la PR #242) : sans
+  `setRequiredNetworkType(NETWORK_TYPE_ANY)`, chaque passage hors ligne comptait comme un échec (cinquième échec : 6 h d'attente) ;
+  avec `targetSdk` 36, `JobScheduler.schedule` lève une `SecurityException` sans `ACCESS_NETWORK_STATE`
+  (https://developer.android.com/about/versions/14/behavior-changes-14). Permission normale : aucune demande à l'utilisateur, aucun
+  accès au réseau, aucune anti-fonctionnalité F-Droid. Écarté d'abord (« ne pas ajouter de permission pour détecter une panne »),
+  rouvert par le propriétaire.
 - **`JobScheduler`, pas `WorkManager`, pas `AlarmManager`.** `WorkManager` ajoute une dépendance et fusionne ses propres permissions dans le manifeste ;
   `AlarmManager` sans permission exacte (`rappels.md`) fonctionnerait mais réveillerait le téléphone sans condition. `JobScheduler` est le
   mécanisme du système pour un travail périodique, sans permission exacte, avec reprise au redémarrage déjà couverte.
@@ -673,23 +681,23 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
   qu'écrite, sans conversion. **À vérifier sur de vrais comptes** (créés dans un autre fuseau) avant livraison de O3.
 - **Hors périmètre de cette spec, noté** : le journal et la vue « État de la connexion » en détail (historique des synchronisations) ; le
   mode « sans réponse du serveur depuis N jours » signalé en badge ; un identifiant d'application OAuth personnalisé.
-- **D1 — Table locale séparée** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+- **D1 — Table locale séparée** (proposée le 2026-11-11, implémentée le 2026-11-12, **validée par le propriétaire le 2026-11-19**).
   Choisi : `calendar_connection`, selon § État local et remplacement des lignes, pour survivre aux fusions.
   Écartés : colonnes sur `calendar_source`, connexion dans le snapshot ou l'export ; leur cycle de vie ne convient pas.
-  Accepté (auteur de la PR #242, revue propriétaire à venir) : `replaceAll` écrase les connexions sans les fusionner ; les liens orphelins restent dans le magasin de secrets jusqu'au prochain lancement.
-- **D2 — Différentiel par identité** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+  Accepté (auteur de la PR #242 et propriétaire, 2026-11-19) : `replaceAll` écrase les connexions sans les fusionner ; les liens orphelins restent dans le magasin de secrets jusqu'au prochain lancement.
+- **D2 — Différentiel par identité** (proposée le 2026-11-11, implémentée le 2026-11-12, **validée par le propriétaire le 2026-11-19**).
   Choisi : § Différentiel et date affichée, pour éviter des écritures et identifiants nouveaux chaque heure.
   Écarté : effacer puis réinsérer les événements identiques.
-- **D3 — Date de réussite locale** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+- **D3 — Date de réussite locale** (proposée le 2026-11-11, implémentée le 2026-11-12, **validée par le propriétaire le 2026-11-19**).
   Choisi : § Différentiel et date affichée, pour éviter les conflits d'horodatage entre appareils.
   Écarté : rafraîchir le champ partagé `importedAt`.
-- **D4 — Serveur autoritaire pour les événements connectés** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+- **D4 — Serveur autoritaire pour les événements connectés** (proposée le 2026-11-11, implémentée le 2026-11-12, **validée par le propriétaire le 2026-11-19**).
   Choisi : § Autorité du serveur et conflits, pour ne pas demander de résoudre des valeurs transitoires.
   Écarté : remplir « À revoir » avec ces divergences.
-- **D5 — Rattachement au calendrier existant** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+- **D5 — Rattachement au calendrier existant** (proposée le 2026-11-11, implémentée le 2026-11-12, **validée par le propriétaire le 2026-11-19**).
   Choisi : § Rattachement par le nom, pour garder l'identité reçue du fichier lié.
   Écarté : créer systématiquement un doublon suffixé.
-- **D6 — Verrou commun, état hors portée** (proposée le 2026-11-11, implémentée sur branche le 2026-11-12 ; revue propriétaire à venir).
+- **D6 — Verrou commun, état hors portée** (proposée le 2026-11-11, implémentée le 2026-11-12, **validée par le propriétaire le 2026-11-19**).
   Choisi : § Un seul écrivain et portée inchangée, pour sérialiser les données sans partager l'état de l'appareil.
   Écartés : écrivain parallèle et nouveau genre de synchronisation pour les connexions.
 - **D7 — Périmètre réduit aux calendriers** (propriétaire, 2026-11-06, [#212](https://github.com/SKOHscripts/Kairos/issues/212#issuecomment-6687966751)).
