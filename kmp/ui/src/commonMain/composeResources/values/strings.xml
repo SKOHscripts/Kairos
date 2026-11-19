@@ -1285,7 +1285,7 @@
     <string name="help_team_exchanges">A member who uses Kairos receives their tasks in a file and sends you their progress in another. No server: pass the files along however you like.</string>
     <string name="help_team_forecast">The probability of meeting a deadline and the likely finish date, by simulation. “What if…?” compares scenarios without touching the real tasks.</string>
     <string name="home_why_title">What is Kairos for?</string>
-    <string name="home_why_body">Too many tasks, not enough time: the hardest part is knowing which one to start with. Kairos decides the order for you (each task’s value divided by its effort), fits it into the gaps of your calendar and measures what you really do. Your data stays on your device: no account, no network.</string>
+    <string name="home_why_body">Too many tasks, not enough time: the hardest part is knowing which one to start with. Kairos decides the order for you (each task’s value divided by its effort), fits it into the gaps of your calendar and measures what you really do. Your data stays on your device: no account, and the network is used only by the optional online connections.</string>
     <string name="home_features_title">What you can do</string>
     <string name="home_feature_capture_title">Capture</string>
     <string name="home_feature_capture_body">An idea, a to-do, a message: jot it down in a second in Notes, turn it into a task later.</string>
@@ -1719,7 +1719,7 @@
     <string name="calendar_device_from">Phone calendar “%1$s”</string>
     <string name="calendars_phone_title">Phone calendars</string>
     <string name="calendars_phone_switch">Use my phone calendars</string>
-    <string name="calendars_phone_help">Events from the phone’s calendars (Google, Exchange, DAVx⁵, ICSx⁵, Outlook with “Sync calendars” on) show as read-only busy slots, read live and never stored or exported. Kairos asks for calendar access only when you turn this on, and still makes no network connection. If your organisation blocks Outlook’s copy, import a .ics file instead.</string>
+    <string name="calendars_phone_help">Events from the phone’s calendars (Google, Exchange, DAVx⁵, ICSx⁵, Outlook with “Sync calendars” on) show as read-only busy slots, read live and never stored or exported. Kairos asks for calendar access only when you turn this on, and reading them uses no network. If your organisation blocks Outlook’s copy, import a .ics file instead.</string>
     <string name="calendars_phone_choose">Choose the calendars to use (none by default):</string>
     <string name="calendars_phone_empty">No calendar on this phone.</string>
     <string name="calendars_phone_denied">Kairos no longer has access to the phone calendars.</string>

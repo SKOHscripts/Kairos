@@ -1284,7 +1284,7 @@
     <string name="help_team_exchanges">Ein Mitglied, das Kairos nutzt, erhält seine Aufgaben in einer Datei und schickt Ihnen seinen Fortschritt in einer anderen. Kein Server: Geben Sie die Dateien beliebig weiter.</string>
     <string name="help_team_forecast">Die Wahrscheinlichkeit, eine Frist einzuhalten, und das voraussichtliche Enddatum, per Simulation. „Was wäre, wenn…?“ vergleicht Szenarien, ohne die echten Aufgaben anzutasten.</string>
     <string name="home_why_title">Wofür ist Kairos da?</string>
-    <string name="home_why_body">Zu viele Aufgaben, zu wenig Zeit: Am schwersten ist es zu wissen, womit man anfängt. Kairos legt die Reihenfolge für dich fest (Wert jeder Aufgabe geteilt durch ihren Aufwand), fügt sie in die Lücken deines Kalenders ein und misst, was du wirklich tust. Deine Daten bleiben auf deinem Gerät: kein Konto, kein Netz.</string>
+    <string name="home_why_body">Zu viele Aufgaben, zu wenig Zeit: Am schwersten ist es zu wissen, womit man anfängt. Kairos legt die Reihenfolge für dich fest (Wert jeder Aufgabe geteilt durch ihren Aufwand), fügt sie in die Lücken deines Kalenders ein und misst, was du wirklich tust. Deine Daten bleiben auf deinem Gerät: kein Konto, und das Netzwerk nutzen nur die optionalen Online-Verbindungen.</string>
     <string name="home_features_title">Was du tun kannst</string>
     <string name="home_feature_capture_title">Erfassen</string>
     <string name="home_feature_capture_body">Eine Idee, eine Aufgabe, eine Nachricht: Halte sie in einer Sekunde unter Notizen fest und mach später eine Aufgabe daraus.</string>
@@ -1718,7 +1718,7 @@
     <string name="calendar_device_from">Telefonkalender „%1$s“</string>
     <string name="calendars_phone_title">Telefonkalender</string>
     <string name="calendars_phone_switch">Meine Telefonkalender verwenden</string>
-    <string name="calendars_phone_help">Ereignisse aus den Kalendern des Telefons (Google, Exchange, DAVx⁵, ICSx⁵, Outlook mit eingeschaltetem „Kalender synchronisieren“) erscheinen als schreibgeschützte belegte Zeitfenster, live gelesen und nie gespeichert oder exportiert. Kairos fragt erst beim Einschalten nach Kalenderzugriff und stellt weiterhin keine Netzwerkverbindung her. Wenn deine Organisation die Outlook-Kopie sperrt, importiere stattdessen eine .ics-Datei.</string>
+    <string name="calendars_phone_help">Ereignisse aus den Kalendern des Telefons (Google, Exchange, DAVx⁵, ICSx⁵, Outlook mit eingeschaltetem „Kalender synchronisieren“) erscheinen als schreibgeschützte belegte Zeitfenster, live gelesen und nie gespeichert oder exportiert. Kairos fragt erst beim Einschalten nach Kalenderzugriff und ihr Lesen nutzt kein Netzwerk. Wenn deine Organisation die Outlook-Kopie sperrt, importiere stattdessen eine .ics-Datei.</string>
     <string name="calendars_phone_choose">Wähle die Kalender, die verwendet werden sollen (standardmäßig keiner):</string>
     <string name="calendars_phone_empty">Kein Kalender auf diesem Telefon.</string>
     <string name="calendars_phone_denied">Kairos hat keinen Zugriff mehr auf die Telefonkalender.</string>

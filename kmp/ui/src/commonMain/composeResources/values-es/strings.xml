@@ -1284,7 +1284,7 @@
     <string name="help_team_exchanges">Un miembro que usa Kairos recibe sus tareas en un archivo y le devuelve su avance en otro. Sin servidor: transmita los archivos como prefiera.</string>
     <string name="help_team_forecast">La probabilidad de cumplir una fecha límite y la fecha probable de fin, por simulación. «¿Y si…?» compara escenarios sin tocar las tareas reales.</string>
     <string name="home_why_title">¿Para qué sirve Kairos?</string>
-    <string name="home_why_body">Demasiadas tareas, poco tiempo: lo más difícil es saber por cuál empezar. Kairos decide el orden por ti (el valor de cada tarea dividido por su esfuerzo), la encaja en los huecos de tu agenda y mide lo que haces de verdad. Tus datos se quedan en tu dispositivo: sin cuenta, sin red.</string>
+    <string name="home_why_body">Demasiadas tareas, poco tiempo: lo más difícil es saber por cuál empezar. Kairos decide el orden por ti (el valor de cada tarea dividido por su esfuerzo), la encaja en los huecos de tu agenda y mide lo que haces de verdad. Tus datos se quedan en tu dispositivo: sin cuenta, y la red solo la usan las conexiones en línea opcionales.</string>
     <string name="home_features_title">Lo que puedes hacer</string>
     <string name="home_feature_capture_title">Capturar</string>
     <string name="home_feature_capture_body">Una idea, una tarea pendiente, un mensaje: anótalo en un segundo en Notas y conviértelo en tarea más tarde.</string>
@@ -1718,7 +1718,7 @@
     <string name="calendar_device_from">Calendario del teléfono «%1$s»</string>
     <string name="calendars_phone_title">Calendarios del teléfono</string>
     <string name="calendars_phone_switch">Usar los calendarios del teléfono</string>
-    <string name="calendars_phone_help">Los eventos de los calendarios del teléfono (Google, Exchange, DAVx⁵, ICSx⁵, Outlook con «Sincronizar calendarios» activado) aparecen como franjas ocupadas de solo lectura, leídas en directo, nunca almacenadas ni exportadas. Kairos solo pide acceso al calendario cuando lo activas, y sigue sin conectarse a ninguna red. Si tu organización bloquea la copia de Outlook, importa un archivo .ics en su lugar.</string>
+    <string name="calendars_phone_help">Los eventos de los calendarios del teléfono (Google, Exchange, DAVx⁵, ICSx⁵, Outlook con «Sincronizar calendarios» activado) aparecen como franjas ocupadas de solo lectura, leídas en directo, nunca almacenadas ni exportadas. Kairos solo pide acceso al calendario cuando lo activas, y leerlos no usa la red. Si tu organización bloquea la copia de Outlook, importa un archivo .ics en su lugar.</string>
     <string name="calendars_phone_choose">Elige los calendarios que usar (ninguno de forma predeterminada):</string>
     <string name="calendars_phone_empty">Ningún calendario en este teléfono.</string>
     <string name="calendars_phone_denied">Kairos ya no tiene acceso a los calendarios del teléfono.</string>
