@@ -31,9 +31,9 @@ Standardmäßig deaktiviert, fügt die Teamverwaltung einen zweiten Bereich für
 
 <b>Ihre Daten bleiben bei Ihnen</b>
 <ul>
-<li>Kein Konto, keine Werbung, keine Tracker. Das Netzwerk dient nur den optionalen Online-Verbindungen, standardmäßig aus.</li>
+<li>Kein Konto, keine Werbung, keine Tracker. Netzwerk nur für optionale Online-Verbindungen (standardmäßig aus).</li>
 <li>Export und Import einer JSON-Datei, zur Sicherung oder für den Gerätewechsel; oder eine aktuelle Kopie in einem Ordner, den Sie synchronisieren.</li>
 <li>Termine aus einer Kalenderdatei (.ics: Outlook, Google, Thunderbird) oder, optional, aus den Kalendern Ihres Telefons: Kairos fragt dann nach Kalenderzugriff, nur lesend. Der Dateiimport nutzt nie das Netzwerk.</li>
 </ul>
 
-Kairos gibt es auch für Windows, Linux und macOS sowie im Browser. Freie Software unter der MIT-Lizenz, auf Englisch, Französisch, Spanisch, Deutsch, Russisch und Italienisch (Ihre Wahl in den Einstellungen; standardmäßig die Systemsprache, wenn sie darunter ist, sonst Englisch).
+Kairos gibt es auch für Windows, Linux und macOS sowie im Browser. Freie Software unter der MIT-Lizenz, auf Englisch, Französisch, Spanisch, Deutsch, Russisch und Italienisch (Wahl in den Einstellungen; sonst Systemsprache oder Englisch).
