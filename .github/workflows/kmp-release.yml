@@ -153,6 +153,9 @@ jobs:
         run: (yes || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
       - name: Tests
         run: ./gradlew --no-daemon :core:jvmTest :data:jvmTest :ui:jvmTest :desktopApp:jvmTest
+      - name: Rapport des tests
+        if: always()
+        run: python3 tools/report_tests.py . --title "Tests JVM"
 
   build:
     needs: resolve

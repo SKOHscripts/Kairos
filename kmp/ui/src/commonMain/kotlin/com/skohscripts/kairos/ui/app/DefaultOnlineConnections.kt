@@ -45,12 +45,14 @@ class DefaultOnlineConnections(
                     is OnlineGate.Result.Confirm -> IcsPreviewResult.NeedsConfirmation(result.kind, result.host)
                     is OnlineGate.Result.Success -> {
                         val plan = withContext(Dispatchers.Default) { CalendarImport.plan(result.text, today, zone) }
-                        val host = HttpPolicy.host(result.url).orEmpty()
+                        // L'adresse gardée (lien demandé, ou finale après des redirections permanentes seulement) fixe l'hôte de
+                        // la connexion et son consentement HTTP ; une redirection acceptée vers un autre hôte est rejouée.
+                        val host = HttpPolicy.host(result.storedUrl).orEmpty()
                         val name = plan.name ?: host
                         val existing = ImportedCalendars.named(repository.snapshot.value, name)
                         IcsPreviewResult.Ready(name, plan, host,
                             existing != null && connections.value.none { it.sourceId == existing.id },
-                            result.url.startsWith("http://"), acceptedRedirectHost, result.url, result.response.headers["etag"])
+                            result.storedUrl.startsWith("http://"), acceptedRedirectHost, result.storedUrl, result.response.headers["etag"])
                     }
                 }
             }

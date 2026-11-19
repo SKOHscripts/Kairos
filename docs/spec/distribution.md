@@ -134,7 +134,12 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   horaires par jour de la semaine, durées apprises, catalogue de fonctionnalités et première tâche guidée, ergonomie et
   réglages, retrait de l'import de l'ancienne version ; notes `30400.txt` en français et en anglais), puis `3.5.0` (`30500`, issue #64 : plusieurs plages par jour et contextes, carte Statistiques « Quand tu travailles chaque type » ; notes `30500.txt` en français et en anglais), puis `3.6.0` (`30600`, issue #64 : réglage « Meilleures heures », le planning préfère les heures habituelles ou préférées de chaque type ; notes `30600.txt` en français et en anglais), puis `3.7.0` (`30700` : thème sombre, issue #72 ; filtres et export des statistiques, #114 et #113 ; déplacer depuis la vue Semaine, #106 ; fériés des créneaux « jours ouvrés », #109 ; Réglages par catégories, PR #124 ; guide qui retient et montre l'endroit, #94 et #95 ; notes `30700.txt` en français et en anglais), puis `3.8.0` (`30800` : vue Mois, #107 ; créneaux mensuels, #108 ; une seule occurrence d'un créneau, #110 ; évolutions des statistiques, #112 ; corriger les estimations, #101 ; rappels, #103 ; première tâche d'équipe guidée, #97 ; notes `30800.txt` en français et en anglais), puis `3.9.0` (`30900` : noms des niveaux, #93 ; meilleures heures mesurées par l'efficacité, #105 ; accompagnement des récurrences et des Réglages, #98 ; jours et heures par membre, #104 ; notes dans les échanges, #120 ; propositions d'un membre, #121 ; dossier des données, diagnostic et proxy du bureau, #115 ; lien « Voir la dernière version » sur Android, #143 ; notes `30900.txt` en français et en anglais), puis `3.10.0` (`31000` : import d'un calendrier `.ics`, #136 ; fichier lié sur le bureau et Android, #137 ; calendriers du téléphone, #138 ; notes `31000.txt` en français et en anglais), puis `3.11.0` (`31100` : espagnol, allemand, russe et italien, #75 ; fiches du magasin et page web dans ces langues ; notes `31100.txt` dans les six langues), puis `3.12.0` (`31200` : widgets Android, #150 ; récapitulatif du jour, #151 ; couleur par défaut océan ; notes `31200.txt` dans les six langues), puis `3.13.0` (`31300` : liste complète des fonctionnalités, #153 ; avis des mois sautés, #111 ; démonstration interactive, #96 ; décision sur la signature macOS, #116, et signature Windows préparée, #117 ; notes `31300.txt` dans les six langues), puis `3.14.0` (`31400` : type choisi sur place dans « À traiter » et « À qualifier », durée posée une fois la tâche qualifiée, facette « Incomplètes », type dans l'essentiel de la fiche et dans la démonstration, barre de défilement du menu des types, #166 ; notes `31400.txt` dans les six langues), puis `4.0.0` (`40000` : synchronisation entre appareils par le fichier lié, avec fusion, #88, et durées apprises partagées, #100 ; estimations par machine learning sur l'appareil, #99 ; type requis pour sortir de « À traiter », PR #186 ; garde du modèle allégée, PR #187 ; paquet Arch Linux AUR ; corrections de la QA d’avant 4.0, PR #192 ; toujours sans permission réseau, les connexions en ligne étant reportées à la 4.1.0 ; notes `40000.txt` dans les six langues). Puis, avec le cycle des versions (2026-11-05), `main` passe en `4.1.0-beta.1` (`39601`) : sous-tâches et enchaînement (#201), sans note de version (préversion) ; puis `4.1.0-beta.2` (`39602`) : file de sous-tâches enchaînées (#209, exception au gel décidée le 2026-11-05) ; puis `4.1.0-beta.3` à `4.1.0-beta.9` (`39603` à `39609`, sans notes de version) : « Donner un avis » (#211), aperçu des liens de la page de téléchargement par langue (#217), notifications du chrono à l'heure (#219) et garde-fou du chrono (#220), corrections (#193 à #197), page « L'histoire de Kairos », taille du texte (#229), cloches du pomodoro (#234), méthode GTD expliquée (#235), prévisions par tâche et chronos à vérifier (#232), Bilan de la semaine et du mois, fiche par groupes et « Ce que Kairos apprend » (#233), ce qui traîne ; puis `4.1.0` (`40100` : tout ce qui précède depuis la 4.0.0 ; la méthode GTD et les cloches, prévues pour la 4.2.0 et fusionnées pendant les betas, y sont livrées ; toujours sans permission réseau, les connexions en ligne, #139 et #144, étant reportées à la 4.2.0 le 2026-11-15 ; notes `40100.txt` dans les six langues). Puis `main` passe en
   `4.2.0-beta.1`, d'abord avec l'ancienne formule (`39701`), puis, avant son tag, avec la nouvelle (`4020001`) : à partir
-  de la 4.2.0, une seule app pour la beta et la stable (§ Décisions).
+  de la 4.2.0, une seule app pour la beta et la stable (§ Décisions) ; tag `v4.2.0-beta.1` posé le 2026-11-15. Puis `4.2.0`
+  (`4020099` : conseils au bon moment (#221), connexions en ligne O1, lien ICS sur Android et le bureau (#139, PR #242 de
+  @pyroMain404), une seule app « Kairos » pour la beta et la stable, remplacement des anciennes entrées « Kairos Preview » des
+  copies portables, identité de l'app figée, Android Lint et tableau des tests en CI ; spec de la mise à jour automatique du
+  bureau (#249, non implémentée) ; notes `4020099.txt` dans les six langues), première finale du cycle « mineures au fil de
+  l'eau » ; `main` passe ensuite en `4.3.0` par la PR qu'ouvre « Kairos tag ».
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
 - `versionCode` (`AppVersion.versionCode`), deux formules :
@@ -317,7 +322,9 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
   création réelle étant faite par `KairosStore.open` (`modele-donnees.md`).
   Exemples dans la langue du système (`Locale.getDefault()`).
 - Manifeste : **aucune permission réseau** (pas de `INTERNET`) jusqu'à la 4.0 ; **rouvert le 2026-10-26 par
-  `connexions-en-ligne.md`** : la 4.2.0 déclare `INTERNET`, un seul APK, sans variante ni drapeau de construction (à implémenter) ;
+  `connexions-en-ligne.md`** : la 4.2.0 déclare `INTERNET` (connexions en ligne, désactivées par défaut) et
+  `ACCESS_NETWORK_STATE` (contrainte réseau de leur synchronisation en arrière-plan, permission normale), un seul APK, sans variante ni
+  drapeau de construction ;
   `POST_NOTIFICATIONS` (demandée à l'opt-in des alertes) et
   `RECEIVE_BOOT_COMPLETED` pour le chrono (`temps-reel-chrono.md`), avec
   ses deux récepteurs (`ChronoReceiver` non exporté, `BootReceiver`) ; `SCHEDULE_EXACT_ALARM` (4.1.0, #219) : alarmes
@@ -562,13 +569,22 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
 ### CI et release (GitHub Actions)
 
 - `kmp.yml` (« Kairos CI » ; push sur `main`, PR, lancement manuel ; chemins `kmp/**` hors `kmp/tools/**`, et le
-  workflow lui-même) : JDK 21 Temurin, une **matrice de trois jobs parallèles** (2026-11-15), chacun avec son Gradle :
+  workflow lui-même) : JDK 21 Temurin, une **matrice de quatre jobs parallèles** (2026-11-15 ; le quatrième, Android
+  Lint, le 2026-11-18), chacun avec son Gradle :
   - « Tests JVM » : plateforme Android 37, tests JVM (`core` dont les tests différentiels, `data`, `ui`, `desktopApp`
     dont les tests d'interface de la vue Jour) ;
   - « Tests wasm et web » : tests du modèle et de la synchronisation dans Chrome (`:core:wasmJsBrowserTest`, liste de
     classes), puis version web (`:webApp:wasmJsBrowserDistribution`) ;
   - « Bureau » : image de bureau Linux (`createDistributable`) et son **auto-test** ; captures en artefact
-    `kmp-ci-screens` (7 jours).
+    `kmp-ci-screens` (7 jours) ;
+  - « Android Lint » : plateforme Android 37, `:androidApp:lintDebug` (échec sur une erreur, pas sur un avertissement ;
+    aucune erreur au premier passage, le 2026-11-18, donc pas de baseline) ; le rapport texte est affiché dans le journal
+    par une étape du job (pas par `textOutput = file("stdout")`, obsolète en AGP 9, qui écrit un fichier `stdout` dans
+    le module) ; rapports en artefact `kmp-ci-lint` (7 jours). C'est le seul contrôle propre à Android de la CI : les tests d'interface rendent les écrans
+    sur la JVM et `androidApp` n'a pas de tests.
+  Les deux jobs de tests ajoutent au résumé du lancement un **tableau des tests** par module et par tâche (tests, échecs,
+  ignorés, durée) et la liste des tests en échec : `kmp/tools/report_tests.py`, qui lit les rapports JUnit de Gradle,
+  lancé même en échec (`if: always()`), sans jamais faire échouer le job ; testé par `test_report_tests.py`.
   `fail-fast: false` : un job rouge n'arrête pas les autres. L'APK n'y est plus construit (2026-11-06) : `fdroid-check.yml`, déclenché par les
   mêmes changements, le construit deux fois (F-Droid et reproductibilité). Une PR qui reçoit un nouveau commit annule le
   run précédent ; un push sur `main` ou un lancement manuel ne s'annule jamais. Un test en échec affiche son message et sa
@@ -582,7 +598,8 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
   `kmp-test-build.yml`, qui en dupliquait les constructions) :
   - `resolve` : le commit construit (sur un tag, celui du tag, qui doit valoir `v` + `kairos.versionName` ; à la main,
     § Build de test), drapeau `prerelease` si la version contient `-`, et les cibles de la matrice ;
-  - `tests` : tests JVM, **en parallèle des constructions** (2026-11-15 ; avant, en tête du job Android) ;
+  - `tests` : tests JVM, **en parallèle des constructions** (2026-11-15 ; avant, en tête du job Android), avec le
+    tableau des tests de `report_tests.py` dans le résumé ;
   - `build`, **une matrice** de six cibles (2026-11-15 ; avant, trois jobs `android`, `web` et `desktop`) :
     `android` (`ubuntu-latest`, plateforme Android 37, keystore depuis `KAIROS_KEYSTORE_BASE64`, échec sur un tag
     sans secret, `assembleRelease` → `Kairos-android.apk`), `web` (`ubuntu-latest`, `Kairos-web.zip`), et le bureau,
@@ -675,6 +692,10 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
   `-o pipefail` ; `yes`, tué par « Broken pipe » quand `sdkmanager` se ferme, faisait échouer l'étape « Plateforme
   Android 37 » du premier tag `v4.2.0-beta.1` (les anciens jobs utilisaient le shell par défaut, sans `pipefail`). Même
   écriture dans tous les workflows, pour qu'un futur `pipefail` ne la casse pas.
+- **Android Lint et tableau des tests** (propriétaire, 2026-11-18, d'après la CI d'un autre projet Android libre) :
+  retenus parce que peu coûteux (un job parallèle de plus, un script sans dépendance). Écartés pour l'instant : des tests
+  instrumentés sur émulateur (+10 à 20 min, et `androidApp` n'a pas encore de tests ; à réserver à la release ou à un
+  lancement nocturne le jour venu) ; les tests unitaires en debug et en release (même code, deux fois le temps).
 - **Nettoyage des workflows** (propriétaire, 2026-11-15) : les noms affichés perdent « Kairos 3 » (« Kairos CI »,
   « Kairos release », artefacts `dist-*` au lieu de `kairos3-*`), les fichiers gardent le leur (badge du README, liens
   des specs, historique des lancements). Des matrices là où les jobs ne diffèrent que par leurs paramètres (CI,

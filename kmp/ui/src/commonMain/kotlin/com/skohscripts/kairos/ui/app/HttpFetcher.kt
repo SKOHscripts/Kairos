@@ -15,8 +15,17 @@ class HttpRequest(
 /** Une réponse HTTP : [headers] avec les noms en minuscules ; [body] déjà décompressé (gzip). */
 class HttpResponse(val status: Int, val headers: Map<String, String>, val body: ByteArray)
 
-/** Panne de transport (hors ligne, délai, TLS) : [tls] vrai pour une erreur de certificat ou de négociation TLS. */
-class HttpTransportException(val tls: Boolean, message: String, cause: Throwable? = null) : Exception(message, cause)
+/**
+ * Panne de transport (hors ligne, délai, TLS) : [tls] vrai pour une erreur de certificat ou de négociation TLS ;
+ * [invalidAddress] vrai quand la plateforme refuse l'adresse elle-même (`java.net.URI`, `URL`) : ce n'est pas une coupure
+ * du réseau, la connexion le dit comme une adresse non prise en charge.
+ */
+class HttpTransportException(
+    val tls: Boolean,
+    message: String,
+    cause: Throwable? = null,
+    val invalidAddress: Boolean = false,
+) : Exception(message, cause)
 
 /** Corps plus gros que [MAX_BODY_BYTES] : lecture interrompue. */
 class HttpTooBigException : Exception("body exceeds $MAX_BODY_BYTES bytes")

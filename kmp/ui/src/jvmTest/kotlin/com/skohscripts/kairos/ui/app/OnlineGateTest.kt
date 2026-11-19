@@ -133,6 +133,35 @@ class OnlineGateTest {
         assertTrue(http.requests.isEmpty())
     }
 
+    @Test fun theRequestedLinkIsKeptUnlessEveryRedirectIsPermanent() = runTest {
+        // Une redirection temporaire vers une adresse signée qui expire : on garde le lien collé et on rejoue la redirection.
+        var status = 302
+        val http = FakeHttp { request ->
+            if (request.url.endsWith("/feed")) HttpResponse(status, mapOf("location" to "https://cdn.example/signed?t=1"), byteArrayOf())
+            else HttpResponse(200, emptyMap(), onlineIcs.encodeToByteArray())
+        }
+        val gate = OnlineGate(http, onlineRepository())
+        val temporary = assertIs<OnlineGate.Result.Success>(gate.preview("webcal://calendar.example/feed", false, "cdn.example", onlineToday))
+        assertEquals("https://cdn.example/signed?t=1", temporary.url)
+        assertEquals("https://calendar.example/feed", temporary.storedUrl)
+        status = 308
+        val moved = assertIs<OnlineGate.Result.Success>(gate.preview("https://calendar.example/feed", false, "cdn.example", onlineToday))
+        assertEquals("https://cdn.example/signed?t=1", moved.storedUrl)
+        assertEquals("https://calendar.example/plain", assertIs<OnlineGate.Result.Success>(
+            gate.preview("https://calendar.example/plain", false, null, onlineToday)).storedUrl)
+    }
+
+    @Test fun anAddressThePlatformRefusesIsUnsupportedNotOffline() = runTest {
+        val repository = onlineRepository()
+        val id = repository.connected()
+        val http = FakeHttp { throw HttpTransportException(false, "Invalid address", invalidAddress = true) }
+        assertEquals(ConnectionError.UNSUPPORTED, assertIs<OnlineGate.Result.Failed>(
+            OnlineGate(http, repository).fetch(id, "https://calendar.example/a|b", onlineToday)).error)
+        http.respond = { throw HttpTransportException(false, "down") }
+        assertEquals(ConnectionError.OFFLINE, assertIs<OnlineGate.Result.Failed>(
+            OnlineGate(http, repository).fetch(id, "https://calendar.example/a", onlineToday)).error)
+    }
+
     @Test fun redirectLoopStopsAfterFiveFollows() = runTest {
         val repository = onlineRepository()
         val id = repository.connected()

@@ -83,9 +83,9 @@ object DesktopHttp : HttpFetcher {
             throw HttpTransportException(false, "HTTP interrupted", error)
         } catch (error: URISyntaxException) {
             // `HttpPolicy` accepts characters (`|`, `{`) that `java.net.URI` refuses, and a `Location` header can carry them.
-            throw HttpTransportException(false, "Invalid address", error)
+            throw HttpTransportException(false, "Invalid address", error, invalidAddress = true)
         } catch (error: IllegalArgumentException) {
-            throw HttpTransportException(false, "Invalid request", error)
+            throw HttpTransportException(false, "Invalid request", error, invalidAddress = true)
         }
     }
 }

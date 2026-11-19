@@ -48,8 +48,9 @@ savoir.
 - Android : **aucune vérification** ; les mises à jour passent par le magasin ou l'APK.
   Le propriétaire a fermé #144 « not planned » le 2026-11-06. Le lien « Voir la dernière version » (3.9.0) reste.
   Pour un APK **installé à la main** (3.9.0, issue #143), Réglages → Général montre une carte « Mises à jour » :
-  « Version installée : 3.9.0 », l'aide « Kairos n'utilise pas Internet sur Android : la page de téléchargement
-  dit quelle est la dernière version. » et « Voir la dernière version », qui ouvre la page de téléchargement dans le
+  « Version installée : 3.9.0 », l'aide « Kairos ne vérifie pas les nouvelles versions sur Android : la page de
+  téléchargement dit quelle est la dernière. » (jusqu'à la 4.1 : « Kairos n'utilise pas Internet sur Android… », faux depuis les
+  connexions en ligne de la 4.2.0) et « Voir la dernière version », qui ouvre la page de téléchargement dans le
   navigateur (`https://skohscripts.github.io/Kairos/`, `…/Kairos/en/` si l'interface est en anglais). Installé par
   un magasin (F-Droid et ses clients, Play, un gestionnaire de mises à jour…), la carte n'apparaît pas : le magasin
   s'occupe des mises à jour. La catégorie Général dit alors « Langue, apparence, mises à jour ».
@@ -76,7 +77,7 @@ savoir.
 
 ### Hors périmètre / différé
 
-- Téléchargement, vérification de somme et remplacement automatiques
+- Téléchargement, vérification de somme et remplacement automatiques (rouvert par `mise-a-jour-automatique.md`, spécifiée le 2026-11-19, non implémentée, #249)
   (plan § 6.2) : l'installeur du système remplace l'application.
 - Notification système d'une nouvelle version : le bandeau suffit.
 - Source ou jeton configurables : Kairos est publié sur GitHub seulement.

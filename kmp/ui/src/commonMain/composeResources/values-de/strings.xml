@@ -630,7 +630,7 @@
     <string name="settings_section_updates">Updates</string>
     <string name="setting_update_check">Nach neuen Versionen suchen</string>
     <string name="update_help">Höchstens alle 6 Stunden fragt Kairos bei GitHub die zuletzt veröffentlichte Version ab (Vorabversionen werden ignoriert). Sonst verlässt nichts das Gerät, und die Installation bleibt dir überlassen.</string>
-    <string name="update_android_help">Kairos nutzt unter Android das Internet nicht: Die Download-Seite zeigt, welche Version die neueste ist.</string>
+    <string name="update_android_help">Kairos sucht unter Android nicht nach neuen Versionen: Die Download-Seite zeigt, welche Version die neueste ist.</string>
     <string name="update_see_latest">Neueste Version ansehen</string>
     <string name="update_installed">Installierte Version: %1$s</string>
     <string name="update_never">Noch nicht geprüft.</string>

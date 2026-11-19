@@ -2,7 +2,10 @@
 <!-- Permission réseau INTERNET (4.2.0, issue #139, docs/spec/connexions-en-ligne.md) : une seule, utilisée par les connexions
      de calendrier en ligne, désactivées par défaut et activées une par une dans les Réglages ; HttpPolicy impose le consentement
      et les règles de redirection. Un lien ICS seul ne demande aucune anti-fonctionnalité F-Droid (NonFreeNet viendra avec
-     Microsoft ou Google). Avant la 4.2.0, aucune permission réseau (docs/spec/distribution.md § Android). Trois permissions pour le chrono
+     Microsoft ou Google). Avant la 4.2.0, aucune permission réseau (docs/spec/distribution.md § Android). ACCESS_NETWORK_STATE
+     (4.2.0, décision du propriétaire du 2026-11-19) : permission normale, sans demande à l'utilisateur, exigée par JobScheduler
+     pour la contrainte « réseau disponible » de la synchronisation en arrière-plan (cible API 34 et plus) ; elle ne donne aucun
+     accès au réseau. Trois permissions pour le chrono
      (docs/spec/temps-reel-chrono.md § Android) : notifier (demandée à
      l'opt-in des alertes, jamais au démarrage) et remettre la notification et
      les alarmes après un redémarrage. Alarmes exactes des alertes du chrono
@@ -20,6 +23,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application
         android:name=".KairosApplication"
         android:label="@string/app_name"
