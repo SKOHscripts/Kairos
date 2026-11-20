@@ -30,6 +30,7 @@
         "updateCheckEnabled": true,
         "themeColor": "#2F6FED",
         "themeMode": "system",
+        "uiStyle": "material",
         "textZoom": 100,
         "language": "system"
     },

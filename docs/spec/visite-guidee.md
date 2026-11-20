@@ -381,7 +381,7 @@ Fichiers : `ui/app/Demo.kt` (`DemoSource`, `DemoSession`, `openDemo`, `forDemo`)
   disparaît (retour à l'étape 1), puis l'étape avance tant que son effet est là. Changer d'étape n'appelle pas `observe` :
   « Précédent » reste donc sur l'étape d'avant jusqu'au prochain changement de données. « Passer l’étape » avance d'une
   étape ; passer la dernière termine.
-- **Panneau** (`DemoPanel`) : `OutlinedCard` sans ombre, non bloquante, qui ne prend jamais le focus ; « Étape n sur N »
+- **Panneau** (`DemoPanel`) : `KairosOutlinedCard` sans ombre, non bloquante, qui ne prend jamais le focus ; « Étape n sur N »
   (`guide_step_counter`), titre et texte de l'étape forment une région vivante polie ; « Faire pour moi » (`Button`),
   « À moi de jouer » (`OutlinedButton`), « Précédent » (dès la deuxième étape, `guide_previous`) et « Passer l’étape »
   (`TextButton`) dans un `FlowRow` (360 dp sans débordement).

@@ -205,11 +205,12 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
 - `SettingsFormCards` : carte « filled » par section (`SettingsCard`, sans contour, `densite.md` ; titre marqué
   `heading`), `SettingInput` : `OutlinedTextField` (largeur bornée à 320 dp pour un nombre, pleine largeur pour un texte), clavier
   numérique ou décimal, `supportingText` = erreur sinon aide ; `SwitchRow` :
-  `Switch` dans une ligne `toggleable` (rôle interrupteur, 48 dp).
+  `KairosSwitch` (Material 3, ou celui d'iOS en style Cadran, `style-cadran.md`) dans une ligne `toggleable` (rôle interrupteur,
+  48 dp).
 - **Catégories** (`SettingsCategory.kt`) : `SettingsCategory` (`GENERAL`, `DAY`, `PLANNING`, `TRACKING`, `TEAM`,
   `DATA`, `ABOUT`, dans l'ordre de la liste), chacune avec son titre, son résumé et son icône (`Tune`, `Schedule`,
   `Sort`, `Timer`, `Groups`, `Database`, `Info`). `SettingsCategory.of(clé)` range chaque champ de `SettingsForm` :
-  `language`, `themeColor`, `themeMode`, `textZoom`, `updateCheckEnabled` → Général ; journée de travail, `schedule.dN.*`, `schedule.cN.*`
+  `language`, `themeColor`, `themeMode`, `uiStyle`, `textZoom`, `updateCheckEnabled` → Général ; journée de travail, `schedule.dN.*`, `schedule.cN.*`
   (contextes), `holidaysFr`, `extraHolidays` → Journée et horaires ; `taskTypes`, `levelNames.*`, `schedule.bestHours.*`,
   `learning.*`, garde-fous, score, creux → Planification ; chrono, `reminders.*` et `statsWindowWeeks` → Chrono et statistiques ;
   `team.*` → Équipe. Une clé inconnue lève une erreur (aucune ne tombe en silence hors de l'écran) ;

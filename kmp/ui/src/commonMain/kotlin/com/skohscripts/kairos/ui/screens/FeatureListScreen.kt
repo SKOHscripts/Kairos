@@ -15,7 +15,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,6 +53,7 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /** Une entrée de la liste, ses textes déjà résolus dans la langue affichée (la recherche porte sur eux). */
 private class FeatureEntry(val card: FeatureCard, val title: String, val body: String, val meta: String, val spokenMeta: String)
@@ -142,7 +142,7 @@ fun FeatureListScreen(teamEnabled: Boolean, onOpen: (GuideTarget) -> Unit) {
                 }
                 items(list, key = { it.card.id }) { entry ->
                     // La carte cliquable fusionne ses textes : un seul élément lu « titre, phrase, depuis 3.8.0, Android seulement ».
-                    OutlinedCard(onClick = { onOpen(entry.card.target) }, modifier = Modifier.fillMaxWidth()) {
+                    KairosOutlinedCard(onClick = { onOpen(entry.card.target) }, modifier = Modifier.fillMaxWidth()) {
                         ListItem(
                                 leadingContent = { Icon(entry.card.icon(), contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                                 headlineContent = { Text(entry.title) },

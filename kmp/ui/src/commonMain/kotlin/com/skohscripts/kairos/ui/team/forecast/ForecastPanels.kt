@@ -20,7 +20,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -113,6 +112,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /*
  * Panneaux de résultat des Prévisions (docs/spec/equipe-simulation.md § Interface). Tous lisent un ForecastResult ;
@@ -475,7 +475,7 @@ private fun outcomeSentence(set: LateSet, runs: Int, names: ForecastNames): Stri
 /** Modèle par débit : les quatre panneaux par tâche sont remplacés par la phrase qui dit pourquoi. */
 @Composable
 internal fun MaskedPanels() {
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
             Icon(KairosIcons.Info, contentDescription = null, modifier = Modifier.size(20.dp))
             Text(stringResource(Res.string.forecast_masked), style = MaterialTheme.typography.bodyMedium)

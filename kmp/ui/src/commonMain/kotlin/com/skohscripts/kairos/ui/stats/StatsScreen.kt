@@ -76,7 +76,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -99,6 +98,7 @@ import com.skohscripts.kairos.ui.theme.KairosSpacing
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /**
  * Statistiques (docs/spec/statistiques.md), lecture seule : la période, les filtres et « Exporter… », puis les cartes
@@ -348,7 +348,7 @@ internal fun StatTile(value: String, label: String, modifier: Modifier, warn: Bo
 /** Panneau à contour : icône et titre, une phrase d'aide, puis le contenu. Aussi utilisé par l'écran Équipe. */
 @Composable
 internal fun Panel(icon: ImageVector, title: String, hint: String, content: @Composable () -> Unit) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(KairosSpacing.l), verticalArrangement = Arrangement.spacedBy(KairosSpacing.s)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(KairosSpacing.s)) {
                 Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))

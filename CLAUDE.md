@@ -143,6 +143,14 @@ Compose correspondant avant d'en inventer un. Détail complet :
 `docs/DESIGN_SYSTEM.md` ; mise en œuvre Compose :
 `docs/spec/navigation-theme.md`.
 
+## Deux styles
+- **Material** (par défaut, la charte ci-dessous) et **Cadran**, un style épuré
+  inspiré d'iOS (Réglages → Apparence, `docs/spec/style-cadran.md`), qui garde les
+  règles d'usage de la couleur, la densité et les cibles de 48 dp. Un écran ne
+  connaît pas le style : il passe par les enveloppes `Kairos*`
+  (`KairosComponents.kt` : boutons, puces, segmentés, actions de ligne,
+  `KairosSwitch`, `KairosOutlinedCard`) et les rôles de `MaterialTheme.colorScheme`.
+
 ## Palette
 - Rôles MD3 générés (schéma *Tonal spot*) depuis **une seule graine, l'océan
   `#2F6FED`** (changé le 2026-10-27 : l'océan remplace le miel `#C28417` comme

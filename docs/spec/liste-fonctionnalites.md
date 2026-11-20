@@ -142,7 +142,7 @@ Résultat : **61 cartes pour 61 fonctionnalités du README**, une à une.
   icône) appelle `onOpenFeatures` ; il est **après** le bloc « Nouveau » et **hors** de sa condition d'affichage.
 - Contenu : un champ de recherche (`OutlinedTextField`, icône `Search`, étiquette « Rechercher une fonctionnalité ») et le menu du filtre
   (`Facet` de la vue Jour, un `ExposedDropdownMenu` étiqueté « Nouveau depuis », « Toutes les versions » ou « depuis X.Y.0 ») dans un
-  `FlowRow`, puis une `LazyColumn` (`testTag("feature-list")`) : un titre de chapitre (`heading`) suivi de ses entrées en `OutlinedCard` >
+  `FlowRow`, puis une `LazyColumn` (`testTag("feature-list")`) : un titre de chapitre (`heading`) suivi de ses entrées en `KairosOutlinedCard` >
   `ListItem` (icône en `primary`, titre, phrase, ligne de méta « depuis 3.8.0 · Android »). Un chapitre sans résultat est masqué ; sans
   aucun résultat, « Aucune fonctionnalité ne correspond » et « Effacer » (vide la recherche et le filtre). Colonne de 720 dp au plus,
   centrée (comme l'Accueil). L'écran est public (`FeatureListScreen(teamEnabled, onOpen)`) pour les captures de l'auto-test.

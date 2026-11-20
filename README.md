@@ -678,6 +678,11 @@ order (critical path). Cycles are refused.
 - **Text size**: a four-step zoom (100 %, 115 %, 130 %, 150 %) in Settings →
   General → Appearance, for scaled desktop screens or just comfort. 100 % is the
   default; on Android it adds to the system font size. Touch targets keep their size.
+- **Cadran style**: a second look next to Material, in Settings → General →
+  Appearance. Cadran is clean and inspired by iOS: neutral greys, white grouped
+  cards, bold titles, buttons that fade under your finger, iOS-style segments and
+  switches. It keeps your color (as the accent), the dark theme and the text size;
+  red, green and purple keep their meaning. Material stays the default.
 - At launch, a **startup page** (Android, desktop, web): the sundial hand makes
   one turn and settles on the logo, then the app fades in. A tap skips it.
 
@@ -762,6 +767,7 @@ version that brought it and the platforms it exists on.
 | Settings | Theme color | 3.1.0 | All |
 | Settings | Dark theme | 3.7.0 | All |
 | Settings | Text size | 4.1.0 | All |
+| Settings | Cadran style | 4.3.0 | All |
 | Settings | Languages | 3.11.0 | All |
 | Settings | Your data and your manager | 3.0.0 | All |
 | Settings | A copy of your data in a synced folder | 3.10.0 | All |
@@ -782,6 +788,7 @@ you press "Save").
 | Category | Section | Settings | Default |
 |---|---|---|---|
 | General | Language | Interface language (System, Français, English, Español, Deutsch, Русский, Italiano) | System |
+| | Appearance | Style (Material or Cadran) | Material |
 | | Appearance | Theme color (suggested, free, or system on Android 12+) | ocean `#2F6FED` |
 | | Appearance | Dark theme (two-state switch) | follows the system |
 | | Appearance | Text size (100, 115, 130 or 150 %) | 100 % |

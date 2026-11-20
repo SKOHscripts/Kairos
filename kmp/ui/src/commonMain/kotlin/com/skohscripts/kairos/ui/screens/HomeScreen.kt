@@ -20,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -75,6 +74,7 @@ import com.skohscripts.kairos.ui.navigation.Destination
 import com.skohscripts.kairos.ui.navigation.TeamDestination
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /** Une fonctionnalité de l'Accueil : icône, titre, phrase, écran qu'elle ouvre. */
 private class Feature(val icon: () -> ImageVector, val title: StringResource, val body: StringResource, val target: GuideTarget)
@@ -142,7 +142,7 @@ fun HomeScreen(
                     KairosTextButton(onClick = onHideNews) { Text(stringResource(Res.string.home_new_hide)) }
                 }
                 news.forEach { card ->
-                    OutlinedCard(onClick = { onOpen(card.target) }, modifier = Modifier.fillMaxWidth()) {
+                    KairosOutlinedCard(onClick = { onOpen(card.target) }, modifier = Modifier.fillMaxWidth()) {
                         ListItem(
                             leadingContent = { Icon(card.icon(), contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                             headlineContent = { Text(stringResource(card.title)) },
@@ -159,7 +159,7 @@ fun HomeScreen(
             }
             Text(stringResource(Res.string.home_features_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
             FEATURES.forEach { feature ->
-                OutlinedCard(onClick = { onOpen(feature.target) }, modifier = Modifier.fillMaxWidth()) {
+                KairosOutlinedCard(onClick = { onOpen(feature.target) }, modifier = Modifier.fillMaxWidth()) {
                     ListItem(
                         leadingContent = { Icon(feature.icon(), contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                         headlineContent = { Text(stringResource(feature.title)) },
@@ -169,7 +169,7 @@ fun HomeScreen(
                     )
                 }
             }
-            OutlinedCard(Modifier.fillMaxWidth()) {
+            KairosOutlinedCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(KairosIcons.Groups, contentDescription = null, tint = MaterialTheme.colorScheme.primary)

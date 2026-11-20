@@ -619,6 +619,10 @@
     <string name="theme_custom_help">Format #RRGGBB, par exemple #2F6FED.</string>
     <string name="text_zoom">Taille du texte</string>
     <string name="text_zoom_help">Agrandit tout le texte de Kairos, en plus de la taille de police du système. 100 % par défaut ; appliqué à « Enregistrer ».</string>
+    <string name="ui_style">Style</string>
+    <string name="ui_style_material">Material</string>
+    <string name="ui_style_cadran">Cadran</string>
+    <string name="ui_style_help">Material : le style d’Android. Cadran : un style épuré inspiré d’iOS, gris neutres, cartes groupées, boutons et interrupteurs à la iOS. Appliqué à « Enregistrer ».</string>
     <string name="theme_system">Couleurs du système</string>
     <string name="theme_preset_honey">Miel</string>
     <string name="theme_preset_ocean">Océan</string>
@@ -1579,6 +1583,8 @@
     <string name="card_darktheme_body">Kairos suit le thème de ton système. L’interrupteur « Thème sombre » de l’Apparence choisit l’autre ; le rebasculer suit à nouveau le système.</string>
     <string name="card_text_zoom_title">Taille du texte</string>
     <string name="card_text_zoom_body">Réglages → Général → Apparence propose une taille du texte : 100 %, 115 %, 130 % ou 150 %. Pratique sur un écran de bureau mis à l’échelle ; sur Android, elle s’ajoute à la taille de police du système.</string>
+    <string name="card_ui_style_title">Style Cadran</string>
+    <string name="card_ui_style_body">Réglages → Général → Apparence propose un second style à côté de Material : Cadran, épuré et inspiré d’iOS (gris neutres, cartes blanches groupées, boutons, segments et interrupteurs à la iOS). Il garde ta couleur, le thème sombre et la taille du texte.</string>
     <string name="card_languages_title">Langues</string>
     <string name="card_languages_body">Kairos parle français, anglais, espagnol, allemand, russe et italien. Il suit la langue de ton système quand elle en fait partie (l’anglais sinon) ; Réglages → Général → Langue en choisit une autre. Les dates, les heures et les nombres la suivent.</string>
     <string name="edit_title_first">Première tâche</string>

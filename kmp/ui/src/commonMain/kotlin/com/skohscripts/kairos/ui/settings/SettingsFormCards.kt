@@ -19,7 +19,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
@@ -171,6 +170,7 @@ import com.skohscripts.kairos.ui.generated.resources.setting_workday_start_help
 import com.skohscripts.kairos.ui.theme.KairosSpacing
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosSwitch
 
 /** Libellé et aide (facultative) d'un champ de [SettingsForm]. */
 private class FieldText(val label: StringResource, val help: StringResource? = null)
@@ -497,7 +497,7 @@ internal fun SettingInput(key: String, value: String, error: FieldError?, onChan
  */
 internal val NUMBER_FIELD_MAX_WIDTH = 320.dp
 
-/** Interrupteur MD3 dont toute la ligne est cliquable (48 dp, lu comme un seul contrôle). */
+/** Interrupteur (`KairosSwitch` : Material 3, ou celui d’iOS en Cadran) dont toute la ligne est cliquable (48 dp, lu comme un seul contrôle). */
 @Composable
 internal fun SwitchRow(checked: Boolean, label: String, onChange: (Boolean) -> Unit) {
     Row(
@@ -505,7 +505,7 @@ internal fun SwitchRow(checked: Boolean, label: String, onChange: (Boolean) -> U
         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(checked, role = Role.Switch, onValueChange = onChange),
     ) {
         Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f).padding(end = 12.dp))
-        Switch(checked = checked, onCheckedChange = null)
+        KairosSwitch(checked = checked)
     }
 }
 

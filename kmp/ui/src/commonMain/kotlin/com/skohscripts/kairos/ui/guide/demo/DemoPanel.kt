@@ -12,7 +12,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +40,7 @@ import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /**
  * Bandeau de la démonstration, sous la barre du haut, hors de la zone défilante : surface neutre et filet (jamais un second
@@ -76,7 +76,7 @@ fun DemoBanner(onExit: () -> Unit) {
 @Composable
 fun DemoPanel(tour: DemoTour, onDoIt: () -> Unit, onMyTurn: () -> Unit, modifier: Modifier = Modifier) {
     val step = tour.step
-    OutlinedCard(modifier.fillMaxWidth().padding(horizontal = KairosSpacing.s, vertical = KairosSpacing.xs)) {
+    KairosOutlinedCard(modifier.fillMaxWidth().padding(horizontal = KairosSpacing.s, vertical = KairosSpacing.xs)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Column(Modifier.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite }, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(

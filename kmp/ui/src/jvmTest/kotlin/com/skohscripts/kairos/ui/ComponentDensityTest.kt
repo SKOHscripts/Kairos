@@ -5,17 +5,22 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 /**
- * Test d'architecture (docs/spec/densite.md § Composants) : les boutons, puces
- * et sélecteurs segmentés de Material 3 ne s'emploient que dans
- * `theme/KairosComponents.kt`. Partout ailleurs, les enveloppes `Kairos*` ;
- * sinon un composant retomberait à la taille nominale (40 dp ou plus) sans
- * que personne le voie. Lit les sources de `commonMain` (le répertoire de
+ * Test d'architecture (docs/spec/densite.md § Composants) : les boutons, puces,
+ * sélecteurs segmentés, cartes à contour et interrupteurs de Material 3 ne
+ * s'emploient que dans `theme/KairosComponents.kt`. Partout ailleurs, les
+ * enveloppes `Kairos*` ; sinon un composant retomberait à la taille nominale
+ * (40 dp ou plus) ou échapperait au style Cadran (docs/spec/style-cadran.md)
+ * sans que personne le voie. Lit les sources de `commonMain` (le répertoire de
  * travail de Gradle est celui du module, comme `StringsParityTest`).
  */
 class ComponentDensityTest {
     private val sources = File("src/commonMain/kotlin")
     private val wrappers = "theme/KairosComponents.kt"
-    private val names = listOf("Button", "OutlinedButton", "FilledTonalButton", "TextButton", "FilterChip", "SingleChoiceSegmentedButtonRow", "SegmentedButton")
+    private val names = listOf(
+        "Button", "OutlinedButton", "FilledTonalButton", "TextButton", "FilterChip", "SingleChoiceSegmentedButtonRow", "SegmentedButton",
+        // Enveloppes à variante Cadran (docs/spec/style-cadran.md) : un appel direct échapperait au style.
+        "OutlinedCard", "Switch",
+    )
     private val group = names.joinToString("|")
 
     /** Appel `Button(` (pas `KairosButton(` ni `IconButton(`), éventuellement qualifié. */

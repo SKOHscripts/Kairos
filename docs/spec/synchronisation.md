@@ -248,7 +248,7 @@ Pur. Une seule définition, utilisée par la réconciliation, la fusion et l'exp
 | `WorkSession` | sa tâche est synchronisée, ou a été supprimée en gardant son identité (fantôme, #193) | — |
 | `Note` | toujours | — |
 | `CalendarSource`, `DayMark` | toujours (les créneaux du téléphone ne sont jamais stockés) | — |
-| `Settings` | champs de planification (liste ci-dessous) | `language`, `themeColor`, `themeMode`, `textZoom`, `updateCheckEnabled`, `timerAlertSound`, `reminders`, `guide`, `team`, `subtaskChain` (#209) |
+| `Settings` | champs de planification (liste ci-dessous) | `language`, `themeColor`, `themeMode`, `uiStyle`, `textZoom`, `updateCheckEnabled`, `timerAlertSound`, `reminders`, `guide`, `team`, `subtaskChain` (#209) |
 | `TeamMember`, `MemberAbsence`, `TeamEvent`, `TeamScenario`, tâche d'équipe, tâche reçue | **jamais** | tout |
 
 - Un champ local d'un enregistrement **déjà présent** garde la valeur locale ; sur un enregistrement qui **arrive**, il prend sa
@@ -712,7 +712,7 @@ Voir la skill `kairos-ecran` ; couleurs par rôles, aucun `Color(0x…)`.
   N > 0) ; rien tant que la base ne synchronise pas et qu'aucun fichier n'est lié. `MergeFileButton` à côté d'« Exporter » et
   d'« Importer », sur toutes les plateformes. `SyncReviewBanner` dans la vue Jour, sous celui du fichier lié. `SyncMergeMessages`
   dans la coquille.
-- **« À revoir »** : `AlertDialog` défilant, une `OutlinedCard` (12 dp, sans ombre) par élément : titre de l'enregistrement
+- **« À revoir »** : `AlertDialog` défilant, une `KairosOutlinedCard` (12 dp, sans ombre) par élément : titre de l'enregistrement
   (« Réglages » pour un réglage), libellé du champ (ceux des fiches : titre, description, priorité, points, échéance, durée, projet,
   type, date programmée, récurrence, heure fixe ; un autre champ garde son nom), « Appliquée : 2 (Android · 8a21, 4/11 07:28) »
   marquée de l'icône `Check`, « Autre valeur : 1 (Windows · 3f9c, …) » de l'icône `History` (jamais la couleur seule). Les valeurs

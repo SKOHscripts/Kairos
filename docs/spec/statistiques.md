@@ -325,7 +325,7 @@ disparue y tombe) : `Profile(type, sessions, minutes, share, lift, peak, reliabl
   environ, un rangement 3 + 1 étirait la dernière, vu sur l'image d'une carte en
   3.7.0). `fillMaxRowHeight()` : les tuiles d'une même ligne ont la même hauteur,
   même quand un libellé passe à la ligne.
-- `Panel` : `OutlinedCard`, icône, titre, phrase de rôle.
+- `Panel` : `KairosOutlinedCard`, icône, titre, phrase de rôle.
 - `BarRow` : libellé (96 dp), piste neutre `surfaceContainerHighest`,
   remplissage **primaire** à bouts arrondis de 4 dp, valeur écrite à
   droite, entre 110 et 200 dp (icône `Warning` si peu fiable) : la piste

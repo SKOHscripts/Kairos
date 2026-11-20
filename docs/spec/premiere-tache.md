@@ -149,7 +149,7 @@ déroutant sans explication.
 - Mise en évidence : contour primaire de 2 dp et défilement jusqu'au champ (`BringIntoViewRequester`) ; une marge constante
   est posée dès qu'un coach est là pour que la fiche ne saute pas d'étape en étape ; jamais la couleur seule : le panneau
   nomme l'étape.
-- Panneau (`CoachPanel`) : `OutlinedCard` sans ombre, non bloquant (le focus et le clavier restent sur la fiche), région
+- Panneau (`CoachPanel`) : `KairosOutlinedCard` sans ombre, non bloquant (le focus et le clavier restent sur la fiche), région
   vivante polie (TalkBack annonce l'étape), « Étape n sur N », « Passer le guide » (la fiche reste utilisable, « Terminer »
   à la dernière étape), « Précédent » dès la deuxième, « Suivant ».
 - État : `DayScreen` garde en `rememberSaveable` `creating`, `coachStep` (-1 : coach passé), `placedId`, `congrats`,

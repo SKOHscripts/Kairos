@@ -52,15 +52,21 @@ import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.LocalSystemColorScheme
 import com.skohscripts.kairos.ui.theme.ThemeColors
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.generated.resources.ui_style_material
+import com.skohscripts.kairos.ui.generated.resources.ui_style_help
+import com.skohscripts.kairos.ui.generated.resources.ui_style_cadran
+import com.skohscripts.kairos.ui.generated.resources.ui_style
+import com.skohscripts.kairos.core.settings.UiStyle
 
 /**
- * Apparence (docs/spec/apparence.md) : interrupteur « Thème sombre » à deux états (réglage `themeMode`), pastilles des
+ * Apparence (docs/spec/apparence.md) : style Material ou Cadran (réglage `uiStyle`, docs/spec/style-cadran.md), interrupteur « Thème sombre » à deux états (réglage `themeMode`), pastilles des
  * graines proposées (« Couleurs du système » en tête là où la plateforme en fournit) et champ de couleur libre (réglage
  * `themeColor`), enregistrés avec le reste par « Enregistrer ».
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun AppearanceCard(
+    style: String, onStyleChange: (String) -> Unit,
     mode: String, value: String, error: FieldError?, onModeChange: (String) -> Unit,
     zoom: String, onZoomChange: (String) -> Unit, onChange: (String) -> Unit,
 ) {
@@ -69,6 +75,22 @@ internal fun AppearanceCard(
     val chosen = SettingsForm.normalizeColor(value)
     SettingsCard(spacing = KairosSpacing.m) {
         SettingsCardHeader(KairosIcons.Palette, stringResource(Res.string.settings_section_appearance), stringResource(Res.string.theme_help))
+        // Style (docs/spec/style-cadran.md) : Material ou Cadran, appliqué à « Enregistrer » comme le reste.
+        Column(verticalArrangement = Arrangement.spacedBy(KairosSpacing.xs)) {
+            Text(stringResource(Res.string.ui_style), style = MaterialTheme.typography.labelLarge)
+            val styles = listOf(Settings.UI_STYLE_MATERIAL to Res.string.ui_style_material, Settings.UI_STYLE_CADRAN to Res.string.ui_style_cadran)
+            val current = UiStyle.normalize(style)
+            KairosSegmentedRow(Modifier.fillMaxWidth()) {
+                styles.forEachIndexed { index, (key, label) ->
+                    KairosSegmentedButton(
+                        selected = key == current,
+                        onClick = { onStyleChange(key) },
+                        shape = SegmentedButtonDefaults.itemShape(index, styles.size),
+                    ) { Text(stringResource(label)) }
+                }
+            }
+            Text(stringResource(Res.string.ui_style_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         // Deux états à l'écran (issue #72) : le thème affiché ; le rebasculer vers celui du système revient à le suivre.
         Column {
             SwitchRow(ThemeMode.isDark(mode, systemDark), stringResource(Res.string.theme_dark)) { onModeChange(ThemeMode.toggled(it, systemDark)) }

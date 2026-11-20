@@ -63,6 +63,7 @@ import com.skohscripts.kairos.ui.theme.KairosDefaultTheme
 import com.skohscripts.kairos.ui.theme.KairosTheme
 import com.skohscripts.kairos.ui.theme.LocalSystemColorScheme
 import com.skohscripts.kairos.ui.theme.LocalSystemDark
+import com.skohscripts.kairos.ui.theme.KairosStyle
 import com.skohscripts.kairos.ui.theme.ThemeColors
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -160,7 +161,10 @@ fun KairosApp(
                                 // Noms des calendriers importés : l'origine d'un créneau (docs/spec/connexions-externes.md § Interface).
                                 LocalCalendarNames provides remember(stored.calendarSources) { stored.calendarSources.associate { it.id to it.name } },
                             ) {
-                                KairosTheme(scheme, dark, light) {
+                                // Style (docs/spec/style-cadran.md) : même arborescence dans les deux, l'écran ouvert survit au changement.
+                                val style = KairosStyle.of(settings.uiStyle)
+                                val accent = ThemeColors.accentFor(themeColor, systemColorScheme != null)
+                                KairosTheme(scheme, dark, light, style, accent) {
                                     RealOrDemoShell(
                                         platform, ready, language, initialDestination, initialTeamDestination, initialSecondary,
                                         externalDestination, onExternalDestinationHandled,

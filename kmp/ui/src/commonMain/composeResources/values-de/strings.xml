@@ -617,6 +617,10 @@
     <string name="theme_custom_help">Format #RRGGBB, zum Beispiel #2F6FED.</string>
     <string name="text_zoom">Textgröße</string>
     <string name="text_zoom_help">Vergrößert den gesamten Text in Kairos, zusätzlich zur Schriftgröße des Systems. Standard ist 100 %; wird mit „Speichern“ angewendet.</string>
+    <string name="ui_style">Stil</string>
+    <string name="ui_style_material">Material</string>
+    <string name="ui_style_cadran">Cadran</string>
+    <string name="ui_style_help">Material: der Android-Stil. Cadran: ein schlichter, von iOS inspirierter Stil mit neutralen Grautönen, gruppierten Karten sowie Schaltflächen und Schaltern wie unter iOS. Wird mit „Speichern“ angewendet.</string>
     <string name="theme_system">Systemfarben</string>
     <string name="theme_preset_honey">Honig</string>
     <string name="theme_preset_ocean">Ozean</string>
@@ -1576,6 +1580,8 @@
     <string name="card_darktheme_body">Kairos folgt dem Design deines Systems. Der Schalter „Dunkles Design“ unter Aussehen wählt das andere; schaltest du ihn zurück, folgt Kairos wieder dem System.</string>
     <string name="card_text_zoom_title">Textgröße</string>
     <string name="card_text_zoom_body">Unter Einstellungen → Allgemein → Aussehen gibt es eine Textgröße: 100 %, 115 %, 130 % oder 150 %. Praktisch auf einem skalierten Desktop-Bildschirm; unter Android kommt sie zur Schriftgröße des Systems hinzu.</string>
+    <string name="card_ui_style_title">Cadran-Stil</string>
+    <string name="card_ui_style_body">Einstellungen → Allgemein → Darstellung bietet neben Material einen zweiten Stil: Cadran, schlicht und von iOS inspiriert (neutrale Grautöne, weiße gruppierte Karten, Schaltflächen, Segmente und Schalter wie unter iOS). Deine Farbe, das dunkle Design und die Textgröße bleiben erhalten.</string>
     <string name="card_languages_title">Sprachen</string>
     <string name="card_languages_body">Kairos spricht Deutsch, Englisch, Französisch, Spanisch, Russisch und Italienisch. Es folgt der Systemsprache, wenn sie dazugehört (sonst Englisch); unter Einstellungen → Allgemein → Sprache wählst du eine andere. Datum, Uhrzeit und Zahlen richten sich danach.</string>
     <string name="edit_title_first">Erste Aufgabe</string>
