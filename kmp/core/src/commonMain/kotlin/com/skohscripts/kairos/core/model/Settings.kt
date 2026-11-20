@@ -49,6 +49,8 @@ data class Settings(
     val themeColor: String = DEFAULT_THEME_COLOR,
     /** Thème : [THEME_MODE_SYSTEM] (suit le système), [THEME_MODE_LIGHT] ou [THEME_MODE_DARK] (docs/spec/apparence.md, issue #72). */
     val themeMode: String = THEME_MODE_SYSTEM,
+    /** Style de l'interface : [UI_STYLE_MATERIAL] ou [UI_STYLE_CADRAN], inspiré d'iOS (docs/spec/style-cadran.md). Propre à l'appareil. */
+    val uiStyle: String = UI_STYLE_MATERIAL,
     /** Zoom du texte en pour cent, un palier de `TextZoom.STEPS` (docs/spec/apparence.md § Taille du texte, issue #229). Propre à l'appareil. */
     val textZoom: Int = DEFAULT_TEXT_ZOOM,
     /** Langue de l'interface : [LANGUAGE_SYSTEM] (suit le système) ou l'une des langues de `UiLanguage.SUPPORTED` (docs/spec/i18n.md). */
@@ -143,6 +145,10 @@ data class Settings(
         const val THEME_MODE_SYSTEM = "system"
         const val THEME_MODE_LIGHT = "light"
         const val THEME_MODE_DARK = "dark"
+
+        /** Style de l'interface : Material 3 (par défaut) ou « Cadran », inspiré d'iOS (`UiStyle`). */
+        const val UI_STYLE_MATERIAL = "material"
+        const val UI_STYLE_CADRAN = "cadran"
 
         /** Langue de l'interface : celle du système si elle est traduite, l'anglais sinon (`UiLanguage.SUPPORTED`). */
         const val LANGUAGE_SYSTEM = "system"
