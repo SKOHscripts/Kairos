@@ -139,7 +139,10 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   @pyroMain404), une seule app « Kairos » pour la beta et la stable, remplacement des anciennes entrées « Kairos Preview » des
   copies portables, identité de l'app figée, Android Lint et tableau des tests en CI ; spec de la mise à jour automatique du
   bureau (#249, non implémentée) ; notes `4020099.txt` dans les six langues), première finale du cycle « mineures au fil de
-  l'eau » ; `main` passe ensuite en `4.3.0` par la PR qu'ouvre « Kairos tag ».
+  l'eau » ; `main` passe ensuite en `4.3.0` par la PR qu'ouvre « Kairos tag ». Puis `4.3.0` (`4030099` : style « Cadran »,
+  inspiré d'iOS, au choix à côté de Material, `style-cadran.md`, PR #256, qui porte aussi le passage en `4.3.0` exigé par la
+  vérification « version » ; notes `4030099.txt` dans les six langues). Avant la note, `main` a porté un moment `4.3.1`
+  (`4030199`), posé à la main par erreur et ramené à `4.3.0` : aucune `4.3.0` n'était publiée.
 - Formats acceptés (`AppVersion.parse`) : `X.Y.Z`, `X.Y.Z-alpha.N`,
   `X.Y.Z-beta.N` (préfixe `v` toléré ; `Y`, `Z` ≤ 99 ; `N` de 1 à 499).
 - `versionCode` (`AppVersion.versionCode`), deux formules :

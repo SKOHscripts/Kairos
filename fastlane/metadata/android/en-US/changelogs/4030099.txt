@@ -1,0 +1,1 @@
+Kairos 4.3: a new Cadran style in Settings → Appearance, next to Material, which stays the default. Cadran is a clean, iOS-inspired look: neutral greys, white grouped cards, bold titles, buttons that fade under your finger, iOS-style segments and switches. It keeps your color as the accent, the dark theme and the text size; red, green and purple keep their meaning.
