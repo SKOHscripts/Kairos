@@ -140,6 +140,16 @@ import kotlinx.datetime.toLocalDateTime
 import com.skohscripts.kairos.ui.chrono.AlertBanners
 import com.skohscripts.kairos.ui.chrono.ChronoWatcher
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.NavigationRailItemColors
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.graphics.Color
+import com.skohscripts.kairos.ui.theme.KairosStyle
+import com.skohscripts.kairos.ui.theme.LocalKairosStyle
 
 /**
  * Coquille commune : navigation principale (rail, barre basse ou barre haute
@@ -341,6 +351,12 @@ fun AppShell(
     }
     val topBar: @Composable () -> Unit = {
         TopAppBar(
+            // Cadran (docs/spec/style-cadran.md) : la barre a le fond de la page, comme sur iOS ; Material : celui de la charte.
+            colors = if (LocalKairosStyle.current == KairosStyle.CADRAN) {
+                TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+            } else {
+                TopAppBarDefaults.topAppBarColors()
+            },
             // Deux lignes au plus (sélecteur d'espace à côté, fenêtre étroite) : la barre garde sa hauteur.
             // Avec le sélecteur d'espace dans la barre, le titre garde moins de 120 dp à 360 dp : corps réduit, sinon
             // « Aujourd’hui » et « Statistiques » se coupaient au milieu du mot.
@@ -570,6 +586,7 @@ private fun KairosNavigationRail(
     onNavigate: (NavEntry) -> Unit,
     spaceSelector: (@Composable () -> Unit)?,
 ) {
+    val cadran = LocalKairosStyle.current == KairosStyle.CADRAN
     NavigationRail {
         // En-tête et destinations défilent ensemble : sur une fenêtre basse (téléphone en paysage, 360 dp de haut),
         // les dernières destinations restaient hors d'atteinte sous le bord.
@@ -599,6 +616,7 @@ private fun KairosNavigationRail(
                     onClick = { onNavigate(dest) },
                     icon = { Icon(if (isSelected) dest.selectedIcon() else dest.icon(), contentDescription = null) },
                     label = { Text(stringResource(dest.label)) },
+                    colors = if (cadran) cadranRailItemColors() else NavigationRailItemDefaults.colors(),
                 )
             }
         }
@@ -607,15 +625,21 @@ private fun KairosNavigationRail(
 
 @Composable
 private fun KairosNavigationBar(entries: List<NavEntry>, selected: NavEntry?, onNavigate: (NavEntry) -> Unit) {
-    NavigationBar {
-        entries.forEach { dest ->
-            val isSelected = dest == selected
-            NavigationBarItem(
-                selected = isSelected,
-                onClick = { onNavigate(dest) },
-                icon = { Icon(if (isSelected) dest.selectedIcon() else dest.icon(), contentDescription = null) },
-                label = { Text(stringResource(dest.label)) },
-            )
+    val cadran = LocalKairosStyle.current == KairosStyle.CADRAN
+    // Cadran : la barre d'onglets d'iOS, un séparateur en haut, ni pastille ni élévation.
+    Column {
+        if (cadran) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        NavigationBar(tonalElevation = if (cadran) 0.dp else NavigationBarDefaults.Elevation) {
+            entries.forEach { dest ->
+                val isSelected = dest == selected
+                NavigationBarItem(
+                    selected = isSelected,
+                    onClick = { onNavigate(dest) },
+                    icon = { Icon(if (isSelected) dest.selectedIcon() else dest.icon(), contentDescription = null) },
+                    label = { Text(stringResource(dest.label)) },
+                    colors = if (cadran) cadranBarItemColors() else NavigationBarItemDefaults.colors(),
+                )
+            }
         }
     }
 }
@@ -673,4 +697,30 @@ private fun KairosTopNavigation(entries: List<NavEntry>, selected: NavEntry?, on
             }
         }
     }
+}
+
+/** Onglet d'iOS (docs/spec/style-cadran.md) : sans pastille, l'actif à la couleur d'accent, les autres en gris. */
+@Composable
+private fun cadranBarItemColors(): NavigationBarItemColors {
+    val scheme = MaterialTheme.colorScheme
+    return NavigationBarItemDefaults.colors(
+        selectedIconColor = scheme.primary,
+        selectedTextColor = scheme.primary,
+        indicatorColor = Color.Transparent,
+        unselectedIconColor = scheme.onSurfaceVariant,
+        unselectedTextColor = scheme.onSurfaceVariant,
+    )
+}
+
+/** Même chose pour le rail. */
+@Composable
+private fun cadranRailItemColors(): NavigationRailItemColors {
+    val scheme = MaterialTheme.colorScheme
+    return NavigationRailItemDefaults.colors(
+        selectedIconColor = scheme.primary,
+        selectedTextColor = scheme.primary,
+        indicatorColor = Color.Transparent,
+        unselectedIconColor = scheme.onSurfaceVariant,
+        unselectedTextColor = scheme.onSurfaceVariant,
+    )
 }

@@ -54,6 +54,15 @@ object ThemeColors {
         return seedScheme(rgb, dark)
     }
 
+    /**
+     * Graine de l'accent du style Cadran (docs/spec/style-cadran.md), `0xRRGGBB` : la couleur choisie ; `null` pour les
+     * couleurs du système quand la plateforme en fournit ([systemAvailable]) : l'accent part alors de leur `primary` ; la
+     * graine par défaut (l'océan) sinon, comme [schemeFor].
+     */
+    fun accentFor(themeColor: String, systemAvailable: Boolean): Int? =
+        SettingsForm.parseColor(themeColor)
+            ?: if (themeColor == Settings.SYSTEM_THEME && systemAvailable) null else SettingsForm.parseColor(Settings.DEFAULT_THEME_COLOR)
+
     /** Les 36 rôles MD3 du schéma Tonal spot (spec 2021, contraste standard), clair ou sombre, de la graine [rgb]. */
     fun seedScheme(rgb: Int, dark: Boolean = false): ColorScheme {
         val s = SchemeTonalSpot(

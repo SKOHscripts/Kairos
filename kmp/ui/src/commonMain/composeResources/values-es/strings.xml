@@ -617,6 +617,10 @@
     <string name="theme_custom_help">Formato #RRGGBB, por ejemplo #2F6FED.</string>
     <string name="text_zoom">Tamaño del texto</string>
     <string name="text_zoom_help">Agranda todo el texto de Kairos, además del tamaño de fuente del sistema. 100 % por defecto; se aplica al pulsar «Guardar».</string>
+    <string name="ui_style">Estilo</string>
+    <string name="ui_style_material">Material</string>
+    <string name="ui_style_cadran">Cadran</string>
+    <string name="ui_style_help">Material: el estilo de Android. Cadran: un estilo sobrio inspirado en iOS, con grises neutros, tarjetas agrupadas y botones e interruptores como en iOS. Se aplica al pulsar «Guardar».</string>
     <string name="theme_system">Colores del sistema</string>
     <string name="theme_preset_honey">Miel</string>
     <string name="theme_preset_ocean">Océano</string>
@@ -1576,6 +1580,8 @@
     <string name="card_darktheme_body">Kairos sigue el tema de tu sistema. El interruptor «Tema oscuro» de Apariencia elige el otro; volver a cambiarlo vuelve a seguir el sistema.</string>
     <string name="card_text_zoom_title">Tamaño del texto</string>
     <string name="card_text_zoom_body">Ajustes → General → Apariencia ofrece un tamaño del texto: 100 %, 115 %, 130 % o 150 %. Útil en una pantalla de escritorio con escala; en Android se suma al tamaño de fuente del sistema.</string>
+    <string name="card_ui_style_title">Estilo Cadran</string>
+    <string name="card_ui_style_body">Ajustes → General → Apariencia ofrece un segundo estilo junto a Material: Cadran, sobrio e inspirado en iOS (grises neutros, tarjetas blancas agrupadas, botones, segmentos e interruptores como en iOS). Conserva tu color, el tema oscuro y el tamaño del texto.</string>
     <string name="card_languages_title">Idiomas</string>
     <string name="card_languages_body">Kairos habla español, alemán, ruso, italiano, francés e inglés. Sigue el idioma de tu sistema si es uno de ellos (inglés en caso contrario); Ajustes → General → Idioma permite elegir otro. Las fechas, las horas y los números lo siguen.</string>
     <string name="edit_title_first">Primera tarea</string>

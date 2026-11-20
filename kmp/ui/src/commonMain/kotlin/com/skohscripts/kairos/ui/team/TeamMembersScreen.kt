@@ -62,7 +62,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -108,6 +107,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /**
  * Destination Équipe (docs/spec/equipe.md § Destination Équipe, jalon E2, et
@@ -271,7 +271,7 @@ private fun FormerHeader(count: Int, expanded: Boolean, onToggle: () -> Unit) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun MemberCard(member: TeamMember, absence: MemberAbsence?, today: LocalDate, load: MemberLoad?, onClick: () -> Unit) {
-    OutlinedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -1,6 +1,7 @@
 # Apparence : couleur, thème sombre et taille du texte de Kairos
 
-_Rôle : laisser chacun choisir la couleur dont tout le thème est dérivé, un thème clair ou sombre, et la taille du texte.
+_Rôle : laisser chacun choisir la couleur dont tout le thème est dérivé, un thème clair ou sombre, et la taille du texte (le
+style Material ou Cadran, en tête de la même carte, a sa spec : `style-cadran.md`).
 Fichiers couverts : `kmp/core/.../model/Settings.kt` (`themeColor`, `textZoom`),
 `kmp/core/.../settings/SettingsForm.kt` (champs `themeColor` et `textZoom`, validation), `kmp/core/.../settings/TextZoom.kt`
 (paliers de la taille du texte),
@@ -54,7 +55,7 @@ rôles et règles d'usage de la couleur restent ceux de Material Design 3.
 
 - Par défaut, Kairos **suit le système** : sombre si le téléphone, l'ordinateur ou le navigateur est en sombre, clair
   sinon (une installation existante passe donc en sombre à la mise à jour si son système l'est).
-- Carte **Apparence**, en tête : un interrupteur à **deux états** « Thème sombre », qui montre le thème réellement
+- Carte **Apparence**, après la rangée « Style » (Material ou Cadran, `style-cadran.md`) : un interrupteur à **deux états** « Thème sombre », qui montre le thème réellement
   affiché. Le basculer vers l'inverse de ce que fait le système **choisit** ce thème ; le rebasculer vers ce que fait le
   système revient à **suivre le système** (logique de l'issue, d'après Lea Verou : pas de troisième état « Système » à
   l'écran). Une ligne dessous le dit : « Suit le système. » ou « Choisi ici : rebascule-le pour suivre à nouveau le
@@ -271,7 +272,8 @@ de lui, tout ce qui ne dépend pas des réglages est à l'océan par défaut :
 
 ### Carte Apparence (`ui/settings/AppearanceCard.kt`)
 
-- `OutlinedCard` comme les autres sections : titre, aide, interrupteur « Thème sombre » (`SwitchRow`, ligne
+- `SettingsCard` comme les autres sections : titre, aide, rangée « Style » (réglage `uiStyle`, `style-cadran.md` § Carte
+  Apparence), interrupteur « Thème sombre » (`SwitchRow`, ligne
   `toggleable` entière, état coché = `ThemeMode.isDark(valeur du formulaire, isSystemInDarkTheme())`, ligne d'aide
   selon que la valeur est `system` ou non), pastilles (`FlowRow`), champ `OutlinedTextField` du réglage `themeColor`.
 - Pastille : disque de 36 dp de la couleur de la graine dans une cible de

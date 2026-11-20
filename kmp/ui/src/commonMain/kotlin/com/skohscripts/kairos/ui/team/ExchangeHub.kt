@@ -17,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -70,6 +69,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /**
  * Onglet « Échanges » de l'écran Équipe (docs/spec/equipe-echanges.md § Onglet « Échanges ») : tout ce qui concerne
@@ -93,7 +93,7 @@ fun ExchangeHub(services: AppServices, onOpenMember: (Long) -> Unit, onTour: () 
             verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
             modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(KairosSpacing.l),
         ) {
-            OutlinedCard(Modifier.fillMaxWidth()) {
+            KairosOutlinedCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(Res.string.hub_how_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.heading())
                     listOf(Res.string.hub_step_1, Res.string.hub_step_2, Res.string.hub_step_3, Res.string.hub_step_4).forEachIndexed { i, step ->
@@ -151,7 +151,7 @@ private val NoStartPadding = PaddingValues(start = 0.dp, end = 12.dp)
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun MemberExchangeCard(row: MemberExchange, onOpen: () -> Unit, onSend: () -> Unit) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             KairosTextButton(onClick = onOpen, contentPadding = NoStartPadding) {
                 Text(row.member.name, style = MaterialTheme.typography.titleMedium)

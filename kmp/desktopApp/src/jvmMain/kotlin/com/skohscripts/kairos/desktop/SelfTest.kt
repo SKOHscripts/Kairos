@@ -96,6 +96,9 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import org.jetbrains.skia.EncodedImageFormat
 import java.io.File
+import com.skohscripts.kairos.ui.theme.KairosStyle
+import com.skohscripts.kairos.core.model.Settings
+import com.skohscripts.kairos.ui.theme.ThemeColors
 
 /** Un petit agenda d'exemple autour de [today] : réunion hebdomadaire, atelier provisoire, annulé, séminaire de deux jours. */
 private fun sampleCalendar(today: kotlinx.datetime.LocalDate): String {
@@ -392,6 +395,24 @@ object SelfTest {
         val weekRecap: @Composable () -> Unit = { KairosTheme { Surface { WeekScreen(hoursServices, NavState()) {} } } }
         val month: @Composable () -> Unit = { KairosTheme { Surface { MonthScreen(services, NavState().apply { monthMode = true }) {} } } }
         val stats: @Composable () -> Unit = { KairosTheme { Surface { StatsScreen(timed) } } }
+        // Style Cadran (docs/spec/style-cadran.md) : bases d'exemple réglées en Cadran (une avec un chrono en marche, une avec
+        // des sessions pour les Stats, une avec l'espace Équipe), en clair et en sombre.
+        fun cadran(base: AppServices): AppServices = base.also { s ->
+            runBlocking { s.repository.updateSettings(s.repository.snapshot.value.settings.copy(uiStyle = Settings.UI_STYLE_CADRAN)) }
+        }
+        val cadranServices = cadran(runBlocking { DesktopServices.open(dataDir, inMemory = true) })
+        val cadranTimed = cadran(runBlocking {
+            DesktopServices.open(dataDir, inMemory = true).also { s ->
+                s.repository.snapshot.value.tasks.firstOrNull { !it.needsProcessing(s.repository.snapshot.value.settings.typeRequired) }?.let { s.repository.startTimer(it.id) }
+            }
+        })
+        fun inCadran(s: AppServices, dark: Boolean = false, destination: Destination = Destination.DAY, secondary: Secondary? = null, team: TeamDestination = TeamDestination.HOME): @Composable () -> Unit =
+            { KairosApp(Platform.DESKTOP, destination, team, secondary, systemDark = dark) { s } }
+        fun cadranSettings(dark: Boolean): @Composable () -> Unit = {
+            KairosTheme(ThemeColors.schemeFor(Settings.DEFAULT_THEME_COLOR, null, dark), dark, style = KairosStyle.CADRAN, accent = 0x2F6FED) {
+                Surface { SettingsScreen(cadranServices, remember { SettingsNav().apply { this.category = SettingsCategory.GENERAL } }) {} }
+            }
+        }
         // Thème sombre (docs/spec/apparence.md § Thème sombre, issue #72) : système en sombre, rien de réglé.
         fun dark(s: AppServices, destination: Destination = Destination.DAY, secondary: Secondary? = null, team: TeamDestination = TeamDestination.HOME): @Composable () -> Unit =
             { KairosApp(Platform.DESKTOP, destination, team, secondary, systemDark = true) { s } }
@@ -464,6 +485,19 @@ object SelfTest {
             Shot("stats", 1200, 1600, stats),
             Shot("stats-hours", 1200, 2600, hoursStats),
             Shot("stats-hours-narrow", 360, 4200, hoursStats),
+            Shot("cadran", 1200, 1000, inCadran(cadranServices)),
+            Shot("cadran-full", 1200, 3000, inCadran(cadranServices)),
+            Shot("cadran-narrow", 420, 1600, inCadran(cadranServices)),
+            Shot("cadran-chrono", 1200, 1000, inCadran(cadranTimed)),
+            Shot("cadran-dark", 1200, 1000, inCadran(cadranTimed, dark = true)),
+            Shot("cadran-dark-narrow", 420, 1600, inCadran(cadranServices, dark = true)),
+            Shot("cadran-home", 1200, 1000, inCadran(cadranServices, destination = Destination.HOME)),
+            Shot("cadran-week", 1200, 1000, inCadran(cadranServices, destination = Destination.WEEK)),
+            Shot("cadran-stats", 1200, 1600, inCadran(cadranTimed, destination = Destination.STATS)),
+            Shot("cadran-notes", 900, 1000, inCadran(cadranServices, destination = Destination.NOTES)),
+            Shot("cadran-settings", 1200, 1000, inCadran(cadranServices, secondary = Secondary.SETTINGS)),
+            Shot("cadran-settings-general", 420, 1800, cadranSettings(dark = false)),
+            Shot("cadran-settings-general-dark", 420, 1800, cadranSettings(dark = true)),
             Shot("dark", 1200, 1000, dark(services)),
             Shot("dark-narrow", 420, 1600, dark(services)),
             Shot("dark-chrono", 1200, 1000, dark(timed)),

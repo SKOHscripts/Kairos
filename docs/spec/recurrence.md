@@ -307,7 +307,7 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
 - **Interface** (`ui/day/`) : `SkippedSeriesNotice(series, onRecreate, onIgnore)`, un par série, dans la liste paresseuse de
   `DayScreen` (clé `skipped-<clé de série>`), entre `capture` et `inbox-title`, **seulement si `day == today`**.
   `DayScreen` calcule `Recurrence.skippedSeries(snapshot.tasks, today, settings.recurrence?.skipIgnored.orEmpty())` sur
-  `personalSnapshot`, mémorisé sur les tâches, le jour et ce réglage. Composant : `OutlinedCard` (contour, ni remplissage
+  `personalSnapshot`, mémorisé sur les tâches, le jour et ce réglage. Composant : `KairosOutlinedCard` (contour, ni remplissage
   ni ombre : le bloc teinté de l'écran reste « Maintenant »), `FlowRow` d'une icône `Repeat` décorative, du texte
   (`bodyMedium`) puis deux `TextButton` « Les recréer » / « Ignorer ». Les messages passent par `LocalUndoMessages`
   (`action_revert`), comme « Déplacer… » et le saut d'un créneau. La série est recalculée dans la transaction : si plus

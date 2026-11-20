@@ -13,7 +13,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,6 +36,7 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.theme.KairosButton
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /**
  * Invitation à l'accompagnement de la première tâche (docs/spec/premiere-tache.md § Déclenchement), sur la vue Jour tant que
@@ -45,7 +45,7 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun FirstTaskInvite(onStart: () -> Unit, onDismiss: () -> Unit) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(KairosIcons.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)

@@ -206,10 +206,10 @@ au lieu d'être réparti entre la fiche du membre et les Réglages.
 - **`HomeScreen`** (`ui/screens/HomeScreen.kt`) : destination `HOME`, colonne défilante de
   720 dp au plus, centrée, comme `AboutScreen`. Logo 56 dp + nom + devise ;
   **l'unique bloc teinté** : carte `primaryContainer` (élévation 0) « À quoi
-  sert Kairos ? » ; six `OutlinedCard(onClick)` + `ListItem` (icône primaire,
+  sert Kairos ? » ; six `KairosOutlinedCard(onClick)` + `ListItem` (icône primaire,
   titre, phrase, `ChevronRight`, fond transparent) pour Capturer (Notes),
   Qualifier (Jour), Faire dans l'ordre (Jour), Suivre le temps (Jour), Voir la
-  semaine (Semaine), Mesurer (Stats) ; une `OutlinedCard` « Travailler en
+  semaine (Semaine), Mesurer (Stats) ; une `KairosOutlinedCard` « Travailler en
   équipe » (icône `Groups`, les deux rôles, bouton « Ouvrir l’espace
   Équipe » si `teamModeEnabled`, sinon « Ouvrir les Réglages ») ; en bas,
   « Visite guidée » (`Button`), « Visite de l’espace Équipe »
@@ -283,7 +283,7 @@ au lieu d'être réparti entre la fiche du membre et les Réglages.
   export, réglages), pas sur le texte. Faire connaître l'espace Équipe, et
   surtout le circuit « mon manager m'envoie un fichier » à un membre qui n'a
   pas activé l'espace (qui ne verrait sinon jamais le bouton), est le but de
-  l'Accueil. La carte est une seule `OutlinedCard`, sans donnée.
+  l'Accueil. La carte est une seule `KairosOutlinedCard`, sans donnée.
 - **Titre « À quoi sert Kairos ? »** (et non « Pourquoi Kairos ? ») pour ne
   pas se confondre avec la carte « Pourquoi « Kairos » ? » (l'origine du
   nom) de « À propos et guide ».

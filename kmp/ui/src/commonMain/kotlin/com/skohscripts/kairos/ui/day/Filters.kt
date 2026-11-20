@@ -29,7 +29,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,6 +58,7 @@ import com.skohscripts.kairos.ui.generated.resources.points_label
 import com.skohscripts.kairos.ui.generated.resources.priority_label
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /**
  * « Rechercher / filtrer » (`_kairos_filters.html`) : repliée par défaut,
@@ -77,7 +77,7 @@ internal fun FilterCard(
     searchFocus: FocusRequester,
     showShortcuts: Boolean,
 ) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(Modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),

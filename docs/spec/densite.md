@@ -78,6 +78,10 @@ champs à contour).
 
 ### Composants (`theme/KairosComponents.kt`)
 
+- Chaque enveloppe a une variante **Cadran** (`style-cadran.md` § Composants) aux mêmes hauteurs dessinées et aux mêmes cibles
+  de 48 dp, sauf les segmentés : rail de 32 dp dessinés (au lieu de 40) dans une rangée de 48 dp. `KairosSwitch` et
+  `KairosOutlinedCard` s'y ajoutent ; `ComponentDensityTest` interdit aussi `OutlinedCard` et `Switch` hors des enveloppes.
+
 - Enveloppes minces des boutons Material 3 : `KairosButton`,
   `KairosOutlinedButton`, `KairosTonalButton`, `KairosTextButton`. Mêmes
   paramètres que les originaux (le contenu est un `RowScope`) ; elles posent
@@ -129,8 +133,8 @@ champs à contour).
   fusion.
 - `ComponentDensityTest` (ui) lit `src/commonMain/kotlin` depuis le
   répertoire du module, comme `StringsParityTest`, ignore commentaires et
-  KDoc, et refuse les appels et imports directs des sept composants Material
-  3 (qualifiés ou `material3.*` compris) hors `KairosComponents.kt` ;
+  KDoc, et refuse les appels et imports directs des neuf composants Material
+  3 (les sept boutons, puces et segmentés, plus `OutlinedCard` et `Switch` depuis le style Cadran ; qualifiés ou `material3.*` compris) hors `KairosComponents.kt` ;
   `ComponentDensityUiTest` (desktopApp) mesure 36 / 32 / 40 / 40 dp dessinés
   et 48 dp d'aire tactile.
 
@@ -172,7 +176,7 @@ champs à contour).
   tuiles, panneaux), pas aux contrôles ni aux pastilles : une carte à contour
   ne contient pas d'autre bloc à contour ; dans une carte « filled », les
   sous-blocs sont « filled » plus clairs ou sans fond. Audit des
-  `OutlinedCard` hors Réglages : un seul cas, la tuile « à surveiller » du
+  `KairosOutlinedCard` hors Réglages : un seul cas, la tuile « à surveiller » du
   panneau « Flux » des Statistiques, qui passe sans contour sur
   `surfaceContainerHigh` dans le panneau (`StatTile(nested = true)`, l'icône
   d'alerte reste). Laissés avec contour : badges et pastilles « à

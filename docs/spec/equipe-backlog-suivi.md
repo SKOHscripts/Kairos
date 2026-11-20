@@ -340,7 +340,7 @@ est chaque sujet, avec l'historique de ce qui s'est passé.
   cours ? », Oui / Non ; fermer annule).
 - `TeamBoardScreen(services)` : quatre `StatTile` (rendu `internal` dans
   `StatsScreen.kt`), filtres catégorie, membre, « Seulement à surveiller » ;
-  une `OutlinedCard` repliable par membre (nom, badge « moi », quotité,
+  une `KairosOutlinedCard` repliable par membre (nom, badge « moi », quotité,
   en-cours, signal « Trop d'en-cours (4/3) ») ; états en colonnes à partir
   de 840 dp de **contenu**, en sections empilées en dessous. Carte de tâche
   **pleine** (`surfaceContainerLow`) dans la ligne en contour, pour éviter

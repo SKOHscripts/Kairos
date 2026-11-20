@@ -24,7 +24,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -92,6 +91,7 @@ import com.skohscripts.kairos.ui.team.rememberComputed
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /**
  * Prévisions (docs/spec/equipe-simulation.md § Interface) : choix du périmètre et du modèle, options repliables,
@@ -244,7 +244,7 @@ private fun OptionsCard(spec: ForecastSpec, snapshot: KairosSnapshot, onChange: 
         if (effort && spec.options.includeBacklog) add(stringResource(Res.string.forecast_options_summary_backlog))
         if (effort && spec.options.capacityRandomness) add(stringResource(Res.string.forecast_options_summary_capacity))
     }.joinToString(" · ")
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(Modifier.fillMaxWidth()) {
         Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -286,7 +286,7 @@ private fun Hint(text: String) {
 /** Progression d'un calcul : indéterminée pendant la préparation, puis « 3 200 / 5 000 tirages » ; « Arrêter » garde ce qui est fait. */
 @Composable
 internal fun Progress(runner: ForecastController, language: String) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             when (val phase = runner.phase) {
                 RunPhase.Idle -> Unit

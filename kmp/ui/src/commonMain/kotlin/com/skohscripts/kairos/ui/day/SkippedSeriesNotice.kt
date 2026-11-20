@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,6 +30,7 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.theme.KairosSpacing
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /**
  * Avis des mois sautés d'une série « le N du mois » (docs/spec/recurrence.md § Avis des mois sautés, issue #111) : une ligne
@@ -49,7 +49,7 @@ fun SkippedSeriesNotice(series: SkippedSeries, onRecreate: () -> Unit, onIgnore:
     val recreate = stringResource(if (one) Res.string.skipped_recreate_one else Res.string.skipped_recreate_many)
     val recreateFor = stringResource(if (one) Res.string.skipped_recreate_for_one else Res.string.skipped_recreate_for_many, series.title)
     val ignoreFor = stringResource(Res.string.skipped_ignore_for, series.title)
-    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(modifier = Modifier.fillMaxWidth()) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(KairosSpacing.s),
             itemVerticalAlignment = Alignment.CenterVertically,

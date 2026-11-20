@@ -94,6 +94,9 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
 
 ### Thème (`theme/`)
 
+- Deux styles : Material (tout ce qui suit) et Cadran, inspiré d'iOS, au choix dans Apparence (`KairosStyle`,
+  `CadranTheme.kt`, `style-cadran.md`, qui décrit aussi les couleurs Cadran de la barre basse, du rail et de la barre haute).
+
 - `KairosColors.kt` (**généré** par `tools/make_theme.py`) : `lightColorScheme`
   des 36 rôles MD3, schéma *Tonal spot*, spec 2021, contraste standard, graine
   `#2F6FED` (l'océan ; le miel `#C28417` jusqu'au 2026-10-27, changé le 2026-10-27 : l'océan remplace le miel comme graine
@@ -262,7 +265,7 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
 - `HomeScreen` : la page « Accueil » (`accueil.md`), composée par `AppShell`
   (`home`) pour les deux espaces.
 - `SettingsScreen` (`reglages.md` : formulaire complet, carte Données, carte
-  « À propos et guide » en `OutlinedCard` + `ListItem`, icône `Info`,
+  « À propos et guide » en `KairosOutlinedCard` + `ListItem`, icône `Info`,
   chevron) : écran secondaire `Secondary.SETTINGS`, composé par `AppShell`.
 - `AboutScreen` : colonne défilante de 720 dp au plus, centrée. Logo 56 dp +
   nom + devise ; phrase d'introduction ; trois cartes « filled »

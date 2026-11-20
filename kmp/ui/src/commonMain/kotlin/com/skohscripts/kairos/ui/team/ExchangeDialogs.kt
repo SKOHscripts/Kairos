@@ -19,7 +19,6 @@ import com.skohscripts.kairos.ui.theme.KairosSegmentedButton
 import com.skohscripts.kairos.ui.theme.KairosSegmentedRow
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedCard
 import com.skohscripts.kairos.core.team.exchange.ReportProposal
 import com.skohscripts.kairos.core.team.exchange.ProposalState
 import com.skohscripts.kairos.core.team.exchange.ProposalDecision
@@ -142,6 +141,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 // Aperçus de réception d'un paquet et d'intégration d'un rapport (docs/spec/equipe-echanges.md § Interface).
 // Le bouton « Importer » des Réglages lit le fichier, en reconnaît le format (`TeamExchangeCodec.detect`) et, pour un
@@ -588,7 +588,7 @@ private fun Line(text: String, detail: String = "") {
 private fun ProposalCard(proposal: ReportProposal, decisions: MutableMap<String, ProposalDecision>) {
     var title by remember(proposal.uid) { mutableStateOf(proposal.title) }
     val decision = decisions[proposal.uid]
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 title,

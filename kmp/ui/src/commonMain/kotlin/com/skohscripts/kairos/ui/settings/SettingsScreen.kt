@@ -249,6 +249,7 @@ fun SettingsScreen(services: AppServices, nav: SettingsNav = remember { Settings
                         LanguageCard(values["language"].orEmpty()) { onChange("language", it) }
                         GuideSpot(GuideSection.SETTINGS_APPEARANCE) {
                             AppearanceCard(
+                                values["uiStyle"].orEmpty(), { onChange("uiStyle", it) },
                                 values["themeMode"].orEmpty(), values["themeColor"].orEmpty(), errors["themeColor"],
                                 onModeChange = { onChange("themeMode", it) },
                                 zoom = values["textZoom"].orEmpty(), onZoomChange = { onChange("textZoom", it) },

@@ -46,6 +46,15 @@ domaine.
   transposée telle quelle en Compose ; les rôles, formes et règles d'usage de
   la couleur ne changent pas, seuls les composants deviennent ceux de
   Material 3.
+- **Second style, « Cadran »** (2026-11-20, décision du propriétaire, qui rouvre
+  « Material 3 uniquement ») : un style épuré inspiré d'iOS, au choix dans
+  Réglages → Général → Apparence. Material reste le style **par défaut** et la
+  référence de cette charte ; Cadran en garde les règles d'usage de la couleur,
+  la densité et les cibles de 48 dp, et ne change que le schéma (gris d'iOS,
+  accent tiré de la graine), les formes, les graisses et le dessin des
+  composants enveloppés (`docs/spec/style-cadran.md`). Un composant passe donc
+  par les enveloppes `Kairos*` et ses rôles, jamais par une valeur propre à un
+  style.
 
 ## Couleurs
 
@@ -318,7 +327,8 @@ invariants visuels à garder :
 ## Contraintes transverses
 
 - Composants Material 3 de Compose uniquement, dépendances libres ; aucune
-  bibliothèque de composants tierce.
+  bibliothèque de composants tierce. Le style Cadran dessine ses variantes
+  dans les enveloppes de `KairosComponents.kt` (`docs/spec/style-cadran.md`).
 - Cibles tactiles ≥ 48 dp pour les contrôles à un toucher
   (`docs/spec/accessibilite.md`) ; aucun défilement horizontal sur un
   téléphone (~360 dp de large), vérifié sur les captures des magasins.

@@ -348,7 +348,7 @@ une ».
   donc au changement de destination ; modèle (bouton segmenté ; « Par
   débit » désactivé avec les chiffres — semaines actives requises et
   trouvées — et repli sur « Par effort » si l'historique devient
-  insuffisant) ; options dans une `OutlinedCard` repliable ; bouton
+  insuffisant) ; options dans une `KairosOutlinedCard` repliable ; bouton
   primaire plein « Lancer la simulation ».
 - Panneaux (`Panel`) : **Date de fin** (P50, P85, P95 en phrase, jamais une
   date seule ; `Histogram` : une barre `Box` primaire par semaine, créneau

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -106,6 +105,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Instant
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /*
  * Interface de la synchronisation (docs/spec/synchronisation.md § Interface) : section de la carte Données, bandeau
@@ -307,7 +307,7 @@ fun SyncReviewDialog(services: AppServices, onDismiss: () -> Unit) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ReviewCard(item: SyncReviewItem, d: SyncData?, repository: KairosRepository, scope: kotlinx.coroutines.CoroutineScope) {
-    OutlinedCard(shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             val title = if (item.ref == null) stringResource(Res.string.sync_review_settings) else item.title.ifEmpty { "—" }
             Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.semantics { heading() })

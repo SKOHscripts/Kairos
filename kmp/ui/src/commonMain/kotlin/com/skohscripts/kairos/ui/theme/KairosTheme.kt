@@ -5,7 +5,12 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.material3.LocalRippleConfiguration
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
@@ -103,23 +108,43 @@ val LocalLightColorScheme = staticCompositionLocalOf { KairosLightColors }
 /**
  * Thème Kairos, clair ou sombre ([dark], docs/spec/apparence.md § Thème sombre), du schéma de la charte (océan) par
  * défaut ou de celui de la couleur choisie (`ThemeColors.schemeFor`) ; [light] : le schéma clair de la même graine,
- * exposé par [LocalLightColorScheme].
+ * exposé par [LocalLightColorScheme]. [style] : Material (la charte) ou Cadran, inspiré d'iOS (docs/spec/style-cadran.md),
+ * dont l'accent part de la graine [accent] (`0xRRGGBB`, `null` : le `primary` de [colorScheme]).
+ *
+ * Une seule arborescence pour les deux styles : en changer ne recrée pas l'écran ouvert, seuls les `CompositionLocal`
+ * changent.
  */
 @Composable
 fun KairosTheme(
     colorScheme: ColorScheme = KairosLightColors,
     dark: Boolean = false,
     light: ColorScheme = if (dark) KairosLightColors else colorScheme,
+    style: KairosStyle = KairosStyle.MATERIAL,
+    accent: Int? = null,
     content: @Composable () -> Unit,
 ) {
+    val cadran = style == KairosStyle.CADRAN
+    val scheme = if (cadran) remember(colorScheme, accent, dark) { CadranTheme.scheme(colorScheme, accent, dark) } else colorScheme
+    val material = kairosTypography()
+    val typography = if (cadran) remember(material) { CadranTheme.typography(material) } else material
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = kairosTypography(),
-        shapes = KairosShapes,
+        colorScheme = scheme,
+        typography = typography,
+        shapes = if (cadran) CadranTheme.shapes else KairosShapes,
     ) {
-        androidx.compose.runtime.CompositionLocalProvider(
-            LocalKairosExtraColors provides if (dark) KairosExtraColors.dark() else KairosExtraColors(),
+        val extra = when {
+            cadran -> CadranTheme.extraColors(dark)
+            dark -> KairosExtraColors.dark()
+            else -> KairosExtraColors()
+        }
+        CompositionLocalProvider(
+            LocalKairosExtraColors provides extra,
             LocalLightColorScheme provides light,
+            LocalKairosStyle provides style,
+            // Cadran : voile gris d'iOS sur les éléments cliquables, onde neutre (sans teinte) pour les composants
+            // Material restants, qui sans elle n'auraient plus de retour au toucher, au survol ni au focus.
+            LocalIndication provides if (cadran) CadranHighlight else LocalIndication.current,
+            LocalRippleConfiguration provides if (cadran) RippleConfiguration(color = scheme.onSurface) else LocalRippleConfiguration.current,
             content = content,
         )
     }
@@ -128,4 +153,4 @@ fun KairosTheme(
 /** Le thème par défaut (océan), clair ou sombre comme le système : avant que les réglages soient lus. */
 @Composable
 fun KairosDefaultTheme(dark: Boolean, content: @Composable () -> Unit) =
-    KairosTheme(if (dark) KairosDarkColors else KairosLightColors, dark, KairosLightColors, content)
+    KairosTheme(if (dark) KairosDarkColors else KairosLightColors, dark, KairosLightColors, content = content)

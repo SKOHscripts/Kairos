@@ -28,7 +28,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -107,6 +106,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
+import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
 
 /** Au-delà, les trois états d'une ligne de membre sont des colonnes côte à côte ; en dessous, des sections empilées. */
 private val COLUMNS_FROM = 840.dp
@@ -259,7 +259,7 @@ private fun LaneCard(
     onLaunch: (suspend () -> Unit) -> Unit,
 ) {
     val member = lane.member
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    KairosOutlinedCard(Modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth().disclosure(expanded, heading = true, onToggle = onToggle).padding(horizontal = 16.dp, vertical = 8.dp),
