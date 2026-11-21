@@ -534,6 +534,8 @@ Fichiers : `ui/team/SpaceSelector.kt` (sélecteur d'espace), `ui/team/MemberShee
 
 ### Décisions et alternatives écartées
 
+- **Dérangements** (4.5.0, `derangements.md`) : données personnelles, jamais lues par l'espace Équipe ni ses échanges ; une base
+  qui en a reste solo (`Workspaces.hasTeamData`).
 - **Une colonne `space` sur `task` plutôt qu'une table `team_task`** : les
   tâches d'équipe réutilisent tel quel le score WSJF, les dépendances, la
   récurrence, les sous-tâches, le chrono et la fiche d'édition ; et une

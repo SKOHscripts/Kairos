@@ -244,6 +244,9 @@ ligne de tableau dans les deux README (`FeatureCatalogTest`).
 
 ### Décisions et pièges tracés
 
+- **Dérangements** (4.5.0, `derangements.md` § Dérangements attendus) : au-dessus du seuil d'historique, la capacité est brute
+  (chronométré + dérangements) et chaque jour tiré retranche une part de dérangement d'un jour semblable, hors deep work prévu
+  (`ForecastRandom.DOMAIN_INTERRUPTION`) ; sous le seuil, le calcul d'avant.
 - **Mesurer avant d'afficher** (2026-11-11) : l'ordre du commentaire de #232 mettait la date avant la calibration ;
   inversé. Une date bâtie sur des fourchettes non vérifiées hérite de leur erreur sans le dire.
 - **La date solo vient de la file et du temps vécu, pas du plan de la journée** : le plan suppose toute la fenêtre de

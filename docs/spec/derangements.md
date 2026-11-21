@@ -2,17 +2,21 @@
 
 _Rôle : signaler en un geste qu'on vient d'être dérangé, environ combien de temps et par quoi, et en tirer des statistiques
 (combien, combien de temps perdu, quand, d'où) ; le chrono de la tâche en cours est mis en pause après coup, pour que le
-temps des tâches reste leur vrai temps. Fichiers couverts (prévus) : `core/model/Interruption.kt`, `core/engine/Interruptions.kt`
-(découpe de la séance, pur), `core/stats/InterruptionStats.kt`, `data` (table `interruption`, migration, `ExportCodec`,
-`SyncRecords`), `ui/day/NowCard.kt` et `ui/day/InterruptionSheet.kt`, `ui/day/DayScreen.kt` (touche `D`),
-`ui/stats/InterruptionCards.kt`, `ui/recap/RecapCard.kt`, `FeatureCatalog` ; dérangements attendus :
-`core/engine/ExpectedInterruptions.kt` (pur), `Scheduling.buildDaySchedule`, `DayView`, `core/forecast/SoloForecast.kt`. Tests
-(prévus) : `InterruptionsTest`, `InterruptionStatsTest`, `InterruptionMigrationTest`, `InterruptionSyncTest`, `InterruptionUiTest`,
-`TeamIsolationTest`, `ExpectedInterruptionsTest`, `SchedulingInterruptionsTest`, `SoloForecastTest` (étendu)._
+temps des tâches reste leur vrai temps. Fichiers couverts : `core/model/Interruption.kt` (et `KairosSnapshot.interruptions`),
+`core/engine/Interruptions.kt` (découpe de la séance, pur), `core/stats/InterruptionStats.kt`, `core/recap/Recap.kt` (ligne du
+Bilan), `core/sync` (`SyncScope`, `SyncRecords`, `SnapshotMerge`, `SyncReconcile`, `SyncEdit`), `data` (table `interruption`,
+`15.sqm`, `KairosStore.MARKERS`, `Mappers`, `ExportCodec`, `KairosRepository`), `ui/day/NowCard.kt`, `ui/day/InterruptionSheet.kt`
+(dialogues), `ui/day/DayScreen.kt` (touche `D`), `ui/stats/InterruptionCards.kt`, `ui/stats/StatsScreen.kt`,
+`ui/recap/RecapCard.kt`, `KairosIcons.FrontHand` (`make_icons.py`), `FeatureCatalog` (carte `interruptions`) ; dérangements
+attendus : `core/engine/ExpectedInterruptions.kt` (pur), `Scheduling.buildDaySchedule` (paramètre `expected`, `DayStats`),
+`DayView`, `core/forecast/SoloForecast.kt`, `ForecastRandom.DOMAIN_INTERRUPTION`. Tests : `core/.../InterruptionsTest`
+(découpe, isolation), `core/.../ExpectedInterruptionsTest` (taux, seuil, deep work, allongement de la frise, disponible,
+statistiques), `SoloForecastTest` (étendu : pas de double comptage, deep work), `data/.../InterruptionRepositoryTest`
+(transaction, « Annuler », migration, export, synchronisation), `desktopApp/.../InterruptionUiTest`._
 
 État : issue [#272](https://github.com/SKOHscripts/Kairos/issues/272), liée à [#271](https://github.com/SKOHscripts/Kairos/issues/271)
 (plus de durées réelles) et à [#274](https://github.com/SKOHscripts/Kairos/issues/274) (carte « Ta journée », `ta-journee.md`),
-jalon 4.5.0. **Spécifiée le 2026-11-21, non implémentée** ; conception décidée par le propriétaire le même jour.
+jalon 4.5.0. **Spécifiée et implémentée le 2026-11-21** ; conception décidée par le propriétaire le même jour.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -65,14 +69,14 @@ Le **Bilan** de la semaine et du mois (`bilan.md`) ajoute une ligne, seulement s
 2 h 10, surtout des messages, surtout le mardi matin » (source et moment cités seulement s'ils pèsent au moins un tiers).
 
 **Corriger.** Sous la carte, « Dérangements récents » liste ceux de la période (date, heure, durée, source) ; chacun se
-modifie (durée, source) ou se supprime. Modifier ou supprimer **ne retouche pas** les séances déjà découpées : seul l'« Annuler »
+modifie (durée, source) ou se supprime, avec « Annuler ». Modifier ou supprimer **ne retouche pas** les séances déjà découpées : seul l'« Annuler »
 immédiat les rend (le chrono a pu tourner depuis).
 
 **Dérangements attendus : un temps disponible réaliste** (demande du propriétaire du 2026-11-21). Les dérangements passés disent
 ce que les heures à venir vont probablement perdre ; Kairos en tient compte partout où il annonce du temps :
 
 - **Le temps disponible** du jour (« requis … · disponible … », « la journée déborde de … », carte « Ta journée ») retranche
-  les dérangements attendus et dit leur part : « disponible 5 h 40, dont ~45 min de dérangements habituels ».
+  les dérangements attendus et dit leur part : « disponible 5 h 40 (~45 min de dérangements habituels en moins) ».
 - **La frise du jour** : hors deep work, chaque tâche s'allonge du taux de dérangement de ses heures ; les tâches suivantes
   glissent d'autant.
 - **La prévision par tâche** (Monte Carlo, fourchettes P50 / P85, `previsions-taches.md`) tire les dérangements de chaque jour
@@ -162,23 +166,38 @@ dérangement. Filtres de la période : ceux des Stats qui ont un sens ici (péri
 ### Stockage, export, synchronisation (`data`, `core/sync`)
 
 - Table `interruption(id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT NOT NULL, minutes INTEGER NOT NULL, source TEXT,
-  task_id INTEGER, note_id INTEGER, created_at TEXT NOT NULL)`, sans clé étrangère (parti pris de Kairos) ; migration additive
-  suivante (`15.sqm`, schéma 16, si la colonne `counts_as_holidays` de `jours-feries.md` passe avant), marqueur de table dans
-  `KairosStore.MARKERS`.
-- Export : tableau `interruptions` facultatif (absent d'un export d'avant, ignoré par une version d'avant : `ignoreUnknownKeys`).
-- Synchronisation : nouveau genre `RecordKind.INTERRUPTION("interruption")`, champs `at`, `minutes`, `source`, `task` et `note`
-  (références molles par uid, comme les séances).
+  task_id INTEGER, note_id INTEGER, created_at TEXT NOT NULL)` et index sur `at`, sans clé étrangère (parti pris de Kairos) ;
+  migration additive `15.sqm` (schéma 15 → 16), marqueur de table dans `KairosStore.MARKERS`. Les fixtures d'ancien schéma des
+  tests retirent la table.
+- Dépôt : `reportInterruption(minutes, source, note)` écrit en une transaction (séance coupée ou retirée, séance qui reprend,
+  note, dérangement) et rend `ReportedInterruption` ; `undoInterruption` rend la séance d'origine (rouverte ou réinsérée sous son
+  identifiant) et retire note et dérangement ; `updateInterruption`, `deleteInterruption`, `restoreInterruption` (« Annuler »
+  d'une suppression).
+- Export : tableau `interruptions` facultatif, nul (donc omis) tant qu'il n'y en a aucun ; absent d'un export d'avant, ignoré par
+  une version d'avant (`ignoreUnknownKeys`) ; une durée hors de 1 à 240 refuse le fichier.
+- Synchronisation : nouveau genre `RecordKind.INTERRUPTION("interruption")`, **dernier** des genres (ses références, tâche et
+  note, sont construites avant lui), champs `at`, `minutes`, `source`, `taskId` et `noteId` (références molles par uid, comme les
+  séances ; une tâche disparue garde son identité fantôme) ; toujours dans la portée.
 - Isolation : données personnelles ; ni la vue d'équipe ni les échanges ne les lisent (`TeamIsolationTest`).
 
 ### Interface (`ui`)
 
-- `NowCard` : action « Dérangé » (bouton texte, icône à ajouter dans `make_icons.py`), visible avec ou sans chrono.
-- `InterruptionSheet` : panneau (bottom sheet sur téléphone, dialogue sur grand écran), puces de durée et de source (48 dp),
-  case et champ de note ; enregistrement par `KairosRepository.reportInterruption(…)`, une transaction (dérangement, séances,
-  note). Message avec « Annuler » par `LocalUndoMessages`.
-- `DayScreen` : touche `D` (bureau, web ; masquée sur Android, `LocalPlatform`), indiquée à côté du bouton.
-- `InterruptionCards` dans les Stats (carte et liste « Dérangements récents » avec modifier / supprimer) ; ligne du Bilan dans
-  `RecapCard`.
+- `NowCard` : action « Dérangé » (bouton texte, icône `FrontHand`), visible avec ou sans chrono, absente de la démonstration ;
+  à côté du disponible, « (~45 min de dérangements habituels en moins) » quand `DayStats.expectedInterruptionMinutes > 0`.
+- `InterruptionSheet.kt` : `InterruptionDialog`, un **dialogue** sur toutes les tailles, comme le reste de Kairos (aucune
+  bottom sheet dans l'application) ; puces de source (choix facultatif, rechoisir la même la retire) puis de durée
+  (`Interruption.CHOICES` = 2, 5, 15, 30, 60 min, et « Autre… »), 48 dp ; case et champ de note. `InterruptionEditDialog` pour
+  corriger depuis les Stats. Enregistrement par `KairosRepository.reportInterruption(…)`, message « Dérangé 15 min : noté » avec
+  « Annuler » par `LocalUndoMessages` (lancé dans la portée de la coquille).
+- `DayScreen` : touche `D` (bureau, web ; inactive pendant une saisie, avec Ctrl, Cmd ou Alt, et dans la démonstration),
+  indiquée à côté du bouton (`KeyHint`, pas sur Android).
+- `InterruptionCards` sous les cartes des Stats, sur leur période (les semaines de la fenêtre, depuis le lundi) et leurs
+  filtres (un dérangement suit le filtre par sa tâche liée ; sans tâche, il disparaît dès qu'un filtre est actif) : chiffres,
+  barres par heure (de la première à la dernière heure dérangée), par jour et par source, « Dérangements récents » (cinq, puis
+  « Afficher tout ») avec modifier / supprimer. **Hors de l'export** en image ou en CSV des autres cartes (différé). Rien tant
+  qu'aucun dérangement n'a été signalé.
+- Ligne du Bilan (`RecapCard`, et le texte copié) : `Recap.interruptions`, `interruptionSource`, `interruptionMoment` (jour ISO et
+  demi-journée, avant ou après midi, du milieu du dérangement).
 - Textes dans les six langues ; carte du catalogue « Dérangements » ; puce et ligne du README.
 
 ### Décisions et pièges tracés
@@ -203,7 +222,16 @@ dérangement. Filtres de la période : ceux des Stats qui ont un sens ici (péri
 - **Part du temps de travail mesurée** (chrono + dérangements) plutôt que la journée théorique : on ne prête pas un temps de
   travail qu'on n'a pas mesuré.
 
-### Impacts sur les specs existantes (à reporter à l'implémentation)
+- **Dialogue plutôt que bottom sheet** (implémentation, 2026-11-21) : Kairos n'a aucune bottom sheet ; un dialogue Material 3 sur
+  toutes les tailles garde un seul comportement et les mêmes tests.
+- **Carte des Stats hors export** (implémentation, 2026-11-21) : l'export en image et en CSV porte sur les cartes du tableau de
+  bord (`StatsCard`) ; y ajouter les dérangements est différé.
+- **Seuil commun** : la prévision n'utilise les dérangements que si `ExpectedInterruptions.learn` dépasse le seuil (10
+  dérangements, 5 jours actifs) ; au-dessus, la semaine réaliste du Bilan lit aussi la capacité brute.
+- **Le temps saisi d'un dérangement ne touche pas la tâche** : il est rattaché à la tâche dont le chrono tournait (`taskId`), sans
+  rien écrire sur elle.
+
+### Impacts sur les specs existantes (reportés le 2026-11-21)
 
 - `temps-reel-chrono.md` : découpe d'une séance par un dérangement.
 - `ordonnancement.md` : paramètre `rates` de `buildDaySchedule` (frise allongée).

@@ -184,7 +184,7 @@ quotidien), une note, les réglages par défaut de la langue. Identifiants
    appliquées **dans une seule transaction**.
 3. `PRAGMA user_version` = version du schéma.
 
-`actualVersion` teste des marqueurs, du plus récent au plus ancien : colonne `calendar_source.counts_as_holidays` (15), `calendar_connection` (14), `sync_state` (13),
+`actualVersion` teste des marqueurs, du plus récent au plus ancien : table `interruption` (16), colonne `calendar_source.counts_as_holidays` (15), `calendar_connection` (14), `sync_state` (13),
 `migration_mark` (12), `calendar_source` (11), colonne `team_member.week_hours` (10), table `time_block_exception` (9), colonne
 `task.series_id` (8), `task.team_excluded` (7), `task.origin` (6), table `team_scenario` (5),
 `task.progress_percent` (4), table `member_absence` (3), `task.space` (2),
@@ -214,6 +214,7 @@ chaque ouverture (`ThemeColorMigrationTest`).
 Schéma 13 : `12.sqm` ajoute les tables `sync_*` (`synchronisation.md`).
 Schéma 14 : `13.sqm` ajoute la table locale vide `calendar_connection` (`connexions-en-ligne.md`, `ConnectionRepositoryTest`).
 Schéma 15 : `14.sqm` ajoute `calendar_source.counts_as_holidays` (0 par défaut ; `jours-feries.md` § Voie B, `CalendarHolidaysTest`).
+Schéma 16 : `15.sqm` ajoute la table vide `interruption` (dérangements, `derangements.md` § Stockage, `InterruptionRepositoryTest`).
 Les fixtures d'ancien schéma construites depuis le schéma courant retirent aussi cette table ; sinon son marqueur saute les migrations.
 Les
 schémas de référence de chaque version

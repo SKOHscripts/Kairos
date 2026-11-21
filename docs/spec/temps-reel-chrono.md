@@ -397,6 +397,9 @@ est en HTTPS), état relu à chaque notification, autorisation à l'opt-in ;
 
 ### Décisions et pièges tracés
 
+- **Découpe par un dérangement** (4.5.0, `derangements.md` § Découpe de la séance) : signaler un dérangement coupe la séance
+  ouverte à « maintenant − durée » (ou la retire si elle est plus courte) et en ouvre une nouvelle sur la même tâche ; le
+  garde-fou s'applique à celle-ci comme à toute séance.
 - **Restant quand la tâche dérape** (#232) : la carte « En ce moment » dit ce qu'ont pris au total les tâches
   comparables qui ont duré plus longtemps que le temps déjà passé (`Remaining`, `previsions-taches.md` § Étape D).
 

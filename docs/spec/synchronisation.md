@@ -248,6 +248,7 @@ Pur. Une seule définition, utilisée par la réconciliation, la fusion et l'exp
 | `WorkSession` | sa tâche est synchronisée, ou a été supprimée en gardant son identité (fantôme, #193) | — |
 | `Note` | toujours | — |
 | `CalendarSource`, `DayMark` | toujours (les créneaux du téléphone ne sont jamais stockés) | — |
+| `Interruption` | toujours (4.5.0, genre `interruption`, le dernier ; références molles `taskId` et `noteId`, `derangements.md`) | — |
 | `Settings` | champs de planification (liste ci-dessous) | `language`, `themeColor`, `themeMode`, `uiStyle`, `textZoom`, `updateCheckEnabled`, `timerAlertSound`, `reminders`, `guide`, `team`, `subtaskChain` (#209) |
 | `TeamMember`, `MemberAbsence`, `TeamEvent`, `TeamScenario`, tâche d'équipe, tâche reçue | **jamais** | tout |
 

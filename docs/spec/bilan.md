@@ -172,6 +172,8 @@ d'œil, détaillable à la demande.
 
 ### Décisions et pièges tracés
 
+- **Ligne des dérangements** (4.5.0, `derangements.md`) : sous les quatre chiffres et dans le texte copié, seulement s'il y en a
+  sur la période ; source et moment cités s'ils pèsent au moins un tiers.
 - **Une carte à part pour le modèle, pas dans le bilan** (2026-11-11) : le bilan se copie pour une réunion, l'état du
   modèle n'y a pas sa place ; même page, même motif (chiffres, puis détail). Écarté : une section du bilan.
 - **La convergence par reconstruction, pas par un journal** : rien n'enregistre l'erreur du modèle au fil du temps ; la

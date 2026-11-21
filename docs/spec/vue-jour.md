@@ -420,6 +420,8 @@ chaque entrée une case (rôle et état lus par le lecteur d'écran), le champ a
 
 ### Décisions et pièges tracés
 
+- **« Dérangé »** (4.5.0, `derangements.md`) : bouton texte de la carte « Maintenant » et touche `D` ; le disponible dit les
+  dérangements habituels retranchés.
 - **Sous-tâches modifiables depuis la mère** (issue #69, « après la création, aucun
   moyen d'éditer ses enfants ») : une sous-tâche s'ouvrait seule depuis sa ligne
   mais la fiche de la mère ne les montrait pas. Écarté : une liste de liens vers
