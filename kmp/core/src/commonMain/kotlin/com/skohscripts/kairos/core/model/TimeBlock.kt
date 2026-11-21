@@ -42,7 +42,8 @@ sealed interface BlockSource {
 
 /**
  * Un calendrier importé : son nom (il l'identifie : réimporter sous ce nom le remplace), le choix « Masquer les titres »
- * du dernier import, et la date de ce dernier import.
+ * du dernier import, et la date de ce dernier import. [countsAsHolidays] : ses journées entières comptent comme fériés
+ * (docs/spec/jours-feries.md § Voie B).
  */
 data class CalendarSource(
     val id: Long,
@@ -50,6 +51,7 @@ data class CalendarSource(
     val hideTitles: Boolean = false,
     val importedAt: Instant,
     val createdAt: Instant,
+    val countsAsHolidays: Boolean = false,
 )
 
 /**

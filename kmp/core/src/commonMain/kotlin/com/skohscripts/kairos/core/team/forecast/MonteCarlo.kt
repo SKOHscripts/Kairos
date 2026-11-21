@@ -237,7 +237,7 @@ class MonteCarlo private constructor(
             } else {
                 ThroughputModel(
                     day = day,
-                    holidays = Workdays.holidaysFor(day, settings.holidayCountryCode, settings.extraHolidays),
+                    holidays = Workdays.holidaysFor(day, snapshot),
                     history = request.data.throughputOf(memberScope),
                     memberKey = memberScope ?: 0L,
                     seed = request.seed,
