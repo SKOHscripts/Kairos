@@ -63,7 +63,7 @@ class DefaultOnlineConnections(
         }
     }
 
-    override suspend fun addIcs(preview: IcsPreviewResult.Ready, name: String, hideTitles: Boolean): Long? = mutations.withLock {
+    override suspend fun addIcs(preview: IcsPreviewResult.Ready, name: String, hideTitles: Boolean, holidays: Boolean): Long? = mutations.withLock {
         if (name.isBlank()) return@withLock null
         val instant = now()
         backups.save("avant-import-${instant.toEpochMilliseconds()}.json", ExportCodec.encode(repository.snapshot.value, KairosBuild.VERSION_NAME, instant))
@@ -73,7 +73,7 @@ class DefaultOnlineConnections(
                 CalendarConnection(0, ConnectionKind.URL, host = preview.host, lastAttemptAt = instant, lastSyncAt = instant,
                     etag = preview.etag, plannedOn = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date.toString(),
                     insecureConfirmed = preview.insecure, redirectHost = preview.redirectHost), instant,
-                beforeCommit = { id -> secretId = id; secrets.put("url:$id", preview.url) })
+                beforeCommit = { id -> secretId = id; secrets.put("url:$id", preview.url) }, holidays = holidays)
         } catch (e: Throwable) {
             secretId?.let { secrets.delete("url:$it") }
             throw e

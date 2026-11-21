@@ -90,6 +90,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
     var failureHost by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
     var hideTitles by rememberSaveable { mutableStateOf(false) }
+    var holidays by rememberSaveable { mutableStateOf(false) }
     var preview by remember { mutableStateOf<IcsPreviewResult.Ready?>(null) }
     var busy by remember { mutableStateOf(false) }
     fun close() {
@@ -123,6 +124,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                     val source = snapshot.calendarSources.firstOrNull { it.id == replacing }
                     name = source?.name ?: result.name
                     hideTitles = source?.hideTitles ?: ImportedCalendars.named(snapshot, name)?.hideTitles ?: false
+                    holidays = source?.countsAsHolidays ?: ImportedCalendars.named(snapshot, name)?.countsAsHolidays ?: false
                 }
                 phase = "preview"
                 confirmationKind = null
@@ -254,6 +256,8 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                 Text(ready.host, style = MaterialTheme.typography.bodyMedium)
                 OutlinedTextField(name, { name = it.take(60) }, enabled = !busy && replacing == null, label = { Text(stringResource(Res.string.calendar_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 if (replacing == null) LabeledCheckbox(hideTitles, { hideTitles = it }, stringResource(Res.string.calendar_hide_titles))
+                // Fériés d'un calendrier importé (docs/spec/jours-feries.md § Voie B) : seulement s'il a des journées entières.
+                if (replacing == null && ready.plan.days.isNotEmpty()) LabeledCheckbox(holidays, { holidays = it }, stringResource(Res.string.calendar_holidays))
                 val first = ready.plan.first
                 val last = ready.plan.last
                 Text(if (first == null || last == null) stringResource(Res.string.calendar_events_none) else stringResource(Res.string.calendar_events, ready.plan.events.size, Dates.short(first, language), Dates.short(last, language, first)), style = MaterialTheme.typography.bodyMedium)
@@ -276,7 +280,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
             confirmButton = { KairosTextButton(enabled = !busy && name.isNotBlank(), onClick = { action {
                 val id = replacing
                 if (id == null) {
-                    if (online.addIcs(ready, name.trim(), hideTitles) != null) close()
+                    if (online.addIcs(ready, name.trim(), hideTitles, holidays && ready.plan.days.isNotEmpty()) != null) close()
                 } else {
                     when (val result = online.replaceIcsLink(id, link, insecure, redirect)) {
                         is IcsPreviewResult.Ready -> close()

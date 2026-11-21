@@ -52,7 +52,7 @@ interface OnlineConnections {
      * Ajoute (ou rattache, D5) le calendrier : sauvegarde automatique, secret `url:<id>`, plan appliqué, ligne de connexion.
      * Rend l'identifiant de la source, nul si le nom est vide.
      */
-    suspend fun addIcs(preview: IcsPreviewResult.Ready, name: String, hideTitles: Boolean): Long?
+    suspend fun addIcs(preview: IcsPreviewResult.Ready, name: String, hideTitles: Boolean, holidays: Boolean = false): Long?
 
     /** « Synchroniser maintenant » : force une synchronisation, hors file des échéances. */
     suspend fun syncNow(sourceId: Long)
