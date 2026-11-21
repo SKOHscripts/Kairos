@@ -2032,6 +2032,9 @@
     <string name="online_caldav_unsupported">Dieser Server lässt Kairos seine Kalender nicht lesen. Nutze stattdessen seinen ICS-Link.</string>
     <string name="online_caldav_address">Adresse nicht unterstützt: Verwende eine https://-Adresse ohne Benutzername oder Passwort darin.</string>
     <string name="online_error_detail">Technisches Detail: %1$s</string>
+    <string name="online_network_blocked">Das Telefon blockiert den Netzwerkzugriff von Kairos. Erlaube ihn in den Einstellungen von Kairos (Berechtigung „Netzwerk“ oder „Mobile Daten &amp; WLAN“).</string>
+    <string name="online_network_hint">Wenn andere Apps Netz haben, ist der Netzwerkzugriff von Kairos vielleicht in den Einstellungen des Telefons blockiert.</string>
+    <string name="online_network_settings">Kairos-Einstellungen</string>
     <string name="card_online_connections_title">Online-Verbindungen</string>
     <string name="card_online_connections_body">Abonniere einen ICS-Kalender auf Android oder dem Desktop. Prüfe die Vorschau und synchronisiere schreibgeschützt; der Link bleibt auf diesem Gerät.</string>
     <string name="card_caldav_title">CalDAV-Kalender</string>

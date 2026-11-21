@@ -157,6 +157,14 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 | Redirection vers un autre serveur (lien ICS) | À l'aperçu : hôte, « Suivre » et « Annuler ». En synchronisation : erreur et « Remplacer le lien ». |
 | Identifiants absents de cet appareil (base copiée d'ailleurs) | « Les identifiants de cette connexion ne sont pas sur cet appareil. » ; O1 propose « Remplacer le lien ». |
 
+- **Réseau bloqué pour Kairos (Android)** : `INTERNET` est une permission normale, sans dialogue système à demander ; mais le
+  téléphone peut couper le réseau de Kairos seul (autorisation « Réseau » de GrapheneOS, interrupteur « Données mobiles et Wi-Fi » d'une
+  surcouche, pare-feu). Le premier essai réel l'a montré (2026-11-21, GrapheneOS : « Pas de connexion », `UnknownHostException`). Quand un
+  ajout (lien ICS ou CalDAV) échoue en `OFFLINE` sur Android, le dialogue d'erreur dit, si le système signale le blocage : « Le téléphone
+  bloque l’accès de Kairos au réseau. Autorisez-le dans les réglages de Kairos (autorisation « Réseau » ou « Données mobiles et
+  Wi-Fi »). » ; sinon : « Si les autres applis ont du réseau, l’accès de Kairos au réseau est peut-être bloqué dans les réglages du
+  téléphone. » ; et un bouton **« Réglages de Kairos »** ouvre la page de Kairos dans les réglages du téléphone. Aucune permission
+  nouvelle, rien d'envoyé : aucun effet sur F-Droid.
 - Après un échec, les essais automatiques espacent : au moins 15 minutes, 6 heures après 5 échecs de suite, et jamais avant
   le délai du serveur (`Retry-After` numérique en secondes, plafonné à 24 heures). La forme date HTTP n'est pas interprétée.
   « Synchroniser maintenant » passe outre ces délais, pas la pause.
@@ -612,6 +620,13 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
   les fichiers `.ics` y fonctionnent.
 
 ### Interface (`ui/settings/OnlineConnectionsCard.kt`)
+
+- **Accès au réseau** (`ui/app/NetworkAccess.kt`, `AppServices.networkAccess`, nul hors Android ; `android/AndroidNetworkAccess.kt`) :
+  `blocked()` vrai si `checkSelfPermission(INTERNET)` est refusée (autorisation « Réseau » de GrapheneOS, qui rend `INTERNET` révocable) ou
+  si `ConnectivityManager.activeNetworkInfo` est `BLOCKED` (règle du système pour l'app) ; `openSettings()` ouvre
+  `ACTION_APPLICATION_DETAILS_SETTINGS` de Kairos, comme le refus du calendrier du téléphone. `offlineHelp(erreur, accès)` choisit le texte :
+  `online_network_blocked`, `online_network_hint`, ou rien (autre erreur, ou hors Android). Le dialogue d'erreur d'un ajout et l'aperçu
+  CalDAV l'affichent avec le bouton `online_network_settings`.
 
 - `AppServices.online` et `connectionSync` sont nullables, ajoutés en dernier avec `null` par défaut.
   La démonstration les fixe tous deux à `null` ; le web ne fournit actuellement aucun service en ligne.

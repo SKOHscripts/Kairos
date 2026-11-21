@@ -2033,6 +2033,9 @@
     <string name="online_caldav_unsupported">This server does not let Kairos read its calendars. Use its ICS link instead.</string>
     <string name="online_caldav_address">Unsupported address: use an https:// address without a username or password in it.</string>
     <string name="online_error_detail">Technical detail: %1$s</string>
+    <string name="online_network_blocked">The phone blocks Kairos’ network access. Allow it in Kairos’ settings (“Network” permission or “Mobile data &amp; Wi‑Fi”).</string>
+    <string name="online_network_hint">If other apps have network, Kairos’ network access may be blocked in the phone’s settings.</string>
+    <string name="online_network_settings">Kairos settings</string>
     <string name="card_online_connections_title">Online connections</string>
     <string name="card_online_connections_body">Subscribe to an ICS calendar link on Android or desktop. Preview events first, then sync read-only; the link stays on this device.</string>
     <string name="card_caldav_title">CalDAV calendars</string>

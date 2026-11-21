@@ -31,6 +31,7 @@ import com.skohscripts.kairos.ui.app.IcsConfirmation
 import com.skohscripts.kairos.ui.app.IcsPreviewResult
 import com.skohscripts.kairos.ui.app.LocalMessages
 import com.skohscripts.kairos.ui.app.SecretLevel
+import com.skohscripts.kairos.ui.app.offlineHelp
 import com.skohscripts.kairos.ui.app.uiLanguage
 import com.skohscripts.kairos.ui.day.Dates
 import com.skohscripts.kairos.ui.day.LabeledCheckbox
@@ -401,6 +402,10 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                             Icon(KairosIcons.Warning, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             Column {
                                 Text(stringResource(if (error == ConnectionError.UNSUPPORTED) Res.string.online_caldav_unsupported else connectionErrorText(error)), style = MaterialTheme.typography.bodyMedium)
+                                offlineHelp(error, services.networkAccess)?.let { help ->
+                                    Text(stringResource(help), style = MaterialTheme.typography.bodyMedium)
+                                    KairosTextButton(onClick = { services.networkAccess?.openSettings() }) { Text(stringResource(Res.string.online_network_settings)) }
+                                }
                                 item.detail?.let { Text(stringResource(Res.string.online_error_detail, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
                         }
@@ -429,16 +434,23 @@ internal fun OnlineConnectionsCard(services: AppServices) {
         } }) { Text(stringResource(Res.string.action_save)) } },
         dismissButton = { KairosTextButton(enabled = !busy, onClick = ::close) { Text(stringResource(Res.string.action_cancel)) } },
     ) }
-    failure?.let { error -> AlertDialog(
+    failure?.let { error ->
+    // Réseau peut-être bloqué pour Kairos seul (Android) : l'aide et le bouton « Réglages de Kairos » (spec § Réseau bloqué).
+    val help = remember(error) { offlineHelp(ConnectionError.valueOf(error), services.networkAccess) }
+    AlertDialog(
         onDismissRequest = { failure = null },
         title = { Text(stringResource(Res.string.online_title)) },
         text = { Column {
             Text(failureHost)
             val kind = ConnectionError.valueOf(error)
             Text(stringResource(if (failureCaldav && kind == ConnectionError.UNSUPPORTED) Res.string.online_caldav_address else connectionErrorText(kind)))
+            help?.let { Text(stringResource(it), style = MaterialTheme.typography.bodyMedium) }
             failureDetail?.let { Text(stringResource(Res.string.online_error_detail, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         } },
         confirmButton = { KairosTextButton(onClick = { failure = null; failureCaldav = false; failureDetail = null }) { Text(stringResource(Res.string.calendar_close)) } },
+        dismissButton = if (help == null) null else {
+            { KairosTextButton(onClick = { services.networkAccess?.openSettings() }) { Text(stringResource(Res.string.online_network_settings)) } }
+        },
     ) }
     removing?.let { id ->
         snapshot.calendarSources.firstOrNull { it.id == id }?.let { source ->
