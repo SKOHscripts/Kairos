@@ -441,9 +441,11 @@ order (critical path). Cycles are refused.
   ICSx⁵, Outlook with "Sync calendars" on) as read-only busy slots, read live
   and never stored or exported. Kairos asks for calendar access only at that
   moment (an optional permission, not a network one).
-- **Online connections** (Android, desktop): Settings → Data subscribes to an
-  ICS calendar link after consent and a preview. Sync is read-only, can be
-  paused or run manually, and keeps the link on this device.
+- **Online connections**: Settings → Data subscribes to an ICS calendar link
+  after consent and a preview. Sync is read-only, can be paused or run
+  manually, and keeps the link on this device. In the web version, only
+  servers that let web pages read the calendar work (often not Outlook or
+  Google), and the link is kept in the browser.
 - **CalDAV calendars** (Android, desktop): Settings → Data → Add a connection →
   CalDAV server (Nextcloud, Radicale, Fastmail…). Kairos lists the server's
   calendars, none ticked; you pick the ones to read, check the preview, then
@@ -754,7 +756,7 @@ version that brought it and the platforms it exists on.
 | Organize | Monthly slots, and one day apart | 3.8.0 | All |
 | Organize | Import your meetings from a calendar | 3.10.0 | All |
 | Organize | Phone calendars | 3.10.0 | Android |
-| Organize | Online connections | 4.2.0 | Android, Desktop |
+| Organize | Online connections | 4.2.0 | All |
 | Organize | CalDAV calendars | 4.4.0 | Android, Desktop |
 | Organize | Sync between your devices | 4.0.0 | All |
 | Team | Guided first team task | 3.8.0 | All |

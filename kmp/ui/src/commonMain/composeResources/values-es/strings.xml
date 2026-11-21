@@ -2032,11 +2032,14 @@
     <string name="online_caldav_unsupported">Este servidor no deja que Kairos lea sus calendarios. Usa mejor su enlace ICS.</string>
     <string name="online_caldav_address">Dirección no admitida: usa una dirección https:// sin usuario ni contraseña.</string>
     <string name="online_error_detail">Detalle técnico: %1$s</string>
+    <string name="online_activation_web">Kairos descargará este enlace desde este navegador, mientras la página esté abierta. El servidor ve tu dirección IP, tu navegador y la dirección de esta página; no se envía nada más. Este enlace da acceso a tu calendario: no lo compartas.</string>
+    <string name="online_link_help_web">Pega el enlace ICS privado de tu calendario. webcal:// se lee como https://; una página web no puede leer http://. Solo funcionan los servidores que permiten a las páginas web leer sus calendarios, a menudo ni Outlook ni Google. Esta dirección se guarda en este navegador.</string>
+    <string name="online_error_browser">El navegador no pudo leer este enlace (sin conexión, o el servidor no permite páginas web).</string>
     <string name="online_network_blocked">El teléfono bloquea el acceso de Kairos a la red. Permítelo en los ajustes de Kairos (permiso «Red» o «Datos móviles y Wi‑Fi»).</string>
     <string name="online_network_hint">Si las demás apps tienen red, el acceso de Kairos a la red quizá esté bloqueado en los ajustes del teléfono.</string>
     <string name="online_network_settings">Ajustes de Kairos</string>
     <string name="card_online_connections_title">Conexiones en línea</string>
-    <string name="card_online_connections_body">Suscríbete a un calendario ICS en Android o escritorio. Revisa la vista previa y sincroniza en solo lectura; el enlace permanece en este dispositivo.</string>
+    <string name="card_online_connections_body">Suscríbete a un calendario ICS (en un navegador, solo servidores que permiten páginas web). Revisa la vista previa y sincroniza en solo lectura; el enlace permanece en este dispositivo.</string>
     <string name="card_caldav_title">Calendarios CalDAV</string>
     <string name="card_caldav_body">Conecta un servidor CalDAV (Nextcloud, Radicale, Fastmail…) en Android o escritorio: marca los calendarios, revisa la vista previa y sincroniza en solo lectura. La contraseña permanece cifrada en este dispositivo.</string>
     <string name="recap_title_week">Balance de la semana</string>

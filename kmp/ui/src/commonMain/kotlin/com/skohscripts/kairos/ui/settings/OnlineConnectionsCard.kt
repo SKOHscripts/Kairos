@@ -51,8 +51,9 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
-internal fun connectionErrorText(error: ConnectionError): StringResource = when (error) {
-    ConnectionError.OFFLINE -> Res.string.online_error_offline
+/** [browser] : le web, où `OFFLINE` couvre aussi un serveur qui n'autorise pas les pages web (docs/spec/connexions-en-ligne.md § Web). */
+internal fun connectionErrorText(error: ConnectionError, browser: Boolean = false): StringResource = when (error) {
+    ConnectionError.OFFLINE -> if (browser) Res.string.online_error_browser else Res.string.online_error_offline
     ConnectionError.TLS -> Res.string.online_error_tls
     ConnectionError.AUTH -> Res.string.online_error_auth
     ConnectionError.REAUTH -> Res.string.online_error_reauth
@@ -191,17 +192,19 @@ internal fun OnlineConnectionsCard(services: AppServices) {
         // Hors du fil d'interface : le premier accès au magasin de secrets peut lancer un processus du système (bureau).
         val secretLevel by produceState<SecretLevel?>(null, online) { value = withContext(Dispatchers.Default) { online.secretLevel } }
         if (secretLevel == SecretLevel.FILE) Text(stringResource(Res.string.online_file_secrets), style = MaterialTheme.typography.bodyMedium)
+        fun addIcs() {
+            menu = false
+            replacing = null
+            link = ""
+            insecure = false
+            redirect = null
+            phase = if (connections.isEmpty()) "activation" else "link"
+        }
         Box {
-            KairosOutlinedButton(enabled = !busy, onClick = { menu = true }) { Text(stringResource(Res.string.online_add_connection)) }
-            DropdownMenu(menu, onDismissRequest = { menu = false }) {
-                DropdownMenuItem(text = { Text(stringResource(Res.string.online_ics)) }, onClick = {
-                    menu = false
-                    replacing = null
-                    link = ""
-                    insecure = false
-                    redirect = null
-                    phase = if (connections.isEmpty()) "activation" else "link"
-                })
+            // Navigateur : lien ICS seulement (spec § Web), le bouton l'ouvre sans menu.
+            KairosOutlinedButton(enabled = !busy, onClick = { if (online.browser) addIcs() else menu = true }) { Text(stringResource(Res.string.online_add_connection)) }
+            if (!online.browser) DropdownMenu(menu, onDismissRequest = { menu = false }) {
+                DropdownMenuItem(text = { Text(stringResource(Res.string.online_ics)) }, onClick = ::addIcs)
                 DropdownMenuItem(text = { Text(stringResource(Res.string.online_caldav)) }, onClick = {
                     menu = false
                     password = ""
@@ -223,7 +226,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(KairosIcons.Warning, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Column {
-                            val text = if (connection.kind == ConnectionKind.CALDAV && error == ConnectionError.UNSUPPORTED) Res.string.online_caldav_unsupported else connectionErrorText(error)
+                            val text = if (connection.kind == ConnectionKind.CALDAV && error == ConnectionError.UNSUPPORTED) Res.string.online_caldav_unsupported else connectionErrorText(error, online.browser)
                             Text(stringResource(text), style = MaterialTheme.typography.bodyMedium)
                             if (error == ConnectionError.OFFLINE && synced != null) Text(stringResource(Res.string.online_events_date, Dates.short(synced.date, language)), style = MaterialTheme.typography.bodyMedium)
                         }
@@ -248,7 +251,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                     KairosTextButton(enabled = !busy, onClick = { action {
                         online.syncNow(source.id)
                         val error = online.connections.value.firstOrNull { it.sourceId == source.id }?.lastError
-                        messages(getString(error?.let(::connectionErrorText) ?: Res.string.online_sync_done))
+                        messages(getString(error?.let { connectionErrorText(it, online.browser) } ?: Res.string.online_sync_done))
                     } }) { Text(stringResource(Res.string.online_sync_now)) }
                     if (connection.kind == ConnectionKind.CALDAV && connection.lastError == ConnectionError.AUTH) {
                         KairosTextButton(enabled = !busy, onClick = {
@@ -276,7 +279,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
     if (phase == "activation") AlertDialog(
         onDismissRequest = ::close,
         title = { Text(stringResource(Res.string.online_ics)) },
-        text = { Text(stringResource(Res.string.online_activation)) },
+        text = { Text(stringResource(if (online.browser) Res.string.online_activation_web else Res.string.online_activation)) },
         confirmButton = { KairosTextButton(onClick = { phase = "link" }) { Text(stringResource(Res.string.online_activate)) } },
         dismissButton = { KairosTextButton(onClick = ::close) { Text(stringResource(Res.string.action_cancel)) } },
     )
@@ -285,7 +288,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
         title = { Text(stringResource(if (replacing == null) Res.string.online_ics else Res.string.online_replace)) },
         text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedTextField(link, { link = it; insecure = false; redirect = null }, label = { Text(stringResource(Res.string.online_link)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri), singleLine = true, enabled = !busy, modifier = Modifier.fillMaxWidth())
-            Text(stringResource(Res.string.online_link_help), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(if (online.browser) Res.string.online_link_help_web else Res.string.online_link_help), style = MaterialTheme.typography.bodyMedium)
         } },
         confirmButton = { KairosTextButton(enabled = !busy && link.isNotBlank(), onClick = { readLink() }) { Text(stringResource(Res.string.online_preview)) } },
         dismissButton = { KairosTextButton(enabled = !busy, onClick = ::close) { Text(stringResource(Res.string.action_cancel)) } },
@@ -443,7 +446,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
         text = { Column {
             Text(failureHost)
             val kind = ConnectionError.valueOf(error)
-            Text(stringResource(if (failureCaldav && kind == ConnectionError.UNSUPPORTED) Res.string.online_caldav_address else connectionErrorText(kind)))
+            Text(stringResource(if (failureCaldav && kind == ConnectionError.UNSUPPORTED) Res.string.online_caldav_address else connectionErrorText(kind, online.browser)))
             help?.let { Text(stringResource(it), style = MaterialTheme.typography.bodyMedium) }
             failureDetail?.let { Text(stringResource(Res.string.online_error_detail, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         } },
