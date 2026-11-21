@@ -61,7 +61,7 @@ interface OnlineConnections {
      * Ajoute (ou rattache, D5) le calendrier : sauvegarde automatique, secret `url:<id>`, plan appliqué, ligne de connexion.
      * Rend l'identifiant de la source, nul si le nom est vide.
      */
-    suspend fun addIcs(preview: IcsPreviewResult.Ready, name: String, hideTitles: Boolean): Long?
+    suspend fun addIcs(preview: IcsPreviewResult.Ready, name: String, hideTitles: Boolean, holidays: Boolean = false): Long?
 
     /** « Synchroniser maintenant » : force une synchronisation, hors file des échéances. */
     suspend fun syncNow(sourceId: Long)
@@ -83,7 +83,8 @@ interface OnlineConnections {
      * Ajoute les calendriers lus (plan non nul) : une sauvegarde automatique, un compte `account:<compte>` partagé, puis pour chacun
      * une source, son adresse `remote:<id>`, son plan et sa ligne `CALDAV`. Rend les identifiants des sources.
      */
-    suspend fun addCalDav(account: CalDavAccount, host: String, previews: List<CalDavPreview>, hideTitles: Boolean): List<Long>
+    /** [holidays] : adresses des calendriers dont les journées entières comptent comme fériés (docs/spec/jours-feries.md § Voie B). */
+    suspend fun addCalDav(account: CalDavAccount, host: String, previews: List<CalDavPreview>, hideTitles: Boolean, holidays: Set<String> = emptySet()): List<Long>
 
     /** « Modifier le mot de passe » (erreur `AUTH`) : réécrit le compte de [sourceId], puis synchronise les calendriers de ce compte. */
     suspend fun changeCalDavPassword(sourceId: Long, password: String)

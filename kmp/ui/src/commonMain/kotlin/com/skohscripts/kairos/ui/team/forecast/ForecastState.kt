@@ -82,7 +82,12 @@ class ForecastFingerprint private constructor(
                 dependencies = snapshot.dependencies.filter { it.taskId in ids },
                 sessions = snapshot.workSessions.filter { it.taskId in ids },
                 events = snapshot.teamEvents,
-                settings = settings.copy(themeColor = Settings.DEFAULT_THEME_COLOR, team = settings.team?.copy(lastSpace = "", name = "", managerName = "")),
+                // Ni le thème, ni le dernier espace, ni la mémoire du guide et des conseils (écrans vus, conseils montrés) : ouvrir
+                // l'écran Prévisions l'enregistre comme vu, ce qui rendait « périmée » la prévision qu'on venait d'y calculer.
+                settings = settings.copy(
+                    themeColor = Settings.DEFAULT_THEME_COLOR, guide = null,
+                    team = settings.team?.copy(lastSpace = "", name = "", managerName = ""),
+                ),
                 blocks = if (TeamWork.self(snapshot) != null) snapshot.timeBlocks else emptyList(),
             )
         }

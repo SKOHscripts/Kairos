@@ -112,7 +112,8 @@ import com.skohscripts.kairos.ui.generated.resources.setting_dip_start
 import com.skohscripts.kairos.ui.generated.resources.setting_dip_trough
 import com.skohscripts.kairos.ui.generated.resources.setting_extra_holidays
 import com.skohscripts.kairos.ui.generated.resources.setting_extra_holidays_help
-import com.skohscripts.kairos.ui.generated.resources.setting_holidays_fr
+import com.skohscripts.kairos.ui.generated.resources.setting_holiday_country
+import com.skohscripts.kairos.ui.generated.resources.setting_holiday_country_help
 import com.skohscripts.kairos.ui.generated.resources.setting_meeting_buffer
 import com.skohscripts.kairos.ui.generated.resources.setting_meeting_buffer_help
 import com.skohscripts.kairos.ui.generated.resources.setting_overload
@@ -209,7 +210,7 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "reminders.nextTask" to FieldText(Res.string.setting_reminders_next),
     "reminders.dailySummary" to FieldText(Res.string.setting_reminders_summary),
     "reminders.dailySummaryTime" to FieldText(Res.string.setting_reminders_summary_time, Res.string.setting_reminders_summary_time_help),
-    "holidaysFr" to FieldText(Res.string.setting_holidays_fr),
+    "holidayCountry" to FieldText(Res.string.setting_holiday_country, Res.string.setting_holiday_country_help),
     "extraHolidays" to FieldText(Res.string.setting_extra_holidays, Res.string.setting_extra_holidays_help),
     "updateCheckEnabled" to FieldText(Res.string.setting_update_check),
     "team.enabled" to FieldText(Res.string.setting_team_enabled),
@@ -244,7 +245,7 @@ private val WORKDAY = Section(
     Res.string.settings_section_day, null, KairosIcons.Work,
     listOf("defaultTaskDurationMinutes", "meetingBufferMinutes", "workdayStartHour", "workdayEndHour"),
 )
-private val HOLIDAYS = Section(Res.string.settings_section_holidays, Res.string.settings_section_holidays_body, KairosIcons.EventBusy, listOf("holidaysFr", "extraHolidays"))
+private val HOLIDAYS = Section(Res.string.settings_section_holidays, Res.string.settings_section_holidays_body, KairosIcons.EventBusy, listOf("holidayCountry", "extraHolidays"))
 private val TYPES = Section(Res.string.settings_section_types, null, KairosIcons.Label, listOf("taskTypes"))
 private val LEARNING = Section(
     Res.string.settings_section_learning, Res.string.settings_section_learning_body, KairosIcons.History,
@@ -462,6 +463,10 @@ internal fun SettingInput(key: String, value: String, error: FieldError?, onChan
     val text = TEXTS.getValue(key)
     if (field.kind == FieldKind.BOOL) {
         SwitchRow(value == "true", stringResource(text.label)) { onChange(it.toString()) }
+        return
+    }
+    if (field.kind == FieldKind.CHOICE) {
+        ChoiceInput(value, field.choices, stringResource(text.label), text.help?.let { stringResource(it) }, Modifier.bringIntoViewRequester(reveal), onChange)
         return
     }
     val help = text.help?.let { stringResource(it) }

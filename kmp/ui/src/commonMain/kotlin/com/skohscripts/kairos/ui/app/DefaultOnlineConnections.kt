@@ -65,7 +65,7 @@ class DefaultOnlineConnections(
         }
     }
 
-    override suspend fun addIcs(preview: IcsPreviewResult.Ready, name: String, hideTitles: Boolean): Long? = mutations.withLock {
+    override suspend fun addIcs(preview: IcsPreviewResult.Ready, name: String, hideTitles: Boolean, holidays: Boolean): Long? = mutations.withLock {
         if (name.isBlank()) return@withLock null
         val instant = now()
         backups.save("avant-import-${instant.toEpochMilliseconds()}.json", ExportCodec.encode(repository.snapshot.value, KairosBuild.VERSION_NAME, instant))
@@ -75,7 +75,7 @@ class DefaultOnlineConnections(
                 CalendarConnection(0, ConnectionKind.URL, host = preview.host, lastAttemptAt = instant, lastSyncAt = instant,
                     etag = preview.etag, plannedOn = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date.toString(),
                     insecureConfirmed = preview.insecure, redirectHost = preview.redirectHost), instant,
-                beforeCommit = { id -> secretId = id; secrets.put("url:$id", preview.url) })
+                beforeCommit = { id -> secretId = id; secrets.put("url:$id", preview.url) }, holidays = holidays)
         } catch (e: Throwable) {
             secretId?.let { secrets.delete("url:$it") }
             throw e
@@ -140,7 +140,7 @@ class DefaultOnlineConnections(
         }
     }
 
-    override suspend fun addCalDav(account: CalDavAccount, host: String, previews: List<CalDavPreview>, hideTitles: Boolean): List<Long> = mutations.withLock {
+    override suspend fun addCalDav(account: CalDavAccount, host: String, previews: List<CalDavPreview>, hideTitles: Boolean, holidays: Set<String>): List<Long> = mutations.withLock {
         val ready = previews.filter { it.plan != null }
         if (ready.isEmpty()) return@withLock emptyList()
         val instant = now()
@@ -156,7 +156,8 @@ class DefaultOnlineConnections(
                 try {
                     repository.connectCalendar(preview.calendar.name, hideTitles, preview.plan!!, today,
                         CalendarConnection(0, ConnectionKind.CALDAV, host = host, account = key, lastAttemptAt = instant, lastSyncAt = instant),
-                        instant, beforeCommit = { id -> secretId = id; secrets.put("remote:$id", preview.calendar.url) })?.let { added += it }
+                        instant, holidays = preview.calendar.url in holidays,
+                        beforeCommit = { id -> secretId = id; secrets.put("remote:$id", preview.calendar.url) })?.let { added += it }
                 } catch (e: Throwable) {
                     secretId?.let { secrets.delete("remote:$it") }
                     throw e

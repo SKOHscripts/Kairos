@@ -429,8 +429,18 @@ son estimation vient des seules tâches d’équipe terminées.
   seulement, jamais « en retard » ; réglable, 0 la coupe). Dans l’onglet Bilan, la liste « Backlog,
   sans date » met les plus anciennes d’abord, compte et signale celles qui
   traînent, et un toucher en programme une, aujourd’hui compris.
-- **Jours ouvrés et fériés** : calendrier français intégré, dates
+- **Jours ouvrés et fériés** : jours fériés de ton pays intégrés, dates
   supplémentaires dans les Réglages.
+- **Les jours fériés de ton pays** : Réglages → Journée et horaires → Jours
+  fériés choisit le pays (Allemagne, Autriche, Belgique, Canada, Espagne,
+  États-Unis, France, Irlande, Italie, Luxembourg, Royaume-Uni, Russie,
+  Suisse) ; ses fériés nationaux, jours de remplacement compris, sont sautés
+  par les tâches et créneaux « jours ouvrés », le planning et la capacité de
+  l’équipe, hors ligne. Une nouvelle installation part du pays de l’appareil.
+- **Les fériés d’un calendrier** : dans Réglages → Données → Calendriers, un
+  calendrier importé (fichier, lien ou CalDAV) peut compter ses journées entières
+  comme fériés : fermetures de l’entreprise, vacances scolaires, fériés
+  régionaux. Ils sont sautés comme ceux du pays.
 
 ### Dépendances
 
@@ -773,6 +783,8 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Planifier | Planifier autour de tes meilleures heures | 3.6.0 | Toutes |
 | Planifier | Horaires par jour de la semaine | 3.4.0 | Toutes |
 | Planifier | Jours ouvrés et fériés | 3.0.0 | Toutes |
+| Planifier | Les jours fériés de ton pays | 4.4.0 | Toutes |
+| Planifier | Les fériés d’un calendrier | 4.4.0 | Toutes |
 | Suivre | Frise de la journée | 3.0.0 | Toutes |
 | Suivre | Suivre le temps | 3.0.0 | Toutes |
 | Suivre | Trois alertes du chrono | 3.0.0 | Toutes |

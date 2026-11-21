@@ -189,10 +189,11 @@ class M6GuideUiTest {
         waitText("Priority, points and estimate")
         repeat(plan - 1) { onNodeWithText("Next").performClick() }
         waitText("Step $plan of $plan")
-        // La dernière carte du chapitre (horaires par jour) ouvre les Réglages, sur sa carte (issue #95).
+        // La dernière carte du chapitre (les fériés d'un calendrier, depuis la 4.4.0) ouvre les Réglages, sur sa carte (issue #95) :
+        // Données, carte « Calendriers ».
         onNodeWithText("Show me the screen").performClick()
         waitGone("Step $plan of $plan")
-        waitText("Hours by day of the week")
+        waitText("Import a calendar…")
     }
 
     @Test

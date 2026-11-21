@@ -78,7 +78,7 @@ internal class EffortModel(
     private val randomMembers: BooleanArray
 
     init {
-        val holidays = Workdays.holidaysFor(day, settings.holidaysFr, settings.extraHolidays)
+        val holidays = Workdays.holidaysFor(day, snapshot)
         baseCapacity = Array(members.size) { m ->
             val member = members[m]
             val mine = snapshot.absences.filter { it.memberId == member.id }

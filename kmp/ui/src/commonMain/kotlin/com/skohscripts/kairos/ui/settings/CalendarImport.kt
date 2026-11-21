@@ -60,6 +60,7 @@ import com.skohscripts.kairos.ui.generated.resources.calendar_default_name
 import com.skohscripts.kairos.ui.generated.resources.calendar_events
 import com.skohscripts.kairos.ui.generated.resources.calendar_events_none
 import com.skohscripts.kairos.ui.generated.resources.calendar_hide_titles
+import com.skohscripts.kairos.ui.generated.resources.calendar_holidays
 import com.skohscripts.kairos.ui.generated.resources.calendar_import_action
 import com.skohscripts.kairos.ui.generated.resources.calendar_import_body
 import com.skohscripts.kairos.ui.generated.resources.calendar_import_done
@@ -140,11 +141,16 @@ fun CalendarImportDialog(services: AppServices, plan: CalendarPlan, onDone: () -
     val today = remember { calendarToday(services) }
     val existing = ImportedCalendars.named(snapshot, name)
     var hideTitles by remember(plan) { mutableStateOf(false) }
+    // Journées entières comptées comme fériés (docs/spec/jours-feries.md § Voie B) : coché d'emblée seulement si le calendrier l'était.
+    var holidays by remember(plan) { mutableStateOf(false) }
     // Import en cours : le dialogue reste ouvert jusqu'au bout, sinon sa portée de coroutines (annulée quand il quitte la
     // composition) interromprait l'écriture là où la base suspend (version web, worker SQL).
     var busy by remember { mutableStateOf(false) }
     // Le choix du dernier import de ce calendrier, repris quand le nom désigne un autre calendrier.
-    LaunchedEffect(existing?.id) { hideTitles = existing?.hideTitles ?: false }
+    LaunchedEffect(existing?.id) {
+        hideTitles = existing?.hideTitles ?: false
+        holidays = existing?.countsAsHolidays ?: false
+    }
     val replaced = ImportedCalendars.replaced(snapshot, name, today)
     Dialog(onDismissRequest = onDone, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(
@@ -166,6 +172,7 @@ fun CalendarImportDialog(services: AppServices, plan: CalendarPlan, onDone: () -
                         modifier = Modifier.fillMaxWidth(),
                     )
                     LabeledCheckbox(hideTitles, { hideTitles = it }, stringResource(Res.string.calendar_hide_titles))
+                    if (plan.days.isNotEmpty()) LabeledCheckbox(holidays, { holidays = it }, stringResource(Res.string.calendar_holidays))
                 }
                 val first = plan.events.minOfOrNull { it.start.date }
                 val last = plan.events.maxOfOrNull { it.start.date }
@@ -191,12 +198,13 @@ fun CalendarImportDialog(services: AppServices, plan: CalendarPlan, onDone: () -
                     KairosButton(enabled = name.isNotBlank() && !busy, onClick = {
                         val chosen = name.trim()
                         val hide = hideTitles
+                        val asHolidays = holidays && plan.days.isNotEmpty()
                         busy = true
                         scope.launch {
                             try {
                                 // Comme tout import : sans sauvegarde réussie, rien n'est écrit.
                                 if (!saveBackup(services, "avant-import-calendrier", messages)) return@launch
-                                val imported = runCatching { services.repository.importCalendar(chosen, hide, plan, today) }
+                                val imported = runCatching { services.repository.importCalendar(chosen, hide, plan, today, asHolidays) }
                                 if (imported.isFailure) {
                                     services.diagnostics?.log("import calendar failed")
                                     messages(getString(Res.string.file_error))
@@ -282,6 +290,10 @@ internal fun CalendarsCard(services: AppServices) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                // Voie B des fériés (docs/spec/jours-feries.md) : ses journées entières sautées comme des fériés, changeable à tout moment.
+                SwitchRow(c.source.countsAsHolidays, stringResource(Res.string.calendar_holidays)) { on ->
+                    scope.launch { runCatching { services.repository.setCalendarHolidays(c.source.id, on) }.onFailure { messages(getString(Res.string.file_error)) } }
+                }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (connection == null) KairosTextButton(onClick = { pick(c.source.name) }) { Text(stringResource(Res.string.calendars_reimport)) }
                     KairosTextButton(onClick = { removing = c }) { Text(stringResource(Res.string.calendars_remove)) }

@@ -52,9 +52,11 @@ object AndroidServices {
         // Langue du système lue dans la configuration du système, pas dans `Locale.getDefault()` : celle-ci porte
         // déjà la langue choisie dans Kairos quand l'activité est recréée (docs/spec/i18n.md).
         val language = Resources.getSystem().configuration.locales[0].language
+        // Pays des fériés d'une base neuve (docs/spec/jours-feries.md).
+        val region = Resources.getSystem().configuration.locales[0].country
         val driver = AndroidSqliteDriver(DeferredSchema, context, DATABASE_NAME)
         val opened = KairosStore.open(driver)
-        val examples = { ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language) }
+        val examples = { ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language, region) }
         val backups = FolderBackups(File(context.filesDir, "backups"))
         // Fichier lié (docs/spec/synchronisation.md § Fichier lié : cycle) : branché sur chaque nouvel état, fusionné à chaque
         // lecture ; relu au premier plan seulement (`MainActivity`), sans travail en arrière-plan.

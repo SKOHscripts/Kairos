@@ -197,11 +197,12 @@ natures `BUSY`, `DEEPWORK`, `WORK`, `PINNED`, `CONFLICT`, `DEEPWORK_TASK`.
 
 Lundi = 0 ; ouvré = lundi à vendredi hors fériés. `addBusinessDays`,
 `previousBusinessDay`, `onOrBeforeBusinessDay`, `businessDaysBetween`
-(`]début, fin]`), `easterSunday` (Meeus/Butcher), fériés français (fixes,
-lundi de Pâques, Ascension, lundi de Pentecôte), `buildHolidays` (plus les
-dates libres des réglages, illisibles ignorées), `endOfWeek` (dimanche),
-`holidaysFor(jour)` : de l'année précédente à deux ans après, vide si rien
-n'est demandé.
+(`]début, fin]`), `easterSunday` (Meeus/Butcher), `buildHolidays` (fériés
+nationaux du pays des réglages, `PublicHolidays`, plus les dates libres,
+illisibles ignorées ; `jours-feries.md`), `endOfWeek` (dimanche),
+`holidaysFor(jour, pays, dates)` : de l'année précédente à deux ans après,
+vide si rien n'est demandé. Les appelants passent
+`Settings.holidayCountryCode`.
 
 ### Ancienneté (`Staleness`)
 

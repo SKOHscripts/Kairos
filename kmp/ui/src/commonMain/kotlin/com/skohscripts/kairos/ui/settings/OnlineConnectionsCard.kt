@@ -98,6 +98,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
     var failureHost by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
     var hideTitles by rememberSaveable { mutableStateOf(false) }
+    var holidays by rememberSaveable { mutableStateOf(false) }
     var preview by remember { mutableStateOf<IcsPreviewResult.Ready?>(null) }
     var busy by remember { mutableStateOf(false) }
     // CalDAV (docs/spec/connexions-en-ligne.md § CalDAV) : le mot de passe et les adresses des calendriers ne sont jamais dans l'état
@@ -109,6 +110,8 @@ internal fun OnlineConnectionsCard(services: AppServices) {
     var davCalendars by remember { mutableStateOf<List<CalDavCalendar>>(emptyList()) }
     var davChecked by remember { mutableStateOf<Set<String>>(emptySet()) }
     var davPreviews by remember { mutableStateOf<List<CalDavPreview>>(emptyList()) }
+    // Calendriers CalDAV dont les journées entières comptent comme fériés (docs/spec/jours-feries.md § Voie B), par adresse.
+    var davHolidays by remember { mutableStateOf<Set<String>>(emptySet()) }
     var passwordFor by rememberSaveable { mutableStateOf<Long?>(null) }
     var failureCaldav by rememberSaveable { mutableStateOf(false) }
     var failureDetail by rememberSaveable { mutableStateOf<String?>(null) }
@@ -122,6 +125,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
         davCalendars = emptyList()
         davChecked = emptySet()
         davPreviews = emptyList()
+        davHolidays = emptySet()
         passwordFor = null
     }
     fun action(block: suspend () -> Unit) {
@@ -148,6 +152,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                     val source = snapshot.calendarSources.firstOrNull { it.id == replacing }
                     name = source?.name ?: result.name
                     hideTitles = source?.hideTitles ?: ImportedCalendars.named(snapshot, name)?.hideTitles ?: false
+                    holidays = source?.countsAsHolidays ?: ImportedCalendars.named(snapshot, name)?.countsAsHolidays ?: false
                 }
                 phase = "preview"
                 confirmationKind = null
@@ -314,6 +319,8 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                 Text(ready.host, style = MaterialTheme.typography.bodyMedium)
                 OutlinedTextField(name, { name = it.take(60) }, enabled = !busy && replacing == null, label = { Text(stringResource(Res.string.calendar_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 if (replacing == null) LabeledCheckbox(hideTitles, { hideTitles = it }, stringResource(Res.string.calendar_hide_titles))
+                // Fériés d'un calendrier importé (docs/spec/jours-feries.md § Voie B) : seulement s'il a des journées entières.
+                if (replacing == null && ready.plan.days.isNotEmpty()) LabeledCheckbox(holidays, { holidays = it }, stringResource(Res.string.calendar_holidays))
                 val first = ready.plan.first
                 val last = ready.plan.last
                 Text(if (first == null || last == null) stringResource(Res.string.calendar_events_none) else stringResource(Res.string.calendar_events, ready.plan.events.size, Dates.short(first, language), Dates.short(last, language, first)), style = MaterialTheme.typography.bodyMedium)
@@ -336,7 +343,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
             confirmButton = { KairosTextButton(enabled = !busy && name.isNotBlank(), onClick = { action {
                 val id = replacing
                 if (id == null) {
-                    if (online.addIcs(ready, name.trim(), hideTitles) != null) close()
+                    if (online.addIcs(ready, name.trim(), hideTitles, holidays && ready.plan.days.isNotEmpty()) != null) close()
                 } else {
                     when (val result = online.replaceIcsLink(id, link, insecure, redirect)) {
                         is IcsPreviewResult.Ready -> close()
@@ -399,7 +406,11 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                             val first = plan.first
                             val last = plan.last
                             Text(if (first == null || last == null) stringResource(Res.string.calendar_events_none) else stringResource(Res.string.calendar_events, plan.events.size, Dates.short(first, language), Dates.short(last, language, first)), style = MaterialTheme.typography.bodyMedium)
-                            if (plan.days.isNotEmpty()) Text(stringResource(Res.string.calendar_days, plan.days.size), style = MaterialTheme.typography.bodyMedium)
+                            if (plan.days.isNotEmpty()) {
+                                Text(stringResource(Res.string.calendar_days, plan.days.size), style = MaterialTheme.typography.bodyMedium)
+                                val url = item.calendar.url
+                                LabeledCheckbox(url in davHolidays, { davHolidays = if (it) davHolidays + url else davHolidays - url }, stringResource(Res.string.calendar_holidays))
+                            }
                         }
                         error != null -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(KairosIcons.Warning, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -417,7 +428,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
             }
         } },
         confirmButton = { KairosTextButton(enabled = !busy && davPreviews.any { it.plan != null }, onClick = { action {
-            online.addCalDav(CalDavAccount(server.trim(), user.trim(), password), davHost, davPreviews, hideTitles)
+            online.addCalDav(CalDavAccount(server.trim(), user.trim(), password), davHost, davPreviews, hideTitles, davHolidays.filterTo(HashSet()) { url -> davPreviews.any { it.calendar.url == url && it.plan?.days?.isNotEmpty() == true } })
             close()
             server = ""
             user = ""

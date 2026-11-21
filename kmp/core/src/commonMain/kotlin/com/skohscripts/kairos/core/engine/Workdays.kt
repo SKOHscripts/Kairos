@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.core.engine
 
+import com.skohscripts.kairos.core.model.BlockSource
+import com.skohscripts.kairos.core.model.KairosSnapshot
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.isoDayNumber
@@ -71,24 +73,14 @@ object Workdays {
         return LocalDate(year, month, day)
     }
 
-    /** Jours fériés de France métropolitaine pour [year] (8 fixes, 3 mobiles). */
-    fun frenchPublicHolidays(year: Int): Set<LocalDate> {
-        val easter = easterSunday(year)
-        return setOf(
-            LocalDate(year, 1, 1), LocalDate(year, 5, 1), LocalDate(year, 5, 8), LocalDate(year, 7, 14),
-            LocalDate(year, 8, 15), LocalDate(year, 11, 1), LocalDate(year, 11, 11), LocalDate(year, 12, 25),
-            easter.plus(DatePeriod(days = 1)), easter.plus(DatePeriod(days = 39)), easter.plus(DatePeriod(days = 50)),
-        )
-    }
-
     /**
-     * Jours fériés à exclure : calendrier français des [years] si [france], plus
-     * les dates [extra] (texte ISO « AAAA-MM-JJ », séparées par des virgules ;
-     * une date illisible est ignorée).
+     * Jours fériés à exclure : fériés nationaux de [country] pour [years] (`PublicHolidays`, docs/spec/jours-feries.md ;
+     * nul = aucun pays), plus les dates [extra] (texte ISO « AAAA-MM-JJ », séparées par des virgules ; une date illisible est
+     * ignorée).
      */
-    fun buildHolidays(years: IntRange, france: Boolean, extra: String = ""): Set<LocalDate> {
+    fun buildHolidays(years: IntRange, country: String?, extra: String = ""): Set<LocalDate> {
         val out = mutableSetOf<LocalDate>()
-        if (france) for (y in years) out += frenchPublicHolidays(y)
+        if (country != null) for (y in years) out += PublicHolidays.dates(country, y)
         extra.split(',').map { it.trim() }.filter { it.isNotEmpty() }.forEach { text ->
             runCatching { LocalDate.parse(text.take(10)) }.getOrNull()?.let { out += it }
         }
@@ -99,12 +91,44 @@ object Workdays {
     fun endOfWeek(day: LocalDate): LocalDate = day.plus(DatePeriod(days = 6 - weekday(day)))
 
     /**
-     * Jours fériés des réglages : calendrier
-     * français si [france], plus [extra], de l'année de [today] − 1 à + 2 ; vide
-     * si rien n'est demandé.
+     * Jours fériés des réglages : ceux de [country] (`Settings.holidayCountryCode`), plus [extra], de l'année de [today] − 1
+     * à + 2 ; vide si rien n'est demandé.
      */
-    fun holidaysFor(today: LocalDate, france: Boolean, extra: String): Set<LocalDate> {
-        if (!france && extra.split(',').none { it.isNotBlank() }) return emptySet()
-        return buildHolidays((today.year - 1)..(today.year + 2), france, extra)
+    fun holidaysFor(today: LocalDate, country: String?, extra: String): Set<LocalDate> {
+        if (country == null && extra.split(',').none { it.isNotBlank() }) return emptySet()
+        return buildHolidays((today.year - 1)..(today.year + 2), country, extra)
+    }
+
+    /**
+     * Tous les fériés de [snapshot] autour de [today] (docs/spec/jours-feries.md) : ceux des réglages ([holidaysFor]), plus les
+     * journées entières des calendriers importés comptés comme fériés (voie B), de l'année de [today] − 1 à + 2. Les appelants
+     * qui ont l'instantané passent par ici.
+     */
+    fun holidaysFor(today: LocalDate, snapshot: KairosSnapshot): Set<LocalDate> =
+        buildHolidays((today.year - 1)..(today.year + 2), snapshot)
+
+    /** [buildHolidays] des réglages de [snapshot], plus ses journées entières comptées comme fériés, sur [years]. */
+    fun buildHolidays(years: IntRange, snapshot: KairosSnapshot): Set<LocalDate> {
+        val settings = snapshot.settings
+        val base = if (settings.holidayCountryCode == null && settings.extraHolidays.split(',').none { it.isNotBlank() }) {
+            emptySet()
+        } else {
+            buildHolidays(years, settings.holidayCountryCode, settings.extraHolidays)
+        }
+        val calendars = snapshot.calendarSources.filter { it.countsAsHolidays }.mapTo(HashSet()) { it.id }
+        if (calendars.isEmpty()) return base
+        val first = LocalDate(years.first, 1, 1)
+        val last = LocalDate(years.last, 12, 31)
+        val out = HashSet(base)
+        for (mark in snapshot.dayMarks) {
+            if ((mark.source as? BlockSource.Imported)?.calendarId !in calendars) continue
+            var day = maxOf(mark.start, first)
+            val end = minOf(mark.end, last)
+            while (day <= end) {
+                out += day
+                day = day.plus(DatePeriod(days = 1))
+            }
+        }
+        return out
     }
 }
