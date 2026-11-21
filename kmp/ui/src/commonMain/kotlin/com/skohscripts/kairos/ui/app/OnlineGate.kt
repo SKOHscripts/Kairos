@@ -114,6 +114,8 @@ class OnlineGate(
         request(CalendarConnection(0, ConnectionKind.URL, insecureConfirmed = confirmedInsecure, redirectHost = acceptedRedirectHost), url, today, null) { true }
 
     private suspend fun request(connection: CalendarConnection, url: String, today: LocalDate, authorization: String?, allowed: () -> Boolean): Result {
+        // Navigateur : `http` est bloqué de toute façon (contenu mixte) ; ne pas demander une confirmation suivie d'un échec certain.
+        if (fetcher.httpsOnly && url.trim().startsWith("http://", ignoreCase = true)) return Result.Failed(ConnectionError.UNSUPPORTED)
         val checked = HttpPolicy.check(url, connection.kind, authorization != null, connection.insecureConfirmed)
         if (checked is HttpPolicy.Check.Refused) {
             return if (checked.reason == HttpPolicy.Reason.INSECURE_NEEDS_CONFIRMATION) {

@@ -38,7 +38,7 @@ data class CalDavPreview(val calendar: CalDavCalendar, val plan: CalendarPlan?, 
 
 /**
  * Connexions de calendrier en ligne, côté interface (docs/spec/connexions-en-ligne.md § Interface, § Synchronisation).
- * `AppServices.online` : nul sur le web (pas de transport ni de magasin de secrets pour l'instant).
+ * `AppServices.online` : nul en démonstration et dans l'auto-test ; sur le web, lien ICS seulement ([browser]).
  * Toutes les requêtes passent par `OnlineGate` ; aucun secret n'est exposé ici.
  */
 interface OnlineConnections {
@@ -47,6 +47,12 @@ interface OnlineConnections {
 
     /** Niveau de protection du magasin de secrets de la plateforme (pour le texte de la carte). */
     val secretLevel: SecretLevel
+
+    /**
+     * Vrai dans le navigateur (docs/spec/connexions-en-ligne.md § Web) : lien ICS seulement, textes d'activation et d'aide du web,
+     * `OFFLINE` dit « le navigateur n'a pas pu lire ce lien ».
+     */
+    val browser: Boolean get() = false
 
     /** Lit le lien et calcule le plan, sans rien écrire. [acceptedRedirectHost] : hôte de redirection déjà accepté. */
     suspend fun previewIcs(link: String, confirmedInsecure: Boolean, acceptedRedirectHost: String?): IcsPreviewResult

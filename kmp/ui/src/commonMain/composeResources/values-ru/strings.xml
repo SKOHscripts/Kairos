@@ -2032,11 +2032,14 @@
     <string name="online_caldav_unsupported">Этот сервер не позволяет Kairos читать его календари. Используйте вместо этого его ссылку ICS.</string>
     <string name="online_caldav_address">Адрес не поддерживается: используйте адрес https:// без имени пользователя и пароля.</string>
     <string name="online_error_detail">Технические подробности: %1$s</string>
+    <string name="online_activation_web">Kairos будет загружать эту ссылку из этого браузера, пока страница открыта. Сервер видит ваш IP-адрес, ваш браузер и адрес этой страницы; другие данные не отправляются. Ссылка дает доступ к календарю: не делитесь ей.</string>
+    <string name="online_link_help_web">Вставьте личную ссылку ICS календаря. webcal:// читается как https://; веб-страница не может читать http://. Работают только серверы, которые разрешают веб-страницам читать свои календари, часто ни Outlook, ни Google. Этот адрес хранится в этом браузере.</string>
+    <string name="online_error_browser">Браузер не смог прочитать эту ссылку (нет сети, или сервер не разрешает веб-страницы).</string>
     <string name="online_network_blocked">Телефон блокирует доступ Kairos к сети. Разрешите его в настройках Kairos (разрешение «Сеть» или «Мобильные данные и Wi‑Fi»).</string>
     <string name="online_network_hint">Если у других приложений есть сеть, доступ Kairos к сети, возможно, заблокирован в настройках телефона.</string>
     <string name="online_network_settings">Настройки Kairos</string>
     <string name="card_online_connections_title">Онлайн-подключения</string>
-    <string name="card_online_connections_body">Подпишитесь на календарь ICS на Android или компьютере. Проверьте предпросмотр и синхронизируйте только для чтения; ссылка остается на этом устройстве.</string>
+    <string name="card_online_connections_body">Подпишитесь на календарь ICS (в браузере — только серверы, разрешающие веб-страницы). Проверьте предпросмотр и синхронизируйте только для чтения; ссылка остается на этом устройстве.</string>
     <string name="card_caldav_title">Календари CalDAV</string>
     <string name="card_caldav_body">Подключите сервер CalDAV (Nextcloud, Radicale, Fastmail…) на Android или компьютере: отметьте календари, проверьте предпросмотр и синхронизируйте только для чтения. Пароль хранится в зашифрованном виде на этом устройстве.</string>
     <string name="recap_title_week">Итоги недели</string>
