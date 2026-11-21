@@ -471,6 +471,12 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   s’abonner à un lien ICS après consentement et aperçu. La synchronisation
   reste en lecture seule, peut être suspendue ou lancée à la main, et garde
   le lien sur cet appareil.
+- **Calendriers CalDAV** (Android, bureau) : Réglages → Données → Ajouter une
+  connexion → Serveur CalDAV (Nextcloud, Radicale, Fastmail…). Kairos liste
+  les calendriers du serveur, aucun coché ; tu choisis ceux à lire, tu vérifies
+  l’aperçu, puis ils se synchronisent en lecture seule comme un lien. Le mot
+  de passe reste chiffré sur cet appareil ; un mot de passe d’application est
+  préférable.
 - **Deep work** : un créneau réservé à une seule tâche, la plus urgente ; les
   autres le contournent.
 - **Frise** de la journée : planifié, occupé, épinglé, deep work, conflits, et
@@ -800,6 +806,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Organiser | Importer tes réunions d’un agenda | 3.10.0 | Toutes |
 | Organiser | Calendriers du téléphone | 3.10.0 | Android |
 | Organiser | Connexions en ligne | 4.2.0 | Android, Bureau |
+| Organiser | Calendriers CalDAV | 4.4.0 | Android, Bureau |
 | Organiser | Synchroniser tes appareils | 4.0.0 | Toutes |
 | Équipe | Première tâche d’équipe guidée | 3.8.0 | Toutes |
 | Équipe | Les membres | 3.1.0 | Toutes |

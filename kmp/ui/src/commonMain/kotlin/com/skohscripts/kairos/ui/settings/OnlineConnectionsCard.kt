@@ -14,17 +14,24 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.skohscripts.kairos.core.calendar.ImportedCalendars
 import com.skohscripts.kairos.core.calendar.SkipReason
 import com.skohscripts.kairos.core.connections.ConnectionError
+import com.skohscripts.kairos.core.connections.ConnectionKind
 import com.skohscripts.kairos.core.connections.SyncInterval
 import com.skohscripts.kairos.core.model.BlockSource
 import com.skohscripts.kairos.ui.app.AppServices
+import com.skohscripts.kairos.ui.app.CalDavAccount
+import com.skohscripts.kairos.ui.app.CalDavCalendar
+import com.skohscripts.kairos.ui.app.CalDavClient
+import com.skohscripts.kairos.ui.app.CalDavPreview
 import com.skohscripts.kairos.ui.app.IcsConfirmation
 import com.skohscripts.kairos.ui.app.IcsPreviewResult
 import com.skohscripts.kairos.ui.app.LocalMessages
 import com.skohscripts.kairos.ui.app.SecretLevel
+import com.skohscripts.kairos.ui.app.offlineHelp
 import com.skohscripts.kairos.ui.app.uiLanguage
 import com.skohscripts.kairos.ui.day.Dates
 import com.skohscripts.kairos.ui.day.LabeledCheckbox
@@ -92,12 +99,29 @@ internal fun OnlineConnectionsCard(services: AppServices) {
     var hideTitles by rememberSaveable { mutableStateOf(false) }
     var preview by remember { mutableStateOf<IcsPreviewResult.Ready?>(null) }
     var busy by remember { mutableStateOf(false) }
+    // CalDAV (docs/spec/connexions-en-ligne.md § CalDAV) : le mot de passe et les adresses des calendriers ne sont jamais dans l'état
+    // sauvegardé (`remember`, pas `rememberSaveable`) ; après une rotation, le parcours reprend à la saisie.
+    var server by rememberSaveable { mutableStateOf("") }
+    var user by rememberSaveable { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var davHost by remember { mutableStateOf("") }
+    var davCalendars by remember { mutableStateOf<List<CalDavCalendar>>(emptyList()) }
+    var davChecked by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var davPreviews by remember { mutableStateOf<List<CalDavPreview>>(emptyList()) }
+    var passwordFor by rememberSaveable { mutableStateOf<Long?>(null) }
+    var failureCaldav by rememberSaveable { mutableStateOf(false) }
+    var failureDetail by rememberSaveable { mutableStateOf<String?>(null) }
     fun close() {
         phase = ""
         preview = null
         link = ""
         replacing = null
         confirmationKind = null
+        password = ""
+        davCalendars = emptyList()
+        davChecked = emptySet()
+        davPreviews = emptyList()
+        passwordFor = null
     }
     fun action(block: suspend () -> Unit) {
         if (busy) return
@@ -134,6 +158,8 @@ internal fun OnlineConnectionsCard(services: AppServices) {
             is IcsPreviewResult.Failed -> {
                 failure = result.error.name
                 failureHost = result.host.orEmpty()
+                failureCaldav = false
+                failureDetail = null
                 phase = "link"
             }
         }
@@ -141,6 +167,24 @@ internal fun OnlineConnectionsCard(services: AppServices) {
     // Rebuild the transient plan after rotation; the editable fields remain saved.
     LaunchedEffect(phase) {
         if (phase == "preview" && preview == null && !busy) readLink()
+        if ((phase == "caldav-pick" && davCalendars.isEmpty()) || (phase == "caldav-preview" && davPreviews.isEmpty())) phase = "caldav-login"
+        if (phase == "caldav-password" && passwordFor == null) phase = ""
+    }
+    fun connectCalDav() = action {
+        when (val result = online.discoverCalDav(CalDavAccount(server.trim(), user.trim(), password))) {
+            is CalDavClient.Discovery.Found -> {
+                davHost = result.host
+                davCalendars = result.calendars
+                davChecked = emptySet()
+                phase = "caldav-pick"
+            }
+            is CalDavClient.Discovery.Failed -> {
+                failure = result.error.name
+                failureHost = result.host.orEmpty()
+                failureCaldav = true
+                failureDetail = result.detail
+            }
+        }
     }
     SettingsCard(spacing = KairosSpacing.m) {
         SettingsCardHeader(KairosIcons.Sync, stringResource(Res.string.online_title), stringResource(Res.string.online_body))
@@ -158,6 +202,11 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                     redirect = null
                     phase = if (connections.isEmpty()) "activation" else "link"
                 })
+                DropdownMenuItem(text = { Text(stringResource(Res.string.online_caldav)) }, onClick = {
+                    menu = false
+                    password = ""
+                    phase = if (connections.isEmpty()) "caldav-activation" else "caldav-login"
+                })
             }
         }
         connections.forEach { connection ->
@@ -174,7 +223,8 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(KairosIcons.Warning, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Column {
-                            Text(stringResource(connectionErrorText(error)), style = MaterialTheme.typography.bodyMedium)
+                            val text = if (connection.kind == ConnectionKind.CALDAV && error == ConnectionError.UNSUPPORTED) Res.string.online_caldav_unsupported else connectionErrorText(error)
+                            Text(stringResource(text), style = MaterialTheme.typography.bodyMedium)
                             if (error == ConnectionError.OFFLINE && synced != null) Text(stringResource(Res.string.online_events_date, Dates.short(synced.date, language)), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
@@ -200,8 +250,15 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                         val error = online.connections.value.firstOrNull { it.sourceId == source.id }?.lastError
                         messages(getString(error?.let(::connectionErrorText) ?: Res.string.online_sync_done))
                     } }) { Text(stringResource(Res.string.online_sync_now)) }
-                    if (connection.lastError == ConnectionError.AUTH || connection.lastError == ConnectionError.GONE ||
-                        connection.lastError == ConnectionError.NO_SECRET || connection.lastError == ConnectionError.REDIRECT_HOST) {
+                    if (connection.kind == ConnectionKind.CALDAV && connection.lastError == ConnectionError.AUTH) {
+                        KairosTextButton(enabled = !busy, onClick = {
+                            passwordFor = source.id
+                            password = ""
+                            phase = "caldav-password"
+                        }) { Text(stringResource(Res.string.online_caldav_change_password)) }
+                    }
+                    if (connection.kind == ConnectionKind.URL && (connection.lastError == ConnectionError.AUTH || connection.lastError == ConnectionError.GONE ||
+                        connection.lastError == ConnectionError.NO_SECRET || connection.lastError == ConnectionError.REDIRECT_HOST)) {
                         KairosTextButton(enabled = !busy, onClick = {
                             replacing = source.id
                             link = ""
@@ -288,11 +345,112 @@ internal fun OnlineConnectionsCard(services: AppServices) {
             dismissButton = { KairosTextButton(enabled = !busy, onClick = ::close) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
-    failure?.let { error -> AlertDialog(
+    if (phase == "caldav-activation") AlertDialog(
+        onDismissRequest = ::close,
+        title = { Text(stringResource(Res.string.online_caldav)) },
+        text = { Text(stringResource(Res.string.online_caldav_activation)) },
+        confirmButton = { KairosTextButton(onClick = { phase = "caldav-login" }) { Text(stringResource(Res.string.online_activate)) } },
+        dismissButton = { KairosTextButton(onClick = ::close) { Text(stringResource(Res.string.action_cancel)) } },
+    )
+    if (phase == "caldav-login") AlertDialog(
+        onDismissRequest = { if (!busy) close() },
+        title = { Text(stringResource(Res.string.online_caldav)) },
+        text = { Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedTextField(server, { server = it }, label = { Text(stringResource(Res.string.online_caldav_server)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri), singleLine = true, enabled = !busy, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(user, { user = it }, label = { Text(stringResource(Res.string.online_caldav_user)) }, singleLine = true, enabled = !busy, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(password, { password = it }, label = { Text(stringResource(Res.string.online_caldav_password)) }, visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), singleLine = true, enabled = !busy, modifier = Modifier.fillMaxWidth())
+            Text(stringResource(Res.string.online_caldav_help), style = MaterialTheme.typography.bodyMedium)
+        } },
+        confirmButton = { KairosTextButton(enabled = !busy && server.isNotBlank() && user.isNotBlank() && password.isNotEmpty(), onClick = { connectCalDav() }) { Text(stringResource(Res.string.online_caldav_connect)) } },
+        dismissButton = { KairosTextButton(enabled = !busy, onClick = ::close) { Text(stringResource(Res.string.action_cancel)) } },
+    )
+    if (phase == "caldav-pick") AlertDialog(
+        onDismissRequest = { if (!busy) close() },
+        title = { Text(stringResource(Res.string.online_caldav_pick)) },
+        text = { Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(davHost, style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(Res.string.online_caldav_pick_help), style = MaterialTheme.typography.bodyMedium)
+            davCalendars.forEach { calendar ->
+                LabeledCheckbox(calendar.url in davChecked, { checked -> davChecked = if (checked) davChecked + calendar.url else davChecked - calendar.url }, calendar.name)
+            }
+            LabeledCheckbox(hideTitles, { hideTitles = it }, stringResource(Res.string.calendar_hide_titles))
+        } },
+        confirmButton = { KairosTextButton(enabled = !busy && davChecked.isNotEmpty(), onClick = { action {
+            davPreviews = online.previewCalDav(CalDavAccount(server.trim(), user.trim(), password), davHost, davCalendars.filter { it.url in davChecked })
+            phase = "caldav-preview"
+        } }) { Text(stringResource(Res.string.online_preview)) } },
+        dismissButton = { KairosTextButton(enabled = !busy, onClick = ::close) { Text(stringResource(Res.string.action_cancel)) } },
+    )
+    if (phase == "caldav-preview") AlertDialog(
+        onDismissRequest = { if (!busy) close() },
+        title = { Text(stringResource(Res.string.online_preview)) },
+        text = { Column(Modifier.verticalScrollWithThumb(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(davHost, style = MaterialTheme.typography.bodyMedium)
+            davPreviews.forEach { item ->
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(item.calendar.name, style = MaterialTheme.typography.titleSmall)
+                    val plan = item.plan
+                    val error = item.error
+                    when {
+                        plan != null -> {
+                            val first = plan.first
+                            val last = plan.last
+                            Text(if (first == null || last == null) stringResource(Res.string.calendar_events_none) else stringResource(Res.string.calendar_events, plan.events.size, Dates.short(first, language), Dates.short(last, language, first)), style = MaterialTheme.typography.bodyMedium)
+                            if (plan.days.isNotEmpty()) Text(stringResource(Res.string.calendar_days, plan.days.size), style = MaterialTheme.typography.bodyMedium)
+                        }
+                        error != null -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(KairosIcons.Warning, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Column {
+                                Text(stringResource(if (error == ConnectionError.UNSUPPORTED) Res.string.online_caldav_unsupported else connectionErrorText(error)), style = MaterialTheme.typography.bodyMedium)
+                                offlineHelp(error, services.networkAccess)?.let { help ->
+                                    Text(stringResource(help), style = MaterialTheme.typography.bodyMedium)
+                                    KairosTextButton(onClick = { services.networkAccess?.openSettings() }) { Text(stringResource(Res.string.online_network_settings)) }
+                                }
+                                item.detail?.let { Text(stringResource(Res.string.online_error_detail, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            }
+                        }
+                    }
+                }
+            }
+        } },
+        confirmButton = { KairosTextButton(enabled = !busy && davPreviews.any { it.plan != null }, onClick = { action {
+            online.addCalDav(CalDavAccount(server.trim(), user.trim(), password), davHost, davPreviews, hideTitles)
+            close()
+            server = ""
+            user = ""
+        } }) { Text(stringResource(Res.string.online_add)) } },
+        dismissButton = { KairosTextButton(enabled = !busy, onClick = ::close) { Text(stringResource(Res.string.action_cancel)) } },
+    )
+    if (phase == "caldav-password") passwordFor?.let { id -> AlertDialog(
+        onDismissRequest = { if (!busy) close() },
+        title = { Text(stringResource(Res.string.online_caldav_change_password)) },
+        text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(connections.firstOrNull { it.sourceId == id }?.host.orEmpty(), style = MaterialTheme.typography.bodyMedium)
+            OutlinedTextField(password, { password = it }, label = { Text(stringResource(Res.string.online_caldav_password)) }, visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), singleLine = true, enabled = !busy, modifier = Modifier.fillMaxWidth())
+        } },
+        confirmButton = { KairosTextButton(enabled = !busy && password.isNotEmpty(), onClick = { action {
+            online.changeCalDavPassword(id, password)
+            close()
+        } }) { Text(stringResource(Res.string.action_save)) } },
+        dismissButton = { KairosTextButton(enabled = !busy, onClick = ::close) { Text(stringResource(Res.string.action_cancel)) } },
+    ) }
+    failure?.let { error ->
+    // Réseau peut-être bloqué pour Kairos seul (Android) : l'aide et le bouton « Réglages de Kairos » (spec § Réseau bloqué).
+    val help = remember(error) { offlineHelp(ConnectionError.valueOf(error), services.networkAccess) }
+    AlertDialog(
         onDismissRequest = { failure = null },
         title = { Text(stringResource(Res.string.online_title)) },
-        text = { Column { Text(failureHost); Text(stringResource(connectionErrorText(ConnectionError.valueOf(error)))) } },
-        confirmButton = { KairosTextButton(onClick = { failure = null }) { Text(stringResource(Res.string.calendar_close)) } },
+        text = { Column {
+            Text(failureHost)
+            val kind = ConnectionError.valueOf(error)
+            Text(stringResource(if (failureCaldav && kind == ConnectionError.UNSUPPORTED) Res.string.online_caldav_address else connectionErrorText(kind)))
+            help?.let { Text(stringResource(it), style = MaterialTheme.typography.bodyMedium) }
+            failureDetail?.let { Text(stringResource(Res.string.online_error_detail, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        } },
+        confirmButton = { KairosTextButton(onClick = { failure = null; failureCaldav = false; failureDetail = null }) { Text(stringResource(Res.string.calendar_close)) } },
+        dismissButton = if (help == null) null else {
+            { KairosTextButton(onClick = { services.networkAccess?.openSettings() }) { Text(stringResource(Res.string.online_network_settings)) } }
+        },
     ) }
     removing?.let { id ->
         snapshot.calendarSources.firstOrNull { it.id == id }?.let { source ->

@@ -33,6 +33,9 @@ sealed interface IcsPreviewResult {
     data class Failed(val error: ConnectionError, val host: String?) : IcsPreviewResult
 }
 
+/** Aperçu d'un calendrier CalDAV coché (docs/spec/connexions-en-ligne.md § CalDAV) : son plan, ou l'erreur de sa lecture. */
+data class CalDavPreview(val calendar: CalDavCalendar, val plan: CalendarPlan?, val error: ConnectionError?, val detail: String? = null)
+
 /**
  * Connexions de calendrier en ligne, côté interface (docs/spec/connexions-en-ligne.md § Interface, § Synchronisation).
  * `AppServices.online` : nul sur le web (pas de transport ni de magasin de secrets pour l'instant).
@@ -63,6 +66,21 @@ interface OnlineConnections {
 
     /** Remplace le lien d'un calendrier connecté (erreur `AUTH` ou `GONE`) ; mêmes confirmations qu'à l'ajout. */
     suspend fun replaceIcsLink(sourceId: Long, link: String, confirmedInsecure: Boolean, acceptedRedirectHost: String?): IcsPreviewResult
+
+    /** Serveur CalDAV : découverte des calendriers, sans rien écrire (docs/spec/connexions-en-ligne.md § CalDAV). */
+    suspend fun discoverCalDav(account: CalDavAccount): CalDavClient.Discovery
+
+    /** Lit chaque calendrier coché et calcule son plan, sans rien écrire. */
+    suspend fun previewCalDav(account: CalDavAccount, host: String, calendars: List<CalDavCalendar>): List<CalDavPreview>
+
+    /**
+     * Ajoute les calendriers lus (plan non nul) : une sauvegarde automatique, un compte `account:<compte>` partagé, puis pour chacun
+     * une source, son adresse `remote:<id>`, son plan et sa ligne `CALDAV`. Rend les identifiants des sources.
+     */
+    suspend fun addCalDav(account: CalDavAccount, host: String, previews: List<CalDavPreview>, hideTitles: Boolean): List<Long>
+
+    /** « Modifier le mot de passe » (erreur `AUTH`) : réécrit le compte de [sourceId], puis synchronise les calendriers de ce compte. */
+    suspend fun changeCalDavPassword(sourceId: Long, password: String)
 
     /** « Déconnecter » : efface les secrets puis la ligne, garde les événements. */
     suspend fun disconnect(sourceId: Long)

@@ -7,12 +7,18 @@ Fichiers O1 : `core/connections/{ConnectionModel,HttpPolicy,SyncSchedule}.kt`, `
 `Kairos.sq`, `13.sqm`, `ui/app/{HttpFetcher,SecretStore,OnlineConnections,OnlineGate,ConnectionSync,ConnectionWatcher,DefaultOnlineConnections,AppServices}.kt`,
 `ui/settings/{OnlineConnectionsCard,CalendarImport,SettingsScreen}.kt`, `androidApp/{AndroidHttp,AndroidSecrets,ConnectionScheduler,SyncJobService,MainActivity}.kt`,
 le manifeste et les règles XML de réseau et sauvegarde, `desktopApp/{DesktopHttp,DesktopSecrets,DesktopServices,Main}.kt`.
-Les fichiers CalDAV, OAuth et web décrits plus bas restent prévus, non écrits.
-Tests O1 : voir § Critères de succès._
+Fichiers O2 (CalDAV) : `core/connections/CalDavXml.kt`, `core/connections/CalDav.kt` (`CalDav`, `CalDavQueries`, `CalDavMerge`,
+`RemoteCalendar`), `HttpPolicy.resolve`, `ui/app/CalDavClient.kt`, `ui/app/Http11.kt`, `OnlineGate.dav`, `ConnectionSync`,
+`OnlineConnections`, `DefaultOnlineConnections`, `ui/settings/OnlineConnectionsCard.kt`, `android/AndroidRawHttp.kt`, `AndroidHttp`.
+Modèle et calendrier des essais (O1) : `core/connections/ConnectionModel.kt`, `core/connections/SyncSchedule.kt`.
+Les fichiers OAuth et web décrits plus bas restent prévus, non écrits.
+Tests O1 et O2 : voir § Critères de succès._
 
 État : **O1 (socle et lien ICS, Android et bureau) implémenté en 4.2.0** (PR #242 de @pyroMain404, revue et décisions du
 propriétaire du 2026-11-19 : D1 à D6 validés, lien demandé gardé après une redirection temporaire, `ACCESS_NETWORK_STATE`).
-La tranche web de O1, CalDAV (O2), Microsoft (O3) et Google (O4) restent **spécifiés, non implémentés**.
+**O2 (CalDAV, Android et bureau) implémenté pour la 4.4.0** (#259, 2026-11-21) : vérifié de bout en bout sur le bureau contre un
+Radicale réel (TLS, mot de passe) ; sur Android, le transport des méthodes WebDAV attend l'essai réel sur téléphone du propriétaire
+(§ Points ouverts). La tranche web de O1 (#260), Microsoft (O3, #261) et Google (O4, #262) restent **spécifiés, non implémentés**.
 Prévue d'abord pour la 4.0.0, reportée à la 4.1.0 par le propriétaire le 2026-11-04, puis à la 4.2.0 le 2026-11-15 (la 4.1.0 sort sans permission réseau).
 #139 suit les jalons ci-dessous ; @pyroMain404 propose l'implémentation dans #212 ; parent #140.
 #144 a été fermée « not planned » par le propriétaire le 2026-11-06.
@@ -21,9 +27,9 @@ Choix du propriétaire du 2026-10-26 : **un seul APK avec `INTERNET`**, pour F-D
 Les reports O1 dans les specs de données, synchronisation, calendriers, réglages et démonstration sont faits.
 Les autres impacts restent listés en fin de document.
 
-- [x] **O1 Android/bureau** : socle, carte et lien ICS implémentés sur branche ; pas encore publiés.
-- [ ] **O1 web** : lien ICS et persistance à implémenter.
-- [ ] **O2** : CalDAV sur Android et bureau.
+- [x] **O1 Android/bureau** : socle, carte et lien ICS, publiés en 4.2.0.
+- [ ] **O1 web** : lien ICS et persistance à implémenter (#260).
+- [x] **O2** : CalDAV sur Android et bureau (#259), essai réel sur Android en attente.
 - [ ] **O3** : Microsoft 365, bloqué sur l'inscription Entra du propriétaire ; ne pas commencer avant l'identifiant de client.
 - [ ] **O4** : Google, bloqué sur Google Cloud et la vérification OAuth du propriétaire ; même condition de démarrage.
 
@@ -52,6 +58,10 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 3. **Lecture seule, rien dans l'export.** Kairos ne modifie jamais le calendrier distant, ne crée aucun compte Kairos, ne
    transmet aucune télémétrie, et aucune donnée de connexion (adresse, identifiant, mot de passe, jeton) ne sort de l'appareil
    ni n'entre dans un export, une sauvegarde ou un paquet d'équipe.
+4. **Les données de Kairos restent privées** (propriétaire, 2026-11-21). Chaque connexion est une fenêtre ouverte **dans un seul
+   sens** : des données de calendrier entrent dans Kairos, rien de plus. Aucune tâche, aucun créneau, aucune note, aucun réglage,
+   aucune statistique ne sort par une connexion ; la seule chose envoyée est ce que le protocole exige pour lire (requête, identifiant
+   et mot de passe ou jeton, au seul serveur choisi).
 
 ### Comportement attendu (utilisateur)
 
@@ -73,9 +83,9 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 - **Réglages → Données → carte « Connexions en ligne »**, après la carte « Calendriers » (celle de la 3.10.0). Phrase d'ouverture :
   « Kairos ne se connecte à rien tant que vous n’ajoutez pas de connexion. Chaque connexion est en lecture seule, et ses
   identifiants restent sur cet appareil. »
-- O1 propose uniquement le lien ICS sur Android et bureau. Le dialogue d'activation apparaît quand aucune connexion n'existe.
-  Sinon, l'ajout passe directement à la saisie ; « Aperçu » autorise la lecture, sans écriture persistante.
-  CalDAV et OAuth restent le comportement spécifié des jalons suivants.
+- « Ajouter une connexion » propose le **lien ICS** et le **serveur CalDAV** sur Android et bureau. Le dialogue d'activation (texte du
+  tableau ci-dessous) apparaît quand aucune connexion n'existe. Sinon, l'ajout passe directement à la saisie ; « Aperçu » autorise la
+  lecture, sans écriture persistante. OAuth reste le comportement spécifié des jalons suivants.
 
 | Connexion | Plateformes | Texte avant activation |
 |---|---|---|
@@ -151,6 +161,14 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 | Redirection vers un autre serveur (lien ICS) | À l'aperçu : hôte, « Suivre » et « Annuler ». En synchronisation : erreur et « Remplacer le lien ». |
 | Identifiants absents de cet appareil (base copiée d'ailleurs) | « Les identifiants de cette connexion ne sont pas sur cet appareil. » ; O1 propose « Remplacer le lien ». |
 
+- **Réseau bloqué pour Kairos (Android)** : `INTERNET` est une permission normale, sans dialogue système à demander ; mais le
+  téléphone peut couper le réseau de Kairos seul (autorisation « Réseau » de GrapheneOS, interrupteur « Données mobiles et Wi-Fi » d'une
+  surcouche, pare-feu). Le premier essai réel l'a montré (2026-11-21, GrapheneOS : « Pas de connexion », `UnknownHostException`). Quand un
+  ajout (lien ICS ou CalDAV) échoue en `OFFLINE` sur Android, le dialogue d'erreur dit, si le système signale le blocage : « Le téléphone
+  bloque l’accès de Kairos au réseau. Autorisez-le dans les réglages de Kairos (autorisation « Réseau » ou « Données mobiles et
+  Wi-Fi »). » ; sinon : « Si les autres applis ont du réseau, l’accès de Kairos au réseau est peut-être bloqué dans les réglages du
+  téléphone. » ; et un bouton **« Réglages de Kairos »** ouvre la page de Kairos dans les réglages du téléphone. Aucune permission
+  nouvelle, rien d'envoyé : aucun effet sur F-Droid.
 - Après un échec, les essais automatiques espacent : au moins 15 minutes, 6 heures après 5 échecs de suite, et jamais avant
   le délai du serveur (`Retry-After` numérique en secondes, plafonné à 24 heures). La forme date HTTP n'est pas interprétée.
   « Synchroniser maintenant » passe outre ces délais, pas la pause.
@@ -195,7 +213,7 @@ L'isolation des échanges d'équipe reste celle des créneaux importés ; aucun 
 
 Tests à écrire à l'implémentation des jalons restants :
 
-- **CalDAV** : `CalDavXmlTest`, `CalDavSyncTest` : découverte, fusion des calendriers, répétitions et refus des entités XML.
+- **CalDAV** (écrits avec O2, ils existent) : `CalDavXmlTest` (espaces de noms, entités, `CDATA`, refus de `DOCTYPE` et d'entités déclarées, profondeur), `CalDavTest` (réponses Radicale capturées : principal, dossier, calendriers, `REPORT`, fusion, `VTIMEZONE` uniques), `Http11Test` (requête, longueur fixe, `chunked`, fermeture, plafond, en-têtes), `CalDavClientTest` (découverte par un faux transport, repli `/.well-known`, hôte étranger ignoré, erreurs, `UNSUPPORTED`), `CalDavConnectionsTest` (ajout de deux calendriers d'un compte, secrets, synchronisation, mot de passe modifié, `NO_SECRET`, retrait du dernier calendrier qui efface le compte).
 - **Microsoft / Google** : `GraphEventsTest`, `GoogleEventsTest` : événements, disponibilités, journées entières et pagination.
 - **OAuth** : `OAuthPkceTest`, `Sha256Test`, `OAuthFlowTest` : RFC 7636, état, retour, rafraîchissement unique et révocation.
 - **Web** : lecture CORS et persistance après l'arbitrage de § Web.
@@ -211,6 +229,11 @@ Tests à écrire à l'implémentation des jalons restants :
 ### Hors périmètre / différé
 
 - **Écrire vers un calendrier distant** (créer une réunion, poser un créneau de deep work) : jamais dans cette spec.
+  **Réexaminé et abandonné le 2026-11-21** (propriétaire, après O2) : envoyer les créneaux de Kairos vers un agenda, en CalDAV, dans le
+  calendrier du téléphone ou par un fichier `.ics` synchronisé, voire une synchronisation bidirectionnelle. Raison décisive : les données
+  de Kairos restent privées (principe 4). Autres coûts relevés : boucle si Kairos relit ce qu'il écrit (calendrier dédié jamais relu),
+  planning recalculé sans cesse (écritures et notifications en rafale), bidirectionnel (identité, conflits, suppressions). Ne pas rouvrir
+  sans nouvelle décision du propriétaire.
 - **Notification poussée** (push), webhooks, serveur Kairos, relais, compte Kairos : aucun.
   Le fichier lié existant continue de transporter les événements (`synchronisation.md`), jamais la connexion.
 - **Télémétrie, statistiques d'usage, rapport de plantage distant** : aucun. Le projet ne reçoit rien.
@@ -456,22 +479,62 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
 - **Le corps est décodé une fois** : `OnlineGate.Result.Success.text` porte le texte (vide pour un 304) que lisent l'aperçu et `ConnectionSync`, au lieu d'un second `decodeToString` sur 16 Mo.
 - **Écritures de ligne sous le verrou** : `KairosRepository.updateConnection(sourceId) { it.copy(…) }` lit la ligne dans le verrou d'écriture, donc `setInterval`, `setSyncEnabled` et `replaceIcsLink` n'écrasent ni l'ETag ni les dates d'une synchronisation en cours.
 
-### CalDAV (O2 spécifié, non implémenté ; `core/connections/CalDav*.kt` prévus)
+### CalDAV (O2, #259 ; `core/connections/CalDav*.kt`, `ui/app/CalDavClient.kt`, `ui/app/Http11.kt`)
 
-- Authentification `Basic`, en `https` seulement. Adresse saisie → découverte : `PROPFIND` de l'adresse (`/.well-known/caldav` en
-  repli) pour `current-user-principal`, puis `calendar-home-set`, puis `PROPFIND` profondeur 1 des calendriers (`resourcetype` contenant
-  `calendar`, `displayname`, `supported-calendar-component-set` contenant `VEVENT`). `remote:<id>` = chemin du calendrier choisi.
-- Synchronisation : `REPORT` `calendar-query` filtré `VEVENT` sur `[aujourd'hui − 1 jour, aujourd'hui + 6 mois[`, avec `calendar-data` brut
-  **sans** `expand` (tous les serveurs ne l'offrent pas ; Kairos déploie lui-même les répétitions, `IcsRule`). `CalDavQueries` écrit les
-  corps de requête, `CalDavXml.parseMultistatus` en lit les réponses.
-  `CalDavMerge.merge(objets)` rassemble les `VCALENDAR` en **un seul** texte (les `VTIMEZONE` conservés une fois par `TZID`), lu ensuite par
-  `CalendarImport.plan` comme n'importe quel fichier : une seule logique d'événements pour fichier, lien et CalDAV.
-- Lecteur XML **maison**, minimal (`CalDavXml`) : éléments, espaces de noms, texte, `CDATA`, entités prédéfinies ; refuse `<!DOCTYPE`,
-  entités déclarées et profondeur > 32 (aucune lecture externe, pas de XXE ni d'explosion d'entités). Aucun analyseur de plateforme n'existe
-  en wasm ; le même code sert les tests de `core` sur toutes les cibles.
+- **Saisie** : adresse du serveur (`https` seulement, sans identifiant dans l'adresse : `HttpPolicy` refuse `http` avec identifiants et
+  `user@host`), identifiant, mot de passe. Authentification `Basic` (identifiant et mot de passe en UTF-8), envoyée **seulement** à l'hôte de
+  la connexion, jamais après une redirection vers un autre hôte (`HttpPolicy.redirect` refuse pour `CALDAV`).
+- **Découverte** (`CalDavClient.discover`) :
+  1. `PROPFIND` profondeur 0 `current-user-principal` sur l'adresse saisie ; sans principal (404, 405, propriété absente), même requête sur
+     `/.well-known/caldav` du même hôte (redirections du même hôte suivies, cinq au plus) ;
+  2. `PROPFIND` profondeur 0 `calendar-home-set` sur le principal ;
+  3. `PROPFIND` profondeur 1 sur le dossier : garder les réponses dont `resourcetype` contient `calendar` (espace `urn:ietf:params:xml:ns:caldav`)
+     et dont `supported-calendar-component-set` est absent ou contient `VEVENT` ; nom = `displayname`, sinon dernier segment du chemin décodé.
+  Sans principal ni dossier, l'adresse saisie sert de dossier (serveurs qui n'exposent que leur collection). Aucun calendrier → `NOT_CALENDAR`.
+  Les adresses (`href`) sont résolues sur l'adresse de la requête et doivent rester sur le même hôte ; une autre est ignorée.
+- **Lecture** (`CalDavClient.read`, aperçu et synchronisation) : `REPORT` profondeur 1 `calendar-query`, filtre `VEVENT`, `time-range` de
+  `aujourd'hui − 1 jour` à `aujourd'hui + 6 mois` (minuit UTC, `AAAAMMJJTHHMMSSZ`), `calendar-data` brut **sans** `expand` (tous les serveurs
+  ne l'offrent pas ; Kairos déploie lui-même les répétitions, `IcsRule`). `CalDavQueries` écrit les corps, `CalDav.parseMultistatus` lit
+  les réponses, `CalDavMerge.merge(objets)` rassemble les `VCALENDAR` en **un seul** texte (en-tête `VERSION`, `VTIMEZONE` gardés une fois par
+  `TZID`, puis les composants dans l'ordre reçu), lu par `CalendarImport.plan` comme un fichier : une seule logique d'événements pour fichier,
+  lien et CalDAV. Zéro objet donne un calendrier vide, écrit comme tel (aucun événement à venir).
+- **Réponses** : `207` attendu ; corps qui n'est pas un `multistatus` complet → `NOT_CALENDAR` ; XML coupé → `TRUNCATED` ; 401, 403 → `AUTH` ;
+  404, 410 → `GONE` ; 400, 405, 415, 501 sur `REPORT` (serveur sans `calendar-query`) → `UNSUPPORTED` ; 5xx, 429 → `UNAVAILABLE`
+  (`Retry-After`) ; une réponse de `multistatus` en échec (`status` ≠ 200) pour un objet est ignorée.
+- **Lecteur XML maison, minimal** (`CalDavXml`) : éléments, attributs, espaces de noms (préfixes libres, espace par défaut), texte, `CDATA`,
+  les cinq entités prédéfinies et les références numériques (`&#13;`, `&#xD;`, fréquentes dans `calendar-data`) ; refuse `<!DOCTYPE`, toute
+  autre entité, profondeur > 32 et document de plus de 16 Mio (aucune lecture externe, ni XXE ni explosion d'entités). Aucun analyseur de
+  plateforme n'existe en wasm ; le même code sert les tests de `core` sur toutes les cibles.
+- **Plusieurs calendriers par compte** : l'utilisateur coche un ou plusieurs calendriers (**aucun coché par défaut**) ; chacun devient un
+  calendrier Kairos (`calendar_source`) et une ligne `CALDAV` (`host`, `account`), lus et synchronisés séparément.
+- **Secrets** : `account:<compte>` = JSON `{"server": adresse saisie, "user": identifiant, "password": mot de passe}` ; `<compte>` = `caldav-`
+  suivi de 16 chiffres hexadécimaux aléatoires, partagé par les calendriers cochés ensemble ; `remote:<idSource>` = adresse absolue du
+  calendrier. Ni l'identifiant, ni le chemin (qui contient souvent l'identifiant), ni le mot de passe n'entrent dans la base ou un journal.
+  « Modifier le mot de passe » (erreur `AUTH`) réécrit `account:<compte>` et force la synchronisation des calendriers de ce compte.
+  `NO_SECRET` si `account:<compte>` ou `remote:<idSource>` manque.
+- **Détail technique** : une panne de transport (`HttpTransportException`) garde le type et le message de sa cause (`detail`, 200
+  caractères au plus, ni identifiant ni mot de passe) ; la découverte et l'aperçu CalDAV le montrent sous l'erreur
+  (`online_error_detail`, « Détail technique : … »), pour qu'un essai réel dise pourquoi il échoue. La synchronisation de fond ne garde
+  que le `ConnectionError`.
 - Pas de `sync-collection` ni de CTag en première version : une requête par synchronisation et par calendrier suffit à l'échelle d'un
   agenda personnel ; `etag` ne sert pas ici.
 - Limite connue : un serveur sans `calendar-query` → `UNSUPPORTED`, avec le conseil du lien ICS.
+
+### Transport des méthodes WebDAV
+
+- **Bureau** : `java.net.http` envoie `PROPFIND` et `REPORT` tels quels (`DesktopHttp`).
+- **Android** : `HttpURLConnection` refuse toute méthode hors `GET`, `HEAD`, `POST`, `PUT`, `DELETE`, `OPTIONS`, `TRACE`, `PATCH`
+  (`ProtocolException`). `AndroidHttp` garde `HttpURLConnection` pour ces méthodes et passe les autres par **HTTP/1.1 minimal** sur un
+  `SSLSocket` du système (option (2) de § Décisions) : `Http11` (`ui/app`, Kotlin commun, sans plateforme) écrit la requête (ligne de
+  requête, `Host`, `Content-Length`, `Connection: close`, en-têtes sans `Cookie` ni `Accept-Encoding`) et lit la réponse (ligne d'état,
+  en-têtes, corps de longueur fixe, découpé `chunked` ou jusqu'à la fermeture, plafond `MAX_BODY_BYTES`) depuis une source d'octets ;
+  `AndroidRawHttp` n'apporte que le socket : `https` seulement, port 443 par défaut, **chaque adresse IP** du serveur essayée à son tour
+  (comme `HttpURLConnection`), **SNI posé explicitement** (`SSLParameters.serverNames`, sauf pour une adresse IP) et vérification du nom
+  d'hôte (`endpointIdentificationAlgorithm` `HTTPS` et `HttpsURLConnection.getDefaultHostnameVerifier`), délais de 10 s de connexion et
+  du total de la requête, et décompresse par `java.util.zip` un corps
+  `gzip` envoyé malgré tout (Kotlin commun n'a pas de décompresseur ; le chemin brut ne demande pas `gzip`). Le mandataire (proxy) du système n'est pas utilisé
+  pour ces méthodes (limite connue). Aucune dépendance.
+- **Web** : pas de CalDAV (§ Web).
 
 ### Microsoft 365 et Google par OAuth 2.0 (O3/O4 spécifiés, non implémentés)
 
@@ -567,13 +630,29 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
 
 ### Interface (`ui/settings/OnlineConnectionsCard.kt`)
 
+- **Accès au réseau** (`ui/app/NetworkAccess.kt`, `AppServices.networkAccess`, nul hors Android ; `android/AndroidNetworkAccess.kt`) :
+  `blocked()` vrai si `checkSelfPermission(INTERNET)` est refusée (autorisation « Réseau » de GrapheneOS, qui rend `INTERNET` révocable) ou
+  si `ConnectivityManager.activeNetworkInfo` est `BLOCKED` (règle du système pour l'app) ; `openSettings()` ouvre
+  `ACTION_APPLICATION_DETAILS_SETTINGS` de Kairos, comme le refus du calendrier du téléphone. `offlineHelp(erreur, accès)` choisit le texte :
+  `online_network_blocked`, `online_network_hint`, ou rien (autre erreur, ou hors Android). Le dialogue d'erreur d'un ajout et l'aperçu
+  CalDAV l'affichent avec le bouton `online_network_settings`.
+
 - `AppServices.online` et `connectionSync` sont nullables, ajoutés en dernier avec `null` par défaut.
   La démonstration les fixe tous deux à `null` ; le web ne fournit actuellement aucun service en ligne.
 - `OnlineConnectionsCard` apparaît dans Données après `CalendarsCard` seulement si `services.online != null`.
-  O1 propose uniquement le lien ICS ; les connexions affichent date locale de réussite, hôte, fréquence, pause et erreurs.
+  Le menu « Ajouter une connexion » propose « Lien ICS » et « Serveur CalDAV » ; les connexions affichent date locale de réussite, hôte,
+  fréquence, pause et erreurs.
 - O1 possède ses dialogues d'activation, saisie, confirmation HTTP/redirection et aperçu ; il ne réutilise pas `CalendarImportDialog`.
   Le plan d'aperçu est transitoire ; après rotation, il est relu, tandis que les champs modifiables restent sauvegardés.
-  « Remplacer le lien » apparaît pour `AUTH`, `GONE`, `NO_SECRET` et `REDIRECT_HOST`.
+  « Remplacer le lien » apparaît pour un lien ICS en `AUTH`, `GONE`, `NO_SECRET` et `REDIRECT_HOST`.
+- **CalDAV** : dialogue d'activation (`online_caldav_activation`), saisie (adresse, identifiant, mot de passe masqué, aide
+  `online_caldav_help`, « Se connecter »), choix des calendriers (hôte, `online_caldav_pick_help`, une case par calendrier, **aucune cochée**,
+  « Masquer les titres », « Aperçu » actif dès une case), aperçu (par calendrier : créneaux et journées, ou l'erreur de sa lecture ;
+  « Ajouter » actif si au moins un calendrier a été lu). Le mot de passe et les adresses des calendriers vivent dans un `remember`, jamais
+  dans l'état sauvegardé : après une rotation, le parcours reprend à la saisie (adresse et identifiant gardés). Une erreur de découverte
+  s'affiche dans le dialogue d'erreur ; `UNSUPPORTED` y devient `online_caldav_address` (adresse non `https` ou avec identifiant).
+  Une connexion CalDAV en `AUTH` montre « Modifier le mot de passe » (dialogue d'un champ, « Enregistrer ») ; en `UNSUPPORTED`, le texte
+  `online_caldav_unsupported` conseille le lien ICS. Un CalDAV en `NO_SECRET` se retire et se rajoute (aucun « Remplacer le lien »).
   Le remplacement prévisualise le lien, restaure l'ancien secret si l'écriture échoue, puis force une synchronisation.
   Une connexion en pause reste en pause, même pour une demande manuelle.
 - `CalendarsCard` affiche `lastSyncAt` plutôt que `importedAt` pour une connexion et masque son bouton fichier « Réimporter ».
@@ -723,8 +802,16 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
 
 ### Points ouverts
 
+- **Premier essai réel sur Android (2026-11-21)** : avec `caldav.mailo.com` (qui marche sur le même téléphone dans DAVx⁵),
+  « Pas de connexion » dès la découverte : une panne de transport. Le serveur parle HTTP/1.1, n'a qu'une adresse IPv4 et sert plusieurs noms
+  derrière un frontal (`proxy-dav.mailo.com`). Cause supposée : SNI non envoyé par le socket superposé ; d'où le SNI explicite, l'essai de
+  chaque adresse et le détail technique affiché. À confirmer par un second essai.
+
 - O1 web : persistance des métadonnées dans IndexedDB avec rattachement par nom, ou connexion limitée à la session (§ Web).
-- O2 Android : résultat des essais réels de `PROPFIND`/`REPORT`, avant tout recours soumis à accord à OkHttp.
+- O2 Android : essai réel du transport `AndroidRawHttp` (Android 8 à 16 si possible) par le propriétaire, avant la publication : ajout d'un
+  serveur CalDAV (Radicale local ou Nextcloud), liste des calendriers, aperçu, ajout, « Synchroniser maintenant », mauvais mot de passe
+  (`AUTH`, « Modifier le mot de passe »), certificat d'un autre nom (`TLS`). Sur le JVM, la même couche (copie de test) a passé le 2026-11-21
+  `PROPFIND`, `REPORT`, 401 et un nom d'hôte absent du certificat contre un Radicale réel en TLS. OkHttp reste écarté sauf échec réel.
 - O3/O4 : inscriptions du propriétaire, adresses de retour et vérification des portées (§ OAuth).
 
 ### Impacts restants sur les specs existantes
