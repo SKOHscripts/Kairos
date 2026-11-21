@@ -2190,4 +2190,27 @@
     <string name="tip_team_exchanges_body">%1$d tâches sont assignées à d’autres membres. Un paquet de tâches leur envoie leurs tâches par fichier, et leurs rapports rapportent l’avancement.</string>
     <string name="card_tips_title">Des conseils au bon moment</string>
     <string name="card_tips_body">De temps en temps, et seulement quand c’est utile, Kairos te propose une chose à regarder, avec tes chiffres : tes statistiques, un réglage ou une fonctionnalité. « Montre-moi » t’y emmène, « Plus tard » le ramène dans deux semaines. L’interrupteur « Conseils » de Réglages → À propos les coupe.</string>
+    <!-- Durées réelles (docs/spec/durees-reelles.md, issue #271) -->
+    <string name="spent_question">« %1$s » faite · Temps passé ?</string>
+    <string name="spent_other">Autre…</string>
+    <string name="spent_close">Fermer</string>
+    <string name="spent_other_title">Temps passé</string>
+    <string name="spent_other_field">Minutes</string>
+    <string name="spent_other_help">De 1 à %1$d minutes</string>
+    <string name="spent_noted">Temps noté : %1$s</string>
+    <string name="spent_ignored">« %1$s » ignorée</string>
+    <string name="spent_review_title_one">1 tâche faite sans temps</string>
+    <string name="spent_review_title_many">%1$d tâches faites sans temps</string>
+    <string name="spent_review_hint">Les 7 derniers jours. Un toucher par tâche : Kairos apprend tes durées de ces temps.</string>
+    <string name="spent_review_line">« %1$s » · %2$s</string>
+    <string name="spent_review_ignore">Ignorer</string>
+    <string name="spent_review_more">Afficher tout (%1$d)</string>
+    <string name="action_done_next">Fait, suivante</string>
+    <string name="done_next_started">Chrono lancé sur « %1$s »</string>
+    <string name="settings_ask_spent">Demander le temps passé à la coche</string>
+    <string name="settings_ask_spent_help">Quand une tâche cochée faite n’a aucun temps : un toucher pour dire combien de temps elle a pris. Des coches à moins d’une minute d’écart ne posent pas la question ; elles vont dans la revue du Bilan.</string>
+    <string name="reminder_summary_untimed_one">1 tâche faite sans temps : à compléter dans le Bilan</string>
+    <string name="reminder_summary_untimed_many">%1$d tâches faites sans temps : à compléter dans le Bilan</string>
+    <string name="card_time_spent_title">Le temps passé en un toucher</string>
+    <string name="card_time_spent_body">Coche une tâche faite sans le chrono : Kairos demande combien de temps elle a pris, en un toucher. Le Bilan liste les tâches faites cette semaine encore sans temps. Chrono lancé, « Fait, suivante » le passe à la tâche suivante du plan.</string>
 </resources>

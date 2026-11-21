@@ -97,6 +97,8 @@ import com.skohscripts.kairos.ui.generated.resources.settings_section_wsjf
 import com.skohscripts.kairos.ui.generated.resources.settings_section_wsjf_body
 import com.skohscripts.kairos.ui.generated.resources.settings_sound
 import com.skohscripts.kairos.ui.generated.resources.settings_sound_help
+import com.skohscripts.kairos.ui.generated.resources.settings_ask_spent
+import com.skohscripts.kairos.ui.generated.resources.settings_ask_spent_help
 import com.skohscripts.kairos.ui.generated.resources.settings_pomodoro_help
 import com.skohscripts.kairos.ui.generated.resources.settings_idle_help
 import com.skohscripts.kairos.ui.generated.resources.setting_default_duration
@@ -205,6 +207,7 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "timerAutoStopMinutes" to FieldText(Res.string.settings_auto_stop, Res.string.settings_auto_stop_help),
     "pomodoroFocusMinutes" to FieldText(Res.string.settings_pomodoro, Res.string.settings_pomodoro_help),
     "timerAlertSound" to FieldText(Res.string.settings_sound, Res.string.settings_sound_help),
+    "askSpentOnDone" to FieldText(Res.string.settings_ask_spent, Res.string.settings_ask_spent_help),
     "reminders.enabled" to FieldText(Res.string.setting_reminders_enabled),
     "reminders.leadMinutes" to FieldText(Res.string.setting_reminders_lead, Res.string.setting_reminders_lead_help),
     "reminders.nextTask" to FieldText(Res.string.setting_reminders_next),
@@ -255,7 +258,8 @@ private val GUARDS = Section(Res.string.settings_section_guards, null, KairosIco
 private val CHRONO = Section(
     Res.string.settings_chrono_title, Res.string.settings_chrono_body, KairosIcons.NotificationsActive,
     // Pomodoro d'abord, un réglage sous l'autre (issue #234).
-    listOf("pomodoroFocusMinutes", "timerIdleAlertMinutes", "timerAutoStopMinutes", "timerAlertSound"),
+    // « Temps passé ? » à la coche (docs/spec/durees-reelles.md) : en dernier, ce n'est pas une alerte du chrono.
+    listOf("pomodoroFocusMinutes", "timerIdleAlertMinutes", "timerAutoStopMinutes", "timerAlertSound", "askSpentOnDone"),
 )
 private val REMINDERS = Section(
     Res.string.settings_reminders_title, Res.string.settings_reminders_body, KairosIcons.Alarm,

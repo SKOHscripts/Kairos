@@ -28,6 +28,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_timer_guard_body
 import com.skohscripts.kairos.ui.generated.resources.card_timer_guard_title
 import com.skohscripts.kairos.ui.generated.resources.card_chrono_bells_title
 import com.skohscripts.kairos.ui.generated.resources.card_chrono_bells_body
+import com.skohscripts.kairos.ui.generated.resources.card_time_spent_title
+import com.skohscripts.kairos.ui.generated.resources.card_time_spent_body
 import com.skohscripts.kairos.ui.generated.resources.card_alerts_body
 import com.skohscripts.kairos.ui.generated.resources.card_subtasks_edit_title
 import com.skohscripts.kairos.ui.generated.resources.card_subtasks_edit_body
@@ -254,6 +256,8 @@ object FeatureCatalog {
         FeatureCard("alerts", GuideChapter.FOLLOW, { KairosIcons.NotificationsActive }, Res.string.card_alerts_title, Res.string.card_alerts_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_NOW), since = "3.0.0"),
         FeatureCard("timer_guard", GuideChapter.FOLLOW, { KairosIcons.Shield }, Res.string.card_timer_guard_title, Res.string.card_timer_guard_body, GuideTarget.Settings(GuideSection.SETTINGS_CHRONO), since = "4.1.0"),
         FeatureCard("chrono_bells", GuideChapter.FOLLOW, { KairosIcons.NotificationsActive }, Res.string.card_chrono_bells_title, Res.string.card_chrono_bells_body, GuideTarget.Settings(GuideSection.SETTINGS_CHRONO), since = "4.1.0"),
+        // Durées réelles (docs/spec/durees-reelles.md, issue #271) : la question à la coche se voit dans la vue Jour.
+        FeatureCard("time_spent", GuideChapter.FOLLOW, { KairosIcons.Schedule }, Res.string.card_time_spent_title, Res.string.card_time_spent_body, GuideTarget.Personal(Destination.DAY), since = "4.5.0"),
         FeatureCard("learned", GuideChapter.FOLLOW, { KairosIcons.TrendingUp }, Res.string.card_learned_title, Res.string.card_learned_body, GuideTarget.Settings(GuideSection.SETTINGS_LEARNED), since = "3.4.0"),
         FeatureCard("model", GuideChapter.FOLLOW, { KairosIcons.Model }, Res.string.card_model_title, Res.string.card_model_body, GuideTarget.Settings(GuideSection.SETTINGS_LEARNED), since = "4.0.0"),
         FeatureCard("task_forecast", GuideChapter.FOLLOW, { KairosIcons.Event }, Res.string.card_task_forecast_title, Res.string.card_task_forecast_body, GuideTarget.Personal(Destination.DAY), since = "4.1.0"),
@@ -401,6 +405,7 @@ object FeatureCatalog {
         "Three alerts" to "alerts",
         "Timer guard" to "timer_guard",
         "Pomodoro bells" to "chrono_bells",
+        "Time spent in one tap" to "time_spent",
         "Reminders" to "reminders",
         "Daily summary" to "daily_summary",
         "Day" to "do",

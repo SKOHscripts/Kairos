@@ -2188,4 +2188,27 @@
     <string name="tip_team_exchanges_body">%1$d tasks are assigned to other members. A task pack sends them their tasks by file, and their reports bring back the progress.</string>
     <string name="card_tips_title">Tips at the right time</string>
     <string name="card_tips_body">From time to time, and only when it helps, Kairos suggests one thing worth a look, with your own numbers: your statistics, a setting or a feature. “Show me” takes you there, “Later” brings it back in two weeks. The “Tips” switch in Settings → About turns them off.</string>
+    <!-- Durées réelles (docs/spec/durees-reelles.md, issue #271) -->
+    <string name="spent_question">“%1$s” done · Time spent?</string>
+    <string name="spent_other">Other…</string>
+    <string name="spent_close">Close</string>
+    <string name="spent_other_title">Time spent</string>
+    <string name="spent_other_field">Minutes</string>
+    <string name="spent_other_help">From 1 to %1$d minutes</string>
+    <string name="spent_noted">Time noted: %1$s</string>
+    <string name="spent_ignored">“%1$s” ignored</string>
+    <string name="spent_review_title_one">1 done task without a time</string>
+    <string name="spent_review_title_many">%1$d done tasks without a time</string>
+    <string name="spent_review_hint">The last 7 days. One tap per task: Kairos learns your durations from these times.</string>
+    <string name="spent_review_line">“%1$s” · %2$s</string>
+    <string name="spent_review_ignore">Ignore</string>
+    <string name="spent_review_more">Show all (%1$d)</string>
+    <string name="action_done_next">Done, next</string>
+    <string name="done_next_started">Timer started on “%1$s”</string>
+    <string name="settings_ask_spent">Ask for the time spent when a task is done</string>
+    <string name="settings_ask_spent_help">When a task you tick done has no time at all: one tap to say how long it took. Ticks less than a minute apart are not asked; they go to the review in the Recap.</string>
+    <string name="reminder_summary_untimed_one">1 done task without a time: complete it in the Recap</string>
+    <string name="reminder_summary_untimed_many">%1$d done tasks without a time: complete them in the Recap</string>
+    <string name="card_time_spent_title">Time spent in one tap</string>
+    <string name="card_time_spent_body">Tick a task done without the timer: Kairos asks how long it took, in one tap. The Recap lists the tasks done this past week still without a time. With the timer running, “Done, next” moves it to the next task of your plan.</string>
 </resources>

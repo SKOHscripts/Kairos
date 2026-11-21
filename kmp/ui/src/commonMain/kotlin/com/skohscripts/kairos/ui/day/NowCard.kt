@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +39,7 @@ import com.skohscripts.kairos.core.day.DayView
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_done_labelled
+import com.skohscripts.kairos.ui.generated.resources.action_done_next
 import com.skohscripts.kairos.ui.generated.resources.action_snooze_labelled
 import com.skohscripts.kairos.ui.generated.resources.action_timer_start
 import com.skohscripts.kairos.ui.generated.resources.action_timer_stop
@@ -177,6 +179,8 @@ internal fun NowCard(
     onSnooze: (Task) -> Unit,
     onToggleTimer: (Task) -> Unit,
     onEnableAlerts: () -> Unit,
+    /** « Fait, suivante » (docs/spec/durees-reelles.md) : la tâche affichée, puis celle qui la suit dans le plan. */
+    onDoneNext: (Task, Task) -> Unit = { _, _ -> },
     hints: Set<NotifyHint> = emptySet(),
     onHint: (NotifyHint) -> Unit = {},
 ) {
@@ -205,11 +209,21 @@ internal fun NowCard(
                     style = MaterialTheme.typography.titleLarge,
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
-                    KairosButton(onClick = { onDone(next) }, contentPadding = KairosButtonIconPadding) {
-                        Icon(KairosIcons.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text(stringResource(Res.string.action_done_labelled), modifier = Modifier.padding(start = 6.dp))
-                    }
                     val running = view.running?.taskId == next.id
+                    // Chrono lancé sur la tâche affichée et une tâche après elle : « Fait » enchaîne le chrono sur la suivante ;
+                    // la case de la ligne garde le « Fait » simple.
+                    val following = view.followUp?.takeIf { running }
+                    if (following != null) {
+                        KairosButton(onClick = { onDoneNext(next, following) }, contentPadding = KairosButtonIconPadding, modifier = Modifier.testTag("done-next")) {
+                            Icon(KairosIcons.SkipNext, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Text(stringResource(Res.string.action_done_next), modifier = Modifier.padding(start = 6.dp))
+                        }
+                    } else {
+                        KairosButton(onClick = { onDone(next) }, contentPadding = KairosButtonIconPadding) {
+                            Icon(KairosIcons.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Text(stringResource(Res.string.action_done_labelled), modifier = Modifier.padding(start = 6.dp))
+                        }
+                    }
                     KairosOutlinedButton(onClick = { onToggleTimer(next) }, contentPadding = KairosButtonIconPadding) {
                         Icon(if (running) KairosIcons.Stop else KairosIcons.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(

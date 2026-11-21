@@ -2187,4 +2187,27 @@
     <string name="tip_team_exchanges_body">Задач, назначенных другим участникам: %1$d. Пакет задач отправит им задачи файлом, а отчёты вернут ход работы.</string>
     <string name="card_tips_title">Советы в нужный момент</string>
     <string name="card_tips_body">Время от времени, и только когда это полезно, Kairos предлагает взглянуть на что-то одно, с твоими цифрами: статистику, настройку или функцию. «Покажи» ведёт туда, «Позже» вернёт совет через две недели. Переключатель «Советы» в Настройки → О программе отключает их.</string>
+    <!-- Durées réelles (docs/spec/durees-reelles.md, issue #271) -->
+    <string name="spent_question">«%1$s» готово · Сколько времени?</string>
+    <string name="spent_other">Другое…</string>
+    <string name="spent_close">Закрыть</string>
+    <string name="spent_other_title">Затраченное время</string>
+    <string name="spent_other_field">Минуты</string>
+    <string name="spent_other_help">От 1 до %1$d минут</string>
+    <string name="spent_noted">Время записано: %1$s</string>
+    <string name="spent_ignored">«%1$s» пропущена</string>
+    <string name="spent_review_title_one">1 выполненная задача без времени</string>
+    <string name="spent_review_title_many">Выполненных задач без времени: %1$d</string>
+    <string name="spent_review_hint">Последние 7 дней. Одно касание на задачу: по этому времени Kairos учится оценивать длительность.</string>
+    <string name="spent_review_line">«%1$s» · %2$s</string>
+    <string name="spent_review_ignore">Пропустить</string>
+    <string name="spent_review_more">Показать все (%1$d)</string>
+    <string name="action_done_next">Готово, дальше</string>
+    <string name="done_next_started">Таймер запущен для «%1$s»</string>
+    <string name="settings_ask_spent">Спрашивать затраченное время при отметке</string>
+    <string name="settings_ask_spent_help">Когда у отмеченной задачи нет никакого времени: одно касание, чтобы указать, сколько она заняла. Отметки с разницей меньше минуты не спрашивают; они попадают в проверку в Итогах.</string>
+    <string name="reminder_summary_untimed_one">1 выполненная задача без времени: дополните в Итогах</string>
+    <string name="reminder_summary_untimed_many">Выполненных задач без времени: %1$d. Дополните в Итогах</string>
+    <string name="card_time_spent_title">Затраченное время одним касанием</string>
+    <string name="card_time_spent_body">Отметьте задачу выполненной без таймера: Kairos одним касанием спросит, сколько она заняла. В Итогах — задачи последней недели, у которых ещё нет времени. Пока идёт таймер, «Готово, дальше» переносит его на следующую задачу плана.</string>
 </resources>

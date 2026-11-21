@@ -485,6 +485,13 @@ order (critical path). Cycles are refused.
   light bell when it is time for a break, two when a timer has been forgotten,
   one for going past the estimate or the automatic stop. You can tell them apart
   without looking, on Android (even with the app closed), desktop and web.
+- **Time spent in one tap**: tick a task done without the timer and Kairos
+  asks how long it took (15 min, 30 min, 45 min, 1 h, 2 h or another value),
+  with "Undo". Ticks less than a minute apart are not asked. The Recap lists
+  the tasks done in the last 7 days still without a time, one tap each, or
+  "Ignore". With the timer running, "Done, next" ticks the task and starts the
+  timer on the next one of your plan. More real times make the learned durations
+  better (Settings → Timer and statistics, on by default).
 - **Reminders** (Settings, off by default): a notification a few minutes
   before a fixed-time task and, if you want, when the plan moves on to the
   next task. On Android even with Kairos closed (possibly a few minutes late
@@ -739,6 +746,7 @@ version that brought it and the platforms it exists on.
 | Follow | Three timer alerts | 3.0.0 | All |
 | Follow | Timer guard | 4.1.0 | All |
 | Follow | Pomodoro bells | 4.1.0 | All |
+| Follow | Time spent in one tap | 4.5.0 | All |
 | Follow | Learned durations | 3.4.0 | All |
 | Follow | Machine-learning estimates | 4.0.0 | All |
 | Follow | Likely finish date | 4.1.0 | All |

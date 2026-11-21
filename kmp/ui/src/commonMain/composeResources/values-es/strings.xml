@@ -2187,4 +2187,27 @@
     <string name="tip_team_exchanges_body">%1$d tareas están asignadas a otros miembros. Un paquete de tareas les envía sus tareas por archivo y sus informes traen el avance.</string>
     <string name="card_tips_title">Consejos en el momento justo</string>
     <string name="card_tips_body">De vez en cuando, y solo cuando sirve, Kairos te propone algo que mirar, con tus propias cifras: tus estadísticas, un ajuste o una función. «Muéstramelo» te lleva allí, «Más tarde» lo trae de vuelta en dos semanas. El interruptor «Consejos» de Ajustes → Acerca de los desactiva.</string>
+    <!-- Durées réelles (docs/spec/durees-reelles.md, issue #271) -->
+    <string name="spent_question">«%1$s» hecha · ¿Tiempo dedicado?</string>
+    <string name="spent_other">Otro…</string>
+    <string name="spent_close">Cerrar</string>
+    <string name="spent_other_title">Tiempo dedicado</string>
+    <string name="spent_other_field">Minutos</string>
+    <string name="spent_other_help">De 1 a %1$d minutos</string>
+    <string name="spent_noted">Tiempo anotado: %1$s</string>
+    <string name="spent_ignored">«%1$s» ignorada</string>
+    <string name="spent_review_title_one">1 tarea hecha sin tiempo</string>
+    <string name="spent_review_title_many">%1$d tareas hechas sin tiempo</string>
+    <string name="spent_review_hint">Los últimos 7 días. Un toque por tarea: Kairos aprende tus duraciones de estos tiempos.</string>
+    <string name="spent_review_line">«%1$s» · %2$s</string>
+    <string name="spent_review_ignore">Ignorar</string>
+    <string name="spent_review_more">Mostrar todo (%1$d)</string>
+    <string name="action_done_next">Hecho, siguiente</string>
+    <string name="done_next_started">Cronómetro iniciado en «%1$s»</string>
+    <string name="settings_ask_spent">Preguntar el tiempo dedicado al marcar</string>
+    <string name="settings_ask_spent_help">Cuando una tarea marcada como hecha no tiene ningún tiempo: un toque para decir cuánto tardó. Si marcas varias con menos de un minuto de diferencia no se pregunta; van a la revisión del Balance.</string>
+    <string name="reminder_summary_untimed_one">1 tarea hecha sin tiempo: complétala en el Balance</string>
+    <string name="reminder_summary_untimed_many">%1$d tareas hechas sin tiempo: complétalas en el Balance</string>
+    <string name="card_time_spent_title">El tiempo dedicado en un toque</string>
+    <string name="card_time_spent_body">Marca una tarea como hecha sin el cronómetro: Kairos pregunta cuánto tardó, en un toque. El Balance lista las tareas hechas esta última semana que siguen sin tiempo. Con el cronómetro en marcha, «Hecho, siguiente» lo pasa a la siguiente tarea de tu plan.</string>
 </resources>

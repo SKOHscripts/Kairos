@@ -514,6 +514,14 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   défaut) : une cloche légère quand vient la pause, deux quand un chrono est
   oublié, une pour l’estimation dépassée ou l’arrêt automatique. On les distingue
   sans regarder, sur Android (même application fermée), le bureau et le web.
+- **Le temps passé en un toucher** : coche une tâche faite sans le chrono et
+  Kairos demande combien de temps elle a pris (15 min, 30 min, 45 min, 1 h, 2 h
+  ou une autre valeur), avec « Annuler ». Des coches à moins d’une minute
+  d’écart ne posent pas la question. Le Bilan liste les tâches faites ces 7
+  derniers jours encore sans temps, un toucher chacune, ou « Ignorer ». Chrono
+  lancé, « Fait, suivante » coche la tâche et lance le chrono sur la suivante
+  du plan. Plus de temps réels, ce sont des durées apprises plus justes (Réglages
+  → Chrono et statistiques, activé par défaut).
 - **Rappels** (Réglages, désactivés par défaut) : une notification quelques
   minutes avant une tâche à heure fixe et, si tu le veux, quand le plan passe à
   la tâche suivante. Sur Android même Kairos fermé (quelques minutes de retard
@@ -790,6 +798,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Trois alertes du chrono | 3.0.0 | Toutes |
 | Suivre | Garde-fou du chrono | 4.1.0 | Toutes |
 | Suivre | Cloches du pomodoro | 4.1.0 | Toutes |
+| Suivre | Le temps passé en un toucher | 4.5.0 | Toutes |
 | Suivre | Durées apprises | 3.4.0 | Toutes |
 | Suivre | Estimation par machine learning | 4.0.0 | Toutes |
 | Suivre | Fin probable d’une tâche | 4.1.0 | Toutes |

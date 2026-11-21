@@ -2187,4 +2187,27 @@
     <string name="tip_team_exchanges_body">%1$d attività sono assegnate ad altri membri. Un pacchetto di attività invia loro le attività tramite file e i loro rapporti riportano l’avanzamento.</string>
     <string name="card_tips_title">Suggerimenti al momento giusto</string>
     <string name="card_tips_body">Di tanto in tanto, e solo quando serve, Kairos ti propone una cosa da guardare, con i tuoi numeri: le statistiche, un’impostazione o una funzione. «Mostramelo» ti ci porta, «Più tardi» lo ripropone tra due settimane. L’interruttore «Suggerimenti» in Impostazioni → Info li disattiva.</string>
+    <!-- Durées réelles (docs/spec/durees-reelles.md, issue #271) -->
+    <string name="spent_question">«%1$s» fatta · Tempo impiegato?</string>
+    <string name="spent_other">Altro…</string>
+    <string name="spent_close">Chiudi</string>
+    <string name="spent_other_title">Tempo impiegato</string>
+    <string name="spent_other_field">Minuti</string>
+    <string name="spent_other_help">Da 1 a %1$d minuti</string>
+    <string name="spent_noted">Tempo annotato: %1$s</string>
+    <string name="spent_ignored">«%1$s» ignorata</string>
+    <string name="spent_review_title_one">1 attività fatta senza tempo</string>
+    <string name="spent_review_title_many">%1$d attività fatte senza tempo</string>
+    <string name="spent_review_hint">Gli ultimi 7 giorni. Un tocco per attività: Kairos impara le tue durate da questi tempi.</string>
+    <string name="spent_review_line">«%1$s» · %2$s</string>
+    <string name="spent_review_ignore">Ignora</string>
+    <string name="spent_review_more">Mostra tutto (%1$d)</string>
+    <string name="action_done_next">Fatto, successiva</string>
+    <string name="done_next_started">Timer avviato su «%1$s»</string>
+    <string name="settings_ask_spent">Chiedere il tempo impiegato alla spunta</string>
+    <string name="settings_ask_spent_help">Quando un’attività spuntata come fatta non ha alcun tempo: un tocco per dire quanto ci è voluto. Spunte a meno di un minuto l’una dall’altra non chiedono nulla; vanno nella revisione del Bilancio.</string>
+    <string name="reminder_summary_untimed_one">1 attività fatta senza tempo: da completare nel Bilancio</string>
+    <string name="reminder_summary_untimed_many">%1$d attività fatte senza tempo: da completare nel Bilancio</string>
+    <string name="card_time_spent_title">Il tempo impiegato in un tocco</string>
+    <string name="card_time_spent_body">Spunta un’attività come fatta senza il timer: Kairos chiede quanto ci è voluto, in un tocco. Il Bilancio elenca le attività fatte nell’ultima settimana ancora senza tempo. Con il timer avviato, «Fatto, successiva» lo passa all’attività successiva del piano.</string>
 </resources>

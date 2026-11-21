@@ -2187,4 +2187,27 @@
     <string name="tip_team_exchanges_body">%1$d Aufgaben sind anderen Mitgliedern zugewiesen. Ein Aufgabenpaket schickt ihnen ihre Aufgaben per Datei, ihre Berichte bringen den Fortschritt zurück.</string>
     <string name="card_tips_title">Tipps zur richtigen Zeit</string>
     <string name="card_tips_body">Ab und zu, und nur wenn es hilft, schlägt Kairos dir mit deinen eigenen Zahlen etwas zum Ansehen vor: deine Statistiken, eine Einstellung oder eine Funktion. „Zeig es mir“ führt dich hin, „Später“ bringt es in zwei Wochen zurück. Der Schalter „Tipps“ unter Einstellungen → Info schaltet sie aus.</string>
+    <!-- Durées réelles (docs/spec/durees-reelles.md, issue #271) -->
+    <string name="spent_question">„%1$s“ erledigt · Zeitaufwand?</string>
+    <string name="spent_other">Andere…</string>
+    <string name="spent_close">Schließen</string>
+    <string name="spent_other_title">Zeitaufwand</string>
+    <string name="spent_other_field">Minuten</string>
+    <string name="spent_other_help">1 bis %1$d Minuten</string>
+    <string name="spent_noted">Zeit notiert: %1$s</string>
+    <string name="spent_ignored">„%1$s“ ignoriert</string>
+    <string name="spent_review_title_one">1 erledigte Aufgabe ohne Zeit</string>
+    <string name="spent_review_title_many">%1$d erledigte Aufgaben ohne Zeit</string>
+    <string name="spent_review_hint">Die letzten 7 Tage. Ein Tippen pro Aufgabe: Aus diesen Zeiten lernt Kairos deine Dauern.</string>
+    <string name="spent_review_line">„%1$s“ · %2$s</string>
+    <string name="spent_review_ignore">Ignorieren</string>
+    <string name="spent_review_more">Alle anzeigen (%1$d)</string>
+    <string name="action_done_next">Erledigt, nächste</string>
+    <string name="done_next_started">Timer für „%1$s“ gestartet</string>
+    <string name="settings_ask_spent">Beim Abhaken nach dem Zeitaufwand fragen</string>
+    <string name="settings_ask_spent_help">Wenn eine abgehakte Aufgabe gar keine Zeit hat: ein Tippen, um zu sagen, wie lange sie gedauert hat. Bei Häkchen im Abstand von weniger als einer Minute wird nicht gefragt; sie kommen in die Durchsicht der Bilanz.</string>
+    <string name="reminder_summary_untimed_one">1 erledigte Aufgabe ohne Zeit: in der Bilanz ergänzen</string>
+    <string name="reminder_summary_untimed_many">%1$d erledigte Aufgaben ohne Zeit: in der Bilanz ergänzen</string>
+    <string name="card_time_spent_title">Zeitaufwand mit einem Tippen</string>
+    <string name="card_time_spent_body">Hake eine Aufgabe ohne Timer ab: Kairos fragt mit einem Tippen, wie lange sie gedauert hat. Die Bilanz listet die Aufgaben der letzten Woche, die noch keine Zeit haben. Läuft der Timer, gibt „Erledigt, nächste“ ihn an die nächste Aufgabe deines Plans weiter.</string>
 </resources>

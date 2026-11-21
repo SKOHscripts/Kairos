@@ -1,6 +1,12 @@
 package com.skohscripts.kairos.ui.day
 
 import com.skohscripts.kairos.ui.generated.resources.spent_corrected
+import com.skohscripts.kairos.ui.generated.resources.done_next_started
+import com.skohscripts.kairos.ui.generated.resources.spent_question
+import com.skohscripts.kairos.ui.generated.resources.spent_noted
+import com.skohscripts.kairos.ui.app.LocalShellScope
+import com.skohscripts.kairos.core.engine.SpentReview
+import kotlin.time.Instant
 import com.skohscripts.kairos.core.engine.TimeCorrection
 import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.ui.guide.GtdStepButton
@@ -352,6 +358,46 @@ fun DayScreen(
     // Démonstration, « À moi de jouer » (docs/spec/visite-guidee.md § Visite interactive) : la liste défile jusqu'au repère, sans
     // animation, puis l'élément cerné reçoit le focus. La liste est paresseuse : on y va par la position de l'entrée.
     val demo = LocalDemoTour.current
+    // Durées réelles (docs/spec/durees-reelles.md, issue #271) : « Temps passé ? » en cochant une tâche sans aucun temps ; deux
+    // coches à moins d'une minute sont un lot, qui ferme la question ouverte sans en poser d'autre. Rien dans la démonstration.
+    val spentPrompts = LocalSpentPrompts.current
+    val shellScope = LocalShellScope.current ?: scope
+    var lastDoneAt by remember { mutableStateOf<Instant?>(null) }
+    val noteSpent: (Task, Int) -> Unit = { task, minutes ->
+        shellScope.launch {
+            repository.setSpent(task.id, minutes)
+            undo(getString(Res.string.spent_noted, durationText(minutes)), getString(Res.string.action_revert)) {
+                shellScope.launch { repository.setSpent(task.id, null) }
+            }
+        }
+    }
+    val toggleDone: (Task) -> Unit = { t ->
+        scope.launch {
+            val fresh = repository.personalSnapshot.value
+            val task = fresh.tasks.firstOrNull { it.id == t.id } ?: t
+            val finishing = task.status == TaskStatus.TODO
+            val at = services.clock.now()
+            val batched = finishing && SpentReview.batched(lastDoneAt, at)
+            val asks = finishing && demo == null && SpentReview.asks(fresh, task)
+            if (finishing) lastDoneAt = at
+            repository.toggleDone(task.id)
+            when {
+                batched -> spentPrompts.close()
+                asks -> spentPrompts.ask(SpentQuestion(getString(Res.string.spent_question, task.title)) { noteSpent(task, it) })
+            }
+        }
+    }
+    // « Fait, suivante » (carte « Maintenant ») : coche la tâche (sa séance se ferme), puis lance le chrono sur la suivante du plan.
+    val doneNext: (Task, Task) -> Unit = { current, following ->
+        scope.launch {
+            lastDoneAt = services.clock.now()
+            repository.toggleDone(current.id)
+            startTimer(following.id)
+            undo(getString(Res.string.done_next_started, following.title), getString(Res.string.action_revert)) {
+                shellScope.launch { repository.stopTimer() }
+            }
+        }
+    }
     val demoRequest = demo?.focusRequest ?: 0
     LaunchedEffect(demoRequest) {
         val tour = demo ?: return@LaunchedEffect
@@ -402,7 +448,7 @@ fun DayScreen(
             view = view,
             language = language,
             compact = mainWidth < COMPACT_ROWS,
-            onToggleDone = { t -> scope.launch { repository.toggleDone(t.id) } },
+            onToggleDone = toggleDone,
             onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
             onMove = { t, date ->
                 val before = t.scheduledDate
@@ -531,7 +577,8 @@ fun DayScreen(
                     GuideMark(GuideSection.DAY_NOW) {
                         NowCard(
                             view, language, notifyState,
-                            onDone = { t -> scope.launch { repository.toggleDone(t.id) } },
+                            onDone = toggleDone,
+                            onDoneNext = doneNext,
                             onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
                             onToggleTimer = toggleTimer,
                             onEnableAlerts = { scope.launch { services.notifier.requestPermission() } },

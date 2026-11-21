@@ -17,6 +17,8 @@ import com.skohscripts.kairos.ui.generated.resources.reminder_summary_slots_one
 import com.skohscripts.kairos.ui.generated.resources.reminder_summary_tasks_many
 import com.skohscripts.kairos.ui.generated.resources.reminder_summary_tasks_one
 import com.skohscripts.kairos.ui.generated.resources.reminder_summary_title
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_untimed_many
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_untimed_one
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.getString
 
@@ -50,11 +52,20 @@ object ReminderTexts {
         summary.slots.takeIf { it > 0 }?.let { if (it == 1) getString(Res.string.reminder_summary_slots_one) else getString(Res.string.reminder_summary_slots_many, it) },
     ).joinToString(" · ")
 
-    /** Notification dépliée : le compte, puis les premières tâches avec leur heure (« 09h30 Point d'équipe »), « … » s'il y en a plus. */
+    /**
+     * Notification dépliée : le compte, puis les premières tâches avec leur heure (« 09h30 Point d'équipe »), « … » s'il y en a plus,
+     * puis les tâches faites sans temps à compléter dans le Bilan, s'il y en a.
+     */
     suspend fun summaryDetail(summary: DailySummary): String {
         val lines = listOf(summaryCounts(summary)) +
             summary.first.map { getString(Res.string.reminder_summary_line, clock(it.start), it.title) } +
-            listOfNotNull(if (summary.tasks > summary.first.size) getString(Res.string.reminder_summary_more) else null)
+            listOfNotNull(if (summary.tasks > summary.first.size) getString(Res.string.reminder_summary_more) else null) +
+            // Tâches faites sans temps à revoir (docs/spec/durees-reelles.md) : une ligne de plus, en dernier.
+            listOfNotNull(
+                summary.untimed.takeIf { it > 0 }?.let {
+                    if (it == 1) getString(Res.string.reminder_summary_untimed_one) else getString(Res.string.reminder_summary_untimed_many, it)
+                },
+            )
         return lines.joinToString("\n")
     }
 }
