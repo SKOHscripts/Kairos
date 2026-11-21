@@ -43,10 +43,10 @@ AGPLv3 or later.
 
 EARLIER LICENSE
 
-Until commit d58b86ba (2026-11-20, the v4.3.0 release), Kairos
-was published under the MIT License; that code remains available under it.
-Contributions made under the MIT License keep their notice, see
-LICENSES/MIT.txt.
+Versions of Kairos published until commit d58b86ba (2026-11-20, the v4.3.0
+release) were released under the MIT License. The contributors to the code of
+this repository agreed to relicense their contributions under the terms above
+(pull request #258).
 
 
 THIRD PARTY

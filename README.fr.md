@@ -942,5 +942,5 @@ cd kmp
 - **Documentation** (ce README, `docs/`, textes des fiches et de la page,
   captures) : [CC BY-SA 4.0](LICENSES/CC-BY-SA-4.0.txt), avec la mention
   « Kairos documentation, by Corentin Michel ».
-- Le code publié jusqu’au 2026-11-20 (v4.3.0 comprise) était sous
-  [licence MIT](LICENSES/MIT.txt) et le reste.
+- Les versions publiées jusqu’au 2026-11-20 (v4.3.0 comprise) l’ont été sous
+  licence MIT.

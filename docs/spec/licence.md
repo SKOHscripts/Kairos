@@ -1,7 +1,7 @@
 # Licence : AGPLv3 ou ultérieure, attribution, documentation en CC BY-SA 4.0
 
 _Rôle : dire sous quelles conditions Kairos se réutilise, et ce qu'un dérivé doit garder. Fichiers couverts : `LICENSE`,
-`NOTICE`, `LICENSES/` (`CC-BY-SA-4.0.txt`, `MIT.txt`), `README.md` et `README.fr.md` (§ License / Licence, badge),
+`NOTICE`, `LICENSES/CC-BY-SA-4.0.txt`, `README.md` et `README.fr.md` (§ License / Licence, badge),
 `kmp/ui/.../screens/AboutScreen.kt` et la chaîne `about_license` (six langues), `kmp/desktopApp/build.gradle.kts`
 (`copyright`, `licenseFile`), `packaging/aur/PKGBUILD` (`license`), `fdroid/com.skohscripts.kairos.yml` (`License`),
 `fdroid/README.md`, `fastlane/metadata/android/*/full_description.txt`, pieds de page de `site/`._
@@ -30,8 +30,9 @@ reste libre et qu'on le cite : un dérivé doit rester libre, y compris proposé
   « Kairos documentation, by Corentin Michel — https://github.com/SKOHscripts/Kairos » : `docs/`, `README.md`,
   `README.fr.md`, textes et images des fiches (`fastlane/metadata/`), textes et images de la page (`site/`), captures.
   Les extraits de code cités dans la documentation sont aussi disponibles sous l'AGPL.
-- **Avant le changement** : le code publié jusqu'au commit `d58b86ba` (2026-11-20, version `4.3.0` comprise) était sous
-  licence MIT et le reste ; les contributions faites sous MIT gardent leur mention (`LICENSES/MIT.txt`).
+- **Avant le changement** : les versions publiées jusqu'au commit `d58b86ba` (2026-11-20, version `4.3.0` comprise) l'ont été
+  sous licence MIT ; une copie obtenue alors reste utilisable sous MIT. Les contributeurs du code ont accepté de passer leurs
+  contributions sous les conditions ci-dessus : plus aucune mention MIT n'est à garder.
 - **Tiers** : Roboto reste sous OFL (`kmp/licenses/Roboto-OFL.txt`), chaque dépendance sous sa propre licence.
 - Partout où Kairos dit sa licence (README, « À propos », fiches des magasins, page, recette F-Droid, paquet AUR, installeurs),
   il dit « AGPL v3 ou ultérieure ».
@@ -40,8 +41,8 @@ reste libre et qu'on le cite : un dérivé doit rester libre, y compris proposé
 
 - GitHub reconnaît la licence du dépôt (`LICENSE` est le texte officiel de la FSF, sans ajout) ; le badge du README la montre.
 - Aucune mention de « licence MIT » pour Kairos lui-même ne reste dans le dépôt, hors historique (`plan-v3-kotlin.md`,
-  `distribution.md` § SignPath) et hors ce qui dit l'ancienne licence (`LICENSES/MIT.txt`, `NOTICE`, dernière ligne de la
-  section Licence des README) ; les dépendances sous MIT gardent leur mention.
+  `distribution.md` § SignPath) et hors la phrase historique sur l'ancienne licence (`NOTICE`, dernière ligne de la section
+  Licence des README) ; les dépendances sous MIT gardent leur mention.
 - « À propos » affiche la mention d'auteur et la licence dans les six langues (`StringsParityTest`).
 - La recette F-Droid déclare `AGPL-3.0-or-later` (identifiant SPDX).
 
@@ -59,10 +60,10 @@ reste libre et qu'on le cite : un dérivé doit rester libre, y compris proposé
   `0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0`), pour que la détection de GitHub (licensee) le
   reconnaisse.
 - `NOTICE` (anglais, comme `LICENSE`) : copyright, licence du code et choix « ou ultérieure », **condition additionnelle 7(b)**
-  avec la mention exacte, licence de la documentation et sa mention, ancienne licence MIT et ses contributions, tiers.
+  avec la mention exacte, licence de la documentation et sa mention, phrase historique sur l'ancienne licence MIT et l'accord
+  des contributeurs (PR #258), tiers.
   L'AGPL (section 7) admet des conditions additionnelles « écrites séparément » : elles vivent ici plutôt que dans `LICENSE`.
 - `LICENSES/CC-BY-SA-4.0.txt` : le texte officiel `https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt`.
-  `LICENSES/MIT.txt` : l'ancien `LICENSE`, inchangé.
 - README (anglais et français) : badge « License: AGPL-3.0-or-later » (même image `github/license`, qui lit la licence
   détectée) ; section « License » / « Licence » qui résume code, attribution, documentation et ancienne licence.
 - « À propos » (`AboutScreen`) : chaîne `about_license` mise à jour dans les six langues (mention d'auteur, lien court,
@@ -86,6 +87,9 @@ reste libre et qu'on le cite : un dérivé doit rester libre, y compris proposé
   texte recopié), CC BY 4.0 (un texte repris pourrait être fermé).
 - **`LICENSE` sans ajout** : une condition additionnelle ajoutée en tête ou en fin du texte de la FSF empêcherait GitHub de
   reconnaître la licence (badge « other »).
-- **Contributions sous MIT** : le code publié sous MIT, y compris celui d'autres contributeurs, peut être intégré dans une
-  œuvre sous AGPL à condition de garder sa mention MIT, d'où `LICENSES/MIT.txt` et la ligne de `NOTICE`. Le contributeur
-  extérieur (PR #242) est prévenu dans la pull request du changement.
+- **Contributions sous MIT : accord plutôt que mention gardée** : le code publié sous MIT d'un autre contributeur peut être
+  intégré dans une œuvre sous AGPL à condition de garder sa mention MIT. Le propriétaire a préféré une licence unique : le
+  seul contributeur extérieur du code, @pyroMain404 (PR #242 et #250), a accepté par écrit dans la PR #258 (2026-11-21) de
+  passer ses contributions sous AGPL v3 ou ultérieure, et sa documentation sous CC BY-SA 4.0 ; l'ancien texte MIT
+  (`LICENSES/MIT.txt` dans la première version de la PR) a donc été retiré. Les copies obtenues sous MIT avant le
+  changement le restent : une licence MIT ne se retire pas.

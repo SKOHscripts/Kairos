@@ -892,5 +892,5 @@ The design and contribution documents are written in French.
 - **Documentation** (this README, `docs/`, store and website texts, screenshots):
   [CC BY-SA 4.0](LICENSES/CC-BY-SA-4.0.txt), credited as "Kairos documentation,
   by Corentin Michel".
-- Code published until 2026-11-20 (v4.3.0 included) was under the
-  [MIT License](LICENSES/MIT.txt) and remains available under it.
+- Versions published until 2026-11-20 (v4.3.0 included) were released under
+  the MIT License.
