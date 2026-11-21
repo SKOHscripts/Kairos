@@ -11,14 +11,19 @@ Fichiers O2 (CalDAV) : `core/connections/CalDavXml.kt`, `core/connections/CalDav
 `RemoteCalendar`), `HttpPolicy.resolve`, `ui/app/CalDavClient.kt`, `ui/app/Http11.kt`, `OnlineGate.dav`, `ConnectionSync`,
 `OnlineConnections`, `DefaultOnlineConnections`, `ui/settings/OnlineConnectionsCard.kt`, `android/AndroidRawHttp.kt`, `AndroidHttp`.
 Modèle et calendrier des essais (O1) : `core/connections/ConnectionModel.kt`, `core/connections/SyncSchedule.kt`.
-Les fichiers OAuth et web décrits plus bas restent prévus, non écrits.
+Fichiers O1 web (#260) : `ui/app/BrowserConnections.kt` (`BrowserSecrets`, `BrowserConnections`), `HttpFetcher.httpsOnly`,
+`OnlineGate`, `OnlineConnections.browser`, `ConnectionWatcher` (`active`), `KairosRepository.restoreConnections`,
+`webApp/{WebHttp,WebServices,WebInterop}.kt`, `webApp/.../resources/kairos-web.js` (`fetchText`).
+Les fichiers OAuth décrits plus bas restent prévus, non écrits.
 Tests O1 et O2 : voir § Critères de succès._
 
 État : **O1 (socle et lien ICS, Android et bureau) implémenté en 4.2.0** (PR #242 de @pyroMain404, revue et décisions du
 propriétaire du 2026-11-19 : D1 à D6 validés, lien demandé gardé après une redirection temporaire, `ACCESS_NETWORK_STATE`).
 **O2 (CalDAV, Android et bureau) implémenté pour la 4.4.0** (#259, 2026-11-21) : vérifié de bout en bout sur le bureau contre un
 Radicale réel (TLS, mot de passe) ; sur Android, le transport des méthodes WebDAV attend l'essai réel sur téléphone du propriétaire
-(§ Points ouverts). La tranche web de O1 (#260), Microsoft (O3, #261) et Google (O4, #262) restent **spécifiés, non implémentés**.
+(§ Points ouverts). **La tranche web de O1 (lien ICS dans le navigateur) est implémentée pour la 4.4.0** (#260, 2026-11-21 ;
+persistance dans le navigateur décidée par le propriétaire le même jour). Microsoft (O3, #261) et Google (O4, #262) restent
+**spécifiés, non implémentés**.
 Prévue d'abord pour la 4.0.0, reportée à la 4.1.0 par le propriétaire le 2026-11-04, puis à la 4.2.0 le 2026-11-15 (la 4.1.0 sort sans permission réseau).
 #139 suit les jalons ci-dessous ; @pyroMain404 propose l'implémentation dans #212 ; parent #140.
 #144 a été fermée « not planned » par le propriétaire le 2026-11-06.
@@ -94,7 +99,11 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 | **Microsoft 365 / Outlook.com** | Android, bureau | « Kairos ouvrira la page de connexion de Microsoft dans votre navigateur. Kairos ne voit jamais votre mot de passe ; il reçoit seulement l’autorisation de lire vos calendriers (« Calendars.Read », lecture seule). Microsoft sait que Kairos se connecte. » |
 | **Google Agenda** | Android, bureau | Même forme, avec Google et les autorisations de lecture des agendas et de leurs événements. |
 
-- **Web, prévu** : seul le lien ICS sera proposé (voir § Web). Aucun service en ligne n'y est encore branché.
+- **Web** : seul le lien ICS est proposé (§ Web), avec son propre texte avant activation : « Kairos téléchargera ce lien depuis ce
+  navigateur, tant que la page est ouverte. Le serveur qui l’héberge voit votre adresse IP, votre navigateur et l’adresse de cette
+  page ; rien d’autre n’est envoyé. Ce lien donne accès à votre agenda : ne le partagez pas. » Il ne marche qu'avec un serveur qui
+  autorise les pages web à le lire (souvent ni Outlook ni Google) ; l'aide du lien le dit **avant** l'ajout, et ajoute « Cette adresse
+  est gardée dans ce navigateur. ».
 
 #### Ajouter une connexion de calendrier
 
@@ -216,7 +225,16 @@ Tests à écrire à l'implémentation des jalons restants :
 - **CalDAV** (écrits avec O2, ils existent) : `CalDavXmlTest` (espaces de noms, entités, `CDATA`, refus de `DOCTYPE` et d'entités déclarées, profondeur), `CalDavTest` (réponses Radicale capturées : principal, dossier, calendriers, `REPORT`, fusion, `VTIMEZONE` uniques), `Http11Test` (requête, longueur fixe, `chunked`, fermeture, plafond, en-têtes), `CalDavClientTest` (découverte par un faux transport, repli `/.well-known`, hôte étranger ignoré, erreurs, `UNSUPPORTED`), `CalDavConnectionsTest` (ajout de deux calendriers d'un compte, secrets, synchronisation, mot de passe modifié, `NO_SECRET`, retrait du dernier calendrier qui efface le compte).
 - **Microsoft / Google** : `GraphEventsTest`, `GoogleEventsTest` : événements, disponibilités, journées entières et pagination.
 - **OAuth** : `OAuthPkceTest`, `Sha256Test`, `OAuthFlowTest` : RFC 7636, état, retour, rafraîchissement unique et révocation.
-- **Web** : lecture CORS et persistance après l'arbitrage de § Web.
+- **Web** (écrits avec #260, ils existent) : `BrowserConnectionsTest` (commun, donc compilé aussi en wasm : aller-retour du fichier sans
+  `ETag`, fichier illisible ou d'une autre version ignoré, entrée incomplète écartée, valeurs inconnues ramenées au défaut, secrets `NONE`
+  et leur `version`), `BrowserConnectionsRestoreTest` (rechargement : rattachement par le nom sous un autre identifiant, calendrier absent
+  ignoré, connexion déjà là gardée ; `keep` ne réécrit que si le texte change), `OnlineGateTest` (`http://` refusé sans requête ni
+  confirmation quand le transport est `httpsOnly`, `webcal://` lu en `https://`), `ConnectionRepositoryTest` (`restoreConnections`),
+  `OnlineConnectionsCardTest` (`online_error_browser` pour `OFFLINE` dans le navigateur seulement ; la carte du catalogue sur les trois
+  plateformes). Essai réel dans Chromium à partir de la sortie compilée, fait le 2026-11-21 : un serveur `https` local avec et sans
+  `Access-Control-Allow-Origin` ; sans, « Le navigateur n’a pas pu lire ce lien… » ; avec, aperçu par `webcal://` puis ajout ; requête
+  sans requête préliminaire, sans cookie ni référent ; corps trop gros coupé ; après rechargement de la page, la connexion revient et
+  « Synchroniser maintenant » relit le lien.
 - **À vérifier à la main, sur appareil** (la CI ne voit ni un vrai fournisseur ni un vrai système) : un lien Outlook publié, un lien Google,
   un Nextcloud et un Radicale réels ; connexion Microsoft (compte personnel et compte d'organisation) et Google par le navigateur,
   retour dans Kairos, révocation côté fournisseur ; tâche de fond sur Android en veille profonde ; mode avion ; trousseau de chaque
@@ -442,7 +460,8 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
   Windows garde la clé protégée par DPAPI dans `secrets.dpapi` ; l'entrée standard transporte la clé vers PowerShell.
   Un `secrets.key` existant garde priorité. Une clé système perdue n'est jamais remplacée si un chiffrat existe.
   Le magasin rend alors les secrets absents et conserve le chiffrat récupérable. Aucune bibliothèque JNA ni trousseau tiers.
-- **Web, prévu** : aucun magasin de secrets (`level = NONE`) ; persistance éventuelle du seul lien ICS selon l'arbitrage de § Web.
+- **Web** : aucun magasin de secrets protégé (`BrowserSecrets`, `level = NONE`, en mémoire) ; le seul secret possible, le lien ICS
+  (`url:<id>`), est gardé dans le fichier `kairos-connections.json` de l'OPFS du navigateur (§ Web).
 
 ### Politique d'adresse et journal (`core/connections/HttpPolicy.kt`, pur)
 
@@ -608,25 +627,49 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
 - **Un échec ne bloque jamais** : l'écran n'attend pas ; l'erreur est écrite en base et lue par la carte.
 - Pas de sauvegarde à chaque synchronisation (§ Décisions) ; la première, à l'ajout, a la sienne.
 
-### Web (tranche O1 spécifiée, non implémentée)
+### Web (O1, #260 ; `webApp/WebHttp.kt`, `webApp/WebServices.kt`, `ui/app/BrowserConnections.kt`)
 
-- Seul le **lien ICS** est proposé, via `fetch` : il marche si le serveur envoie `Access-Control-Allow-Origin`, ce que ni Outlook, ni Google, ni
-  la plupart des serveurs de calendrier ne font toujours ; sinon `TypeError`, que le navigateur ne distingue pas d'une panne de réseau. Message :
-  « Le navigateur n’a pas pu lire ce lien (hors ligne, ou serveur qui n’autorise pas les pages web). » L'aide de la section le dit **avant**
-  l'ajout. Pas d'`If-None-Match` (il déclencherait une requête préliminaire inutile).
-- Le stockage prévu du lien utilise IndexedDB, à côté de la poignée du fichier lié (`export-import.md`), sous réserve de l'arbitrage ci-dessous.
-  Si cette persistance est retenue, l'aide dit « Cette adresse est gardée dans ce navigateur. »
-  Aucun identifiant, mot de passe ni jeton n'est jamais gardé sur le web.
-- **Point ouvert à régler dans la tranche web de O1** : la base est en mémoire, rechargée depuis l'export OPFS sans connexion.
-  `export-import.md` (§ Web) décrit ce démarrage ; `synchronisation.md` précise `restoreSynced` pour un instantané synchronisé.
-  Une ligne `calendar_connection` seule disparaîtrait donc au rechargement.
-  Deux pistes restent à arbitrer : garder les métadonnées (lien, fréquence, interrupteur) dans IndexedDB, puis recréer la ligne par nom ;
-  ou limiter la connexion web à la session. Aucun des deux comportements n'est encore décidé.
-- **CalDAV et OAuth n'y sont pas proposés**, pour trois raisons : (1) aucun magasin de secrets (tout script de l'origine lit IndexedDB et
-  `localStorage`, un mot de passe ou un jeton de rafraîchissement y serait lisible) ; (2) les serveurs CalDAV n'envoient en général pas les
-  en-têtes CORS et exigent des requêtes préliminaires pour `PROPFIND`/`REPORT` ; (3) un flux OAuth de page web demande une inscription
-  « application monopage » distincte et des jetons de rafraîchissement à vie courte. La version web reste le recours du poste verrouillé :
-  les fichiers `.ics` y fonctionnent.
+- Seul le **lien ICS** est proposé. **CalDAV et OAuth n'y sont pas proposés**, pour trois raisons : (1) aucun magasin de secrets (tout
+  script de l'origine lit IndexedDB, l'OPFS et `localStorage` : un mot de passe ou un jeton de rafraîchissement y serait lisible) ; (2) les
+  serveurs CalDAV n'envoient en général pas les en-têtes CORS et exigent des requêtes préliminaires pour `PROPFIND`/`REPORT` ; (3) un flux
+  OAuth de page web demande une inscription « application monopage » distincte et des jetons de rafraîchissement à vie courte. La version
+  web reste le recours du poste verrouillé : les fichiers `.ics` y fonctionnent.
+- **Lecture** : `WebHttp` (`HttpFetcher` du web) appelle `KairosWeb.fetchText` (`kairos-web.js`) : `fetch` en `GET` **sans aucun en-tête
+  ajouté** (`User-Agent` et `Accept-Encoding` sont interdits aux pages, et tout en-tête hors de la liste CORS sûre, `If-None-Match`
+  compris, déclencherait une requête préliminaire `OPTIONS` que les serveurs de calendrier ne servent pas), `credentials: "omit"`
+  (aucun cookie), `cache: "no-store"`, `referrerPolicy: "no-referrer"`, délai total par `AbortController`. Le corps est lu en flux et
+  coupé au-delà de 16 Mio (`HttpTooBigException`). La réponse rendue n'a **aucun en-tête** : l'`ETag` n'est pas exposé par défaut en CORS,
+  la connexion garde donc `etag` nul et ne reçoit jamais de `304`.
+- **CORS** : la lecture ne marche que si le serveur envoie `Access-Control-Allow-Origin`, ce que ni Outlook, ni Google, ni la plupart des
+  serveurs de calendrier ne font toujours. Sinon `fetch` lève `TypeError`, que le navigateur ne distingue pas d'une panne de réseau :
+  `HttpTransportException` (détail « TypeError: … »), donc `OFFLINE`. Sur le web, la carte dit alors « Le navigateur n’a pas pu lire ce
+  lien (hors ligne, ou serveur qui n’autorise pas les pages web). » (`online_error_browser`) au lieu de « Pas de connexion. ».
+- **`https` seulement** : une page `https` ne peut pas lire une adresse `http` (contenu mixte bloqué). `WebHttp.httpsOnly` est vrai ;
+  `OnlineGate` refuse alors un lien `http://` en `UNSUPPORTED`, **sans requête ni demande de confirmation**. `webcal://` reste lu comme
+  `https://`.
+- **Redirections suivies par le navigateur** (`redirect: "follow"`) : une réponse `redirect: "manual"` est opaque (ni état ni `Location`),
+  Kairos ne peut donc ni voir ni confirmer une redirection. Le changement d'hôte ne demande pas de confirmation sur le web ; il ne réussit que
+  si l'hôte final autorise aussi les pages web, et le passage à `http` est impossible (contenu mixte). Aucun identifiant n'est jamais
+  envoyé, si bien qu'aucun secret ne fuit vers l'autre hôte. Le lien gardé est toujours le lien demandé.
+- **Persistance** (décision du propriétaire du 2026-11-21 : garder le lien dans le navigateur, plutôt qu'une connexion limitée à la
+  session) : la base du navigateur est en mémoire, rechargée depuis l'instantané `kairos.json` de l'OPFS (`export-import.md` § Web), qui ne
+  contient pas les connexions. Les connexions vivent donc à part, dans le fichier `kairos-connections.json` de l'OPFS :
+  - `BrowserSecrets` : magasin en mémoire, `level = NONE` ; chaque changement incrémente `version`.
+  - `BrowserConnections.encode` écrit `{"version":1,"connections":[…]}` : pour chaque connexion `URL` dont le calendrier et le lien existent,
+    le **nom** du calendrier, le lien, et les métadonnées (`host`, `syncEnabled`, `interval`, dates d'essai et de synchronisation, erreur,
+    échecs, prochain essai, `plannedOn`, `redirectHost`). Jamais dans l'export, la sauvegarde, le fichier lié ni `kairos.json`.
+  - `BrowserConnections.keep` réécrit ce fichier à chaque changement des connexions, des noms de calendriers ou des secrets, seulement si
+    le texte change (un échec d'écriture est ignoré : le prochain changement réessaie).
+  - Au chargement, après la restauration de l'instantané, `BrowserConnections.restore` rattache chaque entrée au calendrier **du même nom**
+    (les identifiants changent après un « Remplacer » par le fichier lié), s'il existe et n'a pas déjà de connexion
+    (`KairosRepository.restoreConnections`), et remet son lien dans `BrowserSecrets`. Une entrée sans calendrier, ou un fichier illisible,
+    est ignoré ; la réécriture suivante l'efface. Un import « Remplacer » efface les connexions comme ailleurs, et le fichier suit.
+  - Tout script de l'origine (`skohscripts.github.io`) peut lire l'OPFS : seules les pages du propriétaire du dépôt. L'aide du lien dit
+    « Cette adresse est gardée dans ce navigateur. ». Aucun identifiant, mot de passe ni jeton autre que le lien lui-même.
+- **Synchronisation** : `ConnectionWatcher` avec `active = pageVisible` : `runDue` au chargement, puis toutes les 30 minutes, **l'onglet
+  visible seulement** (comme le fichier lié : aucun calcul dans un onglet caché). Les fréquences valent tant que la page est ouverte, comme
+  sur le bureau ; aucune tâche de fond. `purgeOrphans` au démarrage.
+- La démonstration (`demo`) reste sans connexion (`AppServices.online` nul).
 
 ### Interface (`ui/settings/OnlineConnectionsCard.kt`)
 
@@ -636,6 +679,9 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
   `ACTION_APPLICATION_DETAILS_SETTINGS` de Kairos, comme le refus du calendrier du téléphone. `offlineHelp(erreur, accès)` choisit le texte :
   `online_network_blocked`, `online_network_hint`, ou rien (autre erreur, ou hors Android). Le dialogue d'erreur d'un ajout et l'aperçu
   CalDAV l'affichent avec le bouton `online_network_settings`.
+- **Navigateur** (`OnlineConnections.browser`, vrai sur le web) : « Ajouter une connexion » ouvre directement le lien ICS, sans menu ni
+  CalDAV ; l'activation dit `online_activation_web`, l'aide du lien `online_link_help_web` ; `connectionErrorText(error, browser)` rend
+  `online_error_browser` pour `OFFLINE`, dans la ligne de la connexion, le dialogue d'erreur et la barre de « Synchroniser maintenant ».
 
 - `AppServices.online` et `connectionSync` sont nullables, ajoutés en dernier avec `null` par défaut.
   La démonstration les fixe tous deux à `null` ; le web ne fournit actuellement aucun service en ligne.
@@ -799,6 +845,13 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
 - **Clé de bureau privée** (2026-11-12) : choisi POSIX `600` ou ACL propriétaire et conservation du chiffrat sans clé ; écartés droits publics et régénération silencieuse.
 - **Services optionnels** (2026-11-12) : choisi deux champs nullables en fin d'`AppServices`, pour garder les services sans réseau ; écartée leur reprise en démonstration.
 - **Date et actions cohérentes** (2026-11-12) : choisi `lastSyncAt` et aucun réimport fichier pour une connexion ; écartée l'affichage d'une date partagée artificielle.
+- **Lien web gardé dans le navigateur** (2026-11-21, propriétaire) : choisi un fichier `kairos-connections.json` dans l'OPFS, rattaché par le
+  nom du calendrier au chargement ; écartées la connexion limitée à la session (inutile après un rechargement) et IndexedDB (l'OPFS porte
+  déjà `kairos.json` et `kairos-sync.json`, même exposition à l'origine, et se lit par les mêmes fonctions).
+- **Aucun en-tête sur le web** (2026-11-21) : choisi une requête CORS « simple » ; écartés `If-None-Match` et `User-Agent`, qui
+  déclencheraient une requête préliminaire refusée par la plupart des serveurs.
+- **`http://` refusé d'emblée sur le web** (2026-11-21) : choisi `HttpFetcher.httpsOnly` lu par `OnlineGate`, pour ne pas demander une
+  confirmation suivie d'un échec certain (contenu mixte) ; écarté un message d'erreur après coup.
 
 ### Points ouverts
 
@@ -807,7 +860,6 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
   derrière un frontal (`proxy-dav.mailo.com`). Cause supposée : SNI non envoyé par le socket superposé ; d'où le SNI explicite, l'essai de
   chaque adresse et le détail technique affiché. À confirmer par un second essai.
 
-- O1 web : persistance des métadonnées dans IndexedDB avec rattachement par nom, ou connexion limitée à la session (§ Web).
 - O2 Android : essai réel du transport `AndroidRawHttp` (Android 8 à 16 si possible) par le propriétaire, avant la publication : ajout d'un
   serveur CalDAV (Radicale local ou Nextcloud), liste des calendriers, aperçu, ajout, « Synchroniser maintenant », mauvais mot de passe
   (`AUTH`, « Modifier le mot de passe »), certificat d'un autre nom (`TLS`). Sur le JVM, la même couche (copie de test) a passé le 2026-11-21
