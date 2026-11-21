@@ -24,26 +24,52 @@ class ConnectionSync(
     private val secrets: SecretStore,
     private val now: () -> Instant = { Clock.System.now() },
     private val zone: TimeZone = TimeZone.currentSystemDefault(),
+    private val caldav: CalDavClient = CalDavClient(gate),
 ) {
     private val mutex = Mutex()
+
+    /**
+     * Les secrets dont la connexion a besoin sont sur cet appareil : `url:<id>` pour un lien ICS ; `remote:<id>` et un compte lisible
+     * `account:<compte>` pour CalDAV (docs/spec/connexions-en-ligne.md § CalDAV).
+     */
+    private fun hasSecrets(connection: CalendarConnection): Boolean = when (connection.kind) {
+        ConnectionKind.CALDAV -> secrets.get("remote:${connection.sourceId}") != null && account(connection) != null
+        else -> secrets.get("url:${connection.sourceId}") != null
+    }
+
+    private fun account(connection: CalendarConnection): CalDavAccount? =
+        connection.account?.let { CalDavAccount.fromJson(secrets.get("account:$it")) }
 
     suspend fun run(sourceId: Long, force: Boolean): Unit = mutex.withLock {
         val connection = repository.connections.value.firstOrNull { it.sourceId == sourceId } ?: return@withLock
         val instant = now()
-        val url = secrets.get("url:$sourceId")
         if (!connection.syncEnabled) return@withLock
-        if (url == null) {
+        if (!hasSecrets(connection)) {
             if (connection.lastError != ConnectionError.NO_SECRET) failed(connection, ConnectionError.NO_SECRET, null, instant)
             return@withLock
         }
         if (!SyncSchedule.due(connection, instant, force, true)) return@withLock
-        if (connection.kind != ConnectionKind.URL) {
+        if (connection.kind != ConnectionKind.URL && connection.kind != ConnectionKind.CALDAV) {
             failed(connection, ConnectionError.UNSUPPORTED, null, instant)
             return@withLock
         }
         try {
             withTimeout(60_000) {
                 val today = instant.toLocalDateTime(zone).date
+                if (connection.kind == ConnectionKind.CALDAV) {
+                    val url = secrets.get("remote:$sourceId") ?: return@withTimeout
+                    val account = account(connection) ?: return@withTimeout
+                    when (val read = caldav.read(sourceId, account, url, today)) {
+                        CalDavClient.Read.GateClosed -> Unit
+                        is CalDavClient.Read.Failed -> failed(connection, read.error, read.retryAfterSeconds, instant)
+                        is CalDavClient.Read.Success -> {
+                            val plan = withContext(Dispatchers.Default) { CalendarImport.plan(read.text, today, zone) }
+                            repository.syncCalendar(sourceId, plan, today, null, instant)
+                        }
+                    }
+                    return@withTimeout
+                }
+                val url = secrets.get("url:$sourceId") ?: return@withTimeout
                 when (val result = gate.fetch(sourceId, url, today)) {
                     OnlineGate.Result.GateClosed -> Unit
                     is OnlineGate.Result.Failed -> failed(connection, result.error, result.retryAfterSeconds, instant)
@@ -75,7 +101,7 @@ class ConnectionSync(
 
     suspend fun runDue(now: Instant) {
         for (connection in repository.connections.value) {
-            val hasSecret = secrets.get("url:${connection.sourceId}") != null
+            val hasSecret = hasSecrets(connection)
             if ((connection.syncEnabled && !hasSecret && connection.lastError != ConnectionError.NO_SECRET) ||
                 SyncSchedule.due(connection, now, false, hasSecret)) {
                 try {

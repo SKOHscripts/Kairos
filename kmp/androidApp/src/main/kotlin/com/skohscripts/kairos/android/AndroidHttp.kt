@@ -24,6 +24,8 @@ import javax.net.ssl.SSLException
 object AndroidHttp : HttpFetcher {
     override suspend fun fetch(request: HttpRequest): HttpResponse = withContext(Dispatchers.IO) {
         require(request.timeoutMillis > 0)
+        // PROPFIND and REPORT (CalDAV): HttpURLConnection refuses them, they go through HTTP/1.1 on a system TLS socket.
+        if (AndroidRawHttp.handles(request.method)) return@withContext AndroidRawHttp.fetch(request)
         // `HttpPolicy` accepts addresses that `URL` refuses: a bad address is a transport failure, never an uncaught exception.
         val connection = try {
             URL(request.url).openConnection() as HttpURLConnection

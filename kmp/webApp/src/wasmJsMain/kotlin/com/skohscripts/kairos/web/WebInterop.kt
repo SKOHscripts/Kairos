@@ -32,6 +32,16 @@ external object KairosWeb : JsAny {
     fun setTitle(prefix: String?)
     fun ring(dataUri: String)
     fun setLanguage(language: String)
+    fun fetchText(url: String, timeoutMillis: Int, maxBytes: Int): Promise<WebFetchResult>
+}
+
+/** Réponse de `KairosWeb.fetchText` (docs/spec/connexions-en-ligne.md § Web). */
+@OptIn(ExperimentalWasmJsInterop::class)
+external interface WebFetchResult : JsAny {
+    val kind: String
+    val status: Int
+    val text: String
+    val message: String
 }
 
 /** L'onglet est visible : le fichier lié n'est relu que dans ce cas (docs/spec/synchronisation.md § Fichier lié : cycle). */

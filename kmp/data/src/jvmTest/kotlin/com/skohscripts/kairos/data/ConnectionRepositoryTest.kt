@@ -37,6 +37,19 @@ internal class ConnectionFixture {
 
 class ConnectionRepositoryTest {
     @Test
+    fun restoreConnectionsReattachesOnlyExistingUnconnectedCalendars() = runTest {
+        val f = ConnectionFixture()
+        val repo = f.open()
+        val id = repo.importCalendar("Work", false, f.plan, f.today)!!
+        val row = f.connection.copy(sourceId = id, lastSyncAt = f.now, interval = com.skohscripts.kairos.core.connections.SyncInterval.HOURLY)
+        assertEquals(setOf(id), repo.restoreConnections(listOf(row, row.copy(sourceId = id + 99))))
+        assertEquals(listOf(row), repo.connections.value)
+        // Déjà connecté : la ligne en place est gardée.
+        assertEquals(emptySet(), repo.restoreConnections(listOf(row.copy(syncEnabled = false))))
+        assertTrue(repo.connections.value.single().syncEnabled)
+    }
+
+    @Test
     fun aSyncWithoutChangeWritesNothing() = runTest {
         val f = ConnectionFixture()
         var notifications = 0

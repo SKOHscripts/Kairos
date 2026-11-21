@@ -60,6 +60,8 @@ fun AppServices.forDemo(session: DemoSession): AppServices = AppServices(
     calendars = null,
     online = null,
     connectionSync = null,
+    // Aucune connexion en ligne en démonstration : pas d'aide sur le réseau bloqué.
+    networkAccess = null,
     shortcuts = null,
     teamUi = TeamUiState(),
     systemLanguage = systemLanguage,
