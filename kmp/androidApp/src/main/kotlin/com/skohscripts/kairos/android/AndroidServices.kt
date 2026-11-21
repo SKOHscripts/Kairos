@@ -96,6 +96,7 @@ object AndroidServices {
             },
             online = online,
             connectionSync = online.sync,
+            networkAccess = AndroidNetworkAccess(context),
             // Conseil « Ta journée sur l'écran d'accueil » (docs/spec/conseils.md) : un widget Kairos est-il posé ? Aucune permission.
             widgets = WidgetProbe {
                 val manager = AppWidgetManager.getInstance(context)

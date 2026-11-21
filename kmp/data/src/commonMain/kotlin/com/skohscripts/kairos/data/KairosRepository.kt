@@ -746,6 +746,24 @@ class KairosRepository(
 
     suspend fun disconnectCalendar(sourceId: Long) = write(notifyOnlyIfChanged = true) { queries.deleteCalendarConnection(sourceId) }
 
+    /**
+     * Version web (docs/spec/connexions-en-ligne.md § Web) : remet les lignes gardées hors de l'instantané, après son rechargement.
+     * Une ligne dont le calendrier n'existe pas, ou qui a déjà une connexion, est ignorée. Rend les identifiants remis.
+     */
+    suspend fun restoreConnections(rows: List<CalendarConnection>): Set<Long> {
+        val restored = HashSet<Long>()
+        write(notifyOnlyIfChanged = true) {
+            val connected = queries.allCalendarConnections().awaitAsList().mapTo(HashSet()) { it.source_id }
+            val sources = state.value.calendarSources.mapTo(HashSet()) { it.id }
+            for (row in rows) {
+                if (row.sourceId !in sources || row.sourceId in connected || row.sourceId in restored) continue
+                saveConnection(row)
+                restored += row.sourceId
+            }
+        }
+        return restored
+    }
+
     private suspend fun saveConnection(c: CalendarConnection) {
         queries.upsertCalendarConnection(
             c.sourceId, c.kind.name, c.provider?.name, c.host, c.account, if (c.syncEnabled) 1L else 0L,

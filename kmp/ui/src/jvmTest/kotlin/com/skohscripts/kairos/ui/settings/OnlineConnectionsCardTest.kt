@@ -19,11 +19,22 @@ class OnlineConnectionsCardTest {
     }
 
     @Test
+    fun theBrowserSaysWhyItCouldNotReadALink() {
+        assertEquals("online_error_browser", connectionErrorText(ConnectionError.OFFLINE, browser = true).key)
+        assertEquals("online_error_offline", connectionErrorText(ConnectionError.OFFLINE).key)
+        // Les autres erreurs ont le même texte partout.
+        ConnectionError.entries.filter { it != ConnectionError.OFFLINE }.forEach {
+            assertEquals(connectionErrorText(it), connectionErrorText(it, browser = true))
+        }
+    }
+
+    @Test
     fun theOnlineGuideOpensDataOnlyOnSupportedPlatforms() {
         val card = FeatureCatalog.cards.single { it.id == "online_connections" }
         assertEquals(GuideChapter.ORGANIZE, card.chapter)
         assertEquals("4.2.0", card.since)
-        assertEquals(setOf(Platform.ANDROID, Platform.DESKTOP), card.platforms)
+        // Le web lit un lien ICS depuis la 4.4.0 (#260, docs/spec/connexions-en-ligne.md § Web).
+        assertEquals(setOf(Platform.ANDROID, Platform.DESKTOP, Platform.WEB), card.platforms)
         assertEquals(GuideTarget.Settings(GuideSection.SETTINGS_DATA), card.target)
         assertEquals("online_connections", FeatureCatalog.README_FEATURES["Online connections"])
     }
