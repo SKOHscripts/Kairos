@@ -165,6 +165,19 @@ CREATE TABLE note (
 );
 CREATE INDEX note_status ON note(status);
 
+-- Dérangements signalés après coup (4.5.0, docs/spec/derangements.md) : [at - minutes ; at]. Références molles vers la tâche
+-- dont le chrono tournait et la note créée avec lui, sans FOREIGN KEY.
+CREATE TABLE interruption (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    at TEXT NOT NULL,
+    minutes INTEGER NOT NULL,
+    source TEXT,
+    task_id INTEGER,
+    note_id INTEGER,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX interruption_at ON interruption(at);
+
 -- Membres de l'équipe (espace Équipe, docs/spec/equipe.md) : vide tant que l'espace n'a pas servi.
 -- Référencés par task.assignee_id (sans FOREIGN KEY).
 CREATE TABLE team_member (
@@ -495,6 +508,34 @@ DELETE FROM note WHERE id = ?;
 
 deleteAllNotes:
 DELETE FROM note;
+
+-- Dérangements ------------------------------------------------------------------
+
+allInterruptions:
+SELECT * FROM interruption ORDER BY id;
+
+insertInterruptionWithId:
+INSERT INTO interruption VALUES (?, ?, ?, ?, ?, ?, ?);
+
+insertInterruption:
+INSERT INTO interruption (at, minutes, source, task_id, note_id, created_at) VALUES (?, ?, ?, ?, ?, ?);
+
+updateInterruption:
+UPDATE interruption SET minutes = ?, source = ? WHERE id = ?;
+
+deleteInterruption:
+DELETE FROM interruption WHERE id = ?;
+
+deleteAllInterruptions:
+DELETE FROM interruption;
+
+-- Séance découpée par un dérangement (docs/spec/derangements.md § Découpe) : fin posée sur la séance ouverte, ou retrait ; et
+-- retour exact de la séance d'origine par « Annuler ».
+setOpenSessionEnd:
+UPDATE work_session SET ended_at = ? WHERE id = ?;
+
+deleteWorkSession:
+DELETE FROM work_session WHERE id = ?;
 
 -- Membres ----------------------------------------------------------------------
 

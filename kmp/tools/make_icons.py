@@ -51,6 +51,8 @@ ICONS = {
     "Inbox": ("inbox", False),
     "Warning": ("warning", False),
     "Redo": ("redo", False),
+    "SkipNext": ("skip_next", False),
+    "FrontHand": ("front_hand", False),
     "Search": ("search", False),
     "Schedule": ("schedule", False),
     "Block": ("block", False),

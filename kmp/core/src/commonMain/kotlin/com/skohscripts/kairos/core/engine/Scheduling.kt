@@ -255,7 +255,11 @@ object Scheduling {
         val conflict: Boolean get() = conflictWith != null
     }
 
-    data class DayStats(val requiredMinutes: Int = 0, val availableMinutes: Int = 0) {
+    /**
+     * Charge du jour. [availableMinutes] : le disponible, dérangements attendus déjà retranchés ; [expectedInterruptionMinutes] :
+     * ceux-ci (docs/spec/derangements.md § Dérangements attendus), 0 sans historique.
+     */
+    data class DayStats(val requiredMinutes: Int = 0, val availableMinutes: Int = 0, val expectedInterruptionMinutes: Int = 0) {
         val overflowMinutes: Int get() = maxOf(0, requiredMinutes - availableMinutes)
     }
 
@@ -304,7 +308,13 @@ object Scheduling {
         learned: Map<Long, Int> = emptyMap(),
         /** Affinité des types pour les heures (étape C2, [Affinity]) ; `null` : comme avant. */
         affinity: Affinity? = null,
+        /**
+         * Dérangements attendus (docs/spec/derangements.md) : hors deep work, une tâche placée au curseur s'allonge du taux de
+         * ses heures, et le disponible les retranche. `null` (ou tout à zéro) : exactement le placement d'avant (fichiers d'or).
+         */
+        expected: ExpectedInterruptions? = null,
     ): ScheduledDay {
+        val interruptions = expected?.takeUnless { it.none }
         fun key(task: Task) = urgencyKeys[task.id] ?: sortKey(task, day, settings)
 
         val todo = tasks.filter { it.status == TaskStatus.TODO }
@@ -399,16 +409,18 @@ object Scheduling {
                 val dipActive = dipIntensity(slotStart.time, settings) > 0
                 val urgencyPick = if (dipActive) candidates.minWith(compareBy { urgencyKeys[it.id] ?: sortKey(it, day, settings) }) else task
 
-                val duration = durationMinutes(task, settings, learned)
+                val work = durationMinutes(task, settings, learned)
                 var start = cursor
+                var duration = interruptions?.stretched(work, start) ?: work
                 var pushedAfter: Obstacle? = null
                 while (true) {
                     val end = start.plusMinutes(duration)
                     val blocking = obstacles.firstOrNull { it.start < end && it.end > start } ?: break
                     pushedAfter = blocking
                     start = blocking.end.plusMinutes(blocking.bufferMinutes)
+                    duration = interruptions?.stretched(work, start) ?: work
                 }
-                val tooLong = oversized(task, duration)
+                val tooLong = oversized(task, work)
                 if (start >= window.end || (start.plusMinutes(duration) > window.end && !tooLong)) {
                     // Pas de place dans cette plage : une plage suivante qui l'accueille la prend ; sinon « Sans créneau ».
                     if (nextWindows.any { Schedule.accepts(it, contextOf[task.id]) }) {
@@ -449,12 +461,17 @@ object Scheduling {
             val windowMinutes = maxOf(0L, minutesBetween(from, w.end)).toInt()
             maxOf(0, windowMinutes - busyMinutesInWindow(dayBlocks, from, w.end))
         }
+        // Dérangements attendus sur les plages libres restantes, hors occupé et hors deep work (jamais dérangé).
+        val lost = if (interruptions == null) 0 else {
+            val excluded = (dayBlocks + deepworkBlocks).map { it.start to it.end }
+            windows.sumOf { w -> interruptions.expected(maxOf(effectiveStart, w.start), w.end, excluded) }.let { kotlin.math.round(it).toInt() }
+        }
         return ScheduledDay(
             scheduled = scheduled,
             unscheduled = unscheduled,
             later = later,
             toProcess = toProcess,
-            stats = DayStats(required, available),
+            stats = DayStats(required, maxOf(0, available - lost), minOf(lost, available)),
             noWindow = noWindow,
         )
     }

@@ -1,5 +1,15 @@
 package com.skohscripts.kairos.ui.recap
 
+import com.skohscripts.kairos.ui.generated.resources.recap_interruptions_afternoon
+import com.skohscripts.kairos.ui.generated.resources.recap_interruptions_morning
+import com.skohscripts.kairos.ui.generated.resources.recap_interruptions_self
+import com.skohscripts.kairos.ui.generated.resources.recap_interruptions_message
+import com.skohscripts.kairos.ui.generated.resources.recap_interruptions_call
+import com.skohscripts.kairos.ui.generated.resources.recap_interruptions_person
+import com.skohscripts.kairos.ui.generated.resources.recap_interruptions_many
+import com.skohscripts.kairos.ui.generated.resources.recap_interruptions_one
+import com.skohscripts.kairos.core.model.InterruptionSource
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -125,6 +135,12 @@ internal fun RecapCard(recap: Recap, title: String, heading: String, today: Loca
                 Figure(recap.left.size.toString(), stringResource(Res.string.recap_kpi_left), cell, warn = recap.late > 0)
             }
         }
+        // Dérangements de la période (docs/spec/derangements.md) : une ligne, seulement s'il y en a.
+        if (recap.interruptions.isNotEmpty()) {
+            val line = remember(recap, language) { mutableStateOf("") }
+            LaunchedEffect(recap, language) { line.value = interruptionLine(recap, language) }
+            Muted(line.value)
+        }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(KairosSpacing.s)) {
             KairosTextButton(onClick = { open = !open }, modifier = Modifier.expandedState(open), contentPadding = KairosButtonIconPadding) {
                 Icon(if (open) KairosIcons.ExpandLess else KairosIcons.ExpandMore, contentDescription = null)
@@ -231,6 +247,7 @@ internal suspend fun recapText(recap: Recap, heading: String, today: LocalDate, 
         (if (slot.count > 1) getString(Res.string.recap_slot_line, title, slot.count) else title) + " · " + durationText(slot.minutes)
     })
     section(Res.string.recap_left, recap.left.map { "${it.title} · ${getString(Res.string.deadline_badge, Dates.short(it.deadline!!, language, today))}" })
+    if (recap.interruptions.isNotEmpty()) out.append('\n').append(interruptionLine(recap, language)).append('\n')
     if (recap.spentMinutes > 0) {
         val types = recap.spentByType.map { (type, minutes) -> "$type ${durationText(minutes)}" }
         out.append('\n').append(getString(Res.string.recap_text_tracked, durationText(recap.spentMinutes)))
@@ -238,4 +255,31 @@ internal suspend fun recapText(recap: Recap, heading: String, today: LocalDate, 
         out.append('\n')
     }
     return out.toString().trimEnd()
+}
+
+/**
+ * « 14 dérangements, 2 h 10, surtout des messages, surtout le mardi matin » (docs/spec/derangements.md) : la source et le moment
+ * seulement s'ils pèsent au moins un tiers.
+ */
+internal suspend fun interruptionLine(recap: Recap, language: String): String {
+    val n = recap.interruptions.size
+    val parts = mutableListOf(
+        if (n == 1) getString(Res.string.recap_interruptions_one, durationText(recap.interruptionMinutes))
+        else getString(Res.string.recap_interruptions_many, n, durationText(recap.interruptionMinutes)),
+    )
+    recap.interruptionSource?.let {
+        parts += getString(
+            when (it) {
+                InterruptionSource.PERSON -> Res.string.recap_interruptions_person
+                InterruptionSource.CALL -> Res.string.recap_interruptions_call
+                InterruptionSource.MESSAGE -> Res.string.recap_interruptions_message
+                InterruptionSource.SELF -> Res.string.recap_interruptions_self
+            },
+        )
+    }
+    recap.interruptionMoment?.let { m ->
+        val day = Dates.weekdayName(m.weekday, language)
+        parts += getString(if (m.afternoon) Res.string.recap_interruptions_afternoon else Res.string.recap_interruptions_morning, day)
+    }
+    return parts.joinToString(", ")
 }

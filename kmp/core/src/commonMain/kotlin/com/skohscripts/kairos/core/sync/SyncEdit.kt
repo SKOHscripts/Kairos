@@ -25,6 +25,7 @@ object SyncEdit {
             RecordKind.SESSION -> SyncRecords.buildSession(id, l, ids)?.let { x -> snapshot.copy(workSessions = snapshot.workSessions.map { if (it.id == id) x else it }) }
             RecordKind.DEPENDENCY -> SyncRecords.buildDependency(id, l, ids)?.let { x -> snapshot.copy(dependencies = snapshot.dependencies.map { if (it.id == id) x else it }) }
             RecordKind.DAYMARK -> SyncRecords.buildDayMark(id, l, ids)?.let { x -> snapshot.copy(dayMarks = snapshot.dayMarks.map { if (it.id == id) x else it }) }
+            RecordKind.INTERRUPTION -> SyncRecords.buildInterruption(id, l, ids)?.let { x -> snapshot.copy(interruptions = snapshot.interruptions.map { if (it.id == id) x else it }) }
         }
     }
 
@@ -54,6 +55,7 @@ object SyncEdit {
             RecordKind.SESSION -> snapshot.copy(workSessions = snapshot.workSessions.filter { it.id != id })
             RecordKind.DEPENDENCY -> snapshot.copy(dependencies = snapshot.dependencies.filter { it.id != id })
             RecordKind.DAYMARK -> snapshot.copy(dayMarks = snapshot.dayMarks.filter { it.id != id })
+            RecordKind.INTERRUPTION -> snapshot.copy(interruptions = snapshot.interruptions.filter { it.id != id })
         }
     }
 

@@ -1,5 +1,8 @@
 package com.skohscripts.kairos.ui.stats
 
+import com.skohscripts.kairos.core.stats.TaskStats
+import kotlinx.datetime.minus
+import kotlinx.datetime.DatePeriod
 import com.skohscripts.kairos.core.stats.SuspectSessions
 import com.skohscripts.kairos.ui.generated.resources.stats_suspect_open
 import com.skohscripts.kairos.ui.generated.resources.stats_untimed_body
@@ -210,8 +213,14 @@ fun StatsScreen(services: AppServices) {
                     )
                 }
             }
+            // Dérangements (docs/spec/derangements.md § Statistiques) : même période et mêmes filtres que les cartes.
+            val periodStart = TaskStats.monday(today).minus(DatePeriod(days = 7 * (maxOf(1, input.settings.statsWindowWeeks) - 1)))
+            val interruptions: @Composable () -> Unit = {
+                InterruptionCards(services.repository, snapshot, query.filter, periodStart, today, now, language)
+            }
             if (!stats.hasAnyData) {
                 Text(stringResource(if (query.filter.active) Res.string.stats_empty_filtered else Res.string.stats_empty), style = MaterialTheme.typography.bodyLarge)
+                interruptions()
                 // Aucun panneau : une section demandée par le guide est absente, on le dit (issue #95).
                 MissingGuideSection(GuideSection.STATS_HOURS)
                 MissingGuideSection(GuideSection.STATS_CALIBRATION)
@@ -244,6 +253,7 @@ fun StatsScreen(services: AppServices) {
                 // Sous la carte, pas dedans : l'image exportée d'une carte ne montre pas de bouton.
                 if (card == StatsCard.CALIBRATION) SpottedCorrectionButtons(corrections.size, suspects.size, { correcting = true }, { checking = true })
             }
+            interruptions()
         }
     }
 }

@@ -51,6 +51,10 @@ Kairos a pourtant, sur l'appareil, tout ce qu'il faut pour deviner : le titre, l
 sur des centaines de tâches faites. L'objectif est d'**estimer par ressemblance** ces tâches-là, sans jamais rien cacher de la
 façon dont la durée est obtenue.
 
+Le modèle n'apprend que des tâches faites qui ont un temps réel ; sur l'export d'un utilisateur quotidien, une sur dix en avait un.
+Pour en obtenir davantage, « Temps passé ? » à la coche, la revue des tâches faites sans temps et « Fait, suivante »
+(`durees-reelles.md`, 4.5.0) écrivent du temps saisi ou chronométré, que le modèle lit comme le reste.
+
 ### Comportement attendu (utilisateur)
 
 1. **Une tâche sans estimation explicite et sans durée apprise par série ou titre reçoit une durée estimée par le modèle**

@@ -94,6 +94,8 @@ Depuis le jalon E1 de l'espace Équipe, l'écran Notes lit `repository.personalS
 
 ### Décisions et pièges tracés
 
+- **Note née d'un dérangement** (4.5.0, `derangements.md`) : « En faire une note » du panneau crée une note ordinaire, dans la
+  même transaction que le dérangement ; « Annuler » la retire.
 - **« Modifier » branché** : chaque note a un bouton d'édition.
 - **Un corps vide à l'édition garde l'ancien** : enregistrer un corps vide
   donnerait une note blanche, inconvertible. Le dialogue désactive de toute

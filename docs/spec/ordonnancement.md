@@ -256,6 +256,9 @@ type, tous deux indexés par le nom du type en minuscules.
 
 ### Décisions et pièges tracés
 
+- **Dérangements attendus** (4.5.0, `derangements.md`) : paramètre `expected` de `buildDaySchedule`, nul par défaut ; hors deep
+  work, une tâche placée au curseur s'allonge du taux de ses heures et `DayStats` retranche les dérangements attendus du
+  disponible (`expectedInterruptionMinutes`). Nul ou tout à zéro : le placement d'avant, fichiers d'or inchangés.
 - **Notes rendues en données** (`pushedAfter`, `pushedAfterKind`,
   `conflictWith`, `dipApplied`, `affinity`), jamais en phrases : l'interface les
   formule dans sa langue.

@@ -1,6 +1,17 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.generated.resources.day_brief_reserved
+import com.skohscripts.kairos.core.model.BlockKind
+import com.skohscripts.kairos.data.BlockEdit
+import com.skohscripts.kairos.core.day.DayBrief
 import com.skohscripts.kairos.ui.generated.resources.spent_corrected
+import com.skohscripts.kairos.ui.generated.resources.done_next_started
+import com.skohscripts.kairos.ui.generated.resources.interruption_saved
+import com.skohscripts.kairos.ui.generated.resources.spent_question
+import com.skohscripts.kairos.ui.generated.resources.spent_noted
+import com.skohscripts.kairos.ui.app.LocalShellScope
+import com.skohscripts.kairos.core.engine.SpentReview
+import kotlin.time.Instant
 import com.skohscripts.kairos.core.engine.TimeCorrection
 import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.ui.guide.GtdStepButton
@@ -289,6 +300,8 @@ fun DayScreen(
     // Premier chrono de la session : la demande d'autorisation de notifier, une fois par lancement (docs/spec/temps-reel-chrono.md
     // § Demande au démarrage du chrono). Le chrono démarre d'abord ; le dialogue ne retient rien.
     var askAlerts by remember { mutableStateOf(false) }
+    // Dérangements (docs/spec/derangements.md, issue #272) : le panneau, ouvert par « Dérangé » ou la touche `D`.
+    var interrupting by remember { mutableStateOf(false) }
     val startTimer: suspend (Long) -> Unit = { id ->
         repository.startTimer(id)
         if (services.notifyPrompt.claim(services.notifier.state.value)) askAlerts = true
@@ -352,6 +365,73 @@ fun DayScreen(
     // Démonstration, « À moi de jouer » (docs/spec/visite-guidee.md § Visite interactive) : la liste défile jusqu'au repère, sans
     // animation, puis l'élément cerné reçoit le focus. La liste est paresseuse : on y va par la position de l'entrée.
     val demo = LocalDemoTour.current
+    // Durées réelles (docs/spec/durees-reelles.md, issue #271) : « Temps passé ? » en cochant une tâche sans aucun temps ; deux
+    // coches à moins d'une minute sont un lot, qui ferme la question ouverte sans en poser d'autre. Rien dans la démonstration.
+    val spentPrompts = LocalSpentPrompts.current
+    val shellScope = LocalShellScope.current ?: scope
+    var lastDoneAt by remember { mutableStateOf<Instant?>(null) }
+    val noteSpent: (Task, Int) -> Unit = { task, minutes ->
+        shellScope.launch {
+            repository.setSpent(task.id, minutes)
+            undo(getString(Res.string.spent_noted, durationText(minutes)), getString(Res.string.action_revert)) {
+                shellScope.launch { repository.setSpent(task.id, null) }
+            }
+        }
+    }
+    val toggleDone: (Task) -> Unit = { t ->
+        scope.launch {
+            val fresh = repository.personalSnapshot.value
+            val task = fresh.tasks.firstOrNull { it.id == t.id } ?: t
+            val finishing = task.status == TaskStatus.TODO
+            val at = services.clock.now()
+            val batched = finishing && SpentReview.batched(lastDoneAt, at)
+            val asks = finishing && demo == null && SpentReview.asks(fresh, task)
+            if (finishing) lastDoneAt = at
+            repository.toggleDone(task.id)
+            when {
+                batched -> spentPrompts.close()
+                asks -> spentPrompts.ask(SpentQuestion(getString(Res.string.spent_question, task.title)) { noteSpent(task, it) })
+            }
+        }
+    }
+    // « Fait, suivante » (carte « Maintenant ») : coche la tâche (sa séance se ferme), puis lance le chrono sur la suivante du plan.
+    val doneNext: (Task, Task) -> Unit = { current, following ->
+        scope.launch {
+            lastDoneAt = services.clock.now()
+            repository.toggleDone(current.id)
+            startTimer(following.id)
+            undo(getString(Res.string.done_next_started, following.title), getString(Res.string.action_revert)) {
+                shellScope.launch { repository.stopTimer() }
+            }
+        }
+    }
+    if (interrupting) {
+        InterruptionDialog(
+            onSave = { minutes, source, note ->
+                interrupting = false
+                shellScope.launch {
+                    val reported = repository.reportInterruption(minutes, source, note) ?: return@launch
+                    undo(getString(Res.string.interruption_saved, durationText(minutes)), getString(Res.string.action_revert)) {
+                        shellScope.launch { repository.undoInterruption(reported) }
+                    }
+                }
+            },
+            onDismiss = { interrupting = false },
+        )
+    }
+    val brief = remember(view, minute) { DayBrief.build(view, snapshot.settings, minute) }
+    val deepWorkTitle = stringResource(Res.string.tag_deepwork)
+    // « Réserver … de deep work » : un créneau ordinaire, puis « Annuler » qui le retire (createBlock ne rend pas son identifiant).
+    val reserveDeepWork: (DayBrief.DeepWork) -> Unit = { dw ->
+        shellScope.launch {
+            val edit = BlockEdit(deepWorkTitle, dw.start, dw.end, BlockKind.DEEPWORK)
+            if (!repository.createBlock(edit)) return@launch
+            val id = repository.snapshot.value.timeBlocks.filter { it.start == dw.start && it.end == dw.end && it.kind == BlockKind.DEEPWORK }.maxOfOrNull { it.id }
+            undo(getString(Res.string.day_brief_reserved, durationText(dw.minutes), Dates.time(dw.start, language)), getString(Res.string.action_revert)) {
+                if (id != null) shellScope.launch { repository.deleteBlock(id) }
+            }
+        }
+    }
     val demoRequest = demo?.focusRequest ?: 0
     LaunchedEffect(demoRequest) {
         val tour = demo ?: return@LaunchedEffect
@@ -383,18 +463,27 @@ fun DayScreen(
             // raccourcis restent sourds ; les éléments cliquables consomment leur clic avant.
             .pointerInput(Unit) { detectTapGestures { runCatching { rootFocus.requestFocus() } } }
             .onKeyEvent { e ->
-            // `N` : capture ; `/` : recherche. Un champ de saisie consomme la frappe avant
+            // `N` : capture ; `/` : recherche ; `D` : dérangement (docs/spec/derangements.md). Un champ de saisie consomme la frappe avant
             // l'écran : les raccourcis sont donc inactifs pendant la saisie.
             if (e.type != KeyEventType.KeyDown || e.isCtrlPressed || e.isMetaPressed || e.isAltPressed) return@onKeyEvent false
             when (e.key) {
                 Key.N -> { capture.focusTask(); captureRequest++; shortcutUsed(); true }
                 Key.Slash -> { filterOpen = true; searchRequest++; shortcutUsed(); true }
+                Key.D -> if (demo != null) false else { interrupting = true; shortcutUsed(); true }
                 else -> false
             }
         },
         contentAlignment = Alignment.TopCenter,
     ) {
         val twoColumns = maxWidth >= TWO_COLUMNS
+        val briefCard: @Composable () -> Unit = {
+            DayBriefCard(
+                brief, language, folded = snapshot.settings.dayBriefFolded == true,
+                onFold = { folded -> scope.launch { repository.setDayBriefFolded(folded) } },
+                onReserve = reserveDeepWork,
+                onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
+            )
+        }
         val mainWidth = if (twoColumns) minOf(maxWidth - 340.dp, 840.dp) else minOf(maxWidth, 840.dp)
         val ctx = RowContext(
             forecast = forecast,
@@ -402,7 +491,7 @@ fun DayScreen(
             view = view,
             language = language,
             compact = mainWidth < COMPACT_ROWS,
-            onToggleDone = { t -> scope.launch { repository.toggleDone(t.id) } },
+            onToggleDone = toggleDone,
             onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
             onMove = { t, date ->
                 val before = t.scheduledDate
@@ -456,6 +545,9 @@ fun DayScreen(
                         )
                     }
                 }
+                // « Ta journée » (docs/spec/ta-journee.md, issue #274) : sur une colonne, en tête, au-dessus de la capture ; sur deux,
+                // en tête de la colonne de droite. Le jour même seulement.
+                if (day == today && !twoColumns) block("brief") { briefCard() }
                 block("capture") {
                     Capture(
                         capture, day, view.editableBlocks, language, showShortcuts,
@@ -531,7 +623,10 @@ fun DayScreen(
                     GuideMark(GuideSection.DAY_NOW) {
                         NowCard(
                             view, language, notifyState,
-                            onDone = { t -> scope.launch { repository.toggleDone(t.id) } },
+                            onDone = toggleDone,
+                            onDoneNext = doneNext,
+                            onInterrupted = if (demo == null) ({ interrupting = true }) else null,
+                            showShortcut = showShortcuts,
                             onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
                             onToggleTimer = toggleTimer,
                             onEnableAlerts = { scope.launch { services.notifier.requestPermission() } },
@@ -611,6 +706,7 @@ fun DayScreen(
                     Modifier.width(320.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = KairosSpacing.l),
                     verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
                 ) {
+                    if (day == today) briefCard()
                     RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } }, history = history, settings = snapshot.settings)
                     TimelineCard(view, language)
                 }

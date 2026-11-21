@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +40,8 @@ import com.skohscripts.kairos.core.day.DayView
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_done_labelled
+import com.skohscripts.kairos.ui.generated.resources.action_done_next
+import com.skohscripts.kairos.ui.generated.resources.action_interrupted
 import com.skohscripts.kairos.ui.generated.resources.action_snooze_labelled
 import com.skohscripts.kairos.ui.generated.resources.action_timer_start
 import com.skohscripts.kairos.ui.generated.resources.action_timer_stop
@@ -53,18 +57,12 @@ import com.skohscripts.kairos.ui.generated.resources.now_running_empty
 import com.skohscripts.kairos.ui.generated.resources.now_running_remaining
 import com.skohscripts.kairos.ui.generated.resources.now_running_estimate
 import com.skohscripts.kairos.ui.generated.resources.now_running_label
-import com.skohscripts.kairos.ui.generated.resources.stats_spent_today
 import com.skohscripts.kairos.ui.generated.resources.now_label
-import com.skohscripts.kairos.ui.generated.resources.stats_done
-import com.skohscripts.kairos.ui.generated.resources.stats_load
-import com.skohscripts.kairos.ui.generated.resources.stats_overflow
-import com.skohscripts.kairos.ui.generated.resources.stats_todo
 import com.skohscripts.kairos.ui.generated.resources.todo_empty
 import com.skohscripts.kairos.ui.app.NotifyHint
 import com.skohscripts.kairos.ui.app.NotifyState
 import com.skohscripts.kairos.ui.chrono.rememberLiveMinutes
 import com.skohscripts.kairos.ui.icons.KairosIcons
-import com.skohscripts.kairos.ui.theme.LocalKairosExtraColors
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
 
@@ -161,11 +159,9 @@ internal fun RunningCard(
 }
 
 /**
- * « Maintenant » : le seul bloc teinté de l'écran (conteneur primaire). La
- * prochaine tâche et ses actions nommées (« Fait » plein, chrono en contour,
- * « Décaler » texte), puis le bilan de la journée : faites, à faire, requis
- * contre disponible, débordement, temps travaillé aujourd'hui par type ; et
- * l'état des alertes du chrono.
+ * « Maintenant » : le bloc teinté principal de l'écran (conteneur primaire ; « Ta journée » est le second, en conteneur
+ * secondaire). La prochaine tâche et ses actions nommées (« Fait » plein, chrono en contour, « Décaler » et « Dérangé » en
+ * texte), puis l'état des alertes du chrono. Les bilans du jour sont dans « Ta journée » (docs/spec/ta-journee.md).
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -177,6 +173,12 @@ internal fun NowCard(
     onSnooze: (Task) -> Unit,
     onToggleTimer: (Task) -> Unit,
     onEnableAlerts: () -> Unit,
+    /** « Fait, suivante » (docs/spec/durees-reelles.md) : la tâche affichée, puis celle qui la suit dans le plan. */
+    onDoneNext: (Task, Task) -> Unit = { _, _ -> },
+    /** « Dérangé » (docs/spec/derangements.md) : ouvre le panneau du dérangement ; `null` : pas de bouton (démonstration). */
+    onInterrupted: (() -> Unit)? = null,
+    /** Touche `D` indiquée à côté du bouton (bureau, web). */
+    showShortcut: Boolean = false,
     hints: Set<NotifyHint> = emptySet(),
     onHint: (NotifyHint) -> Unit = {},
 ) {
@@ -191,8 +193,21 @@ internal fun NowCard(
             // Étape 5 de GTD : texte simple, la carte teintée ne reçoit pas de bouton texte (docs/spec/methode-gtd.md).
             GtdStepText(GtdStep.ENGAGE)
             val next = view.nextUp
+            // « Dérangé » : avec ou sans chrono, en bouton texte (la carte teintée n'a qu'une action pleine).
+            val interrupted: @Composable () -> Unit = {
+                if (onInterrupted != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        KairosTextButton(onClick = onInterrupted, contentPadding = KairosButtonIconPadding, modifier = Modifier.testTag("interrupted")) {
+                            Icon(KairosIcons.FrontHand, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Text(stringResource(Res.string.action_interrupted), modifier = Modifier.padding(start = 6.dp))
+                        }
+                        if (showShortcut) KeyHint("D")
+                    }
+                }
+            }
             if (next == null) {
                 Text(stringResource(Res.string.todo_empty), style = MaterialTheme.typography.titleLarge)
+                interrupted()
             } else {
                 val label = stringResource(Res.string.now_label)
                 Text(
@@ -205,11 +220,21 @@ internal fun NowCard(
                     style = MaterialTheme.typography.titleLarge,
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
-                    KairosButton(onClick = { onDone(next) }, contentPadding = KairosButtonIconPadding) {
-                        Icon(KairosIcons.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text(stringResource(Res.string.action_done_labelled), modifier = Modifier.padding(start = 6.dp))
-                    }
                     val running = view.running?.taskId == next.id
+                    // Chrono lancé sur la tâche affichée et une tâche après elle : « Fait » enchaîne le chrono sur la suivante ;
+                    // la case de la ligne garde le « Fait » simple.
+                    val following = view.followUp?.takeIf { running }
+                    if (following != null) {
+                        KairosButton(onClick = { onDoneNext(next, following) }, contentPadding = KairosButtonIconPadding, modifier = Modifier.testTag("done-next")) {
+                            Icon(KairosIcons.SkipNext, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Text(stringResource(Res.string.action_done_next), modifier = Modifier.padding(start = 6.dp))
+                        }
+                    } else {
+                        KairosButton(onClick = { onDone(next) }, contentPadding = KairosButtonIconPadding) {
+                            Icon(KairosIcons.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Text(stringResource(Res.string.action_done_labelled), modifier = Modifier.padding(start = 6.dp))
+                        }
+                    }
                     KairosOutlinedButton(onClick = { onToggleTimer(next) }, contentPadding = KairosButtonIconPadding) {
                         Icon(if (running) KairosIcons.Stop else KairosIcons.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(
@@ -221,30 +246,10 @@ internal fun NowCard(
                         Icon(KairosIcons.Redo, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(Res.string.action_snooze_labelled), modifier = Modifier.padding(start = 6.dp))
                     }
+                    interrupted()
                 }
             }
-            val stats = view.schedule.stats
-            val extra = LocalKairosExtraColors.current
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                itemVerticalAlignment = Alignment.CenterVertically,
-            ) {
-                Badge(stringResource(Res.string.stats_done, view.doneToday.size), extra.okContainer, extra.onOkContainer, icon = KairosIcons.CheckCircle)
-                Badge(stringResource(Res.string.stats_todo, view.schedule.scheduled.size + view.schedule.unscheduled.size))
-                Text(
-                    stringResource(Res.string.stats_load, duration(stats.requiredMinutes), duration(stats.availableMinutes)),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                if (stats.overflowMinutes > 0) ErrorBadge(stringResource(Res.string.stats_overflow, duration(stats.overflowMinutes)))
-                val parts = mutableListOf<String>()
-                for ((type, minutes) in view.spentByTypeToday) parts += "$type ${duration(minutes)}"
-                val byType = parts.joinToString(" · ")
-                Text(
-                    stringResource(Res.string.stats_spent_today, duration(view.spentToday)) + if (byType.isEmpty()) "" else " ($byType)",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
+            // Les bilans du jour sont passés dans « Ta journée » (docs/spec/ta-journee.md) : ici, la tâche du moment seule.
             AlertsOptIn(notifyState, onEnableAlerts, hints, onHint)
         }
     }

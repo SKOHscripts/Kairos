@@ -193,6 +193,9 @@ class CalendarImportUiTest {
         // Journée entière : un badge sous « Aujourd'hui », sans effet sur le planning.
         waitInList("Conférence")
         waitText("Time slot / deep work")
+        // Le sélecteur de la capture est remonté hors de l'écran par le défilement jusqu'à « Conférence » (carte « Maintenant »
+        // plus haute depuis « Dérangé ») : on y revient avant de cliquer.
+        waitInList("Time slot / deep work")
         onNodeWithText("Time slot / deep work").performClick()
         waitText("Imported from “Travail”")
         onNodeWithContentDescription("Delete the imported slot").performClick()

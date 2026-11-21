@@ -6,6 +6,8 @@ import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.BlockSource
 import com.skohscripts.kairos.core.model.CalendarSource
 import com.skohscripts.kairos.core.model.DayMark
+import com.skohscripts.kairos.core.model.Interruption
+import com.skohscripts.kairos.core.model.InterruptionSource
 import com.skohscripts.kairos.core.model.Note
 import com.skohscripts.kairos.core.model.NoteStatus
 import com.skohscripts.kairos.core.model.Settings
@@ -57,6 +59,7 @@ object SyncRecords {
         RecordKind.SESSION to mapOf("taskId" to RecordKind.TASK),
         RecordKind.NOTE to mapOf("convertedTaskId" to RecordKind.TASK),
         RecordKind.DAYMARK to mapOf("sourceId" to RecordKind.CALENDAR),
+        RecordKind.INTERRUPTION to mapOf("taskId" to RecordKind.TASK, "noteId" to RecordKind.NOTE),
     )
 
     // --- Levée ------------------------------------------------------------------------------------------------------
@@ -125,6 +128,18 @@ object SyncRecords {
             "endedAt" to str(s.endedAt?.toString()),
         ),
         s.createdAt,
+    )
+
+    /** Dérangement (docs/spec/derangements.md § Stockage) : références molles par uid, comme les séances. */
+    fun lift(i: Interruption, uids: UidOf) = Lifted(
+        linkedMapOf(
+            "at" to str(i.at.toString()),
+            "minutes" to num(i.minutes),
+            "source" to str(i.source?.code),
+            "taskId" to ref(uids, RecordKind.TASK, i.taskId),
+            "noteId" to ref(uids, RecordKind.NOTE, i.noteId),
+        ),
+        i.createdAt,
     )
 
     fun lift(n: Note, uids: UidOf) = Lifted(
@@ -242,6 +257,22 @@ object SyncRecords {
         val f = Fields(l.fields)
         val task = f.string("taskId")?.let { ids.id(RecordKind.TASK, it) } ?: return null
         return WorkSession(id, task, Instant.parse(f.string("startedAt")!!), f.string("endedAt")?.let(Instant::parse), l.createdAt)
+    }
+
+    /** Un dérangement illisible (instant ou durée manquants) ne se construit pas. */
+    fun buildInterruption(id: Long, l: Lifted, ids: IdOf): Interruption? {
+        val f = Fields(l.fields)
+        val at = f.string("at")?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: return null
+        val minutes = f.int("minutes")?.coerceIn(Interruption.MIN_MINUTES, Interruption.MAX_MINUTES) ?: return null
+        return Interruption(
+            id = id,
+            at = at,
+            minutes = minutes,
+            source = InterruptionSource.fromCode(f.string("source")),
+            taskId = f.string("taskId")?.let { ids.id(RecordKind.TASK, it) },
+            noteId = f.string("noteId")?.let { ids.id(RecordKind.NOTE, it) },
+            createdAt = l.createdAt,
+        )
     }
 
     fun buildNote(id: Long, l: Lifted, ids: IdOf): Note {

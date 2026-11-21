@@ -170,6 +170,8 @@ JSON UTF-8 indenté :
   ne change pas (`KairosRepositoryTest.deletingASeriesDeletesItsExceptionsAndExportsRoundTripThem`) ; une version
   antérieure l'ignore. À l'import : identifiants uniques, une exception par `(blockId, date)`, `blockId` d'un créneau
   du fichier, fin après début quand les deux sont là, sinon « illisible ».
+- **Dérangements** (4.5.0, `derangements.md` § Stockage) : `interruptions` (`[ { "id", "at", "minutes", "source", "taskId",
+  "noteId", "createdAt" } ]`), nul donc omis tant qu'il n'y en a aucun ; une durée hors de 1 à 240 refuse le fichier.
 - **Calendriers importés** (3.10.0, `connexions-externes.md` § Stockage) : `calendarSources`
   (`[ { "id", "name", "hideTitles": true, "importedAt", "createdAt" } ]`, `hideTitles` seulement s'il est vrai),
   `dayMarks` (`[ { "id", "title", "start": "2026-10-28", "end": "2026-10-30", "sourceId", "sourceUid", "createdAt" } ]`)

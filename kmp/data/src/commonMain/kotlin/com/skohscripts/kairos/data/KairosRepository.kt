@@ -10,6 +10,11 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import com.skohscripts.kairos.core.KairosBuild
 import com.skohscripts.kairos.core.engine.Dependencies
 import com.skohscripts.kairos.core.engine.Recurrence
+import com.skohscripts.kairos.core.model.WorkSession
+import com.skohscripts.kairos.core.model.InterruptionSource
+import com.skohscripts.kairos.core.model.Interruption
+import com.skohscripts.kairos.core.engine.Interruptions
+import com.skohscripts.kairos.core.engine.SpentReview
 import com.skohscripts.kairos.core.engine.Workdays
 import com.skohscripts.kairos.core.model.BlockException
 import com.skohscripts.kairos.core.calendar.CalendarPlan
@@ -547,6 +552,19 @@ class KairosRepository(
     }
 
     /**
+     * Temps passé d'un toucher (docs/spec/durees-reelles.md, issue #271) : pose le temps saisi à la main [minutes] d'une tâche
+     * perso, reçue d'un manager comprise (son temps lui est rapporté) (`null` la rend sans temps, 0 = ignorée par la revue). `updatedAt` n'est **pas** touché : le jour où la
+     * tâche compte comme faite (Bilan) ne bouge pas quand on saisit son temps plus tard.
+     */
+    suspend fun setSpent(taskId: Long, minutes: Int?) {
+        val task = find(taskId) ?: return
+        if (task.space != TaskSpace.PERSONAL) return
+        val value = minutes?.coerceIn(0, SpentReview.MAX_MINUTES)
+        if (value == task.manualTimeSpentMinutes) return
+        write { updateRow(task.copy(manualTimeSpentMinutes = value), touch = false) }
+    }
+
+    /**
      * « Annuler » d'une correction du temps passé (docs/spec/fiche-tache.md § Temps passé) : rend en une écriture le temps
      * saisi à la main [manual] et les fins de sessions [ends] d'avant.
      */
@@ -1037,6 +1055,85 @@ class KairosRepository(
 
     /** Suppression définitive. */
     suspend fun deleteNote(noteId: Long) = write { queries.deleteNote(noteId) }
+
+    /**
+     * Plie ou déplie la carte « Ta journée » (docs/spec/ta-journee.md) : réglage local de l'appareil, écrit nul une fois dépliée pour
+     * qu'une base qui n'y a jamais touché reste identique.
+     */
+    suspend fun setDayBriefFolded(folded: Boolean) {
+        val value = if (folded) true else null
+        if (state.value.settings.dayBriefFolded == value) return
+        write { queries.writeSettings(json.encodeToString(Settings.serializer(), state.value.settings.copy(dayBriefFolded = value))) }
+    }
+
+    // --- Dérangements (docs/spec/derangements.md, issue #272) --------------------
+
+    /**
+     * Ce qu'un signalement a écrit, pour « Annuler » : le dérangement, la note créée, la séance d'origine (ouverte) et celle qui a
+     * repris.
+     */
+    data class ReportedInterruption(val interruptionId: Long, val noteId: Long?, val session: WorkSession?, val resumedId: Long?)
+
+    /**
+     * Signale un dérangement de [minutes] (1 à 240) qui vient de finir, en une transaction : la séance ouverte est coupée à
+     * « maintenant − minutes » (ou retirée si elle est plus courte) et reprend maintenant (`Interruptions.report`) ; [note] non
+     * vide crée une note (`notes-capture.md`). Rend de quoi « Annuler ».
+     */
+    suspend fun reportInterruption(minutes: Int, source: InterruptionSource?, note: String? = null): ReportedInterruption? {
+        val duration = minutes.coerceIn(Interruption.MIN_MINUTES, Interruption.MAX_MINUTES)
+        var reported: ReportedInterruption? = null
+        write {
+            val at = clock.now()
+            val stamp = at.store()
+            val change = Interruptions.report(state.value.workSessions, at, duration)
+            var resumed: Long? = null
+            change.running?.let { s ->
+                val cut = change.cutAt
+                if (cut != null) queries.setOpenSessionEnd(cut.store(), s.id) else queries.deleteWorkSession(s.id)
+                queries.insertWorkSession(s.taskId, stamp, stamp)
+                resumed = queries.lastInsertedId().awaitAsOneOrNull()
+            }
+            val body = note?.trim().orEmpty()
+            var noteId: Long? = null
+            if (body.isNotEmpty()) {
+                queries.insertNote(body, stamp, stamp)
+                noteId = queries.lastInsertedId().awaitAsOneOrNull()
+            }
+            queries.insertInterruption(stamp, duration.toLong(), source?.code, change.running?.taskId, noteId, stamp)
+            val id = queries.lastInsertedId().awaitAsOneOrNull() ?: return@write
+            reported = ReportedInterruption(id, noteId, change.running, resumed)
+        }
+        return reported
+    }
+
+    /** « Annuler » d'un signalement : retire le dérangement et sa note, rend la séance d'origine telle qu'elle était. */
+    suspend fun undoInterruption(reported: ReportedInterruption) = write {
+        queries.deleteInterruption(reported.interruptionId)
+        reported.noteId?.let { queries.deleteNote(it) }
+        reported.resumedId?.let { queries.deleteWorkSession(it) }
+        reported.session?.let { s ->
+            if (state.value.workSessions.any { it.id == s.id }) {
+                queries.setOpenSessionEnd(s.endedAt?.store(), s.id)
+            } else {
+                queries.insertWorkSessionWithId(s.id, s.taskId, s.startedAt.store(), s.endedAt?.store(), s.createdAt.store())
+            }
+        }
+    }
+
+    /** Corrige la durée (1 à 240) et la source d'un dérangement ; les séances déjà découpées ne bougent pas. */
+    suspend fun updateInterruption(id: Long, minutes: Int, source: InterruptionSource?) {
+        if (state.value.interruptions.none { it.id == id }) return
+        write { queries.updateInterruption(minutes.coerceIn(Interruption.MIN_MINUTES, Interruption.MAX_MINUTES).toLong(), source?.code, id) }
+    }
+
+    /** Supprime un dérangement ; ni les séances ni la note créée avec lui ne bougent. */
+    suspend fun deleteInterruption(id: Long) = write { queries.deleteInterruption(id) }
+
+    /** « Annuler » d'une suppression : le dérangement revient tel quel, même identifiant. */
+    suspend fun restoreInterruption(i: Interruption) {
+        if (state.value.interruptions.any { it.id == i.id }) return
+        write { queries.insertInterruptionWithId(i.id, i.at.store(), i.minutes.toLong(), i.source?.code, i.taskId, i.noteId, i.createdAt.store()) }
+    }
 
     // --- Équipe : membres et absences (docs/spec/equipe.md § Dépôt) --------------
 
@@ -1767,6 +1864,7 @@ class KairosRepository(
         queries.deleteAllDependencies()
         queries.deleteAllWorkSessions()
         queries.deleteAllNotes()
+        queries.deleteAllInterruptions()
         queries.deleteAllTeamMembers()
         queries.deleteAllMemberAbsences()
         queries.deleteAllTeamEvents()
@@ -1829,6 +1927,9 @@ class KairosRepository(
         }
         for (n in snapshot.notes) {
             queries.insertNoteWithId(n.id, n.body, n.status.code, n.convertedTaskId, n.createdAt.store(), n.updatedAt.store())
+        }
+        for (i in snapshot.interruptions) {
+            queries.insertInterruptionWithId(i.id, i.at.store(), i.minutes.toLong(), i.source?.code, i.taskId, i.noteId, i.createdAt.store())
         }
         queries.writeSettings(json.encodeToString(Settings.serializer(), snapshot.settings))
         queries.deleteOrphanCalendarConnections()
@@ -2256,6 +2357,7 @@ class KairosRepository(
         dependencies = queries.allDependencies().awaitAsList().map { it.toModel() },
         workSessions = queries.allWorkSessions().awaitAsList().map { it.toModel() },
         notes = queries.allNotes().awaitAsList().map { it.toModel() },
+        interruptions = queries.allInterruptions().awaitAsList().map { it.toModel() },
         members = queries.allTeamMembers().awaitAsList().map { it.toModel() },
         absences = queries.allMemberAbsences().awaitAsList().map { it.toModel() },
         teamEvents = queries.allTeamEvents().awaitAsList().map { it.toModel() },

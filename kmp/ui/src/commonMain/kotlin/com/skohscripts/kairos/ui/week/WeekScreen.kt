@@ -82,6 +82,8 @@ import com.skohscripts.kairos.ui.generated.resources.week_realistic
 import com.skohscripts.kairos.ui.generated.resources.recap_title_week
 import com.skohscripts.kairos.ui.recap.PeriodHeader
 import com.skohscripts.kairos.ui.recap.RecapCard
+import com.skohscripts.kairos.ui.recap.SpentReviewCard
+import com.skohscripts.kairos.core.engine.SpentReview
 import com.skohscripts.kairos.ui.recap.ModelCard
 import com.skohscripts.kairos.core.recap.Recap
 import com.skohscripts.kairos.ui.generated.resources.week_title
@@ -177,6 +179,11 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
                 filter, filterOpen || filter.active, { filterOpen = !(filterOpen || filter.active) }, { filter = it },
                 projects, snapshot.settings.taskTypeList, remember { FocusRequester() }, LocalPlatform.current != Platform.ANDROID,
             )
+            // Tâches faites sans temps (docs/spec/durees-reelles.md) : en tête, la semaine en cours seulement, réduites par le filtre.
+            if (today in monday..sunday) {
+                val untimed = remember(stored, today, filter) { SpentReview.review(stored, today, timeZone).filter { filter.matches(it) } }
+                SpentReviewCard(services.repository, untimed, today, language)
+            }
             // Bilan de la semaine (docs/spec/bilan.md, issue #233) : le filtre réduit ses tâches et leur temps.
             val recap = remember(snapshot, monday, filter, today) { Recap.build(snapshot, monday, sunday, now, timeZone, filter) }
             // Semaine réaliste (docs/spec/previsions-taches.md § Étape C) : la semaine courante ou à venir, avec assez d'historique.

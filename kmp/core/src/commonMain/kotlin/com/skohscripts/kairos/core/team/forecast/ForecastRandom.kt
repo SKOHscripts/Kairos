@@ -37,6 +37,9 @@ object ForecastRandom {
     /** Domaine d'un débit hebdomadaire (clé : identifiant du membre, 0 pour l'équipe ; indice : numéro de semaine). */
     const val DOMAIN_THROUGHPUT: Long = 3L
 
+    /** Domaine d'une part de dérangement d'un jour de la prévision par tâche (clé : 0 ; indice : jour absolu, docs/spec/derangements.md). */
+    const val DOMAIN_INTERRUPTION: Long = 4L
+
     /** Finaliseur de SplitMix64 : bijection de `Long` qui diffuse chaque bit sur tous les autres. */
     fun mix(x: Long): Long {
         var z = x

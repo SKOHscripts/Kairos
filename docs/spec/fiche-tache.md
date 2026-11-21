@@ -41,6 +41,8 @@ titre long ou une adresse web prend quatre lignes, et la recherche ne fait que r
   dit). L'accompagnement de la première tâche ouvre la section du champ qu'il explique ; « Découper en sous-tâches » ouvre
   « Découpage et enchaînement ». Une section qui contient un champ en erreur ne se replie pas et son résumé le dit
   (« à corriger ») : sinon « Enregistrer » serait grisé sans raison visible.
+- **Temps saisi d'un toucher** (4.5.0, `durees-reelles.md`) : « Temps passé ? » à la coche et la revue du Bilan écrivent le même
+  temps saisi, sans changer le jour de fin de la tâche ; « Ignorer » y pose 0 min, que le champ montre vide.
 - **Temps passé, corrigeable** : le champ « Temps passé (min) » montre le **total** de la tâche (chrono plus temps saisi),
   avec dessous « dont 1 h 20 chronométrées ». On peut l'augmenter (temps non chronométré) **ou le baisser** (chrono oublié) :
   - plus : la différence s'ajoute au temps saisi à la main ;

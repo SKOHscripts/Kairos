@@ -18,6 +18,8 @@ enum class RecordKind(val code: String) {
     EXCEPTION("exception"),
     DEPENDENCY("dependency"),
     DAYMARK("daymark"),
+    /** Dérangements (4.5.0, docs/spec/derangements.md) : données personnelles, toujours dans la portée. */
+    INTERRUPTION("interruption"),
     ;
 
     companion object {
@@ -46,6 +48,8 @@ object SyncScope {
         "language", "themeColor", "themeMode", "uiStyle", "textZoom", "updateCheckEnabled", "timerAlertSound", "reminders", "guide", "team",
         // Mémoire d'un interrupteur de la fiche (issue #209) : une habitude de saisie, pas un réglage du planning.
         "subtaskChain",
+        // Pli de la carte « Ta journée » (issue #274) : une préférence d'affichage de cet appareil.
+        "dayBriefFolded",
     )
 
     /**
@@ -83,6 +87,7 @@ object SyncScope {
             exceptions = snapshot.blockExceptions,
             dependencies = snapshot.dependencies.filter { it.taskId in taskIds && it.blockerId in taskIds },
             dayMarks = snapshot.dayMarks.filter { m -> (m.source as? BlockSource.Imported)?.calendarId in calendarIds },
+            interruptions = snapshot.interruptions,
         )
     }
 
@@ -96,6 +101,7 @@ object SyncScope {
         val exceptions: List<com.skohscripts.kairos.core.model.BlockException>,
         val dependencies: List<com.skohscripts.kairos.core.model.TaskDependency>,
         val dayMarks: List<com.skohscripts.kairos.core.model.DayMark>,
+        val interruptions: List<com.skohscripts.kairos.core.model.Interruption> = emptyList(),
     ) {
         /** Identifiants locaux par genre. */
         fun ids(kind: RecordKind): List<Long> = when (kind) {
@@ -107,6 +113,7 @@ object SyncScope {
             RecordKind.EXCEPTION -> exceptions.map { it.id }
             RecordKind.DEPENDENCY -> dependencies.map { it.id }
             RecordKind.DAYMARK -> dayMarks.map { it.id }
+            RecordKind.INTERRUPTION -> interruptions.map { it.id }
         }
 
         val size: Int get() = RecordKind.entries.sumOf { ids(it).size }

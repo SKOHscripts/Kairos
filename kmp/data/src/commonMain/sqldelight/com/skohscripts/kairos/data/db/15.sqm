@@ -1,0 +1,12 @@
+-- Schéma 15 -> 16 (4.5.0, docs/spec/derangements.md § Stockage) : additif. Les dérangements signalés après coup ; références
+-- « molles » vers la tâche et la note, sans clé étrangère (parti pris de Kairos). Une base d'avant gagne une table vide.
+CREATE TABLE interruption (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    at TEXT NOT NULL,
+    minutes INTEGER NOT NULL,
+    source TEXT,
+    task_id INTEGER,
+    note_id INTEGER,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX interruption_at ON interruption(at);

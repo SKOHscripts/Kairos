@@ -4,6 +4,7 @@ import com.skohscripts.kairos.core.forecast.Survival
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.engine.Dependencies
 import com.skohscripts.kairos.core.engine.DurationEstimator
+import com.skohscripts.kairos.core.engine.ExpectedInterruptions
 import com.skohscripts.kairos.core.engine.Recurrence
 import com.skohscripts.kairos.core.engine.Schedule
 import com.skohscripts.kairos.core.engine.Scheduling
@@ -110,6 +111,8 @@ data class DayView(
     /** « Maintenant » : la première tâche placée, sinon la première sans créneau. */
     val nextUp: Task?,
     val nextUpStart: LocalDateTime?,
+    /** La tâche qui suit [nextUp] dans le plan (même ordre) : celle de « Fait, suivante » (docs/spec/durees-reelles.md). */
+    val followUp: Task? = null,
     /** Décomposition du score, pour les seules tâches qualifiées (priorité et points). */
     val why: Map<Long, Scheduling.WsjfBreakdown>,
     val buckets: Map<Long, Int>,
@@ -169,6 +172,8 @@ data class DayView(
     val scoringSettings: Settings = Settings(),
     /** L'échéance implicite de [scoringSettings] vient du rythme (`Survival.lingerDays`), pas de la valeur réglée. */
     val implicitDeadlineLearned: Boolean = false,
+    /** Dérangements attendus appris pour ce jour (docs/spec/derangements.md) ; [ExpectedInterruptions.NONE] sans historique. */
+    val expected: ExpectedInterruptions = ExpectedInterruptions.NONE,
 ) {
     /** Bandeau de surcharge : plus de P0 non bloquées que le seuil des réglages. */
     val priorityOverload: Boolean get() = priorityOverloadCount > priorityOverloadThreshold
@@ -235,7 +240,9 @@ data class DayView(
             } else {
                 null
             }
-            val schedule = Scheduling.buildDaySchedule(all, dayBlocks, day, now, settings, blockedIds, effective, DurationEstimator.appliedMinutes(learned), affinity)
+            // Dérangements attendus (docs/spec/derangements.md) : rien sans historique suffisant, le placement est alors celui d'avant.
+            val expected = ExpectedInterruptions.learn(snapshot, day, timeZone)
+            val schedule = Scheduling.buildDaySchedule(all, dayBlocks, day, now, settings, blockedIds, effective, DurationEstimator.appliedMinutes(learned), affinity, expected)
             val timeline = Scheduling.buildTimeline(schedule, dayBlocks, day, settings)
 
             // Lignée complète (« A › C » pour D, docs/spec/sous-taches.md) : la mère directe seule perdait le lien vers A.
@@ -306,6 +313,7 @@ data class DayView(
                 backlog = backlog,
                 nextUp = schedule.scheduled.firstOrNull()?.task ?: schedule.unscheduled.firstOrNull(),
                 nextUpStart = schedule.scheduled.firstOrNull()?.start,
+                followUp = (schedule.scheduled.map { it.task } + schedule.unscheduled).getOrNull(1),
                 why = open.filter { it.priority != null && it.fibonacciPoints != null }
                     .associate { it.id to Scheduling.wsjfBreakdown(it, day, settings) },
                 buckets = open.associate { it.id to Scheduling.urgencyBucket(it, day) },
@@ -338,6 +346,7 @@ data class DayView(
                 workEndHour = shown.endHour,
                 freeDay = Schedule.windowFor(day, settings) == null,
                 learned = learned,
+                expected = expected,
                 windows = Schedule.windowsFor(day, settings),
                 noWindow = schedule.noWindow,
             )

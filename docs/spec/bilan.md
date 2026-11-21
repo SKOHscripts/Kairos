@@ -25,6 +25,8 @@ d'œil, détaillable à la demande.
 
 ### Comportement attendu (utilisateur)
 
+- **Revue des tâches faites sans temps** (4.5.0, `durees-reelles.md`) : sur la période en cours seulement, une carte au-dessus du
+  bilan liste les tâches faites ces 7 derniers jours sans aucun temps, chacune avec ses durées d'un toucher et « Ignorer ».
 - **Carte « Bilan de la semaine »** (vue Semaine) et **« Bilan du mois »** (vue Mois), sous l'en-tête de période (et sous
   « Rechercher / filtrer » dans la semaine), avant la grille. Toujours visibles, quatre chiffres :
   - « tâche(s) faite(s) » (le nombre ; avec des points : « 3 · 13 pts ») ;
@@ -170,6 +172,8 @@ d'œil, détaillable à la demande.
 
 ### Décisions et pièges tracés
 
+- **Ligne des dérangements** (4.5.0, `derangements.md`) : sous les quatre chiffres et dans le texte copié, seulement s'il y en a
+  sur la période ; source et moment cités s'ils pèsent au moins un tiers.
 - **Une carte à part pour le modèle, pas dans le bilan** (2026-11-11) : le bilan se copie pour une réunion, l'état du
   modèle n'y a pas sa place ; même page, même motif (chiffres, puis détail). Écarté : une section du bilan.
 - **La convergence par reconstruction, pas par un journal** : rien n'enregistre l'erreur du modèle au fil du temps ; la

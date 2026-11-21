@@ -63,7 +63,8 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
      sans date, vide = apprise du rythme, `taches-qui-trainent.md`, points par défaut) et **Creux de l'après-midi** (activé, début, creux le plus profond, fin, force de la pénalité).
   4. **Chrono et statistiques** : **Alertes du chrono** (dans cet ordre depuis 4.1.0 : pause du pomodoro, chrono oublié, arrêt
      automatique du chrono après 0-1 440 min, 240 par défaut, 0 = jamais, `temps-reel-chrono.md` § Garde-fou, cloches avec
-     les alertes, `temps-reel-chrono.md` § Cloches),
+     les alertes, `temps-reel-chrono.md` § Cloches, puis « Demander le temps passé à la coche », activé par défaut,
+     `durees-reelles.md`),
      **Rappels** (3.8.0 : « Rappeler les tâches à heure fixe », « Combien de minutes avant » 0-120, 10 par défaut,
      « Signaler aussi la tâche suivante du plan » ; désactivés par défaut, `rappels.md`),
      **Statistiques** (fenêtre en semaines).

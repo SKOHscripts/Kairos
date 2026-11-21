@@ -120,6 +120,11 @@ import com.skohscripts.kairos.ui.team.SpaceSelector
 import com.skohscripts.kairos.ui.generated.resources.title_team_named
 import com.skohscripts.kairos.core.stats.TaskStats
 import com.skohscripts.kairos.ui.day.Dates
+import com.skohscripts.kairos.ui.day.LocalSpentPrompts
+import com.skohscripts.kairos.ui.day.ShellSnackbar
+import com.skohscripts.kairos.ui.day.SpentOtherDialog
+import com.skohscripts.kairos.ui.day.SpentPrompts
+import com.skohscripts.kairos.ui.day.SpentQuestion
 import com.skohscripts.kairos.ui.generated.resources.title_day_other
 import com.skohscripts.kairos.ui.generated.resources.title_week_of
 import com.skohscripts.kairos.ui.generated.resources.title_month_of
@@ -238,6 +243,19 @@ fun AppShell(
     val showUndo: (String, String, () -> Unit) -> Unit = { message, label, action ->
         scope.launch {
             if (snackbar.showSnackbar(message, actionLabel = label, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) action()
+        }
+    }
+    // Question « Temps passé ? » (docs/spec/durees-reelles.md) : la même snackbar, avec ses puces ; « Autre… » ouvre un dialogue.
+    var spentOther by remember { mutableStateOf<SpentQuestion?>(null) }
+    val spentPrompts = remember(snackbar, scope) {
+        object : SpentPrompts {
+            override fun ask(question: SpentQuestion) {
+                scope.launch { snackbar.showSnackbar(question) }
+            }
+
+            override fun close() {
+                if (snackbar.currentSnackbarData?.visuals is SpentQuestion) snackbar.currentSnackbarData?.dismiss()
+            }
         }
     }
     val linkFailure = stringResource(Res.string.link_unavailable)
@@ -418,8 +436,11 @@ fun AppShell(
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 CompositionLocalProvider(
                     LocalMessages provides showMessage, LocalUndoMessages provides showUndo, LocalShellScope provides scope, LocalGuideSpot provides nav.guideSpot,
-                    LocalDemoTour provides demo,
+                    LocalDemoTour provides demo, LocalSpentPrompts provides spentPrompts,
                 ) {
+                    spentOther?.let { question ->
+                        SpentOtherDialog(onSave = { minutes -> spentOther = null; question.onPick(minutes) }, onDismiss = { spentOther = null })
+                    }
                     if (estimateReview) {
                         EstimateReviewDialog(services, estimateChanges.orEmpty()) { estimateReview = false; estimateChanges = null }
                     }
@@ -566,7 +587,7 @@ fun AppShell(
                     if (layout == NavigationLayout.TOP_BAR) KairosTopNavigation(entries, selected, onSelect)
                 }
             },
-            snackbarHost = { SnackbarHost(snackbar) },
+            snackbarHost = { SnackbarHost(snackbar) { data -> ShellSnackbar(data) { spentOther = it } } },
             // Le panneau de la démonstration passe au-dessus de la barre basse : le contenu se réduit d'autant, le repère
             // n'est jamais caché.
             bottomBar = {

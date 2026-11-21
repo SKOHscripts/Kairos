@@ -119,6 +119,12 @@ oublié » ne sonne qu'une fois.
   suivante, toujours à l'instant limite.
 - Les alertes de la session (dépassement, oubli, pause) ne sonnent plus au-delà de la limite : la session est close.
 
+#### Enchaîner le chrono : « Fait, suivante » (issue #271, 4.5.0)
+
+- Sur la carte « Maintenant », chrono lancé sur la tâche affichée et une tâche après elle dans le plan : « Fait, suivante »
+  coche la tâche (sa séance se ferme) et lance le chrono sur la suivante, avec « Annuler » (arrête ce nouveau chrono). Détail et
+  « Temps passé ? » pour les tâches cochées sans chrono : `durees-reelles.md`.
+
 ### Cloches (issue #234, 4.1.0)
 
 - Les notifications du chrono sortent maintenant à l'heure (#219) ; il leur manquait un **son** pour en faire un vrai
@@ -391,6 +397,9 @@ est en HTTPS), état relu à chaque notification, autorisation à l'opt-in ;
 
 ### Décisions et pièges tracés
 
+- **Découpe par un dérangement** (4.5.0, `derangements.md` § Découpe de la séance) : signaler un dérangement coupe la séance
+  ouverte à « maintenant − durée » (ou la retire si elle est plus courte) et en ouvre une nouvelle sur la même tâche ; le
+  garde-fou s'applique à celle-ci comme à toute séance.
 - **Restant quand la tâche dérape** (#232) : la carte « En ce moment » dit ce qu'ont pris au total les tâches
   comparables qui ont duré plus longtemps que le temps déjà passé (`Remaining`, `previsions-taches.md` § Étape D).
 

@@ -207,6 +207,9 @@ object SyncReconcile {
             RecordKind.EXCEPTION to same(now.exceptions, before.exceptions, RecordKind.EXCEPTION, { it.id }) { touches(RecordKind.BLOCK, it.blockId) },
             RecordKind.DEPENDENCY to same(now.dependencies, before.dependencies, RecordKind.DEPENDENCY, { it.id }) { touches(RecordKind.TASK, it.taskId) || touches(RecordKind.TASK, it.blockerId) },
             RecordKind.DAYMARK to same(now.dayMarks, before.dayMarks, RecordKind.DAYMARK, { it.id }) { touches(RecordKind.CALENDAR, (it.source as? BlockSource.Imported)?.calendarId) },
+            RecordKind.INTERRUPTION to same(now.interruptions, before.interruptions, RecordKind.INTERRUPTION, { it.id }) {
+                touches(RecordKind.TASK, it.taskId) || touches(RecordKind.NOTE, it.noteId)
+            },
         )
     }
 
@@ -305,7 +308,7 @@ object SyncReconcile {
         RecordKind.DAYMARK -> scoped.dayMarks.first { it.id == id }.let { m ->
             (m.source as? BlockSource.Imported)?.let { src -> uid(RecordKind.CALENDAR, src.calendarId)?.let { bounded("mark:$it:${src.uid}:${m.start}") } }
         }
-        RecordKind.TASK, RecordKind.NOTE, RecordKind.SESSION -> null
+        RecordKind.TASK, RecordKind.NOTE, RecordKind.SESSION, RecordKind.INTERRUPTION -> null
     }
 
     /** Un `uid` déterministe de plus de [SyncScope.MAX_UID] caractères est remplacé par son empreinte, elle aussi déterministe. */
@@ -332,6 +335,7 @@ object SyncReconcile {
             RecordKind.EXCEPTION to lift(RecordKind.EXCEPTION, scoped.exceptions, { it.id }) { SyncRecords.lift(it, uids) },
             RecordKind.DEPENDENCY to lift(RecordKind.DEPENDENCY, scoped.dependencies, { it.id }) { SyncRecords.lift(it, uids) },
             RecordKind.DAYMARK to lift(RecordKind.DAYMARK, scoped.dayMarks, { it.id }) { SyncRecords.lift(it, uids) },
+            RecordKind.INTERRUPTION to lift(RecordKind.INTERRUPTION, scoped.interruptions, { it.id }) { SyncRecords.lift(it, uids) },
         )
     }
 
@@ -344,6 +348,7 @@ object SyncReconcile {
         RecordKind.EXCEPTION -> scoped.exceptions.associate { it.id to it.createdAt }
         RecordKind.DEPENDENCY -> scoped.dependencies.associate { it.id to it.createdAt }
         RecordKind.DAYMARK -> scoped.dayMarks.associate { it.id to it.createdAt }
+        RecordKind.INTERRUPTION -> scoped.interruptions.associate { it.id to it.createdAt }
     }
 
     private fun hashes(fields: Map<String, String>): Map<String, Long> = fields.mapValues { (_, v) -> SyncRecords.hash(v) }

@@ -2,14 +2,15 @@
 
 _Rôle : présenter la journée, puis le reste de la journée, en clair et d'un coup d'œil (combien de tâches, combien de temps, quelles
 échéances, combien de temps vraiment disponible une fois comptés les dérangements habituels, et si ça tient), et proposer ce qui
-aide quand ça ne tient pas (un créneau de deep work). Bandeau persistant où Kairos parle à l'utilisateur. Fichiers couverts
-(prévus) : `core/day/DayBrief.kt` (pur), `ui/day/DayBriefCard.kt`, `ui/day/DayScreen.kt`, `core/reminders/DailySummary.kt`,
-`core/model/Settings.kt` (`dayBriefFolded`, local), `FeatureCatalog`. Tests (prévus) : `DayBriefTest`, `DailySummaryTest` (étendu),
-`DayBriefUiTest`._
+aide quand ça ne tient pas (un créneau de deep work). Bandeau persistant où Kairos parle à l'utilisateur. Fichiers couverts :
+`core/day/DayBrief.kt` (pur), `core/day/DayView.kt` (`expected`), `ui/day/DayBriefCard.kt`, `ui/day/NowCard.kt` (bilans retirés),
+`ui/day/DayScreen.kt`, `core/reminders/DailySummary.kt` (`brief`), `ui/reminders/ReminderTexts.kt`, `core/model/Settings.kt`
+(`dayBriefFolded`, local), `core/sync/SyncScope.kt`, `KairosRepository.setDayBriefFolded`, `FeatureCatalog` (carte `day_brief`).
+Tests : `core/.../day/DayBriefTest` (calcul et récapitulatif du jour), `desktopApp/.../DayBriefUiTest`._
 
 État : issue [#274](https://github.com/SKOHscripts/Kairos/issues/274), jalon 4.5.0, liée à [#272](https://github.com/SKOHscripts/Kairos/issues/272)
-(dérangements attendus, `derangements.md`) et [#271](https://github.com/SKOHscripts/Kairos/issues/271). **Spécifiée le
-2026-11-21, non implémentée** ; choix du propriétaire du même jour.
+(dérangements attendus, `derangements.md`) et [#271](https://github.com/SKOHscripts/Kairos/issues/271). **Spécifiée et implémentée
+le 2026-11-21** ; choix du propriétaire du même jour.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -78,7 +79,8 @@ propose ce qui aide, comme un créneau de deep work dédié. Pendant la journée
 
 ### Calcul (`core/day/DayBrief.kt`, pur)
 
-`DayBrief.build(snapshot, now, zone): DayBrief` lit la même vue que la vue Jour (`DayView.build`) :
+`DayBrief.build(view, settings, now): DayBrief` part de la vue Jour du même instant (`DayView.build`, qui porte désormais
+`expected`, les dérangements attendus appris) :
 
 - Bilans repris de la carte « Maintenant » : `doneToday`, `workedMinutes` et `workedByType` (mêmes calculs que le bilan actuel de
   `NowCard`, déplacés).
@@ -87,28 +89,38 @@ propose ce qui aide, comme un créneau de deep work dédié. Pendant la journée
 - `tasks` et `estimateMinutes` : tâches du plan du jour restantes (non faites), durées de placement (`Scheduling.durationMinutes`
   avec les durées apprises, moins le temps passé) ; `deadlinesToday`, `deadlinesWeek` : tâches à faire d'échéance aujourd'hui, et
   d'ici dimanche.
-- `availableMinutes` : le disponible de la vue Jour (plages libres restantes de la journée de travail) ; `interruptionMinutes` :
-  `ExpectedInterruptions.expected` sur ces plages hors deep work (`derangements.md`) ; `effectiveMinutes` = différence.
+- `effectiveMinutes` : le disponible de la vue Jour (`DayStats.availableMinutes`, déjà net des dérangements attendus) ;
+  `interruptionMinutes` : `DayStats.expectedInterruptionMinutes` (`derangements.md`) ; `availableMinutes` = leur somme.
 - `overflowMinutes` = `max(0, estimateMinutes − effectiveMinutes)`.
 - `deepWork` : si `overflowMinutes > 0` et des dérangements sont attendus, la durée `D` telle que les dérangements évités
   (`expected` de la plage réservée) couvrent le dépassement, arrondie au quart d'heure supérieur, au moins 30 min, et le premier
   début libre qui la contient ; nul si aucune plage libre n'est assez longue ou si même tout le temps libre en deep work ne
   suffirait pas (alors `postpone` = la première tâche du plan qui dépasse la fin de la journée).
-- `verdict` : `FITS`, `DEEP_WORK` (avec `deepWork`), `POSTPONE`, `EMPTY`, `DAY_OFF`.
+- `verdict` : `FITS`, `DEEP_WORK` (avec `deepWork`), `POSTPONE` (avec `postpone` : la première tâche « Sans créneau », sinon la
+  première placée qui finit après la journée, sinon la dernière placée), `EMPTY` (ni tâche ni créneau occupé), `DAY_OFF` (jour libre
+  ou férié, sans tâche). Le moment libre du deep work exclut les créneaux du jour (occupés et deep work existants) et les tâches à
+  heure fixe ; la durée accumule, minute par minute, le taux de chaque heure jusqu'à couvrir le dépassement.
 
 ### Interface (`ui/day/DayBriefCard.kt`)
 
-- Carte pleine en `secondaryContainer` / `onSecondaryContainer` (formes MD3 des grands blocs, sans ombre) en tête de la vue Jour
-  (au-dessus de la capture), icône, titre (`day_brief_title_day` / `_rest`), lignes de texte, action en bouton texte ; repliée, une ligne (le verdict) et un chevron. Pli : réglage local
-  `Settings.dayBriefFolded` (`SyncScope.LOCAL_SETTINGS`, propre à l'appareil, comme `subtaskChain`).
-- « Réserver … de deep work » : `KairosRepository.createBlock(BlockEdit…)` d'un créneau `DEEPWORK` (titre « Deep work » dans la langue), puis
-  message avec « Annuler » (`LocalUndoMessages`).
+- Carte pleine en `secondaryContainer` / `onSecondaryContainer` (formes MD3 des grands blocs, sans ombre) en tête de la vue Jour :
+  sur une colonne (moins de 900 dp), au-dessus de la capture ; sur deux colonnes, en tête de la colonne de droite, au-dessus
+  d'« En ce moment » et de la frise ; **le jour même seulement** (un autre jour ouvert depuis la semaine n'en a pas), icône `Today`, titre
+  (`day_brief_title_day` / `_rest`), lignes de texte, verdict en gras, action en bouton texte ; repliée, le verdict seul et un
+  chevron. Pli : réglage local `Settings.dayBriefFolded` (`true` replié, nul déplié ; `SyncScope.LOCAL_SETTINGS`, comme
+  `subtaskChain`), écrit par `KairosRepository.setDayBriefFolded`, hors du formulaire des Réglages.
+- « Réserver … de deep work à 9 h 00 » : `KairosRepository.createBlock(BlockEdit…)` d'un créneau `DEEPWORK` (titre `tag_deepwork`
+  dans la langue), puis message avec « Annuler » (`LocalUndoMessages`), qui retire le créneau retrouvé par ses heures et son genre.
+  « Reporter » : le bouton « Décaler » de la tâche nommée.
+- « Maintenant » perd ses bilans (et leurs textes `stats_done`, `stats_todo`, `stats_load`, `stats_overflow`,
+  `stats_spent_today`, `stats_expected_interruptions`, retirés des six langues).
 - Textes dans les six langues ; carte du catalogue « Ta journée » ; puce et ligne du README.
 
 ### Notification (`core/reminders/DailySummary.kt`)
 
-Le récapitulatif du jour reprend `DayBrief` : texte court « 7 tâches · ~4 h 30 · 2 échéances aujourd'hui » ; dépliée, les lignes
-« Disponible » et verdict, puis les trois premières tâches comme aujourd'hui.
+Le récapitulatif du jour porte `DailySummary.brief` (`DayBrief` à l'heure du récapitulatif) : texte court « 7 tâches · ~4 h 30 ·
+2 créneaux · échéances aujourd'hui : 2 » (un compte nul omis) ; dépliée, les lignes « Disponible » et verdict
+(`ReminderTexts.briefLines`), puis les trois premières tâches comme avant, puis les tâches faites sans temps (`durees-reelles.md`).
 
 ### Décisions et pièges tracés
 
@@ -124,11 +136,19 @@ Le récapitulatif du jour reprend `DayBrief` : texte court « 7 tâches · ~4 h 
 - **Durée de deep work par les dérangements évités** : c'est ce que le deep work apporte selon l'hypothèse du propriétaire (aucun
   dérangement en deep work) ; sans historique de dérangements, aucune proposition (rien à éviter qu'on sache mesurer).
 
-### Impacts sur les specs existantes (à reporter à l'implémentation)
+- **Le jour même seulement** (implémentation, 2026-11-21) : la carte parle de « ta journée » ; un autre jour ouvert depuis la
+  semaine garde sa vue sans elle.
+- **Colonne de droite sur grand écran** (implémentation, 2026-11-21) : la vue d'ensemble y rejoint « En ce moment » et la frise,
+  et la liste de gauche (capture, « Maintenant », tâches) garde sa place ; en tête de la liste, elle repoussait les tâches sous le
+  bord d'une fenêtre de bureau.
+- **Le nombre de créneaux reste dans la notification** (implémentation) : il disait déjà la journée, l'estimation et les échéances
+  s'y ajoutent.
+
+### Impacts sur les specs existantes (reportés le 2026-11-21)
 
 - `vue-jour.md` : la carte en tête, au-dessus de la capture ; la carte « Maintenant » (§ 4) perd ses bilans.
-- `docs/DESIGN_SYSTEM.md`, `CLAUDE.md` (§ Palette, « Où va la couleur ») et `navigation-theme.md` : deux blocs teintés dans la vue
-  Jour (« Ta journée » en conteneur secondaire, « Maintenant » en conteneur primaire).
+- `docs/DESIGN_SYSTEM.md`, `CLAUDE.md` (§ Palette, « Où va la couleur ») : deux blocs teintés dans la vue Jour (« Ta journée » en
+  conteneur secondaire, « Maintenant » en conteneur primaire) ; `navigation-theme.md` n'énonçait pas la règle, rien à y changer.
 - `publication.md` : captures des magasins de la vue Jour à régénérer.
 - `rappels.md` : contenu du récapitulatif du jour.
 - `derangements.md` : `ExpectedInterruptions.expected` utilisé par la carte.

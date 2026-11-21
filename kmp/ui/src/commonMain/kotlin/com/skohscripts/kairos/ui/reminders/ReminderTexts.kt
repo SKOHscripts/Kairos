@@ -1,5 +1,16 @@
 package com.skohscripts.kairos.ui.reminders
 
+import com.skohscripts.kairos.ui.generated.resources.day_brief_postpone_plain
+import com.skohscripts.kairos.ui.generated.resources.day_brief_postpone
+import com.skohscripts.kairos.ui.generated.resources.day_brief_deep_work
+import com.skohscripts.kairos.ui.generated.resources.day_brief_fits_plain
+import com.skohscripts.kairos.ui.generated.resources.day_brief_fits
+import com.skohscripts.kairos.ui.generated.resources.day_brief_available_effective
+import com.skohscripts.kairos.ui.generated.resources.day_brief_available
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_deadlines
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_estimate
+import com.skohscripts.kairos.ui.day.durationText
+import com.skohscripts.kairos.core.day.DayBrief
 import com.skohscripts.kairos.core.reminders.DailySummary
 import com.skohscripts.kairos.core.reminders.Reminder
 import com.skohscripts.kairos.core.reminders.ReminderKind
@@ -17,6 +28,8 @@ import com.skohscripts.kairos.ui.generated.resources.reminder_summary_slots_one
 import com.skohscripts.kairos.ui.generated.resources.reminder_summary_tasks_many
 import com.skohscripts.kairos.ui.generated.resources.reminder_summary_tasks_one
 import com.skohscripts.kairos.ui.generated.resources.reminder_summary_title
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_untimed_many
+import com.skohscripts.kairos.ui.generated.resources.reminder_summary_untimed_one
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.getString
 
@@ -44,17 +57,50 @@ object ReminderTexts {
     /** Titre du récapitulatif du jour : « Ta journée ». */
     suspend fun summaryTitle(): String = getString(Res.string.reminder_summary_title)
 
-    /** « 5 tâches · 2 créneaux », « 1 tâche », « 1 créneau » : un compte nul est omis. */
+    /**
+     * « 5 tâches · ~4 h 30 · 2 créneaux · 2 échéances aujourd'hui » (docs/spec/ta-journee.md § Notification) : un compte nul est
+     * omis.
+     */
     suspend fun summaryCounts(summary: DailySummary): String = listOfNotNull(
         summary.tasks.takeIf { it > 0 }?.let { if (it == 1) getString(Res.string.reminder_summary_tasks_one) else getString(Res.string.reminder_summary_tasks_many, it) },
+        summary.brief?.estimateMinutes?.takeIf { it > 0 }?.let { getString(Res.string.reminder_summary_estimate, durationText(it)) },
         summary.slots.takeIf { it > 0 }?.let { if (it == 1) getString(Res.string.reminder_summary_slots_one) else getString(Res.string.reminder_summary_slots_many, it) },
+        summary.brief?.deadlinesToday?.takeIf { it > 0 }?.let { getString(Res.string.reminder_summary_deadlines, it) },
     ).joinToString(" · ")
 
-    /** Notification dépliée : le compte, puis les premières tâches avec leur heure (« 09h30 Point d'équipe »), « … » s'il y en a plus. */
+    /** Les lignes « Disponible » et verdict de « Ta journée », pour la notification dépliée ; vide sans tâche. */
+    suspend fun briefLines(brief: DayBrief): List<String> {
+        if (brief.verdict == DayBrief.Verdict.EMPTY || brief.verdict == DayBrief.Verdict.DAY_OFF) return emptyList()
+        val available = if (brief.interruptionMinutes > 0) {
+            getString(Res.string.day_brief_available_effective, durationText(brief.availableMinutes), durationText(brief.interruptionMinutes), durationText(brief.effectiveMinutes))
+        } else {
+            getString(Res.string.day_brief_available, durationText(brief.availableMinutes))
+        }
+        val verdict = when (brief.verdict) {
+            DayBrief.Verdict.FITS -> brief.dayEnd?.let { getString(Res.string.day_brief_fits, clock(it)) } ?: getString(Res.string.day_brief_fits_plain)
+            DayBrief.Verdict.DEEP_WORK -> getString(Res.string.day_brief_deep_work, durationText(brief.overflowMinutes))
+            DayBrief.Verdict.POSTPONE -> brief.postpone?.let { getString(Res.string.day_brief_postpone, durationText(brief.overflowMinutes), it.title) }
+                ?: getString(Res.string.day_brief_postpone_plain, durationText(brief.overflowMinutes))
+            else -> null
+        }
+        return listOfNotNull(available, verdict)
+    }
+
+    /**
+     * Notification dépliée : le compte, puis les premières tâches avec leur heure (« 09h30 Point d'équipe »), « … » s'il y en a plus,
+     * puis les tâches faites sans temps à compléter dans le Bilan, s'il y en a.
+     */
     suspend fun summaryDetail(summary: DailySummary): String {
         val lines = listOf(summaryCounts(summary)) +
+            summary.brief?.let { briefLines(it) }.orEmpty() +
             summary.first.map { getString(Res.string.reminder_summary_line, clock(it.start), it.title) } +
-            listOfNotNull(if (summary.tasks > summary.first.size) getString(Res.string.reminder_summary_more) else null)
+            listOfNotNull(if (summary.tasks > summary.first.size) getString(Res.string.reminder_summary_more) else null) +
+            // Tâches faites sans temps à revoir (docs/spec/durees-reelles.md) : une ligne de plus, en dernier.
+            listOfNotNull(
+                summary.untimed.takeIf { it > 0 }?.let {
+                    if (it == 1) getString(Res.string.reminder_summary_untimed_one) else getString(Res.string.reminder_summary_untimed_many, it)
+                },
+            )
         return lines.joinToString("\n")
     }
 }
