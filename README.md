@@ -406,8 +406,14 @@ only.
   adjustable, 0 turns it off). In the Recap tab, the “Backlog, no date” list puts the oldest first,
   counts and marks the tasks that linger, and a tap schedules one, today
   included.
-- **Working days and holidays**: built-in French calendar, with extra dates
-  in Settings.
+- **Working days and holidays**: your country's public holidays built in,
+  with extra dates in Settings.
+- **Public holidays of your country**: Settings → Day and hours → Public
+  holidays picks the country (Austria, Belgium, Canada, France, Germany,
+  Ireland, Italy, Luxembourg, Russia, Spain, Switzerland, United Kingdom,
+  United States); its national holidays, "observed" days included, are
+  skipped by weekday tasks and slots, the plan and team capacity, offline. A
+  new install starts with the device's country.
 
 ### Dependencies
 
@@ -715,6 +721,7 @@ version that brought it and the platforms it exists on.
 | Plan | Plan around your best hours | 3.6.0 | All |
 | Plan | Hours by day of the week | 3.4.0 | All |
 | Plan | Working days and holidays | 3.0.0 | All |
+| Plan | Public holidays of your country | 4.4.0 | All |
 | Follow | Timeline of the day | 3.0.0 | All |
 | Follow | Track time | 3.0.0 | All |
 | Follow | Three timer alerts | 3.0.0 | All |
