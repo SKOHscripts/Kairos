@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -40,6 +41,8 @@ import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_done_labelled
 import com.skohscripts.kairos.ui.generated.resources.action_done_next
+import com.skohscripts.kairos.ui.generated.resources.action_interrupted
+import com.skohscripts.kairos.ui.generated.resources.stats_expected_interruptions
 import com.skohscripts.kairos.ui.generated.resources.action_snooze_labelled
 import com.skohscripts.kairos.ui.generated.resources.action_timer_start
 import com.skohscripts.kairos.ui.generated.resources.action_timer_stop
@@ -181,6 +184,10 @@ internal fun NowCard(
     onEnableAlerts: () -> Unit,
     /** « Fait, suivante » (docs/spec/durees-reelles.md) : la tâche affichée, puis celle qui la suit dans le plan. */
     onDoneNext: (Task, Task) -> Unit = { _, _ -> },
+    /** « Dérangé » (docs/spec/derangements.md) : ouvre le panneau du dérangement ; `null` : pas de bouton (démonstration). */
+    onInterrupted: (() -> Unit)? = null,
+    /** Touche `D` indiquée à côté du bouton (bureau, web). */
+    showShortcut: Boolean = false,
     hints: Set<NotifyHint> = emptySet(),
     onHint: (NotifyHint) -> Unit = {},
 ) {
@@ -195,8 +202,21 @@ internal fun NowCard(
             // Étape 5 de GTD : texte simple, la carte teintée ne reçoit pas de bouton texte (docs/spec/methode-gtd.md).
             GtdStepText(GtdStep.ENGAGE)
             val next = view.nextUp
+            // « Dérangé » : avec ou sans chrono, en bouton texte (la carte teintée n'a qu'une action pleine).
+            val interrupted: @Composable () -> Unit = {
+                if (onInterrupted != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        KairosTextButton(onClick = onInterrupted, contentPadding = KairosButtonIconPadding, modifier = Modifier.testTag("interrupted")) {
+                            Icon(KairosIcons.FrontHand, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Text(stringResource(Res.string.action_interrupted), modifier = Modifier.padding(start = 6.dp))
+                        }
+                        if (showShortcut) KeyHint("D")
+                    }
+                }
+            }
             if (next == null) {
                 Text(stringResource(Res.string.todo_empty), style = MaterialTheme.typography.titleLarge)
+                interrupted()
             } else {
                 val label = stringResource(Res.string.now_label)
                 Text(
@@ -235,6 +255,7 @@ internal fun NowCard(
                         Icon(KairosIcons.Redo, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text(stringResource(Res.string.action_snooze_labelled), modifier = Modifier.padding(start = 6.dp))
                     }
+                    interrupted()
                 }
             }
             val stats = view.schedule.stats
@@ -246,8 +267,11 @@ internal fun NowCard(
             ) {
                 Badge(stringResource(Res.string.stats_done, view.doneToday.size), extra.okContainer, extra.onOkContainer, icon = KairosIcons.CheckCircle)
                 Badge(stringResource(Res.string.stats_todo, view.schedule.scheduled.size + view.schedule.unscheduled.size))
+                // Disponible net des dérangements habituels (docs/spec/derangements.md § Dérangements attendus), qui sont dits.
+                val lost = stats.expectedInterruptionMinutes
                 Text(
-                    stringResource(Res.string.stats_load, duration(stats.requiredMinutes), duration(stats.availableMinutes)),
+                    stringResource(Res.string.stats_load, duration(stats.requiredMinutes), duration(stats.availableMinutes)) +
+                        if (lost > 0) " " + stringResource(Res.string.stats_expected_interruptions, duration(lost)) else "",
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 if (stats.overflowMinutes > 0) ErrorBadge(stringResource(Res.string.stats_overflow, duration(stats.overflowMinutes)))

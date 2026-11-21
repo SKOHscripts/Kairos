@@ -492,6 +492,15 @@ order (critical path). Cycles are refused.
   "Ignore". With the timer running, "Done, next" ticks the task and starts the
   timer on the next one of your plan. More real times make the learned durations
   better (Settings → Timer and statistics, on by default).
+- **Interruptions**: just interrupted? "Interrupted" on the "Up next" card (or the
+  `D` key on desktop and web) says so in one gesture, after the fact: roughly how
+  long (2 min to 1 h, or another value), optionally by what (someone, a call, a
+  message, yourself) and, if you like, a note. A running timer is paused
+  retroactively, so task times stay real. The statistics show how many, the time
+  lost, its share of the measured work time, when and where from, the longest calm
+  stretch and the deep-work slots interrupted; the Recap adds one line. Once there
+  is enough history, the usual interruptions are taken off the available time, the
+  timeline and the forecast by task; deep-work slots are assumed uninterrupted.
 - **Reminders** (Settings, off by default): a notification a few minutes
   before a fixed-time task and, if you want, when the plan moves on to the
   next task. On Android even with Kairos closed (possibly a few minutes late
@@ -747,6 +756,7 @@ version that brought it and the platforms it exists on.
 | Follow | Timer guard | 4.1.0 | All |
 | Follow | Pomodoro bells | 4.1.0 | All |
 | Follow | Time spent in one tap | 4.5.0 | All |
+| Follow | Interruptions | 4.5.0 | All |
 | Follow | Learned durations | 3.4.0 | All |
 | Follow | Machine-learning estimates | 4.0.0 | All |
 | Follow | Likely finish date | 4.1.0 | All |

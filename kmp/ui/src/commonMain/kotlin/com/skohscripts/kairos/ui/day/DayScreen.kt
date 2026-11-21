@@ -2,6 +2,7 @@ package com.skohscripts.kairos.ui.day
 
 import com.skohscripts.kairos.ui.generated.resources.spent_corrected
 import com.skohscripts.kairos.ui.generated.resources.done_next_started
+import com.skohscripts.kairos.ui.generated.resources.interruption_saved
 import com.skohscripts.kairos.ui.generated.resources.spent_question
 import com.skohscripts.kairos.ui.generated.resources.spent_noted
 import com.skohscripts.kairos.ui.app.LocalShellScope
@@ -295,6 +296,8 @@ fun DayScreen(
     // Premier chrono de la session : la demande d'autorisation de notifier, une fois par lancement (docs/spec/temps-reel-chrono.md
     // § Demande au démarrage du chrono). Le chrono démarre d'abord ; le dialogue ne retient rien.
     var askAlerts by remember { mutableStateOf(false) }
+    // Dérangements (docs/spec/derangements.md, issue #272) : le panneau, ouvert par « Dérangé » ou la touche `D`.
+    var interrupting by remember { mutableStateOf(false) }
     val startTimer: suspend (Long) -> Unit = { id ->
         repository.startTimer(id)
         if (services.notifyPrompt.claim(services.notifier.state.value)) askAlerts = true
@@ -398,6 +401,20 @@ fun DayScreen(
             }
         }
     }
+    if (interrupting) {
+        InterruptionDialog(
+            onSave = { minutes, source, note ->
+                interrupting = false
+                shellScope.launch {
+                    val reported = repository.reportInterruption(minutes, source, note) ?: return@launch
+                    undo(getString(Res.string.interruption_saved, durationText(minutes)), getString(Res.string.action_revert)) {
+                        shellScope.launch { repository.undoInterruption(reported) }
+                    }
+                }
+            },
+            onDismiss = { interrupting = false },
+        )
+    }
     val demoRequest = demo?.focusRequest ?: 0
     LaunchedEffect(demoRequest) {
         val tour = demo ?: return@LaunchedEffect
@@ -429,12 +446,13 @@ fun DayScreen(
             // raccourcis restent sourds ; les éléments cliquables consomment leur clic avant.
             .pointerInput(Unit) { detectTapGestures { runCatching { rootFocus.requestFocus() } } }
             .onKeyEvent { e ->
-            // `N` : capture ; `/` : recherche. Un champ de saisie consomme la frappe avant
+            // `N` : capture ; `/` : recherche ; `D` : dérangement (docs/spec/derangements.md). Un champ de saisie consomme la frappe avant
             // l'écran : les raccourcis sont donc inactifs pendant la saisie.
             if (e.type != KeyEventType.KeyDown || e.isCtrlPressed || e.isMetaPressed || e.isAltPressed) return@onKeyEvent false
             when (e.key) {
                 Key.N -> { capture.focusTask(); captureRequest++; shortcutUsed(); true }
                 Key.Slash -> { filterOpen = true; searchRequest++; shortcutUsed(); true }
+                Key.D -> if (demo != null) false else { interrupting = true; shortcutUsed(); true }
                 else -> false
             }
         },
@@ -579,6 +597,8 @@ fun DayScreen(
                             view, language, notifyState,
                             onDone = toggleDone,
                             onDoneNext = doneNext,
+                            onInterrupted = if (demo == null) ({ interrupting = true }) else null,
+                            showShortcut = showShortcuts,
                             onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
                             onToggleTimer = toggleTimer,
                             onEnableAlerts = { scope.launch { services.notifier.requestPermission() } },
