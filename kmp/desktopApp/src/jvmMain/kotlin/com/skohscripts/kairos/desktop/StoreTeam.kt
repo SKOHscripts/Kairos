@@ -43,10 +43,58 @@ internal object StoreTeam {
         override fun now(): Instant = current
     }
 
-    /** Titres dans la langue de la capture. */
-    private class Words(val english: Boolean) {
-        fun t(fr: String, en: String) = if (english) en else fr
+    /**
+     * Titres dans la langue de la capture : le français et l'anglais à l'appel, l'allemand, l'espagnol, l'italien et le russe
+     * dans [OTHER], par le texte français. Un titre sans traduction fait échouer la génération plutôt que d'en mêler deux.
+     */
+    private class Words(val language: String) {
+        fun t(fr: String, en: String): String = when (language) {
+            "fr" -> fr
+            "en" -> en
+            else -> OTHER[fr]?.get(OTHER_LANGUAGES.indexOf(language)) ?: error("store: no $language title for « $fr »")
+        }
     }
+
+    private val OTHER_LANGUAGES = listOf("de", "es", "it", "ru")
+
+    /** Textes français → allemand, espagnol, italien, russe (même ordre que [OTHER_LANGUAGES]). */
+    private val OTHER: Map<String, List<String>> = mapOf(
+        "Équipe Plateforme" to listOf("Plattform-Team", "Equipo Plataforma", "Team Piattaforma", "Команда платформы"),
+        "Lead technique" to listOf("Tech Lead", "Líder técnica", "Tech lead", "Техлид"),
+        "Développeur back-end" to listOf("Backend-Entwickler", "Desarrollador back-end", "Sviluppatore back-end", "Бэкенд-разработчик"),
+        "Congés" to listOf("Urlaub", "Vacaciones", "Ferie", "Отпуск"),
+        "Valider le budget du T4" to listOf("Budget für Q4 freigeben", "Aprobar el presupuesto del T4", "Approvare il budget del Q4", "Утвердить бюджет на 4-й квартал"),
+        "Analyser les journaux d’erreur" to listOf("Fehlerprotokolle analysieren", "Analizar los registros de errores", "Analizzare i log degli errori", "Проанализировать журналы ошибок"),
+        "Mettre à jour les dépendances" to listOf("Abhängigkeiten aktualisieren", "Actualizar las dependencias", "Aggiornare le dipendenze", "Обновить зависимости"),
+        "Revue de code du module de paiement" to listOf("Code-Review des Zahlungsmoduls", "Revisión del módulo de pagos", "Revisione del modulo pagamenti", "Ревью модуля платежей"),
+        "Préparer la rétrospective" to listOf("Retrospektive vorbereiten", "Preparar la retrospectiva", "Preparare la retrospettiva", "Подготовить ретроспективу"),
+        "Maquettes de l’écran de connexion" to listOf("Mock-ups des Anmeldebildschirms", "Maquetas de la pantalla de acceso", "Mockup della schermata di accesso", "Макеты экрана входа"),
+        "Écrire les tests du module d’export" to listOf("Tests für das Exportmodul schreiben", "Escribir las pruebas del módulo de exportación", "Scrivere i test del modulo di esportazione", "Написать тесты модуля экспорта"),
+        "Rédiger la note de version" to listOf("Release Notes schreiben", "Redactar las notas de la versión", "Scrivere le note di rilascio", "Написать примечания к выпуску"),
+        "Corriger l’affichage mobile" to listOf("Mobile Darstellung korrigieren", "Corregir la vista móvil", "Correggere la vista mobile", "Исправить мобильную вёрстку"),
+        "Former la nouvelle recrue" to listOf("Neue Kollegin einarbeiten", "Formar a la nueva incorporación", "Formare il nuovo arrivato", "Ввести в курс нового сотрудника"),
+        "Revue de l’architecture" to listOf("Architektur-Review", "Revisión de la arquitectura", "Revisione dell’architettura", "Ревью архитектуры"),
+        "Préparer le comité de pilotage" to listOf("Lenkungsausschuss vorbereiten", "Preparar el comité de dirección", "Preparare il comitato direttivo", "Подготовить управляющий комитет"),
+        "Automatiser le déploiement" to listOf("Deployment automatisieren", "Automatizar el despliegue", "Automatizzare il rilascio", "Автоматизировать развёртывание"),
+        "Mettre à jour le guide d’installation" to listOf("Installationsanleitung aktualisieren", "Actualizar la guía de instalación", "Aggiornare la guida di installazione", "Обновить руководство по установке"),
+        "Configurer la supervision" to listOf("Monitoring einrichten", "Configurar la monitorización", "Configurare il monitoraggio", "Настроить мониторинг"),
+        "Documenter l’API de recherche" to listOf("Such-API dokumentieren", "Documentar la API de búsqueda", "Documentare l’API di ricerca", "Задокументировать API поиска"),
+        "Nettoyer la configuration CI" to listOf("CI-Konfiguration aufräumen", "Limpiar la configuración de CI", "Ripulire la configurazione CI", "Почистить конфигурацию CI"),
+        "Revue de code du module d’import" to listOf("Code-Review des Importmoduls", "Revisión del módulo de importación", "Revisione del modulo di importazione", "Ревью модуля импорта"),
+        "Migrer les tests vers JUnit 5" to listOf("Tests auf JUnit 5 migrieren", "Migrar las pruebas a JUnit 5", "Migrare i test a JUnit 5", "Перевести тесты на JUnit 5"),
+        "Documenter les points d’accès publics" to listOf("Öffentliche Endpunkte dokumentieren", "Documentar los endpoints públicos", "Documentare gli endpoint pubblici", "Задокументировать публичные эндпоинты"),
+        "Préparer la démo client" to listOf("Kundendemo vorbereiten", "Preparar la demo para el cliente", "Preparare la demo per il cliente", "Подготовить демо для клиента"),
+        "Audit de sécurité des dépendances" to listOf("Sicherheitsaudit der Abhängigkeiten", "Auditoría de seguridad de las dependencias", "Audit di sicurezza delle dipendenze", "Аудит безопасности зависимостей"),
+        "Refonte de l’API de facturation" to listOf("Abrechnungs-API überarbeiten", "Rediseño de la API de facturación", "Revisione dell’API di fatturazione", "Переработка API биллинга"),
+        "Migration de la base vers SQLite" to listOf("Datenbank auf SQLite migrieren", "Migración de la base de datos a SQLite", "Migrazione del database a SQLite", "Миграция базы на SQLite"),
+        "Corriger l’erreur de pagination" to listOf("Paginierungsfehler beheben", "Corregir el error de paginación", "Correggere l’errore di paginazione", "Исправить ошибку пагинации"),
+        "Revue du plan de charge" to listOf("Auslastungsplan prüfen", "Revisión del plan de carga", "Revisione del piano di carico", "Ревью плана загрузки"),
+        "Répondre à l’appel d’offres" to listOf("Ausschreibung beantworten", "Responder a la licitación", "Rispondere al bando di gara", "Ответить на тендер"),
+        "Revue de code du module d’export" to listOf("Code-Review des Exportmoduls", "Revisión del módulo de exportación", "Revisione del modulo di esportazione", "Ревью модуля экспорта"),
+        "Corriger le calcul de la TVA" to listOf("MwSt.-Berechnung korrigieren", "Corregir el cálculo del IVA", "Correggere il calcolo dell’IVA", "Исправить расчёт НДС"),
+        "Maquettes de l’écran d’export" to listOf("Mock-ups des Exportbildschirms", "Maquetas de la pantalla de exportación", "Mockup della schermata di esportazione", "Макеты экрана экспорта"),
+        "Atelier utilisateurs" to listOf("Nutzer-Workshop", "Taller con usuarios", "Workshop con gli utenti", "Воркшоп с пользователями"),
+    )
 
     /** Une tâche faite : [who] 0 = Claire, 1 = Alex, 2 = Sam ; [type] indexe les types de la langue. */
     private class Past(val fr: String, val en: String, val type: Int, val who: Int, val workdaysAgo: Int, val estimate: Double, val spent: Double)
@@ -74,8 +122,8 @@ internal object StoreTeam {
         Past("Revue de code du module d’import", "Review the import module", 1, 0, 38, 5.0, 5.5),
     )
 
-    suspend fun open(english: Boolean, today: LocalDate, now: Instant): AppServices {
-        val w = Words(english)
+    suspend fun open(language: String, today: LocalDate, now: Instant): AppServices {
+        val w = Words(language)
         val zone = TimeZone.UTC
         val clock = SteppingClock(now)
 
@@ -96,7 +144,7 @@ internal object StoreTeam {
             clock.current = at(workday(n), hour)
         }
 
-        val types = (if (english) Settings.DEFAULT_TASK_TYPES_EN else Settings.DEFAULT_TASK_TYPES_FR).split(',')
+        val types = Settings.defaultTaskTypes(language).split(',')
         val repository = KairosRepository.open(
             KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)),
             examples = { KairosSnapshot(settings = Settings(taskTypes = types.joinToString(","))) },
