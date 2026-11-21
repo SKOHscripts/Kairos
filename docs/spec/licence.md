@@ -6,7 +6,8 @@ _Rôle : dire sous quelles conditions Kairos se réutilise, et ce qu'un dérivé
 (`copyright`, `licenseFile`), `packaging/aur/PKGBUILD` (`license`), `fdroid/com.skohscripts.kairos.yml` (`License`),
 `fdroid/README.md`, `fastlane/metadata/android/*/full_description.txt`, pieds de page de `site/`._
 
-État : décidée et implémentée le 2026-11-21 (choix du propriétaire), à partir de la `4.3.0`.
+État : décidée et implémentée le 2026-11-21 (choix du propriétaire), à partir de la `4.4.0` (la `4.3.0`, taguée sur `d58b86ba`
+le 2026-11-20, est sortie sous MIT).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -29,7 +30,7 @@ reste libre et qu'on le cite : un dérivé doit rester libre, y compris proposé
   « Kairos documentation, by Corentin Michel — https://github.com/SKOHscripts/Kairos » : `docs/`, `README.md`,
   `README.fr.md`, textes et images des fiches (`fastlane/metadata/`), textes et images de la page (`site/`), captures.
   Les extraits de code cités dans la documentation sont aussi disponibles sous l'AGPL.
-- **Avant le changement** : le code publié jusqu'au commit `d58b86ba` (2026-11-20, version `4.2.0` comprise) était sous
+- **Avant le changement** : le code publié jusqu'au commit `d58b86ba` (2026-11-20, version `4.3.0` comprise) était sous
   licence MIT et le reste ; les contributions faites sous MIT gardent leur mention (`LICENSES/MIT.txt`).
 - **Tiers** : Roboto reste sous OFL (`kmp/licenses/Roboto-OFL.txt`), chaque dépendance sous sa propre licence.
 - Partout où Kairos dit sa licence (README, « À propos », fiches des magasins, page, recette F-Droid, paquet AUR, installeurs),
