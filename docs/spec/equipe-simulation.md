@@ -298,7 +298,10 @@ une ».
   d'équipe de la vue de calcul — tâches perso de « moi » qui comptent
   comprises, `equipe-moi.md` —, leurs dépendances et sessions, journal,
   créneaux quand « moi » existe, réglages ; ni le thème, ni le dernier
-  espace, ni les tâches perso exclues ni les notes) ; empreinte différente →
+  espace, ni la mémoire du guide et des conseils (`Settings.guide` : ouvrir
+  l'écran Prévisions l'enregistre comme vu, ce qui marquait « périmée » la
+  prévision qu'on venait d'y calculer ; corrigé le 2026-11-21), ni les tâches
+  perso exclues ni les notes) ; empreinte différente →
   « périmé », sans recalcul automatique.
 - Les données, le plan rejoué et le périmètre lisent la vue de calcul
   `TeamWork` (`equipe-moi.md`) : travail perso de « moi », occurrences
