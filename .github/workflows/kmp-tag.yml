@@ -90,6 +90,37 @@ jobs:
           esac
           echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      # Fériés recalculés à chaque version (docs/spec/jours-feries.md § Recalcul à chaque version) : la table versionnée est
+      # comparée à la dernière python-holidays ; périmée, le workflow ouvre la PR qui la met à jour et refuse le tag, à relancer
+      # une fois la PR fusionnée (la table reste dans le dépôt : un build depuis le tag la retrouve telle quelle).
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fériés à jour
+        env:
+          NAME: ${{ steps.check.outputs.name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet --upgrade holidays
+          if python kmp/tools/make_holidays.py --check; then exit 0; fi
+          python kmp/tools/make_holidays.py
+          source=$(python -c "import holidays; print(holidays.__version__)")
+          branch="holidays/$NAME"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git commit -am "chore(holidays): refresh public holidays from python-holidays $source"
+          # Branche du robot, recréée à chaque essai : la PR suit le dernier calcul.
+          git push --force origin "$branch"
+          gh pr create --base main --head "$branch" --title "chore(holidays): refresh public holidays for $NAME" \
+            --body "The public holiday table changed with python-holidays $source (docs/spec/jours-feries.md). Merge this PR, then run « Kairos tag » again for $NAME." \
+            || echo "PR déjà ouverte pour $branch."
+          # Une PR ouverte avec le jeton du workflow ne déclenche aucun workflow : on lance ses contrôles.
+          for workflow in kmp.yml metadata.yml; do gh workflow run "$workflow" --ref "$branch"; done
+          echo "Fériés périmés : PR \`$branch\` ouverte. Fusionne-la, puis relance « Kairos tag »." >> "$GITHUB_STEP_SUMMARY"
+          echo "::error::Table des fériés périmée (python-holidays $source) : fusionne la PR $branch, puis relance « Kairos tag »."
+          exit 1
       - name: Poser le tag et lancer la release
         env:
           NAME: ${{ steps.check.outputs.name }}
