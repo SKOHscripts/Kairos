@@ -172,6 +172,8 @@ data class DayView(
     val scoringSettings: Settings = Settings(),
     /** L'échéance implicite de [scoringSettings] vient du rythme (`Survival.lingerDays`), pas de la valeur réglée. */
     val implicitDeadlineLearned: Boolean = false,
+    /** Dérangements attendus appris pour ce jour (docs/spec/derangements.md) ; [ExpectedInterruptions.NONE] sans historique. */
+    val expected: ExpectedInterruptions = ExpectedInterruptions.NONE,
 ) {
     /** Bandeau de surcharge : plus de P0 non bloquées que le seuil des réglages. */
     val priorityOverload: Boolean get() = priorityOverloadCount > priorityOverloadThreshold
@@ -344,6 +346,7 @@ data class DayView(
                 workEndHour = shown.endHour,
                 freeDay = Schedule.windowFor(day, settings) == null,
                 learned = learned,
+                expected = expected,
                 windows = Schedule.windowsFor(day, settings),
                 noWindow = schedule.noWindow,
             )

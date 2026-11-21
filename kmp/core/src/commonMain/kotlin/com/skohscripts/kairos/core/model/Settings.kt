@@ -117,6 +117,11 @@ data class Settings(
      * même règle que [timerAutoStopMinutes], rien d'écrit tant qu'on n'y touche pas. Partagé par la synchronisation.
      */
     val askSpentOnDone: Boolean? = null,
+    /**
+     * Carte « Ta journée » repliée (docs/spec/ta-journee.md, issue #274) : `true` = une ligne, le verdict. `null` = dépliée ; même
+     * règle que [subtaskChain], rien d'écrit tant qu'on n'y touche pas. Propre à l'appareil (`SyncScope.LOCAL_SETTINGS`).
+     */
+    val dayBriefFolded: Boolean? = null,
 ) {
     /** La question « Temps passé ? » est-elle posée à la coche ([askSpentOnDone]) ? */
     val askSpent: Boolean get() = askSpentOnDone != false

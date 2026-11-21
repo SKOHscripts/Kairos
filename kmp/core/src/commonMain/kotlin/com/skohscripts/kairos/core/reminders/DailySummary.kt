@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.core.reminders
 
+import com.skohscripts.kairos.core.day.DayBrief
 import com.skohscripts.kairos.core.day.DayView
 import com.skohscripts.kairos.core.engine.SpentReview
 import com.skohscripts.kairos.core.model.BlockKind
@@ -19,7 +20,15 @@ data class SummaryTask(val title: String, val start: LocalDateTime)
  * [slots] créneaux occupés, dont les [first] premières tâches du plan (trois au plus). [untimed] : tâches faites sans temps à revoir
  * (docs/spec/durees-reelles.md), une ligne de plus, jamais une raison d'envoyer. [key] : une seule fois par jour.
  */
-data class DailySummary(val at: LocalDateTime, val tasks: Int, val slots: Int, val first: List<SummaryTask>, val untimed: Int = 0) {
+data class DailySummary(
+    val at: LocalDateTime,
+    val tasks: Int,
+    val slots: Int,
+    val first: List<SummaryTask>,
+    val untimed: Int = 0,
+    /** « Ta journée » à l'heure du récapitulatif (docs/spec/ta-journee.md § Notification) : estimation, échéances, disponible, verdict. */
+    val brief: DayBrief? = null,
+) {
     val key: String get() = "summary-${at.date}"
 
     companion object {
@@ -45,7 +54,8 @@ data class DailySummary(val at: LocalDateTime, val tasks: Int, val slots: Int, v
             val slots = view.dayBlocks.count { it.kind == BlockKind.BUSY }
             if (scheduled.isEmpty() && slots == 0) return null
             val untimed = SpentReview.review(snapshot, day, timeZone).size
-            return DailySummary(at, scheduled.size, slots, scheduled.take(SHOWN).map { SummaryTask(it.task.title, it.start) }, untimed)
+            val brief = DayBrief.build(view, snapshot.settings, at)
+            return DailySummary(at, scheduled.size, slots, scheduled.take(SHOWN).map { SummaryTask(it.task.title, it.start) }, untimed, brief)
         }
     }
 }

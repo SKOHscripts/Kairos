@@ -1056,6 +1056,16 @@ class KairosRepository(
     /** Suppression définitive. */
     suspend fun deleteNote(noteId: Long) = write { queries.deleteNote(noteId) }
 
+    /**
+     * Plie ou déplie la carte « Ta journée » (docs/spec/ta-journee.md) : réglage local de l'appareil, écrit nul une fois dépliée pour
+     * qu'une base qui n'y a jamais touché reste identique.
+     */
+    suspend fun setDayBriefFolded(folded: Boolean) {
+        val value = if (folded) true else null
+        if (state.value.settings.dayBriefFolded == value) return
+        write { queries.writeSettings(json.encodeToString(Settings.serializer(), state.value.settings.copy(dayBriefFolded = value))) }
+    }
+
     // --- Dérangements (docs/spec/derangements.md, issue #272) --------------------
 
     /**

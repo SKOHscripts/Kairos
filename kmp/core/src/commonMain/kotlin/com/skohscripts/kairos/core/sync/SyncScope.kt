@@ -48,6 +48,8 @@ object SyncScope {
         "language", "themeColor", "themeMode", "uiStyle", "textZoom", "updateCheckEnabled", "timerAlertSound", "reminders", "guide", "team",
         // Mémoire d'un interrupteur de la fiche (issue #209) : une habitude de saisie, pas un réglage du planning.
         "subtaskChain",
+        // Pli de la carte « Ta journée » (issue #274) : une préférence d'affichage de cet appareil.
+        "dayBriefFolded",
     )
 
     /**
