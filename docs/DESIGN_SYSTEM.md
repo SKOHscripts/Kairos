@@ -126,7 +126,10 @@ contour et icône, bandeau de dégradation neutre.
 
 1. **Un seul bloc teinté par écran** : la carte « Maintenant »
    (`primaryContainer`) ; sur la page de téléchargement, la carte du système
-   du visiteur.
+   du visiteur. **Exception** (4.5.0, décision du propriétaire du 2026-11-21,
+   `docs/spec/ta-journee.md`) : la vue Jour a aussi la carte « Ta journée », en
+   `secondaryContainer`, plus douce que « Maintenant » ; une carte entière ne se
+   confond pas avec un élément sélectionné.
 2. **Le primaire plein** (`Button`) est réservé à l'action principale de chaque
    zone : « Ajouter », « Fait » (dans « Maintenant »), « Enregistrer »,
    « → Tâche », « Capturer ».

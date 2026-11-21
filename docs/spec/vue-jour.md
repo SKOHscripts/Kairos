@@ -35,6 +35,8 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
 ### Comportement attendu (utilisateur), de haut en bas
 
 1. **Bandeau de stockage** (version web seulement, `export-import.md`).
+   **Ta journée** (4.5.0, `ta-journee.md`) : le jour même, juste au-dessus de la capture, la carte en conteneur secondaire
+   qui présente la journée puis le reste de la journée, avec les bilans du jour ; repliable, jamais masquée.
 2. **Capture**, toujours visible, deux volets : « Tâche » (titre seul ;
    Entrée ajoute, le champ se vide et garde le curseur) et « Créneau / deep
    work » (titre, jour, début, fin, case deep work, récurrence ; puis la
@@ -64,13 +66,11 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    ou « … (médiane des tâches à 3 points) », avec « Annuler » (la durée redevient vide). Une durée déjà là n'est jamais
    touchée ; sans médiane fiable, rien n'est posé. Le backlog d'équipe fait de même dans « À qualifier », avec les
    médianes des seules tâches d'équipe terminées (`equipe-backlog-suivi.md`). Le menu des types montre une barre de défilement dès que la liste ne tient pas en entier ; depuis 4.1.0 les dialogues et feuilles qui défilent (fiche d'édition comprise) aussi, par `verticalScrollWithThumb` (`methode-gtd.md`).
-4. **Maintenant** (seul bloc teinté) : « À faire maintenant : » la première
-   tâche placée (avec son heure), sinon la première sans créneau ; boutons
-   nommés « Fait », « Démarrer le chrono » (ou « Arrêter le chrono ») et
-   « Décaler » ; bilan : faites aujourd'hui, à faire, « requis … · disponible
-   … », « la journée déborde de … » s'il y a lieu, temps travaillé
-   aujourd'hui et par type ; état des alertes du chrono
-   (`temps-reel-chrono.md`). Chrono lancé sur la tâche affichée et une tâche
+4. **Maintenant** (bloc teinté principal, conteneur primaire ; « Ta journée » est le second) : « À faire maintenant : » la
+   première tâche placée (avec son heure), sinon la première sans créneau ; boutons nommés « Fait », « Démarrer le chrono »
+   (ou « Arrêter le chrono »), « Décaler » et « Dérangé » (`derangements.md`) ; état des alertes du chrono
+   (`temps-reel-chrono.md`). Les bilans (faites, à faire, requis et disponible, débordement, temps travaillé) sont passés
+   dans « Ta journée » (4.5.0, `ta-journee.md`). Chrono lancé sur la tâche affichée et une tâche
    après elle : « Fait » devient « Fait, suivante », qui coche la tâche et
    lance le chrono sur la suivante (`durees-reelles.md`, 4.5.0). Cocher une
    tâche sans aucun temps (ligne ou « Fait ») demande « Temps passé ? » en un

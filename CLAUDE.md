@@ -170,7 +170,8 @@ Compose correspondant avant d'en inventer un. Détail complet :
   changer de couleur, regénérer tout le schéma, jamais retoucher un rôle
   isolé.
 - **Où va la couleur** : un seul bloc teinté par écran (« Maintenant »,
-  `primaryContainer`) ; primaire plein pour l'action principale d'une zone ;
+  `primaryContainer`), sauf la vue Jour qui a aussi « Ta journée » en
+  `secondaryContainer` (décision du 2026-11-21, `docs/spec/ta-journee.md`) ; primaire plein pour l'action principale d'une zone ;
   score WSJF en chiffre primaire sans pastille ; rouge seulement pour P0, les
   erreurs et les dépassements ; tertiaire seulement pour le deep work ; vert
   « ok » (couleur personnalisée) pour le fait ; sélection en
