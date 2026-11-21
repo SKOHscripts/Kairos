@@ -429,8 +429,18 @@ son estimation vient des seules tâches d’équipe terminées.
   seulement, jamais « en retard » ; réglable, 0 la coupe). Dans l’onglet Bilan, la liste « Backlog,
   sans date » met les plus anciennes d’abord, compte et signale celles qui
   traînent, et un toucher en programme une, aujourd’hui compris.
-- **Jours ouvrés et fériés** : calendrier français intégré, dates
+- **Jours ouvrés et fériés** : jours fériés de ton pays intégrés, dates
   supplémentaires dans les Réglages.
+- **Les jours fériés de ton pays** : Réglages → Journée et horaires → Jours
+  fériés choisit le pays (Allemagne, Autriche, Belgique, Canada, Espagne,
+  États-Unis, France, Irlande, Italie, Luxembourg, Royaume-Uni, Russie,
+  Suisse) ; ses fériés nationaux, jours de remplacement compris, sont sautés
+  par les tâches et créneaux « jours ouvrés », le planning et la capacité de
+  l’équipe, hors ligne. Une nouvelle installation part du pays de l’appareil.
+- **Les fériés d’un calendrier** : dans Réglages → Données → Calendriers, un
+  calendrier importé (fichier, lien ou CalDAV) peut compter ses journées entières
+  comme fériés : fermetures de l’entreprise, vacances scolaires, fériés
+  régionaux. Ils sont sautés comme ceux du pays.
 
 ### Dépendances
 
@@ -467,10 +477,18 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   calendriers ») en créneaux occupés en lecture seule, lus en direct, jamais
   stockés ni exportés. Kairos ne demande l’accès au calendrier qu’à ce moment
   (une permission facultative, pas une permission réseau).
-- **Connexions en ligne** (Android, bureau) : Réglages → Données permet de
-  s’abonner à un lien ICS après consentement et aperçu. La synchronisation
-  reste en lecture seule, peut être suspendue ou lancée à la main, et garde
-  le lien sur cet appareil.
+- **Connexions en ligne** : Réglages → Données permet de s’abonner à un lien
+  ICS après consentement et aperçu. La synchronisation reste en lecture seule,
+  peut être suspendue ou lancée à la main, et garde le lien sur cet appareil.
+  Dans la version web, seuls les serveurs qui autorisent les pages web à lire
+  le calendrier fonctionnent (souvent ni Outlook ni Google), et le lien est
+  gardé dans le navigateur.
+- **Calendriers CalDAV** (Android, bureau) : Réglages → Données → Ajouter une
+  connexion → Serveur CalDAV (Nextcloud, Radicale, Fastmail…). Kairos liste
+  les calendriers du serveur, aucun coché ; tu choisis ceux à lire, tu vérifies
+  l’aperçu, puis ils se synchronisent en lecture seule comme un lien. Le mot
+  de passe reste chiffré sur cet appareil ; un mot de passe d’application est
+  préférable.
 - **Deep work** : un créneau réservé à une seule tâche, la plus urgente ; les
   autres le contournent.
 - **Frise** de la journée : planifié, occupé, épinglé, deep work, conflits, et
@@ -765,6 +783,8 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Planifier | Planifier autour de tes meilleures heures | 3.6.0 | Toutes |
 | Planifier | Horaires par jour de la semaine | 3.4.0 | Toutes |
 | Planifier | Jours ouvrés et fériés | 3.0.0 | Toutes |
+| Planifier | Les jours fériés de ton pays | 4.4.0 | Toutes |
+| Planifier | Les fériés d’un calendrier | 4.4.0 | Toutes |
 | Suivre | Frise de la journée | 3.0.0 | Toutes |
 | Suivre | Suivre le temps | 3.0.0 | Toutes |
 | Suivre | Trois alertes du chrono | 3.0.0 | Toutes |
@@ -799,7 +819,8 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Organiser | Créneaux mensuels, et un seul jour à part | 3.8.0 | Toutes |
 | Organiser | Importer tes réunions d’un agenda | 3.10.0 | Toutes |
 | Organiser | Calendriers du téléphone | 3.10.0 | Android |
-| Organiser | Connexions en ligne | 4.2.0 | Android, Bureau |
+| Organiser | Connexions en ligne | 4.2.0 | Toutes |
+| Organiser | Calendriers CalDAV | 4.4.0 | Android, Bureau |
 | Organiser | Synchroniser tes appareils | 4.0.0 | Toutes |
 | Équipe | Première tâche d’équipe guidée | 3.8.0 | Toutes |
 | Équipe | Les membres | 3.1.0 | Toutes |

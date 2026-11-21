@@ -39,7 +39,7 @@ enum class SettingsCategory(val title: StringResource, val hint: StringResource,
     ;
 
     companion object {
-        private val DAY_KEYS = setOf("defaultTaskDurationMinutes", "meetingBufferMinutes", "workdayStartHour", "workdayEndHour", "holidaysFr", "extraHolidays")
+        private val DAY_KEYS = setOf("defaultTaskDurationMinutes", "meetingBufferMinutes", "workdayStartHour", "workdayEndHour", "holidayCountry", "extraHolidays")
         private val PLANNING_KEYS = setOf(
             "taskTypes", "staleOverdueDays", "staleUntouchedDays", "priorityOverloadThreshold",
             "priorityValueBase", "urgencyHorizonDays", "urgencyPeak", "implicitDeadlineDays", "defaultFibonacciPoints",

@@ -27,6 +27,8 @@ import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.ChronoNotifier
 import com.skohscripts.kairos.ui.app.FileService
 import com.skohscripts.kairos.ui.app.NotifyState
+import com.skohscripts.kairos.ui.month.HolidayShowcase
+import com.skohscripts.kairos.ui.theme.KairosTheme
 import com.skohscripts.kairos.ui.navigation.Destination
 import com.skohscripts.kairos.ui.navigation.Secondary
 import com.skohscripts.kairos.ui.navigation.TeamDestination
@@ -53,11 +55,11 @@ import kotlin.time.Instant
 /**
  * Captures des fiches de magasin (docs/spec/publication.md § Captures) :
  * `--store-screenshots=<dossier fastlane/metadata/android>` rend hors écran,
- * en français et en anglais, l'interface **Android** en largeur téléphone
+ * dans les six langues des fiches, l'interface **Android** en largeur téléphone
  * (1080 × 2400 px, densité 2,625) sur un jeu de données réaliste, et écrit
- * `<langue>/images/phoneScreenshots/1.png` à `10.png` (1 à 6 : espace Perso, base solo, dont la 2 : la fiche d'une tâche
+ * `<langue>/images/phoneScreenshots/1.png` à `11.png` (1 à 6 : espace Perso, base solo, dont la 2 : la fiche d'une tâche
  * estimée par machine learning ; 7 à 9 : espace Équipe, seconde base de [StoreTeam] ; 10 : la vue Jour en thème sombre,
- * issue #72). Thème du système imposé (clair, sombre pour la 10) : les captures ne dépendent pas de la machine. Rien de ce jeu n'est livré dans
+ * issue #72 ; 11 : les jours fériés de trois pays, [HolidayShowcase], issue #264). Thème du système imposé (clair, sombre pour la 10) : les captures ne dépendent pas de la machine. Rien de ce jeu n'est livré dans
  * l'application : c'est une vitrine, pas des exemples.
  */
 object StoreScreenshots {
@@ -78,7 +80,7 @@ object StoreScreenshots {
     fun run(metadataDir: File): Int = try {
         // Heure et fuseau figés : les captures ne dépendent ni du jour ni de la machine.
         java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"))
-        for ((folder, locale) in listOf("fr-FR" to Locale.FRANCE, "en-US" to Locale.US)) {
+        for ((folder, locale) in LOCALES) {
             Locale.setDefault(locale)
             val out = File(metadataDir, "$folder/images/phoneScreenshots").apply { mkdirs() }
             var number = 0
@@ -105,6 +107,9 @@ object StoreScreenshots {
             // Capture 10 : la vue Jour de la capture 1, système en sombre, rien de réglé (docs/spec/apparence.md § Thème sombre).
             val darkServices = runBlocking { services(locale.language) }
             write(render { KairosApp(Platform.ANDROID, Destination.DAY, systemDark = true) { darkServices } })
+            // Capture 11 : les fériés de trois pays, chacun dans sa langue, titre dans celle de la fiche (issue #264). Densité
+            // 2,0 (540 × 1200 dp) : trois grilles de mois tiennent dans la hauteur, l'image garde 1080 × 2400 px.
+            write(render(density = 2.0f) { KairosTheme { HolidayShowcase(HOLIDAY_MONTH, HOLIDAY_COUNTRIES) } })
         }
         println("Captures des magasins écrites dans $metadataDir")
         0
@@ -140,7 +145,7 @@ object StoreScreenshots {
      */
     private fun machineLearningShot(language: String): ByteArray {
         val services = runBlocking { services(language, machineLearning = true) }
-        val title = (if (language == "fr") FR else EN).quarterly
+        val title = words(language).quarterly
         val id = services.repository.snapshot.value.tasks.first { it.title == title }.id
         return render(settle = true, wheel = SHEET_SCROLL) { KairosApp(Platform.ANDROID, Destination.DAY, systemDark = false, showcaseTaskId = id) { services } }
     }
@@ -171,7 +176,7 @@ object StoreScreenshots {
      * avec l'empreinte des données qui l'ont produite, elle ne s'affiche pas « périmée ».
      */
     private suspend fun teamServices(language: String, destination: TeamDestination): AppServices {
-        val services = StoreTeam.open(language == "en", today, now)
+        val services = StoreTeam.open(language, today, now)
         if (destination == TeamDestination.FORECAST) {
             services.teamUi.forecast = ForecastRun.computeNow(
                 services.repository.snapshot.value, now, TimeZone.UTC, ForecastSpec(ForecastScope.Assigned), StoreTeam.FORECAST_SEED,
@@ -181,8 +186,8 @@ object StoreScreenshots {
     }
 
     @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
-    private fun render(settle: Boolean = false, wheel: Float = 0f, content: @Composable () -> Unit): ByteArray {
-        val scene = ImageComposeScene(WIDTH, HEIGHT, Density(2.625f), content = content)
+    private fun render(settle: Boolean = false, wheel: Float = 0f, density: Float = 2.625f, content: @Composable () -> Unit): ByteArray {
+        val scene = ImageComposeScene(WIDTH, HEIGHT, Density(density), content = content)
         try {
             var image = scene.render(0)
             for (frame in 1..12) image = scene.render(frame * 100_000_000L)
@@ -222,6 +227,25 @@ object StoreScreenshots {
 
     /** Défilement (en crans de molette) de la capture de la page « histoire » : la liste ordonnée sous la carte « maintenant ». */
     private const val STORY_SCROLL = 21f
+
+    /** Les six langues des fiches (dossier Fastlane, langue de l'interface), dans l'ordre d'écriture. */
+    private val LOCALES = listOf(
+        "fr-FR" to Locale.FRANCE, "en-US" to Locale.US, "de-DE" to Locale.GERMANY,
+        "es-ES" to Locale.forLanguageTag("es-ES"), "it-IT" to Locale.ITALY, "ru-RU" to Locale.forLanguageTag("ru-RU"),
+    )
+
+    /** Capture 11 : mai 2026, où l'Allemagne (1er, Ascension, Pentecôte), les États-Unis (Memorial Day) et l'Italie (1er) diffèrent. */
+    private val HOLIDAY_MONTH = LocalDate(2026, 5, 1)
+    private val HOLIDAY_COUNTRIES = listOf("DE" to "de", "US" to "en", "IT" to "it")
+
+    private fun words(language: String): Words = when (language) {
+        "fr" -> FR
+        "de" -> DE
+        "es" -> ES
+        "it" -> IT
+        "ru" -> RU
+        else -> EN
+    }
 
     /** Textes du jeu de données, par langue. */
     private class Words(
@@ -287,8 +311,123 @@ object StoreScreenshots {
         quarterly = "Write the quarterly activity report",
     )
 
+
+    private fun typed(types: String) = types.split(',')
+
+    private val DE = typed(Settings.DEFAULT_TASK_TYPES_DE).let { t ->
+        Words(
+            types = Settings.DEFAULT_TASK_TYPES_DE,
+            dev = t[0], review = t[1], meeting = t[2], doc = t[3], admin = t[4],
+            leak = "Speicherleck im Dashboard beheben", demo = "Kundendemo vorbereiten",
+            mr = "Merge-Request des Zahlungsmoduls prüfen", standup = "Team-Stand-up",
+            install = "Installationsanleitung aktualisieren", survey = "Sicherheitsfragebogen beantworten",
+            deploy = "Version 2.4 ausrollen", report = "Protokoll des Lenkungsausschusses versenden",
+            project = "Atlas", focus = "Deep Work", lunch = "Mittagessen", sync = "Abstimmungstermin",
+            notes = listOf(
+                "Netzwerkteam um Zugriff auf den Staging-Server bitten",
+                "Idee: ein Dashboard der Build-Zeiten\nVor dem nächsten Sprint prüfen",
+                "Lieferanten wegen der Lizenzverlängerung zurückrufen",
+            ),
+            history = listOf(
+                "Fehlerprotokolle analysieren", "Abhängigkeiten aktualisieren", "Tests für das Exportmodul schreiben",
+                "Architektur-Review", "Retrospektive vorbereiten", "Backlog aufräumen", "Mobile Darstellung korrigieren",
+                "Release Notes schreiben", "Monitoring einrichten", "Neue Kollegin einarbeiten",
+            ),
+            reports = listOf(
+                "Tätigkeitsbericht für Mai schreiben", "Tätigkeitsbericht für Juni schreiben", "Tätigkeitsbericht für Juli schreiben",
+                "Tätigkeitsbericht für August schreiben", "Tätigkeitsbericht für September schreiben", "Bericht zum Zugriffsaudit schreiben",
+                "Bericht zu den Lasttests schreiben", "Bericht zum Produktionsvorfall schreiben",
+            ),
+            quarterly = "Tätigkeitsbericht für das Quartal schreiben",
+        )
+    }
+
+    private val ES = typed(Settings.DEFAULT_TASK_TYPES_ES).let { t ->
+        Words(
+            types = Settings.DEFAULT_TASK_TYPES_ES,
+            dev = t[0], review = t[1], meeting = t[2], doc = t[3], admin = t[4],
+            leak = "Corregir la fuga de memoria del panel", demo = "Preparar la demo para el cliente",
+            mr = "Revisar la merge request del módulo de pagos", standup = "Reunión diaria del equipo",
+            install = "Actualizar la guía de instalación", survey = "Responder al cuestionario de seguridad",
+            deploy = "Desplegar la versión 2.4", report = "Enviar el acta del comité de dirección",
+            project = "Atlas", focus = "Deep work", lunch = "Comida", sync = "Reunión de seguimiento",
+            notes = listOf(
+                "Pedir al equipo de redes acceso al servidor de preproducción",
+                "Idea: un panel de tiempos de compilación\nA estudiar antes del próximo sprint",
+                "Llamar al proveedor por la renovación de licencias",
+            ),
+            history = listOf(
+                "Analizar los registros de errores", "Actualizar las dependencias", "Escribir las pruebas del módulo de exportación",
+                "Revisión de la arquitectura", "Preparar la retrospectiva", "Limpiar el backlog", "Corregir la vista móvil",
+                "Redactar las notas de la versión", "Configurar la monitorización", "Formar a la nueva incorporación",
+            ),
+            reports = listOf(
+                "Redactar el informe de actividad de mayo", "Redactar el informe de actividad de junio", "Redactar el informe de actividad de julio",
+                "Redactar el informe de actividad de agosto", "Redactar el informe de actividad de septiembre", "Redactar el informe de auditoría de accesos",
+                "Redactar el informe de pruebas de carga", "Redactar el informe del incidente en producción",
+            ),
+            quarterly = "Redactar el informe de actividad del trimestre",
+        )
+    }
+
+    private val IT = typed(Settings.DEFAULT_TASK_TYPES_IT).let { t ->
+        Words(
+            types = Settings.DEFAULT_TASK_TYPES_IT,
+            dev = t[0], review = t[1], meeting = t[2], doc = t[3], admin = t[4],
+            leak = "Correggere la perdita di memoria della dashboard", demo = "Preparare la demo per il cliente",
+            mr = "Rivedere la merge request del modulo pagamenti", standup = "Stand-up del team",
+            install = "Aggiornare la guida di installazione", survey = "Rispondere al questionario di sicurezza",
+            deploy = "Rilasciare la versione 2.4", report = "Inviare il verbale del comitato direttivo",
+            project = "Atlas", focus = "Deep work", lunch = "Pranzo", sync = "Riunione di avanzamento",
+            notes = listOf(
+                "Chiedere al team di rete l’accesso al server di preproduzione",
+                "Idea: una dashboard dei tempi di build\nDa approfondire prima del prossimo sprint",
+                "Richiamare il fornitore per il rinnovo delle licenze",
+            ),
+            history = listOf(
+                "Analizzare i log degli errori", "Aggiornare le dipendenze", "Scrivere i test del modulo di esportazione",
+                "Revisione dell’architettura", "Preparare la retrospettiva", "Ripulire il backlog", "Correggere la vista mobile",
+                "Scrivere le note di rilascio", "Configurare il monitoraggio", "Formare il nuovo arrivato",
+            ),
+            reports = listOf(
+                "Scrivere il rapporto di attività di maggio", "Scrivere il rapporto di attività di giugno", "Scrivere il rapporto di attività di luglio",
+                "Scrivere il rapporto di attività di agosto", "Scrivere il rapporto di attività di settembre", "Scrivere il rapporto di audit degli accessi",
+                "Scrivere il rapporto dei test di carico", "Scrivere il rapporto sull’incidente in produzione",
+            ),
+            quarterly = "Scrivere il rapporto di attività del trimestre",
+        )
+    }
+
+    private val RU = typed(Settings.DEFAULT_TASK_TYPES_RU).let { t ->
+        Words(
+            types = Settings.DEFAULT_TASK_TYPES_RU,
+            dev = t[0], review = t[1], meeting = t[2], doc = t[3], admin = t[4],
+            leak = "Исправить утечку памяти в дашборде", demo = "Подготовить демо для клиента",
+            mr = "Проверить merge request модуля платежей", standup = "Стендап команды",
+            install = "Обновить руководство по установке", survey = "Ответить на анкету по безопасности",
+            deploy = "Развернуть версию 2.4", report = "Отправить протокол управляющего комитета",
+            project = "Atlas", focus = "Deep work", lunch = "Обед", sync = "Встреча по статусу",
+            notes = listOf(
+                "Попросить сетевую команду о доступе к тестовому серверу",
+                "Идея: дашборд времени сборки\nИзучить до следующего спринта",
+                "Перезвонить поставщику насчёт продления лицензий",
+            ),
+            history = listOf(
+                "Проанализировать журналы ошибок", "Обновить зависимости", "Написать тесты модуля экспорта",
+                "Ревью архитектуры", "Подготовить ретроспективу", "Почистить бэклог", "Исправить мобильную вёрстку",
+                "Написать примечания к выпуску", "Настроить мониторинг", "Ввести в курс нового сотрудника",
+            ),
+            reports = listOf(
+                "Написать отчёт о работе за май", "Написать отчёт о работе за июнь", "Написать отчёт о работе за июль",
+                "Написать отчёт о работе за август", "Написать отчёт о работе за сентябрь", "Написать отчёт об аудите доступа",
+                "Написать отчёт о нагрузочном тестировании", "Написать отчёт об инциденте в продакшене",
+            ),
+            quarterly = "Написать отчёт о работе за квартал",
+        )
+    }
+
     private fun snapshot(language: String, machineLearning: Boolean = false): KairosSnapshot {
-        val w = if (language == "fr") FR else EN
+        val w = words(language)
         fun at(day: LocalDate, h: Int, m: Int = 0) = LocalDateTime(day, LocalTime(h, m))
         fun instant(day: LocalDate, h: Int, m: Int = 0) = at(day, h, m).toInstant(TimeZone.UTC)
         val created = instant(today.minus(DatePeriod(days = 3)), 9)

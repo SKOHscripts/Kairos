@@ -62,6 +62,21 @@ class OnlineGateTest {
         assertTrue(http.requests.isEmpty())
     }
 
+    @Test fun aBrowserTransportRefusesHttpWithoutRequestOrConfirmation() = runTest {
+        val http = object : HttpFetcher {
+            val requests = mutableListOf<HttpRequest>()
+            override val httpsOnly = true
+            override suspend fun fetch(request: HttpRequest): HttpResponse { requests += request; return HttpResponse(200, emptyMap(), onlineIcs.encodeToByteArray()) }
+        }
+        val gate = OnlineGate(http, onlineRepository())
+        assertEquals(ConnectionError.UNSUPPORTED, assertIs<OnlineGate.Result.Failed>(gate.preview("HTTP://calendar.example/a.ics", false, null, onlineToday)).error)
+        assertEquals(ConnectionError.UNSUPPORTED, assertIs<OnlineGate.Result.Failed>(gate.preview("http://calendar.example/a.ics", true, null, onlineToday)).error)
+        assertTrue(http.requests.isEmpty())
+        // webcal:// reste lu comme https://.
+        assertIs<OnlineGate.Result.Success>(gate.preview("webcal://calendar.example/a.ics", false, null, onlineToday))
+        assertEquals("https://calendar.example/a.ics", http.requests.single().url)
+    }
+
     @Test fun statusesAndCalendarValidation() = runTest {
         val repository = onlineRepository()
         val id = repository.connected()

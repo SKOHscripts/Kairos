@@ -119,7 +119,8 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
   formulaire sans y toucher n'en crée jamais (export inchangé). « Restaurer les valeurs par défaut » remet aussi les jours.
 - Les réglages valent aussitôt partout (planning, score, alertes, stats).
 - « Restaurer les valeurs par défaut » remplit le formulaire des valeurs par défaut (`SettingsForm.restoreDefaults`), **sauf** les
-  champs `team.*`, jamais touchés ; rien n'est écrit avant « Enregistrer » et « Annuler les modifications » revient en arrière.
+  champs `team.*`, jamais touchés, et du pays des fériés (`holidayCountry`, un fait sur l'utilisateur, `jours-feries.md`) ; rien
+  n'est écrit avant « Enregistrer » et « Annuler les modifications » revient en arrière.
   Il remet aussi le guide à zéro **à l'enregistrement** (3.7.0, issue #94) : « Enregistrer » devient actif si le guide a
   retenu quelque chose, même quand tous les champs valent déjà leur défaut. Il **garde** en revanche la mémoire des avis
   de mois sautés ignorés (`Settings.recurrence`, 3.13.0, `recurrence.md` § Avis des mois sautés) : une décision sur des
@@ -173,7 +174,8 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
   `Settings` (préfixée `team.` pour ceux de `Settings.team` : `team.enabled`,
   `team.name`, `team.managerName` ; tant que `team` est nul, y écrire la
   valeur par défaut le laisse nul, pour qu'enregistrer le formulaire d'un
-  solo ne crée jamais d'objet d'équipe), nature (`INT`, `DECIMAL`, `BOOL`, `TEXT`, `DATES`, `COLOR` ; `language` est un
+  solo ne crée jamais d'objet d'équipe), nature (`INT`, `DECIMAL`, `BOOL`, `TEXT`, `DATES`, `COLOR`, `TIME`, `CHOICE` : une valeur parmi `choices`, liste déroulante,
+  jamais refusée, `holidayCountry` seulement, `jours-feries.md` ; `language` est un
   `TEXT` normalisé par `UiLanguage.normalize`, jamais refusé), bornes
   incluses, borne basse exclue (`minExclusive`), lecture et écriture.
   Bornes de `app/config.py` : durée par défaut ≥ 1 ; marge, horizon, poids
@@ -211,7 +213,7 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
   `DATA`, `ABOUT`, dans l'ordre de la liste), chacune avec son titre, son résumé et son icône (`Tune`, `Schedule`,
   `Sort`, `Timer`, `Groups`, `Database`, `Info`). `SettingsCategory.of(clé)` range chaque champ de `SettingsForm` :
   `language`, `themeColor`, `themeMode`, `uiStyle`, `textZoom`, `updateCheckEnabled` → Général ; journée de travail, `schedule.dN.*`, `schedule.cN.*`
-  (contextes), `holidaysFr`, `extraHolidays` → Journée et horaires ; `taskTypes`, `levelNames.*`, `schedule.bestHours.*`,
+  (contextes), `holidayCountry` (liste déroulante, `jours-feries.md`), `extraHolidays` → Journée et horaires ; `taskTypes`, `levelNames.*`, `schedule.bestHours.*`,
   `learning.*`, garde-fous, score, creux → Planification ; chrono, `reminders.*` et `statsWindowWeeks` → Chrono et statistiques ;
   `team.*` → Équipe. Une clé inconnue lève une erreur (aucune ne tombe en silence hors de l'écran) ;
   `SettingsCategory.of(GeneralError)` : `WORKDAY_ORDER` → Journée et horaires, `DIP_ORDER` → Planification.

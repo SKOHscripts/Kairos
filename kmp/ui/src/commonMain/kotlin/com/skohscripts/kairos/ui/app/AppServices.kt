@@ -71,6 +71,8 @@ class AppServices(
      * [demo] : les tests et les captures (auto-test, magasins) n'en voient jamais par surprise.
      */
     val tips: Boolean = false,
+    /** Accès au réseau selon le système (Android) : aide et bouton « Réglages de Kairos » après un ajout en `OFFLINE`. */
+    val networkAccess: NetworkAccess? = null,
 )
 
 /** Un widget Kairos est-il posé sur l'écran d'accueil (docs/spec/widgets-android.md, conseil `widgets` de docs/spec/conseils.md) ? */

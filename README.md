@@ -406,8 +406,18 @@ only.
   adjustable, 0 turns it off). In the Recap tab, the “Backlog, no date” list puts the oldest first,
   counts and marks the tasks that linger, and a tap schedules one, today
   included.
-- **Working days and holidays**: built-in French calendar, with extra dates
-  in Settings.
+- **Working days and holidays**: your country's public holidays built in,
+  with extra dates in Settings.
+- **Public holidays of your country**: Settings → Day and hours → Public
+  holidays picks the country (Austria, Belgium, Canada, France, Germany,
+  Ireland, Italy, Luxembourg, Russia, Spain, Switzerland, United Kingdom,
+  United States); its national holidays, "observed" days included, are
+  skipped by weekday tasks and slots, the plan and team capacity, offline. A
+  new install starts with the device's country.
+- **Holidays from a calendar**: in Settings → Data → Calendars, an imported
+  calendar (file, link or CalDAV) can count its whole-day events as public holidays:
+  company closures, school holidays, regional holidays. They are skipped like
+  the country's.
 
 ### Dependencies
 
@@ -441,9 +451,16 @@ order (critical path). Cycles are refused.
   ICSx⁵, Outlook with "Sync calendars" on) as read-only busy slots, read live
   and never stored or exported. Kairos asks for calendar access only at that
   moment (an optional permission, not a network one).
-- **Online connections** (Android, desktop): Settings → Data subscribes to an
-  ICS calendar link after consent and a preview. Sync is read-only, can be
-  paused or run manually, and keeps the link on this device.
+- **Online connections**: Settings → Data subscribes to an ICS calendar link
+  after consent and a preview. Sync is read-only, can be paused or run
+  manually, and keeps the link on this device. In the web version, only
+  servers that let web pages read the calendar work (often not Outlook or
+  Google), and the link is kept in the browser.
+- **CalDAV calendars** (Android, desktop): Settings → Data → Add a connection →
+  CalDAV server (Nextcloud, Radicale, Fastmail…). Kairos lists the server's
+  calendars, none ticked; you pick the ones to read, check the preview, then
+  they sync read-only like a link. The password stays encrypted on this
+  device; an app password is best.
 - **Deep work**: a slot reserved for a single task, the most urgent one; the
   others work around it.
 - **Timeline** of the day: scheduled, busy, pinned, deep work, conflicts, and a
@@ -715,6 +732,8 @@ version that brought it and the platforms it exists on.
 | Plan | Plan around your best hours | 3.6.0 | All |
 | Plan | Hours by day of the week | 3.4.0 | All |
 | Plan | Working days and holidays | 3.0.0 | All |
+| Plan | Public holidays of your country | 4.4.0 | All |
+| Plan | Holidays from a calendar | 4.4.0 | All |
 | Follow | Timeline of the day | 3.0.0 | All |
 | Follow | Track time | 3.0.0 | All |
 | Follow | Three timer alerts | 3.0.0 | All |
@@ -749,7 +768,8 @@ version that brought it and the platforms it exists on.
 | Organize | Monthly slots, and one day apart | 3.8.0 | All |
 | Organize | Import your meetings from a calendar | 3.10.0 | All |
 | Organize | Phone calendars | 3.10.0 | Android |
-| Organize | Online connections | 4.2.0 | Android, Desktop |
+| Organize | Online connections | 4.2.0 | All |
+| Organize | CalDAV calendars | 4.4.0 | Android, Desktop |
 | Organize | Sync between your devices | 4.0.0 | All |
 | Team | Guided first team task | 3.8.0 | All |
 | Team | The members | 3.1.0 | All |

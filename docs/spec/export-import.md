@@ -284,6 +284,9 @@ n'écrit qu'un fichier de lecture, jamais relu par Kairos (`statistiques.md` § 
   fichier lié attend une autorisation : état `NeedsPermission(restore =
   true)` et **aucune écriture** tant que l'utilisateur n'a pas autorisé
   (sinon les exemples écraseraient la copie du navigateur, puis le fichier).
+  Puis les connexions de calendrier en ligne (lien ICS) reviennent de leur
+  propre fichier de l'OPFS, `kairos-connections.json`, hors instantané et hors
+  export (`connexions-en-ligne.md` § Web).
 - **Fichier lié** (`kairos-web.js`, API File System Access, Edge et Chrome) :
   poignée gardée dans IndexedDB (base `kairos`, magasin `handles`, clé
   `linked-file`) ; accord `readwrite` vérifié (`queryPermission`) ou demandé
