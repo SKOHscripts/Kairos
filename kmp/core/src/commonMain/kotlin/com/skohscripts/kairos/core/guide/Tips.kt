@@ -437,7 +437,7 @@ object Tips {
         private fun shortcuts(): Tip? = if (age() >= 7 && SCREEN_SHORTCUT !in memory.seenScreens) Tip(TipId.SHORTCUTS) else null
 
         private fun teamSignals(): Tip? {
-            val holidays = Workdays.holidaysFor(today, settings.holidayCountryCode, settings.extraHolidays)
+            val holidays = Workdays.holidaysFor(today, snapshot)
             val flagged = teamTasks.count { TeamSignals.of(it, snapshot.teamEvents, today, tz, settings, holidays).isNotEmpty() }
             return if (flagged >= 3) Tip(TipId.TEAM_SIGNALS, count = flagged) else null
         }

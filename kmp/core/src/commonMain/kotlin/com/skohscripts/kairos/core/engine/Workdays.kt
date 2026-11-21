@@ -1,5 +1,7 @@
 package com.skohscripts.kairos.core.engine
 
+import com.skohscripts.kairos.core.model.BlockSource
+import com.skohscripts.kairos.core.model.KairosSnapshot
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.isoDayNumber
@@ -95,5 +97,38 @@ object Workdays {
     fun holidaysFor(today: LocalDate, country: String?, extra: String): Set<LocalDate> {
         if (country == null && extra.split(',').none { it.isNotBlank() }) return emptySet()
         return buildHolidays((today.year - 1)..(today.year + 2), country, extra)
+    }
+
+    /**
+     * Tous les fériés de [snapshot] autour de [today] (docs/spec/jours-feries.md) : ceux des réglages ([holidaysFor]), plus les
+     * journées entières des calendriers importés comptés comme fériés (voie B), de l'année de [today] − 1 à + 2. Les appelants
+     * qui ont l'instantané passent par ici.
+     */
+    fun holidaysFor(today: LocalDate, snapshot: KairosSnapshot): Set<LocalDate> =
+        buildHolidays((today.year - 1)..(today.year + 2), snapshot)
+
+    /** [buildHolidays] des réglages de [snapshot], plus ses journées entières comptées comme fériés, sur [years]. */
+    fun buildHolidays(years: IntRange, snapshot: KairosSnapshot): Set<LocalDate> {
+        val settings = snapshot.settings
+        val base = if (settings.holidayCountryCode == null && settings.extraHolidays.split(',').none { it.isNotBlank() }) {
+            emptySet()
+        } else {
+            buildHolidays(years, settings.holidayCountryCode, settings.extraHolidays)
+        }
+        val calendars = snapshot.calendarSources.filter { it.countsAsHolidays }.mapTo(HashSet()) { it.id }
+        if (calendars.isEmpty()) return base
+        val first = LocalDate(years.first, 1, 1)
+        val last = LocalDate(years.last, 12, 31)
+        val out = HashSet(base)
+        for (mark in snapshot.dayMarks) {
+            if ((mark.source as? BlockSource.Imported)?.calendarId !in calendars) continue
+            var day = maxOf(mark.start, first)
+            val end = minOf(mark.end, last)
+            while (day <= end) {
+                out += day
+                day = day.plus(DatePeriod(days = 1))
+            }
+        }
+        return out
     }
 }

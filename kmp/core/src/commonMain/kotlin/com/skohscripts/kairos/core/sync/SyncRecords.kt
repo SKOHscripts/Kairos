@@ -137,7 +137,11 @@ object SyncRecords {
     )
 
     fun lift(c: CalendarSource) = Lifted(
-        linkedMapOf("name" to str(c.name), "hideTitles" to c.hideTitles.toString(), "importedAt" to str(c.importedAt.toString())),
+        // `holidays` toujours écrit (jours-feries.md § Voie B) : absent, un retour à `false` ne gagnerait jamais contre un autre appareil.
+        linkedMapOf(
+            "name" to str(c.name), "hideTitles" to c.hideTitles.toString(), "importedAt" to str(c.importedAt.toString()),
+            "holidays" to c.countsAsHolidays.toString(),
+        ),
         c.createdAt,
     )
 
@@ -260,6 +264,7 @@ object SyncRecords {
             hideTitles = f.bool("hideTitles"),
             importedAt = f.string("importedAt")?.let(Instant::parse) ?: l.createdAt,
             createdAt = l.createdAt,
+            countsAsHolidays = f.bool("holidays"),
         )
     }
 

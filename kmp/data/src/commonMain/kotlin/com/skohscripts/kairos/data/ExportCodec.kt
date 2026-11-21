@@ -521,7 +521,7 @@ private data class BlockJson(
     }
 }
 
-/** Calendrier importé (3.10.0) : `hideTitles` n'est écrit que s'il est vrai. */
+/** Calendrier importé (3.10.0) : `hideTitles` et `countsAsHolidays` (4.4.0) ne sont écrits que s'ils sont vrais. */
 @Serializable
 private data class CalendarSourceJson(
     val id: Long, val name: String, val hideTitles: Boolean? = null, val importedAt: String, val createdAt: String,
@@ -530,11 +530,15 @@ private data class CalendarSourceJson(
     val born: String? = null,
     val base: String? = null,
     val stamps: Map<String, String>? = null,
+    val countsAsHolidays: Boolean? = null,
 ) {
-    fun toModel() = CalendarSource(id, name, hideTitles == true, Instant.parse(importedAt), Instant.parse(createdAt))
+    fun toModel() = CalendarSource(id, name, hideTitles == true, Instant.parse(importedAt), Instant.parse(createdAt), countsAsHolidays == true)
 
     companion object {
-        fun from(c: CalendarSource) = CalendarSourceJson(c.id, c.name, if (c.hideTitles) true else null, c.importedAt.toString(), c.createdAt.toString())
+        fun from(c: CalendarSource) = CalendarSourceJson(
+            c.id, c.name, if (c.hideTitles) true else null, c.importedAt.toString(), c.createdAt.toString(),
+            countsAsHolidays = if (c.countsAsHolidays) true else null,
+        )
     }
 }
 

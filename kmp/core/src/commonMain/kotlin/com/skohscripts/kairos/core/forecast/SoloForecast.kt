@@ -210,7 +210,7 @@ object SoloForecast {
         val blockersOf = Array(n) { i -> edges.filter { it.blocked == queue[i].id }.map { index.getValue(it.blocker) }.toIntArray() }
         val deadline = IntArray(n) { queue[it].deadline?.let { d -> day.daysUntil(d) } ?: Int.MIN_VALUE }
 
-        val holidays = Workdays.holidaysFor(day, settings.holidayCountryCode, settings.extraHolidays)
+        val holidays = Workdays.holidaysFor(day, view)
         val weekday = Workdays.weekday(day)
         // Un jour férié à venir se tire parmi les dimanches : c'est ce que l'historique sait d'un jour non travaillé.
         val pool = IntArray(HORIZON_DAYS + 1) { d -> if (day.plus(DatePeriod(days = d)) in holidays) 6 else (weekday + d) % 7 }

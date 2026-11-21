@@ -159,6 +159,7 @@ internal fun CalendarSourceRow.toModel() = CalendarSource(
     hideTitles = hide_titles != 0L,
     importedAt = imported_at.instant(),
     createdAt = created_at.instant(),
+    countsAsHolidays = counts_as_holidays != 0L,
 )
 
 internal fun ConnectionRow.toModel() = CalendarConnection(

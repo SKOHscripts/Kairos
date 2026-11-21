@@ -122,7 +122,7 @@ object AssignmentSuggestion {
         val cal = calibration ?: Effort.teamCalibration(snapshot, now)
         val fraction = Capacity.todayFraction(local, settings)
         val horizonEnd = Capacity.horizonEnd(day, weeks)
-        val holidays = Workdays.holidaysFor(day, settings.holidayCountryCode, settings.extraHolidays)
+        val holidays = Workdays.holidaysFor(day, snapshot)
 
         val active = TeamMembers.active(snapshot.members)
         val activeIds = active.mapTo(HashSet()) { it.id }
