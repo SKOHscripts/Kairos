@@ -103,8 +103,9 @@ propose ce qui aide, comme un créneau de deep work dédié. Pendant la journée
 
 ### Interface (`ui/day/DayBriefCard.kt`)
 
-- Carte pleine en `secondaryContainer` / `onSecondaryContainer` (formes MD3 des grands blocs, sans ombre) en tête de la vue Jour
-  (au-dessus de la capture), **le jour même seulement** (un autre jour ouvert depuis la semaine n'en a pas), icône `Today`, titre
+- Carte pleine en `secondaryContainer` / `onSecondaryContainer` (formes MD3 des grands blocs, sans ombre) en tête de la vue Jour :
+  sur une colonne (moins de 900 dp), au-dessus de la capture ; sur deux colonnes, en tête de la colonne de droite, au-dessus
+  d'« En ce moment » et de la frise ; **le jour même seulement** (un autre jour ouvert depuis la semaine n'en a pas), icône `Today`, titre
   (`day_brief_title_day` / `_rest`), lignes de texte, verdict en gras, action en bouton texte ; repliée, le verdict seul et un
   chevron. Pli : réglage local `Settings.dayBriefFolded` (`true` replié, nul déplié ; `SyncScope.LOCAL_SETTINGS`, comme
   `subtaskChain`), écrit par `KairosRepository.setDayBriefFolded`, hors du formulaire des Réglages.
@@ -137,6 +138,9 @@ Le récapitulatif du jour porte `DailySummary.brief` (`DayBrief` à l'heure du r
 
 - **Le jour même seulement** (implémentation, 2026-11-21) : la carte parle de « ta journée » ; un autre jour ouvert depuis la
   semaine garde sa vue sans elle.
+- **Colonne de droite sur grand écran** (implémentation, 2026-11-21) : la vue d'ensemble y rejoint « En ce moment » et la frise,
+  et la liste de gauche (capture, « Maintenant », tâches) garde sa place ; en tête de la liste, elle repoussait les tâches sous le
+  bord d'une fenêtre de bureau.
 - **Le nombre de créneaux reste dans la notification** (implémentation) : il disait déjà la journée, l'estimation et les échéances
   s'y ajoutent.
 

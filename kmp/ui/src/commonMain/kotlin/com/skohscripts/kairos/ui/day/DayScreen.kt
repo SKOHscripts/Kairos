@@ -476,6 +476,14 @@ fun DayScreen(
         contentAlignment = Alignment.TopCenter,
     ) {
         val twoColumns = maxWidth >= TWO_COLUMNS
+        val briefCard: @Composable () -> Unit = {
+            DayBriefCard(
+                brief, language, folded = snapshot.settings.dayBriefFolded == true,
+                onFold = { folded -> scope.launch { repository.setDayBriefFolded(folded) } },
+                onReserve = reserveDeepWork,
+                onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
+            )
+        }
         val mainWidth = if (twoColumns) minOf(maxWidth - 340.dp, 840.dp) else minOf(maxWidth, 840.dp)
         val ctx = RowContext(
             forecast = forecast,
@@ -537,17 +545,9 @@ fun DayScreen(
                         )
                     }
                 }
-                // « Ta journée » (docs/spec/ta-journee.md, issue #274) : en tête, au-dessus de la capture, le jour même seulement.
-                if (day == today) {
-                    block("brief") {
-                        DayBriefCard(
-                            brief, language, folded = snapshot.settings.dayBriefFolded == true,
-                            onFold = { folded -> scope.launch { repository.setDayBriefFolded(folded) } },
-                            onReserve = reserveDeepWork,
-                            onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
-                        )
-                    }
-                }
+                // « Ta journée » (docs/spec/ta-journee.md, issue #274) : sur une colonne, en tête, au-dessus de la capture ; sur deux,
+                // en tête de la colonne de droite. Le jour même seulement.
+                if (day == today && !twoColumns) block("brief") { briefCard() }
                 block("capture") {
                     Capture(
                         capture, day, view.editableBlocks, language, showShortcuts,
@@ -706,6 +706,7 @@ fun DayScreen(
                     Modifier.width(320.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = KairosSpacing.l),
                     verticalArrangement = Arrangement.spacedBy(KairosSpacing.m),
                 ) {
+                    if (day == today) briefCard()
                     RunningCard(view, services.clock, onStop = { scope.launch { repository.stopTimer() } }, history = history, settings = snapshot.settings)
                     TimelineCard(view, language)
                 }

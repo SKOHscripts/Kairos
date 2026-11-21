@@ -35,8 +35,9 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
 ### Comportement attendu (utilisateur), de haut en bas
 
 1. **Bandeau de stockage** (version web seulement, `export-import.md`).
-   **Ta journée** (4.5.0, `ta-journee.md`) : le jour même, juste au-dessus de la capture, la carte en conteneur secondaire
-   qui présente la journée puis le reste de la journée, avec les bilans du jour ; repliable, jamais masquée.
+   **Ta journée** (4.5.0, `ta-journee.md`) : le jour même, juste au-dessus de la capture sur une colonne (en tête de la colonne
+   de droite sur deux), la carte en conteneur secondaire qui présente la journée puis le reste de la journée, avec les bilans du
+   jour ; repliable, jamais masquée.
 2. **Capture**, toujours visible, deux volets : « Tâche » (titre seul ;
    Entrée ajoute, le champ se vide et garde le curseur) et « Créneau / deep
    work » (titre, jour, début, fin, case deep work, récurrence ; puis la
