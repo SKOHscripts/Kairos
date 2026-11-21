@@ -84,7 +84,9 @@ CREATE TABLE calendar_source (
     name TEXT NOT NULL,
     hide_titles INTEGER NOT NULL DEFAULT 0,
     imported_at TEXT NOT NULL,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    -- Journées entières comptées comme fériés (4.4.0, 14.sqm, docs/spec/jours-feries.md § Voie B).
+    counts_as_holidays INTEGER NOT NULL DEFAULT 0
 );
 
 -- Device-local connections. Same definition as 13.sqm; no cascading foreign key during source replacement.
@@ -364,7 +366,7 @@ allCalendarSources:
 SELECT * FROM calendar_source ORDER BY id;
 
 insertCalendarSourceWithId:
-INSERT INTO calendar_source VALUES (?, ?, ?, ?, ?);
+INSERT INTO calendar_source VALUES (?, ?, ?, ?, ?, ?);
 
 insertCalendarSource:
 INSERT INTO calendar_source (name, hide_titles, imported_at, created_at) VALUES (?, ?, ?, ?);
@@ -374,6 +376,9 @@ SELECT max(id) FROM calendar_source;
 
 updateCalendarSource:
 UPDATE calendar_source SET hide_titles = ?, imported_at = ? WHERE id = ?;
+
+updateCalendarHolidays:
+UPDATE calendar_source SET counts_as_holidays = ? WHERE id = ?;
 
 deleteCalendarSource:
 DELETE FROM calendar_source WHERE id = ?;
