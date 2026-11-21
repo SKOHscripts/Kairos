@@ -1,6 +1,10 @@
 package com.skohscripts.kairos.core.forecast
 
 import com.skohscripts.kairos.core.model.KairosSnapshot
+import com.skohscripts.kairos.core.model.BlockRecurrence
+import com.skohscripts.kairos.core.model.BlockKind
+import com.skohscripts.kairos.core.model.TimeBlock
+import com.skohscripts.kairos.core.model.Interruption
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskDependency
 import com.skohscripts.kairos.core.model.TaskSpace
@@ -206,5 +210,36 @@ class SoloForecastTest {
         val EXPECTED: List<List<Int>> = listOf(
             listOf(0, 1, 157), listOf(0, 1, 157), listOf(1, 2, 0), listOf(1, 2, 0), listOf(2, 3, 0), listOf(2, 3, 0), listOf(3, 4, 0), listOf(4, 8, 0),
         )
+    }
+
+    /** Une demi-heure de dérangements chaque jour ouvré de l'historique, juste après la séance (le chrono était en pause). */
+    private fun interruptions(): List<Interruption> = (0 until 8).flatMap { week ->
+        (0 until 5).map { weekday ->
+            val at = monday.plus(DatePeriod(days = -56 + 7 * week + weekday)).atTime(11, 30).toInstant(zone)
+            Interruption(1L + week * 5 + weekday, at, 30, createdAt = at)
+        }
+    }
+
+    @Test
+    fun pausedInterruptionsAreNotCountedTwice() {
+        // Brut 150 min, part dérangée 0,2 : net 120, exactement le temps chronométré. La file finit les mêmes jours.
+        val plain = snapshot((1L..12L).map { open(it) })
+        val withInterruptions = plain.copy(interruptions = interruptions())
+        val a = assertNotNull(run(plain))
+        val b = assertNotNull(run(withInterruptions))
+        assertTrue(SoloForecast.capacity(withInterruptions, monday, now, zone).interrupted)
+        for (id in 1L..12L) assertEquals(a.outlooks.getValue(id).p50, b.outlooks.getValue(id).p50, "tâche $id")
+    }
+
+    @Test
+    fun aDeepWorkSlotBringsTheFinishForward() {
+        // Une heure de deep work chaque jour ouvré : 150 − (150 − 60) × 0,2 = 132 min par jour au lieu de 120.
+        val base = snapshot((1L..12L).map { open(it) }).copy(interruptions = interruptions())
+        val deep = TimeBlock(500, "Deep work", monday.atTime(9, 0), monday.atTime(10, 0), BlockKind.DEEPWORK, BlockRecurrence.WEEKDAYS, createdAt = now)
+        val without = assertNotNull(run(base)).outlooks.getValue(11L).p50!!
+        val with = assertNotNull(run(base.copy(timeBlocks = listOf(deep)))).outlooks.getValue(11L).p50!!
+        // 660 min de file : lundi suivant sans deep work, vendredi avec.
+        assertEquals(day(7), without)
+        assertEquals(day(4), with)
     }
 }

@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.core.forecast
 
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.atTime
+import com.skohscripts.kairos.core.stats.InterruptionStats
+import com.skohscripts.kairos.core.engine.ExpectedInterruptions
 import com.skohscripts.kairos.core.engine.Dependencies
 import com.skohscripts.kairos.core.engine.DurationEstimator
 import com.skohscripts.kairos.core.engine.Scheduling
@@ -57,7 +61,20 @@ object SoloForecast {
      * [day] ([byWeekday] : huit valeurs par jour de la semaine, lundi = 0, zéros compris ; [weeks] : les huit totaux
      * hebdomadaires, du plus ancien au plus récent).
      */
-    class Capacity(val byWeekday: List<IntArray>, val weeks: IntArray) {
+    class Capacity(
+        val byWeekday: List<IntArray>,
+        val weeks: IntArray,
+        /**
+         * Dérangements (docs/spec/derangements.md § Dérangements attendus) : pour chaque jour de la semaine, les huit parts de temps
+         * dérangé (dérangements ÷ (brut − deep work du jour), 0 un jour sans) ; toutes nulles sous le seuil d'historique, et
+         * [byWeekday] est alors le temps chronométré seul, comme avant. Au-dessus, [byWeekday] est **brut** (chronométré +
+         * dérangements) : le chrono mis en pause en a déjà retiré les dérangements.
+         */
+        val shares: List<DoubleArray> = List(7) { DoubleArray(HISTORY_WEEKS) },
+    ) {
+        /** Au moins une part de dérangement non nulle : les tirages en tiennent compte. */
+        val interrupted: Boolean get() = shares.any { day -> day.any { it > 0.0 } }
+
         val activeWeeks: Int get() = weeks.count { it > 0 }
         val available: Boolean get() = activeWeeks >= MIN_ACTIVE_WEEKS
 
@@ -108,7 +125,39 @@ object SoloForecast {
             byWeekday[offset % 7][offset / 7] += minutes
             weeks[offset / 7] += minutes
         }
-        return Capacity(byWeekday, weeks)
+        // Dérangements (docs/spec/derangements.md) : sous le seuil d'historique, rien ne change.
+        if (ExpectedInterruptions.learn(snapshot, day, timeZone).none) return Capacity(byWeekday, weeks)
+        val last = monday.minus(DatePeriod(days = 1))
+        val lost = IntArray(7 * HISTORY_WEEKS)
+        for (i in InterruptionStats.inRange(snapshot.interruptions, first, last, timeZone)) {
+            lost[first.daysUntil(i.at.toLocalDateTime(timeZone).date)] += i.minutes
+        }
+        val deep = deepWorkByDay(snapshot, first, last)
+        val shares = List(7) { DoubleArray(HISTORY_WEEKS) }
+        for (offset in 0 until 7 * HISTORY_WEEKS) {
+            if (lost[offset] == 0) continue
+            byWeekday[offset % 7][offset / 7] += lost[offset]
+            weeks[offset / 7] += lost[offset]
+            val exposed = byWeekday[offset % 7][offset / 7] - (deep[first.plus(DatePeriod(days = offset))] ?: 0)
+            if (exposed > 0) shares[offset % 7][offset / 7] = minOf(1.0, lost[offset].toDouble() / exposed)
+        }
+        return Capacity(byWeekday, weeks, shares)
+    }
+
+    /** Minutes de deep work par jour de `[start ; end]` (occurrences comprises), un créneau sur deux jours compté à chacun. */
+    private fun deepWorkByDay(snapshot: KairosSnapshot, start: LocalDate, end: LocalDate): Map<LocalDate, Int> {
+        val out = HashMap<LocalDate, Int>()
+        for ((from, to) in InterruptionStats.deepWork(snapshot, start, end)) {
+            var d = from.date
+            while (d <= to.date) {
+                val a = maxOf(from, d.atTime(0, 0))
+                val b = minOf(to, d.plus(DatePeriod(days = 1)).atTime(0, 0))
+                val minutes = (b.toInstant(TimeZone.UTC) - a.toInstant(TimeZone.UTC)).inWholeMinutes.toInt()
+                if (minutes > 0) out[d] = (out[d] ?: 0) + minutes
+                d = d.plus(DatePeriod(days = 1))
+            }
+        }
+        return out
     }
 
     /**
@@ -215,6 +264,9 @@ object SoloForecast {
         // Un jour férié à venir se tire parmi les dimanches : c'est ce que l'historique sait d'un jour non travaillé.
         val pool = IntArray(HORIZON_DAYS + 1) { d -> if (day.plus(DatePeriod(days = d)) in holidays) 6 else (weekday + d) % 7 }
         val dayNumber = day.toEpochDays().toLong()
+        // Deep work prévu de chaque jour simulé : jamais dérangé (hypothèse du propriétaire, docs/spec/derangements.md).
+        val deepPlanned = if (capacity.interrupted) deepWorkByDay(view, day, day.plus(DatePeriod(days = HORIZON_DAYS))) else emptyMap()
+        val deepByOffset = IntArray(HORIZON_DAYS + 1) { d -> deepPlanned[day.plus(DatePeriod(days = d))] ?: 0 }
         val doneToday = TimeTracking.withoutOverlaps(
             TimeTracking.sessionsOnDay(view.workSessions, day, timeZone).filter { s -> view.tasks.any { it.id == s.taskId && it.space == TaskSpace.PERSONAL } }, now,
         ).sumOf { TimeTracking.sessionMinutes(it, now) }
@@ -241,6 +293,12 @@ object SoloForecast {
             while (remaining > 0 && d <= HORIZON_DAYS) {
                 val history = capacity.byWeekday[pool[d]]
                 var minutes = history[ForecastRandom.stream(draw, ForecastRandom.DOMAIN_CAPACITY, 0L, dayNumber + d).nextInt(history.size)].toDouble()
+                if (capacity.interrupted) {
+                    // Brut → net : la part dérangée d'un jour semblable, sur le temps hors deep work prévu.
+                    val shares = capacity.shares[pool[d]]
+                    val share = shares[ForecastRandom.stream(draw, ForecastRandom.DOMAIN_INTERRUPTION, 0L, dayNumber + d).nextInt(shares.size)]
+                    minutes = maxOf(0.0, minutes - maxOf(0.0, minutes - deepByOffset[d]) * share)
+                }
                 if (d == 0) minutes = maxOf(0.0, minutes - doneToday)
                 var i = 0
                 while (minutes > 0.0 && i < n) {

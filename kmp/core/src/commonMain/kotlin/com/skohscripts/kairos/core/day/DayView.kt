@@ -4,6 +4,7 @@ import com.skohscripts.kairos.core.forecast.Survival
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.engine.Dependencies
 import com.skohscripts.kairos.core.engine.DurationEstimator
+import com.skohscripts.kairos.core.engine.ExpectedInterruptions
 import com.skohscripts.kairos.core.engine.Recurrence
 import com.skohscripts.kairos.core.engine.Schedule
 import com.skohscripts.kairos.core.engine.Scheduling
@@ -237,7 +238,9 @@ data class DayView(
             } else {
                 null
             }
-            val schedule = Scheduling.buildDaySchedule(all, dayBlocks, day, now, settings, blockedIds, effective, DurationEstimator.appliedMinutes(learned), affinity)
+            // Dérangements attendus (docs/spec/derangements.md) : rien sans historique suffisant, le placement est alors celui d'avant.
+            val expected = ExpectedInterruptions.learn(snapshot, day, timeZone)
+            val schedule = Scheduling.buildDaySchedule(all, dayBlocks, day, now, settings, blockedIds, effective, DurationEstimator.appliedMinutes(learned), affinity, expected)
             val timeline = Scheduling.buildTimeline(schedule, dayBlocks, day, settings)
 
             // Lignée complète (« A › C » pour D, docs/spec/sous-taches.md) : la mère directe seule perdait le lien vers A.
