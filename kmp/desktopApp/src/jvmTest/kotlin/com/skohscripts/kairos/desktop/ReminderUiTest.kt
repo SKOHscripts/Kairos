@@ -92,7 +92,8 @@ class ReminderUiTest {
     @Test
     fun theDailySummaryArrivesOnceAtItsTimeEvenWithRemindersOff() = runComposeUiTest {
         val services = services(ReminderSettings(dailySummary = true, dailySummaryTime = "13:50"))
-        val summary = "Your day · 1 task"
+        // Depuis « Ta journée » (docs/spec/ta-journee.md § Notification) : l’estimation suit le nombre de tâches.
+        val summary = "Your day · 1 task · ~30 min"
         setContent { KairosApp(Platform.DESKTOP, Destination.DAY, TeamDestination.BOARD) { services } }
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Call Marc", substring = true).fetchSemanticsNodes().isNotEmpty() }
         mainClock.advanceTimeBy(1_500)
