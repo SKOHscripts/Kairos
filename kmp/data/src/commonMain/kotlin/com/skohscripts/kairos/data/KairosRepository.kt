@@ -10,6 +10,7 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import com.skohscripts.kairos.core.KairosBuild
 import com.skohscripts.kairos.core.engine.Dependencies
 import com.skohscripts.kairos.core.engine.Recurrence
+import com.skohscripts.kairos.core.engine.SpentReview
 import com.skohscripts.kairos.core.engine.Workdays
 import com.skohscripts.kairos.core.model.BlockException
 import com.skohscripts.kairos.core.calendar.CalendarPlan
@@ -544,6 +545,19 @@ class KairosRepository(
             val end = ends[s.id] ?: continue
             if (s.taskId == task.id && s.endedAt != null) queries.setSessionEnd(minOf(maxOf(end, s.startedAt), now).store(), s.id)
         }
+    }
+
+    /**
+     * Temps passé d'un toucher (docs/spec/durees-reelles.md, issue #271) : pose le temps saisi à la main [minutes] d'une tâche
+     * perso, reçue d'un manager comprise (son temps lui est rapporté) (`null` la rend sans temps, 0 = ignorée par la revue). `updatedAt` n'est **pas** touché : le jour où la
+     * tâche compte comme faite (Bilan) ne bouge pas quand on saisit son temps plus tard.
+     */
+    suspend fun setSpent(taskId: Long, minutes: Int?) {
+        val task = find(taskId) ?: return
+        if (task.space != TaskSpace.PERSONAL) return
+        val value = minutes?.coerceIn(0, SpentReview.MAX_MINUTES)
+        if (value == task.manualTimeSpentMinutes) return
+        write { updateRow(task.copy(manualTimeSpentMinutes = value), touch = false) }
     }
 
     /**
