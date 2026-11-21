@@ -5,11 +5,14 @@ _Rôle : signaler en un geste qu'on vient d'être dérangé, environ combien de 
 temps des tâches reste leur vrai temps. Fichiers couverts (prévus) : `core/model/Interruption.kt`, `core/engine/Interruptions.kt`
 (découpe de la séance, pur), `core/stats/InterruptionStats.kt`, `data` (table `interruption`, migration, `ExportCodec`,
 `SyncRecords`), `ui/day/NowCard.kt` et `ui/day/InterruptionSheet.kt`, `ui/day/DayScreen.kt` (touche `D`),
-`ui/stats/InterruptionCards.kt`, `ui/recap/RecapCard.kt`, `FeatureCatalog`. Tests (prévus) : `InterruptionsTest`,
-`InterruptionStatsTest`, `InterruptionMigrationTest`, `InterruptionSyncTest`, `InterruptionUiTest`, `TeamIsolationTest`._
+`ui/stats/InterruptionCards.kt`, `ui/recap/RecapCard.kt`, `FeatureCatalog` ; dérangements attendus :
+`core/engine/ExpectedInterruptions.kt` (pur), `Scheduling.buildDaySchedule`, `DayView`, `core/forecast/SoloForecast.kt`. Tests
+(prévus) : `InterruptionsTest`, `InterruptionStatsTest`, `InterruptionMigrationTest`, `InterruptionSyncTest`, `InterruptionUiTest`,
+`TeamIsolationTest`, `ExpectedInterruptionsTest`, `SchedulingInterruptionsTest`, `SoloForecastTest` (étendu)._
 
 État : issue [#272](https://github.com/SKOHscripts/Kairos/issues/272), liée à [#271](https://github.com/SKOHscripts/Kairos/issues/271)
-(plus de durées réelles). **Spécifiée le 2026-11-21, non implémentée** ; conception décidée par le propriétaire le même jour.
+(plus de durées réelles) et à [#274](https://github.com/SKOHscripts/Kairos/issues/274) (carte « Ta journée », `ta-journee.md`),
+jalon 4.6.0. **Spécifiée le 2026-11-21, non implémentée** ; conception décidée par le propriétaire le même jour.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -65,6 +68,20 @@ Le **Bilan** de la semaine et du mois (`bilan.md`) ajoute une ligne, seulement s
 modifie (durée, source) ou se supprime. Modifier ou supprimer **ne retouche pas** les séances déjà découpées : seul l'« Annuler »
 immédiat les rend (le chrono a pu tourner depuis).
 
+**Dérangements attendus : un temps disponible réaliste** (demande du propriétaire du 2026-11-21). Les dérangements passés disent
+ce que les heures à venir vont probablement perdre ; Kairos en tient compte partout où il annonce du temps :
+
+- **Le temps disponible** du jour (« requis … · disponible … », « la journée déborde de … », carte « Ta journée ») retranche
+  les dérangements attendus et dit leur part : « disponible 5 h 40, dont ~45 min de dérangements habituels ».
+- **La frise du jour** : hors deep work, chaque tâche s'allonge du taux de dérangement de ses heures ; les tâches suivantes
+  glissent d'autant.
+- **La prévision par tâche** (Monte Carlo, fourchettes P50 / P85, `previsions-taches.md`) tire les dérangements de chaque jour
+  simulé, hors créneaux de deep work.
+- **Les créneaux de deep work ne sont pas dérangés** (hypothèse du propriétaire) : aucun dérangement n'y est attendu. Les Stats
+  comptent tout de même les créneaux deep work dérangés, ce qui vérifie l'hypothèse.
+- **Tant que l'historique ne suffit pas** (moins de 10 dérangements ou de 5 jours actifs sur les 8 dernières semaines), rien ne
+  change et rien n'est affiché.
+
 ### Critères de succès
 
 - Un geste suffit : bouton (ou `D`), puis une durée (`InterruptionUiTest`).
@@ -76,6 +93,11 @@ immédiat les rend (le chrono a pu tourner depuis).
 - Une base d'avant gagne une table vide ; un export d'avant se lit ; le fichier lié transporte les dérangements
   (`InterruptionMigrationTest`, `InterruptionSyncTest`).
 - Aucun dérangement dans l'espace Équipe ni dans ses échanges (`TeamIsolationTest`).
+- Dérangements attendus : taux par heure figé sur un historique construit, zéro en deep work et sous le seuil d'historique
+  (`ExpectedInterruptionsTest`) ; disponible diminué, frise allongée hors deep work, et **inchangée sans dérangement** (les
+  480 scénarios des fichiers d'or restent verts, `SchedulingInterruptionsTest`, `DifferentialTest`) ; prévision : un créneau de
+  deep work avance le P50 d'une tâche, aucune double comptabilisation sur un historique où le chrono était en pause
+  (`SoloForecastTest`).
 
 ### Hors périmètre / différé
 
@@ -86,6 +108,8 @@ immédiat les rend (le chrono a pu tourner depuis).
 - **Espace Équipe** : aucun partage, aucune statistique d'équipe des dérangements.
 - **Effet sur les durées apprises** autre que la pause du chrono : le modèle ne lit pas les dérangements.
 - **Conseil au bon moment** (« Tu es souvent dérangé le mardi matin : protège un créneau ? ») : piste après les premières données.
+- **Dérangements attendus dans l'espace Équipe** (capacité des membres, prévisions d'équipe) : les dérangements sont personnels
+  et les autres membres n'en signalent pas.
 
 ## 2. Solution technique
 
@@ -114,6 +138,26 @@ par heure de `at − minutes / 2` (milieu) et par jour ISO ; sources (`null` = �
 jour qui a au moins un dérangement, le plus long intervalle de sa journée de travail (`Settings`, horaires du jour) non couvert,
 puis la médiane ; deep work : créneaux `DEEPWORK` de la période (occurrences comprises, `Recurrence`) qui chevauchent un
 dérangement. Filtres de la période : ceux des Stats qui ont un sens ici (période, et la tâche liée pour le type et le projet).
+
+### Dérangements attendus (`core/engine/ExpectedInterruptions.kt`, pur)
+
+- **Taux par heure** `rate(h)`, `h` de 0 à 23, part de temps perdue (0 à 1) : sur les 8 semaines complètes avant la semaine
+  courante (comme `SoloForecast.HISTORY_WEEKS`), jours actifs (une séance ou un dérangement), `rate(h) = minutes de dérangement
+  tombant dans l'heure h ÷ minutes d'exposition de l'heure h`, l'exposition étant la part de l'heure dans la journée de travail du
+  jour (horaires des réglages) **hors créneaux deep work**. Plafond 0,5. Moins de `MIN_EVENTS` = 10 dérangements ou de
+  `MIN_DAYS` = 5 jours actifs : `rate` vaut 0 partout (`ExpectedInterruptions.NONE`).
+- **Attendu sur une plage** `expected(début, fin, créneaux deep work)` = Σ des minutes de la plage hors deep work × `rate(h)` ;
+  le « disponible » de la vue Jour et de la carte « Ta journée » en retranche celui des plages libres restantes du jour.
+- **Frise** (`Scheduling.buildDaySchedule`, paramètre `rates`, nul par défaut) : une tâche placée hors deep work à partir de `t`
+  occupe la durée `d'` telle que `∫[t ; t + d'] (1 − rate(h)) = d` (minute par minute, arrondie à la minute) ; dans un créneau
+  deep work, `d' = d`. Avec `rates` nul ou tout à zéro, le placement est exactement celui d'avant (fichiers d'or).
+- **Prévision par tâche** (`SoloForecast`) : la capacité vécue devient **brute** (minutes chronométrées + minutes des
+  dérangements du jour) : le chrono mis en pause en exclut déjà les dérangements, les retrancher encore les compterait deux fois.
+  Chaque tirage d'un jour tire aussi une part de dérangement parmi les 8 valeurs du même jour de la semaine (dérangements ÷
+  (brut − deep work du jour), zéro un jour sans), puis `net = brut − (brut − deep work prévu ce jour) × part`, plancher 0. Le
+  deep work prévu d'un jour vient des créneaux `DEEPWORK` (occurrences comprises) ; nouveau sous-générateur `ForecastRandom.stream`
+  de domaine « dérangement », par jour absolu : tirages communs entre deux calculs de même graine. Sous le seuil d'historique,
+  `part` vaut 0 et le calcul est celui d'avant.
 
 ### Stockage, export, synchronisation (`data`, `core/sync`)
 
@@ -148,12 +192,22 @@ dérangement. Filtres de la période : ceux des Stats qui ont un sens ici (péri
 - **Endroits** (2026-11-21, propriétaire) : carte « Maintenant », touche `D`, note à la reprise ; widget et notification
   Android différés.
 - **Corriger ne retouche pas les séances** : après coup, le chrono a pu tourner ; seul l'« Annuler » immédiat restaure.
+- **Deep work non dérangé** (2026-11-21, propriétaire) : hypothèse de calcul, vérifiée par la statistique des créneaux deep work
+  dérangés ; écarté un taux propre au deep work (trop peu de données pour l'apprendre).
+- **Taux par heure de la journée, sur 8 semaines** : les dérangements dépendent surtout du moment (matin, après le déjeuner) ;
+  écartés un taux unique (trop grossier) et un taux par jour et par heure (168 cases, trop peu de données).
+- **Capacité brute dans la prévision** : sans elle, le chrono mis en pause retirerait déjà les dérangements de l'historique, et
+  les tirer en plus les compterait deux fois ; avec elle, un créneau de deep work prévu se voit dans les fourchettes.
+- **Frise allongée plutôt que des blocs « dérangement » posés** : on ne sait pas quand ils viendront ; allonger chaque tâche
+  garde la fin de journée juste sans inventer d'horaire.
 - **Part du temps de travail mesurée** (chrono + dérangements) plutôt que la journée théorique : on ne prête pas un temps de
   travail qu'on n'a pas mesuré.
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 
 - `temps-reel-chrono.md` : découpe d'une séance par un dérangement.
+- `ordonnancement.md` : paramètre `rates` de `buildDaySchedule` (frise allongée).
+- `previsions-taches.md` : capacité brute et tirage des dérangements hors deep work.
 - `vue-jour.md` : action « Dérangé » de la carte « Maintenant », touche `D`.
 - `statistiques.md` : carte « Dérangements » et liste ; `bilan.md` : ligne du Bilan.
 - `notes-capture.md` : note créée depuis un dérangement.
