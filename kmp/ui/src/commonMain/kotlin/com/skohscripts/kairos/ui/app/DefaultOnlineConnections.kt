@@ -27,6 +27,7 @@ class DefaultOnlineConnections(
     private val secrets: SecretStore,
     scope: CoroutineScope,
     private val now: () -> Instant = { Clock.System.now() },
+    override val browser: Boolean = false,
 ) : OnlineConnections {
     private val gate = OnlineGate(http, repository)
     private val caldav = CalDavClient(gate)

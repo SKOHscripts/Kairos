@@ -221,6 +221,48 @@
       }
     },
 
+    // --- Lien ICS (docs/spec/connexions-en-ligne.md § Web) --------------------
+    // GET sans aucun en-tête ajouté (requête CORS simple, sans requête préliminaire), sans cookie ni référent ; redirections suivies
+    // par le navigateur. Corps lu en flux et coupé au-delà de `maxBytes`. Ne lève jamais : rend { kind, status, text, message }, kind
+    // valant "ok", "network" (dont un serveur sans Access-Control-Allow-Origin, que le navigateur ne distingue pas), "timeout",
+    // "toobig" ou "invalid" (adresse refusée par le navigateur).
+    async fetchText(url, timeoutMillis, maxBytes) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMillis);
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+          credentials: "omit",
+          cache: "no-store",
+          referrerPolicy: "no-referrer",
+          redirect: "follow",
+          signal: controller.signal,
+        });
+        const reader = response.body ? response.body.getReader() : null;
+        const decoder = new TextDecoder("utf-8");
+        let size = 0;
+        let text = "";
+        while (reader) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          size += value.byteLength;
+          if (size > maxBytes) {
+            controller.abort();
+            return { kind: "toobig", status: response.status, text: "", message: "" };
+          }
+          text += decoder.decode(value, { stream: true });
+        }
+        text += decoder.decode();
+        return { kind: "ok", status: response.status, text: text, message: "" };
+      } catch (e) {
+        const name = e && e.name ? e.name : "Error";
+        const kind = name === "AbortError" ? "timeout" : name === "SyntaxError" ? "invalid" : "network";
+        return { kind: kind, status: 0, text: "", message: name + ": " + (e && e.message ? e.message : "") };
+      } finally {
+        clearTimeout(timer);
+      }
+    },
+
     // --- Chrono (docs/spec/temps-reel-chrono.md § Web) ---------------------
     // État des notifications : "granted", "denied", "default", ou "unavailable"
     // (API absente ou page hors contexte sécurisé).

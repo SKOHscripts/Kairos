@@ -43,5 +43,11 @@ class HttpTooBigException : Exception("body exceeds $MAX_BODY_BYTES bytes")
  * Seule `OnlineGate` l'appelle pour un calendrier (docs/spec/connexions-en-ligne.md § Porte réseau unique).
  */
 interface HttpFetcher {
+    /**
+     * Vrai si ce transport ne peut lire que `https` (le navigateur : une page `https` ne lit pas une adresse `http`, contenu mixte).
+     * `OnlineGate` refuse alors un lien `http://` sans requête ni confirmation (docs/spec/connexions-en-ligne.md § Web).
+     */
+    val httpsOnly: Boolean get() = false
+
     suspend fun fetch(request: HttpRequest): HttpResponse
 }
