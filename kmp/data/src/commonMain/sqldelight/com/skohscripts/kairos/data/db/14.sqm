@@ -1,0 +1,3 @@
+-- Schéma 14 -> 15 (4.4.0, docs/spec/jours-feries.md § Voie B) : additif. « Compter ses journées entières comme fériés » d'un
+-- calendrier importé ; 0 pour chaque calendrier existant, rien ne change sans action.
+ALTER TABLE calendar_source ADD COLUMN counts_as_holidays INTEGER NOT NULL DEFAULT 0;

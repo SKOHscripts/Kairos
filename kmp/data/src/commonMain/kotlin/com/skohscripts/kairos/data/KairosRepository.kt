@@ -323,7 +323,7 @@ class KairosRepository(
     suspend fun snooze(taskId: Long) {
         val settings = state.value.settings
         val today = today()
-        val holidays = Workdays.holidaysFor(today, settings.holidayCountryCode, settings.extraHolidays)
+        val holidays = Workdays.holidaysFor(today, state.value)
         modify(taskId) {
             val next = Recurrence.nextSnoozeDate(it.deadline, today, holidays)
             it.copy(deadline = next, scheduledDate = if (it.space == TaskSpace.PERSONAL) next else it.scheduledDate)
@@ -381,7 +381,7 @@ class KairosRepository(
      */
     suspend fun ensureCalendarOccurrences(today: LocalDate) {
         val settings = state.value.settings
-        val holidays = Workdays.holidaysFor(today, settings.holidayCountryCode, settings.extraHolidays)
+        val holidays = Workdays.holidaysFor(today, state.value)
         if (Recurrence.calendarOccurrences(state.value.tasks, today, holidays, clock.now()).isEmpty()) return
         write {
             // Recalculé dans la transaction : l'état a pu changer depuis la vérification.
@@ -405,7 +405,7 @@ class KairosRepository(
             val series = skipped(today, title, dayOfMonth) ?: return@write
             val settings = state.value.settings
             // L'année d'aujourd'hui et la précédente : les douze mois en arrière y sont tous.
-            val holidays = Workdays.holidaysFor(today, settings.holidayCountryCode, settings.extraHolidays)
+            val holidays = Workdays.holidaysFor(today, state.value)
             Recurrence.recreateSkipped(state.value.tasks, series, holidays, clock.now()).forEach { task -> insertNew(task)?.let { created += it } }
         }
         return created
@@ -655,9 +655,10 @@ class KairosRepository(
      * calendrier de ce nom est retrouvé ou créé, ses créneaux qui commencent à partir de [today] et ses journées qui finissent
      * à partir de [today] sont remplacés par ceux de [plan] ; son passé, les créneaux manuels et les autres calendriers ne
      * bougent pas. [hideTitles] : titres vides (affichés « Occupé »), retenu pour le prochain import. Rend l'identifiant du
-     * calendrier, ou `null` si le nom est vide.
+     * calendrier, ou `null` si le nom est vide. [holidays] : « Compter ses journées entières comme fériés »
+     * (docs/spec/jours-feries.md § Voie B) ; nul garde le choix d'un calendrier existant (faux pour un nouveau).
      */
-    suspend fun importCalendar(name: String, hideTitles: Boolean, plan: CalendarPlan, today: LocalDate): Long? {
+    suspend fun importCalendar(name: String, hideTitles: Boolean, plan: CalendarPlan, today: LocalDate, holidays: Boolean? = null): Long? {
         val cleaned = name.trim()
         if (cleaned.isEmpty()) return null
         val existing = ImportedCalendars.named(state.value, cleaned)
@@ -676,6 +677,7 @@ class KairosRepository(
                 queries.insertImportedBlock(if (hideTitles) "" else e.title, e.start.toString(), e.end.toString(), at, id, e.uid)
             }
             for (d in plan.days) queries.insertDayMark(if (hideTitles) "" else d.title, d.start.toString(), d.end.toString(), id, d.uid, at)
+            holidays?.let { queries.updateCalendarHolidays(if (it) 1L else 0L, id) }
         }
         return id
     }
@@ -683,6 +685,7 @@ class KairosRepository(
     suspend fun connectCalendar(
         name: String, hideTitles: Boolean, plan: CalendarPlan, today: LocalDate,
         connection: CalendarConnection, now: Instant,
+        holidays: Boolean? = null,
         beforeCommit: ((Long) -> Unit)? = null,
     ): Long? {
         val cleaned = name.trim()
@@ -706,6 +709,7 @@ class KairosRepository(
                 id = existing.id
                 queries.updateCalendarVisibility(if (hideTitles) 1L else 0L, id)
             }
+            holidays?.let { queries.updateCalendarHolidays(if (it) 1L else 0L, id) }
             applyCalendarPlan(id, hideTitles, plan, today, now)
             beforeCommit?.invoke(id)
             saveConnection(connection.copy(sourceId = id, lastAttemptAt = now, lastSyncAt = now,
@@ -742,6 +746,11 @@ class KairosRepository(
     /** [change] s'applique à la ligne lue sous le verrou d'écriture : un `touchSync` ou un échec concurrent n'est jamais écrasé. */
     suspend fun updateConnection(sourceId: Long, change: (CalendarConnection) -> CalendarConnection) = write(notifyOnlyIfChanged = true) {
         connections.value.firstOrNull { it.sourceId == sourceId }?.let { saveConnection(change(it).copy(sourceId = sourceId)) }
+    }
+
+    /** « Compter ses journées entières comme fériés » d'un calendrier importé (docs/spec/jours-feries.md § Voie B). */
+    suspend fun setCalendarHolidays(sourceId: Long, holidays: Boolean) = write(notifyOnlyIfChanged = true) {
+        queries.updateCalendarHolidays(if (holidays) 1L else 0L, sourceId)
     }
 
     suspend fun disconnectCalendar(sourceId: Long) = write(notifyOnlyIfChanged = true) { queries.deleteCalendarConnection(sourceId) }
@@ -857,7 +866,7 @@ class KairosRepository(
 
     private fun hasOccurrence(blockId: Long, date: LocalDate): Boolean {
         val template = state.value.timeBlocks.firstOrNull { it.id == blockId && !it.imported } ?: return false
-        return Recurrence.occursOn(template, date, Workdays.holidaysFor(date, state.value.settings.holidayCountryCode, state.value.settings.extraHolidays))
+        return Recurrence.occursOn(template, date, Workdays.holidaysFor(date, state.value))
     }
 
     /**
@@ -1783,7 +1792,7 @@ class KairosRepository(
             )
         }
         for (c in snapshot.calendarSources) {
-            queries.insertCalendarSourceWithId(c.id, c.name, if (c.hideTitles) 1L else 0L, c.importedAt.store(), c.createdAt.store())
+            queries.insertCalendarSourceWithId(c.id, c.name, if (c.hideTitles) 1L else 0L, c.importedAt.store(), c.createdAt.store(), if (c.countsAsHolidays) 1L else 0L)
         }
         // Seules les journées d'un calendrier importé sont stockées (celles du téléphone ne passent jamais par ici).
         for (m in snapshot.dayMarks) {
@@ -1946,7 +1955,7 @@ class KairosRepository(
 
     /** Fériés des réglages autour d'aujourd'hui : « jours ouvrés » ne tombe jamais dessus. */
     private fun holidaysNow(): Set<kotlinx.datetime.LocalDate> =
-        Workdays.holidaysFor(today(), state.value.settings.holidayCountryCode, state.value.settings.extraHolidays)
+        Workdays.holidaysFor(today(), state.value)
 
     private fun Task.isStartable() =
         space == TaskSpace.TEAM && status == TaskStatus.TODO && assigneeId != null && startedOn == null
