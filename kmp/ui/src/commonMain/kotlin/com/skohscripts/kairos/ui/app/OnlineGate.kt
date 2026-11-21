@@ -23,7 +23,8 @@ class OnlineGate(
          * (302, 303, 307) vers une adresse signée qui expire ne doit pas casser la connexion (décision du 2026-11-19).
          */
         data class Success(val response: HttpResponse, val url: String, val text: String, val storedUrl: String = url) : Result
-        data class Failed(val error: ConnectionError, val retryAfterSeconds: Long? = null) : Result
+        /** [detail] : cause technique d'une panne de transport, montrée sous l'erreur d'un ajout (WebDAV). */
+        data class Failed(val error: ConnectionError, val retryAfterSeconds: Long? = null, val detail: String? = null) : Result
         data class Confirm(val kind: IcsConfirmation, val host: String) : Result
     }
 
@@ -85,7 +86,7 @@ class OnlineGate(
                     e.invalidAddress -> ConnectionError.UNSUPPORTED
                     e.tls -> ConnectionError.TLS
                     else -> ConnectionError.OFFLINE
-                })
+                }, detail = e.detail)
             }
             log(HttpPolicy.logLine(method, target, response.status, start.elapsedNow().inWholeMilliseconds, response.body.size))
             if (response.body.size > MAX_BODY_BYTES) return Result.Failed(ConnectionError.TOO_BIG)

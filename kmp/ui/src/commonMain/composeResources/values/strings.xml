@@ -2032,6 +2032,7 @@
     <string name="online_caldav_change_password">Change the password</string>
     <string name="online_caldav_unsupported">This server does not let Kairos read its calendars. Use its ICS link instead.</string>
     <string name="online_caldav_address">Unsupported address: use an https:// address without a username or password in it.</string>
+    <string name="online_error_detail">Technical detail: %1$s</string>
     <string name="card_online_connections_title">Online connections</string>
     <string name="card_online_connections_body">Subscribe to an ICS calendar link on Android or desktop. Preview events first, then sync read-only; the link stays on this device.</string>
     <string name="card_caldav_title">CalDAV calendars</string>

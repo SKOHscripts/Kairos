@@ -127,7 +127,7 @@ class DefaultOnlineConnections(
                 withTimeout(60_000) {
                     when (val read = caldav.preview(account, host, calendar, today)) {
                         is CalDavClient.Read.Success -> CalDavPreview(calendar, withContext(Dispatchers.Default) { CalendarImport.plan(read.text, today, zone) }, null)
-                        is CalDavClient.Read.Failed -> CalDavPreview(calendar, null, read.error)
+                        is CalDavClient.Read.Failed -> CalDavPreview(calendar, null, read.error, read.detail)
                         CalDavClient.Read.GateClosed -> CalDavPreview(calendar, null, com.skohscripts.kairos.core.connections.ConnectionError.UNSUPPORTED)
                     }
                 }

@@ -34,7 +34,7 @@ sealed interface IcsPreviewResult {
 }
 
 /** Aperçu d'un calendrier CalDAV coché (docs/spec/connexions-en-ligne.md § CalDAV) : son plan, ou l'erreur de sa lecture. */
-data class CalDavPreview(val calendar: CalDavCalendar, val plan: CalendarPlan?, val error: ConnectionError?)
+data class CalDavPreview(val calendar: CalDavCalendar, val plan: CalendarPlan?, val error: ConnectionError?, val detail: String? = null)
 
 /**
  * Connexions de calendrier en ligne, côté interface (docs/spec/connexions-en-ligne.md § Interface, § Synchronisation).

@@ -25,7 +25,13 @@ class HttpTransportException(
     message: String,
     cause: Throwable? = null,
     val invalidAddress: Boolean = false,
-) : Exception(message, cause)
+) : Exception(message, cause) {
+    /**
+     * Détail technique montré sous l'erreur d'un ajout (docs/spec/connexions-en-ligne.md § CalDAV) : type et message de la cause
+     * de la plateforme (« SSLHandshakeException: … »). Jamais d'identifiant ni de mot de passe : ils ne sont dans aucun message.
+     */
+    val detail: String get() = (cause ?: this).let { "${it::class.simpleName}: ${it.message.orEmpty()}" }.take(200)
+}
 
 /** Corps plus gros que [MAX_BODY_BYTES] : lecture interrompue. */
 class HttpTooBigException : Exception("body exceeds $MAX_BODY_BYTES bytes")

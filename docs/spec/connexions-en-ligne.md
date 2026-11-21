@@ -495,6 +495,10 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
   calendrier. Ni l'identifiant, ni le chemin (qui contient souvent l'identifiant), ni le mot de passe n'entrent dans la base ou un journal.
   « Modifier le mot de passe » (erreur `AUTH`) réécrit `account:<compte>` et force la synchronisation des calendriers de ce compte.
   `NO_SECRET` si `account:<compte>` ou `remote:<idSource>` manque.
+- **Détail technique** : une panne de transport (`HttpTransportException`) garde le type et le message de sa cause (`detail`, 200
+  caractères au plus, ni identifiant ni mot de passe) ; la découverte et l'aperçu CalDAV le montrent sous l'erreur
+  (`online_error_detail`, « Détail technique : … »), pour qu'un essai réel dise pourquoi il échoue. La synchronisation de fond ne garde
+  que le `ConnectionError`.
 - Pas de `sync-collection` ni de CTag en première version : une requête par synchronisation et par calendrier suffit à l'échelle d'un
   agenda personnel ; `etag` ne sert pas ici.
 - Limite connue : un serveur sans `calendar-query` → `UNSUPPORTED`, avec le conseil du lien ICS.
@@ -507,8 +511,10 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
   `SSLSocket` du système (option (2) de § Décisions) : `Http11` (`ui/app`, Kotlin commun, sans plateforme) écrit la requête (ligne de
   requête, `Host`, `Content-Length`, `Connection: close`, en-têtes sans `Cookie` ni `Accept-Encoding`) et lit la réponse (ligne d'état,
   en-têtes, corps de longueur fixe, découpé `chunked` ou jusqu'à la fermeture, plafond `MAX_BODY_BYTES`) depuis une source d'octets ;
-  `AndroidRawHttp` n'apporte que le socket : `https` seulement, port 443 par défaut, SNI et vérification du nom d'hôte (`HttpsURLConnection`
-  `.getDefaultHostnameVerifier`), délais de 10 s de connexion et du total de la requête, et décompresse par `java.util.zip` un corps
+  `AndroidRawHttp` n'apporte que le socket : `https` seulement, port 443 par défaut, **chaque adresse IP** du serveur essayée à son tour
+  (comme `HttpURLConnection`), **SNI posé explicitement** (`SSLParameters.serverNames`, sauf pour une adresse IP) et vérification du nom
+  d'hôte (`endpointIdentificationAlgorithm` `HTTPS` et `HttpsURLConnection.getDefaultHostnameVerifier`), délais de 10 s de connexion et
+  du total de la requête, et décompresse par `java.util.zip` un corps
   `gzip` envoyé malgré tout (Kotlin commun n'a pas de décompresseur ; le chemin brut ne demande pas `gzip`). Le mandataire (proxy) du système n'est pas utilisé
   pour ces méthodes (limite connue). Aucune dépendance.
 - **Web** : pas de CalDAV (§ Web).
@@ -771,6 +777,11 @@ Les champs de `Settings`, dont `textZoom` et `subtaskChain`, gardent leur classe
 - **Date et actions cohérentes** (2026-11-12) : choisi `lastSyncAt` et aucun réimport fichier pour une connexion ; écartée l'affichage d'une date partagée artificielle.
 
 ### Points ouverts
+
+- **Premier essai réel sur Android (2026-11-21)** : avec `caldav.mailo.com` (qui marche sur le même téléphone dans DAVx⁵),
+  « Pas de connexion » dès la découverte : une panne de transport. Le serveur parle HTTP/1.1, n'a qu'une adresse IPv4 et sert plusieurs noms
+  derrière un frontal (`proxy-dav.mailo.com`). Cause supposée : SNI non envoyé par le socket superposé ; d'où le SNI explicite, l'essai de
+  chaque adresse et le détail technique affiché. À confirmer par un second essai.
 
 - O1 web : persistance des métadonnées dans IndexedDB avec rattachement par nom, ou connexion limitée à la session (§ Web).
 - O2 Android : essai réel du transport `AndroidRawHttp` (Android 8 à 16 si possible) par le propriétaire, avant la publication : ajout d'un

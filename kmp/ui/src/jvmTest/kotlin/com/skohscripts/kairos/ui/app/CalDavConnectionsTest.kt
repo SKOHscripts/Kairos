@@ -160,6 +160,16 @@ class CalDavConnectionsTest {
         assertEquals("changed", CalDavAccount.fromJson(secrets.get("account:${repository.connections.value.first().account}"))!!.password)
     }
 
+    @Test fun aTransportFailureKeepsItsTechnicalDetailForTheDialog() = runBlocking {
+        val http = FakeHttp { throw HttpTransportException(false, "HTTP transport failed", java.io.IOException("Connection reset")) }
+        val online = DefaultOnlineConnections(onlineRepository(), BackupStore { _, _ -> }, http, MemorySecrets(), this, { onlineNow })
+        val failed = assertIs<CalDavClient.Discovery.Failed>(online.discoverCalDav(account))
+        assertEquals(ConnectionError.OFFLINE, failed.error)
+        assertEquals("IOException: Connection reset", failed.detail)
+        // Le détail ne porte jamais le mot de passe.
+        assertTrue("secret" !in failed.detail.orEmpty())
+    }
+
     @Test fun theGateRefusesWebDavForAnotherHostOrAPausedConnection() = runBlocking {
         val dav = FakeDav()
         val repository = onlineRepository()

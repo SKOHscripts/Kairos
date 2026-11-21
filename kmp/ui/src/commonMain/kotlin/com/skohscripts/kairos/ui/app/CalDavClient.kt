@@ -50,13 +50,13 @@ data class CalDavCalendar(val url: String, val name: String)
 class CalDavClient(private val gate: OnlineGate) {
     sealed interface Discovery {
         data class Found(val host: String, val calendars: List<CalDavCalendar>) : Discovery
-        data class Failed(val error: ConnectionError, val host: String?) : Discovery
+        data class Failed(val error: ConnectionError, val host: String?, val detail: String? = null) : Discovery
     }
 
     sealed interface Read {
         /** [text] : un seul calendrier, lu ensuite par `CalendarImport.plan`. */
         data class Success(val text: String) : Read
-        data class Failed(val error: ConnectionError, val retryAfterSeconds: Long? = null) : Read
+        data class Failed(val error: ConnectionError, val retryAfterSeconds: Long? = null, val detail: String? = null) : Read
         data object GateClosed : Read
     }
 
@@ -70,7 +70,7 @@ class CalDavClient(private val gate: OnlineGate) {
         val host = checked.host
         suspend fun propfind(url: String, depth: Int, body: String) =
             gate.davPreview(host, "PROPFIND", url, depth, body, account.authorization)
-        fun failed(error: ConnectionError) = Discovery.Failed(error, host)
+        fun failed(error: ConnectionError, detail: String? = null) = Discovery.Failed(error, host, detail)
         fun sameHost(base: String, href: String) = HttpPolicy.resolve(base, href)?.takeIf { HttpPolicy.host(it) == host }
 
         var principal: String? = null
@@ -81,14 +81,14 @@ class CalDavClient(private val gate: OnlineGate) {
                     if (principal != null) break
                 }
                 is OnlineGate.Result.Failed ->
-                    if (result.error != ConnectionError.GONE && result.error != ConnectionError.UNSUPPORTED) return failed(result.error)
+                    if (result.error != ConnectionError.GONE && result.error != ConnectionError.UNSUPPORTED) return failed(result.error, result.detail)
                 else -> return failed(ConnectionError.UNSUPPORTED)
             }
         }
         val home = principal?.let { url ->
             when (val result = propfind(url, 0, CalDavQueries.HOME_SET)) {
                 is OnlineGate.Result.Success -> read(result.text) { CalDav.homeSet(it) }.getOrElse { return failed(it) }?.let { sameHost(result.url, it) }
-                is OnlineGate.Result.Failed -> if (result.error == ConnectionError.AUTH) return failed(result.error) else null
+                is OnlineGate.Result.Failed -> if (result.error == ConnectionError.AUTH) return failed(result.error, result.detail) else null
                 else -> null
             }
         }
@@ -99,7 +99,7 @@ class CalDavClient(private val gate: OnlineGate) {
                     .distinctBy { it.url }
                 if (calendars.isEmpty()) failed(ConnectionError.NOT_CALENDAR) else Discovery.Found(host, calendars)
             }
-            is OnlineGate.Result.Failed -> failed(if (result.error == ConnectionError.GONE) ConnectionError.NOT_CALENDAR else result.error)
+            is OnlineGate.Result.Failed -> failed(if (result.error == ConnectionError.GONE) ConnectionError.NOT_CALENDAR else result.error, result.detail)
             else -> failed(ConnectionError.UNSUPPORTED)
         }
     }
@@ -114,7 +114,7 @@ class CalDavClient(private val gate: OnlineGate) {
 
     private fun report(result: OnlineGate.Result): Read = when (result) {
         OnlineGate.Result.GateClosed -> Read.GateClosed
-        is OnlineGate.Result.Failed -> Read.Failed(result.error, result.retryAfterSeconds)
+        is OnlineGate.Result.Failed -> Read.Failed(result.error, result.retryAfterSeconds, result.detail)
         is OnlineGate.Result.Confirm -> Read.Failed(ConnectionError.REDIRECT_HOST)
         is OnlineGate.Result.Success -> read(result.text) { CalDav.calendarData(it) }
             .fold({ Read.Success(CalDavMerge.merge(it)) }, { Read.Failed(it) })

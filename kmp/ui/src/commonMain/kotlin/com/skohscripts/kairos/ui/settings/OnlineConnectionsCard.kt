@@ -109,6 +109,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
     var davPreviews by remember { mutableStateOf<List<CalDavPreview>>(emptyList()) }
     var passwordFor by rememberSaveable { mutableStateOf<Long?>(null) }
     var failureCaldav by rememberSaveable { mutableStateOf(false) }
+    var failureDetail by rememberSaveable { mutableStateOf<String?>(null) }
     fun close() {
         phase = ""
         preview = null
@@ -157,6 +158,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                 failure = result.error.name
                 failureHost = result.host.orEmpty()
                 failureCaldav = false
+                failureDetail = null
                 phase = "link"
             }
         }
@@ -179,6 +181,7 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                 failure = result.error.name
                 failureHost = result.host.orEmpty()
                 failureCaldav = true
+                failureDetail = result.detail
             }
         }
     }
@@ -396,7 +399,10 @@ internal fun OnlineConnectionsCard(services: AppServices) {
                         }
                         error != null -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(KairosIcons.Warning, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(stringResource(if (error == ConnectionError.UNSUPPORTED) Res.string.online_caldav_unsupported else connectionErrorText(error)), style = MaterialTheme.typography.bodyMedium)
+                            Column {
+                                Text(stringResource(if (error == ConnectionError.UNSUPPORTED) Res.string.online_caldav_unsupported else connectionErrorText(error)), style = MaterialTheme.typography.bodyMedium)
+                                item.detail?.let { Text(stringResource(Res.string.online_error_detail, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            }
                         }
                     }
                 }
@@ -430,8 +436,9 @@ internal fun OnlineConnectionsCard(services: AppServices) {
             Text(failureHost)
             val kind = ConnectionError.valueOf(error)
             Text(stringResource(if (failureCaldav && kind == ConnectionError.UNSUPPORTED) Res.string.online_caldav_address else connectionErrorText(kind)))
+            failureDetail?.let { Text(stringResource(Res.string.online_error_detail, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         } },
-        confirmButton = { KairosTextButton(onClick = { failure = null; failureCaldav = false }) { Text(stringResource(Res.string.calendar_close)) } },
+        confirmButton = { KairosTextButton(onClick = { failure = null; failureCaldav = false; failureDetail = null }) { Text(stringResource(Res.string.calendar_close)) } },
     ) }
     removing?.let { id ->
         snapshot.calendarSources.firstOrNull { it.id == id }?.let { source ->
