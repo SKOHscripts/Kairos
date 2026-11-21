@@ -40,7 +40,7 @@
     <string name="about_name_title">Pourquoi « Kairos » ?</string>
     <string name="about_name_body">En grec, kairos désigne le moment opportun, l’instant juste où agir, par opposition à chronos, le temps qui défile. C’est le métier de l’outil : trouver le bon créneau pour chaque tâche.</string>
     <string name="about_version">Version %1$s</string>
-    <string name="about_license">Logiciel libre sous licence MIT. Tes données restent sur cet appareil.</string>
+    <string name="about_license">Kairos, par Corentin Michel (github.com/SKOHscripts/Kairos). Logiciel libre sous licence GNU AGPL v3 ou ultérieure. Tes données restent sur cet appareil.</string>
     <string name="about_source">Code source</string>
 
     <string name="loading">Ouverture de Kairos…</string>

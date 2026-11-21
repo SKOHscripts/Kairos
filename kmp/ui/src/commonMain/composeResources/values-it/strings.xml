@@ -38,7 +38,7 @@
     <string name="about_name_title">Perché «Kairos»?</string>
     <string name="about_name_body">In greco, kairos indica il momento opportuno, l’istante giusto in cui agire, in opposizione a chronos, il tempo che scorre. È il compito dello strumento: trovare la fascia oraria giusta per ogni attività.</string>
     <string name="about_version">Versione %1$s</string>
-    <string name="about_license">Software libero con licenza MIT. I tuoi dati restano su questo dispositivo.</string>
+    <string name="about_license">Kairos, di Corentin Michel (github.com/SKOHscripts/Kairos). Software libero con licenza GNU AGPL v3 o successiva. I tuoi dati restano su questo dispositivo.</string>
     <string name="about_source">Codice sorgente</string>
 
     <string name="loading">Apertura di Kairos…</string>

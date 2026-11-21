@@ -208,7 +208,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
 ### Recette F-Droid (`fdroid/com.skohscripts.kairos.yml`)
 
 - Catégories `Calendar & Agenda`, `Task`, `Time Tracker` (liste officielle,
-  `config/categories.yml` de fdroiddata), licence MIT, liens site, source,
+  `config/categories.yml` de fdroiddata), licence `AGPL-3.0-or-later` (`licence.md`), liens site, source,
   tickets, releases ; `AutoName: Kairos`.
 - Construction : `subdir: kmp/androidApp`, `gradle: [yes]` (variante release),
   `commit` = **hash complet** du commit du tag `vX.Y.Z` (exigence des

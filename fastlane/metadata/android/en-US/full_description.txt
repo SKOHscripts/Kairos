@@ -36,4 +36,4 @@ Off by default, team management adds a second space for the manager, who remains
 <li>Meetings from a calendar file (.ics: Outlook, Google, Thunderbird) or, optionally, from your phone’s calendars: Kairos then asks for calendar access, read only. Importing a file never uses the network.</li>
 </ul>
 
-Kairos is also available for Windows, Linux and macOS, and in the browser. Free software under the MIT licence, in English, French, Spanish, German, Russian and Italian (your choice in the settings; by default your system’s language when it is one of these, English otherwise).
+Kairos is also available for Windows, Linux and macOS, and in the browser. Free software under the GNU AGPL v3 or later, in English, French, Spanish, German, Russian and Italian (your choice in the settings; by default your system’s language when it is one of these, English otherwise).

@@ -39,7 +39,7 @@
     <string name="about_name_title">Why “Kairos”?</string>
     <string name="about_name_body">In Greek, kairos means the opportune moment, the right instant to act, as opposed to chronos, time passing by. That is the tool’s job: finding the right slot for each task.</string>
     <string name="about_version">Version %1$s</string>
-    <string name="about_license">Free software under the MIT license. Your data stays on this device.</string>
+    <string name="about_license">Kairos, by Corentin Michel (github.com/SKOHscripts/Kairos). Free software under the GNU AGPL v3 or later. Your data stays on this device.</string>
     <string name="about_source">Source code</string>
 
     <string name="loading">Opening Kairos…</string>

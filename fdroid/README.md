@@ -20,7 +20,7 @@ Fiche d’identité de l’application :
 - identifiant : `com.skohscripts.kairos` (inchangé d’une version à l’autre : chaque version s’installe par-dessus la précédente) ;
 - certificat de signature, SHA-256 :
   `3885399c1116bea6fed50ce144a1cb10d516bc74d9c9e0773dad23a4e8fa2111` ;
-- licence MIT ; aucune dépendance non libre, aucun service Google, aucun traqueur ;
+- licence AGPL v3 ou ultérieure (AGPL-3.0-or-later) ; aucune dépendance non libre, aucun service Google, aucun traqueur ;
 - permissions : `POST_NOTIFICATIONS` (chrono et alertes),
   `RECEIVE_BOOT_COMPLETED` (reprogrammer les alertes au redémarrage),
   `SCHEDULE_EXACT_ALARM` (alertes du chrono à l’heure, application fermée ;

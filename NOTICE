@@ -1,0 +1,55 @@
+Kairos
+Copyright (C) 2026 Corentin Michel
+https://github.com/SKOHscripts/Kairos
+
+
+CODE
+
+Kairos is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version (SPDX: AGPL-3.0-or-later). See the LICENSE file.
+
+Kairos is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+details.
+
+
+ADDITIONAL TERM (section 7(b) of the GNU AGPLv3)
+
+Any work based on Kairos, in whole or in part, that displays Appropriate Legal
+Notices (for example an "About" screen) must preserve in those notices the
+following author attribution, in a reasonably visible way:
+
+    Based on Kairos, by Corentin Michel — https://github.com/SKOHscripts/Kairos
+
+Kairos itself displays its author attribution in its "About" screen.
+
+
+DOCUMENTATION
+
+The documentation of Kairos is licensed under the Creative Commons
+Attribution-ShareAlike 4.0 International License (SPDX: CC-BY-SA-4.0), see
+LICENSES/CC-BY-SA-4.0.txt. This covers the docs/ directory, README.md,
+README.fr.md, the texts and images under fastlane/metadata/ and site/, and the
+screenshots. Attribution to give when reusing it:
+
+    Kairos documentation, by Corentin Michel — https://github.com/SKOHscripts/Kairos
+
+Code excerpts quoted in the documentation are also available under the GNU
+AGPLv3 or later.
+
+
+EARLIER LICENSE
+
+Versions of Kairos published until commit d58b86ba (2026-11-20, the v4.3.0
+release) were released under the MIT License. The contributors to the code of
+this repository agreed to relicense their contributions under the terms above
+(pull request #258).
+
+
+THIRD PARTY
+
+The Roboto font is licensed under the SIL Open Font License 1.1, see
+kmp/licenses/Roboto-OFL.txt. Each dependency keeps its own license.

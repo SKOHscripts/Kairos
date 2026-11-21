@@ -97,6 +97,9 @@ publie la page `https://skohscripts.github.io/Kairos/code/` (`docs/spec/carte-du
 Kairos est écrit en Kotlin Multiplatform + Compose Multiplatform : Android,
 bureau Windows/Linux/macOS (JVM), web (Kotlin/Wasm).
 
+- **Licence** (`docs/spec/licence.md`, 2026-11-21) : code en **AGPL-3.0-or-later**, avec une
+  mention d'auteur obligatoire dans « À propos » des dérivés (section 7(b), `NOTICE`) ;
+  documentation en **CC BY-SA 4.0** ; `LICENSE` reste le texte de la FSF sans ajout.
 - **Architecture** (`docs/spec/architecture.md`) : `core` reste **pur** (ni
   Compose, ni plateforme, ni horloge, ni I/O : l'heure et les réglages sont des
   paramètres) ; `data` porte la base (SQLDelight) et le dépôt ; toute interface
