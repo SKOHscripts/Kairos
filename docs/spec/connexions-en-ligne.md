@@ -58,6 +58,10 @@ permission réseau le 2026-10-24. Le propriétaire la rouvre le 2026-10-26, à t
 3. **Lecture seule, rien dans l'export.** Kairos ne modifie jamais le calendrier distant, ne crée aucun compte Kairos, ne
    transmet aucune télémétrie, et aucune donnée de connexion (adresse, identifiant, mot de passe, jeton) ne sort de l'appareil
    ni n'entre dans un export, une sauvegarde ou un paquet d'équipe.
+4. **Les données de Kairos restent privées** (propriétaire, 2026-11-21). Chaque connexion est une fenêtre ouverte **dans un seul
+   sens** : des données de calendrier entrent dans Kairos, rien de plus. Aucune tâche, aucun créneau, aucune note, aucun réglage,
+   aucune statistique ne sort par une connexion ; la seule chose envoyée est ce que le protocole exige pour lire (requête, identifiant
+   et mot de passe ou jeton, au seul serveur choisi).
 
 ### Comportement attendu (utilisateur)
 
@@ -225,6 +229,11 @@ Tests à écrire à l'implémentation des jalons restants :
 ### Hors périmètre / différé
 
 - **Écrire vers un calendrier distant** (créer une réunion, poser un créneau de deep work) : jamais dans cette spec.
+  **Réexaminé et abandonné le 2026-11-21** (propriétaire, après O2) : envoyer les créneaux de Kairos vers un agenda, en CalDAV, dans le
+  calendrier du téléphone ou par un fichier `.ics` synchronisé, voire une synchronisation bidirectionnelle. Raison décisive : les données
+  de Kairos restent privées (principe 4). Autres coûts relevés : boucle si Kairos relit ce qu'il écrit (calendrier dédié jamais relu),
+  planning recalculé sans cesse (écritures et notifications en rafale), bidirectionnel (identité, conflits, suppressions). Ne pas rouvrir
+  sans nouvelle décision du propriétaire.
 - **Notification poussée** (push), webhooks, serveur Kairos, relais, compte Kairos : aucun.
   Le fichier lié existant continue de transporter les événements (`synchronisation.md`), jamais la connexion.
 - **Télémétrie, statistiques d'usage, rapport de plantage distant** : aucun. Le projet ne reçoit rien.
