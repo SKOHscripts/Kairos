@@ -234,10 +234,6 @@
     <string name="action_done_labelled">Done</string>
     <string name="action_snooze">Move to the next working day</string>
     <string name="action_snooze_labelled">Snooze</string>
-    <string name="stats_done">%1$d done</string>
-    <string name="stats_todo">%1$d to do</string>
-    <string name="stats_load">needed %1$s · available %2$s</string>
-    <string name="stats_overflow">the day overflows by %1$s</string>
     <string name="duration_hours_minutes">%1$d h %2$s</string>
     <string name="duration_hours">%1$d h</string>
     <string name="duration_minutes">%1$d min</string>
@@ -348,7 +344,6 @@
     <string name="action_timer_stop">Stop the timer</string>
     <string name="spent_of_estimate">%1$s / %2$s</string>
     <string name="timer_running">Timer running</string>
-    <string name="stats_spent_today">worked today %1$s</string>
     <string name="now_running_label">Right now</string>
     <string name="now_running_estimate">estimated %1$s</string>
     <string name="now_running_empty">No timer running. Start it on the current task to track your real time.</string>
@@ -2213,7 +2208,6 @@
     <string name="card_time_spent_body">Tick a task done without the timer: Kairos asks how long it took, in one tap. The Recap lists the tasks done this past week still without a time. With the timer running, “Done, next” moves it to the next task of your plan.</string>
     <!-- Dérangements (docs/spec/derangements.md, issue #272) -->
     <string name="action_interrupted">Interrupted</string>
-    <string name="stats_expected_interruptions">(~%1$s of usual interruptions taken off)</string>
     <string name="interruption_saved">Interrupted %1$s: noted</string>
     <string name="interruption_title">I was interrupted</string>
     <string name="interruption_by">By (optional)</string>
@@ -2251,4 +2245,30 @@
     <string name="recap_interruptions_afternoon">mostly on %1$s afternoons</string>
     <string name="card_interruptions_title">Interruptions</string>
     <string name="card_interruptions_body">Just interrupted? Say so in one gesture, after the fact: roughly how long and, if you like, by what. The timer is paused retroactively. The statistics show how many, the time lost, when and where from, and the usual interruptions are taken off your available time.</string>
+    <!-- Ta journée (docs/spec/ta-journee.md, issue #274) -->
+    <string name="day_brief_title_day">Your day</string>
+    <string name="day_brief_title_rest">The rest of your day</string>
+    <string name="day_brief_fold">Fold</string>
+    <string name="day_brief_unfold">Unfold</string>
+    <string name="day_brief_tasks_day_one">1 task to do, estimated at %1$s.</string>
+    <string name="day_brief_tasks_day_many">%1$d tasks to do, estimated at %2$s.</string>
+    <string name="day_brief_tasks_rest_one">1 task left, ~%1$s.</string>
+    <string name="day_brief_tasks_rest_many">%1$d tasks left, ~%2$s.</string>
+    <string name="day_brief_done">Done today: %1$d · worked %2$s</string>
+    <string name="day_brief_deadlines">Deadlines: %1$d today, %2$d later this week.</string>
+    <string name="day_brief_available">Available: %1$s.</string>
+    <string name="day_brief_available_effective">Available: %1$s, including ~%2$s of usual interruptions, so %3$s of real work time.</string>
+    <string name="day_brief_fits">It fits before %1$s.</string>
+    <string name="day_brief_fits_plain">It fits.</string>
+    <string name="day_brief_deep_work">Without a dedicated deep-work slot, you will probably run over by about %1$s.</string>
+    <string name="day_brief_reserve">Book %1$s of deep work at %2$s</string>
+    <string name="day_brief_reserved">Deep work booked: %1$s at %2$s</string>
+    <string name="day_brief_postpone">The day runs over by %1$s: postpone a task, for instance “%2$s”.</string>
+    <string name="day_brief_postpone_plain">The day runs over by %1$s: postpone a task.</string>
+    <string name="day_brief_empty">Nothing planned today.</string>
+    <string name="day_brief_day_off">Day off.</string>
+    <string name="reminder_summary_estimate">~%1$s</string>
+    <string name="reminder_summary_deadlines">deadlines today: %1$d</string>
+    <string name="card_day_brief_title">Your day</string>
+    <string name="card_day_brief_body">At the top of the Day view, a card that presents your day, then the rest of it: tasks and their estimate, deadlines, the time really available once the usual interruptions are counted, and whether it fits. If it does not, it offers to book a deep-work slot in one tap. The daily summary notification says the same.</string>
 </resources>

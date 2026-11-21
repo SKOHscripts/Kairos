@@ -1,5 +1,9 @@
 package com.skohscripts.kairos.ui.day
 
+import com.skohscripts.kairos.ui.generated.resources.day_brief_reserved
+import com.skohscripts.kairos.core.model.BlockKind
+import com.skohscripts.kairos.data.BlockEdit
+import com.skohscripts.kairos.core.day.DayBrief
 import com.skohscripts.kairos.ui.generated.resources.spent_corrected
 import com.skohscripts.kairos.ui.generated.resources.done_next_started
 import com.skohscripts.kairos.ui.generated.resources.interruption_saved
@@ -415,6 +419,19 @@ fun DayScreen(
             onDismiss = { interrupting = false },
         )
     }
+    val brief = remember(view, minute) { DayBrief.build(view, snapshot.settings, minute) }
+    val deepWorkTitle = stringResource(Res.string.tag_deepwork)
+    // « Réserver … de deep work » : un créneau ordinaire, puis « Annuler » qui le retire (createBlock ne rend pas son identifiant).
+    val reserveDeepWork: (DayBrief.DeepWork) -> Unit = { dw ->
+        shellScope.launch {
+            val edit = BlockEdit(deepWorkTitle, dw.start, dw.end, BlockKind.DEEPWORK)
+            if (!repository.createBlock(edit)) return@launch
+            val id = repository.snapshot.value.timeBlocks.filter { it.start == dw.start && it.end == dw.end && it.kind == BlockKind.DEEPWORK }.maxOfOrNull { it.id }
+            undo(getString(Res.string.day_brief_reserved, durationText(dw.minutes), Dates.time(dw.start, language)), getString(Res.string.action_revert)) {
+                if (id != null) shellScope.launch { repository.deleteBlock(id) }
+            }
+        }
+    }
     val demoRequest = demo?.focusRequest ?: 0
     LaunchedEffect(demoRequest) {
         val tour = demo ?: return@LaunchedEffect
@@ -517,6 +534,17 @@ fun DayScreen(
                         FirstTaskInvite(
                             onStart = { creating = true; coachStep = 0; coachRecurring = false },
                             onDismiss = { inviteDismissed = true },
+                        )
+                    }
+                }
+                // « Ta journée » (docs/spec/ta-journee.md, issue #274) : en tête, au-dessus de la capture, le jour même seulement.
+                if (day == today) {
+                    block("brief") {
+                        DayBriefCard(
+                            brief, language, folded = snapshot.settings.dayBriefFolded == true,
+                            onFold = { folded -> scope.launch { repository.setDayBriefFolded(folded) } },
+                            onReserve = reserveDeepWork,
+                            onSnooze = { t -> scope.launch { repository.snooze(t.id) } },
                         )
                     }
                 }

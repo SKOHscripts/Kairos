@@ -533,6 +533,14 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
   d’historique, les dérangements habituels sont retranchés du temps disponible, de
   la frise et de la prévision par tâche ; les créneaux de deep work sont supposés
   non dérangés.
+- **Ta journée** : une carte en tête de la vue Jour présente ta journée le matin,
+  puis le reste de ta journée : les tâches restantes et leur estimation, ce qui
+  est fait et le temps travaillé, les échéances du jour et de la semaine, le temps
+  disponible, la part des dérangements habituels et le temps effectif qui reste,
+  et si ça tient. Sinon, elle propose de réserver un créneau de deep work en un
+  toucher (avec « Annuler »), ou nomme une tâche à reporter. Elle se replie en
+  une ligne et ne disparaît jamais ; la notification du récapitulatif du jour
+  porte les mêmes chiffres.
 - **Rappels** (Réglages, désactivés par défaut) : une notification quelques
   minutes avant une tâche à heure fixe et, si tu le veux, quand le plan passe à
   la tâche suivante. Sur Android même Kairos fermé (quelques minutes de retard
@@ -811,6 +819,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Suivre | Cloches du pomodoro | 4.1.0 | Toutes |
 | Suivre | Le temps passé en un toucher | 4.5.0 | Toutes |
 | Suivre | Dérangements | 4.5.0 | Toutes |
+| Suivre | Ta journée | 4.5.0 | Toutes |
 | Suivre | Durées apprises | 3.4.0 | Toutes |
 | Suivre | Estimation par machine learning | 4.0.0 | Toutes |
 | Suivre | Fin probable d’une tâche | 4.1.0 | Toutes |

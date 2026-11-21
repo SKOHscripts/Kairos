@@ -233,10 +233,6 @@
     <string name="action_done_labelled">Hecho</string>
     <string name="action_snooze">Posponer al próximo día laborable</string>
     <string name="action_snooze_labelled">Posponer</string>
-    <string name="stats_done">%1$d hecha(s)</string>
-    <string name="stats_todo">%1$d pendiente(s)</string>
-    <string name="stats_load">necesario %1$s · disponible %2$s</string>
-    <string name="stats_overflow">el día se desborda en %1$s</string>
     <string name="duration_hours_minutes">%1$d h %2$s</string>
     <string name="duration_hours">%1$d h</string>
     <string name="duration_minutes">%1$d min</string>
@@ -347,7 +343,6 @@
     <string name="action_timer_stop">Detener el cronómetro</string>
     <string name="spent_of_estimate">%1$s / %2$s</string>
     <string name="timer_running">Cronómetro en marcha</string>
-    <string name="stats_spent_today">trabajado hoy %1$s</string>
     <string name="now_running_label">En este momento</string>
     <string name="now_running_estimate">estimado %1$s</string>
     <string name="now_running_empty">Ningún cronómetro en marcha. Inícialo en la tarea actual para seguir tu tiempo real.</string>
@@ -2212,7 +2207,6 @@
     <string name="card_time_spent_body">Marca una tarea como hecha sin el cronómetro: Kairos pregunta cuánto tardó, en un toque. El Balance lista las tareas hechas esta última semana que siguen sin tiempo. Con el cronómetro en marcha, «Hecho, siguiente» lo pasa a la siguiente tarea de tu plan.</string>
     <!-- Dérangements (docs/spec/derangements.md, issue #272) -->
     <string name="action_interrupted">Interrumpido</string>
-    <string name="stats_expected_interruptions">(~%1$s de interrupciones habituales descontadas)</string>
     <string name="interruption_saved">Interrumpido %1$s: anotado</string>
     <string name="interruption_title">Me han interrumpido</string>
     <string name="interruption_by">Por (opcional)</string>
@@ -2250,4 +2244,30 @@
     <string name="recap_interruptions_afternoon">sobre todo el %1$s por la tarde</string>
     <string name="card_interruptions_title">Interrupciones</string>
     <string name="card_interruptions_body">¿Te acaban de interrumpir? Dilo en un gesto, después: más o menos cuánto tiempo y, si quieres, por qué. El cronómetro se pausa con efecto retroactivo. Las estadísticas muestran cuántas, el tiempo perdido, cuándo y de dónde, y las interrupciones habituales se descuentan de tu tiempo disponible.</string>
+    <!-- Ta journée (docs/spec/ta-journee.md, issue #274) -->
+    <string name="day_brief_title_day">Tu día</string>
+    <string name="day_brief_title_rest">El resto de tu día</string>
+    <string name="day_brief_fold">Plegar</string>
+    <string name="day_brief_unfold">Desplegar</string>
+    <string name="day_brief_tasks_day_one">1 tarea por hacer, estimada en %1$s.</string>
+    <string name="day_brief_tasks_day_many">%1$d tareas por hacer, estimadas en %2$s.</string>
+    <string name="day_brief_tasks_rest_one">Queda 1 tarea, ~%1$s.</string>
+    <string name="day_brief_tasks_rest_many">Quedan %1$d tareas, ~%2$s.</string>
+    <string name="day_brief_done">Hecho hoy: %1$d · trabajado %2$s</string>
+    <string name="day_brief_deadlines">Fechas límite: %1$d hoy, %2$d hasta el domingo.</string>
+    <string name="day_brief_available">Disponible: %1$s.</string>
+    <string name="day_brief_available_effective">Disponible: %1$s, de los que ~%2$s de interrupciones habituales, o sea %3$s efectivas.</string>
+    <string name="day_brief_fits">Cabe antes de las %1$s.</string>
+    <string name="day_brief_fits_plain">Cabe.</string>
+    <string name="day_brief_deep_work">Sin un bloque de trabajo profundo dedicado, seguramente te pasarás unos %1$s.</string>
+    <string name="day_brief_reserve">Reservar %1$s de trabajo profundo a las %2$s</string>
+    <string name="day_brief_reserved">Trabajo profundo reservado: %1$s a las %2$s</string>
+    <string name="day_brief_postpone">El día se desborda %1$s: aplaza una tarea, por ejemplo «%2$s».</string>
+    <string name="day_brief_postpone_plain">El día se desborda %1$s: aplaza una tarea.</string>
+    <string name="day_brief_empty">Nada previsto hoy.</string>
+    <string name="day_brief_day_off">Día no laborable.</string>
+    <string name="reminder_summary_estimate">~%1$s</string>
+    <string name="reminder_summary_deadlines">fechas límite hoy: %1$d</string>
+    <string name="card_day_brief_title">Tu día</string>
+    <string name="card_day_brief_body">Arriba de la vista Día, una tarjeta presenta tu día y luego el resto: las tareas y su estimación, las fechas límite, el tiempo realmente disponible una vez contadas las interrupciones habituales, y si cabe. Si no, propone reservar un bloque de trabajo profundo con un toque. La notificación del resumen del día dice lo mismo.</string>
 </resources>

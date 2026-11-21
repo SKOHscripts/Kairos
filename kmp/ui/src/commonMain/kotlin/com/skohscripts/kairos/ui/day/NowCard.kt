@@ -42,7 +42,6 @@ import com.skohscripts.kairos.ui.generated.resources.Res
 import com.skohscripts.kairos.ui.generated.resources.action_done_labelled
 import com.skohscripts.kairos.ui.generated.resources.action_done_next
 import com.skohscripts.kairos.ui.generated.resources.action_interrupted
-import com.skohscripts.kairos.ui.generated.resources.stats_expected_interruptions
 import com.skohscripts.kairos.ui.generated.resources.action_snooze_labelled
 import com.skohscripts.kairos.ui.generated.resources.action_timer_start
 import com.skohscripts.kairos.ui.generated.resources.action_timer_stop
@@ -58,18 +57,12 @@ import com.skohscripts.kairos.ui.generated.resources.now_running_empty
 import com.skohscripts.kairos.ui.generated.resources.now_running_remaining
 import com.skohscripts.kairos.ui.generated.resources.now_running_estimate
 import com.skohscripts.kairos.ui.generated.resources.now_running_label
-import com.skohscripts.kairos.ui.generated.resources.stats_spent_today
 import com.skohscripts.kairos.ui.generated.resources.now_label
-import com.skohscripts.kairos.ui.generated.resources.stats_done
-import com.skohscripts.kairos.ui.generated.resources.stats_load
-import com.skohscripts.kairos.ui.generated.resources.stats_overflow
-import com.skohscripts.kairos.ui.generated.resources.stats_todo
 import com.skohscripts.kairos.ui.generated.resources.todo_empty
 import com.skohscripts.kairos.ui.app.NotifyHint
 import com.skohscripts.kairos.ui.app.NotifyState
 import com.skohscripts.kairos.ui.chrono.rememberLiveMinutes
 import com.skohscripts.kairos.ui.icons.KairosIcons
-import com.skohscripts.kairos.ui.theme.LocalKairosExtraColors
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
 
@@ -166,11 +159,9 @@ internal fun RunningCard(
 }
 
 /**
- * « Maintenant » : le seul bloc teinté de l'écran (conteneur primaire). La
- * prochaine tâche et ses actions nommées (« Fait » plein, chrono en contour,
- * « Décaler » texte), puis le bilan de la journée : faites, à faire, requis
- * contre disponible, débordement, temps travaillé aujourd'hui par type ; et
- * l'état des alertes du chrono.
+ * « Maintenant » : le bloc teinté principal de l'écran (conteneur primaire ; « Ta journée » est le second, en conteneur
+ * secondaire). La prochaine tâche et ses actions nommées (« Fait » plein, chrono en contour, « Décaler » et « Dérangé » en
+ * texte), puis l'état des alertes du chrono. Les bilans du jour sont dans « Ta journée » (docs/spec/ta-journee.md).
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -258,31 +249,7 @@ internal fun NowCard(
                     interrupted()
                 }
             }
-            val stats = view.schedule.stats
-            val extra = LocalKairosExtraColors.current
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                itemVerticalAlignment = Alignment.CenterVertically,
-            ) {
-                Badge(stringResource(Res.string.stats_done, view.doneToday.size), extra.okContainer, extra.onOkContainer, icon = KairosIcons.CheckCircle)
-                Badge(stringResource(Res.string.stats_todo, view.schedule.scheduled.size + view.schedule.unscheduled.size))
-                // Disponible net des dérangements habituels (docs/spec/derangements.md § Dérangements attendus), qui sont dits.
-                val lost = stats.expectedInterruptionMinutes
-                Text(
-                    stringResource(Res.string.stats_load, duration(stats.requiredMinutes), duration(stats.availableMinutes)) +
-                        if (lost > 0) " " + stringResource(Res.string.stats_expected_interruptions, duration(lost)) else "",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                if (stats.overflowMinutes > 0) ErrorBadge(stringResource(Res.string.stats_overflow, duration(stats.overflowMinutes)))
-                val parts = mutableListOf<String>()
-                for ((type, minutes) in view.spentByTypeToday) parts += "$type ${duration(minutes)}"
-                val byType = parts.joinToString(" · ")
-                Text(
-                    stringResource(Res.string.stats_spent_today, duration(view.spentToday)) + if (byType.isEmpty()) "" else " ($byType)",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
+            // Les bilans du jour sont passés dans « Ta journée » (docs/spec/ta-journee.md) : ici, la tâche du moment seule.
             AlertsOptIn(notifyState, onEnableAlerts, hints, onHint)
         }
     }

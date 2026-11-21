@@ -233,10 +233,6 @@
     <string name="action_done_labelled">Erledigt</string>
     <string name="action_snooze">Auf den nächsten Arbeitstag verschieben</string>
     <string name="action_snooze_labelled">Verschieben</string>
-    <string name="stats_done">%1$d erledigt</string>
-    <string name="stats_todo">%1$d offen</string>
-    <string name="stats_load">benötigt %1$s · verfügbar %2$s</string>
-    <string name="stats_overflow">der Tag läuft um %1$s über</string>
     <string name="duration_hours_minutes">%1$d h %2$s</string>
     <string name="duration_hours">%1$d h</string>
     <string name="duration_minutes">%1$d min</string>
@@ -347,7 +343,6 @@
     <string name="action_timer_stop">Timer stoppen</string>
     <string name="spent_of_estimate">%1$s / %2$s</string>
     <string name="timer_running">Timer läuft</string>
-    <string name="stats_spent_today">heute gearbeitet %1$s</string>
     <string name="now_running_label">Gerade jetzt</string>
     <string name="now_running_estimate">geschätzt %1$s</string>
     <string name="now_running_empty">Kein Timer läuft. Starte ihn bei der aktuellen Aufgabe, um deine Echtzeit zu erfassen.</string>
@@ -2212,7 +2207,6 @@
     <string name="card_time_spent_body">Hake eine Aufgabe ohne Timer ab: Kairos fragt mit einem Tippen, wie lange sie gedauert hat. Die Bilanz listet die Aufgaben der letzten Woche, die noch keine Zeit haben. Läuft der Timer, gibt „Erledigt, nächste“ ihn an die nächste Aufgabe deines Plans weiter.</string>
     <!-- Dérangements (docs/spec/derangements.md, issue #272) -->
     <string name="action_interrupted">Gestört</string>
-    <string name="stats_expected_interruptions">(~%1$s übliche Störungen abgezogen)</string>
     <string name="interruption_saved">Gestört %1$s: notiert</string>
     <string name="interruption_title">Ich wurde gestört</string>
     <string name="interruption_by">Durch (optional)</string>
@@ -2250,4 +2244,30 @@
     <string name="recap_interruptions_afternoon">meist %1$s nachmittags</string>
     <string name="card_interruptions_title">Störungen</string>
     <string name="card_interruptions_body">Gerade gestört worden? Sag es nachträglich mit einer Geste: ungefähr wie lange und, wenn du willst, wodurch. Der Timer wird rückwirkend pausiert. Die Statistik zeigt, wie oft, die verlorene Zeit, wann und woher, und die üblichen Störungen werden von deiner verfügbaren Zeit abgezogen.</string>
+    <!-- Ta journée (docs/spec/ta-journee.md, issue #274) -->
+    <string name="day_brief_title_day">Dein Tag</string>
+    <string name="day_brief_title_rest">Der Rest deines Tages</string>
+    <string name="day_brief_fold">Einklappen</string>
+    <string name="day_brief_unfold">Ausklappen</string>
+    <string name="day_brief_tasks_day_one">1 Aufgabe zu erledigen, geschätzt %1$s.</string>
+    <string name="day_brief_tasks_day_many">%1$d Aufgaben zu erledigen, geschätzt %2$s.</string>
+    <string name="day_brief_tasks_rest_one">1 Aufgabe übrig, ~%1$s.</string>
+    <string name="day_brief_tasks_rest_many">%1$d Aufgaben übrig, ~%2$s.</string>
+    <string name="day_brief_done">Heute erledigt: %1$d · gearbeitet %2$s</string>
+    <string name="day_brief_deadlines">Fristen: %1$d heute, %2$d bis Sonntag.</string>
+    <string name="day_brief_available">Verfügbar: %1$s.</string>
+    <string name="day_brief_available_effective">Verfügbar: %1$s, davon ~%2$s übliche Störungen, also %3$s echte Arbeitszeit.</string>
+    <string name="day_brief_fits">Es passt bis %1$s.</string>
+    <string name="day_brief_fits_plain">Es passt.</string>
+    <string name="day_brief_deep_work">Ohne eigenen Deep-Work-Block wirst du wohl um etwa %1$s überziehen.</string>
+    <string name="day_brief_reserve">%1$s Deep Work um %2$s reservieren</string>
+    <string name="day_brief_reserved">Deep Work reserviert: %1$s um %2$s</string>
+    <string name="day_brief_postpone">Der Tag läuft um %1$s über: Verschiebe eine Aufgabe, zum Beispiel „%2$s“.</string>
+    <string name="day_brief_postpone_plain">Der Tag läuft um %1$s über: Verschiebe eine Aufgabe.</string>
+    <string name="day_brief_empty">Heute nichts geplant.</string>
+    <string name="day_brief_day_off">Arbeitsfreier Tag.</string>
+    <string name="reminder_summary_estimate">~%1$s</string>
+    <string name="reminder_summary_deadlines">Fristen heute: %1$d</string>
+    <string name="card_day_brief_title">Dein Tag</string>
+    <string name="card_day_brief_body">Oben in der Tagesansicht stellt eine Karte deinen Tag vor, dann den Rest davon: die Aufgaben und ihre Schätzung, die Fristen, die wirklich verfügbare Zeit nach den üblichen Störungen und ob es passt. Wenn nicht, schlägt sie vor, mit einem Tippen einen Deep-Work-Block zu reservieren. Die Benachrichtigung der Tagesübersicht sagt dasselbe.</string>
 </resources>
