@@ -119,6 +119,12 @@ oublié » ne sonne qu'une fois.
   suivante, toujours à l'instant limite.
 - Les alertes de la session (dépassement, oubli, pause) ne sonnent plus au-delà de la limite : la session est close.
 
+#### Enchaîner le chrono : « Fait, suivante » (issue #271, 4.5.0)
+
+- Sur la carte « Maintenant », chrono lancé sur la tâche affichée et une tâche après elle dans le plan : « Fait, suivante »
+  coche la tâche (sa séance se ferme) et lance le chrono sur la suivante, avec « Annuler » (arrête ce nouveau chrono). Détail et
+  « Temps passé ? » pour les tâches cochées sans chrono : `durees-reelles.md`.
+
 ### Cloches (issue #234, 4.1.0)
 
 - Les notifications du chrono sortent maintenant à l'heure (#219) ; il leur manquait un **son** pour en faire un vrai

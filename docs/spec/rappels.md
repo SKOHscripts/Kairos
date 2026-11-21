@@ -77,8 +77,9 @@ un rappel discret avant une tâche à heure fixe et, s'il le souhaite, quand le 
 - **Envoyé seulement les jours où quelque chose est prévu** : au moins une tâche placée par le plan du jour ou un créneau occupé
   (réunion importée comprise). Un jour vide, un week-end ou un férié sans rien, aucune notification.
 - **Contenu** : titre « Ta journée » ; texte « 5 tâches · 2 créneaux » ; puis, dans la notification dépliée, les **trois premières
-  tâches** du plan avec leur heure (« 09:30 Point d'équipe », « 10:00 Rédiger la documentation »…) et « … » s'il y en a plus.
-  Un toucher ouvre la vue Jour.
+  tâches** du plan avec leur heure (« 09:30 Point d'équipe », « 10:00 Rédiger la documentation »…) et « … » s'il y en a plus,
+  puis, s'il y en a, « 3 tâches faites sans temps : à compléter dans le Bilan » (4.5.0, `durees-reelles.md`). Un toucher ouvre
+  la vue Jour.
 - **Même vue que le reste** : l'espace Perso (les tâches d'équipe d'un collègue n'y sont jamais). Rien n'est rattrapé : si l'heure
   choisie est déjà passée quand on active l'interrupteur, le récapitulatif de ce jour n'est pas envoyé.
 - Où il arrive : comme les rappels, notification du système sur **Android** (même Kairos fermé, alarme inexacte, quelques minutes de

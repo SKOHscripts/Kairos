@@ -25,6 +25,8 @@ d'œil, détaillable à la demande.
 
 ### Comportement attendu (utilisateur)
 
+- **Revue des tâches faites sans temps** (4.5.0, `durees-reelles.md`) : sur la période en cours seulement, une carte au-dessus du
+  bilan liste les tâches faites ces 7 derniers jours sans aucun temps, chacune avec ses durées d'un toucher et « Ignorer ».
 - **Carte « Bilan de la semaine »** (vue Semaine) et **« Bilan du mois »** (vue Mois), sous l'en-tête de période (et sous
   « Rechercher / filtrer » dans la semaine), avant la grille. Toujours visibles, quatre chiffres :
   - « tâche(s) faite(s) » (le nombre ; avec des points : « 3 · 13 pts ») ;

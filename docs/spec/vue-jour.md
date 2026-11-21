@@ -70,7 +70,11 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
    « Décaler » ; bilan : faites aujourd'hui, à faire, « requis … · disponible
    … », « la journée déborde de … » s'il y a lieu, temps travaillé
    aujourd'hui et par type ; état des alertes du chrono
-   (`temps-reel-chrono.md`).
+   (`temps-reel-chrono.md`). Chrono lancé sur la tâche affichée et une tâche
+   après elle : « Fait » devient « Fait, suivante », qui coche la tâche et
+   lance le chrono sur la suivante (`durees-reelles.md`, 4.5.0). Cocher une
+   tâche sans aucun temps (ligne ou « Fait ») demande « Temps passé ? » en un
+   toucher, sauf coches à moins d'une minute d'écart (`durees-reelles.md`).
 5. **Bandeau de surcharge** si plus de P0 non bloquées que le seuil.
 6. **Aujourd'hui, dans l'ordre** : les tâches placées par heure, ordre du
    score ; étiquettes « épinglée », « deep work », « chemin critique » ;
