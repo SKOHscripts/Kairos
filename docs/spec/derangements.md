@@ -12,7 +12,7 @@ temps des tâches reste leur vrai temps. Fichiers couverts (prévus) : `core/mod
 
 État : issue [#272](https://github.com/SKOHscripts/Kairos/issues/272), liée à [#271](https://github.com/SKOHscripts/Kairos/issues/271)
 (plus de durées réelles) et à [#274](https://github.com/SKOHscripts/Kairos/issues/274) (carte « Ta journée », `ta-journee.md`),
-jalon 4.6.0. **Spécifiée le 2026-11-21, non implémentée** ; conception décidée par le propriétaire le même jour.
+jalon 4.5.0. **Spécifiée le 2026-11-21, non implémentée** ; conception décidée par le propriétaire le même jour.
 
 ## 1. Besoin métier (cahier des charges)
 

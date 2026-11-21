@@ -7,7 +7,7 @@ aide quand ça ne tient pas (un créneau de deep work). Bandeau persistant où K
 `core/model/Settings.kt` (`dayBriefFolded`, local), `FeatureCatalog`. Tests (prévus) : `DayBriefTest`, `DailySummaryTest` (étendu),
 `DayBriefUiTest`._
 
-État : issue [#274](https://github.com/SKOHscripts/Kairos/issues/274), jalon 4.6.0, liée à [#272](https://github.com/SKOHscripts/Kairos/issues/272)
+État : issue [#274](https://github.com/SKOHscripts/Kairos/issues/274), jalon 4.5.0, liée à [#272](https://github.com/SKOHscripts/Kairos/issues/272)
 (dérangements attendus, `derangements.md`) et [#271](https://github.com/SKOHscripts/Kairos/issues/271). **Spécifiée le
 2026-11-21, non implémentée** ; choix du propriétaire du même jour.
 
