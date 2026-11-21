@@ -190,7 +190,7 @@ data class DayView(
             // Échéance implicite apprise de l'historique, seulement si l'utilisateur n'en a pas saisi : le moteur la reçoit par les réglages.
             val learnedLinger = if (snapshot.settings.implicitDeadlineDays == null) Survival.lingerDays(snapshot, instant, timeZone) else null
             val settings = learnedLinger?.let { snapshot.settings.copy(implicitDeadlineDays = it) } ?: snapshot.settings
-            val holidays = Workdays.holidaysFor(day, settings.holidaysFr, settings.extraHolidays)
+            val holidays = Workdays.holidaysFor(day, settings.holidayCountryCode, settings.extraHolidays)
             val stored = snapshot.tasks.filter { it.status != TaskStatus.ARCHIVED }
             // Échéance héritée (docs/spec/sous-taches.md § Échéance) : une sous-tâche à faire sans échéance, ou plus tardive que
             // celle d'un ancêtre, est planifiée et listée avec celle de l'ancêtre. La fiche relit la tâche stockée : rien ne s'écrit.

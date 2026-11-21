@@ -58,6 +58,8 @@ object DesktopServices {
         val url = if (inMemory) JdbcSqliteDriver.IN_MEMORY else "jdbc:sqlite:${File(dataDir, DATABASE_FILE).absolutePath}"
         val clock = Clock.System
         val language = Locale.getDefault().language
+        // Pays des fériés d'une base neuve (docs/spec/jours-feries.md).
+        val region = Locale.getDefault().country
         val opened = KairosStore.open(JdbcSqliteDriver(url))
         val backups = FolderBackups(File(dataDir, "backups"))
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -65,7 +67,7 @@ object DesktopServices {
         val linked = LinkedFileSync(DesktopLinkedFile(dataDir), scope, clock, osLabel(), backups)
         val repository = KairosRepository.open(
             opened,
-            examples = { ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language) },
+            examples = { ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language, region) },
             clock = clock,
             onChanged = { linked.changed(it) },
         )

@@ -50,7 +50,7 @@ data class Recap(
             // Sans filtre, toutes les sessions comptent, même celles d'une tâche disparue (le total de la semaine d'avant le bilan).
             val sessions = TimeTracking.sessionsInRange(snapshot.workSessions, start, end, timeZone).filter { !filter.active || it.taskId in keptIds }
             val minutes = TimeTracking.spentMinutesByTask(sessions, now)
-            val holidays = Workdays.holidaysFor(start, snapshot.settings.holidaysFr, snapshot.settings.extraHolidays)
+            val holidays = Workdays.holidaysFor(start, snapshot.settings.holidayCountryCode, snapshot.settings.extraHolidays)
             val blocks = snapshot.timeBlocks.filter { it.recurrence == BlockRecurrence.NONE } +
                 Recurrence.expandRecurringBlocks(snapshot.timeBlocks.filter { it.recurrence != BlockRecurrence.NONE }, start, end, holidays, snapshot.blockExceptions)
             val left = kept.filter { it.status == TaskStatus.TODO && it.deadline?.let { d -> d in start..end } == true }

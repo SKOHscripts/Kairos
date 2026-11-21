@@ -66,7 +66,7 @@ data class MonthView(
             val settings = snapshot.settings
             val open = snapshot.tasks.filter { it.status == TaskStatus.TODO }
             // Fériés du 1er : `holidaysFor` couvre l'année d'avant et les deux suivantes, le mois entier y est.
-            val holidays = Workdays.holidaysFor(first, settings.holidaysFr, settings.extraHolidays)
+            val holidays = Workdays.holidaysFor(first, settings.holidayCountryCode, settings.extraHolidays)
             val templates = snapshot.timeBlocks.filter { it.recurrence != BlockRecurrence.NONE }
             val occurrences = Recurrence.expandRecurringBlocks(templates, first, last, holidays, snapshot.blockExceptions)
             val oneOff = snapshot.timeBlocks.filter { it.recurrence == BlockRecurrence.NONE && it.start.date in first..last }

@@ -85,7 +85,8 @@ object WebServices {
                 KairosWeb.opfsRead(EXTRAS_FILE).await<JsString?>()?.toString()?.let { repository.importSyncExtras(it) }
             }
             snapshot != null -> repository.replaceAll(snapshot)
-            else -> repository.replaceAll(ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language))
+            // Pays des fériés : la région de `navigator.language` (« fr-BE » → « BE » ; sans région, aucun ; docs/spec/jours-feries.md).
+            else -> repository.replaceAll(ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language, language.split('-', '_').getOrNull(1).orEmpty()))
         }
         storage.start(link, restorePending, repository.snapshot.value)
 

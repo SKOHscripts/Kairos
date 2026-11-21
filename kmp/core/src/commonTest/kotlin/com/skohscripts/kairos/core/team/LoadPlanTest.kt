@@ -331,7 +331,7 @@ class LoadPlanTest {
             deps = listOf(dep(3, 2)),
         )
         val default = LoadPlan.build(s, monday, horizonWeeks = 3, todayFraction = 0.75)
-        val holidays = Workdays.holidaysFor(monday, s.settings.holidaysFr, s.settings.extraHolidays)
+        val holidays = Workdays.holidaysFor(monday, s.settings.holidayCountryCode, s.settings.extraHolidays)
         val explicitEfforts = default.tasks.associate { it.taskId to it.hours }
         val explicit = LoadPlan.build(
             s, monday, horizonWeeks = 3, todayFraction = 0.75, efforts = explicitEfforts,
