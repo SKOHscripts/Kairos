@@ -38,7 +38,7 @@
     <string name="about_name_title">Почему «Kairos»?</string>
     <string name="about_name_body">По-гречески kairos означает подходящий момент, верный миг для действия, в отличие от chronos, текущего времени. В этом и состоит задача инструмента: найти подходящий интервал для каждой задачи.</string>
     <string name="about_version">Версия %1$s</string>
-    <string name="about_license">Свободное ПО под лицензией MIT. Твои данные остаются на этом устройстве.</string>
+    <string name="about_license">Kairos, автор — Corentin Michel (github.com/SKOHscripts/Kairos). Свободное ПО под лицензией GNU AGPL v3 или более поздней версии. Твои данные остаются на этом устройстве.</string>
     <string name="about_source">Исходный код</string>
 
     <string name="loading">Открытие Kairos…</string>

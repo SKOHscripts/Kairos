@@ -9,7 +9,7 @@
 [![F-Droid](https://img.shields.io/f-droid/v/com.skohscripts.kairos?label=F-Droid&logo=fdroid&logoColor=white)](https://f-droid.org/packages/com.skohscripts.kairos/)
 [![Downloads](https://img.shields.io/github/downloads/SKOHscripts/Kairos/total?label=downloads)](https://github.com/SKOHscripts/Kairos/releases)
 [![Commit activity](https://img.shields.io/github/commit-activity/m/SKOHscripts/Kairos?label=commits)](https://github.com/SKOHscripts/Kairos/commits/main)
-[![License: MIT](https://img.shields.io/github/license/SKOHscripts/Kairos?label=license)](LICENSE)
+[![License: AGPL-3.0-or-later](https://img.shields.io/github/license/SKOHscripts/Kairos?label=license)](LICENSE)
 
 [![privacy: no account · no ads · no tracking](https://img.shields.io/badge/privacy-no%20account%20%C2%B7%20no%20ads%20%C2%B7%20no%20tracking-2F6FED?labelColor=1C2F59)](#data)
 [![data: on your device, offline-first](https://img.shields.io/badge/data-on%20your%20device%2C%20offline--first-2F6FED?labelColor=1C2F59)](#data)
@@ -883,4 +883,14 @@ The design and contribution documents are written in French.
 
 ## License
 
-[MIT](LICENSE).
+- **Code**: [GNU AGPL v3 or later](LICENSE) (AGPL-3.0-or-later). A program that
+  reuses Kairos' code and is distributed, or offered to users over a network,
+  publishes its source code under the same license.
+- **Attribution** (additional term under section 7(b), see [NOTICE](NOTICE)):
+  a work based on Kairos keeps in its legal notices (its "About" screen) the
+  line "Based on Kairos, by Corentin Michel — https://github.com/SKOHscripts/Kairos".
+- **Documentation** (this README, `docs/`, store and website texts, screenshots):
+  [CC BY-SA 4.0](LICENSES/CC-BY-SA-4.0.txt), credited as "Kairos documentation,
+  by Corentin Michel".
+- Code published until 2026-11-20 (v4.2.0 included) was under the
+  [MIT License](LICENSES/MIT.txt) and remains available under it.

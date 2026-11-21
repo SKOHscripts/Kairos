@@ -11,7 +11,7 @@ pkgrel=1
 pkgdesc='The right time for every task: sorts your tasks and fits them into the gaps of your day, offline'
 arch=('x86_64')
 url='https://github.com/SKOHscripts/Kairos'
-license=('MIT')
+license=('AGPL-3.0-or-later')
 # Bibliothèques que l'image jpackage charge elle-même (runtime Java réduit, Skiko) ; le runtime Java est embarqué.
 # freetype et zlib viennent du runtime ; libGL est chargée à l'exécution par Skiko (namcap ne la voit pas).
 depends=(

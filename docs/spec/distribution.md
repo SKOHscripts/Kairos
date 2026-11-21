@@ -464,7 +464,7 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
   la lit pas dans le dépôt) : racine `<zip-file>` (l'artefact téléversé), signature profonde du `.msi` (lanceur
   `**/Kairos*.exe`, puis le `.msi` lui-même) et du lanceur du zip portable.
 - **À faire par le propriétaire** (rien de cela ne peut se faire depuis le dépôt) :
-  1. Déposer la candidature sur signpath.org (licence MIT, construction depuis ce dépôt public par GitHub Actions).
+  1. Déposer la candidature sur signpath.org (licence AGPL v3 ou ultérieure depuis le 2026-11-21, MIT avant, `licence.md` ; construction depuis ce dépôt public par GitHub Actions).
   2. Une fois accepté, publier la **politique de signature** exigée par SignPath Foundation, sous le titre « Code
      signing policy » dans le README et sur la page de téléchargement : « Free code signing provided by SignPath.io,
      certificate by SignPath Foundation », les rôles (auteurs, relecteurs, approbateurs : le propriétaire), et la
@@ -494,7 +494,7 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
     `/usr/bin/kairos` → `/opt/kairos/bin/Kairos` ; entrée de menu `/usr/share/applications/kairos.desktop`
     (`Exec=kairos`, `Icon=kairos`, `Categories=Office;ProjectManagement;`, `StartupWMClass=kairos`, la classe de
     fenêtre de `WindowClass`, commentaire anglais et `Comment[fr]`) ; icône `/usr/share/pixmaps/kairos.png` (le logo
-    1024 px de l'image) ; licence `/usr/share/licenses/kairos-bin/LICENSE` (le fichier `copyright` du `.deb`, MIT) ;
+    1024 px de l'image) ; licence `/usr/share/licenses/kairos-bin/LICENSE` (le fichier `copyright` du `.deb`, copie de `LICENSE` : l'AGPLv3, `licence.md`) ; `license=('AGPL-3.0-or-later')` ;
   - `depends` : les bibliothèques que l'image charge elle-même (runtime Java réduit, Skiko) : `alsa-lib`,
     `fontconfig`, `glibc`, `libglvnd` (libGL, chargée à l'exécution par Skiko), `libstdc++`, `libx11`, `libxext`,
     `libxi`, `libxrender`, `libxtst` ; freetype et zlib viennent du runtime, qui est embarqué : aucun JDK n'est
@@ -742,7 +742,7 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
   pour l'essayer).
 
 - **Windows : SignPath Foundation** (2026-10-29, issue #117, décision du propriétaire) : gratuit pour un projet libre
-  construit depuis son dépôt public, ce que Kairos est (licence MIT, release par GitHub Actions, APK reproductible).
+  construit depuis son dépôt public, ce que Kairos est (licence MIT à l'époque, AGPL v3 ou ultérieure depuis le 2026-11-21, release par GitHub Actions, APK reproductible).
   Prix accepté : l'éditeur affiché est « SignPath Foundation », pas le nom de l'auteur, chaque release attend une
   approbation manuelle, et une politique de signature doit être publiée. Écartés : Azure Artifact Signing (environ
   10 USD par mois, vérification d'identité restreinte pour les particuliers selon le pays) ; un certificat OV d'une

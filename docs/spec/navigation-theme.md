@@ -52,7 +52,7 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   (écran secondaire `Secondary.ABOUT`) ; ouvert depuis les Réglages, sa flèche
   retour y ramène. Présente Kairos (ce
   qu'il fait en quatre points, la formule du score de priorité, l'origine du
-  nom), la version, la licence (MIT, données locales), un lien vers le code
+  nom), la version, la mention d'auteur et la licence (AGPL v3 ou ultérieure, données locales ; `licence.md`), un lien vers le code
   source, « Soutenir Kairos » (`soutien.md`) et « Donner un avis » (`retours.md`). Un bouton retour, le retour système Android ou Échap le ferment.
 - Les cinq destinations sont portées : Accueil (`accueil.md`), Notes
   (`notes-capture.md`), Jour (`vue-jour.md`), Bilan (`vue-semaine.md`, `vue-mois.md`, `bilan.md`),
@@ -272,7 +272,7 @@ aussi pouvoir comprendre ce que fait l'outil sans lire le dépôt.
   (`surfaceContainerLow`, élévation 0 : jamais d'ombre sur une carte) : « En
   bref » (quatre points, puce à part : les lignes suivantes s'alignent sous le texte), « Le score de priorité (WSJF) » (formule en
   primaire gras + explication), « Pourquoi Kairos ? » ; version
-  (`KairosBuild.VERSION_NAME`) ; licence ; bouton « Code source » qui ouvre
+  (`KairosBuild.VERSION_NAME`) ; mention d'auteur et licence (`about_license`, `licence.md`) ; bouton « Code source » qui ouvre
   `SOURCE_URL` (`https://github.com/SKOHscripts/Kairos`) par `LocalUriHandler`
   (enveloppé de `runCatching` comme « Soutenir Kairos » : sans `xdg-open`,
   l'application quittait sur l'erreur),

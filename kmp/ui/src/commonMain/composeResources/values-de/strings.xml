@@ -38,7 +38,7 @@
     <string name="about_name_title">Warum „Kairos“?</string>
     <string name="about_name_body">Im Griechischen bedeutet kairos den günstigen Augenblick, den richtigen Moment zum Handeln, im Gegensatz zu chronos, der verstreichenden Zeit. Genau das ist die Aufgabe des Tools: das passende Zeitfenster für jede Aufgabe zu finden.</string>
     <string name="about_version">Version %1$s</string>
-    <string name="about_license">Freie Software unter der MIT-Lizenz. Deine Daten bleiben auf diesem Gerät.</string>
+    <string name="about_license">Kairos, von Corentin Michel (github.com/SKOHscripts/Kairos). Freie Software unter der GNU AGPL v3 oder später. Deine Daten bleiben auf diesem Gerät.</string>
     <string name="about_source">Quellcode</string>
 
     <string name="loading">Kairos wird geöffnet…</string>
