@@ -21,6 +21,8 @@ import com.skohscripts.kairos.core.model.DayMark
 import com.skohscripts.kairos.core.model.BlockSource
 import com.skohscripts.kairos.core.model.CalendarSource
 import com.skohscripts.kairos.core.model.KairosSnapshot
+import com.skohscripts.kairos.core.model.Interruption
+import com.skohscripts.kairos.core.model.InterruptionSource
 import com.skohscripts.kairos.core.model.Note
 import com.skohscripts.kairos.core.model.NoteStatus
 import com.skohscripts.kairos.core.model.Settings
@@ -151,6 +153,8 @@ object ExportCodec {
         unique(s.dependencies.map { it.id }, "dépendances")
         unique(s.workSessions.map { it.id }, "sessions")
         unique(s.notes.map { it.id }, "notes")
+        unique(s.interruptions.map { it.id }, "dérangements")
+        for (i in s.interruptions) require(i.minutes in Interruption.MIN_MINUTES..Interruption.MAX_MINUTES) { "durée d'un dérangement" }
         unique(s.members.map { it.id }, "membres")
         unique(s.absences.map { it.id }, "absences")
         unique(s.teamEvents.map { it.id }, "journal")
@@ -227,6 +231,8 @@ private data class ExportFile(
     // Calendriers importés et leurs journées entières (3.10.0, issue #136) : même règle, nuls tant qu'il n'y en a aucun.
     val calendarSources: List<CalendarSourceJson>? = null,
     val dayMarks: List<DayMarkJson>? = null,
+    // Dérangements (4.5.0, docs/spec/derangements.md) : même règle, nuls tant qu'il n'y en a aucun ; une version d'avant les ignore.
+    val interruptions: List<InterruptionJson>? = null,
     // Synchronisation (formatVersion 3) : nul, donc omis, pour une base qui ne synchronise pas.
     val sync: SyncJson? = null,
 ) {
@@ -248,6 +254,7 @@ private data class ExportFile(
         blockExceptions = blockExceptions.orEmpty().map { it.toModel() },
         calendarSources = calendarSources.orEmpty().map { it.toModel() },
         dayMarks = dayMarks.orEmpty().map { it.toModel() },
+        interruptions = interruptions.orEmpty().map { it.toModel() },
     )
 
     /** La même exportation, en format 3 : chaque enregistrement de la portée porte son `uid` et ses marques, la racine le contexte. */
@@ -267,6 +274,7 @@ private data class ExportFile(
             blockExceptions = blockExceptions?.map { j -> tag(RecordKind.EXCEPTION, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
             calendarSources = calendarSources?.map { j -> tag(RecordKind.CALENDAR, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
             dayMarks = dayMarks?.map { j -> tag(RecordKind.DAYMARK, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
+            interruptions = interruptions?.map { j -> tag(RecordKind.INTERRUPTION, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
             sync = SyncJson(
                 device = d.device,
                 label = d.label,
@@ -305,6 +313,7 @@ private data class ExportFile(
         blockExceptions.orEmpty().forEach { take(RecordKind.EXCEPTION, it.id, it.uid, it.born, it.base, it.stamps) }
         calendarSources.orEmpty().forEach { take(RecordKind.CALENDAR, it.id, it.uid, it.born, it.base, it.stamps) }
         dayMarks.orEmpty().forEach { take(RecordKind.DAYMARK, it.id, it.uid, it.born, it.base, it.stamps) }
+        interruptions.orEmpty().forEach { take(RecordKind.INTERRUPTION, it.id, it.uid, it.born, it.base, it.stamps) }
         sync.phantoms.orEmpty().forEach { (id, uid) ->
             require(uid.isNotEmpty() && uid.length <= SyncScope.MAX_UID) { "uid" }
             uids.getOrPut(RecordKind.TASK) { HashMap() }[id.toLong()] = uid
@@ -357,6 +366,7 @@ private data class ExportFile(
                 blockExceptions = s.blockExceptions.takeIf { it.isNotEmpty() }?.map { BlockExceptionJson.from(it) },
                 calendarSources = s.calendarSources.takeIf { it.isNotEmpty() }?.map { CalendarSourceJson.from(it) },
                 dayMarks = s.dayMarks.mapNotNull { DayMarkJson.from(it) }.takeIf { it.isNotEmpty() },
+                interruptions = s.interruptions.takeIf { it.isNotEmpty() }?.map { InterruptionJson.from(it) },
             )
         }
     }
@@ -614,6 +624,29 @@ private data class SessionJson(
     val base: String? = null,
     val stamps: Map<String, String>? = null,
 )
+
+/** Un dérangement (docs/spec/derangements.md) : `source` en code stable, références molles vers la tâche et la note. */
+@Serializable
+private data class InterruptionJson(
+    val id: Long,
+    val at: String,
+    val minutes: Int,
+    val source: String? = null,
+    val taskId: Long? = null,
+    val noteId: Long? = null,
+    val createdAt: String,
+    // Synchronisation (formatVersion 3, docs/spec/synchronisation.md § Format) : nuls, donc omis, hors synchronisation.
+    val uid: String? = null,
+    val born: String? = null,
+    val base: String? = null,
+    val stamps: Map<String, String>? = null,
+) {
+    fun toModel() = Interruption(id, Instant.parse(at), minutes, InterruptionSource.fromCode(source), taskId, noteId, Instant.parse(createdAt))
+
+    companion object {
+        fun from(i: Interruption) = InterruptionJson(i.id, i.at.toString(), i.minutes, i.source?.code, i.taskId, i.noteId, i.createdAt.toString())
+    }
+}
 
 @Serializable
 private data class NoteJson(

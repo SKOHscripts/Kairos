@@ -206,6 +206,7 @@ class ConnectionRepositoryTest {
     fun schemaThirteenGainsAnEmptyConnectionTable() = runTest {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         KairosStore.open(driver)
+        driver.execute(null, "DROP TABLE interruption", 0).await()
         driver.execute(null, "ALTER TABLE calendar_source DROP COLUMN counts_as_holidays", 0).await()
         driver.execute(null, "DROP TABLE calendar_connection", 0).await()
         assertEquals(13L, KairosStore.actualVersion(driver))

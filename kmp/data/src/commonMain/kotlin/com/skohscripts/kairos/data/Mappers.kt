@@ -10,6 +10,8 @@ import com.skohscripts.kairos.core.model.ExchangeNote
 import com.skohscripts.kairos.core.model.BlockException
 import com.skohscripts.kairos.core.model.BlockKind
 import com.skohscripts.kairos.core.model.BlockRecurrence
+import com.skohscripts.kairos.core.model.Interruption
+import com.skohscripts.kairos.core.model.InterruptionSource
 import com.skohscripts.kairos.core.model.Note
 import com.skohscripts.kairos.core.model.NoteStatus
 import com.skohscripts.kairos.core.model.Task
@@ -36,6 +38,7 @@ import kotlin.time.Instant
 import com.skohscripts.kairos.data.db.Member_absence as AbsenceRow
 import com.skohscripts.kairos.data.db.Time_block_exception as BlockExceptionRow
 import com.skohscripts.kairos.data.db.Note as NoteRow
+import com.skohscripts.kairos.data.db.Interruption as InterruptionRow
 import com.skohscripts.kairos.data.db.Task as TaskRow
 import com.skohscripts.kairos.data.db.Team_event as EventRow
 import com.skohscripts.kairos.data.db.Team_member as MemberRow
@@ -198,6 +201,16 @@ internal fun BlockExceptionRow.toModel() = BlockException(
 internal fun DependencyRow.toModel() = TaskDependency(id, task_id, blocker_id, created_at.instant())
 
 internal fun SessionRow.toModel() = WorkSession(id, task_id, started_at.instant(), ended_at?.instant(), created_at.instant())
+
+internal fun InterruptionRow.toModel() = Interruption(
+    id = id,
+    at = at.instant(),
+    minutes = minutes.toInt(),
+    source = InterruptionSource.fromCode(source),
+    taskId = task_id,
+    noteId = note_id,
+    createdAt = created_at.instant(),
+)
 
 internal fun NoteRow.toModel() = Note(
     id = id,
