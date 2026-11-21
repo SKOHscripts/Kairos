@@ -9,6 +9,7 @@ import com.skohscripts.kairos.ui.app.MAX_BODY_BYTES
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketTimeoutException
@@ -17,6 +18,7 @@ import java.net.URISyntaxException
 import java.util.Locale
 import java.util.zip.GZIPInputStream
 import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SNIHostName
 import javax.net.ssl.SSLException
 import javax.net.ssl.SSLPeerUnverifiedException
 import javax.net.ssl.SSLSocket
@@ -25,8 +27,9 @@ import javax.net.ssl.SSLSocketFactory
 /**
  * Méthodes WebDAV sur Android (docs/spec/connexions-en-ligne.md § Transport des méthodes WebDAV) : `HttpURLConnection` refuse
  * `PROPFIND` et `REPORT` (`ProtocolException`, liste fermée de méthodes). Ici, HTTP/1.1 minimal ([Http11]) sur un `SSLSocket` du
- * système : `https` seulement, SNI et vérification du nom d'hôte, délais de 10 s de connexion et du total de la requête. Le
- * mandataire du système n'est pas utilisé (limite connue). Bloquant : appelé depuis `Dispatchers.IO`.
+ * système : `https` seulement, SNI posé explicitement et vérification du nom d'hôte, chaque adresse IP du serveur essayée à son
+ * tour, délais de 10 s de connexion et du total de la requête. Le mandataire du système n'est pas utilisé (limite connue).
+ * Bloquant : appelé depuis `Dispatchers.IO`.
  */
 internal object AndroidRawHttp {
     /** Méthodes que `HttpURLConnection` accepte ; les autres passent par ce transport. */
@@ -54,13 +57,17 @@ internal object AndroidRawHttp {
             if (left <= 0) throw SocketTimeoutException("HTTP timeout")
             return left.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
         }
-        val plain = Socket()
+        var plain: Socket? = null
         try {
-            plain.connect(InetSocketAddress(host, port), minOf(10_000, remaining()))
-            // The host name given here is the SNI name (Conscrypt), and endpoint identification checks the certificate.
+            plain = connect(host, port, ::remaining)
             val socket = (SSLSocketFactory.getDefault() as SSLSocketFactory).createSocket(plain, host, port, true) as SSLSocket
             socket.use { ssl ->
-                ssl.sslParameters = ssl.sslParameters.apply { endpointIdentificationAlgorithm = "HTTPS" }
+                ssl.sslParameters = ssl.sslParameters.apply {
+                    endpointIdentificationAlgorithm = "HTTPS"
+                    // SNI set explicitly: on Android a layered socket does not always send it, and a server behind a shared
+                    // front end can drop a handshake without it. Suspected cause of "No connection" with caldav.mailo.com (#259).
+                    if (!isIpLiteral(host)) serverNames = listOf(SNIHostName(host))
+                }
                 ssl.soTimeout = remaining()
                 ssl.startHandshake()
                 if (!HttpsURLConnection.getDefaultHostnameVerifier().verify(host, ssl.session)) {
@@ -85,9 +92,27 @@ internal object AndroidRawHttp {
         } catch (error: IOException) {
             throw HttpTransportException(tls = false, message = "HTTP transport failed", cause = error)
         } finally {
-            runCatching { plain.close() }
+            runCatching { plain?.close() }
         }
     }
+
+    /** Every address of [host] in turn, like HttpURLConnection: one unreachable address (IPv6 without a route) is not fatal. */
+    private fun connect(host: String, port: Int, remaining: () -> Int): Socket {
+        var last: IOException? = null
+        for (address in InetAddress.getAllByName(host)) {
+            val socket = Socket()
+            try {
+                socket.connect(InetSocketAddress(address, port), minOf(10_000, remaining()))
+                return socket
+            } catch (error: IOException) {
+                runCatching { socket.close() }
+                last = error
+            }
+        }
+        throw last ?: IOException("No address for host")
+    }
+
+    private fun isIpLiteral(host: String): Boolean = ':' in host || host.all { it.isDigit() || it == '.' }
 
     /** Un serveur qui compresse sans qu'on le demande : décompressé ici, sous le même plafond. */
     private fun gunzip(body: ByteArray): ByteArray = GZIPInputStream(ByteArrayInputStream(body)).use { input ->
