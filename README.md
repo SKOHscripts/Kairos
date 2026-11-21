@@ -444,6 +444,11 @@ order (critical path). Cycles are refused.
 - **Online connections** (Android, desktop): Settings → Data subscribes to an
   ICS calendar link after consent and a preview. Sync is read-only, can be
   paused or run manually, and keeps the link on this device.
+- **CalDAV calendars** (Android, desktop): Settings → Data → Add a connection →
+  CalDAV server (Nextcloud, Radicale, Fastmail…). Kairos lists the server's
+  calendars, none ticked; you pick the ones to read, check the preview, then
+  they sync read-only like a link. The password stays encrypted on this
+  device; an app password is best.
 - **Deep work**: a slot reserved for a single task, the most urgent one; the
   others work around it.
 - **Timeline** of the day: scheduled, busy, pinned, deep work, conflicts, and a
@@ -750,6 +755,7 @@ version that brought it and the platforms it exists on.
 | Organize | Import your meetings from a calendar | 3.10.0 | All |
 | Organize | Phone calendars | 3.10.0 | Android |
 | Organize | Online connections | 4.2.0 | Android, Desktop |
+| Organize | CalDAV calendars | 4.4.0 | Android, Desktop |
 | Organize | Sync between your devices | 4.0.0 | All |
 | Team | Guided first team task | 3.8.0 | All |
 | Team | The members | 3.1.0 | All |

@@ -29,8 +29,9 @@ class DefaultOnlineConnections(
     private val now: () -> Instant = { Clock.System.now() },
 ) : OnlineConnections {
     private val gate = OnlineGate(http, repository)
+    private val caldav = CalDavClient(gate)
     private val mutations = Mutex()
-    val sync = ConnectionSync(repository, gate, secrets, now)
+    val sync = ConnectionSync(repository, gate, secrets, now, caldav = caldav)
     override val connections = repository.connections
     override val secretLevel get() = secrets.level
 
@@ -110,6 +111,74 @@ class DefaultOnlineConnections(
         }
         syncNow(sourceId)
         return preview
+    }
+
+    override suspend fun discoverCalDav(account: CalDavAccount): CalDavClient.Discovery = try {
+        withTimeout(120_000) { caldav.discover(account) }
+    } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+        CalDavClient.Discovery.Failed(com.skohscripts.kairos.core.connections.ConnectionError.OFFLINE, HttpPolicy.host(account.server))
+    }
+
+    override suspend fun previewCalDav(account: CalDavAccount, host: String, calendars: List<CalDavCalendar>): List<CalDavPreview> {
+        val zone = TimeZone.currentSystemDefault()
+        val today = now().toLocalDateTime(zone).date
+        return calendars.map { calendar ->
+            try {
+                withTimeout(60_000) {
+                    when (val read = caldav.preview(account, host, calendar, today)) {
+                        is CalDavClient.Read.Success -> CalDavPreview(calendar, withContext(Dispatchers.Default) { CalendarImport.plan(read.text, today, zone) }, null)
+                        is CalDavClient.Read.Failed -> CalDavPreview(calendar, null, read.error)
+                        CalDavClient.Read.GateClosed -> CalDavPreview(calendar, null, com.skohscripts.kairos.core.connections.ConnectionError.UNSUPPORTED)
+                    }
+                }
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                CalDavPreview(calendar, null, com.skohscripts.kairos.core.connections.ConnectionError.OFFLINE)
+            } catch (e: IllegalArgumentException) {
+                CalDavPreview(calendar, null, com.skohscripts.kairos.core.connections.ConnectionError.NOT_CALENDAR)
+            }
+        }
+    }
+
+    override suspend fun addCalDav(account: CalDavAccount, host: String, previews: List<CalDavPreview>, hideTitles: Boolean): List<Long> = mutations.withLock {
+        val ready = previews.filter { it.plan != null }
+        if (ready.isEmpty()) return@withLock emptyList()
+        val instant = now()
+        val today = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
+        backups.save("avant-import-${instant.toEpochMilliseconds()}.json", ExportCodec.encode(repository.snapshot.value, KairosBuild.VERSION_NAME, instant))
+        // Un compte par ajout, partagé par les calendriers cochés ensemble ; jamais réutilisé d'un ajout à l'autre.
+        val key = "caldav-" + kotlin.random.Random.nextBytes(8).joinToString("") { (it.toInt() and 0xFF).toString(16).padStart(2, '0') }
+        secrets.put("account:$key", account.toJson())
+        val added = mutableListOf<Long>()
+        try {
+            for (preview in ready) {
+                var secretId: Long? = null
+                try {
+                    repository.connectCalendar(preview.calendar.name, hideTitles, preview.plan!!, today,
+                        CalendarConnection(0, ConnectionKind.CALDAV, host = host, account = key, lastAttemptAt = instant, lastSyncAt = instant),
+                        instant, beforeCommit = { id -> secretId = id; secrets.put("remote:$id", preview.calendar.url) })?.let { added += it }
+                } catch (e: Throwable) {
+                    secretId?.let { secrets.delete("remote:$it") }
+                    throw e
+                }
+            }
+        } finally {
+            // Aucun calendrier ajouté : le compte ne sert à rien et ne reste pas dans le magasin.
+            if (added.isEmpty()) secrets.delete("account:$key")
+        }
+        added
+    }
+
+    override suspend fun changeCalDavPassword(sourceId: Long, password: String) {
+        val accountKey = mutations.withLock {
+            val key = connections.value.firstOrNull { it.sourceId == sourceId && it.kind == ConnectionKind.CALDAV }?.account ?: return
+            val account = CalDavAccount.fromJson(secrets.get("account:$key")) ?: return
+            secrets.put("account:$key", account.copy(password = password).toJson())
+            for (connection in connections.value.filter { it.account == key }) {
+                repository.updateConnection(connection.sourceId) { it.copy(lastError = null, failures = 0, nextAttemptAt = null) }
+            }
+            key
+        }
+        for (connection in connections.value.filter { it.account == accountKey }) syncNow(connection.sourceId)
     }
 
     override suspend fun disconnect(sourceId: Long) {
