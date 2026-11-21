@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.data
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.skohscripts.kairos.data.db.KairosDatabase
 import com.skohscripts.kairos.core.calendar.CalendarPlan
 import com.skohscripts.kairos.core.calendar.PlannedDay
 import com.skohscripts.kairos.core.calendar.PlannedEvent
@@ -36,6 +37,19 @@ internal class ConnectionFixture {
 }
 
 class ConnectionRepositoryTest {
+    @Test
+    fun restoreConnectionsReattachesOnlyExistingUnconnectedCalendars() = runTest {
+        val f = ConnectionFixture()
+        val repo = f.open()
+        val id = repo.importCalendar("Work", false, f.plan, f.today)!!
+        val row = f.connection.copy(sourceId = id, lastSyncAt = f.now, interval = com.skohscripts.kairos.core.connections.SyncInterval.HOURLY)
+        assertEquals(setOf(id), repo.restoreConnections(listOf(row, row.copy(sourceId = id + 99))))
+        assertEquals(listOf(row), repo.connections.value)
+        // Déjà connecté : la ligne en place est gardée.
+        assertEquals(emptySet(), repo.restoreConnections(listOf(row.copy(syncEnabled = false))))
+        assertTrue(repo.connections.value.single().syncEnabled)
+    }
+
     @Test
     fun aSyncWithoutChangeWritesNothing() = runTest {
         val f = ConnectionFixture()
@@ -192,11 +206,12 @@ class ConnectionRepositoryTest {
     fun schemaThirteenGainsAnEmptyConnectionTable() = runTest {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         KairosStore.open(driver)
+        driver.execute(null, "ALTER TABLE calendar_source DROP COLUMN counts_as_holidays", 0).await()
         driver.execute(null, "DROP TABLE calendar_connection", 0).await()
         assertEquals(13L, KairosStore.actualVersion(driver))
         val opened = KairosStore.open(driver)
         assertFalse(opened.created)
-        assertEquals(14L, KairosStore.actualVersion(driver))
+        assertEquals(KairosDatabase.Schema.version, KairosStore.actualVersion(driver))
         val repo = KairosRepository(opened.database)
         repo.load()
         assertTrue(repo.connections.value.isEmpty())

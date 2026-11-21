@@ -85,6 +85,10 @@ par le calendrier du téléphone, jamais par le réseau.
     le calendrier visé) ;
   - case « Masquer les titres » (les créneaux s'appellent alors
     « Occupé »), cochée comme lors du dernier import de ce calendrier ;
+  - s'il a des journées entières, case « Compter ses journées entières
+    comme fériés » (4.4.0, `jours-feries.md` § Voie B), cochée si le
+    calendrier de ce nom l'était ; la ligne du calendrier porte le même
+    interrupteur ;
   - « N créneaux du JJ/MM au JJ/MM » ;
   - « Événements sur la journée entière : N, montrés en badge sans bloquer de
     temps » ;

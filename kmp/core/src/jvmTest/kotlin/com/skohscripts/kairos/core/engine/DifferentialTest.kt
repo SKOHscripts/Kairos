@@ -182,7 +182,7 @@ class DifferentialTest {
     @Test
     fun calendar_matches_golden() {
         val cal = fixture("calendar.json").jsonObject
-        val holidays = Workdays.buildHolidays(2025..2028, france = true, extra = "2026-08-14")
+        val holidays = Workdays.buildHolidays(2025..2028, country = "FR", extra = "2026-08-14")
         assertEquals(cal.getValue("holidays").jsonArray.map { LocalDate.parse(it.str!!) }, holidays.sorted())
 
         for ((year, easter) in cal.getValue("easter").jsonObject) {

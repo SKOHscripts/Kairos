@@ -247,7 +247,7 @@ data class ForecastData(
                 val week = windowStart.daysUntil(started) / 7
                 realHours.getOrPut(owner) { DoubleArray(weeks) }[week] += TimeTracking.sessionMinutes(s, now) / 60.0
             }
-            val holidays = Workdays.buildHolidays(windowStart.year..day.year, settings.holidaysFr, settings.extraHolidays)
+            val holidays = Workdays.buildHolidays(windowStart.year..day.year, snapshot)
             val capacity = LinkedHashMap<Long, List<Double>>()
             val busy = TeamWork.selfBusy(snapshot)
             for (m in TeamMembers.active(snapshot.members)) {

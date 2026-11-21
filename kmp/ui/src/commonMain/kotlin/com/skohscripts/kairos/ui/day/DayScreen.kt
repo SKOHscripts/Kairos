@@ -670,8 +670,8 @@ fun DayScreen(
                     onStep = { coachStep = it.coerceIn(0, steps.lastIndex) },
                     onSkip = { coachStep = -1 },
                     steps = steps,
-                    holidays = remember(today, snapshot.settings.holidaysFr, snapshot.settings.extraHolidays) {
-                        Workdays.holidaysFor(today, snapshot.settings.holidaysFr, snapshot.settings.extraHolidays)
+                    holidays = remember(today, snapshot.settings, snapshot.calendarSources, snapshot.dayMarks) {
+                        Workdays.holidaysFor(today, snapshot)
                     },
                 )
             } else {

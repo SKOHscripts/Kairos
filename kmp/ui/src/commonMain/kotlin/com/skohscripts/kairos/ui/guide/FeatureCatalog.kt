@@ -2,6 +2,8 @@ package com.skohscripts.kairos.ui.guide
 
 import com.skohscripts.kairos.ui.generated.resources.card_online_connections_title
 import com.skohscripts.kairos.ui.generated.resources.card_online_connections_body
+import com.skohscripts.kairos.ui.generated.resources.card_caldav_body
+import com.skohscripts.kairos.ui.generated.resources.card_caldav_title
 import com.skohscripts.kairos.ui.generated.resources.card_gtd_title
 import com.skohscripts.kairos.ui.generated.resources.card_gtd_body
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -15,6 +17,10 @@ import com.skohscripts.kairos.ui.generated.resources.card_afternoon_dip_title
 import com.skohscripts.kairos.ui.generated.resources.card_afternoon_dip_body
 import com.skohscripts.kairos.ui.generated.resources.card_holidays_title
 import com.skohscripts.kairos.ui.generated.resources.card_holidays_body
+import com.skohscripts.kairos.ui.generated.resources.card_holiday_countries_title
+import com.skohscripts.kairos.ui.generated.resources.card_holiday_countries_body
+import com.skohscripts.kairos.ui.generated.resources.card_holiday_calendars_title
+import com.skohscripts.kairos.ui.generated.resources.card_holiday_calendars_body
 import com.skohscripts.kairos.ui.generated.resources.card_timeline_title
 import com.skohscripts.kairos.ui.generated.resources.card_timeline_body
 import com.skohscripts.kairos.ui.generated.resources.card_alerts_title
@@ -240,6 +246,8 @@ object FeatureCatalog {
         FeatureCard("besthours_apply", GuideChapter.PLAN, { KairosIcons.Schedule }, Res.string.card_besthours_apply_title, Res.string.card_besthours_apply_body, GuideTarget.Settings(GuideSection.SETTINGS_BEST_HOURS), since = "3.6.0"),
         FeatureCard("hours", GuideChapter.PLAN, { KairosIcons.Schedule }, Res.string.card_hours_title, Res.string.card_hours_body, GuideTarget.Settings(GuideSection.SETTINGS_HOURS), since = "3.4.0"),
         FeatureCard("holidays", GuideChapter.PLAN, { KairosIcons.EventAvailable }, Res.string.card_holidays_title, Res.string.card_holidays_body, GuideTarget.Settings(GuideSection.SETTINGS_HOLIDAYS), since = "3.0.0"),
+        FeatureCard("holiday_countries", GuideChapter.PLAN, { KairosIcons.EventAvailable }, Res.string.card_holiday_countries_title, Res.string.card_holiday_countries_body, GuideTarget.Settings(GuideSection.SETTINGS_HOLIDAYS), since = "4.4.0"),
+        FeatureCard("holiday_calendars", GuideChapter.PLAN, { KairosIcons.EventAvailable }, Res.string.card_holiday_calendars_title, Res.string.card_holiday_calendars_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "4.4.0"),
         // --- Suivre
         FeatureCard("timeline", GuideChapter.FOLLOW, { KairosIcons.Timeline }, Res.string.card_timeline_title, Res.string.card_timeline_body, GuideTarget.Personal(Destination.DAY), since = "3.0.0"),
         FeatureCard("time", GuideChapter.FOLLOW, { KairosIcons.Schedule }, Res.string.guide_you_time_title, Res.string.guide_you_time_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_NOW), tour = true),
@@ -277,7 +285,8 @@ object FeatureCatalog {
         FeatureCard("slots_month", GuideChapter.ORGANIZE, { KairosIcons.Repeat }, Res.string.card_slots_month_title, Res.string.card_slots_month_body, GuideTarget.Personal(Destination.DAY), since = "3.8.0"),
         FeatureCard("calendar_import", GuideChapter.ORGANIZE, { KairosIcons.Event }, Res.string.card_calendar_import_title, Res.string.card_calendar_import_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "3.10.0"),
         FeatureCard("phone_calendars", GuideChapter.ORGANIZE, { KairosIcons.Mobile }, Res.string.card_phone_calendars_title, Res.string.card_phone_calendars_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "3.10.0", platforms = setOf(Platform.ANDROID)),
-        FeatureCard("online_connections", GuideChapter.ORGANIZE, { KairosIcons.Sync }, Res.string.card_online_connections_title, Res.string.card_online_connections_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "4.2.0", platforms = setOf(Platform.ANDROID, Platform.DESKTOP)),
+        FeatureCard("online_connections", GuideChapter.ORGANIZE, { KairosIcons.Sync }, Res.string.card_online_connections_title, Res.string.card_online_connections_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "4.2.0"),
+        FeatureCard("caldav", GuideChapter.ORGANIZE, { KairosIcons.Sync }, Res.string.card_caldav_title, Res.string.card_caldav_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "4.4.0", platforms = setOf(Platform.ANDROID, Platform.DESKTOP)),
         // Synchronisation par fichier (docs/spec/synchronisation.md) : la carte mène à Réglages → Données.
         FeatureCard("sync", GuideChapter.ORGANIZE, { KairosIcons.Sync }, Res.string.card_sync_title, Res.string.card_sync_body, GuideTarget.Settings(GuideSection.SETTINGS_DATA), since = "4.0.0"),
         // --- Équipe
@@ -377,12 +386,15 @@ object FeatureCatalog {
         "What Kairos learns" to "model_review",
         "What lingers" to "lingering",
         "Working days and holidays" to "holidays",
+        "Public holidays of your country" to "holiday_countries",
+        "Holidays from a calendar" to "holiday_calendars",
         "Busy slots" to "slots",
         "Weekday slots skip holidays" to "holidays_slots",
         "Monthly slots, one day apart" to "slots_month",
         "Calendar import" to "calendar_import",
         "Phone calendars" to "phone_calendars",
         "Online connections" to "online_connections",
+        "CalDAV calendars" to "caldav",
         "Deep work" to "deep_work",
         "Timeline" to "timeline",
         "Timer per task" to "time",

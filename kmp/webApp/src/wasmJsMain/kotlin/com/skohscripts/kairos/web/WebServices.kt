@@ -13,6 +13,10 @@ import com.skohscripts.kairos.data.KairosRepository
 import com.skohscripts.kairos.data.KairosStore
 import com.skohscripts.kairos.ui.app.AppServices
 import com.skohscripts.kairos.ui.app.BackupStore
+import com.skohscripts.kairos.ui.app.BrowserConnections
+import com.skohscripts.kairos.ui.app.BrowserSecrets
+import com.skohscripts.kairos.ui.app.ConnectionWatcher
+import com.skohscripts.kairos.ui.app.DefaultOnlineConnections
 import com.skohscripts.kairos.ui.app.FileService
 import com.skohscripts.kairos.core.sync.Stamp
 import com.skohscripts.kairos.ui.app.LinkHash
@@ -85,9 +89,22 @@ object WebServices {
                 KairosWeb.opfsRead(EXTRAS_FILE).await<JsString?>()?.toString()?.let { repository.importSyncExtras(it) }
             }
             snapshot != null -> repository.replaceAll(snapshot)
-            else -> repository.replaceAll(ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language))
+            // Pays des fériés : la région de `navigator.language` (« fr-BE » → « BE » ; sans région, aucun ; docs/spec/jours-feries.md).
+            else -> repository.replaceAll(ExampleData.snapshot(clock.todayIn(TimeZone.currentSystemDefault()), clock.now(), language, language.split('-', '_').getOrNull(1).orEmpty()))
         }
         storage.start(link, restorePending, repository.snapshot.value)
+
+        // Lien ICS (docs/spec/connexions-en-ligne.md § Web) : les connexions ne sont pas dans l'instantané ; elles reviennent de leur
+        // propre fichier de l'OPFS, rattachées par le nom du calendrier, avant que leur réécriture ne commence.
+        val secrets = BrowserSecrets()
+        val scope = MainScope()
+        runCatching { BrowserConnections.restore(repository, secrets, KairosWeb.opfsRead(BrowserConnections.FILE).await<JsString?>()?.toString()) }
+        BrowserConnections.keep(scope, repository, secrets) { KairosWeb.opfsWrite(BrowserConnections.FILE, it).await<JsAny?>() }
+        val online = DefaultOnlineConnections(repository, BACKUPS, WebHttp, secrets, scope, now = { clock.now() }, browser = true)
+        scope.launch {
+            online.purgeOrphans()
+            ConnectionWatcher(online.sync, scope, now = { clock.now() }, active = ::pageVisible).start()
+        }
 
         return AppServices(
             repository = repository,
@@ -110,6 +127,8 @@ object WebServices {
             },
             // Conseils au bon moment (docs/spec/conseils.md).
             tips = true,
+            online = online,
+            connectionSync = online.sync,
         )
     }
 }

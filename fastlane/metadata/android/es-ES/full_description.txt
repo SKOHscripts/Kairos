@@ -36,4 +36,4 @@ Desactivada por defecto, la gestión de equipo añade un segundo espacio para el
 <li>Reuniones a partir de un archivo de calendario (.ics: Outlook, Google, Thunderbird) o, opcionalmente, de los calendarios del teléfono: Kairos solicita entonces acceso al calendario, de solo lectura. La importación de un archivo nunca usa la red.</li>
 </ul>
 
-Kairos también está disponible para Windows, Linux y macOS, y en el navegador. Software libre con licencia MIT, en español, alemán, ruso, italiano, francés e inglés (a su elección en los ajustes; por defecto, el idioma del sistema si es uno de ellos, y si no, inglés).
+Kairos también está disponible para Windows, Linux y macOS, y en el navegador. Software libre con licencia GNU AGPL v3 o posterior, en español, alemán, ruso, italiano, francés e inglés (a su elección en los ajustes; por defecto, el idioma del sistema si es uno de ellos, y si no, inglés).

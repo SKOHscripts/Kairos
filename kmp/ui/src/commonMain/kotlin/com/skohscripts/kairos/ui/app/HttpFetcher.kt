@@ -25,7 +25,13 @@ class HttpTransportException(
     message: String,
     cause: Throwable? = null,
     val invalidAddress: Boolean = false,
-) : Exception(message, cause)
+) : Exception(message, cause) {
+    /**
+     * Détail technique montré sous l'erreur d'un ajout (docs/spec/connexions-en-ligne.md § CalDAV) : type et message de la cause
+     * de la plateforme (« SSLHandshakeException: … »). Jamais d'identifiant ni de mot de passe : ils ne sont dans aucun message.
+     */
+    val detail: String get() = (cause ?: this).let { "${it::class.simpleName}: ${it.message.orEmpty()}" }.take(200)
+}
 
 /** Corps plus gros que [MAX_BODY_BYTES] : lecture interrompue. */
 class HttpTooBigException : Exception("body exceeds $MAX_BODY_BYTES bytes")
@@ -37,5 +43,11 @@ class HttpTooBigException : Exception("body exceeds $MAX_BODY_BYTES bytes")
  * Seule `OnlineGate` l'appelle pour un calendrier (docs/spec/connexions-en-ligne.md § Porte réseau unique).
  */
 interface HttpFetcher {
+    /**
+     * Vrai si ce transport ne peut lire que `https` (le navigateur : une page `https` ne lit pas une adresse `http`, contenu mixte).
+     * `OnlineGate` refuse alors un lien `http://` sans requête ni confirmation (docs/spec/connexions-en-ligne.md § Web).
+     */
+    val httpsOnly: Boolean get() = false
+
     suspend fun fetch(request: HttpRequest): HttpResponse
 }

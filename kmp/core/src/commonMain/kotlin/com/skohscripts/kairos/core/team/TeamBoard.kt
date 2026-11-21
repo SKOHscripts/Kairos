@@ -92,7 +92,7 @@ data class TeamBoard(
             filter: TeamBoardFilter = TeamBoardFilter(),
         ): TeamBoard {
             val settings = snapshot.settings
-            val holidays = Workdays.holidaysFor(day, settings.holidaysFr, settings.extraHolidays)
+            val holidays = Workdays.holidaysFor(day, snapshot)
             val tasks = snapshot.tasks.filter { it.space == TaskSpace.TEAM && it.status != TaskStatus.ARCHIVED }
             val eventsByTask = snapshot.teamEvents.groupBy { it.taskId }
             val blockedIds = TeamStates.blockedIds(snapshot)

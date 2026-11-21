@@ -70,7 +70,7 @@ object TeamWork {
      */
     fun occurrences(view: KairosSnapshot, day: LocalDate, horizonEnd: LocalDate): List<Task> {
         val settings = view.settings
-        val holidays = Workdays.holidaysFor(day, settings.holidaysFr, settings.extraHolidays)
+        val holidays = Workdays.holidaysFor(day, view)
         val recurring = view.tasks.filter { it.space == TaskSpace.TEAM && it.status == TaskStatus.TODO && it.recurrence != TaskRecurrence.NONE && it.id > 0 }
         val series = recurring.groupBy { Triple(it.title, it.recurrence, it.assigneeId) }.values.sortedBy { list -> list.minOf { it.id } }
         val out = ArrayList<Task>()
@@ -147,7 +147,7 @@ object TeamWork {
         if (busy.isEmpty()) return 0.0
         val oneOff = busy.filter { it.recurrence == BlockRecurrence.NONE && it.start < end && it.end > start }
         // Un créneau « jours ouvrés » n'occupe pas un férié (docs/spec/recurrence.md, issue #109).
-        val holidays = Workdays.holidaysFor(day, settings.holidaysFr, settings.extraHolidays)
+        val holidays = Workdays.holidaysFor(day, snapshot)
         val recurring = Recurrence.expandRecurringBlocks(busy.filter { it.recurrence != BlockRecurrence.NONE }, day, day, holidays, snapshot.blockExceptions)
         return Scheduling.busyMinutesInWindow(oneOff + recurring, start, end) / 60.0
     }

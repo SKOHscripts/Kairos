@@ -35,7 +35,8 @@ object ExampleData {
     /** Vrai pour un titre posé par le jeu d'exemples (tâche, créneau, note), dans l'une quelconque des langues. */
     fun isExampleTitle(title: String): Boolean = Texts.ALL.any { title.startsWith(it.prefix) }
 
-    fun snapshot(today: LocalDate, now: Instant, language: String): KairosSnapshot {
+    /** [region] : la région du système, qui choisit le pays des fériés d'une base neuve (docs/spec/jours-feries.md). */
+    fun snapshot(today: LocalDate, now: Instant, language: String, region: String? = null): KairosSnapshot {
         val t = Texts.of(UiLanguage.lang(language))
         val soon = today.plus(DatePeriod(days = 2))
         val later = today.plus(DatePeriod(days = 7))
@@ -101,7 +102,7 @@ object ExampleData {
                 TimeBlock(3, "${t.prefix} ${t.lunch}", at(12), at(13), BlockKind.BUSY, BlockRecurrence.DAILY, createdAt = now),
             ),
             notes = listOf(Note(1, "${t.prefix} ${t.note}", createdAt = now, updatedAt = now)),
-            settings = Settings.defaults(language),
+            settings = Settings.defaults(language, region),
         )
     }
 

@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.core.model
 
+import com.skohscripts.kairos.core.engine.PublicHolidays
 import com.skohscripts.kairos.core.settings.UiLanguage
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -39,8 +40,14 @@ data class Settings(
     val timerIdleAlertMinutes: Int = 180,
     val pomodoroFocusMinutes: Int = 50,
     val timerAlertSound: Boolean = false,
+    /** Fériés français des bases d'avant la 4.4.0 ; tenu égal à `holidayCountryCode == "FR"` pour les versions d'avant. */
     val holidaysFr: Boolean = true,
     val extraHolidays: String = "",
+    /**
+     * Pays des fériés (docs/spec/jours-feries.md) : code ISO (« FR », « DE »…), `""` = aucun. `null` = jamais choisi : [holidaysFr]
+     * décide (bases et exports d'avant la 4.4.0). Lire [holidayCountryCode].
+     */
+    val holidayCountry: String? = null,
     /** Types proposés dans la fiche, séparés par des virgules (libellé = valeur stockée). */
     val taskTypes: String = DEFAULT_TASK_TYPES_FR,
     /** Vérification des nouvelles versions, bureau seulement (docs/spec/mises-a-jour.md). */
@@ -106,6 +113,13 @@ data class Settings(
      */
     val timerAutoStopMinutes: Int? = null,
 ) {
+    /** Pays des fériés en vigueur : [holidayCountry], ou la France si jamais choisi et [holidaysFr] ; nul = aucun (ou code inconnu). */
+    val holidayCountryCode: String?
+        get() = when (holidayCountry) {
+            null -> if (holidaysFr) "FR" else null
+            else -> holidayCountry.takeIf { PublicHolidays.isSupported(it) }
+        }
+
     /** Durée effective du garde-fou du chrono, en minutes (0 = jamais). */
     val timerAutoStop: Int get() = timerAutoStopMinutes ?: DEFAULT_TIMER_AUTO_STOP_MINUTES
 
@@ -183,8 +197,17 @@ data class Settings(
             else -> DEFAULT_TASK_TYPES_EN
         }
 
-        /** Réglages d'une base neuve, types de tâche dans la langue de l'interface ([language] : celle du système). */
-        fun defaults(language: String): Settings = Settings(taskTypes = defaultTaskTypes(language))
+        /**
+         * Réglages d'une base neuve, types de tâche dans la langue de l'interface ([language] : celle du système). [region] : la
+         * région du système ; ses fériés si le pays est pris en charge, aucun sinon (docs/spec/jours-feries.md). Nul (démonstration,
+         * tests) : la France, comme avant.
+         */
+        fun defaults(language: String, region: String? = null): Settings {
+            val base = Settings(taskTypes = defaultTaskTypes(language))
+            if (region == null) return base
+            val country = PublicHolidays.defaultFor(region)
+            return base.copy(holidayCountry = country, holidaysFr = country == "FR")
+        }
     }
 }
 

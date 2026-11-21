@@ -48,6 +48,15 @@ object HttpPolicy {
 
     fun host(url: String): String? = (parse(url, allowUserInfo = true) as? Address)?.host
 
+    /**
+     * [location] (un `href` WebDAV, relatif ou absolu) résolue sur [from] : adresse absolue normalisée, nulle si l'une des deux est
+     * illisible ou porte un identifiant (docs/spec/connexions-en-ligne.md § CalDAV).
+     */
+    fun resolve(from: String, location: String): String? {
+        val origin = parse(from) as? Address ?: return null
+        return (parse(resolve(origin, location)) as? Address)?.url
+    }
+
     fun logLine(method: String, url: String, status: Int?, millis: Long, bytes: Int?): String =
         "${host(url) ?: "-"} $method ${status ?: "-"} ${millis}ms ${bytes?.let { "${it}B" } ?: "-"}"
 

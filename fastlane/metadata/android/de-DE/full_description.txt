@@ -36,4 +36,4 @@ Standardmäßig deaktiviert, fügt die Teamverwaltung einen zweiten Bereich für
 <li>Termine aus einer Kalenderdatei (.ics: Outlook, Google, Thunderbird) oder, optional, aus den Kalendern Ihres Telefons: Kairos fragt dann nach Kalenderzugriff, nur lesend. Der Dateiimport nutzt nie das Netzwerk.</li>
 </ul>
 
-Kairos gibt es auch für Windows, Linux und macOS sowie im Browser. Freie Software unter der MIT-Lizenz, auf Englisch, Französisch, Spanisch, Deutsch, Russisch und Italienisch (Wahl in den Einstellungen; sonst Systemsprache oder Englisch).
+Kairos gibt es auch für Windows, Linux und macOS sowie im Browser. Freie Software unter der GNU AGPL v3 oder später, auf Englisch, Französisch, Spanisch, Deutsch, Russisch und Italienisch (Wahl in den Einstellungen; sonst Systemsprache oder Englisch).

@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.core.settings
 
+import com.skohscripts.kairos.core.engine.PublicHolidays
 import com.skohscripts.kairos.core.model.BestHoursSettings
 import com.skohscripts.kairos.core.model.DaySchedule
 import com.skohscripts.kairos.core.model.FIBONACCI_SCALE
@@ -16,7 +17,8 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
 /** Nature d'un champ de réglage : ce qu'on y saisit et comment on le valide. */
-enum class FieldKind { INT, DECIMAL, BOOL, TEXT, DATES, COLOR, TIME }
+/** [CHOICE] : une valeur parmi [SettingField.choices] (liste déroulante), jamais refusée (une valeur inconnue est normalisée). */
+enum class FieldKind { INT, DECIMAL, BOOL, TEXT, DATES, COLOR, TIME, CHOICE }
 
 /**
  * Un réglage éditable (docs/spec/reglages.md) : clé stable (nom du champ
@@ -36,6 +38,8 @@ class SettingField internal constructor(
     internal val validate: ((String) -> FieldError?)? = null,
     /** Nombre facultatif : vide est valide (`null`). */
     val optional: Boolean = false,
+    /** Valeurs proposées d'un champ [FieldKind.CHOICE], dans l'ordre stocké. */
+    val choices: List<String> = emptyList(),
 )
 
 enum class FieldErrorKind { REQUIRED, NOT_INTEGER, NOT_NUMBER, TOO_SMALL, TOO_LARGE, INVALID_DATE, INVALID_COLOR, INVALID_TIME, DUPLICATE, DUPLICATE_ARCHIVED, UNKNOWN_CONTEXT }
@@ -426,7 +430,17 @@ object SettingsForm {
         },
         int("pomodoroFocusMinutes", 0, get = { it.pomodoroFocusMinutes }) { s, v -> s.copy(pomodoroFocusMinutes = v) },
         bool("timerAlertSound", { it.timerAlertSound }) { s, v -> s.copy(timerAlertSound = v) },
-        bool("holidaysFr", { it.holidaysFr }) { s, v -> s.copy(holidaysFr = v) },
+        // Pays des fériés (docs/spec/jours-feries.md) : `holidaysFr` suit, pour les versions d'avant qui liraient ces réglages.
+        SettingField(
+            "holidayCountry", FieldKind.CHOICE,
+            read = { it.holidayCountryCode.orEmpty() },
+            write = { s, v ->
+                val code = v.trim().uppercase().takeIf { PublicHolidays.isSupported(it) }.orEmpty()
+                // Inchangé : une base d'avant garde `holidayCountry` nul (rien ne change sans action de l'utilisateur).
+                if (code == s.holidayCountryCode.orEmpty()) s else s.copy(holidayCountry = code, holidaysFr = code == "FR")
+            },
+            choices = listOf("") + PublicHolidays.COUNTRIES,
+        ),
         text("extraHolidays", FieldKind.DATES, { it.extraHolidays }) { s, v -> s.copy(extraHolidays = normalizeList(v)) },
         bool("updateCheckEnabled", { it.updateCheckEnabled }) { s, v -> s.copy(updateCheckEnabled = v) },
         SettingField(
@@ -468,10 +482,11 @@ object SettingsForm {
     /**
      * « Restaurer les valeurs par défaut » : le texte de chaque champ pour [Settings] par défaut, **sauf** les champs
      * `team.*` de [values], jamais touchés (l'espace Équipe a ses propres données ; docs/spec/planning-personnalise.md,
-     * lot A). Ne valide ni n'écrit rien : l'utilisateur doit encore « Enregistrer ».
+     * lot A), et le pays des fériés, un fait sur l'utilisateur plutôt qu'une préférence (docs/spec/jours-feries.md). Ne valide
+     * ni n'écrit rien : l'utilisateur doit encore « Enregistrer ».
      */
     fun restoreDefaults(values: Map<String, String>): Map<String, String> =
-        values(Settings()).mapValues { (key, default) -> if (key.startsWith("team.")) values[key] ?: default else default }
+        values(Settings()).mapValues { (key, default) -> if (key.startsWith("team.") || key == "holidayCountry") values[key] ?: default else default }
 
     /**
      * Valide [values] (clé → texte ; une clé absente garde la valeur de
@@ -570,7 +585,7 @@ object SettingsForm {
     private fun check(f: SettingField, raw: String): FieldError? {
         val text = raw.trim()
         return when (f.kind) {
-            FieldKind.BOOL -> null
+            FieldKind.BOOL, FieldKind.CHOICE -> null
             FieldKind.TEXT -> f.validate?.invoke(text)
             FieldKind.COLOR -> if (normalizeColor(text) == null) FieldError(FieldErrorKind.INVALID_COLOR, text) else null
             FieldKind.TIME -> if (normalizeTime(text) == null) FieldError(FieldErrorKind.INVALID_TIME, text) else null

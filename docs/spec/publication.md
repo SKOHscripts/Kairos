@@ -157,8 +157,14 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   large), pour Jour, **la fiche d'une tâche estimée par machine learning** (2, ci-dessous), Semaine, Statistiques, Notes
   et Réglages (1 à 6), puis, sur une base où la gestion d'équipe est activée, Suivi, Équipe (charge) et
   Prévisions (7 à 9, `equipe.md`), puis la vue Jour de la capture 1, système en sombre (10, `apparence.md` § Thème
-  sombre ; 1 à 9 imposent un système clair, `systemDark = false`), en `fr-FR` (`Locale.FRANCE`) puis `en-US`
-  (`Locale.US`). Les captures 1 à 6 restent celles du mode solo : le jeu de
+  sombre ; 1 à 9 imposent un système clair, `systemDark = false`), puis les jours fériés de trois pays (11, ci-dessous),
+  dans les **six langues des fiches** : `fr-FR`, `en-US`, `de-DE`, `es-ES`, `it-IT`, `ru-RU` (depuis le 2026-11-21, issue
+  #264, décision du propriétaire ; avant, `fr-FR` et `en-US` seulement).
+- **Capture 11, les fériés par pays** (`HolidayShowcase`, `ui/month`, `jours-feries.md`) : le titre « Les jours fériés de ton
+  pays » dans la langue de la fiche, puis la grille de mai 2026 de l'Allemagne en allemand, des États-Unis en anglais et de
+  l'Italie en italien, sur une base vide, fériés marqués comme dans la vue Mois ; mai 2026 parce que les trois diffèrent
+  (1er mai, Ascension et Pentecôte ; Memorial Day ; 1er mai). Rendue en densité 2,0 (540 × 1200 dp) pour que les trois
+  grilles tiennent, l'image gardant 1080 × 2400 px. Le composant n'est appelé que par l'outil des captures. Les captures 1 à 6 restent celles du mode solo : le jeu de
   l'équipe vit dans une seconde base, pour que les écrans personnels
   n'en montrent rien.
 - Données : une base en mémoire remplie d'un jeu réaliste dans la langue de la
@@ -167,7 +173,10 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   d'historique avec échéances ; notes ; créneaux deep work, déjeuner, réunion ;
   aucune tâche « À traiter », qui masquerait « Maintenant » en haut de
   l'écran). Horloge figée au mardi 6 octobre 2026, 10 h 12, fuseau UTC, tirages
-  à graine fixe : deux exécutions donnent les mêmes images. Jeu d'équipe
+  à graine fixe : deux exécutions donnent les mêmes images. Textes du jeu dans les six langues : `Words` de
+  `StoreScreenshots` (un jeu par langue, types de tâche par défaut de la langue) ; `StoreTeam` garde le français et
+  l'anglais à l'appel et prend l'allemand, l'espagnol, l'italien et le russe dans une table indexée par le texte
+  français (`OTHER`), un titre sans traduction faisant échouer la génération plutôt que d'en mêler deux. Jeu d'équipe
   (captures 7 à 9) : trois membres dont « moi », une absence, une dizaine de
   tâches d'équipe à divers états, un historique de tâches faites estimées et
   chronométrées sur plusieurs semaines, dates relatives à la même horloge ;
@@ -208,7 +217,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
 ### Recette F-Droid (`fdroid/com.skohscripts.kairos.yml`)
 
 - Catégories `Calendar & Agenda`, `Task`, `Time Tracker` (liste officielle,
-  `config/categories.yml` de fdroiddata), licence MIT, liens site, source,
+  `config/categories.yml` de fdroiddata), licence `AGPL-3.0-or-later` (`licence.md`), liens site, source,
   tickets, releases ; `AutoName: Kairos`.
 - Construction : `subdir: kmp/androidApp`, `gradle: [yes]` (variante release),
   `commit` = **hash complet** du commit du tag `vX.Y.Z` (exigence des
