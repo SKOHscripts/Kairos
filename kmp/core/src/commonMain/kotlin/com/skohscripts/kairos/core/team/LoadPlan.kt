@@ -200,7 +200,7 @@ object LoadPlan {
         busy: (LocalDate) -> Double = NO_BUSY,
     ): Prepared {
         val settings = snapshot.settings
-        val holidays = Workdays.holidaysFor(day, settings.holidaysFr, settings.extraHolidays)
+        val holidays = Workdays.holidaysFor(day, settings.holidayCountryCode, settings.extraHolidays)
         val members = TeamMembers.active(snapshot.members)
         val memberIds = members.mapTo(HashSet()) { it.id }
         val horizonEnd = Capacity.horizonEnd(day, horizonWeeks)

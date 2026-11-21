@@ -323,7 +323,7 @@ class KairosRepository(
     suspend fun snooze(taskId: Long) {
         val settings = state.value.settings
         val today = today()
-        val holidays = Workdays.holidaysFor(today, settings.holidaysFr, settings.extraHolidays)
+        val holidays = Workdays.holidaysFor(today, settings.holidayCountryCode, settings.extraHolidays)
         modify(taskId) {
             val next = Recurrence.nextSnoozeDate(it.deadline, today, holidays)
             it.copy(deadline = next, scheduledDate = if (it.space == TaskSpace.PERSONAL) next else it.scheduledDate)
@@ -381,7 +381,7 @@ class KairosRepository(
      */
     suspend fun ensureCalendarOccurrences(today: LocalDate) {
         val settings = state.value.settings
-        val holidays = Workdays.holidaysFor(today, settings.holidaysFr, settings.extraHolidays)
+        val holidays = Workdays.holidaysFor(today, settings.holidayCountryCode, settings.extraHolidays)
         if (Recurrence.calendarOccurrences(state.value.tasks, today, holidays, clock.now()).isEmpty()) return
         write {
             // Recalculé dans la transaction : l'état a pu changer depuis la vérification.
@@ -405,7 +405,7 @@ class KairosRepository(
             val series = skipped(today, title, dayOfMonth) ?: return@write
             val settings = state.value.settings
             // L'année d'aujourd'hui et la précédente : les douze mois en arrière y sont tous.
-            val holidays = Workdays.holidaysFor(today, settings.holidaysFr, settings.extraHolidays)
+            val holidays = Workdays.holidaysFor(today, settings.holidayCountryCode, settings.extraHolidays)
             Recurrence.recreateSkipped(state.value.tasks, series, holidays, clock.now()).forEach { task -> insertNew(task)?.let { created += it } }
         }
         return created
@@ -857,7 +857,7 @@ class KairosRepository(
 
     private fun hasOccurrence(blockId: Long, date: LocalDate): Boolean {
         val template = state.value.timeBlocks.firstOrNull { it.id == blockId && !it.imported } ?: return false
-        return Recurrence.occursOn(template, date, Workdays.holidaysFor(date, state.value.settings.holidaysFr, state.value.settings.extraHolidays))
+        return Recurrence.occursOn(template, date, Workdays.holidaysFor(date, state.value.settings.holidayCountryCode, state.value.settings.extraHolidays))
     }
 
     /**
@@ -1946,7 +1946,7 @@ class KairosRepository(
 
     /** Fériés des réglages autour d'aujourd'hui : « jours ouvrés » ne tombe jamais dessus. */
     private fun holidaysNow(): Set<kotlinx.datetime.LocalDate> =
-        Workdays.holidaysFor(today(), state.value.settings.holidaysFr, state.value.settings.extraHolidays)
+        Workdays.holidaysFor(today(), state.value.settings.holidayCountryCode, state.value.settings.extraHolidays)
 
     private fun Task.isStartable() =
         space == TaskSpace.TEAM && status == TaskStatus.TODO && assigneeId != null && startedOn == null

@@ -15,6 +15,8 @@ import com.skohscripts.kairos.ui.generated.resources.card_afternoon_dip_title
 import com.skohscripts.kairos.ui.generated.resources.card_afternoon_dip_body
 import com.skohscripts.kairos.ui.generated.resources.card_holidays_title
 import com.skohscripts.kairos.ui.generated.resources.card_holidays_body
+import com.skohscripts.kairos.ui.generated.resources.card_holiday_countries_title
+import com.skohscripts.kairos.ui.generated.resources.card_holiday_countries_body
 import com.skohscripts.kairos.ui.generated.resources.card_timeline_title
 import com.skohscripts.kairos.ui.generated.resources.card_timeline_body
 import com.skohscripts.kairos.ui.generated.resources.card_alerts_title
@@ -240,6 +242,7 @@ object FeatureCatalog {
         FeatureCard("besthours_apply", GuideChapter.PLAN, { KairosIcons.Schedule }, Res.string.card_besthours_apply_title, Res.string.card_besthours_apply_body, GuideTarget.Settings(GuideSection.SETTINGS_BEST_HOURS), since = "3.6.0"),
         FeatureCard("hours", GuideChapter.PLAN, { KairosIcons.Schedule }, Res.string.card_hours_title, Res.string.card_hours_body, GuideTarget.Settings(GuideSection.SETTINGS_HOURS), since = "3.4.0"),
         FeatureCard("holidays", GuideChapter.PLAN, { KairosIcons.EventAvailable }, Res.string.card_holidays_title, Res.string.card_holidays_body, GuideTarget.Settings(GuideSection.SETTINGS_HOLIDAYS), since = "3.0.0"),
+        FeatureCard("holiday_countries", GuideChapter.PLAN, { KairosIcons.EventAvailable }, Res.string.card_holiday_countries_title, Res.string.card_holiday_countries_body, GuideTarget.Settings(GuideSection.SETTINGS_HOLIDAYS), since = "4.4.0"),
         // --- Suivre
         FeatureCard("timeline", GuideChapter.FOLLOW, { KairosIcons.Timeline }, Res.string.card_timeline_title, Res.string.card_timeline_body, GuideTarget.Personal(Destination.DAY), since = "3.0.0"),
         FeatureCard("time", GuideChapter.FOLLOW, { KairosIcons.Schedule }, Res.string.guide_you_time_title, Res.string.guide_you_time_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_NOW), tour = true),
@@ -377,6 +380,7 @@ object FeatureCatalog {
         "What Kairos learns" to "model_review",
         "What lingers" to "lingering",
         "Working days and holidays" to "holidays",
+        "Public holidays of your country" to "holiday_countries",
         "Busy slots" to "slots",
         "Weekday slots skip holidays" to "holidays_slots",
         "Monthly slots, one day apart" to "slots_month",

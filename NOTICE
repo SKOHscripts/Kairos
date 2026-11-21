@@ -53,3 +53,10 @@ THIRD PARTY
 
 The Roboto font is licensed under the SIL Open Font License 1.1, see
 kmp/licenses/Roboto-OFL.txt. Each dependency keeps its own license.
+
+The public holiday table (kmp/core/src/commonMain/kotlin/com/skohscripts/kairos/
+core/engine/HolidayTable.kt) is generated from python-holidays
+(https://github.com/vacanza/holidays), Copyright (c) Vacanza Team and
+individual contributors, dr-prodigy (2017-2023) and ryanss (2014-2017),
+licensed under the MIT License. It is read at development time only, not
+shipped as a dependency.

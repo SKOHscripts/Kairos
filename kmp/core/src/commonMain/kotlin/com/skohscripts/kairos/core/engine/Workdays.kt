@@ -71,24 +71,14 @@ object Workdays {
         return LocalDate(year, month, day)
     }
 
-    /** Jours fériés de France métropolitaine pour [year] (8 fixes, 3 mobiles). */
-    fun frenchPublicHolidays(year: Int): Set<LocalDate> {
-        val easter = easterSunday(year)
-        return setOf(
-            LocalDate(year, 1, 1), LocalDate(year, 5, 1), LocalDate(year, 5, 8), LocalDate(year, 7, 14),
-            LocalDate(year, 8, 15), LocalDate(year, 11, 1), LocalDate(year, 11, 11), LocalDate(year, 12, 25),
-            easter.plus(DatePeriod(days = 1)), easter.plus(DatePeriod(days = 39)), easter.plus(DatePeriod(days = 50)),
-        )
-    }
-
     /**
-     * Jours fériés à exclure : calendrier français des [years] si [france], plus
-     * les dates [extra] (texte ISO « AAAA-MM-JJ », séparées par des virgules ;
-     * une date illisible est ignorée).
+     * Jours fériés à exclure : fériés nationaux de [country] pour [years] (`PublicHolidays`, docs/spec/jours-feries.md ;
+     * nul = aucun pays), plus les dates [extra] (texte ISO « AAAA-MM-JJ », séparées par des virgules ; une date illisible est
+     * ignorée).
      */
-    fun buildHolidays(years: IntRange, france: Boolean, extra: String = ""): Set<LocalDate> {
+    fun buildHolidays(years: IntRange, country: String?, extra: String = ""): Set<LocalDate> {
         val out = mutableSetOf<LocalDate>()
-        if (france) for (y in years) out += frenchPublicHolidays(y)
+        if (country != null) for (y in years) out += PublicHolidays.dates(country, y)
         extra.split(',').map { it.trim() }.filter { it.isNotEmpty() }.forEach { text ->
             runCatching { LocalDate.parse(text.take(10)) }.getOrNull()?.let { out += it }
         }
@@ -99,12 +89,11 @@ object Workdays {
     fun endOfWeek(day: LocalDate): LocalDate = day.plus(DatePeriod(days = 6 - weekday(day)))
 
     /**
-     * Jours fériés des réglages : calendrier
-     * français si [france], plus [extra], de l'année de [today] − 1 à + 2 ; vide
-     * si rien n'est demandé.
+     * Jours fériés des réglages : ceux de [country] (`Settings.holidayCountryCode`), plus [extra], de l'année de [today] − 1
+     * à + 2 ; vide si rien n'est demandé.
      */
-    fun holidaysFor(today: LocalDate, france: Boolean, extra: String): Set<LocalDate> {
-        if (!france && extra.split(',').none { it.isNotBlank() }) return emptySet()
-        return buildHolidays((today.year - 1)..(today.year + 2), france, extra)
+    fun holidaysFor(today: LocalDate, country: String?, extra: String): Set<LocalDate> {
+        if (country == null && extra.split(',').none { it.isNotBlank() }) return emptySet()
+        return buildHolidays((today.year - 1)..(today.year + 2), country, extra)
     }
 }
