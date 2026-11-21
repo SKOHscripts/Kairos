@@ -26,13 +26,16 @@ propose ce qui aide, comme un créneau de deep work dédié. Pendant la journée
 
 ### Comportement attendu (utilisateur)
 
-1. **Une carte « Ta journée »** en tête de la vue Jour, **toujours présente** : elle se replie (une ligne, le verdict), jamais
-   ne disparaît ; le pli est mémorisé sur l'appareil. C'est la place où Kairos **parle à l'utilisateur** : présenter la journée,
+1. **Une carte « Ta journée »** en tête de la vue Jour, **colorée** (conteneur secondaire, plus doux que « Maintenant ») et
+   **toujours présente** : elle se replie (une ligne, le verdict), jamais ne disparaît ; le pli est mémorisé sur l'appareil.
+   Elle reprend les **bilans de la carte « Maintenant »** (faites aujourd'hui, à faire, « requis · disponible », « la journée
+   déborde de … », temps travaillé aujourd'hui et par type) : « Maintenant » ne garde que la tâche du moment, ses boutons et
+   l'état des alertes du chrono (décision du propriétaire du 2026-11-21). C'est la place où Kairos **parle à l'utilisateur** : présenter la journée,
    puis le reste de la journée ; encourager et donner des nouvelles viendront plus tard (le propriétaire y reviendra).
 2. **Le matin** (avant le début de la journée de travail, ou tant que rien n'a été fait ni chronométré aujourd'hui) :
 
    > **Ta journée**
-   > 7 tâches à faire, estimées à 4 h 30.
+   > 7 tâches à faire, estimées à 4 h 30. 1 faite, 55 min travaillées (Développement 30 min · Administratif 25 min).
    > Échéances : 2 aujourd'hui, 3 cette semaine.
    > Disponible : 5 h 40, dont ~45 min de dérangements habituels, soit **4 h 55 effectives**.
    > **Sans créneau de deep work dédié, tu dépasseras sûrement d'environ 50 min.**
@@ -61,14 +64,13 @@ propose ce qui aide, comme un créneau de deep work dédié. Pendant la journée
   plus long créneau libre restant ; sinon le verdict « reporte une tâche » (`DayBriefTest`).
 - Matin puis « le reste » selon l'heure et l'activité ; repli mémorisé ; réservation et « Annuler » (`DayBriefUiTest`).
 - La notification porte les mêmes chiffres (`DailySummaryTest`).
-- La carte reste neutre : un seul bloc teinté par écran, « Maintenant » (`docs/DESIGN_SYSTEM.md`).
+- La carte est en conteneur secondaire, « Maintenant » en conteneur primaire ; « Maintenant » ne montre plus les bilans, « Ta
+  journée » les montre tous, sans en perdre un (`DayBriefUiTest`, captures de l'auto-test et des magasins régénérées).
 
 ### Hors périmètre / différé
 
 - **Encouragements et nouvelles** dans la carte (messages, félicitations, nouveautés) : le propriétaire y reviendra ; la carte est
   conçue pour les accueillir (une liste de lignes).
-- **Réorganiser la carte « Maintenant »** : son bilan (« requis · disponible · déborde ») reste tel quel pour l'instant ; le
-  déplacer dans « Ta journée » est un point ouvert.
 - **Espace Équipe** : la carte est celle de l'espace Perso.
 - **Notification avec action** (« Réserver » depuis la notification) : non.
 
@@ -78,6 +80,8 @@ propose ce qui aide, comme un créneau de deep work dédié. Pendant la journée
 
 `DayBrief.build(snapshot, now, zone): DayBrief` lit la même vue que la vue Jour (`DayView.build`) :
 
+- Bilans repris de la carte « Maintenant » : `doneToday`, `workedMinutes` et `workedByType` (mêmes calculs que le bilan actuel de
+  `NowCard`, déplacés).
 - `phase` : `DAY` avant le début de la journée de travail du jour (horaires des réglages) ou tant qu'aucune tâche n'a été faite ni
   aucune séance chronométrée aujourd'hui ; `REST` sinon.
 - `tasks` et `estimateMinutes` : tâches du plan du jour restantes (non faites), durées de placement (`Scheduling.durationMinutes`
@@ -94,8 +98,8 @@ propose ce qui aide, comme un créneau de deep work dédié. Pendant la journée
 
 ### Interface (`ui/day/DayBriefCard.kt`)
 
-- `KairosOutlinedCard` neutre en tête de la vue Jour (au-dessus de la capture), icône, titre (`day_brief_title_day` /
-  `_rest`), lignes de texte, action en bouton texte ; repliée, une ligne (le verdict) et un chevron. Pli : réglage local
+- Carte pleine en `secondaryContainer` / `onSecondaryContainer` (formes MD3 des grands blocs, sans ombre) en tête de la vue Jour
+  (au-dessus de la capture), icône, titre (`day_brief_title_day` / `_rest`), lignes de texte, action en bouton texte ; repliée, une ligne (le verdict) et un chevron. Pli : réglage local
   `Settings.dayBriefFolded` (`SyncScope.LOCAL_SETTINGS`, propre à l'appareil, comme `subtaskChain`).
 - « Réserver … de deep work » : `KairosRepository.createBlock(BlockEdit…)` d'un créneau `DEEPWORK` (titre « Deep work » dans la langue), puis
   message avec « Annuler » (`LocalUndoMessages`).
@@ -108,8 +112,13 @@ Le récapitulatif du jour reprend `DayBrief` : texte court « 7 tâches · ~4 h 
 
 ### Décisions et pièges tracés
 
-- **Carte persistante, neutre, repliable** (2026-11-21, propriétaire) : le bandeau où Kairos parle ; écartée une carte qu'on ferme
-  pour de bon. Neutre parce que « Maintenant » reste le seul bloc teinté.
+- **Carte persistante, colorée, repliable** (2026-11-21, propriétaire) : le bandeau où Kairos parle ; écartée une carte qu'on
+  ferme pour de bon. **Rouvre la règle « un seul bloc teinté par écran »** (`docs/DESIGN_SYSTEM.md`, `CLAUDE.md`) : la vue Jour en
+  a deux, « Ta journée » en conteneur secondaire et « Maintenant » en conteneur primaire ; écartés la même teinte pour les deux
+  (« Maintenant » ne ressortirait plus) et une surface à peine teintée. Le conteneur secondaire garde aussi son rôle de sélection
+  (puces, segments) : une carte entière ne se confond pas avec un élément sélectionné.
+- **Bilans déplacés dans « Ta journée »** (2026-11-21, propriétaire) : la vue d'ensemble d'un côté, l'action du moment de
+  l'autre ; écarté le doublon des deux cartes.
 - **Carte et notification** (2026-11-21, propriétaire) ; écartées la notification seule (désactivée par défaut) et la carte seule.
 - **Proposer un créneau de deep work** (2026-11-21, propriétaire), créé d'un toucher avec « Annuler » ; écarté le simple avertissement.
 - **Durée de deep work par les dérangements évités** : c'est ce que le deep work apporte selon l'hypothèse du propriétaire (aucun
@@ -117,7 +126,10 @@ Le récapitulatif du jour reprend `DayBrief` : texte court « 7 tâches · ~4 h 
 
 ### Impacts sur les specs existantes (à reporter à l'implémentation)
 
-- `vue-jour.md` : la carte en tête, au-dessus de la capture.
+- `vue-jour.md` : la carte en tête, au-dessus de la capture ; la carte « Maintenant » (§ 4) perd ses bilans.
+- `docs/DESIGN_SYSTEM.md`, `CLAUDE.md` (§ Palette, « Où va la couleur ») et `navigation-theme.md` : deux blocs teintés dans la vue
+  Jour (« Ta journée » en conteneur secondaire, « Maintenant » en conteneur primaire).
+- `publication.md` : captures des magasins de la vue Jour à régénérer.
 - `rappels.md` : contenu du récapitulatif du jour.
 - `derangements.md` : `ExpectedInterruptions.expected` utilisé par la carte.
 - `reglages.md`, `synchronisation.md` : `dayBriefFolded`, réglage local.
