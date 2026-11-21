@@ -112,7 +112,15 @@ data class Settings(
      * 0 = jamais. `null` = [DEFAULT_TIMER_AUTO_STOP_MINUTES] ; même règle que [team] : une base qui n'y touche pas ne change pas.
      */
     val timerAutoStopMinutes: Int? = null,
+    /**
+     * « Demander le temps passé à la coche » (docs/spec/durees-reelles.md, issue #271) : `null` = activé, la valeur par défaut ;
+     * même règle que [timerAutoStopMinutes], rien d'écrit tant qu'on n'y touche pas. Partagé par la synchronisation.
+     */
+    val askSpentOnDone: Boolean? = null,
 ) {
+    /** La question « Temps passé ? » est-elle posée à la coche ([askSpentOnDone]) ? */
+    val askSpent: Boolean get() = askSpentOnDone != false
+
     /** Pays des fériés en vigueur : [holidayCountry], ou la France si jamais choisi et [holidaysFr] ; nul = aucun (ou code inconnu). */
     val holidayCountryCode: String?
         get() = when (holidayCountry) {

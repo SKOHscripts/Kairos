@@ -430,6 +430,8 @@ object SettingsForm {
         },
         int("pomodoroFocusMinutes", 0, get = { it.pomodoroFocusMinutes }) { s, v -> s.copy(pomodoroFocusMinutes = v) },
         bool("timerAlertSound", { it.timerAlertSound }) { s, v -> s.copy(timerAlertSound = v) },
+        // Question « Temps passé ? » (docs/spec/durees-reelles.md) : activée par défaut, écrite nulle quand on la rallume.
+        bool("askSpentOnDone", { it.askSpent }) { s, v -> s.copy(askSpentOnDone = if (v) null else false) },
         // Pays des fériés (docs/spec/jours-feries.md) : `holidaysFr` suit, pour les versions d'avant qui liraient ces réglages.
         SettingField(
             "holidayCountry", FieldKind.CHOICE,

@@ -110,6 +110,8 @@ data class DayView(
     /** « Maintenant » : la première tâche placée, sinon la première sans créneau. */
     val nextUp: Task?,
     val nextUpStart: LocalDateTime?,
+    /** La tâche qui suit [nextUp] dans le plan (même ordre) : celle de « Fait, suivante » (docs/spec/durees-reelles.md). */
+    val followUp: Task? = null,
     /** Décomposition du score, pour les seules tâches qualifiées (priorité et points). */
     val why: Map<Long, Scheduling.WsjfBreakdown>,
     val buckets: Map<Long, Int>,
@@ -306,6 +308,7 @@ data class DayView(
                 backlog = backlog,
                 nextUp = schedule.scheduled.firstOrNull()?.task ?: schedule.unscheduled.firstOrNull(),
                 nextUpStart = schedule.scheduled.firstOrNull()?.start,
+                followUp = (schedule.scheduled.map { it.task } + schedule.unscheduled).getOrNull(1),
                 why = open.filter { it.priority != null && it.fibonacciPoints != null }
                     .associate { it.id to Scheduling.wsjfBreakdown(it, day, settings) },
                 buckets = open.associate { it.id to Scheduling.urgencyBucket(it, day) },
