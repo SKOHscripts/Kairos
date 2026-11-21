@@ -126,7 +126,7 @@ fun MonthScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> 
 
 /** En-tête des jours de la semaine, puis une ligne par semaine ; sept colonnes égales, de 46 dp à 360 dp. */
 @Composable
-private fun MonthGrid(month: MonthView, today: LocalDate, language: String, onOpenDay: (LocalDate) -> Unit) {
+internal fun MonthGrid(month: MonthView, today: LocalDate, language: String, onOpenDay: (LocalDate) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         // L'en-tête est décoratif pour le lecteur d'écran : chaque case dit déjà son jour en entier.
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.clearAndSetSemantics { }) {
