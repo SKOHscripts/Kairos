@@ -1717,6 +1717,7 @@
     <string name="calendar_skipped_too_many">Over the limit, skipped: %1$d</string>
     <string name="calendar_replaces">Replaces the %1$d upcoming slots of “%2$s”.</string>
     <string name="calendar_hide_titles">Hide titles (the slots are called “Busy”)</string>
+    <string name="calendar_holidays">Count its whole-day events as public holidays</string>
     <string name="calendar_import_action">Import</string>
     <string name="calendar_close">Close</string>
     <string name="calendar_import_done">Calendar “%1$s” imported: %2$d slots.</string>
@@ -1791,6 +1792,8 @@
     <string name="card_holidays_body">Your country’s public holidays are built in, and you can add your own days off in Settings: nothing is scheduled on them automatically.</string>
     <string name="card_holiday_countries_title">Public holidays of your country</string>
     <string name="card_holiday_countries_body">Choose your country in Settings: Germany, Austria, Belgium, Canada, Spain, United States, France, Ireland, Italy, Luxembourg, United Kingdom, Russia or Switzerland. Its national holidays are skipped by weekday tasks and slots, the plan and team capacity, offline.</string>
+    <string name="card_holiday_calendars_title">Holidays from a calendar</string>
+    <string name="card_holiday_calendars_body">In Settings → Data → Calendars, an imported calendar can count its whole-day events as public holidays: company closures, school holidays, regional holidays. They are skipped like your country’s.</string>
     <string name="card_phone_calendars_title">Phone calendars</string>
     <string name="card_phone_calendars_body">On Android, Settings → Data → “Use my phone calendars” shows the events of the calendars you tick as busy slots, read live and never stored.</string>
     <string name="card_deep_work_title">Deep work</string>

@@ -1716,6 +1716,7 @@
     <string name="calendar_skipped_too_many">Oltre il limite, scartati: %1$d</string>
     <string name="calendar_replaces">Sostituisce le %1$d fasce orarie future di «%2$s».</string>
     <string name="calendar_hide_titles">Nascondi i titoli (le fasce si chiamano «Occupato»)</string>
+    <string name="calendar_holidays">Considerare festivi i suoi eventi di un giorno intero</string>
     <string name="calendar_import_action">Importa</string>
     <string name="calendar_close">Chiudi</string>
     <string name="calendar_import_done">Calendario «%1$s» importato: %2$d fasce orarie.</string>
@@ -1790,6 +1791,8 @@
     <string name="card_holidays_body">Le festività del tuo paese sono integrate e puoi aggiungere i tuoi giorni liberi nelle Impostazioni: in quei giorni non viene pianificato nulla automaticamente.</string>
     <string name="card_holiday_countries_title">I festivi del tuo paese</string>
     <string name="card_holiday_countries_body">Scegli il tuo paese nelle Impostazioni: Germania, Austria, Belgio, Canada, Spagna, Stati Uniti, Francia, Irlanda, Italia, Lussemburgo, Regno Unito, Russia o Svizzera. Le sue festività nazionali vengono saltate da attività e fasce «giorni lavorativi», dalla pianificazione e dalla capacità del team, offline.</string>
+    <string name="card_holiday_calendars_title">Festivi da un calendario</string>
+    <string name="card_holiday_calendars_body">In Impostazioni → Dati → Calendari, un calendario importato può considerare festivi i suoi eventi di un giorno intero: chiusure aziendali, vacanze scolastiche, festività regionali. Vengono saltati come quelli del tuo paese.</string>
     <string name="card_phone_calendars_title">Calendari del telefono</string>
     <string name="card_phone_calendars_body">Su Android, Impostazioni → Dati → «Usa i calendari del telefono» mostra gli eventi dei calendari spuntati come fasce occupate, letti in diretta e mai salvati.</string>
     <string name="card_deep_work_title">Deep work</string>

@@ -414,6 +414,10 @@ only.
   United States); its national holidays, "observed" days included, are
   skipped by weekday tasks and slots, the plan and team capacity, offline. A
   new install starts with the device's country.
+- **Holidays from a calendar**: in Settings → Data → Calendars, an imported
+  calendar (file or link) can count its whole-day events as public holidays:
+  company closures, school holidays, regional holidays. They are skipped like
+  the country's.
 
 ### Dependencies
 
@@ -729,6 +733,7 @@ version that brought it and the platforms it exists on.
 | Plan | Hours by day of the week | 3.4.0 | All |
 | Plan | Working days and holidays | 3.0.0 | All |
 | Plan | Public holidays of your country | 4.4.0 | All |
+| Plan | Holidays from a calendar | 4.4.0 | All |
 | Follow | Timeline of the day | 3.0.0 | All |
 | Follow | Track time | 3.0.0 | All |
 | Follow | Three timer alerts | 3.0.0 | All |

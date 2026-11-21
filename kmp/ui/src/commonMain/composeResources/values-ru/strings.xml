@@ -1716,6 +1716,7 @@
     <string name="calendar_skipped_too_many">Сверх лимита, пропущено: %1$d</string>
     <string name="calendar_replaces">Заменит предстоящие интервалы календаря «%2$s»: %1$d.</string>
     <string name="calendar_hide_titles">Скрыть названия (интервалы будут называться «Занято»)</string>
+    <string name="calendar_holidays">Считать его события на весь день праздниками</string>
     <string name="calendar_import_action">Импорт</string>
     <string name="calendar_close">Закрыть</string>
     <string name="calendar_import_done">Календарь «%1$s» импортирован, интервалов: %2$d.</string>
@@ -1790,6 +1791,8 @@
     <string name="card_holidays_body">Праздники вашей страны встроены, а свои выходные можно добавить в Настройках: на них ничего не планируется автоматически.</string>
     <string name="card_holiday_countries_title">Праздники вашей страны</string>
     <string name="card_holiday_countries_body">Выберите страну в Настройках: Германия, Австрия, Бельгия, Канада, Испания, США, Франция, Ирландия, Италия, Люксембург, Великобритания, Россия или Швейцария. Её общенациональные праздники пропускаются задачами и интервалами «по будням», планом и ёмкостью команды, офлайн.</string>
+    <string name="card_holiday_calendars_title">Праздники из календаря</string>
+    <string name="card_holiday_calendars_body">В Настройки → Данные → Календари импортированный календарь может считать свои события на весь день праздниками: корпоративные выходные, школьные каникулы, региональные праздники. Они пропускаются, как праздники вашей страны.</string>
     <string name="card_phone_calendars_title">Календари телефона</string>
     <string name="card_phone_calendars_body">На Android «Настройки → Данные → Использовать календари телефона» показывает события отмеченных календарей как занятые интервалы; они читаются напрямую и не сохраняются.</string>
     <string name="card_deep_work_title">Deep work</string>

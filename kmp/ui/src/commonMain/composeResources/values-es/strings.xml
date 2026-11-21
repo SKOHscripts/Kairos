@@ -1716,6 +1716,7 @@
     <string name="calendar_skipped_too_many">Por encima del límite, omitidos: %1$d</string>
     <string name="calendar_replaces">Reemplaza las %1$d franjas próximas de «%2$s».</string>
     <string name="calendar_hide_titles">Ocultar los títulos (las franjas se llaman «Ocupado»)</string>
+    <string name="calendar_holidays">Contar sus eventos de día completo como festivos</string>
     <string name="calendar_import_action">Importar</string>
     <string name="calendar_close">Cerrar</string>
     <string name="calendar_import_done">Calendario «%1$s» importado: %2$d franjas.</string>
@@ -1790,6 +1791,8 @@
     <string name="card_holidays_body">Los festivos de tu país vienen incluidos y puedes añadir tus propios días libres en Ajustes: nada se planifica en ellos automáticamente.</string>
     <string name="card_holiday_countries_title">Los festivos de tu país</string>
     <string name="card_holiday_countries_body">Elige tu país en Ajustes: Alemania, Austria, Bélgica, Canadá, España, Estados Unidos, Francia, Irlanda, Italia, Luxemburgo, Reino Unido, Rusia o Suiza. Sus festivos nacionales se saltan en las tareas y franjas de «días laborables», la planificación y la capacidad del equipo, sin conexión.</string>
+    <string name="card_holiday_calendars_title">Festivos de un calendario</string>
+    <string name="card_holiday_calendars_body">En Ajustes → Datos → Calendarios, un calendario importado puede contar sus eventos de día completo como festivos: cierres de la empresa, vacaciones escolares, festivos regionales. Se saltan como los de tu país.</string>
     <string name="card_phone_calendars_title">Calendarios del teléfono</string>
     <string name="card_phone_calendars_body">En Android, Ajustes → Datos → «Usar los calendarios del teléfono» muestra los eventos de los calendarios marcados como franjas ocupadas, leídos en directo y nunca guardados.</string>
     <string name="card_deep_work_title">Deep work</string>

@@ -1716,6 +1716,7 @@
     <string name="calendar_skipped_too_many">Über dem Limit, übersprungen: %1$d</string>
     <string name="calendar_replaces">Ersetzt die %1$d kommenden Zeitfenster von „%2$s“.</string>
     <string name="calendar_hide_titles">Titel ausblenden (die Zeitfenster heißen „Belegt“)</string>
+    <string name="calendar_holidays">Ganztägige Termine als Feiertage zählen</string>
     <string name="calendar_import_action">Importieren</string>
     <string name="calendar_close">Schließen</string>
     <string name="calendar_import_done">Kalender „%1$s“ importiert: %2$d Zeitfenster.</string>
@@ -1790,6 +1791,8 @@
     <string name="card_holidays_body">Die Feiertage deines Landes sind eingebaut, und du kannst in den Einstellungen eigene freie Tage hinzufügen: an ihnen wird nichts automatisch geplant.</string>
     <string name="card_holiday_countries_title">Die Feiertage deines Landes</string>
     <string name="card_holiday_countries_body">Wähle dein Land in den Einstellungen: Deutschland, Österreich, Belgien, Kanada, Spanien, Vereinigte Staaten, Frankreich, Irland, Italien, Luxemburg, Vereinigtes Königreich, Russland oder Schweiz. Seine landesweiten Feiertage werden von Aufgaben und Zeitfenstern „Arbeitstage“, der Planung und der Teamkapazität übersprungen, offline.</string>
+    <string name="card_holiday_calendars_title">Feiertage aus einem Kalender</string>
+    <string name="card_holiday_calendars_body">Unter Einstellungen → Daten → Kalender kann ein importierter Kalender seine ganztägigen Termine als Feiertage zählen: Betriebsferien, Schulferien, regionale Feiertage. Sie werden wie die deines Landes übersprungen.</string>
     <string name="card_phone_calendars_title">Telefonkalender</string>
     <string name="card_phone_calendars_body">Unter Android zeigt Einstellungen → Daten → „Meine Telefonkalender verwenden“ die Termine der angehakten Kalender als belegte Zeitfenster, live gelesen und nie gespeichert.</string>
     <string name="card_deep_work_title">Deep work</string>

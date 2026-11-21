@@ -1719,6 +1719,7 @@
     <string name="calendar_skipped_too_many">Au-delà de la limite, écartés : %1$d</string>
     <string name="calendar_replaces">Remplace les %1$d créneaux à venir de « %2$s ».</string>
     <string name="calendar_hide_titles">Masquer les titres (les créneaux s’appellent « Occupé »)</string>
+    <string name="calendar_holidays">Compter ses journées entières comme fériés</string>
     <string name="calendar_import_action">Importer</string>
     <string name="calendar_close">Fermer</string>
     <string name="calendar_import_done">Calendrier « %1$s » importé : %2$d créneaux.</string>
@@ -1793,6 +1794,8 @@
     <string name="card_holidays_body">Les jours fériés de ton pays sont intégrés, et tu peux ajouter tes propres jours de repos dans les Réglages : rien n’y est planifié automatiquement.</string>
     <string name="card_holiday_countries_title">Les jours fériés de ton pays</string>
     <string name="card_holiday_countries_body">Choisis ton pays dans les Réglages : Allemagne, Autriche, Belgique, Canada, Espagne, États-Unis, France, Irlande, Italie, Luxembourg, Royaume-Uni, Russie ou Suisse. Ses fériés nationaux sont sautés par les tâches et créneaux « jours ouvrés », le planning et la capacité de l’équipe, hors ligne.</string>
+    <string name="card_holiday_calendars_title">Les fériés d’un calendrier</string>
+    <string name="card_holiday_calendars_body">Dans Réglages → Données → Calendriers, un calendrier importé peut compter ses journées entières comme fériés : fermetures de l’entreprise, vacances scolaires, fériés régionaux. Ils sont sautés comme ceux de ton pays.</string>
     <string name="card_phone_calendars_title">Calendriers du téléphone</string>
     <string name="card_phone_calendars_body">Sur Android, Réglages → Données → « Utiliser les calendriers du téléphone » montre les événements des calendriers cochés comme créneaux occupés, lus en direct et jamais enregistrés.</string>
     <string name="card_deep_work_title">Deep work</string>

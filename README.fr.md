@@ -437,6 +437,10 @@ son estimation vient des seules tâches d’équipe terminées.
   Suisse) ; ses fériés nationaux, jours de remplacement compris, sont sautés
   par les tâches et créneaux « jours ouvrés », le planning et la capacité de
   l’équipe, hors ligne. Une nouvelle installation part du pays de l’appareil.
+- **Les fériés d’un calendrier** : dans Réglages → Données → Calendriers, un
+  calendrier importé (fichier ou lien) peut compter ses journées entières
+  comme fériés : fermetures de l’entreprise, vacances scolaires, fériés
+  régionaux. Ils sont sautés comme ceux du pays.
 
 ### Dépendances
 
@@ -780,6 +784,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Planifier | Horaires par jour de la semaine | 3.4.0 | Toutes |
 | Planifier | Jours ouvrés et fériés | 3.0.0 | Toutes |
 | Planifier | Les jours fériés de ton pays | 4.4.0 | Toutes |
+| Planifier | Les fériés d’un calendrier | 4.4.0 | Toutes |
 | Suivre | Frise de la journée | 3.0.0 | Toutes |
 | Suivre | Suivre le temps | 3.0.0 | Toutes |
 | Suivre | Trois alertes du chrono | 3.0.0 | Toutes |
