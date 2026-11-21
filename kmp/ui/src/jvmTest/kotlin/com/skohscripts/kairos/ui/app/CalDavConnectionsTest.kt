@@ -109,6 +109,19 @@ class CalDavConnectionsTest {
         assertTrue(secrets.keys().isEmpty())
     }
 
+    @Test fun aCalendarTickedInThePreviewCountsItsWholeDaysAsHolidays() = runBlocking {
+        val repository = onlineRepository()
+        val online = DefaultOnlineConnections(repository, BackupStore { _, _ -> }, FakeDav().http, MemorySecrets(), this, { onlineNow })
+        val found = assertIs<CalDavClient.Discovery.Found>(online.discoverCalDav(account))
+        val previews = online.previewCalDav(account, found.host, found.calendars)
+        val work = found.calendars.single { it.name == "Work" }.url
+        // Voie B des fériés (docs/spec/jours-feries.md) : seul le calendrier coché dans l'aperçu compte ses journées entières.
+        online.addCalDav(account, found.host, previews, hideTitles = false, holidays = setOf(work))
+        val sources = repository.snapshot.value.calendarSources.associateBy { it.name }
+        assertTrue(sources.getValue("Work").countsAsHolidays)
+        assertEquals(false, sources.getValue("Perso").countsAsHolidays)
+    }
+
     @Test fun syncReadsTheCalendarAndMapsErrors() = runBlocking {
         val dav = FakeDav()
         val repository = onlineRepository()

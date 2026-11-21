@@ -438,7 +438,7 @@ son estimation vient des seules tâches d’équipe terminées.
   par les tâches et créneaux « jours ouvrés », le planning et la capacité de
   l’équipe, hors ligne. Une nouvelle installation part du pays de l’appareil.
 - **Les fériés d’un calendrier** : dans Réglages → Données → Calendriers, un
-  calendrier importé (fichier ou lien) peut compter ses journées entières
+  calendrier importé (fichier, lien ou CalDAV) peut compter ses journées entières
   comme fériés : fermetures de l’entreprise, vacances scolaires, fériés
   régionaux. Ils sont sautés comme ceux du pays.
 

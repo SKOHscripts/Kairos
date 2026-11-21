@@ -415,7 +415,7 @@ only.
   skipped by weekday tasks and slots, the plan and team capacity, offline. A
   new install starts with the device's country.
 - **Holidays from a calendar**: in Settings → Data → Calendars, an imported
-  calendar (file or link) can count its whole-day events as public holidays:
+  calendar (file, link or CalDAV) can count its whole-day events as public holidays:
   company closures, school holidays, regional holidays. They are skipped like
   the country's.
 
