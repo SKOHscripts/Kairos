@@ -5,11 +5,15 @@ Fichiers couverts (voie A) : `core/engine/PublicHolidays.kt`, `core/engine/Holid
 `core/model/Settings.kt` (`holidayCountry`, `holidayCountryCode`, `defaults`), `core/settings/SettingsForm.kt` (`holidayCountry`,
 `FieldKind.CHOICE`, `restoreDefaults`), `ui/settings/SettingsFormCards.kt` (sélecteur de pays), `ui/settings/HolidayCountries.kt`,
 les plateformes (région du système), `kmp/tools/make_holidays.py`, `.github/workflows/kmp-tag.yml`, `NOTICE`.
-Tests : `PublicHolidaysTest`, `HolidayCountrySettingsTest`, `kmp/tools/test_make_holidays.py`._
+Fichiers couverts (voie B) : `14.sqm`, `Kairos.sq` (`counts_as_holidays`, `updateCalendarHolidays`), `KairosStore` (marqueur 15),
+`core/model/TimeBlock.kt` (`CalendarSource.countsAsHolidays`), `Mappers.kt`, `ExportCodec.kt`, `core/sync/SyncRecords.kt`,
+`KairosRepository` (`importCalendar`, `connectCalendar`, `setCalendarHolidays`), `Workdays.holidaysFor(jour, instantané)`, tous ses
+appelants, `ui/settings/CalendarImport.kt`, `ui/settings/OnlineConnectionsCard.kt`, `OnlineConnections.addIcs`.
+Tests : `PublicHolidaysTest`, `HolidayCountrySettingsTest`, `kmp/tools/test_make_holidays.py`, `ImportedHolidaysTest`,
+`CalendarHolidaysTest`._
 
-État : issue [#264](https://github.com/SKOHscripts/Kairos/issues/264). **Voie A (pays intégrés) implémentée pour la 4.4.0** ; voie B
-(calendrier importé compté comme fériés) **spécifiée le 2026-11-21, non implémentée** (seconde PR de la 4.4.0, décision du propriétaire
-du 2026-11-21).
+État : issue [#264](https://github.com/SKOHscripts/Kairos/issues/264). **Voie A (pays intégrés) et voie B (calendrier importé compté
+comme fériés) implémentées pour la 4.4.0**, en deux PR (décision du propriétaire du 2026-11-21).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -37,9 +41,13 @@ la capacité de mon équipe les sautent, sans les taper chaque année. »
 - « Restaurer les valeurs par défaut » **garde le pays** : c'est un fait sur l'utilisateur, pas une préférence.
 - Le pays se synchronise entre appareils comme les autres réglages partagés (et comme l'interrupteur qu'il remplace).
 
-**Voie B : fériés d'un calendrier importé** (spécifiée, non implémentée)
+**Voie B : fériés d'un calendrier importé**
 
-- Sur un calendrier importé et gardé (fichier `.ics`, lien ICS, CalDAV), un interrupteur **« Compter ses journées entières comme fériés »**.
+- Sur un calendrier importé et gardé (fichier `.ics`, lien ICS, CalDAV), un interrupteur **« Compter ses journées entières comme fériés »**,
+  sur sa ligne (Réglages → Données → Calendriers), changeable à tout moment ; et une case du même nom dans l'aperçu d'un import ou d'un
+  ajout par lien, si le calendrier a des journées entières, cochée d'emblée seulement quand le calendrier de ce nom l'était.
+- Toutes ses journées entières, une plage de plusieurs jours comprise, sont alors sautées comme des fériés, partout où le pays l'est.
+- Les calendriers du téléphone (Android, lus en direct, jamais gardés) n'y entrent pas (décision du propriétaire du 2026-11-21).
 - Couvre ce que les règles ne peuvent pas : fermetures de l'entreprise, vacances scolaires, région (Alsace-Moselle, Länder, cantons…),
   pays absent de la liste, années que les règles ne prévoient pas.
 
@@ -115,13 +123,26 @@ on relance « Kairos tag ». La table reste versionnée dans le dépôt : un bui
 - Textes : `setting_holiday_country`, `setting_holiday_country_help`, les 13 noms de pays et « Aucun pays », `card_holiday_countries_*`,
   dans les six langues ; `setting_holidays_fr` retiré.
 
-### Voie B (spécifiée, non implémentée)
+### Voie B : calendrier importé compté comme fériés
 
-- Colonne `calendar_source.counts_as_holidays` (migration), synchronisée avec la source ; interrupteur sur la ligne du calendrier
-  (Réglages → Données → Calendriers) et dans l'aperçu d'un ajout. Les journées entières (`day_mark`) des sources cochées s'ajoutent
-  aux fériés : les appelants qui n'ont que les réglages reçoivent ces dates par un paramètre, à trancher dans la PR B (une
-  `HolidayCalendar` construite depuis l'instantané est la piste). Les calendriers du téléphone (lus en direct, jamais gardés) n'y entrent
-  pas.
+- **Stockage** (décision du propriétaire du 2026-11-21 : sur le calendrier, pas dans les réglages) : colonne
+  `calendar_source.counts_as_holidays` (`14.sqm`, schéma 15, 0 pour les calendriers existants ; marqueur `counts_as_holidays` en tête de
+  `KairosStore.MARKERS`). `CalendarSource.countsAsHolidays`. Les fixtures qui reconstruisent un ancien schéma depuis le schéma courant
+  retirent aussi la colonne (`ALTER TABLE calendar_source DROP COLUMN counts_as_holidays`), sinon son marqueur saute les migrations.
+- **Export** : `countsAsHolidays` n'est écrit que s'il est vrai (comme `hideTitles`) ; un export d'avant se lit faux.
+- **Synchronisation** : champ `holidays` de l'enregistrement du calendrier, **toujours écrit** (`true` / `false`) : écrit seulement à
+  vrai, un retour à faux ne gagnerait jamais contre un appareil qui l'a encore (un champ absent d'un côté prend la valeur de l'autre). Un
+  enregistrement d'avant la 4.4.0 n'a pas le champ : faux.
+- **Dépôt** : `importCalendar(…, holidays)` et `connectCalendar(…, holidays, beforeCommit)` posent le choix dans la même transaction ;
+  nul garde celui d'un calendrier existant (faux pour un nouveau). `setCalendarHolidays(id, choix)` pour l'interrupteur de la ligne.
+- **Calcul** (`Workdays.holidaysFor(jour, instantané)`, `buildHolidays(années, instantané)`) : les fériés des réglages, plus chaque jour
+  des `day_mark` des calendriers cochés, coupés à la fenêtre (année d'avant à deux ans après). Tous les appelants passent l'instantané
+  qu'ils ont déjà (vues Jour, Semaine, Mois, Bilan, prévisions, espace Équipe, conseils, dépôt, coach de récurrence) : aucun ne garde la
+  seule version « réglages ».
+- **Interface** : `SwitchRow` sur la ligne du calendrier (`CalendarsCard`) ; `LabeledCheckbox` dans `CalendarImportDialog` et dans
+  l'aperçu d'un lien ICS (`OnlineConnectionsCard`, `OnlineConnections.addIcs(…, holidays)`), seulement si le plan a des journées
+  entières. Texte `calendar_holidays` dans les six langues ; carte du catalogue `holiday_calendars` (« Les fériés d'un calendrier »,
+  depuis 4.4.0, toutes plateformes).
 
 ### Décisions et pièges tracés
 
@@ -132,5 +153,8 @@ on relance « Kairos tag ». La table reste versionnée dans le dépôt : un bui
 - **Défaut par la région du système** (2026-11-21, propriétaire) ; écartés la France pour tous et « Aucun » pour tous.
 - **`holidaysFr` gardé et tenu à jour** : écarté son retrait, qui ferait perdre la France aux versions d'avant lisant un fichier récent.
 - **Pays gardé par « Restaurer les valeurs par défaut »** : écartée la remise à la France, absurde pour un utilisateur allemand.
+- **Le calendrier porte le choix** (2026-11-21, propriétaire) : il suit un renommage et disparaît avec le calendrier ; écartée une
+  liste de noms dans les réglages (sans migration, mais perdue au renommage).
+- **Calendriers du téléphone exclus** (2026-11-21, propriétaire) : lus seulement par l'écran, ils n'entrent dans aucun calcul.
 - **2000–2050** : de quoi couvrir l'historique des statistiques et les prévisions ; `holidaysFor` ne lit que de l'année d'avant à deux ans
   après.
