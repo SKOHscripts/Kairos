@@ -1119,6 +1119,12 @@ class KairosRepository(
     /** Supprime un dérangement ; ni les séances ni la note créée avec lui ne bougent. */
     suspend fun deleteInterruption(id: Long) = write { queries.deleteInterruption(id) }
 
+    /** « Annuler » d'une suppression : le dérangement revient tel quel, même identifiant. */
+    suspend fun restoreInterruption(i: Interruption) {
+        if (state.value.interruptions.any { it.id == i.id }) return
+        write { queries.insertInterruptionWithId(i.id, i.at.store(), i.minutes.toLong(), i.source?.code, i.taskId, i.noteId, i.createdAt.store()) }
+    }
+
     // --- Équipe : membres et absences (docs/spec/equipe.md § Dépôt) --------------
 
     /**

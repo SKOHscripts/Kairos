@@ -24,6 +24,9 @@ data class Interruption(
         /** Bornes d'une durée de dérangement, en minutes. */
         const val MIN_MINUTES = 1
         const val MAX_MINUTES = 240
+
+        /** Durées proposées en un toucher (docs/spec/derangements.md § Comportement attendu). */
+        val CHOICES: List<Int> = listOf(2, 5, 15, 30, 60)
     }
 }
 

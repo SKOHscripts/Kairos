@@ -6,9 +6,12 @@ import com.skohscripts.kairos.core.engine.TimeTracking
 import com.skohscripts.kairos.core.engine.Workdays
 import com.skohscripts.kairos.core.model.BlockKind
 import com.skohscripts.kairos.core.model.BlockRecurrence
+import com.skohscripts.kairos.core.model.Interruption
+import com.skohscripts.kairos.core.model.InterruptionSource
 import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskStatus
+import com.skohscripts.kairos.core.stats.InterruptionStats
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -31,7 +34,16 @@ data class Recap(
     val late: Int,
     val spentMinutes: Int,
     val spentByType: Map<String, Int>,
+    /**
+     * Dérangements de la période (docs/spec/derangements.md, issue #272), réduits par le filtre comme les tâches ; la source et le
+     * moment (jour, demi-journée) cités seulement s'ils pèsent au moins un tiers.
+     */
+    val interruptions: List<Interruption> = emptyList(),
+    val interruptionSource: InterruptionSource? = null,
+    val interruptionMoment: InterruptionStats.Moment? = null,
 ) {
+    val interruptionMinutes: Int get() = interruptions.sumOf { it.minutes }
+
     /** Une tâche et ses minutes chronométrées **dans la période** (0 : pas de chrono). */
     data class Line(val task: Task, val minutes: Int)
 
@@ -40,7 +52,7 @@ data class Recap(
 
     val points: Int get() = done.sumOf { it.task.fibonacciPoints ?: 0 }
     val slotMinutes: Int get() = slots.sumOf { it.minutes }
-    val empty: Boolean get() = done.isEmpty() && advanced.isEmpty() && slots.isEmpty() && left.isEmpty() && spentMinutes == 0
+    val empty: Boolean get() = done.isEmpty() && advanced.isEmpty() && slots.isEmpty() && left.isEmpty() && spentMinutes == 0 && interruptions.isEmpty()
 
     companion object {
         fun build(snapshot: KairosSnapshot, start: LocalDate, end: LocalDate, now: Instant, timeZone: TimeZone, filter: DayFilter = DayFilter()): Recap {
@@ -53,6 +65,7 @@ data class Recap(
             val holidays = Workdays.holidaysFor(start, snapshot)
             val blocks = snapshot.timeBlocks.filter { it.recurrence == BlockRecurrence.NONE } +
                 Recurrence.expandRecurringBlocks(snapshot.timeBlocks.filter { it.recurrence != BlockRecurrence.NONE }, start, end, holidays, snapshot.blockExceptions)
+            val interruptions = InterruptionStats.inRange(InterruptionStats.kept(snapshot, filter), start, end, timeZone)
             val left = kept.filter { it.status == TaskStatus.TODO && it.deadline?.let { d -> d in start..end } == true }
                 .sortedWith(compareBy({ it.deadline }, { it.title }))
             return Recap(
@@ -75,6 +88,10 @@ data class Recap(
                 spentByType = TimeTracking.spentMinutesByType(sessions, snapshot.tasks.associate { it.id to it.taskType }, now)
                     .filter { (type, spent) -> type.isNotEmpty() && spent > 0 }
                     .entries.sortedByDescending { it.value }.associate { it.key to it.value },
+                interruptions = interruptions,
+                interruptionSource = interruptions.filter { it.source != null }.groupingBy { it.source }.eachCount().maxByOrNull { it.value }
+                    ?.takeIf { it.value * 3 >= interruptions.size }?.key,
+                interruptionMoment = InterruptionStats.mainMoment(interruptions, timeZone),
             )
         }
     }
