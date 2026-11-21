@@ -33,6 +33,8 @@ data class KairosSnapshot(
     val calendarSources: List<CalendarSource> = emptyList(),
     /** Journées entières des calendriers importés (badges) ; vide tant qu'aucun calendrier n'a été importé. */
     val dayMarks: List<DayMark> = emptyList(),
+    /** Dérangements signalés (4.5.0, docs/spec/derangements.md) ; vide tant qu'aucun n'a été signalé. Personnels. */
+    val interruptions: List<Interruption> = emptyList(),
     /**
      * Rang de chaque tâche dans l'ordre **commun** des appareils synchronisés (`createdAt`, puis `uid` ; `SyncOrder`), posé par le
      * dépôt d'une base synchronisée et jamais écrit ni exporté : les durées apprises et le modèle ordonnent leurs occurrences

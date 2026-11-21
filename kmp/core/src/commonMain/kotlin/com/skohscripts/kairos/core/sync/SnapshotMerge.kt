@@ -234,6 +234,7 @@ object SnapshotMerge {
             RecordKind.EXCEPTION -> s.blockExceptions.maxOfOrNull { it.id }
             RecordKind.DEPENDENCY -> s.dependencies.maxOfOrNull { it.id }
             RecordKind.DAYMARK -> s.dayMarks.maxOfOrNull { it.id }
+            RecordKind.INTERRUPTION -> s.interruptions.maxOfOrNull { it.id }
         }.let { snap -> maxOf(snap ?: 0L, known[kind]?.values?.maxOrNull() ?: 0L) }
         // Identifiants de tous les enregistrements fusionnés, avant de construire (les références peuvent pointer en avant).
         val ids = HashMap<RecordKind, HashMap<String, Long>>()
@@ -266,6 +267,8 @@ object SnapshotMerge {
                     RecordKind.EXCEPTION -> SyncRecords.buildException(id, r.lifted, idOf)?.let(out.exceptions::add) ?: false
                     RecordKind.DEPENDENCY -> SyncRecords.buildDependency(id, r.lifted, idOf)?.let(out.dependencies::add) ?: false
                     RecordKind.DAYMARK -> SyncRecords.buildDayMark(id, r.lifted, idOf)?.let(out.dayMarks::add) ?: false
+                    // Dernier genre : ses références (tâche, note) sont déjà construites.
+                    RecordKind.INTERRUPTION -> SyncRecords.buildInterruption(id, r.lifted, idOf)?.let(out.interruptions::add) ?: false
                 }
                 if (ok) built.getOrPut(kind) { HashMap() }[ref.uid] = id
             }
@@ -288,6 +291,7 @@ object SnapshotMerge {
             // Une dépendance hors portée vers une tâche que la fusion a retirée tombe avec elle.
             dependencies = keep(s.dependencies, inScope.dependencies, out.dependencies).filter { it.taskId in allTaskIds && it.blockerId in allTaskIds },
             dayMarks = keep(s.dayMarks, inScope.dayMarks, out.dayMarks),
+            interruptions = keep(s.interruptions, inScope.interruptions, out.interruptions),
             settings = SyncRecords.buildSettings(sharedSettings, s.settings),
         )
         val uidMaps = built.mapValues { (_, m) -> m.entries.associate { (uid, id) -> id to uid } }.toMutableMap()
@@ -295,7 +299,7 @@ object SnapshotMerge {
         val tasksBuilt = built[RecordKind.TASK].orEmpty()
         val byTaskId = (ids[RecordKind.TASK].orEmpty() + known[RecordKind.TASK].orEmpty() + phantoms).entries.associate { (uid, id) -> id to uid }
         val referenced = (out.tasks.flatMap { listOfNotNull(it.parentId, it.seriesId) } + out.notes.mapNotNull { it.convertedTaskId } +
-            out.sessions.map { it.taskId }).toSet()
+            out.sessions.map { it.taskId } + out.interruptions.mapNotNull { it.taskId }).toSet()
         val phantomIds = referenced.filter { id -> byTaskId[id]?.let { it !in tasksBuilt } == true }
         if (phantomIds.isNotEmpty()) uidMaps[RecordKind.TASK] = uidMaps[RecordKind.TASK].orEmpty() + phantomIds.associateWith { byTaskId.getValue(it) }
         val uids = uidMaps.filterValues { it.isNotEmpty() }
@@ -359,5 +363,6 @@ object SnapshotMerge {
         val exceptions = ArrayList<BlockException>()
         val dependencies = ArrayList<TaskDependency>()
         val dayMarks = ArrayList<DayMark>()
+        val interruptions = ArrayList<com.skohscripts.kairos.core.model.Interruption>()
     }
 }
