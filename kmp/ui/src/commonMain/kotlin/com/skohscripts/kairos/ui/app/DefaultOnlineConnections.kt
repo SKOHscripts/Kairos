@@ -140,7 +140,7 @@ class DefaultOnlineConnections(
         }
     }
 
-    override suspend fun addCalDav(account: CalDavAccount, host: String, previews: List<CalDavPreview>, hideTitles: Boolean): List<Long> = mutations.withLock {
+    override suspend fun addCalDav(account: CalDavAccount, host: String, previews: List<CalDavPreview>, hideTitles: Boolean, holidays: Set<String>): List<Long> = mutations.withLock {
         val ready = previews.filter { it.plan != null }
         if (ready.isEmpty()) return@withLock emptyList()
         val instant = now()
@@ -156,7 +156,8 @@ class DefaultOnlineConnections(
                 try {
                     repository.connectCalendar(preview.calendar.name, hideTitles, preview.plan!!, today,
                         CalendarConnection(0, ConnectionKind.CALDAV, host = host, account = key, lastAttemptAt = instant, lastSyncAt = instant),
-                        instant, beforeCommit = { id -> secretId = id; secrets.put("remote:$id", preview.calendar.url) })?.let { added += it }
+                        instant, holidays = preview.calendar.url in holidays,
+                        beforeCommit = { id -> secretId = id; secrets.put("remote:$id", preview.calendar.url) })?.let { added += it }
                 } catch (e: Throwable) {
                     secretId?.let { secrets.delete("remote:$it") }
                     throw e

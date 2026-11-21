@@ -141,7 +141,9 @@ on relance « Kairos tag ». La table reste versionnée dans le dépôt : un bui
   seule version « réglages ».
 - **Interface** : `SwitchRow` sur la ligne du calendrier (`CalendarsCard`) ; `LabeledCheckbox` dans `CalendarImportDialog` et dans
   l'aperçu d'un lien ICS (`OnlineConnectionsCard`, `OnlineConnections.addIcs(…, holidays)`), seulement si le plan a des journées
-  entières. Texte `calendar_holidays` dans les six langues ; carte du catalogue `holiday_calendars` (« Les fériés d'un calendrier »,
+  entières ; dans l'aperçu CalDAV, une case **par calendrier** qui a des journées entières (plusieurs calendriers s'ajoutent d'un coup
+  et n'ont pas le même rôle : « Fériés Alsace » oui, « Travail » non), `OnlineConnections.addCalDav(…, holidays)` recevant les
+  adresses cochées (`CalDavConnectionsTest`). Texte `calendar_holidays` dans les six langues ; carte du catalogue `holiday_calendars` (« Les fériés d'un calendrier »,
   depuis 4.4.0, toutes plateformes).
 
 ### Décisions et pièges tracés
