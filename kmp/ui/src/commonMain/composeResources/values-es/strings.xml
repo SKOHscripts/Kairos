@@ -2270,4 +2270,9 @@
     <string name="reminder_summary_deadlines">fechas límite hoy: %1$d</string>
     <string name="card_day_brief_title">Tu día</string>
     <string name="card_day_brief_body">Arriba de la vista Día, una tarjeta presenta tu día y luego el resto: las tareas y su estimación, las fechas límite, el tiempo realmente disponible una vez contadas las interrupciones habituales, y si cabe. Si no, propone reservar un bloque de trabajo profundo con un toque. La notificación del resumen del día dice lo mismo.</string>
+    <!-- Séries « le N du mois » (docs/spec/recurrence.md, issue #282) -->
+    <string name="delete_series_title">¿Eliminar «%1$s»?</string>
+    <string name="delete_series_body">Esta tarea vuelve el día %1$d de cada mes. ¿Eliminar solo la de este mes o detener la serie? Las ocurrencias pasadas quedan en tu historial.</string>
+    <string name="delete_series_month">Solo este mes</string>
+    <string name="delete_series_stop">Detener la serie</string>
 </resources>

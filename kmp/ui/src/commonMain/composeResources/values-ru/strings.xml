@@ -2270,4 +2270,9 @@
     <string name="reminder_summary_deadlines">сроков сегодня: %1$d</string>
     <string name="card_day_brief_title">Ваш день</string>
     <string name="card_day_brief_body">Вверху экрана «День» карточка представляет ваш день, а затем его остаток: задачи и их оценку, сроки, действительно доступное время с учётом обычных отвлечений и то, успеваете ли вы. Если нет, она предлагает одним касанием забронировать блок глубокой работы. Уведомление со сводкой дня говорит то же самое.</string>
+    <!-- Séries « le N du mois » (docs/spec/recurrence.md, issue #282) -->
+    <string name="delete_series_title">Удалить «%1$s»?</string>
+    <string name="delete_series_body">Эта задача повторяется %1$d числа каждого месяца. Удалить только задачу этого месяца или остановить серию? Прошлые повторения останутся в истории.</string>
+    <string name="delete_series_month">Только этот месяц</string>
+    <string name="delete_series_stop">Остановить серию</string>
 </resources>

@@ -848,6 +848,14 @@ fun DayScreen(
                     editingId = null
                 },
                 onDelete = { scope.launch { repository.deleteTask(id) }; editingId = null },
+                // Occurrence d'une série « le N du mois » (issue #282) : ce mois seulement, ou toute la série.
+                calendarSeries = task.recurrenceDayOfMonth?.takeIf { Recurrence.calendarSeriesOf(stored.tasks, task).isNotEmpty() }?.let { day ->
+                    CalendarSeriesDelete(
+                        day,
+                        onSkipMonth = { scope.launch { repository.skipCalendarMonth(id) }; editingId = null },
+                        onStopSeries = { scope.launch { repository.stopCalendarSeries(id) }; editingId = null },
+                    )
+                },
                 // Tâche d'équipe assignée à « moi » : « Assigné à » en lecture seule, le reste comme une tâche perso.
                 team = if (task.space == TaskSpace.TEAM) TeamTaskSheet(AssignContext.of(repository.snapshot.value, day), editable = false, today = day) else null,
                 // Tâche reçue d'un manager : sa marque et l'avancement déclaré par le membre (docs/spec/equipe-echanges.md).

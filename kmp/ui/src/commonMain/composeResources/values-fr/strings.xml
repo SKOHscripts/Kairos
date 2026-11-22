@@ -2273,4 +2273,9 @@
     <string name="reminder_summary_deadlines">échéances aujourd’hui : %1$d</string>
     <string name="card_day_brief_title">Ta journée</string>
     <string name="card_day_brief_body">En tête de la vue Jour, une carte qui présente ta journée, puis le reste de ta journée : les tâches et leur estimation, les échéances, le temps vraiment disponible une fois comptés les dérangements habituels, et si ça tient. Sinon, elle propose de réserver un créneau de deep work en un toucher. La notification du récapitulatif du jour dit la même chose.</string>
+    <!-- Séries « le N du mois » (docs/spec/recurrence.md, issue #282) -->
+    <string name="delete_series_title">Supprimer « %1$s » ?</string>
+    <string name="delete_series_body">Cette tâche revient le %1$d de chaque mois. Supprimer seulement celle de ce mois, ou arrêter la série ? Les occurrences passées restent dans ton historique.</string>
+    <string name="delete_series_month">Seulement ce mois</string>
+    <string name="delete_series_stop">Arrêter la série</string>
 </resources>

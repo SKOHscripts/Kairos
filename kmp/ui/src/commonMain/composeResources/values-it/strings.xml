@@ -2270,4 +2270,9 @@
     <string name="reminder_summary_deadlines">scadenze oggi: %1$d</string>
     <string name="card_day_brief_title">La tua giornata</string>
     <string name="card_day_brief_body">In cima alla vista Giorno, una scheda presenta la tua giornata e poi il resto: le attività e la loro stima, le scadenze, il tempo davvero disponibile una volta contate le interruzioni abituali, e se ci sta. Altrimenti propone di prenotare un blocco di deep work con un tocco. La notifica del riepilogo del giorno dice lo stesso.</string>
+    <!-- Séries « le N du mois » (docs/spec/recurrence.md, issue #282) -->
+    <string name="delete_series_title">Eliminare «%1$s»?</string>
+    <string name="delete_series_body">Questa attività torna il %1$d di ogni mese. Eliminare solo quella di questo mese o interrompere la serie? Le occorrenze passate restano nella tua cronologia.</string>
+    <string name="delete_series_month">Solo questo mese</string>
+    <string name="delete_series_stop">Interrompi la serie</string>
 </resources>

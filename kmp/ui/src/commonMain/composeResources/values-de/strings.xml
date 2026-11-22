@@ -2270,4 +2270,9 @@
     <string name="reminder_summary_deadlines">Fristen heute: %1$d</string>
     <string name="card_day_brief_title">Dein Tag</string>
     <string name="card_day_brief_body">Oben in der Tagesansicht stellt eine Karte deinen Tag vor, dann den Rest davon: die Aufgaben und ihre Schätzung, die Fristen, die wirklich verfügbare Zeit nach den üblichen Störungen und ob es passt. Wenn nicht, schlägt sie vor, mit einem Tippen einen Deep-Work-Block zu reservieren. Die Benachrichtigung der Tagesübersicht sagt dasselbe.</string>
+    <!-- Séries « le N du mois » (docs/spec/recurrence.md, issue #282) -->
+    <string name="delete_series_title">„%1$s“ löschen?</string>
+    <string name="delete_series_body">Diese Aufgabe kommt am %1$d. jedes Monats wieder. Nur die dieses Monats löschen oder die Serie beenden? Frühere Vorkommen bleiben in deinem Verlauf.</string>
+    <string name="delete_series_month">Nur diesen Monat</string>
+    <string name="delete_series_stop">Serie beenden</string>
 </resources>

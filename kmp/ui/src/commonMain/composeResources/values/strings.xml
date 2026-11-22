@@ -2271,4 +2271,9 @@
     <string name="reminder_summary_deadlines">deadlines today: %1$d</string>
     <string name="card_day_brief_title">Your day</string>
     <string name="card_day_brief_body">At the top of the Day view, a card that presents your day, then the rest of it: tasks and their estimate, deadlines, the time really available once the usual interruptions are counted, and whether it fits. If it does not, it offers to book a deep-work slot in one tap. The daily summary notification says the same.</string>
+    <!-- Séries « le N du mois » (docs/spec/recurrence.md, issue #282) -->
+    <string name="delete_series_title">Delete “%1$s”?</string>
+    <string name="delete_series_body">This task comes back on the %1$d of every month. Delete only this month’s, or stop the series? Past occurrences stay in your history.</string>
+    <string name="delete_series_month">Only this month</string>
+    <string name="delete_series_stop">Stop the series</string>
 </resources>
