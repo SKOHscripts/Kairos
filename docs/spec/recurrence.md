@@ -61,6 +61,15 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
   une période postérieure ou égale au mois courant couvre ce mois, `calendarOccurrences`)
   — sinon l'affichage suivant en créait une seconde de même titre, l'originale
   restant « sans créneau ».
+- **Supprimer une occurrence d'une série « le N du mois »** (issue #282, 4.5.0) : la confirmation demande quoi faire.
+  « Seulement ce mois » supprime l'occurrence (et ses sous-tâches) et la série revient le mois suivant ; « Arrêter la série »
+  la supprime de même et la série ne revient plus (les occurrences passées restent dans l'historique, sans récurrence) ; « Annuler ». Avant, l'occurrence
+  supprimée revenait à l'affichage suivant de la vue Jour : les occurrences passées faisaient vivre la série.
+- **Sous-tâches d'une série « le N du mois »** (issue #282) : une sous-tâche n'est jamais une série à elle seule, même si elle
+  porte la règle. L'occurrence du mois de la mère recrée sous elle les sous-tâches de la plus récente occurrence qui en avait
+  (titre, description, priorité, points, type, durée, projet), même échéance et même jour que la mère, sans récurrence. Une
+  série dont un membre est une sous-tâche n'est pas recréée (les occurrences orphelines créées avant restent, et se suppriment
+  comme toute tâche).
 - « Décaler » (3.4) programme aussi la tâche **personnelle** pour ce jour (elle quitte « Aujourd'hui » jusque-là, `vue-jour.md` § Dates, déplacer, blocage). « Décaler » envoie l'échéance au jour ouvré qui suit (un vendredi → le
   lundi, ou le mardi si ce lundi est férié) ; une échéance passée repart
   d'aujourd'hui.
@@ -215,10 +224,12 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
   fait jamais naître une tâche Perso) ; pour une tâche d'équipe, le dépôt
   lui donne un nouveau `teamUid`, un avancement vide et son événement
   `created` (`equipe-backlog-suivi.md`).
-- `calendarOccurrences(tâches, aujourd'hui, fériés, maintenant)` : séries
-  `(titre, jour du mois)` des tâches `MONTHLY_ON_DAY` (tous statuts) ; pour
-  chaque série non couverte ce mois (période `AAAA-MM` ou échéance dans le
-  mois), une occurrence héritée du membre le plus récent (plus grand id),
+- `calendarOccurrences(tâches, aujourd'hui, fériés, maintenant, écartés)` : séries
+  `(titre, jour du mois)` des tâches `MONTHLY_ON_DAY` (tous statuts) de **premier niveau** (`calendarSeries` : une série dont
+  un membre a une mère est écartée, issue #282) ; pour
+  chaque série non couverte ce mois (période `AAAA-MM`, échéance dans le
+  mois, ou filigrane `écartés[clé] ≥ mois courant` : `RecurrenceSettings.skipIgnored`, posé par « Seulement ce mois »), une
+  occurrence héritée du membre le plus récent (plus grand id),
   espace et assigné compris, échéance `onOrBeforeBusinessDay`,
   `recurrencePeriod` posée. Clé de série : (titre, jour du mois,
   **espace**) — une série Perso et une série d'équipe de même titre sont
@@ -336,6 +347,26 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
   La série suit le deux-points sans guillemets, comme dans l'exemple du propriétaire.
 
 ### Décisions et pièges tracés
+
+- **Supprimer une occurrence « le N du mois » demande** (issue #282, choix du propriétaire du 2026-11-22) : « Seulement ce
+  mois » pose le filigrane de la série (`skipIgnored`, le même que « Ignorer » de l'avis des mois sautés) au mois de
+  l'occurrence (`max` avec l'ancien) : il couvre ce mois pour `calendarOccurrences` et masque l'avis ; « Arrêter la série »
+  (`KairosRepository.stopCalendarSeries`) supprime l'occurrence et met `recurrence = NONE` sur les autres membres, sans toucher
+  `updatedAt` (le jour de fin des tâches faites ne bouge pas) : la série n'existe plus, ni pour la création ni pour l'avis.
+  Écartés : supprimer toujours la série (impossible de sauter un mois en supprimant), sauter toujours le mois (impossible
+  d'arrêter sans modifier la règle), une liste de séries arrêtées dans les réglages (un état de plus, qu'une nouvelle série de
+  même titre aurait hérité).
+- **Sous-tâches rattachées à la mère** (issue #282, choix du propriétaire) : une sous-tâche « le N du mois » formait sa propre
+  série, recréée chaque mois au premier niveau, détachée de sa mère ; `calendarSeries` écarte toute série qui a un membre
+  enfant, et `calendarSubtasks` (gabarits : les enfants de la plus récente occurrence de premier niveau qui en a, id 0, sans
+  récurrence, échéance et jour de la mère) donne les sous-tâches que le dépôt insère sous chaque occurrence créée
+  (`ensureCalendarOccurrences`, `recreateSkippedOccurrences`). Écarté : arrêter seulement les séries des sous-tâches avec la mère
+  (elles restaient détachées).
+- **Fichiers et tests du correctif #282** : `Recurrence.calendarSeries`, `calendarSeriesOf`, `occurrencePeriod`,
+  `calendarSubtasks`, paramètre `dismissed` de `calendarOccurrences` ; `KairosRepository.insertOccurrence`, `skipCalendarMonth`,
+  `stopCalendarSeries`, `deleteOccurrence` (l'occurrence et ses sous-tâches directes) ; `EditTaskDialog` (`CalendarSeriesDelete`,
+  textes `delete_series_*`), `DayScreen`. Tests : `data/.../CalendarSeriesTest` (le cas « PV EDF » : sous-tâches recréées sous la
+  mère, orphelines ignorées, « Seulement ce mois », « Arrêter la série »), `desktopApp/.../CalendarSeriesUiTest`.
 
 - **Mensuelle ancrée sur le jour de son échéance** (propriétaire, 2026-11-06, issue #197, QA d'avant 4.0) : le jour est
   gardé dans `recurrenceDayOfMonth`, le champ de la série « le N du mois », que les deux règles ne lisent jamais l'une
