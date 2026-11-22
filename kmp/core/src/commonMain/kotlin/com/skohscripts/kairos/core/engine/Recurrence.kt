@@ -179,16 +179,20 @@ object Recurrence {
      * champs hérités du membre le plus récent. Identifiants à 0. Jamais de
      * rattrapage des mois passés.
      */
-    fun calendarOccurrences(tasks: List<Task>, today: LocalDate, holidays: Set<LocalDate>, now: Instant): List<Task> {
+    fun calendarOccurrences(
+        tasks: List<Task>,
+        today: LocalDate,
+        holidays: Set<LocalDate>,
+        now: Instant,
+        /** Filigranes « Seulement ce mois » et « Ignorer » ([RecurrenceSettings.skipIgnored]) : un mois ≤ filigrane est couvert. */
+        dismissed: Map<String, String> = emptyMap(),
+    ): List<Task> {
         val currentPeriod = period(today)
-        val series = LinkedHashMap<SeriesKey, MutableList<Task>>()
-        tasks.filter { it.recurrence == TaskRecurrence.MONTHLY_ON_DAY && it.recurrenceDayOfMonth != null }
-            .forEach { series.getOrPut(SeriesKey(it.title, it.recurrenceDayOfMonth!!, it.space)) { mutableListOf() } += it }
-        return series.mapNotNull { (key, members) ->
+        return calendarSeries(tasks).mapNotNull { (key, members) ->
             // Une occurrence déjà posée pour un mois suivant (série créée après le jour N) couvre aussi le mois courant.
             val covered = members.any { m ->
                 (m.recurrencePeriod.isNotEmpty() && m.recurrencePeriod >= currentPeriod) || (m.deadline != null && period(m.deadline) == currentPeriod)
-            }
+            } || dismissed[seriesKey(key.dayOfMonth, key.title)]?.let { it >= currentPeriod } == true
             if (covered) return@mapNotNull null
             val title = key.title
             val dayOfMonth = key.dayOfMonth
@@ -276,8 +280,58 @@ object Recurrence {
     fun seriesKey(dayOfMonth: Int, title: String): String = "$dayOfMonth|$title"
 
     private fun personalSeries(tasks: List<Task>): Map<SeriesKey, List<Task>> =
-        tasks.filter { it.space == TaskSpace.PERSONAL && it.recurrence == TaskRecurrence.MONTHLY_ON_DAY && it.recurrenceDayOfMonth != null }
-            .groupBy { SeriesKey(it.title, it.recurrenceDayOfMonth!!, it.space) }
+        calendarSeries(tasks).filterKeys { it.space == TaskSpace.PERSONAL }
+
+    /**
+     * Séries « le N du mois » : tâches `MONTHLY_ON_DAY` avec un jour, groupées par (titre, jour, espace), dans l'ordre de première
+     * apparition. Une série dont un membre a une mère est écartée (issue #282) : une sous-tâche n'est jamais une série à elle
+     * seule, sa mère la recrée ([calendarSubtasks]).
+     */
+    private fun calendarSeries(tasks: List<Task>): Map<SeriesKey, List<Task>> {
+        val series = LinkedHashMap<SeriesKey, MutableList<Task>>()
+        tasks.filter { it.recurrence == TaskRecurrence.MONTHLY_ON_DAY && it.recurrenceDayOfMonth != null }
+            .forEach { series.getOrPut(SeriesKey(it.title, it.recurrenceDayOfMonth!!, it.space)) { mutableListOf() } += it }
+        return series.filterValues { members -> members.none { it.parentId != null } }
+    }
+
+    /** Les membres de la série « le N du mois » de [task] (elle comprise) ; vide si elle n'en est pas un (issue #282). */
+    fun calendarSeriesOf(tasks: List<Task>, task: Task): List<Task> {
+        val day = task.recurrenceDayOfMonth ?: return emptyList()
+        if (task.recurrence != TaskRecurrence.MONTHLY_ON_DAY) return emptyList()
+        return calendarSeries(tasks)[SeriesKey(task.title, day, task.space)].orEmpty()
+    }
+
+    /** Mois d'une occurrence « le N du mois » : sa période, sinon le mois de son échéance ; `null` sans l'une ni l'autre. */
+    fun occurrencePeriod(task: Task): String? = task.recurrencePeriod.takeIf { it.isNotEmpty() } ?: task.deadline?.let(::period)
+
+    /**
+     * Sous-tâches à créer sous [occurrence], nouvelle occurrence d'une série « le N du mois » (issue #282) : les enfants de la plus
+     * récente occurrence de la série qui en a, recopiés (titre, description, priorité, points, type, durée, projet), identifiant
+     * 0, mère à poser par le dépôt, sans récurrence, échéance et jour de l'occurrence. Vide si aucune occurrence n'en avait.
+     */
+    fun calendarSubtasks(tasks: List<Task>, occurrence: Task, now: Instant): List<Task> {
+        val day = occurrence.recurrenceDayOfMonth ?: return emptyList()
+        val members = calendarSeries(tasks)[SeriesKey(occurrence.title, day, occurrence.space)].orEmpty()
+        val withChildren = members.sortedByDescending { it.id }.firstOrNull { m -> tasks.any { it.parentId == m.id } } ?: return emptyList()
+        return tasks.filter { it.parentId == withChildren.id }.sortedBy { it.id }.map { c ->
+            Task(
+                id = 0,
+                title = c.title,
+                description = c.description,
+                priority = c.priority,
+                fibonacciPoints = c.fibonacciPoints,
+                taskType = c.taskType,
+                estimatedMinutes = c.estimatedMinutes,
+                projectTag = c.projectTag,
+                deadline = occurrence.deadline,
+                scheduledDate = occurrence.scheduledDate,
+                space = occurrence.space,
+                assigneeId = occurrence.assigneeId,
+                createdAt = now,
+                updatedAt = now,
+            )
+        }
+    }
 
     private fun coveredPeriods(members: List<Task>): Set<String> =
         members.flatMap { m -> listOfNotNull(m.recurrencePeriod.takeIf { it.isNotEmpty() }, m.deadline?.let(::period)) }.toSet()
