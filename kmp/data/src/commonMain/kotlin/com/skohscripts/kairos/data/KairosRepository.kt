@@ -385,13 +385,54 @@ class KairosRepository(
      * appelé à chaque affichage de la vue Jour.
      */
     suspend fun ensureCalendarOccurrences(today: LocalDate) {
-        val settings = state.value.settings
         val holidays = Workdays.holidaysFor(today, state.value)
-        if (Recurrence.calendarOccurrences(state.value.tasks, today, holidays, clock.now()).isEmpty()) return
+        // Filigranes « Seulement ce mois » (issue #282) et « Ignorer » : un mois écarté reste sans occurrence.
+        fun pending() = Recurrence.calendarOccurrences(state.value.tasks, today, holidays, clock.now(), state.value.settings.recurrence?.skipIgnored.orEmpty())
+        if (pending().isEmpty()) return
         write {
             // Recalculé dans la transaction : l'état a pu changer depuis la vérification.
-            Recurrence.calendarOccurrences(state.value.tasks, today, holidays, clock.now()).forEach { insertNew(it) }
+            pending().forEach { insertOccurrence(it) }
         }
+    }
+
+    /** Insère une occurrence « le N du mois » et, sous elle, les sous-tâches de la série (`Recurrence.calendarSubtasks`, issue #282). */
+    private suspend fun insertOccurrence(occurrence: Task): Long? {
+        val subtasks = Recurrence.calendarSubtasks(state.value.tasks, occurrence, clock.now())
+        val id = insertNew(occurrence) ?: return null
+        subtasks.forEach { insertNew(it.copy(parentId = id)) }
+        return id
+    }
+
+    /** Supprime une occurrence et ses sous-tâches directes, nées avec elle ([insertOccurrence]). */
+    private suspend fun deleteOccurrence(taskId: Long) {
+        state.value.tasks.filter { it.parentId == taskId }.forEach { deleteTask(it.id) }
+        deleteTask(taskId)
+    }
+
+    /**
+     * « Seulement ce mois » (issue #282) : supprime l'occurrence [taskId] d'une série « le N du mois » et pose le filigrane de la
+     * série à son mois (le plus tardif des deux) : la vue Jour ne la recrée pas, l'avis des mois sautés ne la signale pas.
+     */
+    suspend fun skipCalendarMonth(taskId: Long) {
+        val task = find(taskId) ?: return
+        val month = Recurrence.occurrencePeriod(task)
+        val day = task.recurrenceDayOfMonth
+        deleteOccurrence(taskId)
+        if (month == null || day == null) return
+        val key = Recurrence.seriesKey(day, task.title)
+        updateRecurrence { r -> r.copy(skipIgnored = r.skipIgnored + (key to maxOf(month, r.skipIgnored[key].orEmpty()))) }
+    }
+
+    /**
+     * « Arrêter la série » (issue #282) : supprime l'occurrence [taskId] et retire la règle « le N du mois » des autres membres de
+     * sa série, sans toucher leur `updatedAt` (le jour où une tâche faite compte comme faite ne bouge pas) : la série n'existe plus.
+     */
+    suspend fun stopCalendarSeries(taskId: Long) {
+        val task = find(taskId) ?: return
+        val members = Recurrence.calendarSeriesOf(state.value.tasks, task).filter { it.id != taskId }
+        deleteOccurrence(taskId)
+        if (members.isEmpty()) return
+        write { for (m in members) updateRow(m.copy(recurrence = TaskRecurrence.NONE), touch = false) }
     }
 
     /** Séries sautées de l'espace Perso à [today], filigranes de « Ignorer » compris (docs/spec/recurrence.md § Avis des mois sautés). */
@@ -411,7 +452,7 @@ class KairosRepository(
             val settings = state.value.settings
             // L'année d'aujourd'hui et la précédente : les douze mois en arrière y sont tous.
             val holidays = Workdays.holidaysFor(today, state.value)
-            Recurrence.recreateSkipped(state.value.tasks, series, holidays, clock.now()).forEach { task -> insertNew(task)?.let { created += it } }
+            Recurrence.recreateSkipped(state.value.tasks, series, holidays, clock.now()).forEach { task -> insertOccurrence(task)?.let { created += it } }
         }
         return created
     }

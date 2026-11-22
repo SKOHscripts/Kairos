@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.ui.day
 
+import androidx.compose.ui.platform.testTag
 import com.skohscripts.kairos.ui.app.LocalShowcaseTask
 import com.skohscripts.kairos.ui.generated.resources.spent_tracked_hint
 import com.skohscripts.kairos.ui.generated.resources.spent_floor_timed
@@ -133,6 +134,10 @@ import com.skohscripts.kairos.ui.generated.resources.action_delete
 import com.skohscripts.kairos.ui.generated.resources.action_save
 import com.skohscripts.kairos.ui.generated.resources.delete_confirm_body
 import com.skohscripts.kairos.ui.generated.resources.delete_confirm_title
+import com.skohscripts.kairos.ui.generated.resources.delete_series_stop
+import com.skohscripts.kairos.ui.generated.resources.delete_series_month
+import com.skohscripts.kairos.ui.generated.resources.delete_series_body
+import com.skohscripts.kairos.ui.generated.resources.delete_series_title
 import com.skohscripts.kairos.ui.generated.resources.edit_title
 import com.skohscripts.kairos.ui.generated.resources.edit_title_first
 import com.skohscripts.kairos.ui.generated.resources.field_deadline
@@ -223,6 +228,11 @@ internal fun EditTaskDialog(
     onDismiss: () -> Unit,
     onSave: (TaskEdit) -> Unit,
     onDelete: () -> Unit,
+    /**
+     * Occurrence d'une série « le N du mois » (docs/spec/recurrence.md, issue #282) : la confirmation demande « Seulement ce mois »
+     * ([onSkipMonth]) ou « Arrêter la série » ([onStopSeries]) ; `null` : la confirmation ordinaire.
+     */
+    calendarSeries: CalendarSeriesDelete? = null,
     /** Tâche d'équipe : champs et historique de la fiche (docs/spec/equipe-backlog-suivi.md) ; `null` pour une tâche personnelle. */
     team: TeamTaskSheet? = null,
     /** Tâche reçue d'un manager (docs/spec/equipe-echanges.md) : sa marque, une phrase d'aide et le curseur d'avancement ; `null` sinon. */
@@ -750,7 +760,24 @@ internal fun EditTaskDialog(
         )
     }
 
-    if (confirmDelete) {
+    if (confirmDelete && calendarSeries != null) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text(stringResource(Res.string.delete_series_title, task.title)) },
+            text = { Text(stringResource(Res.string.delete_series_body, calendarSeries.dayOfMonth)) },
+            confirmButton = {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(KairosSpacing.s)) {
+                    KairosTextButton(onClick = calendarSeries.onSkipMonth, modifier = Modifier.testTag("delete-series-month")) {
+                        Text(stringResource(Res.string.delete_series_month))
+                    }
+                    KairosTextButton(onClick = calendarSeries.onStopSeries, modifier = Modifier.testTag("delete-series-stop")) {
+                        Text(stringResource(Res.string.delete_series_stop), color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            dismissButton = { KairosTextButton(onClick = { confirmDelete = false }) { Text(stringResource(Res.string.action_cancel)) } },
+        )
+    } else if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
             title = { Text(stringResource(Res.string.delete_confirm_title)) },
@@ -921,3 +948,6 @@ private fun FieldPair(wide: Boolean, first: @Composable (Modifier) -> Unit, seco
         }
     }
 }
+
+/** Supprimer une occurrence d'une série « le N du mois » (issue #282) : son jour, et les deux suites possibles. */
+internal class CalendarSeriesDelete(val dayOfMonth: Int, val onSkipMonth: () -> Unit, val onStopSeries: () -> Unit)
