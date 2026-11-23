@@ -106,6 +106,7 @@ import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.key.type
@@ -639,10 +640,18 @@ fun DayScreen(
 
                 // Un filtre actif remonte au-dessus des listes qu'il réduit.
                 val filters: @Composable () -> Unit = {
-                    FilterCard(
-                        filter, filterOpen || filter.active, { filterOpen = !(filterOpen || filter.active) }, { filter = it },
-                        view.projects, snapshot.settings.taskTypeList, searchFocus, showShortcuts,
-                    )
+                    Box(Modifier.onPreviewKeyEvent { event ->
+                        if (filterOpen && event.type == KeyEventType.KeyDown && event.key == Key.Escape) {
+                            filterOpen = false
+                            rootFocus.requestFocus()
+                            true
+                        } else false
+                    }) {
+                        FilterCard(
+                            filter, filterOpen, { filterOpen = !filterOpen }, { filter = it },
+                            view.projects, snapshot.settings.taskTypeList, searchFocus, showShortcuts,
+                        )
+                    }
                 }
                 if (filter.active) block("filters", filters)
 
