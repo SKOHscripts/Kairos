@@ -555,6 +555,7 @@ fun DayScreen(
                         onAddTask = { title -> scope.launch { repository.createTask(title) } },
                         onAddBlock = { edit -> scope.launch { repository.createBlock(edit) } },
                         onEditBlock = { editingBlock = it },
+                        onTaskEscape = { rootFocus.requestFocus() },
                     )
                 }
 

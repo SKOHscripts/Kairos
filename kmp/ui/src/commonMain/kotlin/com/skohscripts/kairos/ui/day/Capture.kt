@@ -85,6 +85,7 @@ internal fun Capture(
     onEditBlock: (EditableBlock) -> Unit,
     /** Volet « Tâche » seul, sans choix « Créneau / deep work » : la capture du Backlog d'équipe (les créneaux sont personnels). */
     taskOnly: Boolean = false,
+    onTaskEscape: (() -> Unit)? = null,
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -128,14 +129,14 @@ internal fun Capture(
                 }
                 DayBlockList(blocks, language, onEditBlock)
             } else {
-                TaskCapture(state.taskFocus, onAddTask)
+                TaskCapture(state.taskFocus, onAddTask, onTaskEscape)
             }
         }
     }
 }
 
 @Composable
-private fun TaskCapture(focus: FocusRequester, onAdd: (String) -> Unit) {
+private fun TaskCapture(focus: FocusRequester, onAdd: (String) -> Unit, onEscape: (() -> Unit)?) {
     var text by rememberSaveable { mutableStateOf("") }
     fun submit() {
         if (text.isNotBlank()) {
@@ -145,11 +146,17 @@ private fun TaskCapture(focus: FocusRequester, onAdd: (String) -> Unit) {
         runCatching { focus.requestFocus() }
     }
     // Démonstration (docs/spec/visite-guidee.md § Visite interactive) : la première étape cerne le champ.
-    DemoMark(DemoSpot.CAPTURE) { TaskCaptureRow(text, { text = it }, focus, ::submit) }
+    DemoMark(DemoSpot.CAPTURE) { TaskCaptureRow(text, { text = it }, focus, ::submit, onEscape) }
 }
 
 @Composable
-private fun TaskCaptureRow(text: String, onText: (String) -> Unit, focus: FocusRequester, submit: () -> Unit) {
+private fun TaskCaptureRow(
+    text: String,
+    onText: (String) -> Unit,
+    focus: FocusRequester,
+    submit: () -> Unit,
+    onEscape: (() -> Unit)?,
+) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         OutlinedTextField(
             value = text,
@@ -160,7 +167,10 @@ private fun TaskCaptureRow(text: String, onText: (String) -> Unit, focus: FocusR
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { submit() }),
             modifier = Modifier.weight(1f).focusRequester(focus).quietShortcuts().onPreviewKeyEvent {
-                if (it.type == KeyEventType.KeyDown && (it.key == Key.Enter || it.key == Key.NumPadEnter)) {
+                if (it.type == KeyEventType.KeyDown && it.key == Key.Escape && onEscape != null) {
+                    onEscape()
+                    true
+                } else if (it.type == KeyEventType.KeyDown && (it.key == Key.Enter || it.key == Key.NumPadEnter)) {
                     submit()
                     true
                 } else {
