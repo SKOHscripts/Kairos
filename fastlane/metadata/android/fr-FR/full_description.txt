@@ -1,7 +1,7 @@
 La plupart des outils de todo gèrent une liste sans jamais la trier : c’est à vous de décider par quoi commencer. Kairos fusionne développement agile, outil de todo et méthode GTD en une liste qui évolue toute seule. Vous traitez avec GTD ; Kairos vous dit quoi faire maintenant : faites-lui confiance, déchargez votre esprit. Il place vos tâches dans les trous de votre journée et apprend par machine learning, sur votre appareil, combien de temps elles prennent : plus vous l’utilisez, plus ses estimations sont justes.
 
-<b>Nouveau en 4.0 : du machine learning sur l’appareil</b>
-Un modèle de machine learning entraîné sur votre appareil donne à une tâche au titre nouveau une durée d’après vos tâches faites qui lui ressemblent, avec une fourchette et la liste de ces tâches. Kairos ne l’applique que s’il bat la durée par défaut sur votre historique, apprend votre rythme selon le jour et l’heure, et vous prévient quand les estimations changent. Tout reste sur l’appareil. Une IA ? Non, du machine learning : pas de chatbot ni de cloud, juste du machine learning robuste et local, qui s’entraîne à chaque tâche terminée, léger et très rapide.
+<b>Du machine learning sur l’appareil</b>
+Un modèle de machine learning entraîné sur votre appareil donne à une tâche au titre nouveau une durée d’après vos tâches faites qui lui ressemblent, avec une fourchette et la liste de ces tâches. Kairos ne l’applique que s’il bat la durée par défaut sur votre historique, apprend votre rythme selon le jour et l’heure, et vous prévient quand les estimations changent. Une IA ? Non, du machine learning robuste et local, sans chatbot ni cloud, qui s’entraîne à chaque tâche terminée.
 
 <b>Un ordre qui s’explique</b>
 Chaque tâche reçoit un score de priorité (WSJF) : sa valeur (priorité P0, P1 ou P2, plus l’urgence de son échéance) divisée par son effort en points. Petit et important passe avant gros et lointain ; une tâche en retard passe toujours en tête. « Pourquoi à cette place ? » détaille le calcul d’un toucher.
@@ -10,30 +10,30 @@ Chaque tâche reçoit un score de priorité (WSJF) : sa valeur (priorité P0, P1
 <ul>
 <li>Les tâches sont placées autour de vos réunions, avec une marge après chacune.</li>
 <li>Les créneaux de deep work sont protégés ; l’après-midi, les tâches complexes cèdent la place aux tâches légères.</li>
-<li>Heures fixes, tâches récurrentes (quotidiennes, jours ouvrés, hebdomadaires, « le 23 du mois »), dépendances entre tâches, sous-tâches modifiables, jours fériés français.</li>
+<li>Heures fixes, tâches récurrentes (quotidiennes, jours ouvrés, hebdomadaires, « le 23 du mois »), dépendances entre tâches, sous-tâches modifiables, jours fériés de 13 pays.</li>
+<li>Une carte « Ta journée » : tâches, échéances, disponibilité réelle, deep work.</li>
 </ul>
 
 <b>Capturer sans friction (GTD)</b>
 Une idée ? Une note. Une tâche ? Un titre suffit : elle attend dans « À traiter » jusqu’à ce que vous lui donniez une priorité et une taille, d’un toucher chacune.
 
 <b>Le temps réel</b>
-Un chrono par tâche, avec notification permanente ; alertes de dépassement, de chrono oublié et de pause, même application fermée. Les statistiques comparent vos estimations au temps réellement passé.
+Un chrono par tâche, avec notification permanente ; alertes de dépassement, de chrono oublié et de pause, même application fermée. À la coche, Kairos demande le temps passé ; les dérangements se signalent après coup. Les statistiques comparent vos estimations au temps réel.
 
 <b>Gérer une équipe (facultatif)</b>
 Désactivée par défaut, la gestion d’équipe ajoute un second espace pour le manager, qui reste le seul utilisateur :
 <ul>
-<li>Membres et absences, backlog partagé, suivi de l’avancement avec son journal.</li>
-<li>Charge de chacun rapportée à sa capacité, et suggestion de répartition des tâches ; vos propres tâches perso peuvent compter dans votre charge.</li>
+<li>Membres et absences, backlog partagé, suivi de l’avancement avec son journal ; l’espace Perso n’en montre rien.</li>
+<li>Charge de chacun rapportée à sa capacité, suggestion de répartition ; vos tâches perso peuvent compter.</li>
 <li>Prévisions Monte Carlo : dates de fin en pourcentages de chances, échéances menacées, scénarios « Et si… ? ».</li>
 <li>Échanges par fichier avec les membres qui ont Kairos : ils reçoivent leurs tâches et renvoient leur avancement.</li>
-<li>Tout reste sur l’appareil ; l’espace Perso ne montre jamais rien de l’équipe.</li>
 </ul>
 
 <b>Vos données restent chez vous</b>
 <ul>
 <li>Aucun compte, aucune publicité, aucun traceur. Le réseau ne sert qu’aux connexions en ligne facultatives, désactivées par défaut.</li>
 <li>Export et import dans un fichier JSON, pour sauvegarder ou changer d’appareil ; ou une copie tenue à jour dans un dossier que vous synchronisez.</li>
-<li>Les réunions d’un fichier d’agenda (.ics : Outlook, Google, Thunderbird) ou, si vous le souhaitez, des calendriers du téléphone : Kairos demande alors l’accès au calendrier, en lecture seule. L’import d’un fichier n’utilise jamais le réseau.</li>
+<li>Les réunions d’un fichier d’agenda (.ics : Outlook, Google, Thunderbird), d’un lien ICS, d’un serveur CalDAV ou, si vous le souhaitez, des calendriers du téléphone, en lecture seule ; l’accès au calendrier est alors demandé. Un fichier importé n’utilise jamais le réseau.</li>
 </ul>
 
-Kairos existe aussi pour Windows, Linux et macOS, et dans le navigateur. Logiciel libre sous licence GNU AGPL v3 ou ultérieure, en français, anglais, espagnol, allemand, russe et italien (au choix dans les réglages ; par défaut la langue de votre système si elle en fait partie, l’anglais sinon).
+Kairos existe aussi pour Windows, Linux et macOS, et dans le navigateur, en style Material ou « Cadran ». Logiciel libre sous licence GNU AGPL v3 ou ultérieure, en français, anglais, espagnol, allemand, russe et italien (au choix dans les réglages ; par défaut la langue de votre système si elle en fait partie, l’anglais sinon).
