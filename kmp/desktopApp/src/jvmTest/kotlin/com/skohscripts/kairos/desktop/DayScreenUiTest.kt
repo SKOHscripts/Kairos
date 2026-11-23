@@ -250,7 +250,18 @@ class DayScreenUiTest {
         onNodeWithTag("day-screen").performKeyInput { pressKey(Key.Slash) }
         // La recherche s'ouvre et prend le curseur (son texte d'exemple n'apparaît qu'avec le focus).
         waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Search").fetchSemanticsNodes().isNotEmpty() }
-        onNode(hasSetTextAction() and hasText("Search")).assertIsFocused()
+        val search = onNode(hasSetTextAction() and hasText("Search"))
+        search.assertIsFocused().performTextInput("zzfilter")
+        // Un critère actif déplace le volet dans la liste : le retrouver avant d'envoyer Échap.
+        onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Search / filter"))
+        search.performClick()
+        search.performKeyInput { pressKey(Key.Escape) }
+        search.assertDoesNotExist()
+        onNodeWithTag("day-screen").assertIsFocused()
+
+        onNodeWithTag("day-screen").performKeyInput { pressKey(Key.Slash) }
+        waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("zzfilter").fetchSemanticsNodes().isNotEmpty() }
+        search.assertIsFocused()
     }
 
     @Test
@@ -262,7 +273,20 @@ class DayScreenUiTest {
         onNodeWithText("Time slot / deep work").performClick()
         onNodeWithTag("day-screen").performKeyInput { pressKey(Key.N) }
         waitUntil(timeoutMillis = 5_000) { onAllNodes(hasSetTextAction() and hasText("New task")).fetchSemanticsNodes().isNotEmpty() }
-        onNode(hasSetTextAction() and hasText("New task")).assertIsFocused()
+        val capture = onNode(hasSetTextAction() and hasText("New task"))
+        capture.assertIsFocused().performTextInput("Draft task")
+        val draft = onNode(hasSetTextAction() and hasText("Draft task"))
+        draft.performKeyInput { pressKey(Key.Escape) }
+        val day = onNodeWithTag("day-screen")
+        day.assertIsFocused()
+        assertTrue(services.repository.snapshot.value.tasks.isEmpty())
+
+        day.performKeyInput { pressKey(Key.N) }
+        waitUntil(timeoutMillis = 5_000) {
+            onAllNodes(hasSetTextAction() and hasText("Draft task") and
+                SemanticsMatcher.expectValue(SemanticsProperties.Focused, true)).fetchSemanticsNodes().isNotEmpty()
+        }
+        draft.assertIsFocused()
     }
 
     @Test
