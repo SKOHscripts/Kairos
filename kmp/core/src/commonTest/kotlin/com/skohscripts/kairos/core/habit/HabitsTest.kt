@@ -153,8 +153,9 @@ class HabitsTest {
 
     @Test
     fun aSeriesYoungerThanFourteenDaysIsNotRegular() {
-        assertTrue(Habits.suggestions(KairosSnapshot(tasks = daily(12)), today, tz, emptySet(), emptySet()).isEmpty())
-        assertEquals(1, Habits.suggestions(KairosSnapshot(tasks = daily(14)), today, tz, emptySet(), emptySet()).size)
+        // daily(n) commence la veille de n + 1 jours avant minuit (une heure avant) : n + 2 jours d'ancienneté.
+        assertTrue(Habits.suggestions(KairosSnapshot(tasks = daily(11)), today, tz, emptySet(), emptySet()).isEmpty())
+        assertEquals(1, Habits.suggestions(KairosSnapshot(tasks = daily(12)), today, tz, emptySet(), emptySet()).size)
     }
 
     @Test
