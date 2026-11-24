@@ -18,7 +18,7 @@ on:
     branches: [main]
     # La page ne dépend que de la version web, du site et des captures : ni Android, ni bureau, ni scripts ; la carte du
     # code (/code/, docs/spec/carte-du-code.md) dépend en plus des specs et de son générateur, ré-inclus après « !kmp/tools/** ».
-    paths: ["kmp/**", "!kmp/androidApp/**", "!kmp/desktopApp/**", "!kmp/tools/**", "kmp/tools/make_code_map.py", "docs/spec/**", "site/**", "fastlane/**", ".github/workflows/pages.yml"]
+    paths: ["kmp/**", "!kmp/androidApp/**", "!kmp/desktopApp/**", "!kmp/tools/**", "kmp/tools/make_code_map.py", "kmp/tools/make_habits_page.py", "docs/spec/**", "site/**", "fastlane/**", ".github/workflows/pages.yml"]
   release:
     types: [published]
   # La release créée par kmp-release.yml (jeton GITHUB_TOKEN) ne déclenche pas
@@ -124,6 +124,9 @@ jobs:
       # Elle lit aussi androidApp et desktopApp : une modification de ces seuls modules attend la prochaine publication.
       - name: Carte du code
         run: python3 kmp/tools/make_code_map.py --html "$RUNNER_TEMP/site/code/index.html" --stamp "$GITHUB_SHA" --web "$KAIROS_WEB"
+      # Page « Habitudes » (docs/spec/habitudes.md) : affirmations et références de HabitScience.kt, textes des six langues.
+      - name: Page des habitudes
+        run: python3 kmp/tools/make_habits_page.py "$RUNNER_TEMP/site"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ runner.temp }}/site
