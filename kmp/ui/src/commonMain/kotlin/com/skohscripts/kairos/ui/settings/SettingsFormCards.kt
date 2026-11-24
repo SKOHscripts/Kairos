@@ -1,6 +1,7 @@
 package com.skohscripts.kairos.ui.settings
 
 import com.skohscripts.kairos.ui.guide.GuideSection
+import com.skohscripts.kairos.ui.theme.KairosOutlinedButton
 import com.skohscripts.kairos.ui.guide.GuideSpot
 import com.skohscripts.kairos.ui.app.tabLeavesField
 import com.skohscripts.kairos.ui.app.heading
@@ -174,6 +175,12 @@ import com.skohscripts.kairos.ui.theme.KairosSpacing
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import com.skohscripts.kairos.ui.theme.KairosSwitch
+import com.skohscripts.kairos.ui.generated.resources.setting_habits_enabled
+import com.skohscripts.kairos.ui.generated.resources.setting_habits_enabled_help
+import com.skohscripts.kairos.ui.generated.resources.settings_section_habits
+import com.skohscripts.kairos.ui.generated.resources.settings_section_habits_body
+import com.skohscripts.kairos.ui.generated.resources.settings_habits_limits
+import com.skohscripts.kairos.ui.generated.resources.habit_sources_open
 
 /** Libellé et aide (facultative) d'un champ de [SettingsForm]. */
 private class FieldText(val label: StringResource, val help: StringResource? = null)
@@ -208,6 +215,7 @@ private val TEXTS: Map<String, FieldText> = mapOf(
     "pomodoroFocusMinutes" to FieldText(Res.string.settings_pomodoro, Res.string.settings_pomodoro_help),
     "timerAlertSound" to FieldText(Res.string.settings_sound, Res.string.settings_sound_help),
     "askSpentOnDone" to FieldText(Res.string.settings_ask_spent, Res.string.settings_ask_spent_help),
+    "habitsEnabled" to FieldText(Res.string.setting_habits_enabled, Res.string.setting_habits_enabled_help),
     "reminders.enabled" to FieldText(Res.string.setting_reminders_enabled),
     "reminders.leadMinutes" to FieldText(Res.string.setting_reminders_lead, Res.string.setting_reminders_lead_help),
     "reminders.nextTask" to FieldText(Res.string.setting_reminders_next),
@@ -254,6 +262,8 @@ private val LEARNING = Section(
     Res.string.settings_section_learning, Res.string.settings_section_learning_body, KairosIcons.History,
     listOf("learning.enabled", "learning.history", "learning.minSamples", "learning.model", "learning.notifyChanges"),
 )
+// Habitudes (docs/spec/habitudes.md § Réglages) : l'interrupteur, l'explication et les sources scientifiques.
+private val HABITS = Section(Res.string.settings_section_habits, Res.string.settings_section_habits_body, KairosIcons.SelfImprovement, listOf("habitsEnabled"))
 private val GUARDS = Section(Res.string.settings_section_guards, null, KairosIcons.Shield, listOf("staleOverdueDays", "staleUntouchedDays", "priorityOverloadThreshold"))
 private val CHRONO = Section(
     Res.string.settings_chrono_title, Res.string.settings_chrono_body, KairosIcons.NotificationsActive,
@@ -348,6 +358,8 @@ internal fun SettingsFormCards(
     learningStatus: @Composable () -> Unit = {},
     /** Sous l'échéance implicite : la valeur calculée du rythme ; [manual] si le champ est rempli (docs/spec/taches-qui-trainent.md). */
     lingerStatus: @Composable (manual: Boolean) -> Unit = {},
+    /** « Sources scientifiques » de la carte Habitudes (docs/spec/habitudes.md § Réglages). */
+    onHabitSources: () -> Unit = {},
 ) {
     when (category) {
         SettingsCategory.DAY -> {
@@ -368,6 +380,11 @@ internal fun SettingsFormCards(
                 SectionCard(LEARNING, values, errors, onChange) {
                     if (values["learning.enabled"] == "true") learningStatus()
                 }
+            }
+            // Après les durées apprises : les habitudes s'appuient sur les mêmes séries (docs/spec/habitudes.md).
+            SectionCard(HABITS, values, errors, onChange) {
+                Text(stringResource(Res.string.settings_habits_limits), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                KairosOutlinedButton(onClick = onHabitSources) { Text(stringResource(Res.string.habit_sources_open)) }
             }
             SectionCard(GUARDS, values, errors, onChange)
             AdvancedGroup(values, errors, onChange) {

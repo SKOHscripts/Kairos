@@ -102,6 +102,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
+import com.skohscripts.kairos.ui.habit.HabitCards
 
 /**
  * Statistiques (docs/spec/statistiques.md), lecture seule : la période, les filtres et « Exporter… », puis les cartes
@@ -217,6 +218,8 @@ fun StatsScreen(services: AppServices) {
             val periodStart = TaskStats.monday(today).minus(DatePeriod(days = 7 * (maxOf(1, input.settings.statsWindowWeeks) - 1)))
             val interruptions: @Composable () -> Unit = {
                 InterruptionCards(services.repository, snapshot, query.filter, periodStart, today, now, language)
+                // Habitudes (docs/spec/habitudes.md § Interface) : après les dérangements, hors des cartes exportables.
+                HabitCards(snapshot)
             }
             if (!stats.hasAnyData) {
                 Text(stringResource(if (query.filter.active) Res.string.stats_empty_filtered else Res.string.stats_empty), style = MaterialTheme.typography.bodyLarge)

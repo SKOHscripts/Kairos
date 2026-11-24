@@ -37,8 +37,9 @@ fun DestinationScreen(
         Destination.NOTES -> NotesScreen(services, onOpenTasks = { onNavigate(Destination.DAY) })
         Destination.DAY -> DayScreen(
             services, nav.day, onBackToToday = { onOpenDay(null) },
-            firstTaskRequest = nav.firstTaskRequest, firstTaskRecurring = nav.firstTaskRecurring,
-            onFirstTaskHandled = { nav.firstTaskRequest = false; nav.firstTaskRecurring = false }, onDiscover = onDiscover,
+            firstTaskRequest = nav.firstTaskRequest, firstTaskRecurring = nav.firstTaskRecurring, firstTaskHabit = nav.firstTaskHabit,
+            onFirstTaskHandled = { nav.firstTaskRequest = false; nav.firstTaskRecurring = false; nav.firstTaskHabit = false }, onDiscover = onDiscover,
+            habitRequest = nav.habitRequest, onHabitRequestHandled = { nav.habitRequest = null },
         )
         Destination.WEEK -> {
             // Première ouverture du Bilan retenue (conseil « Le Bilan de la semaine et du mois », docs/spec/conseils.md).

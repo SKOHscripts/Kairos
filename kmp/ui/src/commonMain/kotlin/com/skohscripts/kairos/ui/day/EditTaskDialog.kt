@@ -186,6 +186,24 @@ import com.skohscripts.kairos.ui.generated.resources.learned_weak
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.foundation.layout.Box
+import kotlinx.datetime.LocalTime
+import com.skohscripts.kairos.data.HabitChange
+import com.skohscripts.kairos.core.habit.Habits
+import com.skohscripts.kairos.core.habit.HabitStatus
+import com.skohscripts.kairos.ui.habit.HabitSheet
+import com.skohscripts.kairos.ui.habit.HabitCurve
+import com.skohscripts.kairos.ui.generated.resources.habit_section
+import com.skohscripts.kairos.ui.generated.resources.habit_status_installed
+import com.skohscripts.kairos.ui.generated.resources.habit_status_progress
+import com.skohscripts.kairos.ui.generated.resources.habit_section_hint
+import com.skohscripts.kairos.ui.generated.resources.habit_make
+import com.skohscripts.kairos.ui.generated.resources.habit_hour
+import com.skohscripts.kairos.ui.generated.resources.habit_no_hour
+import com.skohscripts.kairos.ui.generated.resources.habit_observed
+import com.skohscripts.kairos.ui.generated.resources.habit_after
+import com.skohscripts.kairos.ui.generated.resources.habit_after_example
+import com.skohscripts.kairos.ui.generated.resources.habit_after_hint
 
 /**
  * Dialogue d'édition d'une tâche (docs/spec/vue-jour.md § Édition) :
@@ -269,6 +287,10 @@ internal fun EditTaskDialog(
     sessions: List<WorkSession> = emptyList(),
     /** L'instant de l'ouverture : le total affiché (un chrono en cours compte jusque-là). */
     now: Instant = kotlin.time.Clock.System.now(),
+    /** Section « Habitude » (docs/spec/habitudes.md § Interface) ; `null` la masque (habitudes coupées, tâche d'équipe ou reçue). */
+    habit: HabitSheet? = null,
+    /** Ouvrir la section « Habitude » d'emblée (conseil « En faire une habitude ? », accompagnement de la première habitude). */
+    openHabit: Boolean = false,
 ) {
     var title by remember { mutableStateOf(task.title) }
     var description by remember { mutableStateOf(task.description) }
@@ -288,6 +310,8 @@ internal fun EditTaskDialog(
     var recurrence by remember { mutableStateOf(task.recurrence) }
     var dayOfMonth by remember { mutableStateOf(task.recurrenceDayOfMonth?.toString().orEmpty()) }
     var pin by remember { mutableStateOf(task.pinnedStart?.time?.let(Dates::field).orEmpty()) }
+    var habitOn by remember { mutableStateOf(task.habitSince != null) }
+    var habitAfter by remember { mutableStateOf(task.habitAfter) }
     var newSubtasks by remember { mutableStateOf("") }
     var chainNew by remember { mutableStateOf(chainSubtasks) }
     // Brouillons des sous-tâches existantes, figés à l'ouverture : la fiche reste stable si la base change dessous.
@@ -298,7 +322,7 @@ internal fun EditTaskDialog(
     // Seule exception : la vitrine des captures des magasins (LocalShowcaseTask) ouvre « Dates et temps » pour montrer
     // l'estimation par machine learning sans interaction (docs/spec/publication.md § Captures).
     val showcase = LocalShowcaseTask.current == task.id
-    var open by remember { mutableStateOf(if (showcase) setOf(SheetSection.TIME) else emptySet()) }
+    var open by remember { mutableStateOf(if (showcase) setOf(SheetSection.TIME) else if (openHabit) setOf(SheetSection.HABIT) else emptySet()) }
     val newSubtasksFocus = remember { FocusRequester() }
     var focusNewSubtasks by remember { mutableStateOf(0) }
     LaunchedEffect(focusNewSubtasks) { if (focusNewSubtasks > 0) { withFrameNanos { }; runCatching { newSubtasksFocus.requestFocus() } } }
@@ -631,6 +655,60 @@ internal fun EditTaskDialog(
                                 }
                             }
                         }
+                        // Habitude (docs/spec/habitudes.md § Interface) : une série Perso éligible ; l'heure de l'habitude est l'heure fixe.
+                        if (habit != null && recurrence in Habits.ELIGIBLE_RULES) {
+                            val status = Habits.status(habit.scores).takeIf { task.habitSince != null && habitOn }
+                            SectionToggle(
+                                stringResource(Res.string.habit_section),
+                                listOfNotNull(
+                                    when {
+                                        status == HabitStatus.INSTALLED -> stringResource(Res.string.habit_status_installed)
+                                        habitOn -> stringResource(Res.string.habit_status_progress)
+                                        else -> null
+                                    },
+                                ),
+                                SheetSection.HABIT in open,
+                            ) { toggle(SheetSection.HABIT) }
+                            if (SheetSection.HABIT in open) {
+                                Text(stringResource(Res.string.habit_section_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Box(Modifier.coachField(EditField.HABIT, coach)) {
+                                    SwitchRow(habitOn, stringResource(Res.string.habit_make)) { on ->
+                                        habitOn = on
+                                        // L'heure observée de la série préremplit l'heure fixe une fois ; elle ne bouge plus ensuite.
+                                        if (on && pin.isBlank()) habit.observedMinute?.let { pin = Dates.field(LocalTime(it / 60, it % 60)) }
+                                    }
+                                }
+                                if (habitOn) {
+                                    Text(
+                                        parsedPin?.let { stringResource(Res.string.habit_hour, Dates.field(it)) } ?: stringResource(Res.string.habit_no_hour),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                    habit.observedMinute?.let {
+                                        Text(
+                                            stringResource(Res.string.habit_observed, Dates.field(LocalTime(it / 60, it % 60))),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    OutlinedTextField(
+                                        habitAfter,
+                                        { habitAfter = it.take(Habits.MAX_AFTER) },
+                                        label = { Text(stringResource(Res.string.habit_after)) },
+                                        placeholder = { Text(stringResource(Res.string.habit_after_example)) },
+                                        supportingText = { Text(stringResource(Res.string.habit_after_hint)) },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth().coachField(EditField.HABIT_AFTER, coach),
+                                    )
+                                    if (task.habitSince != null) {
+                                        Text(
+                                            stringResource(if (status == HabitStatus.INSTALLED) Res.string.habit_status_installed else Res.string.habit_status_progress),
+                                            style = MaterialTheme.typography.titleSmall,
+                                        )
+                                        HabitCurve(habit.scores)
+                                    }
+                                }
+                            }
+                        }
                         // Découpage et enchaînement (docs/spec/sous-taches.md § Section) : les sous-tâches découpent ce travail, « Bloquée
                         // par » l'enchaîne à d'autres ; deux relations, une section qui dit le rôle de chacune.
                         val blockerChoices = remember(task.id, candidates, dependencies, tasksById, language) {
@@ -731,6 +809,11 @@ internal fun EditTaskDialog(
                                     teamExcluded = if (countInTeam != null && counted != countInTeam) !counted else null,
                                     noteOut = noteOut.takeIf { (teamEditing || received != null) && it != task.noteOut },
                                     proposal = if (canPropose && proposedTo != task.proposedTo) ProposalChange(proposedTo) else null,
+                                    // Habitude : seulement si la section a changé quelque chose ; le dépôt vérifie l'éligibilité.
+                                    // Une tâche en création (id 0) marquée habitude l'est toujours : rien n'existe encore en base.
+                                    habit = HabitChange(habitOn, habitAfter).takeIf {
+                                        habit != null && ((creating && habitOn) || habitOn != (task.habitSince != null) || (habitOn && habitAfter.trim() != task.habitAfter))
+                                    },
                                 )
                             if (team != null && teamEditing) {
                                 val percent = progress.roundToInt()

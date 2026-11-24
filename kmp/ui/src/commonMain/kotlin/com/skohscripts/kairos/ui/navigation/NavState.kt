@@ -29,6 +29,12 @@ class NavState {
     /** La demande est celle de la première tâche **récurrente** (issue #98) : la fiche suit les étapes de `RecurrenceCoach`. */
     var firstTaskRecurring by mutableStateOf(false)
 
+    /** La demande est celle de la première **habitude** (docs/spec/habitudes.md § 11) : une quotidienne, les étapes de `HabitCoach`. */
+    var firstTaskHabit by mutableStateOf(false)
+
+    /** Ouvrir la fiche de cette tâche sur sa section « Habitude » (conseil « En faire une habitude ? ») ; la vue Jour l'acquitte. */
+    var habitRequest by mutableStateOf<Long?>(null)
+
     /** Catégorie ouverte dans les Réglages (docs/spec/reglages.md) : la coquille en tire le titre et la flèche retour. */
     val settings = SettingsNav()
 

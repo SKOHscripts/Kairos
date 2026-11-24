@@ -28,6 +28,8 @@ class TipsCatalogTest {
         // « Créer ma première tâche récurrente » se passe sur la vue Jour, comme la carte « Récurrence ».
         GuideTarget.RecurringTask -> "personal:${Destination.DAY}"
         GuideTarget.FirstTask -> "personal:${Destination.DAY}"
+        // L'habitude (accompagnement ou fiche de la série) se passe sur la vue Jour, comme la carte « Habitudes ».
+        is GuideTarget.Habit -> "personal:${Destination.DAY}"
         GuideTarget.Demo -> "demo"
         GuideTarget.Feedback -> "feedback"
     }

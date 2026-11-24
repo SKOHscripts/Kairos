@@ -4,7 +4,7 @@ package com.skohscripts.kairos.ui.day
  * Les sections repliables de la fiche (docs/spec/fiche-tache.md), repliées à l'ouverture : chacune résume son contenu dans
  * son en-tête.
  */
-internal enum class SheetSection { TEAM, QUALIFY, TIME, SPLIT }
+internal enum class SheetSection { TEAM, QUALIFY, TIME, HABIT, SPLIT }
 
 /**
  * Les champs de la fiche d'une tâche, dans l'ordre où elle les présente (docs/spec/premiere-tache.md § Un coach par-dessus la vraie
@@ -13,7 +13,7 @@ internal enum class SheetSection { TEAM, QUALIFY, TIME, SPLIT }
  * contient (`null` : titre et description, toujours visibles), que le coach ouvre quand il l'explique. [team] : champ de la seule
  * fiche d'une tâche d'équipe (« Assigné à », 3.8.0, issue #97), que seul le coach de la première tâche d'équipe explique.
  */
-internal enum class EditField(val section: SheetSection?, val team: Boolean = false) {
+internal enum class EditField(val section: SheetSection?, val team: Boolean = false, val habit: Boolean = false) {
     TITLE(null),
     DESCRIPTION(null),
     ASSIGNEE(SheetSection.TEAM, team = true),
@@ -30,6 +30,12 @@ internal enum class EditField(val section: SheetSection?, val team: Boolean = fa
     PIN(SheetSection.TIME),
     RECURRENCE(SheetSection.TIME),
     MANUAL_TIME(SheetSection.TIME),
+    /**
+     * Section « Habitude » (docs/spec/habitudes.md § Interface) : seulement pour une série Perso quotidienne, jours ouvrés ou
+     * hebdomadaire ; expliqués par l'accompagnement de la première habitude, pas par celui de la première tâche.
+     */
+    HABIT(SheetSection.HABIT, habit = true),
+    HABIT_AFTER(SheetSection.HABIT, habit = true),
     /** Section « Découpage et enchaînement » depuis l'issue #201 (docs/spec/sous-taches.md § Section). */
     SUBTASKS(SheetSection.SPLIT),
     BLOCKERS(SheetSection.SPLIT),
@@ -40,6 +46,6 @@ internal enum class EditField(val section: SheetSection?, val team: Boolean = fa
 
     companion object {
         /** Les champs de la fiche d'une tâche personnelle. */
-        val personal: List<EditField> get() = entries.filter { !it.team }
+        val personal: List<EditField> get() = entries.filter { !it.team && !it.habit }
     }
 }

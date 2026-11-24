@@ -79,6 +79,10 @@ import com.skohscripts.kairos.ui.theme.KairosTextButton
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
+import com.skohscripts.kairos.ui.generated.resources.tip_habit_suggest_title
+import com.skohscripts.kairos.ui.generated.resources.tip_habit_suggest_body
+import kotlinx.datetime.LocalTime
+import com.skohscripts.kairos.ui.day.Dates
 
 /** Balise de test du dialogue d'un conseil. */
 const val TIP_DIALOG_TAG = "tip-dialog"
@@ -104,6 +108,8 @@ object TipContent {
         TipId.DARK_THEME -> GuideTarget.Settings(GuideSection.SETTINGS_APPEARANCE)
         TipId.TIMER -> GuideTarget.Personal(Destination.DAY, GuideSection.DAY_NOW)
         TipId.RECURRENCE -> GuideTarget.RecurringTask
+        // Sans série (repli) : l'accompagnement de la première habitude ; la coquille ouvre la fiche de la série proposée.
+        TipId.HABIT_SUGGEST -> GuideTarget.Habit()
         TipId.RECAP -> GuideTarget.Personal(Destination.WEEK)
         TipId.WIDGETS -> GuideTarget.Card(TipId.WIDGETS.card)
         TipId.SHORTCUTS -> GuideTarget.Card(TipId.SHORTCUTS.card)
@@ -133,6 +139,7 @@ object TipContent {
         TipId.DARK_THEME -> Res.string.tip_dark_theme_title
         TipId.TIMER -> Res.string.tip_timer_title
         TipId.RECURRENCE -> Res.string.tip_recurrence_title
+        TipId.HABIT_SUGGEST -> Res.string.tip_habit_suggest_title
         TipId.RECAP -> Res.string.tip_recap_title
         TipId.WIDGETS -> Res.string.tip_widgets_title
         TipId.SHORTCUTS -> Res.string.tip_shortcuts_title
@@ -170,6 +177,7 @@ fun tipBody(tip: Tip): String {
         TipId.DARK_THEME -> stringResource(Res.string.tip_dark_theme_body)
         TipId.TIMER -> stringResource(Res.string.tip_timer_body, tip.count)
         TipId.RECURRENCE -> stringResource(Res.string.tip_recurrence_body, name, tip.count)
+        TipId.HABIT_SUGGEST -> stringResource(Res.string.tip_habit_suggest_body, name, Dates.field(LocalTime(tip.count / 60 % 24, tip.count % 60)))
         TipId.RECAP -> stringResource(Res.string.tip_recap_body)
         TipId.WIDGETS -> stringResource(Res.string.tip_widgets_body)
         TipId.SHORTCUTS -> stringResource(Res.string.tip_shortcuts_body)

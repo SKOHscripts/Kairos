@@ -138,6 +138,8 @@ ICONS = {
     "Web": ("web", False),
     "Speed": ("speed", False),
     "EventAvailable": ("event_available", False),
+    # Habitude (docs/spec/habitudes.md) : marque neutre des tâches qui sont des habitudes, carte des Réglages.
+    "SelfImprovement": ("self_improvement", False),
     "CenterFocusStrong": ("center_focus_strong", False),
     "Assignment": ("assignment", False),
     "FormatListBulleted": ("format_list_bulleted", False),

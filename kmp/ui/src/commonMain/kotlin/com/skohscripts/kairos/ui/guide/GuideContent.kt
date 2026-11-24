@@ -57,6 +57,12 @@ sealed interface GuideTarget {
     data object RecurringTask : GuideTarget
 
     /**
+     * Habitude (docs/spec/habitudes.md) : [taskId] `null` lance l'accompagnement de la première habitude ; sinon la fiche de cette
+     * tâche s'ouvre sur sa section « Habitude » (conseil « En faire une habitude ? »). Toujours sur la vue Jour.
+     */
+    data class Habit(val taskId: Long? = null) : GuideTarget
+
+    /**
      * Ouvre une seule carte du catalogue dans le dialogue du guide (conseils `widgets` et `shortcuts`, docs/spec/conseils.md) :
      * ce qu'elle décrit ne se règle pas dans Kairos (un widget se pose depuis le lanceur, un raccourci se tape).
      */

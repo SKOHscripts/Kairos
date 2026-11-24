@@ -36,6 +36,8 @@ import com.skohscripts.kairos.ui.generated.resources.demo_hub_title
 import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.theme.KairosTextButton
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.generated.resources.discover_first_habit
+import com.skohscripts.kairos.ui.generated.resources.discover_first_habit_hint
 
 /**
  * Hub « Découvrir Kairos » (docs/spec/visite-guidee.md) : la liste des chapitres du catalogue, chacun rouvrant ses cartes à tout
@@ -54,6 +56,8 @@ fun DiscoverDialog(
     onFirstTeamTask: () -> Unit = {},
     /** « Créer ma première tâche récurrente » (issue #98), sous le chapitre « Organiser ». */
     onFirstRecurring: () -> Unit = {},
+    /** « Créer une habitude » (docs/spec/habitudes.md § 11) : l'accompagnement de la première habitude. */
+    onFirstHabit: () -> Unit = {},
     /** « Régler Kairos pas à pas » (issue #98), sous le chapitre « Réglages ». */
     onSettingsTour: () -> Unit = {},
     /** « Essayer en démonstration » (issue #96), sous la première tâche ; `null` : la plateforme n'en fournit pas. */
@@ -83,8 +87,10 @@ fun DiscoverDialog(
                     when (chapter) {
                         GuideChapter.TEAM ->
                             Entry(KairosIcons.Add, stringResource(Res.string.discover_first_team_task), stringResource(Res.string.discover_first_team_task_hint), onClick = onFirstTeamTask)
-                        GuideChapter.ORGANIZE ->
+                        GuideChapter.ORGANIZE -> {
                             Entry(KairosIcons.Repeat, stringResource(Res.string.discover_first_recurring), stringResource(Res.string.discover_first_recurring_hint), onClick = onFirstRecurring)
+                            Entry(KairosIcons.SelfImprovement, stringResource(Res.string.discover_first_habit), stringResource(Res.string.discover_first_habit_hint), onClick = onFirstHabit)
+                        }
                         GuideChapter.SETTINGS ->
                             Entry(KairosIcons.Tune, stringResource(Res.string.discover_settings_tour), stringResource(Res.string.discover_settings_tour_hint), onClick = onSettingsTour)
                         else -> Unit

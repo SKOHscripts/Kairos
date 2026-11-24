@@ -94,6 +94,8 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
+import com.skohscripts.kairos.core.habit.Habits
+import com.skohscripts.kairos.ui.habit.HabitMark
 
 /** Ce dont une ligne de tâche a besoin, commun à toutes les sections de la vue Jour. */
 internal class RowContext(
@@ -119,6 +121,8 @@ internal class RowContext(
     val forecast: Lazy<SoloForecast.Result?>? = null,
     /** Les vies des tâches perso, pour dire d'une tâche qui traîne ce qui finit par se faire ; calculées à la demande. */
     val survival: Lazy<Survival.Model>? = null,
+    /** Interrupteur « Habitudes » (docs/spec/habitudes.md) : coupé, la marque « Habitude » ne s'affiche pas. */
+    val habitsOn: Boolean = true,
 )
 
 /**
@@ -353,6 +357,8 @@ private fun TaskTags(task: Task, ctx: RowContext) {
             modifier = Modifier.size(16.dp),
         )
     }
+    // Habitude (docs/spec/habitudes.md § 8) : marque neutre, sans compteur.
+    if (ctx.habitsOn && Habits.isHabit(task)) HabitMark()
     // Cette tâche en bloque d'autres : on le voit sur le bloqueur (« bloque X »), pas seulement sur la tâche bloquée.
     if (task.status == TaskStatus.TODO) {
         ctx.view.blocking[task.id]?.takeIf { it.isNotEmpty() }?.let { titles ->

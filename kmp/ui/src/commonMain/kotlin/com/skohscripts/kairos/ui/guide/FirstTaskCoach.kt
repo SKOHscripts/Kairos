@@ -105,6 +105,18 @@ import com.skohscripts.kairos.ui.theme.KairosTextButton
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import com.skohscripts.kairos.ui.theme.KairosOutlinedCard
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_gesture_title
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_gesture_body
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_size_title
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_size_body
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_hour_title
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_hour_body
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_after_title
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_after_body
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_expect_title
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_expect_body
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_save_title
+import com.skohscripts.kairos.ui.generated.resources.habit_coach_save_body
 
 /**
  * Une étape de l'accompagnement de la première tâche (docs/spec/premiere-tache.md) : [fields] les champs de la fiche qu'elle
@@ -183,6 +195,21 @@ internal object RecurrenceCoach {
         CoachStep({ KairosIcons.Repeat }, Res.string.rec_coach_rule_title, Res.string.rec_coach_rule_body, setOf(EditField.RECURRENCE), preview = true),
         CoachStep({ KairosIcons.Balance }, Res.string.rec_coach_size_title, Res.string.rec_coach_size_body, setOf(EditField.PRIORITY, EditField.POINTS, EditField.MINUTES)),
         CoachStep({ KairosIcons.Check }, Res.string.rec_coach_save_title, Res.string.rec_coach_save_body, save = true),
+    )
+}
+
+/**
+ * Les étapes de l'accompagnement de la première **habitude** (docs/spec/habitudes.md § 11) : la vraie fiche d'une tâche quotidienne
+ * déjà marquée habitude ; le geste, sa taille, l'heure, la phrase « Après… », ce qui attend, puis l'enregistrement.
+ */
+internal object HabitCoach {
+    val STEPS: List<CoachStep> = listOf(
+        CoachStep({ KairosIcons.Edit }, Res.string.habit_coach_gesture_title, Res.string.habit_coach_gesture_body, setOf(EditField.TITLE)),
+        CoachStep({ KairosIcons.Balance }, Res.string.habit_coach_size_title, Res.string.habit_coach_size_body, setOf(EditField.PRIORITY, EditField.POINTS)),
+        CoachStep({ KairosIcons.Schedule }, Res.string.habit_coach_hour_title, Res.string.habit_coach_hour_body, setOf(EditField.PIN)),
+        CoachStep({ KairosIcons.SelfImprovement }, Res.string.habit_coach_after_title, Res.string.habit_coach_after_body, setOf(EditField.HABIT_AFTER)),
+        CoachStep({ KairosIcons.Science }, Res.string.habit_coach_expect_title, Res.string.habit_coach_expect_body, setOf(EditField.HABIT)),
+        CoachStep({ KairosIcons.Check }, Res.string.habit_coach_save_title, Res.string.habit_coach_save_body, save = true),
     )
 }
 

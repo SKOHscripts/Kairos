@@ -183,6 +183,8 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import com.skohscripts.kairos.ui.navigation.Destination
 import com.skohscripts.kairos.ui.navigation.TeamDestination
 import org.jetbrains.compose.resources.StringResource
+import com.skohscripts.kairos.ui.generated.resources.card_habits_title
+import com.skohscripts.kairos.ui.generated.resources.card_habits_body
 
 /** Les chapitres du hub « Découvrir Kairos » (docs/spec/visite-guidee.md). [TEAM] n'est proposé que si l'espace Équipe est activé. */
 enum class GuideChapter(val title: StringResource, val icon: () -> ImageVector) {
@@ -288,6 +290,8 @@ object FeatureCatalog {
         FeatureCard("subtasks", GuideChapter.ORGANIZE, { KairosIcons.Layers }, Res.string.card_subtasks_title, Res.string.card_subtasks_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_PARENTS)),
         FeatureCard("subtasks_edit", GuideChapter.ORGANIZE, { KairosIcons.Checklist }, Res.string.card_subtasks_edit_title, Res.string.card_subtasks_edit_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_PARENTS), since = "3.3.0"),
         FeatureCard("recurrence", GuideChapter.ORGANIZE, { KairosIcons.Repeat }, Res.string.card_recurrence_title, Res.string.card_recurrence_body, GuideTarget.Personal(Destination.DAY)),
+        // Habitudes (docs/spec/habitudes.md, issue #284) : la carte lance l'accompagnement de la première habitude.
+        FeatureCard("habits", GuideChapter.ORGANIZE, { KairosIcons.SelfImprovement }, Res.string.card_habits_title, Res.string.card_habits_body, GuideTarget.Habit(), since = "4.6.0"),
         FeatureCard("skipped_months", GuideChapter.ORGANIZE, { KairosIcons.EventRepeat }, Res.string.card_skipped_months_title, Res.string.card_skipped_months_body, GuideTarget.Personal(Destination.DAY), since = "3.13.0"),
         FeatureCard("snooze", GuideChapter.ORGANIZE, { KairosIcons.Snooze }, Res.string.card_snooze_title, Res.string.card_snooze_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_AGENDA), since = "3.0.0"),
         FeatureCard("dependencies", GuideChapter.ORGANIZE, { KairosIcons.Block }, Res.string.card_dependencies_title, Res.string.card_dependencies_body, GuideTarget.Personal(Destination.DAY, GuideSection.DAY_BLOCKED)),
@@ -415,6 +419,7 @@ object FeatureCatalog {
         "Pomodoro bells" to "chrono_bells",
         "Time spent in one tap" to "time_spent",
         "Interruptions" to "interruptions",
+        "Habits" to "habits",
         "Your day" to "day_brief",
         "Reminders" to "reminders",
         "Daily summary" to "daily_summary",
