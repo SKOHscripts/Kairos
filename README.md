@@ -295,6 +295,14 @@ also be edited, archived without follow-up, or deleted.
 - **Recurrence**: daily, weekdays, weekly, monthly (finishing an occurrence
   creates the next one), and "on day N of the month" (moved to the previous
   working day if it falls on a weekend or holiday).
+- **Habits**: turn a daily, weekday or weekly recurring task into a habit, with
+  a fixed hour (Kairos suggests the time you usually do it, then never moves it)
+  and an optional "After..." phrase that ties it to your routine. Now and then,
+  when you tick it, Kairos asks one validated question: "It is something I do
+  automatically", from 1 to 7. Your answers draw its curve. Kairos says
+  "installed" when they stay high, and never counts streaks. Settings →
+  Planning → Habits explains the approach and lists the scientific sources
+  behind every claim (no "21 days": it takes weeks to months).
 - **Skipped months**: if Kairos was not opened for a whole month, a "day N of
   the month" task gets no occurrence for that month. Today's Day view then
   says so, one line per series ("2 monthly occurrences were skipped: Expense
@@ -785,6 +793,7 @@ version that brought it and the platforms it exists on.
 | Organize | Subtasks | 3.0.0 | All |
 | Organize | Editable subtasks | 3.3.0 | All |
 | Organize | Recurrence | 3.0.0 | All |
+| Organize | Habits | 4.6.0 | All |
 | Organize | Skipped months | 3.13.0 | All |
 | Organize | Snooze and move | 3.0.0 | All |
 | Organize | Blockers | 3.0.0 | All |
