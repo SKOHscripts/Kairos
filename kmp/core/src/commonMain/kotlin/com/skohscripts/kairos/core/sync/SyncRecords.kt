@@ -84,6 +84,10 @@ object SyncRecords {
             "fibonacciPoints" to num(task.fibonacciPoints),
             "manualTimeSpentMinutes" to num(task.manualTimeSpentMinutes),
             "seriesId" to ref(uids, RecordKind.TASK, task.seriesId),
+            // Habitude (docs/spec/habitudes.md § Données) : trois champs de plus, fusionnés champ par champ comme les autres.
+            "habitSince" to str(task.habitSince?.toString()),
+            "habitAfter" to str(task.habitAfter),
+            "habitScore" to num(task.habitScore),
         ),
         task.createdAt, task.updatedAt,
     )
@@ -206,6 +210,9 @@ object SyncRecords {
             fibonacciPoints = f.int("fibonacciPoints"),
             manualTimeSpentMinutes = f.int("manualTimeSpentMinutes"),
             seriesId = f.string("seriesId")?.let { ids.id(RecordKind.TASK, it) },
+            habitSince = f.string("habitSince")?.let(Instant::parse),
+            habitAfter = f.string("habitAfter").orEmpty(),
+            habitScore = f.int("habitScore"),
             createdAt = l.createdAt,
             updatedAt = l.updatedAt ?: l.createdAt,
         )

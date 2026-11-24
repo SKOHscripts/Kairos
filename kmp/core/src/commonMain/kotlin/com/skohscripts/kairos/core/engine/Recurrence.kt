@@ -142,6 +142,11 @@ object Recurrence {
             // La série garde l'identifiant de sa première tâche (docs/spec/durees-apprises.md) ; une tâche reçue d'un manager
             // n'ouvre jamais de série personnelle (isolation d'espace).
             seriesId = if (task.origin == null) task.seriesId ?: task.id else null,
+            // L'habitude est un attribut de la série, comme l'heure fixe ; la réponse (habitScore) reste à son occurrence
+            // (docs/spec/habitudes.md). Une série passée à une règle mensuelle garde les champs mais n'est plus éligible
+            // (Habits.eligible) : l'habitude y est ignorée, et revient si la règle redevient éligible.
+            habitSince = task.habitSince,
+            habitAfter = task.habitAfter,
             createdAt = now,
             updatedAt = now,
         )
