@@ -280,13 +280,6 @@ fun DayScreen(
     // Captures des magasins : la fiche de la tâche vitrine s'ouvre d'emblée (LocalShowcaseTask) ; nulle ailleurs.
     val showcaseTask = LocalShowcaseTask.current
     var editingId by rememberSaveable { mutableStateOf(showcaseTask) }
-    LaunchedEffect(habitRequest) {
-        if (habitRequest != null) {
-            editingId = habitRequest
-            openHabit = true
-            onHabitRequestHandled()
-        }
-    }
     var editingBlock by remember { mutableStateOf<EditableBlock?>(null) }
     var filterOpen by rememberSaveable { mutableStateOf(false) }
     // Accompagnement de la première tâche (docs/spec/premiere-tache.md) : la fiche de création (l'étape du coach, -1 une fois
@@ -299,6 +292,13 @@ fun DayScreen(
     var coachHabit by rememberSaveable { mutableStateOf(false) }
     // Fiche ouverte depuis le conseil « En faire une habitude ? » : sa section Habitude est dépliée.
     var openHabit by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(habitRequest) {
+        if (habitRequest != null) {
+            editingId = habitRequest
+            openHabit = true
+            onHabitRequestHandled()
+        }
+    }
     var placedId by rememberSaveable { mutableStateOf<Long?>(null) }
     var congrats by rememberSaveable { mutableStateOf(false) }
     var placedStep by rememberSaveable { mutableIntStateOf(-1) }
