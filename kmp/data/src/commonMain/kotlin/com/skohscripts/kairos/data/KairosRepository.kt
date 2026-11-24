@@ -15,6 +15,7 @@ import com.skohscripts.kairos.core.model.InterruptionSource
 import com.skohscripts.kairos.core.model.Interruption
 import com.skohscripts.kairos.core.engine.Interruptions
 import com.skohscripts.kairos.core.engine.SpentReview
+import com.skohscripts.kairos.core.habit.Habits
 import com.skohscripts.kairos.core.engine.Workdays
 import com.skohscripts.kairos.core.model.BlockException
 import com.skohscripts.kairos.core.calendar.CalendarPlan
@@ -518,7 +519,18 @@ class KairosRepository(
                     teamExcluded = edit.teamExcluded?.takeIf { task.space == TaskSpace.PERSONAL } ?: task.teamExcluded,
                     // Note à envoyer (docs/spec/equipe-echanges.md § Notes) : nettoyée, bornée ; `null` = inchangée.
                     noteOut = edit.noteOut?.let { ExchangeNote.clean(it).orEmpty() } ?: task.noteOut,
-            )
+            ).let { t ->
+                // Habitude (docs/spec/habitudes.md § Interface) : `null` = inchangée ; déclarée seulement sur une tâche éligible
+                // (sa règle après l'édition), la date de déclaration d'une habitude déjà déclarée est gardée.
+                val habit = edit.habit ?: return@let t
+                if (habit.on && Habits.eligible(t)) {
+                    t.copy(habitSince = t.habitSince ?: clock.now(), habitAfter = Habits.cleanAfter(habit.after))
+                } else if (!habit.on) {
+                    t.copy(habitSince = null, habitAfter = "")
+                } else {
+                    t
+                }
+            }
             // Fiche ouverte pendant une fusion (docs/spec/synchronisation.md § Interface) : seuls les champs que l'utilisateur a
             // changés dans la fiche s'écrivent ; les autres gardent la valeur actuelle, peut-être arrivée d'un autre appareil.
             var updated = (if (opened == null) applied(task) else keepUnchanged(task, opened.task, applied(opened.task)))
@@ -606,6 +618,20 @@ class KairosRepository(
     }
 
     /**
+     * Réponse à la question d'automatisme (docs/spec/habitudes.md § 3) : note [score] (1 à 7) sur l'occurrence [taskId], cochée
+     * juste avant. `updatedAt` n'est **pas** touché : la réponse ne déplace pas la date de fin de l'occurrence. Rend vrai si
+     * cette réponse fait passer l'habitude à « installée » (le message de félicitations, une fois par passage).
+     */
+    suspend fun answerHabit(taskId: Long, score: Int): Boolean {
+        val task = find(taskId) ?: return false
+        if (task.habitSince == null || !Habits.eligible(task)) return false
+        val value = score.coerceIn(Habits.MIN_SCORE, Habits.MAX_SCORE)
+        val before = Habits.answers(Habits.seriesOf(task, state.value.tasks).filter { it.id != task.id }).map { it.score }
+        write { updateRow(task.copy(habitScore = value), touch = false) }
+        return Habits.justInstalled(before, value)
+    }
+
+    /**
      * « Annuler » d'une correction du temps passé (docs/spec/fiche-tache.md § Temps passé) : rend en une écriture le temps
      * saisi à la main [manual] et les fins de sessions [ends] d'avant.
      */
@@ -637,6 +663,8 @@ class KairosRepository(
             manualTimeSpentMinutes = pick(Task::manualTimeSpentMinutes),
             teamExcluded = pick(Task::teamExcluded),
             noteOut = pick(Task::noteOut),
+            habitSince = pick(Task::habitSince),
+            habitAfter = pick(Task::habitAfter),
         )
     }
 
@@ -1923,7 +1951,8 @@ class KairosRepository(
                 t.createdAt.store(), t.updatedAt.store(), t.space.code.toLong(), t.assigneeId,
                 t.progressPercent?.toLong(), t.startedOn.store(), t.teamUid,
                 t.origin, if (t.originRemoved) 1L else 0L, t.reportedMinutes?.toLong(), if (t.teamExcluded) 1L else 0L,
-                t.seriesId, t.noteOut, t.noteIn?.encode(), t.proposedTo,
+                t.seriesId, t.noteOut, t.noteIn?.encode(), t.proposedTo, t.habitSince?.store(), t.habitAfter,
+                t.habitScore?.toLong(),
             )
         }
         for (m in snapshot.members) {
@@ -2006,7 +2035,7 @@ class KairosRepository(
             t.recurrencePeriod, t.taskType, t.fibonacciPoints?.toLong(), t.manualTimeSpentMinutes?.toLong(),
             now(), now(), t.space.code.toLong(), t.assigneeId, t.progressPercent?.toLong(), t.startedOn.store(), t.teamUid,
             t.origin, if (t.originRemoved) 1L else 0L, t.reportedMinutes?.toLong(), if (t.teamExcluded) 1L else 0L,
-            t.seriesId, t.noteOut, t.noteIn?.encode(), t.proposedTo,
+            t.seriesId, t.noteOut, t.noteIn?.encode(), t.proposedTo, t.habitSince?.store(), t.habitAfter, t.habitScore?.toLong(),
         )
         val id = queries.lastInsertedId().awaitAsOneOrNull()
         if (t.space == TaskSpace.TEAM && id != null) {
@@ -2053,7 +2082,8 @@ class KairosRepository(
             t.recurrencePeriod, t.taskType, t.fibonacciPoints?.toLong(), t.manualTimeSpentMinutes?.toLong(),
             if (touch) now() else t.updatedAt.store(), t.space.code.toLong(), t.assigneeId, t.progressPercent?.toLong(),
             t.startedOn.store(), t.teamUid, t.origin, if (t.originRemoved) 1L else 0L, t.reportedMinutes?.toLong(),
-            if (t.teamExcluded) 1L else 0L, t.seriesId, t.noteOut, t.noteIn?.encode(), t.proposedTo, t.id,
+            if (t.teamExcluded) 1L else 0L, t.seriesId, t.noteOut, t.noteIn?.encode(), t.proposedTo, t.habitSince?.store(),
+            t.habitAfter, t.habitScore?.toLong(), t.id,
         )
     }
 
@@ -2521,7 +2551,12 @@ data class TaskEdit(
     val noteOut: String? = null,
     /** Proposition au manager d'une équipe d'origine (docs/spec/equipe-echanges.md § Propositions) ; `null` = inchangée. */
     val proposal: ProposalChange? = null,
+    /** Habitude de la série (docs/spec/habitudes.md) : déclarée ou retirée, avec sa phrase « Après… » ; `null` = inchangée. */
+    val habit: HabitChange? = null,
 )
+
+/** Section « Habitude » de la fiche : [on] la série est une habitude, [after] la phrase « Après… » (vide = aucune). */
+data class HabitChange(val on: Boolean, val after: String = "")
 
 /** Nouvelle cible d'une proposition : [to] = `TeamOrigin.key` de l'équipe, `null` pour la retirer. */
 data class ProposalChange(val to: String?)

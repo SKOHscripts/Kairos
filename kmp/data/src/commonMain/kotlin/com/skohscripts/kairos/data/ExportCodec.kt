@@ -1,5 +1,6 @@
 package com.skohscripts.kairos.data
 
+import com.skohscripts.kairos.core.habit.Habits
 import com.skohscripts.kairos.core.model.ExchangeNote
 import com.skohscripts.kairos.core.model.BlockException
 import com.skohscripts.kairos.core.model.BlockKind
@@ -165,6 +166,7 @@ object ExportCodec {
             require(t.priority == null || t.priority in PRIORITY_VALUES) { "priorité" }
             require(t.fibonacciPoints == null || t.fibonacciPoints in FIBONACCI_SCALE) { "points" }
             require((t.estimatedMinutes ?: 0) >= 0 && (t.manualTimeSpentMinutes ?: 0) >= 0) { "durées" }
+            require(t.habitScore == null || t.habitScore in Habits.MIN_SCORE..Habits.MAX_SCORE) { "réponse d'habitude" }
         }
         for (d in s.dependencies) require(d.taskId in ids && d.blockerId in ids && d.taskId != d.blockerId) { "dépendance" }
         for (b in s.timeBlocks) require(b.end >= b.start) { "créneau" }
@@ -432,6 +434,10 @@ private data class TaskJson(
     val noteIn: ExchangeNoteJson? = null,
     // Proposition au manager (3.9.0, docs/spec/equipe-echanges.md § Propositions) : omise quand nulle.
     val proposedTo: String? = null,
+    // Habitude (4.6.0, docs/spec/habitudes.md § Données) : omis à leur défaut, donc un export sans habitude ne change pas.
+    val habitSince: String? = null,
+    val habitAfter: String? = null,
+    val habitScore: Int? = null,
     // Synchronisation (formatVersion 3, docs/spec/synchronisation.md § Format) : nuls, donc omis, hors synchronisation.
     val uid: String? = null,
     val born: String? = null,
@@ -472,6 +478,9 @@ private data class TaskJson(
         noteOut = ExchangeNote.clean(noteOut).orEmpty(),
         noteIn = noteIn?.toModel(),
         proposedTo = proposedTo,
+        habitSince = habitSince?.let(Instant::parse),
+        habitAfter = habitAfter.orEmpty().take(Habits.MAX_AFTER),
+        habitScore = habitScore,
     )
 
     companion object {
@@ -483,6 +492,7 @@ private data class TaskJson(
             encodeSpace(t.space), t.assigneeId, t.progressPercent, t.startedOn?.toString(), t.teamUid,
             t.origin, if (t.originRemoved) true else null, t.reportedMinutes, if (t.teamExcluded) true else null,
             t.seriesId, t.noteOut.ifEmpty { null }, t.noteIn?.let(ExchangeNoteJson::from), t.proposedTo,
+            habitSince = t.habitSince?.toString(), habitAfter = t.habitAfter.ifEmpty { null }, habitScore = t.habitScore,
         )
     }
 }

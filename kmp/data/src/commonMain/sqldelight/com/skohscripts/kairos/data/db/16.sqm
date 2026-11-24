@@ -1,0 +1,6 @@
+-- Schéma 16 -> 17 (4.6.0, docs/spec/habitudes.md § Données) : additif. L'habitude est portée par les occurrences de la série,
+-- comme l'heure fixe : date de déclaration, phrase « Après… », réponse à la question d'automatisme. Une base d'avant n'a aucune
+-- habitude (NULL, vide, NULL).
+ALTER TABLE task ADD COLUMN habit_since TEXT;
+ALTER TABLE task ADD COLUMN habit_after TEXT NOT NULL DEFAULT '';
+ALTER TABLE task ADD COLUMN habit_score INTEGER;
