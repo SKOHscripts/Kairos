@@ -99,7 +99,8 @@ class FeatureListUiTest {
         top()
         onNodeWithText("All versions").performClick()
         waitText("since 3.10.0")
-        onAllNodesWithText("since 3.10.0")[0].performClick()
+        // Le menu des versions défile : chaque version nouvelle repousse les anciennes sous son bord visible.
+        onAllNodesWithText("since 3.10.0")[0].performScrollTo().performClick()
         waitUntil(timeoutMillis = 15_000) { !listHas("Keyboard shortcuts") }
         assertTrue(listHas("Languages"))
         assertTrue(listHas("Phone calendars"))
