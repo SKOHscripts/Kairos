@@ -48,6 +48,8 @@ tard dans une courte revue. Quand je suis mon plan avec le chrono, qu'il me suiv
   secondes, comme « Annuler ») ou la fermer (✕) n'enregistre rien : la tâche ira dans la revue.
 - **Pas de choix « Comme prévu »** (décision du propriétaire) : on ne se souvient souvent pas de ce qu'on avait estimé ; le
   confirmer n'apprendrait presque rien.
+- **Habitude** (4.6.0, `habitudes.md` § 3) : si la question d'automatisme d'une habitude est due à cette coche, elle passe
+  avant et « Temps passé ? » n'est pas posé ; la tâche, restée sans temps, rejoint la revue ci-dessous.
 - **Coches groupées** : cocher une autre tâche moins d'une minute après la précédente ferme la question ouverte et n'en pose pas
   de nouvelle, tant que les coches s'enchaînent à moins d'une minute ; ces tâches iront dans la revue. Celui qui coche par lots
   (le matin, les tâches de la veille) n'est pas harcelé.

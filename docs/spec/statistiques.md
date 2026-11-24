@@ -384,6 +384,8 @@ manque et le message d'absence le dit), cibles des conseils `stats_calibration` 
 ### Décisions et pièges tracés
 
 - **Dérangements** (4.5.0, `derangements.md` § Statistiques) : une carte sous les cartes du tableau de bord, même période et
+- **Habitudes** (4.6.0, `habitudes.md` § Interface) : après les dérangements, une carte par habitude active (statut,
+  dernière réponse, petite courbe), hors des cartes exportables ; absente si les habitudes sont coupées ou s'il n'y en a pas.
   mêmes filtres, hors de l'export en image et en CSV.
 - **Sessions qui se chevauchent comptées une fois** (#195, 2026-11-10, `temps-reel-chrono.md` § Décisions) : le temps
   suivi, le temps par type, le focus (une session entièrement couverte par une autre de la même tâche n'en est pas

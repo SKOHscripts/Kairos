@@ -335,8 +335,12 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   pas de traduction d'un récit à la première personne tant que le propriétaire ne la valide pas. Les validateurs
   (`validate_og.py`, `validate_badges.py`) ne lisent que les `index.html` de langue : ces pages n'en dépendent pas.
   Les README ne gardent qu'un court résumé et le lien (section « Pourquoi j'ai construit Kairos »).
+- **Page « Habitudes » (4.6.0, `habitudes.md` § README, site, magasins)** : générée à la publication par
+  `kmp/tools/make_habits_page.py` depuis `HabitScience.kt` et les `strings.xml`, en six langues (`habitudes/`,
+  `<langue>/habits/`), avec le menu de la page de téléchargement de sa langue (liens relatifs un niveau plus bas, aucune
+  entrée courante) ; elle n'est pas une entrée du menu.
 - **Menu du site (2026-11-15, demande du propriétaire)** : toutes les pages du site (les six pages de téléchargement, les
-  deux pages « histoire » et la carte du code `code/`) portent dans leur en-tête le même menu, dans la langue de la page,
+  deux pages « histoire », la carte du code `code/` et les pages « Habitudes ») portent dans leur en-tête le même menu, dans la langue de la page,
   à côté du sélecteur de langue qui ne change pas. Six entrées, dans cet ordre : **Télécharger** (la page de
   téléchargement de la langue), **Histoire** (la page « histoire » de la langue ; en espagnol, allemand, russe et italien,
   la page anglaise, libellé suivi de la langue, `hreflang="en"`), **Version web** (`app/`, ou `preview/` tant qu'aucune

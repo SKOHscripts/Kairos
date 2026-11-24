@@ -30,6 +30,9 @@ titre long ou une adresse web prend quatre lignes, et la recherche ne fait que r
   - **« Équipe »** (tâche de l'espace Équipe) : titulaire, effort, avancement, note ;
   - **« Qualification »** : priorité, taille (points) et son guide, type, projet, et « Compter dans l'équipe » s'il existe ;
   - **« Dates et temps »** : échéance et durée estimée, les suggestions de durée, puis date programmée et heure fixe
+  - **« Habitude »** (4.6.0, `habitudes.md` § Interface), après « Dates et temps », pour une série Perso quotidienne, jours
+    ouvrés ou hebdomadaire : l'interrupteur « En faire une habitude », l'heure fixe rappelée, la phrase « Après… », le
+    statut et la courbe des réponses.
     (chaque paire **côte à côte** sur une fiche de 560 dp ou plus, l'une sous l'autre sinon, raccourcis de date dessous),
     récurrence, **temps passé** et « Et si j'accepte ? » ;
   - **« Découpage et enchaînement »** : sous-tâches, « Enchaîner », « Bloquée par ».

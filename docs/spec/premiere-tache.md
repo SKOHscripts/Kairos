@@ -225,6 +225,13 @@ cerne la ligne de la tâche (2 dp primaire) et la liste défile jusqu'à elle (`
   les règles*, pas seulement de la règle choisie : c'est la comparaison qui explique la différence ; *pas de
   persistance* : les deux entrées restent à rejouer.
 
+### Première habitude (4.6.0, issue #284)
+
+`HabitCoach.STEPS` (six `CoachStep`) sur la fiche de création d'une quotidienne déjà marquée habitude ; lancé par la carte
+`habits` du catalogue, l'entrée « Créer une habitude » de `DiscoverDialog` (chapitre Organiser) et le repli du conseil
+`habit_suggest` (`GuideTarget.Habit()`, `NavState.firstTaskHabit`, `startTask(recurring, habit)`). Détail dans
+`habitudes.md` § Interface.
+
 ### Décisions et pièges tracés
 
 - **Coach sur la vraie fiche** (écarté : une fiche factice de démonstration, qui

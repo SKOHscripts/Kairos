@@ -39,7 +39,7 @@ Et « Décaler » : repousser une tâche au prochain jour ouvré.
 - Terminer une tâche quotidienne, jours ouvrés, hebdomadaire ou mensuelle
   crée la suivante, échéance avancée selon la règle, priorité, points, type,
   durée, projet, description et heure fixe (même heure, nouveau jour)
-  repris ; sa date programmée est la nouvelle échéance (elle n'apparaît pas
+  repris, ainsi que l'habitude (`habitSince`, `habitAfter`, 4.6.0, `habitudes.md` ; jamais la réponse `habitScore`) ; sa date programmée est la nouvelle échéance (elle n'apparaît pas
   dans la journée avant). Une tâche « jours ouvrés » ne tombe jamais sur un
   week-end **ni sur un jour férié** des réglages (France, jours libres).
 - Une hebdomadaire revient toujours sur son jour de semaine (celui de son

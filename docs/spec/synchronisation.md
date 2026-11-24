@@ -362,6 +362,8 @@ Pur et idempotent (une seconde passe ne change rien). Pour chaque enregistrement
   `description`, `priority`, `deadline`, `projectTag`, `status`, `estimatedMinutes`, `pinnedStart`, `parentId`, `recurrence`,
   `scheduledDate`, `recurrenceDayOfMonth`, `recurrenceDayOfWeek`, `recurrencePeriod`, `taskType`, `fibonacciPoints`,
   `manualTimeSpentMinutes`, `seriesId`) ; créneau (`title`, `start`, `end`, `kind`, `recurrence`, `sourceId`, `sourceUid`) ;
+  Depuis la 4.6.0, la tâche porte aussi `habitSince`, `habitAfter` et `habitScore` (`habitudes.md` § Données), fusionnés
+  champ par champ comme les autres.
   exception (`blockId`, `date`, `skipped`, `title`, `start`, `end`) ; dépendance (`taskId`, `blockerId`) ; session (`taskId`,
   `startedAt`, `endedAt`) ; note (`body`, `status`, `convertedTaskId`) ; calendrier (`name`, `hideTitles`, `importedAt`) ;
   journée entière (`title`, `start`, `end`, `sourceId`, `sourceUid`). `createdAt` et `updatedAt` (tâche, note) sont les deux
