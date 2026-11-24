@@ -4,7 +4,7 @@ _Rôle : aider à installer une habitude à partir d'une tâche récurrente (dé
 de l'automatisme par une question validée), et montrer dans Kairos les sources scientifiques de chaque affirmation.
 Fichiers couverts : à préciser dans la partie 2. Tests : à préciser dans la partie 2._
 
-État : issue #284, jalon 4.6.0. **Besoin cadré le 2026-11-24, partie 2 non rédigée, non implémentée.**
+État : issue #284, jalon 4.6.0. **Besoin validé le 2026-11-24, partie 2 non rédigée, non implémentée.**
 Cadrage avec le propriétaire le 2026-11-24, sur deux revues de littérature (§ Base scientifique) : les choix de l'issue
 que la science ne soutient pas sont écartés (§ Décisions de cadrage).
 
@@ -44,7 +44,9 @@ affirmer qui ne soit sourcé.
    - une phrase facultative « **Après…** » (« Après mon café »), affichée sur la tâche : le signal de routine auquel
      l'habitude s'accroche.
 3. **Question d'automatisme**. À la coche d'une occurrence faite, Kairos pose de temps en temps la question validée
-   « **Je le fais automatiquement** », de 1 (pas du tout d'accord) à 7 (tout à fait d'accord) :
+   « **« Méditer », c'est quelque chose que je fais automatiquement.** » (titre de la série à la place de
+   « Méditer »), de 1 « Pas du tout d'accord » à 7 « Tout à fait d'accord ». En anglais, l'item validé mot pour mot :
+   « “Meditate” is something I do automatically. » :
    - à la **première** occurrence faite après la déclaration (point de départ de la courbe) ;
    - puis au plus **une fois tous les 14 jours** par habitude ;
    - un toucher suffit ; on peut l'ignorer (fermer = pas de réponse, la question revient à l'occurrence suivante) ;
@@ -55,16 +57,25 @@ affirmer qui ne soit sourcé.
    - « **Habitude en cours** » dès la déclaration ;
    - « **Habitude installée** » quand la courbe se stabilise haut (critère au § 7) ;
    - une installée qui redescend nettement redevient « en cours » (§ 7).
-5. **Félicitations** : quand une habitude devient « installée », **un** message factuel, une seule fois (« « Méditer » :
-   tu dis le faire sans y penser. C'est le signe d'une habitude installée. »). Ni badge, ni points, ni compteur de jours
+5. **Félicitations** : quand une habitude devient « installée », **un** message factuel, une seule fois (« « Méditer » : tu dis le faire automatiquement. C'est le signe d'une habitude installée. » : il reprend
+   le mot de la question, sans prêter à l'utilisateur une réponse qu'il n'a pas donnée). Ni badge, ni points, ni compteur de jours
    d'affilée, et **aucun message** quand la régularité s'interrompt.
 6. **Interruption**. Un oubli isolé ne compte pas. Après une **longue interruption** (28 jours sans occurrence faite),
    la question est reposée à la prochaine occurrence faite, sans message culpabilisant ; le statut ne change que selon
    la réponse.
 7. **Seuils de produit** (décisions de produit, **pas** des faits scientifiques ; présentés comme tels dans
    l'explication) :
-   - *série régulière* (pour la proposition) : assez d'occurrences faites récemment, faites pour la plupart près d'une
-     même heure (valeurs à fixer en partie 2) ;
+   - *série régulière* (pour la proposition), toutes conditions réunies :
+     - la série existe depuis **14 jours** au moins ; on examine ses **42 derniers jours** au plus (6 semaines, durée
+       minimale observée pour le sport par Kaushal et Rhodes, 2015) ;
+     - **75 %** au moins des occurrences prévues sur cette période sont faites, et **5** au moins (quotidienne : 32 sur
+       42 ; hebdomadaire : 5 sur 6) ;
+     - **deux tiers** au moins des occurrences faites l'ont été à **une heure** au plus de leur heure médiane (fenêtre
+       de 2 h, la largeur des tranches des meilleures heures). Heure d'une occurrence : le début de son premier chrono,
+       sinon l'heure de la coche ; une coche **groupée** (moins d'une minute après la précédente, `durees-reelles.md`)
+       ne compte pas pour l'heure : cocher par lots ne dit rien de l'heure réelle ;
+     - la série n'est ni déjà une habitude, ni écartée ;
+     - l'heure proposée au préremplissage est l'heure médiane, arrondie au quart d'heure ;
    - *installée* : au moins **trois réponses**, les **deux dernières à 6 ou 7** (donc environ un mois au moins après la
      déclaration : le palier haut et stable des courbes d'automatisme) ;
    - *redescendue* : une installée dont la dernière réponse tombe à 4 ou moins redevient « en cours ».
@@ -135,10 +146,9 @@ Vérifiables ; les tests seront nommés en partie 2.
 - Perdre une habitude (mauvaise habitude à rompre) : autre démarche, autres preuves.
 - Habitudes d'équipe.
 
-### Points ouverts (à trancher en partie 2)
+### Points ouverts
 
-- Valeurs du seuil « série régulière » de la proposition (nombre d'occurrences faites, fenêtre, écart à l'heure
-  médiane) : décision de produit, sans appui scientifique direct.
+Aucun : besoin validé par le propriétaire le 2026-11-24.
 
 ## 2. Solution technique
 
@@ -153,7 +163,7 @@ dans la source de données, et ce paragraphe renverra vers elle. Niveaux : **sol
 convergents), **modéré** (un essai randomisé ou de grandes données observationnelles), **faible** (exploratoire,
 corrélationnel, petit échantillon).
 
-### Affirmations (affichées dans l'écran des sources)
+### Affirmations (affichées dans l'écran des sources ; texte validé par le propriétaire le 2026-11-24)
 
 | # | Affirmation | Niveau | Références |
 |---|---|---|---|
@@ -291,7 +301,10 @@ affichée ; la base unique peut les omettre.
   un type (« Sport ») regroupe des gestes différents. La détection existante par type (`planning-personnalise.md` lot C)
   ne suffit pas.
 - **Validation par la question**, pas par les données : seule l'auto-évaluation mesure l'automatisme ; l'item unique
-  « Je le fais automatiquement » est validé (Gardner, Lally et Rebar, 2024).
+  « Behaviour X is something I do automatically » est validé (Gardner, Lally et Rebar, 2024). Traduction française
+  **littérale** (« « Méditer », c'est quelque chose que je fais automatiquement. ») ; aucune validation française du
+  SRHI ni du SRBAI trouvée le 2026-11-24, d'où la mention dans l'explication (écartées : « Je fais … automatiquement »,
+  qui change la structure de l'item, et « sans y penser », qui perd le mot validé).
 - **Déclencheur stable** proposé une fois puis fixé, au lieu d'un créneau qui suit l'observation (écarté : l'adaptation
   continue de l'issue, faute de preuve, et pour éviter la boucle d'auto-renforcement déjà notée dans
   `planning-personnalise.md` § Anti-boucle).
@@ -309,3 +322,8 @@ affichée ; la base unique peut les omettre.
 - **À la coche, l'automatisme passe avant le temps passé** (choix du propriétaire, 2026-11-24) : la question d'habitude
   est rare (tous les 14 jours) et nourrit la courbe ; le temps manquant se rattrape dans la revue du Bilan.
 - **Page du site générée** depuis la base unique (écarté : un lien vers le README ; le report après la 4.6.0).
+- **Seuil « série régulière »** (2026-11-24) : 14 jours d'ancienneté, 42 jours examinés, 75 % et 5 occurrences faites,
+  deux tiers à une heure de la médiane, coches groupées ignorées (écartés : 60 % et ± 1 h 30, trop de fausses
+  régularités ; 85 % et ± 45 min, trop rare).
+- **Retour à « en cours »** quand la dernière réponse tombe à 4 ou moins, et **mention de la traduction non validée**
+  dans l'explication : ajouts validés le 2026-11-24.
