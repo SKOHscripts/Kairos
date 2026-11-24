@@ -2,10 +2,17 @@
 
 _Rôle : aider à installer une habitude à partir d'une tâche récurrente (déclencheur stable choisi par l'utilisateur, suivi
 de l'automatisme par une question validée), et montrer dans Kairos les sources scientifiques de chaque affirmation.
-Fichiers couverts : visés en partie 2 (`core/habit/`, `Task`, `Recurrence`, `ExportCodec`, synchro, Réglages, fiche,
-vue Jour, vue Semaine, Statistiques, conseils, accompagnement, catalogue, page du site). Tests : partie 2._
+Fichiers couverts : `kmp/core/.../core/habit/Habits.kt`, `core/habit/HabitScience.kt`, `core/model/Task.kt`,
+`core/model/Settings.kt` (`habitsEnabled`, `GuideSettings.habitsDismissed`), `core/engine/Recurrence.kt`,
+`core/settings/SettingsForm.kt`, `core/guide/Tips.kt`, `core/sync/SyncRecords.kt`, `kmp/data/.../16.sqm`, `Kairos.sq`,
+`KairosStore.kt`, `Mappers.kt`, `KairosRepository.kt`, `ExportCodec.kt`, `kmp/ui/.../ui/habit/` (`HabitQuestion.kt`,
+`HabitCurve.kt`, `HabitCards.kt`, `HabitSources.kt`), `ui/day/` (`DayScreen.kt`, `EditTaskDialog.kt`, `EditField.kt`,
+`TaskRow.kt`), `ui/week/WeekScreen.kt`, `ui/stats/StatsScreen.kt`, `ui/settings/` (`SettingsFormCards.kt`,
+`SettingsCategory.kt`, `SettingsScreen.kt`), `ui/guide/` (`FeatureCatalog.kt`, `FirstTaskCoach.kt`, `DiscoverDialog.kt`,
+`GuideContent.kt`, `TipDialog.kt`), `ui/navigation/` (`AppShell.kt`, `NavState.kt`), `ui/screens/DestinationScreen.kt`,
+`kmp/tools/make_habits_page.py`, `make_icons.py`, `.github/workflows/pages.yml`. Tests : partie 2 § Tests._
 
-État : issue #284, jalon 4.6.0. **Besoin validé et solution technique rédigée le 2026-11-24, non implémentée.**
+État : issue #284, jalon 4.6.0. **Implémentée en 4.6.0-beta.1** (PR #289).
 Cadrage avec le propriétaire le 2026-11-24, sur deux revues de littérature (§ Base scientifique) : les choix de l'issue
 que la science ne soutient pas sont écartés (§ Décisions de cadrage).
 
@@ -80,12 +87,13 @@ affirmer qui ne soit sourcé.
    - *installée* : au moins **trois réponses**, les **deux dernières à 6 ou 7** (donc environ un mois au moins après la
      déclaration : le palier haut et stable des courbes d'automatisme) ;
    - *redescendue* : une installée dont la dernière réponse tombe à 4 ou moins redevient « en cours ».
-8. **Aspect** : une habitude porte une **marque sobre** (icône neutre et libellé « Habitude ») dans la vue Jour, la vue
-   Semaine et sa fiche ; aucune couleur nouvelle (`DESIGN_SYSTEM.md` : « tout le reste est neutre »). Pas de compteur.
-9. **Fiche de la tâche** : une section « Habitude » : déclencheur (heure, « Après… »), courbe des réponses, statut,
-   « Ne plus en faire une habitude » (la série reste, les réponses sont gardées tant que la série existe).
+8. **Aspect** : une habitude porte une **marque sobre** (icône neutre, nommée « Habitude » pour le lecteur d'écran) dans
+   la vue Jour et la vue Semaine, et sa section dans la fiche ; aucune couleur nouvelle (`DESIGN_SYSTEM.md` : « tout le reste est neutre »). Pas de compteur.
+9. **Fiche de la tâche** : une section « Habitude » : l'interrupteur « En faire une habitude », le déclencheur (heure,
+   « Après… »), le statut et la courbe des réponses. Éteindre l'interrupteur retire l'habitude (la série reste, les
+   réponses sont gardées tant que la série existe).
 10. **Statistiques** : une carte « Habitudes » résume les habitudes en cours et installées (statut, dernière réponse,
-    petite courbe), avec un lien vers chaque fiche.
+    petite courbe).
 11. **Guide** :
     - **accompagnement** de la première habitude sur la vraie fiche, comme la première tâche récurrente : choisir le
       geste (simple), l'heure, la phrase « Après… », et ce qui attend (des semaines à des mois, un oubli ne compte pas) ;
@@ -95,7 +103,7 @@ affirmer qui ne soit sourcé.
       carte Statistiques ; les données sont gardées ;
     - une **explication** courte de la démarche (déclencheur stable, répétition, question d'automatisme, seuils de
       produit) ;
-    - « **Sources scientifiques** » ouvre un écran : chaque **affirmation** courte, son **niveau de preuve** (solide,
+    - « **Sources scientifiques** » ouvre un dialogue : chaque **affirmation** courte, son **niveau de preuve** (solide,
       modéré, faible) et ses **références complètes** (auteurs, année, titre, revue, DOI). Le DOI s'ouvre dans le
       navigateur (comme le lien de don, `soutien.md`) ; tout le reste fonctionne hors ligne.
 13. **Une seule base scientifique**. Les affirmations et leurs références vivent dans **une source unique**, qui
@@ -153,169 +161,168 @@ Aucun : besoin validé par le propriétaire le 2026-11-24.
 
 ## 2. Solution technique
 
-Rédigée le 2026-11-24, **non implémentée**. Livraison en **une PR** (#289), version `4.6.0-beta.1` (chantier risqué :
-colonnes nouvelles, synchro, question à la coche ; `distribution.md` § Cycle des versions). Les noms ci-dessous sont
-ceux visés ; l'implémentation les confirme ou consigne l'écart.
+Implémentée dans la PR #289 (version `4.6.0-beta.1`, chantier risqué : colonnes nouvelles, synchro, question à la coche ;
+`distribution.md` § Cycle des versions).
 
 ### Modèle : l'habitude est portée par les occurrences de la série
 
 Comme l'heure fixe et la récurrence, l'habitude est un **attribut de la série recopié d'occurrence en occurrence**, pas
-une entité à part. Trois champs nouveaux de `Task` (`core/model/Task.kt`), nuls ou vides par défaut :
+une entité à part. Trois champs de `Task` (`core/model/Task.kt`), nuls ou vides par défaut :
 
 - `habitSince: Instant?` : date de la déclaration ; non nul = la série est une habitude. **Recopié** par
-  `Recurrence.nextOccurrence` et `recreateSkipped` (comme `pinnedStart`).
-- `habitAfter: String` (vide par défaut, 80 caractères au plus) : la phrase « Après… ». **Recopiée** de même.
+  `Recurrence.nextOccurrence`, comme `pinnedStart`. Les chemins calendaires (`calendarOccurrences`, `recreateSkipped`)
+  ne le recopient pas : ils ne servent qu'aux règles mensuelles, non éligibles.
+- `habitAfter: String` (vide par défaut, 80 caractères au plus, `Habits.MAX_AFTER`) : la phrase « Après… ». **Recopiée**.
 - `habitScore: Int?` (1 à 7) : la réponse donnée **à la coche de cette occurrence**. **Jamais recopiée**.
 
-L'heure de l'habitude est l'**heure fixe** existante (`pinnedStart`, recopiée « même heure, nouveau jour ») : aucun
-champ dupliqué, et Kairos ne la déplace jamais (seul l'utilisateur la change, dans la fiche ou par « Décaler »). « Ne
-plus en faire une habitude » remet `habitSince` à nul et `habitAfter` à vide sur l'occurrence ouverte : les suivantes
-n'héritent plus ; les réponses restent sur les occurrences faites. Redéclarer plus tard repart d'un nouveau
-`habitSince` : seules les réponses postérieures comptent.
+L'heure de l'habitude est l'**heure fixe** existante (`pinnedStart`) : aucun champ dupliqué, et Kairos ne la déplace
+jamais (seul l'utilisateur la change). Retirer l'habitude remet `habitSince` à nul et `habitAfter` à vide sur l'occurrence
+ouverte : les suivantes n'héritent plus ; les réponses restent sur les occurrences faites. Redéclarer repart d'un nouveau
+`habitSince` : seules les réponses postérieures comptent. Une série passée à une règle mensuelle garde ses champs mais
+n'est plus éligible : l'habitude y est ignorée (ni question, ni marque, ni section).
 
 Écarté : des tables `habit` et `habit_answer` avec deux types de synchro. Il faudrait rattacher une série entre appareils
-(son identifiant est celui de sa première tâche, nul tant qu'elle n'est pas faite, et local), et doubler le chemin
-de synchro des dérangements ; les champs de tâche passent par la synchro champ par champ et l'export sans rien
-d'autre.
+(son identifiant est celui de sa première tâche, nul tant qu'elle n'est pas faite, et local), et doubler le chemin de
+synchro des dérangements ; les champs de tâche passent par la synchro champ par champ et l'export sans rien d'autre.
 
 ### Calcul pur : `core/habit/Habits.kt`
 
-Fonctions pures (heure, fuseau et réglages en paramètres, `architecture.md`) :
+Fonctions pures (heure, fuseau et fériés en paramètres, `architecture.md`) :
 
-- `eligible(task)` : espace Perso, `origin == null`, règle `DAILY`, `WEEKDAYS` ou `WEEKLY`, pas d'exemple.
-- `seriesOf(task, tasks)` : les occurrences de la série, par `seriesKey = seriesId ?: id` (idiome de
-  `HistoryEstimators`).
-- `doneAt(task, firstStarts, batches)` : heure d'une occurrence faite = début de son premier chrono
-  (`DurationEstimator.firstStarts`), sinon `updatedAt` (la date de fin de Kairos : seules les actions de l'utilisateur
-  la bougent, les écritures automatiques la gardent) ; `null` pour une coche **groupée**, reconstituée après coup :
-  une autre tâche Perso faite dont `updatedAt` précède de moins de `SpentReview.BATCH_SECONDS` (60 s).
-- `answers(series)` : les `habitScore` des occurrences faites, postérieures au dernier `habitSince`, par `updatedAt`.
-- `status(answers)` : parcours dans l'ordre, avec hystérésis. `IN_PROGRESS` au départ ; `INSTALLED` dès 3 réponses et
-  les 2 dernières ≥ 6 (`INSTALLED_MIN_ANSWERS = 3`, `INSTALLED_SCORE = 6`) ; une installée revient à `IN_PROGRESS`
-  quand une réponse vaut ≤ 4 (`DROP_SCORE = 4`). `justInstalled(before, after)` déclenche les félicitations.
-- `asks(task, snapshot, now, batched)` : réglage actif, tâche déclarée habitude, coche non groupée, et (aucune réponse
-  depuis `habitSince`, ou dernière réponse il y a 14 jours au moins : `ASK_EVERY_DAYS = 14`). La règle des 28 jours
-  sans occurrence faite en découle (28 > 14) : pas de code à part, un test le prouve.
-- `regular(series, now, tz, holidays)` : seuil « série régulière » (§ 7) : ancienneté ≥ 14 jours (`MIN_AGE_DAYS`),
-  fenêtre de 42 jours au plus (`WINDOW_DAYS`), occurrences prévues comptées selon la règle dans la fenêtre (jours ouvrés
-  hors week-ends et fériés, `Workdays`), faites ≥ 75 % (`MIN_DONE_RATIO`) et ≥ 5 (`MIN_DONE`), heures connues à une
-  heure au plus de la médiane pour ⅔ au moins (`HOUR_TOLERANCE_MINUTES = 60`, `MIN_STABLE_RATIO`). Rend l'heure
-  médiane arrondie au quart d'heure (préremplissage), ou `null`.
-- `isRegularCandidate` : régulière, pas déjà habitude, pas écartée (liste en paramètre).
+- `eligible(task)` : espace Perso, `origin == null`, règle `DAILY`, `WEEKDAYS` ou `WEEKLY` (`ELIGIBLE_RULES`), pas d'exemple ;
+  `isHabit(task)` : déclarée et éligible.
+- `seriesKey(task) = seriesId ?: id` et `seriesOf(task, tasks)` (idiome de `HistoryEstimators`).
+- `answers(series)` : les `habitScore` des occurrences faites, postérieures au dernier `habitSince`, dans l'ordre de leur
+  `updatedAt` ; `scores(task, tasks)`, `statusOf(task, tasks)`.
+- `status(scores)` : parcours avec hystérésis. `IN_PROGRESS` au départ ; `INSTALLED` dès 3 réponses et les 2 dernières ≥ 6
+  (`INSTALLED_MIN_ANSWERS`, `INSTALLED_SCORE`) ; une installée revient à `IN_PROGRESS` à une réponse ≤ 4 (`DROP_SCORE`).
+  `justInstalled(before, score)` déclenche les félicitations.
+- `asks(snapshot, task, now, batched)` : réglage actif, coche non groupée, tâche à faire et habitude, et aucune réponse
+  depuis la déclaration ou la dernière il y a 14 jours au moins (`ASK_EVERY_DAYS`). La règle « reposer après 28 jours sans
+  occurrence faite » en découle (28 jours sans occurrence faite, c'est 28 jours sans réponse) : pas de code à part,
+  `HabitsTest.theQuestionIsAskedAgainAfterTwentyEightDaysWithoutADoneOccurrence` le prouve.
+- `batchedChecks(tasks)` : les coches groupées **reconstituées après coup** (l'écran ne les retient pas) : une tâche Perso
+  faite dont une autre a sa date de fin moins de `SpentReview.BATCH_SECONDS` (60 s) avant.
+- `doneMinute(task, firstStarts, batched, tz)` : heure d'une occurrence faite = début de son premier chrono
+  (`DurationEstimator.firstStarts`), sinon sa date de fin (`updatedAt`) ; `null` pour une coche groupée sans chrono.
+- `regular(series, today, tz, holidays, firstStarts, batched)` : le seuil « série régulière » (§ 7) : ancienneté ≥ 14 jours
+  (`MIN_AGE_DAYS`) ; fenêtre = les 42 jours pleins avant aujourd'hui (`WINDOW_DAYS`), bornée au début de la série ;
+  occurrences prévues selon la règle (`expected` : jours ouvrés hors week-ends et fériés ; hebdomadaire au jour de
+  `recurrenceDayOfWeek`, sinon de l'échéance, sinon une par semaine pleine) ; faites ≥ 75 % et ≥ 5 (`MIN_DONE_RATIO`,
+  `MIN_DONE`, faites plafonnées aux prévues) ; à une heure au plus de la médiane (`HOUR_TOLERANCE_MINUTES = 60`) pour ⅔
+  au moins des faites (`MIN_STABLE_RATIO`). Rend `Regularity` (heure médiane arrondie au quart d'heure) ou `null`.
+- `suggestions(snapshot, today, tz, holidays, dismissed)` : séries Perso avec une occurrence à faire éligible, pas déjà
+  habitude, pas écartées, régulières ; les plus régulières d'abord (part à heure stable, puis faites, puis titre). Vide
+  réglage coupé. `observedMinute(...)` : l'heure observée d'une série (préremplissage). `active(tasks)` : une occurrence à
+  faire par habitude active, par titre (Statistiques). `cleanAfter(text)` : bords retirés, 80 caractères.
 
-### Base scientifique : `core/habit/HabitScience.kt` + ressources
+### Base scientifique dans le code : `core/habit/HabitScience.kt` + ressources
 
-- `HabitScience.REFERENCES` : `Reference(id = "R6", citation, doi)`, la citation APA en texte (non traduite).
-- `HabitScience.CLAIMS` : `Claim(id = "H1", level = SOLID | MODERATE | WEAK, refs = listOf("R1", "R2"))`.
-- Les textes d'affirmation sont des chaînes `habit_claim_h1` … `habit_claim_h13` dans les **six langues** ; l'appli
-  ne lit que les affirmations listées.
-- `HabitScienceTest` (`core`) : chaque affirmation a ≥ 1 référence ; chaque référence citée existe ; chaque DOI est de
-  la forme `10.xxxx/…` ; aucune référence orpheline (celles de contexte, § Base scientifique, ne sont pas reprises dans
-  l'appli). `HabitStringsTest` (`ui`) : une chaîne par affirmation. Le registre « Base scientifique » de cette spec
-  renvoie à ces deux sources une fois livrées.
+- `HabitScience.REFERENCES` : `Reference(id = "R6", citation, doi)`, citation APA en texte (non traduite) ; seules les
+  20 références citées par une affirmation (celles de contexte du § Base scientifique n'y sont pas).
+- `HabitScience.CLAIMS` : `Claim(id = "H1", level = EvidenceLevel.SOLID | MODERATE | WEAK, refs)` ; `doiUrl(doi)`.
+- Textes : `habit_claim_h1` … `habit_claim_h13` dans les **six langues** ; `CLAIM_TEXTS` (`ui/habit/HabitSources.kt`)
+  les relie aux identifiants.
+- `HabitScienceTest` : chaque affirmation a ≥ 1 référence existante, aucune référence orpheline, identifiants H1 à H13,
+  DOI de la forme `10.xxxx/…`. `HabitStringsTest` : un texte par affirmation, aucun texte orphelin.
 
 ### Données (`data`)
 
-- Migration `16.sqm` (schéma 16 → 17) : `ALTER TABLE task ADD COLUMN habit_since TEXT`, `habit_after TEXT NOT NULL
-  DEFAULT ''`, `habit_score INTEGER`. Marqueur `17L` dans `KairosStore.MARKERS` (colonne `habit_since` présente,
-  `ExchangeMigrationTest.everyMigrationHasAMarker`). Requêtes d'insertion et de mise à jour de `task` complétées,
-  `Mappers`.
-- `KairosRepository` : `declareHabit(taskId, hour, after)` (pose `habitSince`, `habitAfter` et l'heure fixe sur
-  l'occurrence ouverte), `endHabit(taskId)`, `answerHabit(taskId, score)` (écrit `habitScore` sur l'occurrence faite
-  avec `touch = false` : la réponse ne déplace pas sa date de fin). Refus silencieux d'une tâche non éligible.
-- **Export** (`ExportCodec.TaskJson`) : trois champs facultatifs omis à leur défaut, donc un export sans habitude reste
-  identique octet pour octet ; `FORMAT_VERSION` inchangé (comme les dérangements) ; validation : score 1 à 7, phrase
-  ≤ 80 caractères.
-- **Synchro** : trois champs de plus dans le registre de la tâche (`SyncRecords.lift` / `build`), fusion champ par champ
-  comme les autres. Rien d'autre.
-- **Isolation** : les champs ne sont jamais posés sur une tâche d'équipe (`eligible`) ; `TeamIsolationTest` inchangé.
+- Migration `16.sqm` (schéma 16 → 17) : `habit_since TEXT`, `habit_after TEXT NOT NULL DEFAULT ''`, `habit_score INTEGER`
+  en fin de `task` (même ordre dans `Kairos.sq`). Marqueur `17L` dans `KairosStore.MARKERS`. Requêtes `insertTask`,
+  `insertTaskWithId`, `updateTask` et `Mappers` complétés. Les montages de tests d'anciens schémas retirent ces colonnes.
+- `KairosRepository.updateTask` : `TaskEdit.habit: HabitChange?` (`HabitChange(on, after)`, `null` = inchangée) déclare
+  (date gardée si déjà déclarée, phrase nettoyée) ou retire l'habitude ; déclarée seulement si la tâche, règle après
+  édition comprise, est éligible. La fiche ouverte pendant une fusion (`keepUnchanged`) garde `habitSince` et `habitAfter`
+  champ par champ.
+- `answerHabit(taskId, score)` : écrit `habitScore` (borné 1 à 7) avec `touch = false` (la réponse ne déplace pas la date de
+  fin), sur une habitude éligible ; rend vrai au passage à « installée ».
+- **Export** (`ExportCodec.TaskJson`) : `habitSince`, `habitAfter`, `habitScore` facultatifs, omis à leur défaut (un export
+  sans habitude est inchangé) ; `FORMAT_VERSION` inchangé ; lecture : phrase bornée, score hors 1 à 7 refusé.
+- **Synchro** : trois champs de plus dans le registre de la tâche (`SyncRecords.lift` / `buildTask`), fusion champ par champ ;
+  un champ ajouté par une version plus récente reçoit son empreinte sans marque (`synchronisation.md`).
+- **Isolation** : les champs ne sont jamais posés sur une tâche d'équipe ou reçue (`eligible`).
 
 ### Réglages
 
-- `Settings.habits: HabitSettings? = null`, `HabitSettings(enabled = true)` : nul tant que rien n'est touché, donc absent
-  de l'export. Partagé par la synchro (une manière de travailler, comme `learning`) : `SyncScope.SHARED_SETTINGS`,
-  `SyncScopeTest.everySettingIsClassified`.
-- `SettingsForm` : champ `habits.enabled`, objet nul quand il vaut son défaut.
-- `SettingsFormCards` : section `HABITS` dans `SettingsCategory.PLANNING`, juste après `LEARNING` ; interrupteur, texte
-  d'explication (démarche, seuils de produit, traduction non validée), bouton « Sources scientifiques » qui ouvre
-  `HabitSourcesScreen`.
-- Désactivé : `Habits.asks` rend faux, la proposition n'est pas due, marque et cartes ne s'affichent pas ; les champs
-  restent.
-- Mémoire propre à l'appareil, dans `GuideSettings` : `habitsDismissed: List<Long>` (séries écartées) et
-  `habitCoachDone: Boolean?`. « Revoir le guide depuis le début » les efface, comme le reste du guide.
+- `Settings.habitsEnabled: Boolean?` (`null` = activé ; `habitsOn`), comme `askSpentOnDone` : rien d'écrit tant qu'on n'y
+  touche pas ; partagé par la synchro (`SHARED_SETTINGS` par défaut). Champ de formulaire `habitsEnabled`, catégorie
+  Planification (`SettingsCategory`).
+- `SettingsFormCards` : section `HABITS` (icône `SelfImprovement`) juste après « Durées apprises » : interrupteur,
+  explication, limites (seuils de produit, traduction non validée) et bouton « Sources scientifiques », qui ouvre
+  `HabitSourcesDialog` (un dialogue défilant : le formulaire reste tel quel).
+- Mémoire propre à l'appareil : `GuideSettings.habitsDismissed: List<Long>` (séries écartées) ; « Revoir le guide depuis le
+  début » l'efface avec le reste.
 
 ### Interface (`ui`)
 
-- **Fiche** (`EditTaskDialog`) : nouvelle `SheetSection.HABIT` après « Dates et temps », visible pour une tâche
-  éligible.
-  - Non déclarée : « En faire une habitude » ouvre heure (préremplie par `regular`) et « Après… ».
-  - Déclarée : statut, heure, phrase, courbe des réponses (`HabitCurve`, points 1 à 7 dans le temps, rôles de
-    `colorScheme` seulement), « Ne plus en faire une habitude ».
-  - Champs dans `EditField` (`HABIT_HOUR`, `HABIT_AFTER`).
-- **Question à la coche** : `DayScreen.toggleDone`, dans le `when` existant, `batched` d'abord (ferme, ne pose rien),
-  puis `Habits.asks` **avant** `SpentReview.asks` : si l'habitude demande, « Temps passé ? » n'est pas posé. `HabitQuestionDialog`
-  montre l'item et sept boutons 1 à 7 avec « Pas du tout d'accord » et « Tout à fait d'accord » aux bornes ; les
-  boutons passent à la ligne sous 7 × 48 dp de large (360 dp). Fermer = pas de réponse. Après la réponse, si
-  `justInstalled`, le message de félicitations (snackbar). Pas de question dans la démonstration, ni depuis un widget
-  (la question revient à l'occurrence suivante).
-- **Marque** : `KairosIcons.SelfImprovement` (ajoutée dans `make_icons.py`), 16 dp, `onSurfaceVariant`, à côté de
-  l'icône de récurrence dans `TaskTags` (vue Jour) et après le titre dans `DayCard` (vue Semaine) ; description pour
-  le lecteur d'écran « Habitude ».
-- **Statistiques** : `HabitCards.kt`, après les cartes de dérangements, hors de l'enum `StatsCard` (comme elles : ni PNG
-  ni CSV) : une ligne par habitude (titre, statut, dernière réponse, mini-courbe), qui ouvre la fiche.
-- **Écran des sources** : `HabitSourcesScreen`, écran secondaire ouvert depuis les Réglages ; par affirmation : texte,
-  niveau, références ; le DOI ouvre `https://doi.org/<doi>` par `rememberLinkOpener` (`link_unavailable` en cas
-  d'échec).
-- **Conseil** : `TipId.HABIT_SUGGEST` (groupe des fonctionnalités), condition = un `isRegularCandidate` (le plus
-  régulier d'abord) ; titre et corps avec le nom et l'heure (`Tip.name`, `Tip.variant`) ; « Montre-moi » ouvre la
-  fiche de l'occurrence ouverte sur la section Habitude ; « Ne plus me le proposer » ajoute la série à
-  `habitsDismissed` (au lieu d'écarter le conseil entier : `Tips.dismissed` reçoit la série). Rythme et interdits de
-  `conseils.md` inchangés.
-- **Accompagnement** : `HabitCoach.STEPS` (le geste, l'heure, « Après… », ce qui attend, enregistrer), sur la vraie
-  fiche (`CoachSession`). Il se lance la première fois qu'on touche « En faire une habitude » (`habitCoachDone`), ou
-  depuis l'entrée « Créer une habitude » de `DiscoverDialog` (chapitre ORGANIZE), qui crée une tâche quotidienne.
-  `startTask` passe d'un booléen à un genre (`FIRST`, `RECURRING`, `HABIT`).
-- **Catalogue** : carte `habits` (chapitre ORGANIZE, `since = "4.6.0"`, toutes plateformes), six langues ;
-  `FeatureCatalogTest` complété (`newIn`).
-- **Textes** : toutes les chaînes dans les six langues (`StringsParityTest`) ; l'item, mot pour mot en anglais,
-  traduit littéralement ailleurs.
+- **Fiche** (`EditTaskDialog`, paramètres `habit: HabitSheet?` et `openHabit`) : `SheetSection.HABIT` après « Dates et
+  temps », visible quand `habit` est donné (Perso, réglage actif) et la règle choisie éligible. Interrupteur « En faire une
+  habitude » (l'heure observée préremplit l'heure fixe vide, une fois), heure fixe rappelée, heure observée, champ
+  « Après… », statut et `HabitCurve` (ligne neutre, valeurs annoncées au lecteur d'écran). `EditField.HABIT` et
+  `HABIT_AFTER` (`habit = true`, hors de `EditField.personal`). `HabitChange` n'est envoyé que si la section a changé
+  quelque chose (toujours pour une tâche en création marquée habitude).
+- **Question à la coche** : `DayScreen.toggleDone`, `batched` d'abord (rien), puis `Habits.asks` **avant**
+  `SpentReview.asks` : « Temps passé ? » n'est alors pas posé. `HabitQuestionDialog` : l'item, sept boutons de 48 dp au moins
+  dans un `FlowRow` (passent à la ligne à 360 dp), bornes nommées, « Pas maintenant ». Une réponse qui installe l'habitude
+  affiche `habit_installed` (message de la coquille). Pas de question en démonstration ; les autres chemins de coche
+  (widgets, « Fait, suivante ») n'en posent pas.
+- **Marque** : `HabitMark` (`KairosIcons.SelfImprovement`, 16 dp, `onSurfaceVariant`, « Habitude » pour le lecteur
+  d'écran) dans `TaskTags` (`RowContext.habitsOn`) et dans `DayCard` de la vue Semaine.
+- **Statistiques** : `HabitCards` après les dérangements (hors de `StatsCard` : ni PNG ni CSV) : par habitude active, titre,
+  statut, dernière réponse et petite courbe.
+- **Conseil** : `TipId.HABIT_SUGGEST` (`recurring`, carte `habits`) ; condition = `Habits.suggestions(...).first()` ;
+  `Tip.taskId` et `Tip.seriesKey` ; « Montre-moi » ouvre `GuideTarget.Habit(taskId)` : la coquille va sur la vue Jour et
+  pose `NavState.habitRequest`, que `DayScreen` acquitte en ouvrant la fiche sur sa section Habitude ;
+  « Ne plus me le proposer » : `Tips.dismissed(memory, id, seriesKey)` ajoute la série à `habitsDismissed`.
+- **Accompagnement** : `HabitCoach.STEPS` (le geste, sa taille, l'heure, « Après… », ce qui attend, enregistrer) sur la
+  fiche de création d'une quotidienne déjà marquée habitude. Lancé par `GuideTarget.Habit()` (sans tâche) : la carte du
+  catalogue, l'entrée « Créer une habitude » de `DiscoverDialog` (chapitre Organiser) et le repli du conseil ;
+  `NavState.firstTaskHabit`, `startTask(recurring, habit)`.
+- **Catalogue** : carte `habits` (chapitre Organiser, après « Récurrence », `since = "4.6.0"`, toutes plateformes) ; README :
+  « Habits » / « Habitudes ».
+- **Textes** : six langues ; en anglais, l'item validé mot pour mot.
 
 ### README, site, magasins
 
-- `README.md` et `README.fr.md` : une puce « Habits » / « Habitudes » et une ligne du tableau des fonctionnalités, qui
-  renvoient à la page du site.
-- Page du site **générée** à la publication : `kmp/tools/make_habits_page.py` (bibliothèque standard) lit
-  `HabitScience.kt` et les `strings.xml`, écrit `habitudes/index.html` (français) et `<langue>/habits/index.html` (en,
-  es, de, ru, it) dans le site assemblé, comme la carte du code ; étape ajoutée à `.github/workflows/pages.yml`, script
-  ajouté au filtre `paths`.
-- Fiches des magasins : rien en beta ; la note de version de la 4.6.0 finale en parlera.
+- `README.md` et `README.fr.md` : une puce et une ligne du tableau des fonctionnalités.
+- `kmp/tools/make_habits_page.py` (bibliothèque standard) lit `HabitScience.kt` et les `strings.xml`, écrit
+  `habitudes/index.html` (français) et `<langue>/habits/index.html` (en, es, de, ru, it) dans le site assemblé ; étape
+  « Page des habitudes » de `.github/workflows/pages.yml`, script ajouté au filtre `paths` ; `--check` vérifie la lecture.
+- Fiches des magasins : rien en beta.
 
-### Tests visés
+### Tests
 
-`HabitsTest` (éligibilité, série, `doneAt` et coches groupées, statut et hystérésis, `asks` avec 14 et 28 jours,
-`regular` et ses seuils par règle), `HabitScienceTest` (`core`) ; `KairosRepositoryTest` (déclarer, recopie à
-l'occurrence suivante, réponse sans toucher `updatedAt`, fin), `ExportCodecTest` (export identique sans habitude, aller
-et retour), synchro (fusion des trois champs) (`data`) ; `HabitStringsTest`, `StringsParityTest`, `FeatureCatalogTest`,
-`TipsCatalogTest` (`ui`) ; `HabitQuestionUiTest` (priorité sur « Temps passé ? », coche groupée), `HabitCoachUiTest`
-(`desktopApp`) ; captures hors écran de la fiche, de la question, des sources et de la carte Statistiques.
+`HabitsTest`, `HabitScienceTest` (`core`) ; `HabitRepositoryTest` (déclaration depuis la fiche et héritage, équipe et
+mensuelle refusées, fin, réponse sans toucher la date de fin et félicitations au seul passage, export identique sans
+habitude, aller-retour, base) (`data`) ; `HabitStringsTest`, `StringsParityTest`, `FeatureCatalogTest`, `TipsCatalogTest`,
+`TeamTaskCoachTest` (sans les champs d'habitude) (`ui`). Pas encore de test d'interface de bureau de la question ni de
+l'accompagnement.
 
 ### Décisions et pièges tracés
 
 - **Champs de tâche plutôt que tables** (ci-dessus).
 - **Heure = heure fixe existante** : un seul champ d'heure, déjà recopié par la récurrence.
-- **Date de fin = `updatedAt`** (choix du propriétaire, 2026-11-24) : pas de champ `doneAt` ni de migration des
-  tâches faites ; l'historique existant sert tout de suite. Limite : rouvrir une occurrence faite pour la modifier
-  déplace son heure ; c'est rare et sans effet sur la courbe (les réponses ne dépendent que de leur ordre).
+- **Date de fin = `updatedAt`** (choix du propriétaire, 2026-11-24) : seules les actions de l'utilisateur sur la tâche le
+  bougent (cocher, décocher, la modifier dans sa fiche), les écritures automatiques le gardent ; pas de champ `doneAt`,
+  l'historique existant sert tout de suite. Limite : rouvrir une occurrence faite pour la modifier déplace son heure.
 - **Coches groupées reconstituées** à partir des `updatedAt` voisins, car l'écran ne les retient pas.
-- **Réponse sans `touch`** : écrire le score ne doit pas déplacer la date de fin de l'occurrence.
+- **Réponse sans `touch`** : écrire le score ne déplace pas la date de fin de l'occurrence.
 - **Coche groupée : pas de question**, comme « Temps passé ? ».
+- **Réglage en booléen nullable** plutôt qu'un sous-objet : un seul champ, la règle de `askSpentOnDone`.
+- **Sources en dialogue** plutôt qu'en écran secondaire : pas de nouvelle navigation, le formulaire des Réglages reste ouvert.
+- **Accompagnement lancé par le guide** (carte, hub, conseil) plutôt qu'à la première bascule de l'interrupteur : la fiche
+  d'une tâche existante reste sans panneau ; aucune mémoire à tenir.
+- **Carte des Statistiques sans lien vers la fiche** : la fiche s'ouvre depuis la vue Jour.
+- **Versions mélangées** : un appareil resté avant la 4.6.0 ne connaît pas les champs d'habitude ; la synchro est prévue
+  pour qu'un champ ajouté plus tard garde sa valeur, mais une habitude ne se suit vraiment qu'entre appareils à jour.
 
 ## Base scientifique
 
 Vérifiée le 2026-11-24 : chaque DOI résolu (Crossref), métadonnées relevées, résultats relus dans le résumé (PubMed,
 Crossref, OpenAlex) ou dans le texte intégral quand il est ouvert (Lally 2010, Buyalskaya 2023, Beshears 2021). Ce
-registre est la **semence de la base unique** (§ 13) : à l'implémentation, les affirmations et les références passent
-dans la source de données, et ce paragraphe renverra vers elle. Niveaux : **solide** (méta-analyse ou résultats
+registre a servi de semence à la **base unique** (§ 13) : `core/habit/HabitScience.kt` (références et liens) et les
+textes `habit_claim_h1` à `h13` des ressources, qui font foi pour l'application et la page du site. Niveaux : **solide** (méta-analyse ou résultats
 convergents), **modéré** (un essai randomisé ou de grandes données observationnelles), **faible** (exploratoire,
 corrélationnel, petit échantillon).
 
@@ -484,17 +491,8 @@ affichée ; la base unique peut les omettre.
 - **Retour à « en cours »** quand la dernière réponse tombe à 4 ou moins, et **mention de la traduction non validée**
   dans l'explication : ajouts validés le 2026-11-24.
 
-## Impacts sur les specs existantes (à reporter à l'implémentation)
+## Impacts sur les specs existantes (reportés en 4.6.0-beta.1)
 
-- `modele-donnees.md` : trois colonnes de `task` (`habit_since`, `habit_after`, `habit_score`), schéma 17.
-- `recurrence.md` : `habitSince` et `habitAfter` recopiés à l'occurrence suivante, `habitScore` jamais.
-- `export-import.md`, `synchronisation.md` : trois champs facultatifs de la tâche, fusion champ par champ.
-- `durees-reelles.md` : à la coche, la question d'habitude passe avant « Temps passé ? ».
-- `conseils.md` : conseil `HABIT_SUGGEST`, « Ne plus me le proposer » par série.
-- `premiere-tache.md`, `visite-guidee.md` : accompagnement de la première habitude, entrée du hub, carte `habits`.
-- `reglages.md` : carte « Habitudes » dans Planification, après « Durées apprises ».
-- `fiche-tache.md` : section « Habitude ».
-- `vue-jour.md`, `vue-semaine.md` : marque « Habitude ».
-- `statistiques.md` : cartes des habitudes.
-- `publication.md`, `carte-du-code.md` : page « Habitudes » générée par `make_habits_page.py`.
-- `liste-fonctionnalites.md`, `distribution.md` : carte et ligne du tableau ; `4.6.0-beta.1`.
+`modele-donnees.md`, `recurrence.md`, `export-import.md`, `synchronisation.md`, `durees-reelles.md`, `conseils.md`,
+`premiere-tache.md`, `reglages.md`, `fiche-tache.md`, `vue-jour.md`, `vue-semaine.md`, `statistiques.md`, `publication.md`,
+`liste-fonctionnalites.md` : un renvoi à cette spec à l'endroit concerné.
