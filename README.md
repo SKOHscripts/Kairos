@@ -302,7 +302,8 @@ also be edited, archived without follow-up, or deleted.
   automatically", from 1 to 7. Your answers draw its curve. Kairos says
   "installed" when they stay high, and never counts streaks. Settings →
   Planning → Habits explains the approach and lists the scientific sources
-  behind every claim (no "21 days": it takes weeks to months).
+  behind every claim (no "21 days": it takes weeks to months). Same sources on
+  the [habits page](https://skohscripts.github.io/Kairos/en/habits/).
 - **Skipped months**: if Kairos was not opened for a whole month, a "day N of
   the month" task gets no occurrence for that month. Today's Day view then
   says so, one line per series ("2 monthly occurrences were skipped: Expense

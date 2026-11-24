@@ -318,7 +318,8 @@ supprimée.
   restent hautes, et ne compte jamais de jours d’affilée. Réglages →
   Planification → Habitudes explique la démarche et donne les sources
   scientifiques de chaque affirmation (pas de « 21 jours » : il faut des
-  semaines à des mois).
+  semaines à des mois). Les mêmes sources sur la
+  [page des habitudes](https://skohscripts.github.io/Kairos/habitudes/).
 - **Mois sautés** : si Kairos n’a pas été ouvert pendant un mois entier, une
   tâche « le N du mois » n’a pas d’occurrence ce mois-là. La vue Jour
   d’aujourd’hui le dit alors, une ligne par série (« 2 occurrences mensuelles

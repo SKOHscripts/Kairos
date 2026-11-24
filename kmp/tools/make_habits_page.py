@@ -44,7 +44,22 @@ def fmt(template, *args):
     return template
 
 
-def page(lang, refs, claims, t):
+def site_menu(out, lang):
+    """Le menu de la page de téléchargement de la langue (docs/spec/publication.md § Menu du site), un niveau plus bas :
+    ses liens relatifs prennent « ../ », et aucune entrée n'est la page courante. Vide hors du site assemblé (--check)."""
+    if out is None:
+        return ""
+    index = out / ("index.html" if lang == "fr" else f"{lang}/index.html")
+    if not index.exists():
+        return ""
+    text = index.read_text(encoding="utf-8")
+    parts = [m.group(0) for m in re.finditer(r'<nav class="menu".*?</nav>|<details class="menu-narrow">.*?</details>', text, re.S)]
+    menu = "\n  ".join(parts)
+    menu = re.sub(r'href="(?!https?:|//|#|mailto:)([^"]*)"', r'href="../\1"', menu)
+    return menu.replace(' aria-current="page"', "")
+
+
+def page(lang, refs, claims, t, menu=""):
     depth = PATHS[lang].count("/") + 1
     up = "../" * depth
     alternates = "\n".join(
@@ -80,6 +95,7 @@ def page(lang, refs, claims, t):
 <header>
   <img src="{up}icon.png" alt="">
   <span class="name">Kairos</span>
+  {menu}
   <nav class="langs">{langs}</nav>
 </header>
 <main class="story">
@@ -114,12 +130,13 @@ def main(argv):
         missing = [c for c, _, _ in claims if "habit_claim_" + c.lower() not in t]
         if missing:
             sys.exit(f"{lang} : textes manquants {missing}")
-        pages[lang] = page(lang, refs, claims, t)
+        pages[lang] = (lang, refs, claims, t)
     if argv[:1] == ["--check"]:
         print(f"{len(claims)} affirmations, {len(refs)} références, {len(pages)} langues")
         return
     out = pathlib.Path(argv[0])
-    for lang, text in pages.items():
+    for lang, args in pages.items():
+        text = page(*args, menu=site_menu(out, lang))
         target = out / PATHS[lang] / "index.html"
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding="utf-8")
