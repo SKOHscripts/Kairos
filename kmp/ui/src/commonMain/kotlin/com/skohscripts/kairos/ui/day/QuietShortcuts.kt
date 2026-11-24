@@ -11,11 +11,11 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 
 /**
- * À poser sur un champ de saisie de la vue Jour : les raccourcis de l'écran (`N`, `/`, docs/spec/vue-jour.md) ne
- * s'y déclenchent pas. Le champ lit d'abord la touche ; si elle remonte (le caractère n'arrive qu'après, en
- * « KeyTyped »), elle est arrêtée ici au lieu d'atteindre l'écran, qui renvoyait « n » vers « Nouvelle tâche » et
- * faisait perdre le titre du créneau en cours de saisie. Sans effet sur la saisie elle-même.
+ * Sur un champ de saisie de la vue Jour, arrête les raccourcis `N`, `/` et `D` avant l'écran.
+ * Le champ reçoit d'abord la touche ; sur bureau, le caractère peut arriver ensuite en `KeyTyped`.
+ * On ne consomme que le `KeyDown` du raccourci pour préserver la saisie.
  */
 internal fun Modifier.quietShortcuts(): Modifier = onKeyEvent { e ->
-    e.type == KeyEventType.KeyDown && !e.isCtrlPressed && !e.isMetaPressed && !e.isAltPressed && (e.key == Key.N || e.key == Key.Slash)
+    e.type == KeyEventType.KeyDown && !e.isCtrlPressed && !e.isMetaPressed && !e.isAltPressed &&
+        (e.key == Key.N || e.key == Key.Slash || e.key == Key.D)
 }
