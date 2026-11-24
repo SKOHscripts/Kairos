@@ -327,8 +327,7 @@ data class TeamSettings(
  * suivis déjà ouverts (`Tips.SCREEN_*`), [lastExport] la date du dernier export réussi depuis cet appareil.
  *
  * Habitudes (docs/spec/habitudes.md, issue #284) : [habitsDismissed] les séries (`Habits.seriesKey`) dont la proposition a été
- * écartée (« Ne plus me le proposer » vaut pour une série, pas pour le conseil entier), [habitCoachDone] l'accompagnement de la
- * première habitude mené à son terme. Propres à l'appareil, comme le reste du guide.
+ * écartée (« Ne plus me le proposer » vaut pour une série, pas pour le conseil entier). Propre à l'appareil, comme le reste du guide.
  */
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
@@ -344,7 +343,6 @@ data class GuideSettings(
     @EncodeDefault(EncodeDefault.Mode.NEVER) val seenScreens: List<String> = emptyList(),
     @EncodeDefault(EncodeDefault.Mode.NEVER) val lastExport: String? = null,
     @EncodeDefault(EncodeDefault.Mode.NEVER) val habitsDismissed: List<Long> = emptyList(),
-    @EncodeDefault(EncodeDefault.Mode.NEVER) val habitCoachDone: Boolean = false,
 )
 
 /**
