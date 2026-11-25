@@ -14,6 +14,7 @@
 [![privacy: no account · no ads · no tracking](https://img.shields.io/badge/privacy-no%20account%20%C2%B7%20no%20ads%20%C2%B7%20no%20tracking-2F6FED?labelColor=1C2F59)](#data)
 [![data: on your device, offline-first](https://img.shields.io/badge/data-on%20your%20device%2C%20offline--first-2F6FED?labelColor=1C2F59)](#data)
 [![machine learning: on-device](https://img.shields.io/badge/machine%20learning-on--device-2F6FED?labelColor=1C2F59)](#on-device-machine-learning-how-long-your-tasks-really-take)
+[![habits: stable cue · scientific sources](https://img.shields.io/badge/habits-stable%20cue%20%C2%B7%20scientific%20sources-2F6FED?labelColor=1C2F59)](https://skohscripts.github.io/Kairos/en/habits/)
 [![methods: WSJF · GTD · time blocking](https://img.shields.io/badge/methods-WSJF%20%C2%B7%20GTD%20%C2%B7%20time%20blocking-2F6FED?labelColor=1C2F59)](#scheduling)
 [![platforms: Android · Windows · Linux · macOS · Web](https://img.shields.io/badge/platforms-Android%20%C2%B7%20Windows%20%C2%B7%20Linux%20%C2%B7%20macOS%20%C2%B7%20Web-2F6FED?labelColor=1C2F59)](#install)
 [![languages: EN · FR · ES · DE · RU · IT](https://img.shields.io/badge/languages-EN%20%C2%B7%20FR%20%C2%B7%20ES%20%C2%B7%20DE%20%C2%B7%20RU%20%C2%B7%20IT-2F6FED?labelColor=1C2F59)](#translating-kairos)
@@ -26,7 +27,9 @@
 I do now, and in what order, given that a meeting from 1 pm to 2 pm keeps me
 from handling the urgent topic before 2:05 pm?" It sorts your tasks into the
 order to do them, fits them into the gaps of your day, and uses **on-device
-machine learning** to learn how long they really take. No account, no ads, no
+machine learning** to learn how long they really take. It also helps you
+anchor **habits**: a stable hour, an "After..." phrase and a validated
+question, with the scientific sources in the app. No account, no ads, no
 tracking: your data stays on your device. The only network use is the optional
 [online calendar connections](#data), off by default.
 
@@ -46,12 +49,19 @@ tracking: your data stays on your device. The only network use is the optional
 
 ## In short
 
-- **New in 4.0: on-device machine learning learns how long your tasks really
+- **On-device machine learning learns how long your tasks really
   take.** A task with a new title gets a duration from your finished tasks
   that look like it, with a range and the list of those tasks, and only once
   this beats the default duration on your own history.
   [How it works](#on-device-machine-learning-how-long-your-tasks-really-take).
-- **New in 4.0: sync between your devices.** Link the same file on each
+- **Habits, on a scientific basis.** Turn a daily, weekday or weekly recurring
+  task into a habit: Kairos suggests the time you already do it, then never
+  moves it, and an "After..." phrase ties it to your routine. Now and then a
+  validated question asks whether you do it automatically, and your curve shows
+  when the habit is installed. No streaks, no guilt: a single miss does not
+  count. Every claim is sourced, in the app and on the
+  [habits page](https://skohscripts.github.io/Kairos/en/habits/).
+- **Sync between your devices.** Link the same file on each
   device, in a Syncthing or Nextcloud folder for example: Kairos merges it with
   each device's data, keeps everything from both sides, and lists what was
   changed on two devices at once. No account, no server: this sync never uses the
@@ -103,7 +113,7 @@ Claude Code.
 
 ## On-device machine learning: how long your tasks really take
 
-New in 4.0: a machine-learning model that learns from your finished tasks how
+A machine-learning model that learns from your finished tasks how
 long the next ones will take. It is trained and run entirely on your device:
 nearest neighbours on your history, a ridge regression as a fallback, and a
 check against your own data before it changes anything.
@@ -589,9 +599,9 @@ order (critical path). Cycles are refused.
 - **Linked file**: on the desktop and Android too, Settings → Data → "Create a
   file" keeps an up-to-date copy of your data (an export, which opens anywhere)
   in a folder of your choice, for example a Syncthing or Nextcloud folder,
-  written 2 seconds after each change. Since 4.0, when another device changed
+  written 2 seconds after each change. When another device changed
   the file, Kairos merges it with your data instead of stopping.
-- **Sync between devices** (4.0): link the same file on each device (Settings
+- **Sync between devices**: link the same file on each device (Settings
   → Data → "Create a file" on the first, "Open a Kairos file" then "Merge" on
   the others). Every change is merged field by field: two devices that change
   different fields of a task both keep their change, a task deleted on one
