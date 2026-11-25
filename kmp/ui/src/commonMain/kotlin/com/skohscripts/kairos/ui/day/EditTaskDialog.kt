@@ -322,7 +322,17 @@ internal fun EditTaskDialog(
     // Seule exception : la vitrine des captures des magasins (LocalShowcaseTask) ouvre « Dates et temps » pour montrer
     // l'estimation par machine learning sans interaction (docs/spec/publication.md § Captures).
     val showcase = LocalShowcaseTask.current == task.id
-    var open by remember { mutableStateOf(if (showcase) setOf(SheetSection.TIME) else if (openHabit) setOf(SheetSection.HABIT) else emptySet()) }
+    // La vitrine d'une habitude (capture 3, docs/spec/habitudes.md) ouvre sa section « Habitude » plutôt que « Dates et temps ».
+    var open by remember {
+        mutableStateOf(
+            when {
+                showcase && task.habitSince != null -> setOf(SheetSection.HABIT)
+                showcase -> setOf(SheetSection.TIME)
+                openHabit -> setOf(SheetSection.HABIT)
+                else -> emptySet()
+            },
+        )
+    }
     val newSubtasksFocus = remember { FocusRequester() }
     var focusNewSubtasks by remember { mutableStateOf(0) }
     LaunchedEffect(focusNewSubtasks) { if (focusNewSubtasks > 0) { withFrameNanos { }; runCatching { newSubtasksFocus.requestFocus() } } }

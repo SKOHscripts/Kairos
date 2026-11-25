@@ -57,9 +57,9 @@ import kotlin.time.Instant
  * `--store-screenshots=<dossier fastlane/metadata/android>` rend hors écran,
  * dans les six langues des fiches, l'interface **Android** en largeur téléphone
  * (1080 × 2400 px, densité 2,625) sur un jeu de données réaliste, et écrit
- * `<langue>/images/phoneScreenshots/1.png` à `11.png` (1 à 6 : espace Perso, base solo, dont la 2 : la fiche d'une tâche
- * estimée par machine learning ; 7 à 9 : espace Équipe, seconde base de [StoreTeam] ; 10 : la vue Jour en thème sombre,
- * issue #72 ; 11 : les jours fériés de trois pays, [HolidayShowcase], issue #264). Thème du système imposé (clair, sombre pour la 10) : les captures ne dépendent pas de la machine. Rien de ce jeu n'est livré dans
+ * `<langue>/images/phoneScreenshots/1.png` à `12.png` (1 à 7 : espace Perso, base solo, dont la 2 : la fiche d'une tâche
+ * estimée par machine learning, et la 3 : la fiche d'une habitude, issue #284 ; 8 à 10 : espace Équipe, seconde base de
+ * [StoreTeam] ; 11 : la vue Jour en thème sombre, issue #72 ; 12 : les jours fériés de trois pays, [HolidayShowcase], issue #264). Thème du système imposé (clair, sombre pour la 10) : les captures ne dépendent pas de la machine. Rien de ce jeu n'est livré dans
  * l'application : c'est une vitrine, pas des exemples.
  */
 object StoreScreenshots {
@@ -69,12 +69,12 @@ object StoreScreenshots {
     private val now: Instant = LocalDateTime(today, LocalTime(10, 12)).toInstant(TimeZone.UTC)
 
     /**
-     * Captures 1 et 3 à 6 : l'espace Perso, sur la base du mode solo. `null` = les Réglages, écran secondaire ouvert
-     * par-dessus la vue Jour (ils ne sont plus une destination, docs/spec/navigation-theme.md). La 2 suit la vue Jour.
+     * Captures 1 et 4 à 7 : l'espace Perso, sur la base du mode solo. `null` = les Réglages, écran secondaire ouvert
+     * par-dessus la vue Jour (ils ne sont plus une destination, docs/spec/navigation-theme.md). La 2 et la 3 suivent la vue Jour.
      */
     private val shots = listOf(Destination.DAY, Destination.WEEK, Destination.STATS, Destination.NOTES, null)
 
-    /** Captures 7 à 9 : l'espace Équipe, sur une seconde base (gestion d'équipe activée, [StoreTeam]). */
+    /** Captures 8 à 10 : l'espace Équipe, sur une seconde base (gestion d'équipe activée, [StoreTeam]). */
     private val teamShots = listOf(TeamDestination.BOARD, TeamDestination.MEMBERS, TeamDestination.FORECAST)
 
     fun run(metadataDir: File): Int = try {
@@ -96,7 +96,10 @@ object StoreScreenshots {
                         }
                     },
                 )
-                if (destination == Destination.DAY) write(machineLearningShot(locale.language))
+                if (destination == Destination.DAY) {
+                    write(machineLearningShot(locale.language))
+                    write(habitShot(locale.language))
+                }
             }
             teamShots.forEach { destination ->
                 val services = runBlocking { teamServices(locale.language, destination) }
@@ -104,10 +107,10 @@ object StoreScreenshots {
                 val scroll = if (destination == TeamDestination.FORECAST) FORECAST_SCROLL else 0f
                 write(render(settle = true, wheel = scroll) { KairosApp(Platform.ANDROID, initialTeamDestination = destination, systemDark = false) { services } })
             }
-            // Capture 10 : la vue Jour de la capture 1, système en sombre, rien de réglé (docs/spec/apparence.md § Thème sombre).
+            // Capture 11 : la vue Jour de la capture 1, système en sombre, rien de réglé (docs/spec/apparence.md § Thème sombre).
             val darkServices = runBlocking { services(locale.language) }
             write(render { KairosApp(Platform.ANDROID, Destination.DAY, systemDark = true) { darkServices } })
-            // Capture 11 : les fériés de trois pays, chacun dans sa langue, titre dans celle de la fiche (issue #264). Densité
+            // Capture 12 : les fériés de trois pays, chacun dans sa langue, titre dans celle de la fiche (issue #264). Densité
             // 2,0 (540 × 1200 dp) : trois grilles de mois tiennent dans la hauteur, l'image garde 1080 × 2400 px.
             write(render(density = 2.0f) { KairosTheme { HolidayShowcase(HOLIDAY_MONTH, HOLIDAY_COUNTRIES) } })
         }
@@ -150,13 +153,25 @@ object StoreScreenshots {
         return render(settle = true, wheel = SHEET_SCROLL) { KairosApp(Platform.ANDROID, Destination.DAY, systemDark = false, showcaseTaskId = id) { services } }
     }
 
-    private suspend fun services(language: String, machineLearning: Boolean = false): AppServices {
+    /**
+     * Capture 3 (docs/spec/publication.md § Captures, docs/spec/habitudes.md) : la base de la capture 1 enrichie d'une
+     * habitude quotidienne tenue depuis six semaines, et la fiche de son occurrence du jour ouverte d'emblée sur la section
+     * « Habitude » : heure fixe, phrase « Après… », statut « Habitude installée » et courbe des réponses.
+     */
+    private fun habitShot(language: String): ByteArray {
+        val services = runBlocking { services(language, habit = true) }
+        val title = words(language).habit
+        val id = services.repository.snapshot.value.tasks.first { it.title == title && it.status == TaskStatus.TODO }.id
+        return render(settle = true, wheel = HABIT_SCROLL) { KairosApp(Platform.ANDROID, Destination.DAY, systemDark = false, showcaseTaskId = id) { services } }
+    }
+
+    private suspend fun services(language: String, machineLearning: Boolean = false, habit: Boolean = false): AppServices {
         val clock = object : Clock {
             override fun now() = now
         }
         val repository = KairosRepository.open(
             KairosStore.open(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)),
-            examples = { snapshot(language, machineLearning) },
+            examples = { snapshot(language, machineLearning, habit) },
             clock = clock,
             timeZone = TimeZone.UTC,
         )
@@ -225,6 +240,9 @@ object StoreScreenshots {
     /** Défilement (en crans de molette) de la fiche de la capture 2, pour que l'estimation par machine learning soit à l'écran. */
     private const val SHEET_SCROLL = 22f
 
+    /** Défilement (en crans de molette) de la fiche de la capture 3, pour que la section « Habitude » soit à l'écran. */
+    private const val HABIT_SCROLL = 12f
+
     /** Défilement (en crans de molette) de la capture de la page « histoire » : la liste ordonnée sous la carte « maintenant ». */
     private const val STORY_SCROLL = 21f
 
@@ -257,6 +275,8 @@ object StoreScreenshots {
         val notes: List<String>, val history: List<String>,
         /** Capture 2 : rapports déjà faits (titres voisins, durées réelles proches) et le rapport à estimer. */
         val reports: List<String>, val quarterly: String,
+        /** Capture 3 : l'habitude quotidienne et sa phrase « Après… » (docs/spec/habitudes.md). */
+        val habit: String, val habitAfter: String,
     )
 
     private val FR = Words(
@@ -282,7 +302,7 @@ object StoreScreenshots {
             "Rédiger le rapport d’activité d’août", "Rédiger le rapport d’activité de septembre", "Rédiger le rapport d’audit des accès",
             "Rédiger le rapport de tests de charge", "Rédiger le rapport d’incident de la mise en production",
         ),
-        quarterly = "Rédiger le rapport d’activité du trimestre",
+        quarterly = "Rédiger le rapport d’activité du trimestre", habit = "Méditer 10 minutes", habitAfter = "Après mon café",
     )
 
     private val EN = Words(
@@ -308,7 +328,7 @@ object StoreScreenshots {
             "Write the August activity report", "Write the September activity report", "Write the access audit report",
             "Write the load testing report", "Write the release incident report",
         ),
-        quarterly = "Write the quarterly activity report",
+        quarterly = "Write the quarterly activity report", habit = "Meditate for 10 minutes", habitAfter = "After my coffee",
     )
 
 
@@ -338,7 +358,7 @@ object StoreScreenshots {
                 "Tätigkeitsbericht für August schreiben", "Tätigkeitsbericht für September schreiben", "Bericht zum Zugriffsaudit schreiben",
                 "Bericht zu den Lasttests schreiben", "Bericht zum Produktionsvorfall schreiben",
             ),
-            quarterly = "Tätigkeitsbericht für das Quartal schreiben",
+            quarterly = "Tätigkeitsbericht für das Quartal schreiben", habit = "10 Minuten meditieren", habitAfter = "Nach meinem Kaffee",
         )
     }
 
@@ -366,7 +386,7 @@ object StoreScreenshots {
                 "Redactar el informe de actividad de agosto", "Redactar el informe de actividad de septiembre", "Redactar el informe de auditoría de accesos",
                 "Redactar el informe de pruebas de carga", "Redactar el informe del incidente en producción",
             ),
-            quarterly = "Redactar el informe de actividad del trimestre",
+            quarterly = "Redactar el informe de actividad del trimestre", habit = "Meditar 10 minutos", habitAfter = "Después del café",
         )
     }
 
@@ -394,7 +414,7 @@ object StoreScreenshots {
                 "Scrivere il rapporto di attività di agosto", "Scrivere il rapporto di attività di settembre", "Scrivere il rapporto di audit degli accessi",
                 "Scrivere il rapporto dei test di carico", "Scrivere il rapporto sull’incidente in produzione",
             ),
-            quarterly = "Scrivere il rapporto di attività del trimestre",
+            quarterly = "Scrivere il rapporto di attività del trimestre", habit = "Meditare 10 minuti", habitAfter = "Dopo il caffè",
         )
     }
 
@@ -422,11 +442,11 @@ object StoreScreenshots {
                 "Написать отчёт о работе за август", "Написать отчёт о работе за сентябрь", "Написать отчёт об аудите доступа",
                 "Написать отчёт о нагрузочном тестировании", "Написать отчёт об инциденте в продакшене",
             ),
-            quarterly = "Написать отчёт о работе за квартал",
+            quarterly = "Написать отчёт о работе за квартал", habit = "Медитировать 10 минут", habitAfter = "После утреннего кофе",
         )
     }
 
-    private fun snapshot(language: String, machineLearning: Boolean = false): KairosSnapshot {
+    private fun snapshot(language: String, machineLearning: Boolean = false, habit: Boolean = false): KairosSnapshot {
         val w = words(language)
         fun at(day: LocalDate, h: Int, m: Int = 0) = LocalDateTime(day, LocalTime(h, m))
         fun instant(day: LocalDate, h: Int, m: Int = 0) = at(day, h, m).toInstant(TimeZone.UTC)
@@ -491,6 +511,30 @@ object StoreScreenshots {
                 sessions += WorkSession(sessions.size + 1L, id, start, start + real[i].minutes, start)
             }
             task(w.quarterly, 1, 3, null, w.doc, today.plus(DatePeriod(days = 4)))
+        }
+        if (habit) {
+            // Capture 3 : « Méditer 10 minutes », quotidienne, déclarée habitude il y a 44 jours, faite presque chaque matin vers
+            // 7 h 30 (deux oublis), quatre réponses à la question d'automatisme espacées de 14 jours (2, 4, 6, 7 : installée).
+            val since = instant(today.minus(DatePeriod(days = 44)), 7)
+            val scores = mapOf(43 to 2, 29 to 4, 15 to 6, 1 to 7)
+            val first = tasks.size + 1L
+            for (daysAgo in 43 downTo 1) {
+                if (daysAgo == 12 || daysAgo == 30) continue
+                val day = today.minus(DatePeriod(days = daysAgo))
+                tasks += Task(
+                    id = tasks.size + 1L, title = w.habit, priority = 1, fibonacciPoints = 1, estimatedMinutes = 10,
+                    deadline = day, scheduledDate = day, pinnedStart = at(day, 7, 30), recurrence = TaskRecurrence.DAILY,
+                    status = TaskStatus.DONE, seriesId = if (tasks.size + 1L == first) null else first,
+                    habitSince = since, habitAfter = w.habitAfter, habitScore = scores[daysAgo],
+                    createdAt = instant(day.minus(DatePeriod(days = 1)), 7, 40), updatedAt = instant(day, 7, 42),
+                )
+            }
+            tasks += Task(
+                id = tasks.size + 1L, title = w.habit, priority = 1, fibonacciPoints = 1, estimatedMinutes = 10,
+                deadline = today, scheduledDate = today, pinnedStart = at(today, 7, 30), recurrence = TaskRecurrence.DAILY,
+                seriesId = first, habitSince = since, habitAfter = w.habitAfter,
+                createdAt = instant(today.minus(DatePeriod(days = 1)), 7, 42), updatedAt = instant(today.minus(DatePeriod(days = 1)), 7, 42),
+            )
         }
         // Le compte rendu fait ce matin, et le chrono en cours sur la fuite mémoire.
         sessions += WorkSession(sessions.size + 1L, 8, instant(today, 8, 40), instant(today, 9, 5), instant(today, 8, 40))
