@@ -5,7 +5,8 @@ publié sur chaque cible. Fichiers couverts : `kmp/gradle.properties`
 (version), `kmp/core/src/commonMain/.../AppVersion.kt`, `kmp/androidApp/`,
 `kmp/desktopApp/` (dont `Main.kt`, `DataDirectory.kt`, `SingleInstance.kt`,
 `CrashLog.kt`, `SelfTest.kt`, `icons/`), `kmp/webApp/`,
-`kmp/tools/make_app_icons.py`, `packaging/aur/` (paquet Arch Linux), `.github/workflows/kmp.yml`,
+`kmp/tools/make_app_icons.py`, `packaging/aur/` (paquet Arch Linux), `packaging/msix/` et `kmp/tools/make_msix.py`
+(Microsoft Store), `.github/workflows/kmp.yml`,
 `.github/workflows/kmp-release.yml` et `.github/workflows/pages.yml` (sa
 partie version web). Les services de fichiers et de sauvegarde de chaque plateforme
 sont décrits par `export-import.md` ; F-Droid, fiches Fastlane et
@@ -65,6 +66,10 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 - **Bureau** : un installeur par OS (`.msi`, `.deb`, `.dmg`), qui n'exige pas
   de droits administrateur sous Windows, et un **zip portable** par OS : on
   dézippe, on lance, rien n'est installé.
+- **Microsoft Store** (#215, décision du propriétaire du 2026-11-25) : Kairos s'y installe sous le nom réservé
+  **« Kairos Planner »** (« Kairos » était pris), sans avertissement SmartScreen et sans droits administrateur. Le Store
+  le met à jour : Kairos ne cherche alors pas lui-même de nouvelle version. Il lit et écrit **les mêmes données** que
+  l'installeur `.msi` (même dossier), et une désinstallation ne les efface pas. Seules les versions finales vont au Store.
 - **Arch Linux** (4.0.0, choix du propriétaire du 2026-11-02) : un paquet AUR **`kairos-bin`**
   (`yay -S kairos-bin`, ou tout assistant AUR), qui reprend le `.deb` de la release. Kairos apparaît dans le menu des
   applications et se lance par la commande `kairos`. Chaque version stable arrive par `yay -Syu` peu après son tag,
@@ -102,6 +107,10 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   `.deb` publié.
 - Un build de test ne construit que des commits de la branche depuis laquelle il est lancé, passe les mêmes tests et
   auto-tests qu'une release, et ne publie jamais rien.
+- Chaque construction Windows produit le paquet MSIX du Store, dont `makeappx` valide le manifeste ; son identité est
+  celle que Partner Center a attribuée (`validate_identity.py`), sa version suit celle de l'installeur, il porte le
+  marqueur d'installation gérée et jamais celui des copies portables, et chaque logo cité par le manifeste existe
+  (`test_make_msix.py`). Une installation du Store ne vérifie pas les mises à jour (`SystemPackageTest`).
 
 ### Hors périmètre (à ce jalon)
 
@@ -115,6 +124,9 @@ remplacer ; une version stable s'installe par-dessus la précédente.
 - Mise à jour intégrée : jamais sur Android ; sur le bureau, simple
   vérification (`mises-a-jour.md`).
 - F-Droid, fiches et page de téléchargement : `publication.md`.
+- Microsoft Store : soumission automatique depuis la CI (§ Microsoft Store, « Soumission automatique », différée) ; le
+  `.msix` hors du Store (il n'est pas signé : rien ne l'installe ailleurs) ; ARM64 ; le badge « Get it from Microsoft »
+  du README et de la page de téléchargement, posé quand la fiche est en ligne.
 - Arch Linux : dépôts officiels (`extra`, il faudrait qu'un mainteneur de confiance d'Arch adopte le paquet), paquet
   compilé depuis les sources, préversions (`kairos-preview-bin`), ARM. Autres distributions (Flatpak, RPM) : non
   prévues.
@@ -302,6 +314,8 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
 | Classe de fenêtre X11 (`WindowClass.NAME`) | `kairos` | icône de la barre des tâches (`StartupWMClass`) |
 | Dossier des données (`DataDirectory`) | racine `Kairos`, sous-dossier `v3` | les données semblent perdues |
 | Recette F-Droid | `fdroid/com.skohscripts.kairos.yml` | suivi F-Droid |
+| Identité MSIX (`packaging/msix/AppxManifest.xml`, `Name`) | `SKOHscripts.KairosPlanner` | le Store refuse le paquet ; un autre nom serait une autre app |
+| Éditeur MSIX (`Publisher`) | `CN=EF0DE618-1AD9-4656-8417-18B58EB3603F` | le Store refuse le paquet |
 | Anciens noms (`PortableShortcuts.LEGACY_APP_NAMES`) | `Kairos Preview` | les entrées laissées par les betas jusqu'à la 4.1 restent dans les menus |
 
 - **Contrôle** : `kmp/tools/validate_identity.py` (job `metadata` de « Kairos checks ») lit ces valeurs dans les fichiers
@@ -538,6 +552,71 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
      Sans secret, l'artefact `aur-kairos-bin` se pousse à la main (`git clone ssh://aur@aur.archlinux.org/kairos-bin.git`,
      copier les deux fichiers, commit, push).
 
+### Microsoft Store (MSIX, `packaging/msix/`, `kmp/tools/make_msix.py`, #215)
+
+État : spécifiée et implémentée le 2026-11-25 ; construite par la CI, **pas encore essayée sur un Windows réel** ni
+soumise (à faire par le propriétaire, ci-dessous).
+
+- **Format** : un paquet **MSIX** non signé, que le Store signe à la publication. Compose Desktop n'a pas de cible MSIX :
+  le paquet reprend l'**image jpackage** de `createDistributable` (celle du zip portable : `Kairos.exe` à la racine,
+  `app/`, `runtime/`), à laquelle s'ajoutent le manifeste, les logos et l'index des ressources.
+- **Manifeste** (`packaging/msix/AppxManifest.xml`, gabarit, seul marqueur `@VERSION@`) :
+  - identité attribuée par Partner Center (*Identité du produit*) : `Name="SKOHscripts.KairosPlanner"`,
+    `Publisher="CN=EF0DE618-1AD9-4656-8417-18B58EB3603F"`, `PublisherDisplayName` `SKOHscripts`, x64 ; nom de famille
+    `SKOHscripts.KairosPlanner_bfx3ns6pzhhgt`, ID Store `9MX45HFZ42TF` (pour la soumission, absents du manifeste) ;
+  - `DisplayName` et nom du menu Démarrer **« Kairos Planner »** : le Store exige un nom réservé. Le titre de la fenêtre,
+    « À propos » et le dossier des données restent « Kairos » ;
+  - application `Kairos.exe`, `Windows.FullTrustApplication` (capacité restreinte `runFullTrust`, justifiée dans
+    Partner Center : application de bureau empaquetée) ;
+  - **écritures du système de fichiers non virtualisées** (`desktop6:FileSystemWriteVirtualization` à `disabled`,
+    capacité restreinte `unvirtualizedResources`, choix A du propriétaire du 2026-11-25) : Kairos écrit dans le vrai
+    `%LOCALAPPDATA%\Kairos` (`DataDirectory`), comme le `.msi`. Sans cela, Windows redirige ces écritures vers un dossier
+    privé au paquet, invisible pour le `.msi` et effacé à la désinstallation. Le registre reste virtualisé (Kairos n'y
+    écrit pas) ;
+  - Windows 10 1903 (`10.0.18362.0`) au minimum, version minimale de `unvirtualizedResources` ; testé jusqu'à
+    `10.0.26100.0` ;
+  - six langues déclarées (`en-US` d'abord, `fr-FR`, `es-ES`, `de-DE`, `ru-RU`, `it-IT`) : Partner Center n'ouvre une
+    fiche que pour une langue du paquet.
+- **Version** : `make_msix.msix_version` applique la règle de l'installeur (`AppVersion.packageVersion`,
+  `desktopApp/build.gradle.kts`) et ajoute `.0`, le quatrième nombre que le Store réserve : `4.6.0` → `4.6.99.0`,
+  `4.6.0-beta.2` → `4.6.2.0`. Elle croît donc d'une version à l'autre, comme l'exige le Store. Seules les finales y sont
+  soumises.
+- **Logos** (`packaging/msix/Assets/`, versionnés, générés par `make_app_icons.py`, `msix_assets`) : le logo à coins
+  arrondis des icônes de bureau, en `StoreLogo` (50 px), `Square150x150Logo` (150 px), `Square44x44Logo` (44 px), chacun
+  aux échelles 100, 200 et 400 (`.scale-NNN`), plus `Square44x44Logo.targetsize-{16,24,32,48,256}_altform-unplated`
+  (barre des tâches, explorateur). Fond du manifeste `transparent`.
+- **`make_msix.py <image> <dossier>`** (sans dépendance) : copie l'image dans le dossier, y écrit le manifeste rempli
+  (version lue dans `kmp/gradle.properties`) et les logos, pose le marqueur **`app/kairos-managed`** et refuse une
+  image qui porte déjà le marqueur portable `app/kairos-portable` (§ Raccourci des versions portables) : une copie du
+  Store ne doit ni proposer de raccourci ni chercher de mise à jour.
+- **CI** (`kmp-release.yml`, job `build`, Windows, étape « Paquet MSIX » **avant** « Nommer les fichiers », qui pose le
+  marqueur portable dans l'image) : `make_msix.py`, puis `makepri` (Windows SDK du runner, le plus récent) indexe les
+  seuls logos dans `resources.pri` (un dossier à part qui ne contient que `Assets/` : indexer l'image entière mettrait
+  ses milliers de fichiers dans l'index), puis `makeappx pack`, qui valide le manifeste. Sortie
+  `Kairos-windows-x64<étiquette>.msix`, artefact **`store-windows-x64<étiquette>`**, gardé 30 jours (le temps de la
+  soumission), qui ne commence pas par `dist-` : **ni la release ni `SHA256SUMS`** ne le reprennent. Un build de test
+  manuel le produit aussi, pour l'essayer avant le tag.
+- **Application** : `SystemPackage.detect()` trouve le marqueur `kairos-managed` à côté des JAR de l'image sous Windows
+  comme sous Linux (`PortableCopy.imageDirs`) : pas de `DesktopUpdates`, donc ni vérification, ni bandeau, ni carte
+  « Mises à jour » (`mises-a-jour.md`). Une copie du `.msi` ou du zip n'a pas le marqueur et garde la vérification.
+- **Essayer un paquet sans le Store** (le `.msix` n'est pas signé) : Windows en mode développeur, extraire le `.msix`
+  (c'est un zip) dans un dossier, puis `Add-AppxPackage -Register <dossier>\AppxManifest.xml` ;
+  `Get-AppxPackage SKOHscripts.KairosPlanner | Remove-AppxPackage` le retire. Vérifier : le menu Démarrer montre
+  « Kairos Planner », Réglages → Données montre `%LOCALAPPDATA%\Kairos\…`, aucune carte « Mises à jour », et les
+  données du `.msi` sont là.
+- **À faire par le propriétaire** (rien de cela ne peut se faire depuis le dépôt) :
+  1. Lancer un build de test (bureau) et essayer l'artefact `store-…` comme ci-dessus.
+  2. Dans Partner Center, première soumission : téléverser le `.msix` ; justifier `runFullTrust` et
+     `unvirtualizedResources` (« Desktop app packaged with MSIX; it keeps its data in the same %LOCALAPPDATA% folder
+     as its MSI installer, so that switching to the Store version keeps the user's data and uninstalling does not
+     delete it. ») ; politique de confidentialité `https://skohscripts.github.io/Kairos/en/privacy/`
+     (`publication.md`) ; fiches, captures de bureau, classification par âge.
+- **Soumission automatique (différée)** : après la première soumission à la main, le job ferait `msstore publish
+  <.msix> -id 9MX45HFZ42TF` (Microsoft Store Developer CLI) sur un tag final, seulement si les secrets existent, comme
+  l'AUR. Il faut une application Microsoft Entra associée au compte Partner Center (rôle Manager) et quatre secrets :
+  identifiant du locataire, du vendeur, du client et secret du client. La soumission reprend la fiche de la précédente
+  et attend la certification (jusqu'à trois jours ouvrés).
+
 ### Web (`kmp/webApp`)
 
 - Kotlin/Wasm (`wasmJs`, module de sortie `kairos`, script `kairos.js`),
@@ -668,6 +747,14 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
 
 ### Décisions et pièges tracés
 
+- **Microsoft Store en MSIX** (propriétaire, 2026-11-25, #215) : le Store accepte un `.msi` seulement signé Authenticode
+  par une autorité reconnue, et la signature SignPath (#117) attend toujours l'acceptation ; le MSIX est signé par le
+  Store. Contreparties : un nouvel artefact construit à la main (`makeappx`), et la vérification des mises à jour
+  coupée (le Store s'en charge). Données non virtualisées (choix A) plutôt que le dossier privé du paquet (choix B,
+  sans capacité restreinte, mais données effacées à la désinstallation et séparées du `.msi`). Nom « Kairos Planner »
+  (« Kairos » était réservé par un autre éditeur). Le `.msix` reste un artefact du lancement, hors de la release : non
+  signé, il ne s'installerait nulle part et égarerait les utilisateurs. Écartés : attendre SignPath pour soumettre le
+  `.msi` ; un outil tiers d'empaquetage (MSIX Packaging Tool, interactif ; Conveyor, non libre).
 - **Version attendue calculée** (propriétaire, 2026-11-15) : avec des mineures au fil de l'eau, le numéro et le moment
   de publier se décident plus souvent ; un contrôle à chaque PR (« Kairos version ») et une PR de passage de version
   après chaque finale évitent de les oublier. Le contrôle lit les cartes du catalogue et le format du fichier, pas les

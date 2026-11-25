@@ -460,7 +460,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   choisis par l'utilisateur : export, fichier lié, échanges d'équipe) ; journal de diagnostic local ; **connexions
   réseau**, liste fermée : (1) vérification des mises à jour du bureau (`mises-a-jour.md` : active par défaut, au plus
   toutes les 6 heures, API GitHub, `User-Agent: Kairos/<version>`, ni sur Android, ni dans le navigateur, ni pour une
-  installation par gestionnaire de paquets) ; (2) connexions de calendrier (`connexions-en-ligne.md` : lien ICS et
+  installation par le Microsoft Store ou un gestionnaire de paquets) ; (2) connexions de calendrier (`connexions-en-ligne.md` : lien ICS et
   CalDAV, désactivées par défaut, une par une, vers le seul serveur saisi, secrets chiffrés sur l'appareil et jamais
   exportés ; sur le web, lien ICS gardé dans le stockage du navigateur) ; (3) liens ouverts par l'utilisateur dans son
   navigateur (« Give feedback », don, sources) ; permissions Android ; sauvegarde du système Android
