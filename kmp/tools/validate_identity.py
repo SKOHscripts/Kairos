@@ -2,7 +2,7 @@
 
 Les noms et identifiants qui relient une installation à la suivante (nom de l'app, paquet Linux, upgrade code Windows,
 bundle macOS, applicationId Android, classe de fenêtre, dossier des données, recette F-Droid, anciens noms des
-raccourcis) ne changent pas sans migration : en 4.2.0, le passage de « Kairos Preview » à « Kairos » a laissé des
+raccourcis, identité du paquet du Microsoft Store) ne changent pas sans migration : en 4.2.0, le passage de « Kairos Preview » à « Kairos » a laissé des
 entrées de menu qu'une nouvelle copie ne savait pas remplacer. Ce contrôle échoue (code 1) sur tout écart et renvoie à la
 spec, où se trouve la marche à suivre ; une valeur ne se change ici qu'avec sa migration.
 
@@ -33,6 +33,9 @@ IDENTITY: list[tuple[str, str, str, str]] = [
     (f"{KOTLIN}/DataDirectory.kt", r'"\$home/\.local/share", "([^"]*)"\)', "Kairos", "racine des données (Linux)"),
     (f"{KOTLIN}/DataDirectory.kt", r'File\(root, "([^"]*)"\)', "v3", "sous-dossier des données"),
     (f"{KOTLIN}/PortableShortcuts.kt", r'val LEGACY_APP_NAMES = listOf\(([^)]*)\)', '"Kairos Preview"', "anciens noms (raccourcis)"),
+    # Identité attribuée par Partner Center au paquet du Microsoft Store (§ Microsoft Store).
+    ("packaging/msix/AppxManifest.xml", r'^\s*Name="([^"]*)"', "SKOHscripts.KairosPlanner", "identité MSIX (Store)"),
+    ("packaging/msix/AppxManifest.xml", r'^\s*Publisher="([^"]*)"', "CN=EF0DE618-1AD9-4656-8417-18B58EB3603F", "éditeur MSIX (Store)"),
 ]
 FILES = ["fdroid/com.skohscripts.kairos.yml"]
 

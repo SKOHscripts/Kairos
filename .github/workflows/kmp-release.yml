@@ -264,6 +264,41 @@ jobs:
           $p = Start-Process -FilePath $exe -ArgumentList "--self-test=$env:RUNNER_TEMP\screens" -Wait -PassThru
           if ($p.ExitCode -ne 0) { Write-Error "Auto-test en échec ($($p.ExitCode))"; exit 1 }
 
+      # Paquet MSIX du Microsoft Store (docs/spec/distribution.md § Microsoft Store, #215), non signé (le Store le signe).
+      # Avant « Nommer les fichiers », qui pose le marqueur portable dans l'image. makepri n'indexe que les logos (un
+      # dossier qui ne contient que Assets/) : l'image entière mettrait ses milliers de fichiers dans resources.pri.
+      - name: Paquet MSIX (Windows)
+        if: matrix.id == 'windows-x64'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          $image = Get-ChildItem desktopApp/build/compose/binaries/main/app -Directory | Select-Object -First 1
+          $layout = Join-Path $env:RUNNER_TEMP "msix-layout"
+          python tools/make_msix.py $image.FullName $layout
+          $sdk = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.*\x64" -Directory |
+            Where-Object { Test-Path (Join-Path $_.FullName "makeappx.exe") } |
+            Sort-Object { [version]($_.Parent.Name) } -Descending | Select-Object -First 1
+          Write-Output "Windows SDK : $($sdk.FullName)"
+          $pri = Join-Path $env:RUNNER_TEMP "msix-pri"
+          New-Item -ItemType Directory -Force $pri | Out-Null
+          Copy-Item -Recurse (Join-Path $layout "Assets") $pri
+          & (Join-Path $sdk.FullName "makepri.exe") createconfig /cf "$pri\priconfig.xml" /dq lang-en-US /pv 10.0.0 /o
+          & (Join-Path $sdk.FullName "makepri.exe") new /pr $pri /cf "$pri\priconfig.xml" /mn "$layout\AppxManifest.xml" /of "$layout\resources.pri" /o
+          $store = Join-Path $env:RUNNER_TEMP "store"
+          New-Item -ItemType Directory -Force $store | Out-Null
+          & (Join-Path $sdk.FullName "makeappx.exe") pack /d $layout /p "$store\Kairos-windows-x64$env:LABEL.msix" /o
+          Get-ChildItem $store
+      - name: Artefact MSIX
+        if: matrix.id == 'windows-x64'
+        uses: actions/upload-artifact@v4
+        with:
+          # Pas de préfixe dist- : ni la release ni SHA256SUMS ne le reprennent (non signé, il ne s'installe que par le Store).
+          name: store-windows-x64${{ needs.resolve.outputs.label }}
+          path: ${{ runner.temp }}/store/*.msix
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Nommer les fichiers
         if: matrix.kind == 'desktop'
         run: |
