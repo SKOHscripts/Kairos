@@ -291,6 +291,20 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   caractères pour rester sous les 4000 de `full_description.txt`). La description du dépôt GitHub (« About »,
   hors dépôt, `gh repo edit`) dit la même chose en anglais. Les fiches restent au vouvoiement (ou équivalent), la page
   histoire et le README français au tutoiement.
+- **Vitrine des fonctionnalités (2026-11-25, décision du propriétaire, rouvre le « Message des fiches » ci-dessus)** :
+  Kairos se vend par ses fonctionnalités, à des lecteurs qui ne le connaissent pas. Les **habitudes** (`habitudes.md`)
+  deviennent un argument produit, avec le mot-clé F-Droid du propriétaire.
+  - `short_description.txt` (six langues) : des **bénéfices concrets** (« Vos tâches triées, votre journée planifiée, vos
+    habitudes ancrées. ») ; le slogan passe dans la description longue.
+  - `full_description.txt` : une **vitrine** : une accroche (ce que Kairos fait, le slogan, la vie privée), une liste
+    « En un coup d'œil » d'une ligne de bénéfice par fonctionnalité-phare (ordre, journée, habitudes, durées apprises,
+    temps réel, données), puis le détail ; le récit « agile + todo + GTD » reste à la page histoire.
+  - **Jamais de numéro de version** dans les fiches, les README et les pages d'accueil (« Nouveau en 4.0 » est retiré :
+    une fiche se lit des mois après) ; les nouveautés vont dans les notes de version.
+  - Les habitudes ne disent que ce que leur base soutient (`habitudes.md` § 14) : repère stable, question validée,
+    sources dans l'appli et sur la page « Habitudes » ; ni durée promise, ni « scientifiquement prouvé ».
+  - README (accroche, « In short » / « En bref », un badge), pages d'accueil du site (accroche, carte « Habitudes » qui
+    mène à la page des sources) et description du dépôt GitHub disent la même chose.
 - **Page « L'histoire de Kairos » (2026-11-08)** : `site/histoire/index.html` (français) et
   `site/en/story/index.html` (anglais), HTML et CSS seuls (`style.css`, bloc « Page histoire »), sans `@@…@@`.
   Ton : **tutoiement** (décision du propriétaire, pour toucher les lecteurs), première personne. Plan : une scène
