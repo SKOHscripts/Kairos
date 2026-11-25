@@ -1,39 +1,37 @@
-La mayoría de las herramientas de tareas gestionan una lista sin ordenarla nunca: decidir por dónde empezar sigue siendo cosa suya. Kairos fusiona desarrollo ágil, herramienta de tareas y método GTD en una lista que evoluciona sola. Usted procesa con GTD; Kairos le dice qué hacer ahora: confíe en él, descargue la mente. Encaja sus tareas en los huecos del día y aprende con machine learning, en el dispositivo, cuánto tardan: cuanto más lo usa, más acertadas son sus estimaciones.
+Kairos le dice qué hacer ahora. Ordena sus tareas en el orden en que hacerlas, las encaja en los huecos de su día alrededor de sus reuniones, aprende cuánto duran de verdad y le ayuda a afianzar sus hábitos. Usted captura, Kairos decide. Sin cuenta ni publicidad: sus datos se quedan en su dispositivo.
 
-<b>Aprendizaje automático en el dispositivo</b>
-Un modelo de aprendizaje automático entrenado en su dispositivo da a una tarea con un título nuevo una duración a partir de tareas terminadas parecidas, con un intervalo y la lista de esas tareas. Kairos solo la aplica cuando mejora la duración por defecto en su historial, aprende su ritmo según el día y la hora, y le avisa cuando cambian las estimaciones. ¿IA? No, aprendizaje automático robusto y local, sin chatbot ni nube, que se entrena con cada tarea terminada.
+<b>De un vistazo</b>
+<ul>
+<li><b>Una lista que se ordena sola</b>: la tarea que toca ahora está arriba, y Kairos explica por qué.</li>
+<li><b>Un día que se sostiene</b>: tareas alrededor de las reuniones, deep work protegido, lo ligero en el bajón de la tarde.</li>
+<li><b>Hábitos que se afianzan</b>: una hora estable, una frase «Después de…», una pregunta validada, fuentes científicas.</li>
+<li><b>Duraciones cada vez más justas</b>: el machine learning en el dispositivo aprende el tiempo real de sus tareas.</li>
+<li><b>El tiempo realmente dedicado</b>: un cronómetro por tarea, alertas y estadísticas honestas.</li>
+<li><b>Sus datos, en su casa</b>: sin cuenta, sin rastreadores, sin conexión por defecto.</li>
+</ul>
 
-<b>Un orden que se puede explicar</b>
-Cada tarea recibe una puntuación de prioridad (WSJF): su valor (prioridad P0, P1 o P2, más la urgencia de su fecha límite) dividido entre su esfuerzo en puntos. Lo pequeño e importante va antes que lo grande y lejano; una tarea vencida siempre pasa primero. «¿Por qué esta posición?» muestra el cálculo con un solo toque.
+<b>Un orden que se explica</b>
+Cada tarea recibe una puntuación de prioridad (WSJF): su valor (prioridad P0, P1 o P2, más la urgencia de su fecha límite) dividido por su esfuerzo en puntos. Lo pequeño e importante va antes que lo grande y lejano; una tarea atrasada siempre va primero. «¿Por qué en este lugar?» detalla el cálculo con un toque.
 
 <b>Un día realista</b>
-<ul>
-<li>Las tareas se colocan alrededor de sus reuniones, con un margen después de cada una.</li>
-<li>Las franjas de deep work están protegidas; por la tarde, las tareas complejas dejan su lugar a otras más ligeras.</li>
-<li>Horas fijas, tareas recurrentes (diarias, días laborables, semanales, «el 23 de cada mes»), dependencias entre tareas, subtareas editables, festivos de 13 países.</li>
-<li>Tarjeta «Tu día»: tareas, plazos, deep work.</li>
-</ul>
+Horas fijas, tareas recurrentes (diarias, días laborables, semanales, «el 23 del mes»), dependencias, subtareas, festivos de 13 países. Una tarjeta «Tu día» resume tareas, plazos, disponibilidad real y deep work.
 
-<b>Captura sin fricción (GTD)</b>
-¿Una idea? Una nota. ¿Una tarea? Basta con un título: queda en «Por procesar» hasta que le asigne una prioridad y un tamaño, un toque para cada uno.
+<b>Hábitos, con bases científicas</b>
+Convierta una tarea recurrente en hábito. Kairos propone la hora a la que ya la hace y luego no la mueve: una señal estable es lo que crea un automatismo. Una frase «Después del café» la ata a su rutina. De vez en cuando, al marcarla, una pregunta validada le pregunta si lo hace automáticamente, y una curva muestra dónde está. Sin rachas que culpabilizan: un olvido aislado no cuenta. Cada afirmación tiene su fuente, en la aplicación y en la web.
 
-<b>Tiempo real</b>
-Un cronómetro por tarea, con notificación continua; avisos cuando se supera la estimación, se olvida un cronómetro en marcha o hace falta una pausa, incluso con la aplicación cerrada. Al marcar una tarea, Kairos pregunta el tiempo dedicado; las interrupciones se indican a posteriori. Las estadísticas comparan estimación y tiempo real.
+<b>Machine learning en el dispositivo, no una IA</b>
+Un modelo entrenado en su dispositivo da a una tarea nueva una duración según sus tareas hechas que se le parecen, con un intervalo. Kairos solo lo aplica si mejora la duración por defecto en su historial. Ni chatbot ni nube.
+
+<b>Capturar sin fricción (GTD)</b>
+¿Una idea? Una nota. ¿Una tarea? Basta un título: espera en «Por procesar» una prioridad y un tamaño, un toque cada uno.
+
+<b>El tiempo real</b>
+Un cronómetro por tarea con notificación; alertas de exceso, de cronómetro olvidado y de pausa, incluso con la aplicación cerrada. Al marcar una tarea, Kairos pregunta el tiempo dedicado; las interrupciones se anotan después.
 
 <b>Gestionar un equipo (opcional)</b>
-Desactivada por defecto, la gestión de equipo añade un segundo espacio para el manager, que sigue siendo el único usuario:
-<ul>
-<li>Miembros y ausencias, un backlog compartido, seguimiento del avance con su registro; el espacio personal no lo muestra.</li>
-<li>La carga de cada persona frente a su capacidad y una propuesta de reparto; sus tareas personales pueden contar.</li>
-<li>Previsiones Monte Carlo: fechas de fin como probabilidades en porcentaje, fechas límite amenazadas, escenarios «¿Y si…?».</li>
-<li>Intercambios de archivos con los miembros que usan Kairos: reciben sus tareas y devuelven su avance.</li>
-</ul>
+Un segundo espacio para el responsable, único usuario: miembros, backlog, carga de cada uno, previsiones Monte Carlo e intercambios por archivo con los miembros.
 
 <b>Sus datos se quedan con usted</b>
-<ul>
-<li>Sin cuenta, sin anuncios, sin rastreadores. La red solo la usan las conexiones en línea opcionales, desactivadas por defecto.</li>
-<li>Exporte e importe un archivo JSON para hacer copias de seguridad o cambiar de dispositivo; o mantenga una copia al día en una carpeta sincronizada.</li>
-<li>Reuniones a partir de un archivo de calendario (.ics: Outlook, Google, Thunderbird), de un enlace ICS, de un servidor CalDAV o, opcionalmente, de los calendarios del teléfono, de solo lectura; se solicita entonces acceso al calendario. La importación de un archivo nunca usa la red.</li>
-</ul>
+Sin cuenta, sin publicidad, sin rastreadores. Exportación JSON, copia al día en una carpeta que usted sincroniza, calendarios .ics, ICS o CalDAV en solo lectura. La red solo la usan las conexiones en línea opcionales, desactivadas por defecto.
 
-Kairos también está disponible para Windows, Linux y macOS, y en el navegador, en Material o «Cadran». Software libre con licencia GNU AGPL v3 o posterior, en español, alemán, ruso, italiano, francés e inglés (a su elección en los ajustes; por defecto, el idioma del sistema si es uno de ellos, y si no, inglés).
+También para Windows, Linux, macOS y el navegador, en estilo Material o «Cadran». Software libre (GNU AGPL v3 o posterior), en español, francés, inglés, alemán, ruso e italiano.
