@@ -284,7 +284,13 @@ jobs:
           New-Item -ItemType Directory -Force $pri | Out-Null
           Copy-Item -Recurse (Join-Path $layout "Assets") $pri
           & (Join-Path $sdk.FullName "makepri.exe") createconfig /cf "$pri\priconfig.xml" /dq lang-en-US /pv 10.0.0 /o
+          # Un seul resources.pri : la configuration par défaut éclate les échelles en resources.scale-NNN.pri, faits
+          # pour des paquets de ressources ; dans un MSIX unique Windows ne les lit pas (logos 100 % sur un écran dense).
+          $config = Get-Content "$pri\priconfig.xml" -Raw
+          Set-Content "$pri\priconfig.xml" ($config -replace '(?s)<packaging>.*?</packaging>', '')
           & (Join-Path $sdk.FullName "makepri.exe") new /pr $pri /cf "$pri\priconfig.xml" /mn "$layout\AppxManifest.xml" /of "$layout\resources.pri" /o
+          $split = Get-ChildItem $layout -File -Filter "*.pri" | Where-Object { $_.Name -ne "resources.pri" }
+          if ($split) { Write-Error "Index des ressources éclaté : $($split.Name -join ', ')"; exit 1 }
           $store = Join-Path $env:RUNNER_TEMP "store"
           New-Item -ItemType Directory -Force $store | Out-Null
           & (Join-Path $sdk.FullName "makeappx.exe") pack /d $layout /p "$store\Kairos-windows-x64$env:LABEL.msix" /o

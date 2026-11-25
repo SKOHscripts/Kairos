@@ -592,7 +592,10 @@ soumise (à faire par le propriétaire, ci-dessous).
 - **CI** (`kmp-release.yml`, job `build`, Windows, étape « Paquet MSIX » **avant** « Nommer les fichiers », qui pose le
   marqueur portable dans l'image) : `make_msix.py`, puis `makepri` (Windows SDK du runner, le plus récent) indexe les
   seuls logos dans `resources.pri` (un dossier à part qui ne contient que `Assets/` : indexer l'image entière mettrait
-  ses milliers de fichiers dans l'index), puis `makeappx pack`, qui valide le manifeste. Sortie
+  ses milliers de fichiers dans l'index) dans **un seul** `resources.pri` (sans la section `<packaging>` de la configuration
+  par défaut, qui éclatait les échelles en `resources.scale-200.pri` et `resources.scale-400.pri`, faits pour des paquets de
+  ressources : dans un MSIX unique, Windows ne les lit pas ; constaté au premier build de test du 2026-11-25, l'étape
+  échoue désormais si un autre `.pri` apparaît), puis `makeappx pack`, qui valide le manifeste. Sortie
   `Kairos-windows-x64<étiquette>.msix`, artefact **`store-windows-x64<étiquette>`**, gardé 30 jours (le temps de la
   soumission), qui ne commence pas par `dist-` : **ni la release ni `SHA256SUMS`** ne le reprennent. Un build de test
   manuel le produit aussi, pour l'essayer avant le tag.
