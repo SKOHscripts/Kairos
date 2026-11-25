@@ -136,15 +136,15 @@ object StoreScreenshots {
             var number = 0
             fun write(png: ByteArray) = File(out, "${++number}.png").writeBytes(png)
             val language = locale.language
-            fun desktop(destination: Destination, dark: Boolean = false) = runBlocking { services(language) }.let { services ->
-                render(DESKTOP_WIDTH, DESKTOP_HEIGHT, density = DESKTOP_DENSITY) {
+            fun desktop(destination: Destination, dark: Boolean = false, wheel: Float = 0f) = runBlocking { services(language) }.let { services ->
+                render(DESKTOP_WIDTH, DESKTOP_HEIGHT, wheel = wheel, density = DESKTOP_DENSITY) {
                     KairosApp(Platform.DESKTOP, destination, systemDark = dark) { services }
                 }
             }
             write(desktop(Destination.DAY))
             write(machineLearningShot(language, Platform.DESKTOP))
             write(habitShot(language, Platform.DESKTOP))
-            write(desktop(Destination.WEEK))
+            write(desktop(Destination.WEEK, wheel = DESKTOP_WEEK_SCROLL))
             write(desktop(Destination.STATS))
             val team = runBlocking { teamServices(language, TeamDestination.BOARD) }
             write(
@@ -311,8 +311,11 @@ object StoreScreenshots {
     private const val DESKTOP_DENSITY = 1.25f
 
     /** Défilements des fiches des captures 2 et 3 du bureau (fenêtre plus basse que le téléphone). */
-    private const val DESKTOP_SHEET_SCROLL = 22f
+    private const val DESKTOP_SHEET_SCROLL = 18f
     private const val DESKTOP_HABIT_SCROLL = 12f
+
+    /** Défilement de la capture Semaine du bureau : la grille des jours sous le bilan de la semaine. */
+    private const val DESKTOP_WEEK_SCROLL = 8f
 
     /** Les langues de la fiche du Microsoft Store (choix du propriétaire du 2026-11-25 : anglais et français). */
     private val DESKTOP_LOCALES = listOf("en-US" to Locale.US, "fr-FR" to Locale.FRANCE)

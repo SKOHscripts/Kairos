@@ -185,7 +185,8 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   rend le **même jeu de données** et la même horloge figée dans l'interface **du bureau** (`Platform.DESKTOP`, rail de
   navigation) en 1920 × 1080 px, densité 1,25 (1536 × 864 dp), dans les deux langues de la fiche du Store, `en-US` et
   `fr-FR` (choix du propriétaire du 2026-11-25) : 1 Jour, 2 la fiche estimée par machine learning, 3 la fiche d'une
-  habitude (défilements propres au bureau, `DESKTOP_SHEET_SCROLL`, `DESKTOP_HABIT_SCROLL`), 4 Semaine, 5 Statistiques,
+  habitude (défilements propres au bureau, `DESKTOP_SHEET_SCROLL`, `DESKTOP_HABIT_SCROLL`), 4 Semaine (défilée jusqu'à la
+  grille des jours, `DESKTOP_WEEK_SCROLL`), 5 Statistiques,
   6 le Suivi de l'espace Équipe (seconde base, image stable attendue), 7 la vue Jour en thème sombre. Versionnées dans
   `packaging/msix/screenshots/<langue>/`, téléversées à la main dans Partner Center ; à refaire si un écran capturé change.
   Les captures du téléphone ne changent pas (`render` garde ses valeurs par défaut).
