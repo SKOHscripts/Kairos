@@ -93,6 +93,9 @@ internal fun TaskRow.toModel() = Task(
     noteOut = note_out,
     noteIn = ExchangeNote.decode(note_in),
     proposedTo = proposed_to,
+    habitSince = habit_since?.instant(),
+    habitAfter = habit_after,
+    habitScore = habit_score?.toInt(),
 )
 
 internal fun EventRow.toModel() = TeamEvent(

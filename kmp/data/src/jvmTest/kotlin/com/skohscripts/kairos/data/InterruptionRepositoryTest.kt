@@ -92,6 +92,9 @@ class InterruptionRepositoryTest {
     fun aSchemaFifteenDatabaseGainsAnEmptyTable() = runTest {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         KairosRepository(KairosStore.open(driver).database).also { it.load() }.createTask("Rapport")
+        driver.execute(null, "ALTER TABLE task DROP COLUMN habit_since", 0).await()
+        driver.execute(null, "ALTER TABLE task DROP COLUMN habit_after", 0).await()
+        driver.execute(null, "ALTER TABLE task DROP COLUMN habit_score", 0).await()
         driver.execute(null, "DROP TABLE interruption", 0).await()
         assertEquals(15L, KairosStore.actualVersion(driver))
         val opened = KairosStore.open(driver)

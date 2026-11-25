@@ -53,7 +53,12 @@ CREATE TABLE task (
     note_out TEXT NOT NULL DEFAULT '',
     note_in TEXT,
     -- Tâche proposée au manager d'une équipe d'origine (docs/spec/equipe-echanges.md § Propositions) : sa clé ; NULL = non.
-    proposed_to TEXT
+    proposed_to TEXT,
+    -- Habitude (docs/spec/habitudes.md) : date de déclaration (instant, NULL = pas une habitude) et phrase « Après… », recopiées
+    -- d'occurrence en occurrence ; réponse 1 à 7 à la question d'automatisme posée à la coche de cette occurrence. Même ordre que 16.sqm.
+    habit_since TEXT,
+    habit_after TEXT NOT NULL DEFAULT '',
+    habit_score INTEGER
 );
 CREATE INDEX task_status ON task(status);
 CREATE INDEX task_parent ON task(parent_id);
@@ -302,11 +307,12 @@ INSERT INTO task (title, description, priority, deadline, project_tag, status, e
     pinned_start, parent_id, recurrence, scheduled_date, recurrence_day_of_month,
     recurrence_day_of_week, recurrence_period, task_type, fibonacci_points,
     manual_time_spent_minutes, created_at, updated_at, space, assignee_id, progress_percent, started_on, team_uid,
-    origin, origin_removed, reported_minutes, team_excluded, series_id, note_out, note_in, proposed_to)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    origin, origin_removed, reported_minutes, team_excluded, series_id, note_out, note_in, proposed_to, habit_since,
+    habit_after, habit_score)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 insertTaskWithId:
-INSERT INTO task VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO task VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 lastInsertedId:
 SELECT last_insert_rowid();
@@ -317,7 +323,8 @@ UPDATE task SET title = ?, description = ?, priority = ?, deadline = ?, project_
     recurrence_day_of_month = ?, recurrence_day_of_week = ?, recurrence_period = ?, task_type = ?,
     fibonacci_points = ?, manual_time_spent_minutes = ?, updated_at = ?, space = ?, assignee_id = ?,
     progress_percent = ?, started_on = ?, team_uid = ?, origin = ?, origin_removed = ?, reported_minutes = ?,
-    team_excluded = ?, series_id = ?, note_out = ?, note_in = ?, proposed_to = ?
+    team_excluded = ?, series_id = ?, note_out = ?, note_in = ?, proposed_to = ?, habit_since = ?, habit_after = ?,
+    habit_score = ?
 WHERE id = ?;
 
 deleteTask:

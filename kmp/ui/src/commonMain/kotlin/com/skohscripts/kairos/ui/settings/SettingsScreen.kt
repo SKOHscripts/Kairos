@@ -161,6 +161,7 @@ import com.skohscripts.kairos.ui.icons.KairosIcons
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.ui.habit.HabitSourcesDialog
 
 /**
  * Réglages (docs/spec/reglages.md) : un seul formulaire (validation par champ, un seul « Enregistrer » dans une barre
@@ -194,6 +195,9 @@ fun SettingsScreen(services: AppServices, nav: SettingsNav = remember { Settings
 
     // Réglages valides en attente de confirmation : masquer l'espace Équipe demande de confirmer.
     var confirmHide by remember(formKey) { mutableStateOf<Settings?>(null) }
+    // « Sources scientifiques » des habitudes (docs/spec/habitudes.md § Réglages) : un dialogue, le formulaire reste tel quel.
+    var habitSources by remember { mutableStateOf(false) }
+    if (habitSources) HabitSourcesDialog { habitSources = false }
 
     fun write(settings: Settings) {
         scope.launch {
@@ -261,7 +265,7 @@ fun SettingsScreen(services: AppServices, nav: SettingsNav = remember { Settings
                         if (services.updates == null && services.downloadPage) DownloadPageCard()
                         services.shortcuts?.let { ShortcutCard(it) }
                     }
-                    SettingsCategory.DAY, SettingsCategory.PLANNING, SettingsCategory.TRACKING -> SettingsFormCards(category, values, errors, onChange, learningStatus = { ModelStatusLine(services) }, lingerStatus = { manual -> LingerStatusLine(services, manual) })
+                    SettingsCategory.DAY, SettingsCategory.PLANNING, SettingsCategory.TRACKING -> SettingsFormCards(category, values, errors, onChange, learningStatus = { ModelStatusLine(services) }, lingerStatus = { manual -> LingerStatusLine(services, manual) }, onHabitSources = { habitSources = true })
                     SettingsCategory.TEAM -> TeamSettingsCard(values, errors, savedEnabled = current.teamModeEnabled, services = services, onChange = onChange)
                     SettingsCategory.DATA -> {
                         GuideSpot(GuideSection.SETTINGS_DATA) { DataCard(services) }

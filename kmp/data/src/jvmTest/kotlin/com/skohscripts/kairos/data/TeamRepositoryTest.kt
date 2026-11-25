@@ -764,8 +764,8 @@ class TeamRepositoryTest {
         assertEquals(
             listOf("progress_percent", "started_on", "team_uid"),
             // Les colonnes du jalon E6 (origin, origin_removed, reported_minutes), team_excluded (6.sqm), series_id (7.sqm) puis
-            // note_out, note_in et proposed_to (9.sqm) viennent à leur suite.
-            columns(fresh, "task").dropLast(8).takeLast(3),
+            // note_out, note_in et proposed_to (9.sqm) puis habit_since, habit_after et habit_score (16.sqm) viennent à leur suite.
+            columns(fresh, "task").dropLast(11).takeLast(3),
         )
         assertEquals(
             listOf("id", "task_id", "task_title", "member_id", "kind", "from_value", "to_value", "source", "at"),

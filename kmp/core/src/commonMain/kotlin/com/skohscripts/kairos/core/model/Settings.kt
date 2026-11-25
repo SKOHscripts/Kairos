@@ -122,9 +122,17 @@ data class Settings(
      * règle que [subtaskChain], rien d'écrit tant qu'on n'y touche pas. Propre à l'appareil (`SyncScope.LOCAL_SETTINGS`).
      */
     val dayBriefFolded: Boolean? = null,
+    /**
+     * Interrupteur « Habitudes » (docs/spec/habitudes.md, issue #284) : `null` = activé, la valeur par défaut ; même règle
+     * que [askSpentOnDone], rien d'écrit tant qu'on n'y touche pas. Partagé par la synchronisation (une manière de travailler).
+     */
+    val habitsEnabled: Boolean? = null,
 ) {
     /** La question « Temps passé ? » est-elle posée à la coche ([askSpentOnDone]) ? */
     val askSpent: Boolean get() = askSpentOnDone != false
+
+    /** Les habitudes sont-elles actives ([habitsEnabled]) ? Désactivées : ni question, ni proposition, ni marque ; données gardées. */
+    val habitsOn: Boolean get() = habitsEnabled != false
 
     /** Pays des fériés en vigueur : [holidayCountry], ou la France si jamais choisi et [holidaysFr] ; nul = aucun (ou code inconnu). */
     val holidayCountryCode: String?
@@ -317,6 +325,9 @@ data class TeamSettings(
  * deux dernières dates (ISO) où un conseil a été montré, [tipsSnoozed] id → date jusqu'à laquelle il attend (« Plus tard »),
  * [tipsDone] id → date d'acceptation (« Montre-moi »), [tipsDismissed] les ids écartés pour de bon, [seenScreens] les écrans
  * suivis déjà ouverts (`Tips.SCREEN_*`), [lastExport] la date du dernier export réussi depuis cet appareil.
+ *
+ * Habitudes (docs/spec/habitudes.md, issue #284) : [habitsDismissed] les séries (`Habits.seriesKey`) dont la proposition a été
+ * écartée (« Ne plus me le proposer » vaut pour une série, pas pour le conseil entier). Propre à l'appareil, comme le reste du guide.
  */
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
@@ -331,6 +342,7 @@ data class GuideSettings(
     @EncodeDefault(EncodeDefault.Mode.NEVER) val tipsDismissed: List<String> = emptyList(),
     @EncodeDefault(EncodeDefault.Mode.NEVER) val seenScreens: List<String> = emptyList(),
     @EncodeDefault(EncodeDefault.Mode.NEVER) val lastExport: String? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val habitsDismissed: List<Long> = emptyList(),
 )
 
 /**

@@ -129,7 +129,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   (`validate_fastlane.py` ne les exige que pour ces deux dossiers). Dans chaque dossier : `title.txt` (« Kairos »), `short_description.txt` (≤ 80),
   `full_description.txt` (≤ 4000, HTML simple `<b>`, `<ul>`, `<li>`),
   `changelogs/<versionCode>.txt` (≤ 500), `images/icon.png` (512 px, carré plein : le logo
-  sur un fond uni océan profond `#1C2F59`, `make_app_icons.py`, `apparence.md` § Icônes et supports fixes), `images/phoneScreenshots/1.png` à `10.png`.
+  sur un fond uni océan profond `#1C2F59`, `make_app_icons.py`, `apparence.md` § Icônes et supports fixes), `images/phoneScreenshots/1.png` à `12.png`.
 - L'accroche (première phrase) dit que Kairos apprend la durée des tâches **par machine learning sur l'appareil**, comme la
   description courte (« … par machine learning local », ≤ 80) ; la description ouvre ensuite sur **« Nouveau en 4.0 : du
   machine learning sur l'appareil »** (l'estimateur par modèle, qui finit sur « Une IA ? Non, du machine learning : … »,
@@ -154,13 +154,26 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   rend hors écran (`ImageComposeScene`, comme l'auto-test) l'interface
   **Android** (`KairosApp(Platform.ANDROID, destination)` : barre basse,
   textes tactiles) en 1080 × 2400 px, densité 2,625 (téléphone de 411 dp de
-  large), pour Jour, **la fiche d'une tâche estimée par machine learning** (2, ci-dessous), Semaine, Statistiques, Notes
-  et Réglages (1 à 6), puis, sur une base où la gestion d'équipe est activée, Suivi, Équipe (charge) et
-  Prévisions (7 à 9, `equipe.md`), puis la vue Jour de la capture 1, système en sombre (10, `apparence.md` § Thème
-  sombre ; 1 à 9 imposent un système clair, `systemDark = false`), puis les jours fériés de trois pays (11, ci-dessous),
+  large), pour Jour, **la fiche d'une tâche estimée par machine learning** (2, ci-dessous), **la fiche d'une habitude**
+  (3, ci-dessous), Semaine, Statistiques, Notes et Réglages (1 à 7), puis, sur une base où la gestion d'équipe est
+  activée, Suivi, Équipe (charge) et Prévisions (8 à 10, `equipe.md`), puis la vue Jour de la capture 1, système en sombre
+  (11, `apparence.md` § Thème sombre ; 1 à 10 imposent un système clair, `systemDark = false`), puis les jours fériés de
+  trois pays (12, ci-dessous),
   dans les **six langues des fiches** : `fr-FR`, `en-US`, `de-DE`, `es-ES`, `it-IT`, `ru-RU` (depuis le 2026-11-21, issue
   #264, décision du propriétaire ; avant, `fr-FR` et `en-US` seulement).
-- **Capture 11, les fériés par pays** (`HolidayShowcase`, `ui/month`, `jours-feries.md`) : le titre « Les jours fériés de ton
+- **Capture 3, les habitudes** (ajoutée le 2026-11-25, issue #284, décision du propriétaire : la nouvelle fonctionnalité
+  doit se voir sur F-Droid) : la base de la capture 1, enrichie de « Méditer 10 minutes » (`Words.habit`), quotidienne,
+  déclarée habitude il y a 44 jours, faite presque chaque matin vers 7 h 30 (deux oublis), avec quatre réponses à la
+  question d'automatisme espacées de 14 jours (2, 4, 6, 7 : « Habitude installée ») et la phrase « Après mon café »
+  (`Words.habitAfter`). La fiche de l'occurrence du jour s'ouvre d'emblée (`showcaseTaskId`) ; pour une habitude, la
+  vitrine déplie la section « Habitude » au lieu de « Dates et temps » (`EditTaskDialog`), défilée de `HABIT_SCROLL`.
+  Placée 3e, juste après le machine learning : les trois arguments-phares en tête ; les suivantes sont renumérotées, comme
+  la galerie « Aperçu » des pages d'accueil.
+- **Workflow « Store screenshots »** (`.github/workflows/store-screenshots.yml`, 2026-11-25) : rend les captures sur un
+  runner (lancement manuel, ou PR qui change `StoreScreenshots.kt`, `StoreTeam.kt` ou le workflow) et les dépose comme
+  artefact `store-screenshots` ; rien n'est écrit dans le dépôt : on relit les images, puis on les commite. Né d'un
+  environnement de développement où Gradle ne pouvait pas télécharger ses dépendances.
+- **Capture 12, les fériés par pays** (`HolidayShowcase`, `ui/month`, `jours-feries.md`) : le titre « Les jours fériés de ton
   pays » dans la langue de la fiche, puis la grille de mai 2026 de l'Allemagne en allemand, des États-Unis en anglais et de
   l'Italie en italien, sur une base vide, fériés marqués comme dans la vue Mois ; mai 2026 parce que les trois diffèrent
   (1er mai, Ascension et Pentecôte ; Memorial Day ; 1er mai). Rendue en densité 2,0 (540 × 1200 dp) pour que les trois
@@ -291,6 +304,20 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   caractères pour rester sous les 4000 de `full_description.txt`). La description du dépôt GitHub (« About »,
   hors dépôt, `gh repo edit`) dit la même chose en anglais. Les fiches restent au vouvoiement (ou équivalent), la page
   histoire et le README français au tutoiement.
+- **Vitrine des fonctionnalités (2026-11-25, décision du propriétaire, rouvre le « Message des fiches » ci-dessus)** :
+  Kairos se vend par ses fonctionnalités, à des lecteurs qui ne le connaissent pas. Les **habitudes** (`habitudes.md`)
+  deviennent un argument produit, avec le mot-clé F-Droid du propriétaire.
+  - `short_description.txt` (six langues) : des **bénéfices concrets** (« Vos tâches triées, votre journée planifiée, vos
+    habitudes ancrées. ») ; le slogan passe dans la description longue.
+  - `full_description.txt` : une **vitrine** : une accroche (ce que Kairos fait, le slogan, la vie privée), une liste
+    « En un coup d'œil » d'une ligne de bénéfice par fonctionnalité-phare (ordre, journée, habitudes, durées apprises,
+    temps réel, données), puis le détail ; le récit « agile + todo + GTD » reste à la page histoire.
+  - **Jamais de numéro de version** dans les fiches, les README et les pages d'accueil (« Nouveau en 4.0 » est retiré :
+    une fiche se lit des mois après) ; les nouveautés vont dans les notes de version.
+  - Les habitudes ne disent que ce que leur base soutient (`habitudes.md` § 14) : repère stable, question validée,
+    sources dans l'appli et sur la page « Habitudes » ; ni durée promise, ni « scientifiquement prouvé ».
+  - README (accroche, « In short » / « En bref », un badge), pages d'accueil du site (accroche, carte « Habitudes » qui
+    mène à la page des sources) et description du dépôt GitHub disent la même chose.
 - **Page « L'histoire de Kairos » (2026-11-08)** : `site/histoire/index.html` (français) et
   `site/en/story/index.html` (anglais), HTML et CSS seuls (`style.css`, bloc « Page histoire »), sans `@@…@@`.
   Ton : **tutoiement** (décision du propriétaire, pour toucher les lecteurs), première personne. Plan : une scène
@@ -335,8 +362,12 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   pas de traduction d'un récit à la première personne tant que le propriétaire ne la valide pas. Les validateurs
   (`validate_og.py`, `validate_badges.py`) ne lisent que les `index.html` de langue : ces pages n'en dépendent pas.
   Les README ne gardent qu'un court résumé et le lien (section « Pourquoi j'ai construit Kairos »).
+- **Page « Habitudes » (4.6.0, `habitudes.md` § README, site, magasins)** : générée à la publication par
+  `kmp/tools/make_habits_page.py` depuis `HabitScience.kt` et les `strings.xml`, en six langues (`habitudes/`,
+  `<langue>/habits/`), avec le menu de la page de téléchargement de sa langue (liens relatifs un niveau plus bas, aucune
+  entrée courante) ; elle n'est pas une entrée du menu.
 - **Menu du site (2026-11-15, demande du propriétaire)** : toutes les pages du site (les six pages de téléchargement, les
-  deux pages « histoire » et la carte du code `code/`) portent dans leur en-tête le même menu, dans la langue de la page,
+  deux pages « histoire », la carte du code `code/` et les pages « Habitudes ») portent dans leur en-tête le même menu, dans la langue de la page,
   à côté du sélecteur de langue qui ne change pas. Six entrées, dans cet ordre : **Télécharger** (la page de
   téléchargement de la langue), **Histoire** (la page « histoire » de la langue ; en espagnol, allemand, russe et italien,
   la page anglaise, libellé suivi de la langue, `hreflang="en"`), **Version web** (`app/`, ou `preview/` tant qu'aucune

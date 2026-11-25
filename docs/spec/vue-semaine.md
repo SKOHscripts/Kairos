@@ -116,7 +116,8 @@ Depuis le jalon E1 de l'espace Équipe, l'écran de la vue Semaine lit `reposito
   colonnes de 160 dp au moins que la largeur en permet (une seule carte de
   184 dp laissait la moitié droite vide à 380 dp). `DayCard` : `Surface` `surfaceContainerLow` (aujourd'hui :
   `secondaryContainer` et contour `secondary`), titres sur une ligne avec
-  points de suspension, `Badge` des créneaux, `PriorityBadge`, coche
+  points de suspension, `Badge` des créneaux, `PriorityBadge`, marque « Habitude » d'une habitude (`HabitMark`, 4.6.0,
+  `habitudes.md` § 8), coche
   `CheckCircleFilled` en vert « ok ». Rappel d'échéance d'une tâche programmée : `Badge(deadline_badge)`, ou `WarnBadge`
   si l'échéance précède le jour programmé.
 - Placement (`WeekView.build`) : `tasks` = à faire dont `deadline` est ce jour et dont `scheduledDate` est nulle ou ce

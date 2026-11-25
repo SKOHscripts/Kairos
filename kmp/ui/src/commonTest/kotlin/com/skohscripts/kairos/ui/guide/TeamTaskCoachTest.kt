@@ -12,9 +12,10 @@ class TeamTaskCoachTest {
 
     @Test
     fun everyFieldOfTheTeamSheetHasExactlyOneStep() {
-        // La fiche d'équipe a tous les champs de la fiche personnelle, plus « Assigné à ».
+        // La fiche d'équipe a tous les champs de la fiche personnelle, plus « Assigné à » ; la section « Habitude » n'y est jamais
+        // (une tâche d'équipe ne devient pas une habitude, docs/spec/habitudes.md).
         val covered = steps.flatMap { it.fields }
-        assertEquals(EditField.entries.toSet(), covered.toSet())
+        assertEquals(EditField.entries.filter { !it.habit }.toSet(), covered.toSet())
         assertEquals(covered.size, covered.toSet().size, "un champ expliqué à deux étapes")
     }
 

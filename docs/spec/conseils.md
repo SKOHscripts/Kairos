@@ -85,6 +85,7 @@ créée ou une session de chrono démarrée. Les comptes ne lisent que l'espace 
 | **Fonctionnalités** | | | |
 | `timer` | Le chrono | aucune session de chrono, ≥ 7 jours d'usage, ≥ 5 tâches faites | Jour → « Maintenant » |
 | `recurrence` | Les tâches récurrentes | 3 tâches non récurrentes du même titre (sans casse ni accents) créées dans les 60 derniers jours, aucune tâche récurrente | « Créer ma première tâche récurrente » |
+| `habit_suggest` | En faire une habitude ? | une série régulière (`habitudes.md` § 7), ni habitude ni écartée ; « Ne plus me le proposer » écarte cette série seulement (`GuideSettings.habitsDismissed`) ; récurrent | La fiche de la série, section Habitude (`habitudes.md`) |
 | `recap` | Le Bilan de la semaine et du mois | ≥ 14 jours d'usage, Bilan jamais ouvert | Bilan |
 | `widgets` | Les widgets (Android) | Android, ≥ 10 jours actifs sur les 14 derniers, aucun widget posé | carte du guide « Ta journée sur l'écran d'accueil » |
 | `shortcuts` | Les raccourcis clavier (bureau, web) | bureau ou web, ≥ 7 jours d'usage, aucun raccourci clavier jamais utilisé | carte du guide « Raccourcis clavier » |

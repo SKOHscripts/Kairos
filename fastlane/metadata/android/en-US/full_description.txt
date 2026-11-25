@@ -1,39 +1,37 @@
-Most to-do tools manage a list, more or less finely, but never sort it: deciding where to start is still up to you. Kairos merges agile development, a to-do tool and the GTD method into a list that evolves by itself. You capture and process with GTD; Kairos tells you what to do now, so you can trust it, unload your mind and focus on something else. It puts your tasks in the order to do them, fits them into the gaps of your day, and learns with on-device machine learning how long they really take: the more you use it, the better its estimates.
+Kairos tells you what to do now. It puts your tasks in the order to do them, fits them into the gaps of your day around your meetings, learns how long they really take and helps you anchor your habits. You capture, Kairos decides. No account, no ads: your data stays on your device.
 
-<b>On-device machine learning</b>
-A machine-learning model trained on your device gives a task with a new title a duration from your finished tasks that look like it, with a range and the list of those tasks. Kairos only applies it once it beats the default duration on your own history, learns your pace by day and time, and tells you when estimates change. AI? No, robust local machine learning, with no chatbot or cloud, that trains on every task you finish.
+<b>At a glance</b>
+<ul>
+<li><b>A list that sorts itself</b>: the task to do now is at the top, and Kairos explains why.</li>
+<li><b>A day that holds</b>: tasks around your meetings, deep work protected, lighter work in the afternoon dip.</li>
+<li><b>Habits that take hold</b>: a stable hour, an “After…” phrase, a validated question, scientific sources.</li>
+<li><b>Durations that get sharper</b>: on-device machine learning learns how long your tasks really take.</li>
+<li><b>The time really spent</b>: a timer per task, alerts and honest statistics.</li>
+<li><b>Your data with you</b>: no account, no trackers, offline by default.</li>
+</ul>
 
 <b>An order you can explain</b>
 Each task gets a priority score (WSJF): its value (priority P0, P1 or P2, plus the urgency of its deadline) divided by its effort in points. Small and important goes before big and distant; an overdue task always comes first. “Why this position?” shows the calculation in one tap.
 
 <b>A realistic day</b>
-<ul>
-<li>Tasks are placed around your meetings, with a buffer after each one.</li>
-<li>Deep-work slots are protected; in the afternoon, complex tasks give way to lighter ones.</li>
-<li>Fixed times, recurring tasks (daily, weekdays, weekly, “on the 23rd of the month”), dependencies between tasks, editable subtasks, public holidays of 13 countries.</li>
-<li>A “Your day” card: tasks, deadlines, real availability, deep work.</li>
-</ul>
+Fixed times, recurring tasks (daily, weekdays, weekly, “on the 23rd of the month”), dependencies, subtasks, public holidays of 13 countries. A “Your day” card sums up tasks, deadlines, real availability and deep work.
+
+<b>Habits, on a scientific basis</b>
+Turn a recurring task into a habit. Kairos suggests the time you already do it, then never moves it: a stable cue is what builds automaticity. An “After my coffee” phrase ties it to your routine. Now and then, when you tick it, a validated question asks whether you do it automatically, and a curve shows where you stand. No guilt-tripping streak: a single miss does not count. Every claim is sourced, in the app and on the website.
+
+<b>On-device machine learning, not AI</b>
+A model trained on your device gives a new task a duration from your finished tasks that look like it, with a range. Kairos only applies it once it beats the default duration on your own history. No chatbot, no cloud.
 
 <b>Capture without friction (GTD)</b>
-An idea? A note. A task? A title is enough: it waits in “To process” until you give it a priority and a size, one tap each.
+An idea? A note. A task? A title is enough: it waits in “To process” for a priority and a size, one tap each.
 
 <b>Real time</b>
-A timer per task, with an ongoing notification; alerts when you go past the estimate, forget a running timer or need a break, even with the app closed. When you tick a task, Kairos asks the time spent; interruptions are reported after the fact. Statistics compare your estimates with the real time.
+A timer per task with an ongoing notification; alerts when you go past the estimate, forget a running timer or need a break, even with the app closed. When you tick a task, Kairos asks the time spent; interruptions are reported after the fact.
 
 <b>Manage a team (optional)</b>
-Off by default, team management adds a second space for the manager, who remains the only user:
-<ul>
-<li>Members and absences, a shared backlog, progress tracking with its log; the personal space shows none of it.</li>
-<li>Each person’s load against their capacity, a suggested split; your own personal tasks can count.</li>
-<li>Monte Carlo forecasts: finish dates as percentage chances, threatened deadlines, “What if…?” scenarios.</li>
-<li>File exchanges with members who use Kairos: they receive their tasks and send back their progress.</li>
-</ul>
+A second space for the manager, the only user: members, backlog, each person’s load, Monte Carlo forecasts and file exchanges with members.
 
 <b>Your data stays with you</b>
-<ul>
-<li>No account, no ads, no trackers. The network is used only by the optional online connections, off by default.</li>
-<li>Export and import a JSON file, to back up or switch devices; or keep an up-to-date copy in a folder you sync.</li>
-<li>Meetings from a calendar file (.ics: Outlook, Google, Thunderbird), an ICS link, a CalDAV server or, optionally, your phone’s calendars, read only; calendar access is then requested. Importing a file never uses the network.</li>
-</ul>
+No account, no ads, no trackers. JSON export, an up-to-date copy in a folder you sync, calendars from .ics, ICS or CalDAV, read only. The network is used only by the optional online connections, off by default.
 
-Kairos is also available for Windows, Linux and macOS, and in the browser, in Material or “Cadran” style. Free software under the GNU AGPL v3 or later, in English, French, Spanish, German, Russian and Italian (your choice in the settings; by default your system’s language when it is one of these, English otherwise).
+Also for Windows, Linux, macOS and the browser, in Material or “Cadran” style. Free software (GNU AGPL v3 or later), in English, French, Spanish, German, Russian and Italian.

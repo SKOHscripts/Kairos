@@ -3,6 +3,7 @@ package com.skohscripts.kairos.core.guide
 import com.skohscripts.kairos.core.ExampleData
 import com.skohscripts.kairos.core.engine.TimeTracking
 import com.skohscripts.kairos.core.engine.Workdays
+import com.skohscripts.kairos.core.habit.Habits
 import com.skohscripts.kairos.core.model.BlockKind
 import com.skohscripts.kairos.core.model.GuideSettings
 import com.skohscripts.kairos.core.model.KairosSnapshot
@@ -70,6 +71,8 @@ enum class TipId(
     DARK_THEME("dark_theme", TipGroup.SETTINGS, "darktheme"),
     TIMER("timer", TipGroup.FEATURES, "time"),
     RECURRENCE("recurrence", TipGroup.FEATURES, "recurrence"),
+    // Une série régulière à faire habitude (docs/spec/habitudes.md § 1) : récurrent, chaque série étant écartée à part.
+    HABIT_SUGGEST("habit_suggest", TipGroup.FEATURES, "habits", recurring = true),
     RECAP("recap", TipGroup.FEATURES, "recap"),
     WIDGETS("widgets", TipGroup.FEATURES, "widgets", platforms = setOf(TipPlatform.ANDROID)),
     SHORTCUTS("shortcuts", TipGroup.FEATURES, "shortcuts", platforms = setOf(TipPlatform.DESKTOP, TipPlatform.WEB)),
@@ -111,6 +114,10 @@ data class Tip(
     val name: String? = null,
     val level: Int? = null,
     val variant: Int = 0,
+    /** « En faire une habitude ? » : l'occurrence à faire de la série proposée (« Montre-moi » ouvre sa fiche). */
+    val taskId: Long? = null,
+    /** « En faire une habitude ? » : la clé de la série (« Ne plus me le proposer » vaut pour elle seule). */
+    val seriesKey: Long? = null,
 )
 
 /**
@@ -199,9 +206,16 @@ object Tips {
     fun snoozed(memory: GuideSettings, id: TipId, today: LocalDate): GuideSettings =
         memory.copy(tipsSnoozed = memory.tipsSnoozed + (id.key to today.plus(DatePeriod(days = SNOOZE_DAYS)).toString()))
 
-    /** « Ne plus me le proposer » : [id] écarté pour de bon. */
-    fun dismissed(memory: GuideSettings, id: TipId): GuideSettings =
-        memory.copy(tipsDismissed = (memory.tipsDismissed + id.key).distinct(), tipsSnoozed = memory.tipsSnoozed - id.key)
+    /**
+     * « Ne plus me le proposer » : [id] écarté pour de bon ; pour « En faire une habitude ? » ([seriesKey] donné), seule la série
+     * est écartée (docs/spec/habitudes.md § 1), le conseil reste possible pour les autres.
+     */
+    fun dismissed(memory: GuideSettings, id: TipId, seriesKey: Long? = null): GuideSettings =
+        if (id == TipId.HABIT_SUGGEST && seriesKey != null) {
+            memory.copy(habitsDismissed = (memory.habitsDismissed + seriesKey).distinct(), tipsSnoozed = memory.tipsSnoozed - id.key)
+        } else {
+            memory.copy(tipsDismissed = (memory.tipsDismissed + id.key).distinct(), tipsSnoozed = memory.tipsSnoozed - id.key)
+        }
 
     /** L'écran suivi [screen] a été ouvert : la mémoire inchangée s'il l'était déjà. */
     fun seen(memory: GuideSettings, screen: String): GuideSettings =
@@ -287,6 +301,7 @@ object Tips {
             TipId.DARK_THEME -> darkTheme()
             TipId.TIMER -> timer()
             TipId.RECURRENCE -> recurrence()
+            TipId.HABIT_SUGGEST -> habitSuggest()
             TipId.RECAP -> recap()
             TipId.WIDGETS -> widgets()
             TipId.SHORTCUTS -> shortcuts()
@@ -424,6 +439,17 @@ object Tips {
                 .values.filter { it.size >= 3 }
                 .maxByOrNull { it.size } ?: return null
             return Tip(TipId.RECURRENCE, count = repeated.size, name = repeated.maxBy { it.createdAt }.title.trim())
+        }
+
+        /** La série la plus régulière, ni habitude ni écartée (docs/spec/habitudes.md § 7) ; [Tip.count] = son heure en minutes. */
+        private fun habitSuggest(): Tip? {
+            if (!settings.habitsOn) return null
+            val best = Habits.suggestions(personal, today, tz, Workdays.holidaysFor(today, snapshot), memory.habitsDismissed.toSet())
+                .firstOrNull() ?: return null
+            return Tip(
+                TipId.HABIT_SUGGEST, count = best.regularity.minuteOfDay, name = best.task.title.trim(),
+                taskId = best.task.id, seriesKey = Habits.seriesKey(best.task),
+            )
         }
 
         private fun recap(): Tip? = if (age() >= 14 && SCREEN_RECAP !in memory.seenScreens) Tip(TipId.RECAP) else null

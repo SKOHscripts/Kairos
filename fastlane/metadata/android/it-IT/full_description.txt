@@ -1,39 +1,37 @@
-La maggior parte degli strumenti to-do gestisce una lista senza mai ordinarla: decidere da dove cominciare resta compito Suo. Kairos fonde sviluppo agile, strumento to-do e GTD in una lista che si evolve da sola. Lei elabora con il GTD; Kairos Le dice cosa fare ora: se ne fidi, alleggerisca la mente. Inserisce le attività negli spazi della giornata e ne impara la durata con il machine learning sul dispositivo: più lo usa, più le stime sono precise.
+Kairos Le dice cosa fare adesso. Mette le Sue attività nell’ordine in cui farle, le colloca negli spazi della giornata attorno alle riunioni, impara quanto durano davvero e La aiuta a radicare le Sue abitudini. Lei cattura, Kairos decide. Senza account né pubblicità: i Suoi dati restano sul Suo dispositivo.
 
-<b>Machine learning sul dispositivo</b>
-Un modello di machine learning addestrato sul suo dispositivo dà a un’attività con un titolo nuovo una durata da attività completate simili, con un intervallo e l’elenco di quelle attività. Kairos la applica solo quando fa meglio della durata predefinita sul suo storico, impara il suo ritmo secondo giorno e ora, e la avvisa quando le stime cambiano. IA? No, machine learning robusto e locale, senza chatbot né cloud, che si allena a ogni attività completata.
+<b>In breve</b>
+<ul>
+<li><b>Una lista che si ordina da sola</b>: l’attività da fare adesso è in cima, e Kairos spiega perché.</li>
+<li><b>Una giornata che regge</b>: attività attorno alle riunioni, deep work protetto, cose leggere nel calo del pomeriggio.</li>
+<li><b>Abitudini che si radicano</b>: un’ora stabile, una frase «Dopo…», una domanda validata, fonti scientifiche.</li>
+<li><b>Durate sempre più precise</b>: il machine learning sul dispositivo impara il tempo reale delle Sue attività.</li>
+<li><b>Il tempo davvero speso</b>: un cronometro per attività, avvisi e statistiche oneste.</li>
+<li><b>I Suoi dati a casa Sua</b>: nessun account, nessun tracciamento, offline per impostazione predefinita.</li>
+</ul>
 
-<b>Un ordine che si può spiegare</b>
-Ogni attività riceve un punteggio di priorità (WSJF): il suo valore (priorità P0, P1 o P2, più l’urgenza della scadenza) diviso per il suo impegno in punti. Ciò che è piccolo e importante viene prima di ciò che è grande e lontano; un’attività in ritardo passa sempre per prima. «Perché questa posizione?» mostra il calcolo con un tocco.
+<b>Un ordine che si spiega</b>
+Ogni attività riceve un punteggio di priorità (WSJF): il suo valore (priorità P0, P1 o P2, più l’urgenza della scadenza) diviso per lo sforzo in punti. Piccolo e importante passa prima di grande e lontano; un’attività in ritardo passa sempre in testa. «Perché in questa posizione?» mostra il calcolo con un tocco.
 
 <b>Una giornata realistica</b>
-<ul>
-<li>Le attività sono collocate attorno alle riunioni, con un margine dopo ciascuna.</li>
-<li>Le fasce di deep work sono protette; nel pomeriggio le attività complesse lasciano il posto a quelle più leggere.</li>
-<li>Orari fissi, attività ricorrenti (ogni giorno, nei giorni feriali, ogni settimana, «il 23 del mese»), dipendenze tra attività, sottoattività modificabili, festività di 13 paesi.</li>
-<li>Scheda «La tua giornata»: attività, scadenze, deep work.</li>
-</ul>
+Orari fissi, attività ricorrenti (giornaliere, feriali, settimanali, «il 23 del mese»), dipendenze, sottoattività, festività di 13 paesi. Una scheda «La tua giornata» riassume attività, scadenze, disponibilità reale e deep work.
 
-<b>Appuntare senza fatica (GTD)</b>
-Un’idea? Una nota. Un’attività? Basta un titolo: attende in «Da elaborare» finché non le assegna una priorità e una dimensione, un tocco ciascuna.
+<b>Abitudini, su basi scientifiche</b>
+Trasformi un’attività ricorrente in abitudine. Kairos propone l’ora in cui già la svolge, poi non la sposta più: è un segnale stabile a creare l’automatismo. Una frase «Dopo il caffè» la lega alla Sua routine. Ogni tanto, quando la spunta, una domanda validata Le chiede se lo fa automaticamente, e una curva mostra a che punto è. Nessuna serie che colpevolizza: una singola dimenticanza non conta. Ogni affermazione ha la sua fonte, nell’app e sul sito.
 
-<b>Tempo reale</b>
-Un timer per attività, con notifica persistente; avvisi quando supera la stima, dimentica un timer attivo o ha bisogno di una pausa, anche con l’app chiusa. Le statistiche confrontano stime e tempo reale; a ogni attività completata Kairos chiede il tempo impiegato, e le interruzioni si segnalano a posteriori.
+<b>Machine learning sul dispositivo, non un’IA</b>
+Un modello addestrato sul Suo dispositivo dà a un’attività nuova una durata in base alle attività svolte che le somigliano, con un intervallo. Kairos lo applica solo se batte la durata predefinita sul Suo storico. Né chatbot né cloud.
+
+<b>Catturare senza attrito (GTD)</b>
+Un’idea? Una nota. Un’attività? Basta un titolo: attende in «Da elaborare» una priorità e una dimensione, un tocco ciascuna.
+
+<b>Il tempo reale</b>
+Un cronometro per attività con notifica; avvisi di superamento, di cronometro dimenticato e di pausa, anche ad app chiusa. Alla spunta, Kairos chiede il tempo speso; le interruzioni si segnalano dopo.
 
 <b>Gestire un team (facoltativo)</b>
-Disattivata per impostazione predefinita, la gestione del team aggiunge un secondo spazio per il manager, che resta l’unico utente:
-<ul>
-<li>Membri e assenze, un backlog condiviso, monitoraggio dell’avanzamento con il suo registro; lo spazio personale non lo mostra.</li>
-<li>Il carico di ciascuna persona rispetto alla sua capacità, e una ripartizione suggerita; le Sue attività personali possono contare.</li>
-<li>Previsioni Monte Carlo: date di fine espresse come probabilità in percentuale, scadenze a rischio, scenari «E se…?».</li>
-<li>Scambi di file con i membri che usano Kairos: ricevono le loro attività e restituiscono il proprio avanzamento.</li>
-</ul>
+Un secondo spazio per il responsabile, unico utente: membri, backlog, carico di ciascuno, previsioni Monte Carlo e scambi via file con i membri.
 
 <b>I Suoi dati restano con Lei</b>
-<ul>
-<li>Nessun account, nessuna pubblicità, nessun tracker. La rete è usata solo dalle connessioni online facoltative, disattivate per impostazione predefinita.</li>
-<li>Esporti e importi un file JSON, per fare un backup o cambiare dispositivo; oppure conservi una copia aggiornata in una cartella che sincronizza.</li>
-<li>Riunioni da un file di calendario (.ics: Outlook, Google, Thunderbird), da un link ICS, da un server CalDAV oppure, facoltativamente, dai calendari del telefono, in sola lettura; l’accesso al calendario viene allora richiesto. L’importazione di un file non usa mai la rete.</li>
-</ul>
+Nessun account, nessuna pubblicità, nessun tracciamento. Esportazione JSON, copia aggiornata in una cartella che Lei sincronizza, calendari .ics, ICS o CalDAV in sola lettura. La rete serve solo alle connessioni online facoltative, disattivate per impostazione predefinita.
 
-Kairos è disponibile anche per Windows, Linux e macOS, e nel browser, in Material o «Cadran». Software libero con licenza GNU AGPL v3 o successiva, in inglese, francese, spagnolo, tedesco, russo e italiano (a scelta nelle impostazioni; altrimenti la lingua del sistema o l’inglese).
+Anche per Windows, Linux, macOS e il browser, in stile Material o «Cadran». Software libero (GNU AGPL v3 o successiva), in italiano, francese, inglese, spagnolo, tedesco e russo.

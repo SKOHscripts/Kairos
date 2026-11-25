@@ -113,7 +113,7 @@ boîte de réception (priorité et taille), **faire** dans l'ordre du score.
 la lignée pour une sous-tâche (« A › C › » : tous ses ancêtres, `sous-taches.md`), titre, puis étiquettes (projet en
 pastille ; type, durée, « échéance 30 sept. » et « programmée 2 oct. » en **une phrase atténuée** séparée par des points
 médians, « Développement · 45 min · échéance 13 nov. », 4.1.0, § Lisibilité de la ligne ; icône de récurrence,
-temps passé ou minuteur vivant, « traîne depuis N j ») qui passent à la ligne, puis la description sur une
+icône neutre « Habitude » d'une habitude (4.6.0, `habitudes.md` § 8), temps passé ou minuteur vivant, « traîne depuis N j ») qui passent à la ligne, puis la description sur une
 ligne, dépliable d'un clic ; colonne « clés » alignée à droite : score (qui
 s'ouvre sur « Pourquoi à cette place ? »), priorité (P0 en rouge), points ;
 actions : chrono, puis déplacer (menu qui commence par « Décaler », tâche perso) ou décaler seul (tâche d'équipe), à

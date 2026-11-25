@@ -56,7 +56,9 @@ un nombre) ne doit jamais être enregistré, ni à moitié.
      occurrences nécessaires `learning.minSamples` ≥ 2 et au plus `history`, sinon `TOO_LARGE` sur
      `learning.minSamples` ; « Estimer par machine learning » `learning.model`, 4.0.0, `estimateur-modele.md`, affiché seulement avec
      les durées apprises, avec dessous l'état de la vérification du modèle ; `Settings.learning` reste nul tant que les
-     quatre valent leur défaut), **Garde-fous**
+     quatre valent leur défaut), **Habitudes** (4.6.0, `habitudes.md` § Réglages : interrupteur `habitsEnabled`, activé
+     par défaut, `Settings.habitsEnabled` nul tant qu'on n'y touche pas ; explication, limites et « Sources scientifiques »,
+     qui ouvre le dialogue des sources), **Garde-fous**
      (seuils « traîne » en retard et sans date, seuil de surcharge P0), puis le groupe replié **« Avancé : comment
      les tâches sont ordonnées »** (`planning-personnalise.md` lot A, ouvert d'office quand un de ses champs est en
      erreur) : **Score de priorité** (base de valeur, horizon d'urgence, poids maximal de l'urgence, échéance implicite des tâches

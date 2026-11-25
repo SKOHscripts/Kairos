@@ -261,13 +261,14 @@ fun AppShell(
     val linkFailure = stringResource(Res.string.link_unavailable)
     // Hors des branches de mise en page : un redimensionnement ne rouvre pas l'accueil.
     // L'accompagnement de la première tâche (docs/spec/premiere-tache.md) se passe sur la vue Jour de l'espace Perso : on y va, puis on le demande.
-    val startTask: (Boolean) -> Unit = { recurring ->
+    val startTask: (Boolean, Boolean) -> Unit = { recurring, habit ->
         if (space == Space.TEAM) onSpaceChange(Space.PERSONAL)
         onNavigate(Destination.DAY)
         nav.firstTaskRecurring = recurring
+        nav.firstTaskHabit = habit
         nav.firstTaskRequest = true
     }
-    val startFirstTask: () -> Unit = { startTask(false) }
+    val startFirstTask: () -> Unit = { startTask(false, false) }
     if (demo == null) {
         CompositionLocalProvider(LocalMessages provides showMessage) {
             WelcomeDialog(services, onStartGuide = { guide = GuideKind.PERSONAL }, onFirstTask = startFirstTask)
@@ -333,7 +334,18 @@ fun AppShell(
             GuideTarget.FirstTask -> startFirstTask()
             GuideTarget.Demo -> if (services.demo != null) startDemo()
             GuideTarget.Feedback -> feedbackOpen = true
-            GuideTarget.RecurringTask -> startTask(true)
+            GuideTarget.RecurringTask -> startTask(true, false)
+            // Habitude (docs/spec/habitudes.md) : sans tâche, l'accompagnement de la première ; avec, sa fiche sur la section Habitude.
+            is GuideTarget.Habit -> {
+                val id = target.taskId
+                if (id == null) {
+                    startTask(true, true)
+                } else {
+                    if (space == Space.TEAM) onSpaceChange(Space.PERSONAL)
+                    onNavigate(Destination.DAY)
+                    nav.habitRequest = id
+                }
+            }
             is GuideTarget.Card -> singleCard = target.id
         }
     }
@@ -497,7 +509,8 @@ fun AppShell(
                 teamCoachStep = 0
             },
             // Première tâche récurrente et visite des Réglages (docs/spec/premiere-tache.md, issue #98).
-            onFirstRecurring = { discover = false; startTask(true) },
+            onFirstRecurring = { discover = false; startTask(true, false) },
+            onFirstHabit = { discover = false; startTask(true, true) },
             onSettingsTour = {
                 discover = false
                 onOpenSettings()
@@ -554,9 +567,13 @@ fun AppShell(
         val answer: ((GuideSettings) -> GuideSettings) -> Unit = { change -> tip = null; scope.launch { services.repository.updateGuide(change) } }
         TipDialog(
             shown,
-            onShow = { answer { Tips.accepted(it, shown.id, tipDay) }; openTarget(TipContent.target(shown.id)) },
+            onShow = {
+                answer { Tips.accepted(it, shown.id, tipDay) }
+                // « En faire une habitude ? » mène à la fiche de la série proposée (docs/spec/habitudes.md § 1).
+                openTarget(shown.taskId?.let { GuideTarget.Habit(it) } ?: TipContent.target(shown.id))
+            },
             onLater = { answer { Tips.snoozed(it, shown.id, tipDay) } },
-            onNever = { answer { Tips.dismissed(it, shown.id) } },
+            onNever = { answer { Tips.dismissed(it, shown.id, shown.seriesKey) } },
         )
     }
     if (demo?.finished == true) DemoDoneDialog(onExit = onExitDemo, onRestart = onRestartDemo)

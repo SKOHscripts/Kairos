@@ -83,6 +83,15 @@ data class Task(
      * la clé `TeamOrigin.key` de cette équipe ; `null` = non proposée.
      */
     val proposedTo: String? = null,
+    /**
+     * Habitude (docs/spec/habitudes.md) : date où la série a été déclarée habitude ; `null` = pas une habitude. Comme
+     * [pinnedStart] (l'heure de l'habitude), recopiée à l'occurrence suivante : l'habitude est un attribut de la série.
+     */
+    val habitSince: Instant? = null,
+    /** Phrase « Après… » de l'habitude (signal de routine, 80 caractères au plus) ; vide = aucune. Recopiée comme [habitSince]. */
+    val habitAfter: String = "",
+    /** Réponse (1 à 7) à la question d'automatisme posée à la coche de **cette** occurrence ; jamais recopiée. */
+    val habitScore: Int? = null,
 ) {
     /**
      * Pas encore clarifiée (GTD, docs/spec/vue-jour.md § Décisions) : il manque la priorité, les points **ou**, si

@@ -22,6 +22,9 @@ class CalendarHolidaysTest {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         val first = KairosRepository(KairosStore.open(driver).database).also { it.load() }
         first.importCalendar("Usine", false, plan, today)
+        driver.execute(null, "ALTER TABLE task DROP COLUMN habit_since", 0).await()
+        driver.execute(null, "ALTER TABLE task DROP COLUMN habit_after", 0).await()
+        driver.execute(null, "ALTER TABLE task DROP COLUMN habit_score", 0).await()
         driver.execute(null, "DROP TABLE interruption", 0).await()
         driver.execute(null, "ALTER TABLE calendar_source DROP COLUMN counts_as_holidays", 0).await()
         assertEquals(14L, KairosStore.actualVersion(driver))

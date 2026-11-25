@@ -158,6 +158,8 @@ JSON UTF-8 indenté :
 - Champs des tâches : ceux du modèle (`modele-donnees.md`), en camelCase ;
   valeurs `null` omises ; codes de statut et de récurrence de la base.
 - **Série d'une tâche récurrente** (3.4, `durees-apprises.md`) : `seriesId` n'est écrit que s'il est non nul, **sans changer la
+- **Habitude** (4.6.0, `habitudes.md` § Données) : `habitSince`, `habitAfter` et `habitScore` ne sont écrits que s'ils ne sont
+  pas à leur défaut, sans changer `formatVersion` ; à la lecture, un score hors de 1 à 7 est refusé.
   version du format** (un champ de plus que les anciens lecteurs ignorent) ; une tâche sans série s'exporte comme avant
   (`LearnedDurationsRepositoryTest.theSeriesSurvivesAnExportAndIsAbsentWhenThereIsNone`). Même règle pour `settings.learning`
   et pour `settings.recurrence` (3.13.0, mémoire des avis de mois sautés ignorés, `recurrence.md` § Avis des mois sautés) :

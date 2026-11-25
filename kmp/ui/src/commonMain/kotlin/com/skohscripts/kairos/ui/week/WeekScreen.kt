@@ -123,6 +123,8 @@ import com.skohscripts.kairos.ui.generated.resources.week_move_holiday
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.core.habit.Habits
+import com.skohscripts.kairos.ui.habit.HabitMark
 
 /**
  * Vue Semaine (docs/spec/vue-semaine.md) : navigation d'une semaine à
@@ -210,7 +212,7 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
                 if (maxWidth >= 140.dp * 7 + 8.dp * 6) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.height(IntrinsicSize.Max)) {
                         week.days.forEach { day ->
-                            DayCard(day, day.date == today, move, Modifier.weight(1f).fillMaxHeight()) { onOpenDay(day.date) }
+                            DayCard(day, day.date == today, move, Modifier.weight(1f).fillMaxHeight(), stored.settings.habitsOn) { onOpenDay(day.date) }
                         }
                     }
                 } else {
@@ -221,7 +223,7 @@ fun WeekScreen(services: AppServices, nav: NavState, onOpenDay: (LocalDate) -> U
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         maxItemsInEachRow = columns,
                     ) {
-                        week.days.forEach { day -> DayCard(day, day.date == today, move, Modifier.width(cardWidth)) { onOpenDay(day.date) } }
+                        week.days.forEach { day -> DayCard(day, day.date == today, move, Modifier.width(cardWidth), stored.settings.habitsOn) { onOpenDay(day.date) } }
                     }
                 }
             }
@@ -300,7 +302,7 @@ private fun BacklogList(tasks: List<Task>, settings: Settings, learned: Boolean,
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun DayCard(day: WeekDay, isToday: Boolean, move: MoveContext, modifier: Modifier, onOpen: () -> Unit) {
+private fun DayCard(day: WeekDay, isToday: Boolean, move: MoveContext, modifier: Modifier, habitsOn: Boolean = true, onOpen: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val language = move.language
     Surface(
@@ -337,6 +339,7 @@ private fun DayCard(day: WeekDay, isToday: Boolean, move: MoveContext, modifier:
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         t.priority?.let { PriorityBadge(it) }
                         if (t.projectTag.isNotEmpty()) Badge(t.projectTag)
+                        if (habitsOn && Habits.isHabit(t)) HabitMark()
                     }
                 }
             }

@@ -14,6 +14,7 @@
 [![vie privée: sans compte · sans pub · sans pistage](https://img.shields.io/badge/vie%20priv%C3%A9e-sans%20compte%20%C2%B7%20sans%20pub%20%C2%B7%20sans%20pistage-2F6FED?labelColor=1C2F59)](#données)
 [![données: sur ton appareil, hors ligne](https://img.shields.io/badge/donn%C3%A9es-sur%20ton%20appareil%2C%20hors%20ligne-2F6FED?labelColor=1C2F59)](#données)
 [![machine learning: sur l’appareil](https://img.shields.io/badge/machine%20learning-sur%20l%E2%80%99appareil-2F6FED?labelColor=1C2F59)](#machine-learning-sur-lappareil-pour-la-vraie-durée-de-tes-tâches)
+[![habitudes: repère stable · sources scientifiques](https://img.shields.io/badge/habitudes-rep%C3%A8re%20stable%20%C2%B7%20sources%20scientifiques-2F6FED?labelColor=1C2F59)](https://skohscripts.github.io/Kairos/habitudes/)
 [![méthodes: WSJF · GTD · time blocking](https://img.shields.io/badge/m%C3%A9thodes-WSJF%20%C2%B7%20GTD%20%C2%B7%20time%20blocking-2F6FED?labelColor=1C2F59)](#ordonnancement)
 [![plateformes: Android · Windows · Linux · macOS · Web](https://img.shields.io/badge/plateformes-Android%20%C2%B7%20Windows%20%C2%B7%20Linux%20%C2%B7%20macOS%20%C2%B7%20Web-2F6FED?labelColor=1C2F59)](#installer)
 [![langues: EN · FR · ES · DE · RU · IT](https://img.shields.io/badge/langues-EN%20%C2%B7%20FR%20%C2%B7%20ES%20%C2%B7%20DE%20%C2%B7%20RU%20%C2%B7%20IT-2F6FED?labelColor=1C2F59)](#traduire-kairos)
@@ -27,7 +28,9 @@
 de 13 h à 14 h m’empêche de traiter le sujet urgent avant 14 h 05 ? » Il range
 tes tâches dans l’ordre où les faire, les place dans les trous de ta journée,
 et apprend par **machine learning, sur ton appareil,** combien de temps elles
-prennent vraiment. Sans compte, sans publicité, sans pistage : tes données
+prennent vraiment. Il t’aide aussi à ancrer des **habitudes** : une heure
+stable, une phrase « Après… » et une question validée, avec les sources
+scientifiques dans l’appli. Sans compte, sans publicité, sans pistage : tes données
 restent sur ton appareil. Le seul usage du réseau est celui des
 [connexions de calendrier en ligne](#données) facultatives, désactivées par défaut.
 
@@ -47,13 +50,21 @@ restent sur ton appareil. Le seul usage du réseau est celui des
 
 ## En bref
 
-- **Nouveau en 4.0 : du machine learning, sur ton appareil, apprend
+- **Du machine learning, sur ton appareil, apprend
   combien de temps prennent vraiment tes tâches.** Une tâche au titre nouveau
   reçoit une durée d’après tes tâches faites qui lui ressemblent, avec une
   fourchette et la liste de ces tâches, et seulement une fois que cela fait
   mieux que la durée par défaut sur ton propre historique.
   [Comment ça marche](#machine-learning-sur-lappareil-pour-la-vraie-durée-de-tes-tâches).
-- **Nouveau en 4.0 : la synchronisation entre tes appareils.** Lie le même
+- **Des habitudes, sur des bases scientifiques.** Fais d’une tâche récurrente
+  quotidienne, de jours ouvrés ou hebdomadaire une habitude : Kairos propose
+  l’heure où tu la fais déjà, puis ne la déplace plus, et une phrase « Après… »
+  l’accroche à ta routine. De temps en temps, une question validée demande si tu
+  le fais automatiquement, et ta courbe montre quand l’habitude est installée.
+  Pas de série de jours, pas de culpabilité : un oubli isolé ne compte pas.
+  Chaque affirmation est sourcée, dans l’appli et sur la
+  [page des habitudes](https://skohscripts.github.io/Kairos/habitudes/).
+- **La synchronisation entre tes appareils.** Lie le même
   fichier sur chaque appareil, dans un dossier Syncthing ou Nextcloud par
   exemple : Kairos le fusionne avec les données de chaque appareil, garde tout
   ce qui existe des deux côtés, et liste ce qui a été changé sur deux appareils
@@ -107,7 +118,7 @@ Claude Code.
 
 ## Machine learning sur l’appareil, pour la vraie durée de tes tâches
 
-Nouveau en 4.0 : un modèle de machine learning qui apprend de tes tâches faites
+Un modèle de machine learning qui apprend de tes tâches faites
 combien de temps prendront les suivantes. Il est entraîné et exécuté entièrement
 sur ton appareil : plus proches voisins sur ton historique, régression ridge en
 repli, et une vérification sur tes propres données avant de changer quoi que ce
@@ -309,6 +320,17 @@ supprimée.
 - **Récurrence** : quotidienne, jours ouvrés, hebdomadaire, mensuelle (terminer
   une occurrence crée la suivante), et « le N du mois » (décalée au jour ouvré
   précédent si week-end ou férié).
+- **Habitudes** : fais d’une tâche récurrente quotidienne, de jours ouvrés ou
+  hebdomadaire une habitude, avec une heure fixe (Kairos propose l’heure où tu la
+  fais d’habitude, puis ne la déplace plus) et une phrase « Après… » facultative
+  qui l’accroche à ta routine. De temps en temps, quand tu la coches, Kairos pose
+  une question validée : « c’est quelque chose que je fais automatiquement », de
+  1 à 7. Tes réponses tracent sa courbe ; Kairos dit « installée » quand elles
+  restent hautes, et ne compte jamais de jours d’affilée. Réglages →
+  Planification → Habitudes explique la démarche et donne les sources
+  scientifiques de chaque affirmation (pas de « 21 jours » : il faut des
+  semaines à des mois). Les mêmes sources sur la
+  [page des habitudes](https://skohscripts.github.io/Kairos/habitudes/).
 - **Mois sautés** : si Kairos n’a pas été ouvert pendant un mois entier, une
   tâche « le N du mois » n’a pas d’occurrence ce mois-là. La vue Jour
   d’aujourd’hui le dit alors, une ligne par série (« 2 occurrences mensuelles
@@ -615,10 +637,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 - **Fichier lié** : sur le bureau et Android aussi, Réglages → Données →
   « Créer un fichier » tient à jour une copie de tes données (un export, qui
   s’ouvre partout) dans le dossier de ton choix, par exemple un dossier
-  Syncthing ou Nextcloud, écrite 2 secondes après chaque changement. Depuis la
-  4.0, quand un autre appareil a modifié le fichier, Kairos le fusionne avec tes
+  Syncthing ou Nextcloud, écrite 2 secondes après chaque changement. Quand
+  un autre appareil a modifié le fichier, Kairos le fusionne avec tes
   données au lieu de s’arrêter.
-- **Synchronisation entre appareils** (4.0) : lie le même fichier sur chaque
+- **Synchronisation entre appareils** : lie le même fichier sur chaque
   appareil (Réglages → Données → « Créer un fichier » sur le premier, « Ouvrir
   un fichier Kairos » puis « Fusionner » sur les autres). Chaque changement est
   fusionné champ par champ : deux appareils qui changent des champs différents
@@ -840,6 +862,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 | Organiser | Sous-tâches | 3.0.0 | Toutes |
 | Organiser | Sous-tâches modifiables | 3.3.0 | Toutes |
 | Organiser | Récurrence | 3.0.0 | Toutes |
+| Organiser | Habitudes | 4.6.0 | Toutes |
 | Organiser | Mois sautés | 3.13.0 | Toutes |
 | Organiser | Décaler et déplacer | 3.0.0 | Toutes |
 | Organiser | Bloqueurs | 3.0.0 | Toutes |

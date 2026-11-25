@@ -125,6 +125,9 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   de l'avis des mois sautés ; nul tant que rien n'est ignoré, donc absent de l'export, aucune migration ; écrit par
   `KairosRepository.updateRecurrence`, qui n'écrit rien si rien ne change, `recurrence.md` § Avis des mois sautés) ;
   `Task.seriesId` (identifiant de la première tâche d'une série récurrente, nul par défaut).
+- Habitude (4.6.0, `habitudes.md` § Modèle) : `Task.habitSince` (instant, nul = pas une habitude), `Task.habitAfter` (phrase
+  « Après… », vide par défaut) et `Task.habitScore` (réponse 1 à 7 notée à la coche de cette occurrence) ; schéma 17 :
+  `16.sqm` ajoute `habit_since`, `habit_after` et `habit_score` en fin de `task`.
 - `TeamMember` (`core/team/`) : `id`, `uid`, `name`, `role`,
   `availabilityPercent`, `hoursPerDay`, `weekHours` (3.9.0, colonne `week_hours` « 8,8,8,8,0 », `NULL` = aucune ; schéma 10),
   `isSelf`, `archived`, `createdAt`,

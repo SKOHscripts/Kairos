@@ -187,6 +187,12 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import com.skohscripts.kairos.core.habit.Habits
+import com.skohscripts.kairos.ui.habit.HabitQuestionDialog
+import com.skohscripts.kairos.ui.generated.resources.habit_installed
+import com.skohscripts.kairos.ui.habit.HabitSheet
+import com.skohscripts.kairos.core.model.TaskRecurrence
+import com.skohscripts.kairos.ui.guide.HabitCoach
 
 /** Largeur à partir de laquelle la frise passe à droite de la liste. */
 private val TWO_COLUMNS = 900.dp
@@ -211,7 +217,12 @@ fun DayScreen(
     firstTaskRequest: Boolean = false,
     /** La demande est celle de la première tâche récurrente (issue #98) : les étapes de `RecurrenceCoach`. */
     firstTaskRecurring: Boolean = false,
+    /** La demande est celle de la première habitude (docs/spec/habitudes.md § 11) : une quotidienne, les étapes de `HabitCoach`. */
+    firstTaskHabit: Boolean = false,
     onFirstTaskHandled: () -> Unit = {},
+    /** Fiche à ouvrir sur sa section « Habitude » (conseil « En faire une habitude ? ») ; [onHabitRequestHandled] l'acquitte. */
+    habitRequest: Long? = null,
+    onHabitRequestHandled: () -> Unit = {},
     /** « Découvrir Kairos » depuis les félicitations : le hub appartient à la coquille. */
     onDiscover: () -> Unit = {},
 ) {
@@ -277,6 +288,17 @@ fun DayScreen(
     var coachStep by rememberSaveable { mutableIntStateOf(-1) }
     // Accompagnement de la première tâche récurrente (issue #98) : la même fiche, d'autres étapes.
     var coachRecurring by rememberSaveable { mutableStateOf(false) }
+    // Accompagnement de la première habitude (docs/spec/habitudes.md § 11) : une quotidienne déjà marquée habitude.
+    var coachHabit by rememberSaveable { mutableStateOf(false) }
+    // Fiche ouverte depuis le conseil « En faire une habitude ? » : sa section Habitude est dépliée.
+    var openHabit by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(habitRequest) {
+        if (habitRequest != null) {
+            editingId = habitRequest
+            openHabit = true
+            onHabitRequestHandled()
+        }
+    }
     var placedId by rememberSaveable { mutableStateOf<Long?>(null) }
     var congrats by rememberSaveable { mutableStateOf(false) }
     var placedStep by rememberSaveable { mutableIntStateOf(-1) }
@@ -287,6 +309,7 @@ fun DayScreen(
             creating = true
             coachStep = 0
             coachRecurring = firstTaskRecurring
+            coachHabit = firstTaskHabit
             onFirstTaskHandled()
         }
     }
@@ -371,6 +394,8 @@ fun DayScreen(
     val spentPrompts = LocalSpentPrompts.current
     val shellScope = LocalShellScope.current ?: scope
     var lastDoneAt by remember { mutableStateOf<Instant?>(null) }
+    // Habitudes (docs/spec/habitudes.md § 3) : la question d'automatisme passe avant « Temps passé ? » ; une seule question.
+    var habitQuestion by remember { mutableStateOf<Task?>(null) }
     val noteSpent: (Task, Int) -> Unit = { task, minutes ->
         shellScope.launch {
             repository.setSpent(task.id, minutes)
@@ -387,13 +412,31 @@ fun DayScreen(
             val at = services.clock.now()
             val batched = finishing && SpentReview.batched(lastDoneAt, at)
             val asks = finishing && demo == null && SpentReview.asks(fresh, task)
+            val habitAsks = finishing && demo == null && Habits.asks(fresh, task, at, batched)
             if (finishing) lastDoneAt = at
             repository.toggleDone(task.id)
             when {
                 batched -> spentPrompts.close()
+                // La tâche reste sans temps : elle rejoindra la revue des tâches faites sans temps (Bilan).
+                habitAsks -> {
+                    spentPrompts.close()
+                    habitQuestion = task
+                }
                 asks -> spentPrompts.ask(SpentQuestion(getString(Res.string.spent_question, task.title)) { noteSpent(task, it) })
             }
         }
+    }
+    habitQuestion?.let { task ->
+        HabitQuestionDialog(
+            task.title,
+            onAnswer = { score ->
+                habitQuestion = null
+                shellScope.launch {
+                    if (repository.answerHabit(task.id, score)) showMessage(getString(Res.string.habit_installed, task.title))
+                }
+            },
+            onDismiss = { habitQuestion = null },
+        )
     }
     // « Fait, suivante » (carte « Maintenant ») : coche la tâche (sa séance se ferme), puis lance le chrono sur la suivante du plan.
     val doneNext: (Task, Task) -> Unit = { current, following ->
@@ -487,6 +530,7 @@ fun DayScreen(
         }
         val mainWidth = if (twoColumns) minOf(maxWidth - 340.dp, 840.dp) else minOf(maxWidth, 840.dp)
         val ctx = RowContext(
+            habitsOn = snapshot.settings.habitsOn,
             forecast = forecast,
             survival = survival,
             view = view,
@@ -740,7 +784,10 @@ fun DayScreen(
 
     if (creating) {
         EditTaskDialog(
-            task = draft,
+            habit = HabitSheet(emptyList(), null).takeIf { snapshot.settings.habitsOn },
+            // La première habitude part d'une quotidienne déjà marquée habitude : la section Habitude est là, l'interrupteur allumé.
+            task = if (coachHabit && coachStep >= 0) draft.copy(recurrence = TaskRecurrence.DAILY, habitSince = now) else draft,
+            openHabit = coachHabit && coachStep >= 0,
             day = day,
             today = today,
             whatIf = whatIf,
@@ -756,7 +803,7 @@ fun DayScreen(
             onSave = { edit ->
                 // Enregistrée avec l'accompagnement actif : il est mené à son terme, l'invitation ne revient plus (issue #94) ;
                 // celui de la récurrente (issue #98) n'est pas celui de la première tâche.
-                val coached = coachStep >= 0 && !coachRecurring
+                val coached = coachStep >= 0 && !coachRecurring && !coachHabit
                 creating = false
                 coachStep = -1
                 scope.launch {
@@ -770,7 +817,11 @@ fun DayScreen(
             },
             onDelete = {},
             coach = if (coachStep >= 0) {
-                val steps = if (coachRecurring) RecurrenceCoach.STEPS else FirstTaskCoach.STEPS
+                val steps = when {
+                    coachHabit -> HabitCoach.STEPS
+                    coachRecurring -> RecurrenceCoach.STEPS
+                    else -> FirstTaskCoach.STEPS
+                }
                 CoachSession(
                     step = coachStep,
                     onStep = { coachStep = it.coerceIn(0, steps.lastIndex) },
@@ -811,7 +862,17 @@ fun DayScreen(
             // Temps passé corrigeable (docs/spec/fiche-tache.md § Temps passé) : les sessions et l'instant d'ouverture, figés.
             val openedAt = remember(id) { services.clock.now() }
             val taskSessions = remember(id) { snapshot.workSessions.filter { it.taskId == id } }
+            // Section « Habitude » (docs/spec/habitudes.md § Interface) : réponses de la série et heure observée, à l'ouverture.
+            val habitSheet = remember(id, snapshot.settings.habitsOn) {
+                if (snapshot.settings.habitsOn && task.space == TaskSpace.PERSONAL && task.origin == null) {
+                    HabitSheet(Habits.scores(task, snapshot.tasks), Habits.observedMinute(snapshot, task, today, timeZone, Workdays.holidaysFor(today, snapshot)))
+                } else {
+                    null
+                }
+            }
             EditTaskDialog(
+                habit = habitSheet,
+                openHabit = openHabit,
                 sessions = taskSessions,
                 now = openedAt,
                 task = task,
@@ -832,8 +893,9 @@ fun DayScreen(
                 tasksById = tasksById,
                 estimates = estimates,
             chainSubtasks = snapshot.settings.subtaskChain == true,
-                onDismiss = { editingId = null },
+                onDismiss = { editingId = null; openHabit = false },
                 onSave = { edit ->
+                    openHabit = false
                     // Un blocage ajouté : « Bloquées » s'ouvre pour cette fois et un message dit où la tâche est allée.
                     val before = view.blockersOf[id].orEmpty().toSet()
                     val openIds = view.openTasks.mapTo(HashSet()) { it.id }
