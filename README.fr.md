@@ -31,8 +31,10 @@ et apprend par **machine learning, sur ton appareil,** combien de temps elles
 prennent vraiment. Il t’aide aussi à ancrer des **habitudes** : une heure
 stable, une phrase « Après… » et une question validée, avec les sources
 scientifiques dans l’appli. Sans compte, sans publicité, sans pistage : tes données
-restent sur ton appareil. Le seul usage du réseau est celui des
-[connexions de calendrier en ligne](#données) facultatives, désactivées par défaut.
+restent sur ton appareil. Le réseau ne sert qu’aux
+[connexions de calendrier en ligne](#données) facultatives, désactivées par défaut,
+et à la vérification des mises à jour sur le bureau
+([politique de confidentialité](https://skohscripts.github.io/Kairos/en/privacy/), en anglais).
 
 **Android, Windows, Linux, macOS, et dans le navigateur.**
 
@@ -624,7 +626,10 @@ remonte dans l’ordre (chemin critique). Les cycles sont refusés.
 
 - Tout reste sur l’appareil, sans compte. Le réseau ne sert qu’aux **connexions en
   ligne** facultatives (Réglages → Données, désactivées par défaut, un
-  consentement par calendrier) ; Android déclare la permission `INTERNET` pour elles.
+  consentement par calendrier), pour lesquelles Android déclare la permission `INTERNET`,
+  et, sur le bureau, à la vérification des mises à jour (Réglages → Général → Mises à
+  jour). Détail dans la [politique de confidentialité](https://skohscripts.github.io/Kairos/en/privacy/)
+  (en anglais).
 - **Export et import** JSON (Réglages → Données) ; une sauvegarde automatique
   précède chaque import.
 - Sur le bureau, le **dossier des données** peut changer (Réglages → Données →

@@ -19,7 +19,7 @@ LABELS = {
     "ru": ["Скачать", "История (на английском)", "Веб-версия", "Карта кода", "Исходный код", "Поддержать"],
     "it": ["Scarica", "Storia (in inglese)", "Versione web", "Mappa del codice", "Codice sorgente", "Sostieni"],
 }
-# Page → (langue, chemin vers la racine du site, page « histoire », index de l'entrée courante).
+# Page → (langue, chemin vers la racine du site, page « histoire », index de l'entrée courante, None si aucune).
 PAGES = {
     "index.html": ("fr", "", "histoire/", 0),
     "en/index.html": ("en", "../", "story/", 0),
@@ -29,6 +29,8 @@ PAGES = {
     "it/index.html": ("it", "../", "../en/story/", 0),
     "histoire/index.html": ("fr", "../", "./", 1),
     "en/story/index.html": ("en", "../../", "./", 1),
+    # Politique de confidentialité : pas une entrée du menu, donc aucune entrée courante.
+    "en/privacy/index.html": ("en", "../../", "../story/", None),
 }
 
 

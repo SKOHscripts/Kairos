@@ -60,7 +60,8 @@ import kotlin.time.Instant
  * `<langue>/images/phoneScreenshots/1.png` à `12.png` (1 à 7 : espace Perso, base solo, dont la 2 : la fiche d'une tâche
  * estimée par machine learning, et la 3 : la fiche d'une habitude, issue #284 ; 8 à 10 : espace Équipe, seconde base de
  * [StoreTeam] ; 11 : la vue Jour en thème sombre, issue #72 ; 12 : les jours fériés de trois pays, [HolidayShowcase], issue #264). Thème du système imposé (clair, sombre pour la 10) : les captures ne dépendent pas de la machine. Rien de ce jeu n'est livré dans
- * l'application : c'est une vitrine, pas des exemples.
+ * l'application : c'est une vitrine, pas des exemples. `--desktop-screenshots=<dossier>` ([runDesktop]) rend le même jeu
+ * dans l'interface du bureau, pour la fiche du Microsoft Store.
  */
 object StoreScreenshots {
     private const val WIDTH = 1080
@@ -122,6 +123,45 @@ object StoreScreenshots {
     }
 
     /**
+     * `--desktop-screenshots=<dossier>` (docs/spec/publication.md § Captures, fiche du Microsoft Store, #215) : l'interface
+     * **du bureau** (rail de navigation) en 1920 × 1080 px, densité 1,25 (fenêtre de 1536 × 864 dp), sur le jeu des fiches,
+     * dans les deux langues de la fiche du Store : `<dossier>/<langue>/1.png` à `7.png` : Jour, fiche estimée par machine
+     * learning, fiche d'une habitude, Semaine, Statistiques, Suivi de l'espace Équipe, Jour en thème sombre.
+     */
+    fun runDesktop(dir: File): Int = try {
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"))
+        for ((folder, locale) in DESKTOP_LOCALES) {
+            Locale.setDefault(locale)
+            val out = File(dir, folder).apply { mkdirs() }
+            var number = 0
+            fun write(png: ByteArray) = File(out, "${++number}.png").writeBytes(png)
+            val language = locale.language
+            fun desktop(destination: Destination, dark: Boolean = false, wheel: Float = 0f) = runBlocking { services(language) }.let { services ->
+                render(DESKTOP_WIDTH, DESKTOP_HEIGHT, wheel = wheel, density = DESKTOP_DENSITY) {
+                    KairosApp(Platform.DESKTOP, destination, systemDark = dark) { services }
+                }
+            }
+            write(desktop(Destination.DAY))
+            write(machineLearningShot(language, Platform.DESKTOP))
+            write(habitShot(language, Platform.DESKTOP))
+            write(desktop(Destination.WEEK, wheel = DESKTOP_WEEK_SCROLL))
+            write(desktop(Destination.STATS))
+            val team = runBlocking { teamServices(language, TeamDestination.BOARD) }
+            write(
+                render(DESKTOP_WIDTH, DESKTOP_HEIGHT, settle = true, density = DESKTOP_DENSITY) {
+                    KairosApp(Platform.DESKTOP, initialTeamDestination = TeamDestination.BOARD, systemDark = false) { team }
+                },
+            )
+            write(desktop(Destination.DAY, dark = true))
+        }
+        println("Captures du bureau écrites dans $dir")
+        0
+    } catch (e: Throwable) {
+        e.printStackTrace()
+        1
+    }
+
+    /**
      * `--story-screenshots=<dossier>` : `order-fr.png` et `order-en.png`, la vue Jour des fiches (même jeu de données, même
      * heure figée) défilée jusqu'à « Aujourd'hui, dans l'ordre », pour la page « histoire » du site. Versionnées, pas
      * régénérées par la CI : à refaire si la vue Jour change.
@@ -146,23 +186,35 @@ object StoreScreenshots {
      * d'emblée ([KairosApp] `showcaseTaskId`) : « Utiliser 45 min (entre … et …) » et « Tâches proches » dépliée. Le calcul
      * du modèle se fait hors composition : on attend la stabilité.
      */
-    private fun machineLearningShot(language: String): ByteArray {
+    private fun machineLearningShot(language: String, platform: Platform = Platform.ANDROID): ByteArray {
         val services = runBlocking { services(language, machineLearning = true) }
         val title = words(language).quarterly
         val id = services.repository.snapshot.value.tasks.first { it.title == title }.id
-        return render(settle = true, wheel = SHEET_SCROLL) { KairosApp(Platform.ANDROID, Destination.DAY, systemDark = false, showcaseTaskId = id) { services } }
+        return shot(platform, settle = true, wheel = if (platform == Platform.ANDROID) SHEET_SCROLL else DESKTOP_SHEET_SCROLL) {
+            KairosApp(platform, Destination.DAY, systemDark = false, showcaseTaskId = id) { services }
+        }
     }
+
+    /** Rendu au format du téléphone (Android) ou du bureau ([runDesktop]). */
+    private fun shot(platform: Platform, settle: Boolean = false, wheel: Float = 0f, content: @Composable () -> Unit): ByteArray =
+        if (platform == Platform.ANDROID) {
+            render(settle = settle, wheel = wheel, content = content)
+        } else {
+            render(DESKTOP_WIDTH, DESKTOP_HEIGHT, settle = settle, wheel = wheel, density = DESKTOP_DENSITY, content = content)
+        }
 
     /**
      * Capture 3 (docs/spec/publication.md § Captures, docs/spec/habitudes.md) : la base de la capture 1 enrichie d'une
      * habitude quotidienne tenue depuis six semaines, et la fiche de son occurrence du jour ouverte d'emblée sur la section
      * « Habitude » : heure fixe, phrase « Après… », statut « Habitude installée » et courbe des réponses.
      */
-    private fun habitShot(language: String): ByteArray {
+    private fun habitShot(language: String, platform: Platform = Platform.ANDROID): ByteArray {
         val services = runBlocking { services(language, habit = true) }
         val title = words(language).habit
         val id = services.repository.snapshot.value.tasks.first { it.title == title && it.status == TaskStatus.TODO }.id
-        return render(settle = true, wheel = HABIT_SCROLL) { KairosApp(Platform.ANDROID, Destination.DAY, systemDark = false, showcaseTaskId = id) { services } }
+        return shot(platform, settle = true, wheel = if (platform == Platform.ANDROID) HABIT_SCROLL else DESKTOP_HABIT_SCROLL) {
+            KairosApp(platform, Destination.DAY, systemDark = false, showcaseTaskId = id) { services }
+        }
     }
 
     private suspend fun services(language: String, machineLearning: Boolean = false, habit: Boolean = false): AppServices {
@@ -201,8 +253,15 @@ object StoreScreenshots {
     }
 
     @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
-    private fun render(settle: Boolean = false, wheel: Float = 0f, density: Float = 2.625f, content: @Composable () -> Unit): ByteArray {
-        val scene = ImageComposeScene(WIDTH, HEIGHT, Density(density), content = content)
+    private fun render(
+        width: Int = WIDTH,
+        height: Int = HEIGHT,
+        settle: Boolean = false,
+        wheel: Float = 0f,
+        density: Float = 2.625f,
+        content: @Composable () -> Unit,
+    ): ByteArray {
+        val scene = ImageComposeScene(width, height, Density(density), content = content)
         try {
             var image = scene.render(0)
             for (frame in 1..12) image = scene.render(frame * 100_000_000L)
@@ -220,7 +279,7 @@ object StoreScreenshots {
             if (wheel != 0f) {
                 // Défilement à la molette, une fois la mise en page stable : le résultat en haut de l'écran.
                 scene.sendPointerEvent(
-                    PointerEventType.Scroll, Offset(WIDTH / 2f, HEIGHT / 2f), scrollDelta = Offset(0f, wheel), timeMillis = 1_300L,
+                    PointerEventType.Scroll, Offset(width / 2f, height / 2f), scrollDelta = Offset(0f, wheel), timeMillis = 1_300L,
                 )
                 for (i in 0 until 6) image = scene.render((frame++) * 100_000_000L)
                 png = requireNotNull(image.encodeToData(EncodedImageFormat.PNG)) { "encodage PNG" }.bytes
@@ -245,6 +304,21 @@ object StoreScreenshots {
 
     /** Défilement (en crans de molette) de la capture de la page « histoire » : la liste ordonnée sous la carte « maintenant ». */
     private const val STORY_SCROLL = 21f
+
+    /** Captures du bureau ([runDesktop]) : 1920 × 1080 px, la taille que conseille le Store ; 1536 × 864 dp, rail de navigation. */
+    private const val DESKTOP_WIDTH = 1920
+    private const val DESKTOP_HEIGHT = 1080
+    private const val DESKTOP_DENSITY = 1.25f
+
+    /** Défilements des fiches des captures 2 et 3 du bureau (fenêtre plus basse que le téléphone). */
+    private const val DESKTOP_SHEET_SCROLL = 18f
+    private const val DESKTOP_HABIT_SCROLL = 12f
+
+    /** Défilement de la capture Semaine du bureau : la grille des jours sous le bilan de la semaine. */
+    private const val DESKTOP_WEEK_SCROLL = 8f
+
+    /** Les langues de la fiche du Microsoft Store (choix du propriétaire du 2026-11-25 : anglais et français). */
+    private val DESKTOP_LOCALES = listOf("en-US" to Locale.US, "fr-FR" to Locale.FRANCE)
 
     /** Les six langues des fiches (dossier Fastlane, langue de l'interface), dans l'ordre d'écriture. */
     private val LOCALES = listOf(

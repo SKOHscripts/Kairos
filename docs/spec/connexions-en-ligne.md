@@ -889,6 +889,8 @@ Les éléments ci-dessous restent à reporter au jalon ou à la publication conc
 - `i18n.md` : textes dans les six langues.
   `accessibilite.md` : cibles et libellés de la carte.
   `visite-guidee.md` : carte `online_connections` (les services de démonstration sont déjà documentés).
+- `site/en/privacy/index.html` (politique de confidentialité, `publication.md`) : O3 et O4 y ajoutent Microsoft et Google
+  (portée en lecture seule, jetons sur l'appareil), avec la date « Last updated ».
 - `docs/plan-v3-kotlin.md` : conserver l'historique M0, ajouter seulement un renvoi vers cette décision lors de l'implémentation.
 - `fdroid/com.skohscripts.kairos.yml` : `NonFreeNet` à l'embarquement de Microsoft ou Google seulement.
   `fastlane/metadata/android/*/full_description.txt` et `site/` : l'absence de réseau est remplacée par les connexions facultatives (fait avec O1, PR #242). Reste la note finale `40200.txt` dans les six langues, au cycle de publication.

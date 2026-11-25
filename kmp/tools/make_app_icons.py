@@ -13,6 +13,7 @@ redessiné avec Pillow (pas de dépendance de conversion SVG). Sorties, commité
   et site/icon.png, site/favicon.png (page de téléchargement)
 - site/og/<langue>.png (1280×640, aperçu des liens de la page et de GitHub, fond clair, docs/spec/publication.md
   § Aperçu des liens)
+- packaging/msix/Assets/ (logos du paquet du Microsoft Store, docs/spec/distribution.md § Microsoft Store)
 
     pip install Pillow
     python kmp/tools/make_app_icons.py
@@ -67,6 +68,23 @@ def tile(master: Image.Image, size: int, rounded: bool) -> Image.Image:
     logo = master.resize((round(k * 40 / 37), round(k * 40 / 37)), Image.LANCZOS)
     img.alpha_composite(logo, ((big - logo.width) // 2, (big - logo.height) // 2))
     return img.resize((size, size), Image.LANCZOS)
+
+
+# Logos du paquet MSIX (docs/spec/distribution.md § Microsoft Store) : nom de base → côté en px à l'échelle 100.
+# Chacun aux échelles 100, 200 et 400 ; le petit logo aussi aux tailles cibles, sans plaque (barre des tâches,
+# explorateur). Le manifeste cite le nom de base, que `resources.pri` résout (makepri, en CI).
+MSIX_LOGOS = {"StoreLogo": 50, "Square150x150Logo": 150, "Square44x44Logo": 44}
+MSIX_SCALES = (100, 200, 400)
+MSIX_TARGET_SIZES = (16, 24, 32, 48, 256)
+
+
+def msix_assets(master: Image.Image, out: Path) -> None:
+    out.mkdir(parents=True, exist_ok=True)
+    for name, side in MSIX_LOGOS.items():
+        for scale in MSIX_SCALES:
+            tile(master, side * scale // 100, rounded=True).save(out / f"{name}.scale-{scale}.png")
+    for size in MSIX_TARGET_SIZES:
+        tile(master, size, rounded=True).save(out / f"Square44x44Logo.targetsize-{size}_altform-unplated.png")
 
 
 # Image d'aperçu des liens (Open Graph) et de GitHub, 1280×640 (docs/spec/publication.md § Aperçu des liens) : le logo, le nom,
@@ -155,7 +173,8 @@ def main() -> None:
     og.mkdir(parents=True, exist_ok=True)
     for lang in PREVIEW_TEXTS:
         social_preview(master, lang).save(og / f"{lang}.png", optimize=True)
-    print("Icônes et aperçus écrits :", icons, web, repo / "fastlane", site)
+    msix_assets(master, repo / "packaging" / "msix" / "Assets")
+    print("Icônes et aperçus écrits :", icons, web, repo / "fastlane", site, repo / "packaging" / "msix")
 
 
 if __name__ == "__main__":

@@ -43,8 +43,9 @@ savoir.
 - **Bureau installé par un gestionnaire de paquets** (paquet AUR `kairos-bin`, 4.0.0, choix du propriétaire du
   2026-11-02, `distribution.md` § Paquet Arch Linux) : **aucune vérification**, ni bandeau, ni carte « Mises à jour »
   (la catégorie Général dit alors « Langue, apparence ») ; c'est le gestionnaire de paquets qui met à jour, comme un
-  magasin sur Android. Le `.deb` installé à la main, l'installeur Windows, le DMG et les copies portables vérifient
-  comme avant.
+  magasin sur Android. Même chose pour le **Microsoft Store** (paquet MSIX « Kairos Planner », #215, 2026-11-25,
+  `distribution.md` § Microsoft Store) : le Store met à jour. Le `.deb` installé à la main, l'installeur Windows
+  (`.msi`), le DMG et les copies portables vérifient comme avant.
 - Android : **aucune vérification** ; les mises à jour passent par le magasin ou l'APK.
   Le propriétaire a fermé #144 « not planned » le 2026-11-06. Le lien « Voir la dernière version » (3.9.0) reste.
   Pour un APK **installé à la main** (3.9.0, issue #143), Réglages → Général montre une carte « Mises à jour » :
@@ -66,8 +67,9 @@ savoir.
   « Vérifier maintenant » passe outre ; 404 = à jour, autre code ou exception
   = échec ; « Plus tard » survit à la relance (`DesktopUpdatesTest`).
 - Bandeau affiché, puis masqué par « Plus tard » (`M5ScreensUiTest`).
-- Marqueur `kairos-managed` à côté des JAR de l'image Linux : installation gérée, aucun service de mise à jour ;
-  sans marqueur, ou hors image jpackage : vérification (`SystemPackageTest`).
+- Marqueur `kairos-managed` à côté des JAR de l'image Linux (paquet AUR) ou Windows (paquet MSIX du Store) :
+  installation gérée, aucun service de mise à jour ; sans marqueur (`.deb`, `.msi`, copie portable), ou hors image
+  jpackage : vérification (`SystemPackageTest`).
 - Android : à la main = installateur absent ou installateur de paquets du système (`com.google.android.packageinstaller`,
   `com.android.packageinstaller`, `com.android.shell` pour `adb`) ; tout autre installateur = un magasin
   (`InstallSourceTest`). La carte montre la version et ouvre la page de la langue de l'interface ; sans lien

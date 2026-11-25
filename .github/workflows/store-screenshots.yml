@@ -1,5 +1,5 @@
 # Captures des fiches de magasin (docs/spec/publication.md § Captures) : rend les captures des six langues avec
-# `--store-screenshots` et les dépose comme artefact, pour les relire puis les commiter. Rien n'est écrit dans le dépôt.
+# `--store-screenshots`, et celles du bureau du Microsoft Store avec `--desktop-screenshots`, et les dépose comme artefacts, pour les relire puis les commiter. Rien n'est écrit dans le dépôt.
 # Lancé à la main, ou sur une PR qui change le générateur ou ce workflow.
 name: Store screenshots
 
@@ -36,6 +36,16 @@ jobs:
 
       - name: Captures des magasins
         run: ./gradlew --no-daemon :desktopApp:run --args="--store-screenshots=$GITHUB_WORKSPACE/fastlane/metadata/android"
+
+      # Captures du bureau de la fiche du Microsoft Store (anglais et français, #215).
+      - name: Captures du bureau
+        run: ./gradlew --no-daemon :desktopApp:run --args="--desktop-screenshots=$GITHUB_WORKSPACE/packaging/msix/screenshots"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-screenshots
+          path: packaging/msix/screenshots/*/*.png
+          retention-days: 7
 
       - uses: actions/upload-artifact@v4
         with:

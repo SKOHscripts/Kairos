@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Manifeste du paquet MSIX du Microsoft Store (docs/spec/distribution.md § Microsoft Store, #215).
+  Gabarit : kmp/tools/make_msix.py remplace @VERSION@. L'identité vient de Partner Center (Identité du produit) et ne
+  change pas (§ Identité de l'app, validate_identity.py).
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
+  IgnorableNamespaces="uap rescap desktop6">
+  <Identity
+    Name="SKOHscripts.KairosPlanner"
+    Publisher="CN=EF0DE618-1AD9-4656-8417-18B58EB3603F"
+    Version="@VERSION@"
+    ProcessorArchitecture="x64" />
+  <Properties>
+    <!-- Le Store exige le nom réservé : « Kairos » était pris. -->
+    <DisplayName>Kairos Planner</DisplayName>
+    <PublisherDisplayName>SKOHscripts</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <!-- Mêmes données que le .msi, gardées à la désinstallation : écritures dans le vrai %LOCALAPPDATA%\Kairos. -->
+    <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
+  </Properties>
+  <Dependencies>
+    <!-- 1903 : version minimale de unvirtualizedResources. -->
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.18362.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+  <Resources>
+    <Resource Language="en-US" />
+    <Resource Language="fr-FR" />
+    <Resource Language="es-ES" />
+    <Resource Language="de-DE" />
+    <Resource Language="ru-RU" />
+    <Resource Language="it-IT" />
+  </Resources>
+  <Applications>
+    <Application Id="Kairos" Executable="Kairos.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="Kairos Planner"
+        Description="Your tasks sorted, your day planned, your habits anchored."
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png" />
+    </Application>
+  </Applications>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <rescap:Capability Name="unvirtualizedResources" />
+  </Capabilities>
+</Package>

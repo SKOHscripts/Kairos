@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kairos privacy policy</title>
+<meta name="description" content="Kairos collects no personal data: no account, no ads, no analytics. What stays on your device, the network connections the app can make, and how to turn them off.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kairos">
+<meta property="og:title" content="Kairos privacy policy">
+<meta property="og:description" content="Kairos collects no personal data: no account, no ads, no analytics.">
+<meta property="og:url" content="https://skohscripts.github.io/Kairos/en/privacy/">
+<meta property="og:image" content="https://skohscripts.github.io/Kairos/og/en.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../../favicon.png">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<header>
+  <img src="../../icon.png" alt="">
+  <span class="name">Kairos</span>
+  <nav class="menu" aria-label="Menu"><a href="../">Download</a><a href="../story/">Story</a><a href="../../@@WEB@@">Web version</a><a href="../../code/">Code map</a><a href="https://github.com/SKOHscripts/Kairos">Source code</a><a href="https://skohscripts.github.io/donate.github.io/">Support</a></nav>
+  <details class="menu-narrow"><summary><svg aria-hidden="true" width="24" height="24" viewBox="0 -960 960 960"><path d="M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>Menu</summary><nav aria-label="Menu"><a href="../">Download</a><a href="../story/">Story</a><a href="../../@@WEB@@">Web version</a><a href="../../code/">Code map</a><a href="https://github.com/SKOHscripts/Kairos">Source code</a><a href="https://skohscripts.github.io/donate.github.io/">Support</a></nav></details>
+</header>
+<main class="story">
+  <section class="hero">
+    <h1>Privacy policy</h1>
+    <p class="small">Last updated: 25 November 2026</p>
+  </section>
+  <p>This policy covers the Kairos app on Android, Windows, Linux, macOS and in the browser, whichever store or page you got it from, and this website. Kairos is free software, developed by an individual, not a company.</p>
+
+  <h2>In short</h2>
+  <ul class="plain">
+    <li>Kairos collects <strong>no personal data</strong>. There is no Kairos account, no Kairos server, no ads, no analytics, no tracking and no crash report sent anywhere.</li>
+    <li>Your tasks, notes, habits, timers and statistics stay on your device.</li>
+    <li>The app uses the network for two things only: checking for new versions on the desktop, which you can turn off, and the calendar connections you turn on yourself.</li>
+    <li>The developer receives nothing from the app: no data is sold, shared or even seen.</li>
+  </ul>
+
+  <h2>Where your data lives</h2>
+  <ul class="plain">
+    <li><strong>On your device.</strong> Everything you enter, and everything Kairos computes from it, is stored locally: in the app’s storage on Android, in the data folder on the desktop (shown in Settings → Data), and in this website’s storage in your browser for the web version.</li>
+    <li><strong>Machine learning runs on your device.</strong> The duration estimates are learned from your own finished tasks, on the device. Nothing leaves it.</li>
+    <li><strong>Files you choose.</strong> An export, the linked file used to sync your devices, and team exchange files are written only where you put them. If that folder is synced by another service (Syncthing, Nextcloud, OneDrive…), that service’s own privacy policy applies to the copy.</li>
+    <li><strong>Diagnostics.</strong> On the desktop, the diagnostic log is off by default, stays on your computer and contains no task content. It reaches the developer only if you copy it into a bug report yourself.</li>
+  </ul>
+
+  <h2>Network connections</h2>
+  <p>This is the complete list of connections the app can make.</p>
+  <ul class="plain">
+    <li><strong>Update check (desktop only).</strong> On by default, at most every 6 hours, Kairos asks GitHub’s API for the latest published version. The request carries the installed version (<code>User-Agent: Kairos/&lt;version&gt;</code>) and nothing else; like any web request, GitHub sees your IP address. Turn it off in Settings → General → Updates → “Check for new versions”. There is no update check on Android, in the browser, or when the Microsoft Store or a package manager installed Kairos: they handle updates.</li>
+    <li><strong>Online calendar connections (optional).</strong> Off by default. You turn each one on yourself, after Kairos says what it sends and to whom. Kairos then contacts only the server you entered (an ICS link, or a CalDAV server such as Nextcloud or Radicale) to read that calendar’s events, and stores them on your device so your tasks fit around them. That server’s operator sees your IP address and the request, under its own policy. On Android and the desktop, links, usernames and passwords are encrypted on your device and sent only to that server; they are never included in exports, backups or the linked file. In the browser, an ICS link is kept in this website’s storage in your browser.</li>
+    <li><strong>Links you open.</strong> “Give feedback”, the donation page, the scientific sources of the habits and the download page open in your browser. “Give feedback” prepares a GitHub issue with the app’s version and platform; you review it and send it yourself with your GitHub account, and it is public. Kairos sends nothing by itself.</li>
+  </ul>
+
+  <h2>Android permissions</h2>
+  <ul class="plain">
+    <li><strong>Notifications, exact alarms and start at boot</strong>: reminders and the timer, re-armed after a restart.</li>
+    <li><strong>Read calendar</strong> (optional, asked when you turn it on): to show your phone’s calendars as busy times. They are read on the device and never sent.</li>
+    <li><strong>Internet and network state</strong>: only for the online calendar connections above.</li>
+  </ul>
+  <p>If you turned on Android’s own backup, Android may copy Kairos’s data to your Google account or your phone maker’s cloud, under their privacy policy. Calendar connection secrets are excluded from it. You can turn this backup off in Android’s settings.</p>
+
+  <h2>Third parties</h2>
+  <ul class="plain">
+    <li><strong>GitHub</strong> hosts the source code, the downloads, this website and the web version, and answers the desktop update check (<a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub General Privacy Statement</a>).</li>
+    <li><strong>Microsoft Store</strong>, <strong>F-Droid</strong> and other stores or package managers: if you install Kairos from one of them, it is run by its operator under its own privacy policy (for the Microsoft Store, the <a href="https://privacy.microsoft.com/privacystatement">Microsoft Privacy Statement</a>).</li>
+    <li>This website sets no cookies, runs no analytics and loads nothing from other sites: its fonts and images are served by the site itself.</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>Kairos collects no data from anyone, children included.</p>
+
+  <h2>Deleting your data</h2>
+  <p>Since your data is only on your devices, you delete it there: uninstall the app on Android, delete the data folder on the desktop (shown in Settings → Data), or clear this website’s data in your browser for the web version. Copies you made yourself (exports, the linked file) stay where you put them.</p>
+
+  <h2>Changes</h2>
+  <p>This page changes whenever the app’s use of the network changes, with a new date at the top. Its history is public in the <a href="https://github.com/SKOHscripts/Kairos/commits/main/site/en/privacy/index.html">source repository</a>.</p>
+
+  <h2>Contact</h2>
+  <p>For any question about this policy, <a href="https://github.com/SKOHscripts/Kairos/issues">open an issue on GitHub</a>.</p>
+</main>
+<footer>
+  Free software under the GNU AGPL v3 or later · <a href="https://github.com/SKOHscripts/Kairos">source code</a> · <a href="https://github.com/SKOHscripts/Kairos/issues">report a problem</a>
+</footer>
+</body>
+</html>

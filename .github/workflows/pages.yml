@@ -113,8 +113,8 @@ jobs:
                   text = text.replace(key, value)
               assert "@@" not in text, f"marqueur non remplacé dans {path}"
               open(path, "w", encoding="utf-8").write(text)
-          # Pages « histoire » : seule l'entrée « Version web » du menu porte un marqueur.
-          for name in ("histoire/index.html", "en/story/index.html"):
+          # Pages « histoire » et politique de confidentialité : seule l'entrée « Version web » du menu porte un marqueur.
+          for name in ("histoire/index.html", "en/story/index.html", "en/privacy/index.html"):
               path = os.path.join(sys.argv[1], name)
               text = open(path, encoding="utf-8").read().replace("@@WEB@@", os.environ["WEB"])
               assert "@@" not in text, f"marqueur non remplacé dans {path}"
