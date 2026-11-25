@@ -6,7 +6,8 @@ GitHub. Fichiers couverts : `fastlane/metadata/android/` (fiches FR/EN),
 `Main.kt`, `kmp/tools/validate_fastlane.py`, `kmp/tools/fdroid_check.sh`,
 `kmp/tools/make_app_icons.py` (icônes des fiches et de la page, aperçu des liens `site/og/`), `kmp/tools/make_badges.py` et
 `validate_badges.py` (boutons de téléchargement, `site/badges/`), `kmp/tools/validate_og.py` (aperçu des liens),
-`fdroid/com.skohscripts.kairos.yml`, `fdroid/README.md`, `site/`,
+`kmp/tools/validate_menu.py` (menu du site), `fdroid/com.skohscripts.kairos.yml`, `fdroid/README.md`, `site/` (dont la
+politique de confidentialité `site/en/privacy/`),
 `.github/workflows/fdroid-check.yml`, `.github/workflows/metadata.yml`, `.github/workflows/pages.yml`. Versions,
 construction et releases : `distribution.md`._
 
@@ -46,6 +47,11 @@ disposer d'une **page de téléchargement** claire pour toutes les plateformes.
   visiteur venu de F-Droid ou de l'étranger arrive sur de l'anglais.
 - Tant que Kairos 3 n'est pas sorti, la page le dit et renvoie vers la
   dernière préversion ; ensuite, vers la dernière version stable.
+- Une **politique de confidentialité** publique (`https://skohscripts.github.io/Kairos/en/privacy/`, 2026-11-25, #215),
+  exigée par le Microsoft Store (Partner Center demande son adresse) et utile à tout magasin : ce que Kairos collecte
+  (rien), où vivent les données, **chaque** connexion réseau que l'application peut ouvrir, à qui, et comment la couper,
+  les services tiers (GitHub, magasins, sauvegarde d'Android), comment effacer ses données, et un contact (les issues
+  GitHub). En anglais seulement pour l'instant (choix du propriétaire du 2026-11-25).
 
 ### Boutons de téléchargement (3.12.0)
 
@@ -108,6 +114,10 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   aucun service tiers (polices servies par la page), et ses liens de
   téléchargement visent toujours un tag nommé, jamais « latest ».
 - Les captures ne dépendent ni du jour ni de la machine qui les produit.
+- La politique de confidentialité dit vrai : chaque usage du réseau du code (vérification des mises à jour du bureau,
+  connexions de calendrier) y figure, et elle ne cite aucune connexion inexistante. Toute nouvelle connexion réseau la
+  met à jour dans le même changement (relecture, pas de test automatique) ; le menu y est vérifié par
+  `validate_menu.py`.
 
 ### Hors périmètre
 
@@ -367,7 +377,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   `<langue>/habits/`), avec le menu de la page de téléchargement de sa langue (liens relatifs un niveau plus bas, aucune
   entrée courante) ; elle n'est pas une entrée du menu.
 - **Menu du site (2026-11-15, demande du propriétaire)** : toutes les pages du site (les six pages de téléchargement, les
-  deux pages « histoire », la carte du code `code/` et les pages « Habitudes ») portent dans leur en-tête le même menu, dans la langue de la page,
+  deux pages « histoire », la carte du code `code/`, les pages « Habitudes » et la politique de confidentialité) portent dans leur en-tête le même menu, dans la langue de la page,
   à côté du sélecteur de langue qui ne change pas. Six entrées, dans cet ordre : **Télécharger** (la page de
   téléchargement de la langue), **Histoire** (la page « histoire » de la langue ; en espagnol, allemand, russe et italien,
   la page anglaise, libellé suivi de la langue, `hreflang="en"`), **Version web** (`app/`, ou `preview/` tant qu'aucune
@@ -402,7 +412,7 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   « Arch Linux (AUR) », 4.0.0, `distribution.md` § Paquet Arch Linux) ; macOS : DMG Apple
   Silicon et Intel ; navigateur), lien vers les releases et `SHA256SUMS`,
   captures 1 à 6 et 10 (dont la 2, le machine learning), le thème sombre (défilement horizontal), notes de première installation, « On en parle »
-  (liens texte vers les mentions publiques, liste ci-dessous), pied de page (licence, source, tickets).
+  (liens texte vers les mentions publiques, liste ci-dessous), pied de page (licence, source, tickets ; sur la page anglaise, la politique de confidentialité).
 - **« On en parle » / « Mentioned on »** (2026-10-29, demande du propriétaire) : les mentions publiques de Kairos, aussi
   dans le README (anglais et français, juste avant la licence), qui porte en plus le badge AlternativeTo (lien vers la
   fiche avec `utm_source=badge`, image `alternativeto.net/static/badges/badge-compact-color.svg`). Le badge reste au
@@ -436,6 +446,29 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
 - Déclenchement : push sur `main` touchant `kmp/**` (hors `androidApp`, `desktopApp` et `tools`, sauf
   `tools/make_code_map.py`), `docs/spec/**`, `site/**`, `fastlane/**` ou `pages.yml` ; release publiée à la main ; **fin du workflow « Kairos 3
   release »** ; lancement manuel.
+
+### Politique de confidentialité (`site/en/privacy/index.html`, 2026-11-25, #215)
+
+- Page **anglaise seule**, HTML et CSS seuls (`style.css`, bloc « Page histoire » réutilisé : `main class="story"`,
+  `ul.plain`), même en-tête et même menu que la page « histoire » anglaise, **sans entrée courante** (elle n'est pas une
+  entrée du menu, comme les pages « Habitudes »). Seul marqueur : `@@WEB@@` du menu, remplacé par `pages.yml` avec ceux des
+  pages « histoire ». Aucune ressource tierce, aucun cookie, aucun script.
+- On y arrive par le pied de page de la page de téléchargement anglaise (« privacy policy ») et par l'adresse donnée au
+  Microsoft Store ; les autres langues n'ont pas de lien tant que la page n'est pas traduite.
+- Plan : en bref (rien de collecté, ni compte, ni publicité, ni mesure d'audience, ni rapport de plantage envoyé) ; où
+  vivent les données (appareil, dossier des données du bureau, stockage du navigateur pour la version web, fichiers
+  choisis par l'utilisateur : export, fichier lié, échanges d'équipe) ; journal de diagnostic local ; **connexions
+  réseau**, liste fermée : (1) vérification des mises à jour du bureau (`mises-a-jour.md` : active par défaut, au plus
+  toutes les 6 heures, API GitHub, `User-Agent: Kairos/<version>`, ni sur Android, ni dans le navigateur, ni pour une
+  installation par gestionnaire de paquets) ; (2) connexions de calendrier (`connexions-en-ligne.md` : lien ICS et
+  CalDAV, désactivées par défaut, une par une, vers le seul serveur saisi, secrets chiffrés sur l'appareil et jamais
+  exportés ; sur le web, lien ICS gardé dans le stockage du navigateur) ; (3) liens ouverts par l'utilisateur dans son
+  navigateur (« Give feedback », don, sources) ; permissions Android ; sauvegarde du système Android
+  (`allowBackup`, secrets exclus) ; services tiers (GitHub, GitHub Pages, Microsoft Store, F-Droid) ; enfants ; effacer
+  ses données ; modifications ; contact.
+- **Bijectivité avec le code** : la page est une affirmation sur le code. Microsoft 365 et Google (O3, O4) n'y figurent
+  pas tant qu'ils ne sont pas livrés ; la mise à jour automatique (`mise-a-jour-automatique.md`) non plus. Chacun l'ajoute
+  à son implémentation, avec la date « Last updated ».
 
 ### Aperçu des liens (`site/og/`, `make_app_icons.py`, `validate_og.py`)
 
@@ -513,6 +546,13 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   français par défaut avec un `README.en.md` (le visiteur étranger arrive d'abord
   sur du français). Restent en français, signalé dans le README : `docs/`
   (spécifications, charte), `CLAUDE.md` et le dossier F-Droid `fdroid/README.md`.
+- **Politique de confidentialité** (2026-11-25, choix du propriétaire, #215) : une page dédiée du site plutôt que le
+  README, qui mêle la vie privée à 800 lignes de fonctionnalités et disait « le seul usage du réseau est celui des
+  connexions de calendrier » en oubliant la vérification des mises à jour du bureau (corrigé dans les deux README et les
+  six pages de téléchargement le même jour). En anglais seulement (la langue que lit le Store et les relecteurs) ;
+  dossier `en/privacy/` comme `en/story/`, pour une adresse sans `.html`. Contact : les issues GitHub, pas d'adresse
+  e-mail publique. Écartés : un fichier `PRIVACY.md` du dépôt (GitHub l'affiche, mais hors du site et sans le menu) et
+  une page générée depuis le code (les usages du réseau sont peu nombreux et décrits en spec).
 - **Pas d'IzzyOnDroid** : la demande d'inclusion envoyée pour la 3.0.0 a été
   refusée le 2026-09-30, en raison de la part d'IA dans le développement de
   Kairos. F-Droid et les releases GitHub restent les deux canaux Android ;

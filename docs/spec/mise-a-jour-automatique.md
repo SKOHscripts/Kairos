@@ -230,5 +230,7 @@ Lignes du journal local (`bureau-avance.md`) : `update download ok|failed <code>
 - `bureau-avance.md` : le dossier `updates/` de la racine locale et les nouvelles lignes du journal.
 - `raccourci-portable.md` : une ligne, les copies portables ne se mettent pas à jour seules.
 - `i18n.md` et `accessibilite.md` : les nouveaux textes et libellés.
+- `site/en/privacy/index.html` (politique de confidentialité, `publication.md`) : le téléchargement de l'installeur depuis
+  GitHub, avec la date « Last updated ».
 - `liste-fonctionnalites.md`, `README.md`, `README.fr.md` et `FeatureCatalog` : c'est une fonctionnalité ; ajouter la carte, la puce
   et la ligne du tableau dans les deux langues.
