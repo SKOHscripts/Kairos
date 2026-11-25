@@ -11,8 +11,9 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * Installation par un gestionnaire de paquets (docs/spec/distribution.md § Paquet Arch Linux, docs/spec/mises-a-jour.md) :
- * le marqueur `kairos-managed` du paquet AUR coupe la vérification des mises à jour.
+ * Installation par un gestionnaire de paquets ou un magasin (docs/spec/distribution.md § Paquet Arch Linux, § Microsoft
+ * Store, docs/spec/mises-a-jour.md) : le marqueur `kairos-managed` du paquet AUR ou du paquet MSIX coupe la vérification
+ * des mises à jour.
  */
 class SystemPackageTest {
     private val tmp = createTempDirectory("managed").toFile()
@@ -44,6 +45,21 @@ class SystemPackageTest {
         val portable = linuxImage("portable/kairos", marker = false)
         File(File(portable).parentFile.parentFile, "lib/app/${PortableCopy.MARKER}").writeText("")
         assertFalse(SystemPackage.detect(portable, "Linux"))
+    }
+
+    /** Image jpackage Windows comme le paquet MSIX la contient (`Kairos.exe`, `app\`), avec ou sans marqueur. */
+    private fun windowsImage(dir: String, marker: String?): String {
+        val root = File(tmp, dir)
+        File(root, "app").mkdirs()
+        if (marker != null) File(root, "app/$marker").writeText("")
+        return File(root, "Kairos.exe").path
+    }
+
+    @Test
+    fun theMicrosoftStorePackageIsManagedButNotTheMsiNorAPortableCopy() {
+        assertTrue(SystemPackage.detect(windowsImage("WindowsApps/Kairos", SystemPackage.MARKER), "Windows 11"))
+        assertFalse(SystemPackage.detect(windowsImage("msi/Kairos", null), "Windows 11"))
+        assertFalse(SystemPackage.detect(windowsImage("zip/Kairos", PortableCopy.MARKER), "Windows 10"))
     }
 
     @Test
