@@ -30,8 +30,9 @@ order to do them, fits them into the gaps of your day, and uses **on-device
 machine learning** to learn how long they really take. It also helps you
 anchor **habits**: a stable hour, an "After..." phrase and a validated
 question, with the scientific sources in the app. No account, no ads, no
-tracking: your data stays on your device. The only network use is the optional
-[online calendar connections](#data), off by default.
+tracking: your data stays on your device. The network serves only the optional
+[online calendar connections](#data), off by default, and the update check on
+the desktop ([privacy policy](https://skohscripts.github.io/Kairos/en/privacy/)).
 
 **Android, Windows, Linux, macOS, and in the browser.**
 
@@ -587,7 +588,9 @@ order (critical path). Cycles are refused.
 
 - Everything stays on the device, with no account. The network is used only by
   the optional **online connections** (Settings → Data, off by default, one
-  consent per calendar); Android declares the `INTERNET` permission for them.
+  consent per calendar), for which Android declares the `INTERNET` permission,
+  and on the desktop by the update check (Settings → General → Updates). Details
+  in the [privacy policy](https://skohscripts.github.io/Kairos/en/privacy/).
 - **Export and import** (JSON, Settings → Data); an automatic backup precedes
   every import.
 - On the desktop, the **data folder** can be changed (Settings → Data →
