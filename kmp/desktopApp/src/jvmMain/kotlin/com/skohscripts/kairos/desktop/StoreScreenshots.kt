@@ -513,8 +513,8 @@ object StoreScreenshots {
             task(w.quarterly, 1, 3, null, w.doc, today.plus(DatePeriod(days = 4)))
         }
         if (habit) {
-            // Capture 3 : « Méditer 10 minutes », quotidienne, déclarée habitude il y a 44 jours, faite presque chaque matin vers
-            // 7 h 30 (deux oublis), quatre réponses à la question d'automatisme espacées de 14 jours (2, 4, 6, 7 : installée).
+            // Capture 3 : « Méditer 10 minutes », quotidienne, déclarée habitude il y a 44 jours, cochée presque chaque matin à
+            // 7 h 35 (deux oublis ; l'heure observée, arrondie au quart d'heure, est donc celle de l'heure fixe, 7 h 30), quatre réponses à la question d'automatisme espacées de 14 jours (2, 4, 6, 7 : installée).
             val since = instant(today.minus(DatePeriod(days = 44)), 7)
             val scores = mapOf(43 to 2, 29 to 4, 15 to 6, 1 to 7)
             val first = tasks.size + 1L
@@ -526,7 +526,7 @@ object StoreScreenshots {
                     deadline = day, scheduledDate = day, pinnedStart = at(day, 7, 30), recurrence = TaskRecurrence.DAILY,
                     status = TaskStatus.DONE, seriesId = if (tasks.size + 1L == first) null else first,
                     habitSince = since, habitAfter = w.habitAfter, habitScore = scores[daysAgo],
-                    createdAt = instant(day.minus(DatePeriod(days = 1)), 7, 40), updatedAt = instant(day, 7, 42),
+                    createdAt = instant(day.minus(DatePeriod(days = 1)), 7, 40), updatedAt = instant(day, 7, 35),
                 )
             }
             tasks += Task(
