@@ -179,9 +179,19 @@ magasins (badges officiels : choix du propriétaire de dessiner les nôtres), bo
   vitrine déplie la section « Habitude » au lieu de « Dates et temps » (`EditTaskDialog`), défilée de `HABIT_SCROLL`.
   Placée 3e, juste après le machine learning : les trois arguments-phares en tête ; les suivantes sont renumérotées, comme
   la galerie « Aperçu » des pages d'accueil.
+- **Captures du bureau pour le Microsoft Store** (2026-11-25, #215, `distribution.md` § Microsoft Store) : le Store exige
+  au moins une capture de bureau (1366 × 768 px conseillés au minimum), et les fiches F-Droid sont au format téléphone.
+  `./gradlew :desktopApp:run --args=--desktop-screenshots=<dépôt>/packaging/msix/screenshots` (`StoreScreenshots.runDesktop`)
+  rend le **même jeu de données** et la même horloge figée dans l'interface **du bureau** (`Platform.DESKTOP`, rail de
+  navigation) en 1920 × 1080 px, densité 1,25 (1536 × 864 dp), dans les deux langues de la fiche du Store, `en-US` et
+  `fr-FR` (choix du propriétaire du 2026-11-25) : 1 Jour, 2 la fiche estimée par machine learning, 3 la fiche d'une
+  habitude (défilements propres au bureau, `DESKTOP_SHEET_SCROLL`, `DESKTOP_HABIT_SCROLL`), 4 Semaine, 5 Statistiques,
+  6 le Suivi de l'espace Équipe (seconde base, image stable attendue), 7 la vue Jour en thème sombre. Versionnées dans
+  `packaging/msix/screenshots/<langue>/`, téléversées à la main dans Partner Center ; à refaire si un écran capturé change.
+  Les captures du téléphone ne changent pas (`render` garde ses valeurs par défaut).
 - **Workflow « Store screenshots »** (`.github/workflows/store-screenshots.yml`, 2026-11-25) : rend les captures sur un
   runner (lancement manuel, ou PR qui change `StoreScreenshots.kt`, `StoreTeam.kt` ou le workflow) et les dépose comme
-  artefact `store-screenshots` ; rien n'est écrit dans le dépôt : on relit les images, puis on les commite. Né d'un
+  artefact `store-screenshots`, avec celles du bureau (`desktop-screenshots`) ; rien n'est écrit dans le dépôt : on relit les images, puis on les commite. Né d'un
   environnement de développement où Gradle ne pouvait pas télécharger ses dépendances.
 - **Capture 12, les fériés par pays** (`HolidayShowcase`, `ui/month`, `jours-feries.md`) : le titre « Les jours fériés de ton
   pays » dans la langue de la fiche, puis la grille de mai 2026 de l'Allemagne en allemand, des États-Unis en anglais et de

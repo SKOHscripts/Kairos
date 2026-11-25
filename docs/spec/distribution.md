@@ -613,7 +613,8 @@ soumise (à faire par le propriétaire, ci-dessous).
      `unvirtualizedResources` (« Desktop app packaged with MSIX; it keeps its data in the same %LOCALAPPDATA% folder
      as its MSI installer, so that switching to the Store version keeps the user's data and uninstalling does not
      delete it. ») ; politique de confidentialité `https://skohscripts.github.io/Kairos/en/privacy/`
-     (`publication.md`) ; fiches, captures de bureau, classification par âge.
+     (`publication.md`) ; fiches en anglais et en français, captures de bureau `packaging/msix/screenshots/<langue>/`
+     (`publication.md` § Captures), classification par âge.
 - **Soumission automatique (différée)** : après la première soumission à la main, le job ferait `msstore publish
   <.msix> -id 9MX45HFZ42TF` (Microsoft Store Developer CLI) sur un tag final, seulement si les secrets existent, comme
   l'AUR. Il faut une application Microsoft Entra associée au compte Partner Center (rôle Manager) et quatre secrets :
