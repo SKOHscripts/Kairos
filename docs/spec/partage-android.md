@@ -67,7 +67,8 @@ retient l'attention doit pouvoir aller en un geste dans la boîte de réception,
 
 ### Hors périmètre / différé
 
-- Images, fichiers, partage de plusieurs éléments à la fois (`SEND_MULTIPLE`) : une note n'a pas de pièce jointe.
+- Images et partage de plusieurs images (`SEND_MULTIPLE`) : spécifiés à part, avec les images dans les notes
+  (`notes-images.md`, #295). Autres fichiers : une note n'a pas de pièce jointe.
 - Récupérer en ligne le titre d'une page quand l'application ne le fournit pas : ce serait une connexion réseau implicite,
   contraire à « hors ligne par défaut » (`connexions-en-ligne.md`).
 - Partager directement comme **tâche**, ou choisir entre note et tâche dans la feuille de partage : la note est l'étape de
