@@ -11,7 +11,8 @@ réduites à l'ajout, visibles et synchronisées sur toutes les plateformes. Fic
 `README.md` et `README.fr.md`. Tests (prévus) : `ImageBudgetTest` (core), `NoteImageRepositoryTest` et `SyncRepositoryTest`
 (data), `ExportCodecTest` (data), `SnapshotMergeTest` (core), `M4ScreensUiTest` (desktopApp), `DesktopImagesTest` (desktopApp)._
 
-État : issue #295, **spécifiée le 2026-11-27, non implémentée**. Version à fixer.
+État : issue #295, **spécifiée le 2026-11-27, non implémentée**. Prévue pour la **4.6.0-beta.2**, avec le partage vers Kairos
+(propriétaire, 2026-11-27) ; presse-papiers sur toutes les plateformes ajouté le même jour.
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -25,14 +26,20 @@ l'image se perd. La boîte de réception GTD doit tout recevoir au même endroit
 ### Comportement attendu (utilisateur)
 
 - **Ajouter des images** : dans la carte de capture de Notes et dans le dialogue « Modifier », un bouton « Ajouter une image »
-  (icône d'image), à côté de « Capturer ». Il ouvre, selon la plateforme :
-  - **Android** : un menu « Choisir dans la galerie » (sélecteur de photos du système, sans autorisation à donner) et
-    « Prendre une photo » (l'appareil photo du système) ;
-  - **bureau** : le sélecteur de fichiers du système (PNG, JPEG, WebP, GIF, BMP) ;
-  - **web** : le sélecteur de fichiers du navigateur, mêmes types.
-  On peut en choisir plusieurs d'un coup.
-- **Coller une image** : sur le bureau et le web, Ctrl+V (Cmd+V sur Mac) dans le champ de la note ajoute l'image du
-  presse-papiers ; un texte se colle comme avant.
+  (icône d'image), à côté de « Capturer ». Il ouvre un menu, selon la plateforme :
+  - **Android** : « Choisir dans la galerie » (sélecteur de photos du système, sans autorisation à donner), « Prendre une
+    photo » (l'appareil photo du système) et « Coller depuis le presse-papiers » ;
+  - **bureau et web** : « Choisir un fichier » (PNG, JPEG, WebP, GIF, BMP) et « Coller depuis le presse-papiers ».
+  On peut choisir plusieurs fichiers ou photos d'un coup.
+- **Coller une image**, sur toutes les plateformes (propriétaire, 2026-11-27) :
+  - l'entrée « Coller depuis le presse-papiers » du menu ajoute l'image du presse-papiers ; s'il n'y en a pas, le message dit
+    « Pas d’image dans le presse-papiers. » ;
+  - **bureau et web** : Ctrl+V (Cmd+V sur Mac) dans le champ de la note ajoute l'image du presse-papiers ; un texte se colle
+    comme avant ;
+  - **Android** : « Coller » du champ de la note, et les images que le clavier envoie (presse-papiers du clavier, GIF,
+    autocollants), ajoutent l'image ; un texte se colle comme avant.
+  Sur le web, le navigateur peut demander d'autoriser la lecture du presse-papiers à la première utilisation de l'entrée du
+  menu ; Ctrl+V n'a pas besoin de cette autorisation.
 - **Avant de capturer**, les images choisies s'affichent en vignettes sous le champ, chacune avec « Retirer » (✕). « Capturer »
   enregistre le texte et les images ensemble.
 - **Quatre images au plus par note.** Au-delà, le bouton est inactif, et le message dit « 4 images au plus par note. » ; d'un
@@ -130,7 +137,9 @@ l'image se perd. La boîte de réception GTD doit tout recevoir au même endroit
   - `suspend fun encode(bytes: ByteArray): EncodedImage?` : décode, tourne selon l'orientation, réduit à
     `ImageBudget.target`, pose sur fond blanc, encode en JPEG selon `QUALITIES` ; `null` si l'image est illisible. L'encodage
     réécrit l'image : aucune métadonnée ne survit ;
-  - `suspend fun paste(): ByteArray?` (bureau et web) : l'image du presse-papiers, `null` s'il n'y en a pas.
+  - `suspend fun paste(): ByteArray?` : l'image du presse-papiers, `null` s'il n'y en a pas (toutes les plateformes) ;
+  - `suspend fun fromClip(entry: ClipEntry): List<ByteArray>` : les images d'un contenu reçu par le champ (Android : clavier
+    et « Coller » ; liste vide ailleurs).
   `encode` tourne hors du fil principal (`Dispatchers.Default`).
 - **Android** (`AndroidImages.kt`) :
   - galerie : `ActivityResultContracts.PickMultipleVisualMedia(4)` avec `ImageOnly`. Le contrat se rabat de lui-même sur
