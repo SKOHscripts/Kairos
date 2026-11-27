@@ -144,6 +144,13 @@ ICONS = {
     "Assignment": ("assignment", False),
     "FormatListBulleted": ("format_list_bulleted", False),
     "Sync": ("sync", False),
+    # Partager vers Kairos (docs/spec/partage-android.md, issue #293) : carte du catalogue.
+    "Share": ("share", False),
+    # Images dans les notes (docs/spec/notes-images.md, issue #295) : ajout, galerie, photo, fichier, presse-papiers.
+    "AddPhotoAlternate": ("add_photo_alternate", False),
+    "PhotoLibrary": ("photo_library", False),
+    "PhotoCamera": ("photo_camera", False),
+    "ContentPaste": ("content_paste", False),
 }
 
 
