@@ -2346,4 +2346,9 @@
     <string name="tip_habit_suggest_body">« %1$s » revient régulièrement vers %2$s. En faire une habitude : une heure fixe, une phrase « Après… », et de temps en temps une question à la coche.</string>
     <string name="card_habits_title">Habitudes</string>
     <string name="card_habits_body">Fais d’une tâche récurrente une habitude : une heure fixe, proposée d’après tes coches, et une phrase « Après… ». De temps en temps, à la coche, une question validée mesure l’automatisme ; ta courbe dit quand l’habitude est installée. Les sources scientifiques sont dans les Réglages.</string>
+    <string name="share_note_added">Note ajoutée à Kairos</string>
+    <string name="share_note_empty">Rien à ajouter : le partage ne contenait pas de texte.</string>
+    <string name="share_note_failed">Kairos n’a pas pu ajouter la note. Ouvre Kairos pour en savoir plus.</string>
+    <string name="card_share_title">Partager vers Kairos</string>
+    <string name="card_share_body">Partage un article ou un texte depuis n’importe quelle appli : il devient une note, sans ouvrir Kairos.</string>
 </resources>

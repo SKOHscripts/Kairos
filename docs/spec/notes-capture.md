@@ -94,6 +94,8 @@ Depuis le jalon E1 de l'espace Équipe, l'écran Notes lit `repository.personalS
 
 ### Décisions et pièges tracés
 
+- **Note née d'un partage Android** (4.6.0, `partage-android.md`) : partager un texte ou un lien vers Kairos crée une note
+  ordinaire par `createNote`, sans ouvrir l'application : le titre fourni par l'application d'origine, puis le texte.
 - **Note née d'un dérangement** (4.5.0, `derangements.md`) : « En faire une note » du panneau crée une note ordinaire, dans la
   même transaction que le dérangement ; « Annuler » la retire.
 - **« Modifier » branché** : chaque note a un bouton d'édition.

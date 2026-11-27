@@ -2343,4 +2343,9 @@
     <string name="tip_habit_suggest_body">«%1$s» регулярно повторяется около %2$s. Можно сделать это привычкой: фиксированное время, фраза «После…» и иногда вопрос при отметке.</string>
     <string name="card_habits_title">Привычки</string>
     <string name="card_habits_body">Повторяющуюся задачу можно сделать привычкой: фиксированное время, предложенное по отметкам, и фраза «После…». Время от времени при отметке проверенный вопрос измеряет автоматизм; кривая показывает, когда привычка закрепилась. Научные источники — в Настройках.</string>
+    <string name="share_note_added">Заметка добавлена в Kairos</string>
+    <string name="share_note_empty">Нечего добавить: в отправленном нет текста.</string>
+    <string name="share_note_failed">Kairos не удалось добавить заметку. Открой Kairos, чтобы узнать больше.</string>
+    <string name="card_share_title">Поделиться в Kairos</string>
+    <string name="card_share_body">Поделись статьёй или текстом из любого приложения: получится заметка, и Kairos даже не нужно открывать.</string>
 </resources>

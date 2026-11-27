@@ -354,6 +354,8 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
   les widgets de l'écran d'accueil (3.12.0, `widgets-android.md`), sans permission : `NowWidgetProvider` et
   `DayWidgetProvider` (exportés, `APPWIDGET_UPDATE`), `WidgetActionReceiver` (non exporté) et `DayWidgetService`
   (réservé au système par `BIND_REMOTEVIEWS`) ;
+  la cible de partage (4.6.0, `partage-android.md`), sans permission : `ShareNoteActivity` (exportée, `SEND` sur `text/plain`,
+  transparente, sans historique ni affinité) ;
   activité `singleTop` (la notification du chrono et les widgets la rouvrent) ;
   `enableOnBackInvokedCallback="true"` (geste retour prédictif) ;
   `windowSoftInputMode="adjustResize"`. Base et suivi du chrono ouverts une

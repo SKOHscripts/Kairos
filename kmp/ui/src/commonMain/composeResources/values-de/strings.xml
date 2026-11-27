@@ -2343,4 +2343,9 @@
     <string name="tip_habit_suggest_body">„%1$s“ kommt regelmäßig gegen %2$s wieder. Mach eine Gewohnheit daraus: eine feste Uhrzeit, ein Satz „Nach …“ und ab und zu eine Frage beim Abhaken.</string>
     <string name="card_habits_title">Gewohnheiten</string>
     <string name="card_habits_body">Mach aus einer wiederkehrenden Aufgabe eine Gewohnheit: eine feste Uhrzeit, vorgeschlagen nach deinen Häkchen, und ein Satz „Nach …“. Ab und zu misst beim Abhaken eine validierte Frage den Automatismus; deine Kurve zeigt, wann die Gewohnheit gefestigt ist. Die wissenschaftlichen Quellen stehen in den Einstellungen.</string>
+    <string name="share_note_added">Notiz zu Kairos hinzugefügt</string>
+    <string name="share_note_empty">Nichts hinzuzufügen: Die Freigabe enthielt keinen Text.</string>
+    <string name="share_note_failed">Kairos konnte die Notiz nicht hinzufügen. Öffne Kairos, um mehr zu erfahren.</string>
+    <string name="card_share_title">Mit Kairos teilen</string>
+    <string name="card_share_body">Teile einen Artikel oder einen Text aus jeder App: Er wird zur Notiz, ohne Kairos zu öffnen.</string>
 </resources>

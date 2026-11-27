@@ -2343,4 +2343,9 @@
     <string name="tip_habit_suggest_body">«%1$s» torna regolarmente verso le %2$s. Fanne un’abitudine: un’ora fissa, una frase «Dopo…» e ogni tanto una domanda quando la spunti.</string>
     <string name="card_habits_title">Abitudini</string>
     <string name="card_habits_body">Trasforma un’attività ricorrente in abitudine: un’ora fissa, proposta in base alle tue spunte, e una frase «Dopo…». Ogni tanto, quando la spunti, una domanda validata misura l’automatismo; la tua curva dice quando l’abitudine è consolidata. Le fonti scientifiche sono nelle Impostazioni.</string>
+    <string name="share_note_added">Nota aggiunta a Kairos</string>
+    <string name="share_note_empty">Niente da aggiungere: la condivisione non conteneva testo.</string>
+    <string name="share_note_failed">Kairos non è riuscito ad aggiungere la nota. Apri Kairos per saperne di più.</string>
+    <string name="card_share_title">Condividi con Kairos</string>
+    <string name="card_share_body">Condividi un articolo o un testo da qualsiasi app: diventa una nota, senza aprire Kairos.</string>
 </resources>

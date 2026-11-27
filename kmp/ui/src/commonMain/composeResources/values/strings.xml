@@ -2344,4 +2344,9 @@
     <string name="tip_habit_suggest_body">“%1$s” comes back regularly around %2$s. Make it a habit: a fixed hour, an “After…” phrase, and now and then a question when you tick it.</string>
     <string name="card_habits_title">Habits</string>
     <string name="card_habits_body">Turn a recurring task into a habit: a fixed hour, suggested from your ticks, and an “After…” phrase. Now and then, when you tick it, a validated question measures automaticity; your curve tells when the habit is installed. The scientific sources are in Settings.</string>
+    <string name="share_note_added">Note added to Kairos</string>
+    <string name="share_note_empty">Nothing to add: the share contained no text.</string>
+    <string name="share_note_failed">Kairos could not add the note. Open Kairos to find out more.</string>
+    <string name="card_share_title">Share to Kairos</string>
+    <string name="card_share_body">Share an article or some text from any app: it becomes a note, without opening Kairos.</string>
 </resources>

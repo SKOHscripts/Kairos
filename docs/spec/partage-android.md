@@ -4,13 +4,14 @@ _Rôle : faire de Kairos une cible de la feuille de partage d'Android. Un lien o
 note, sans ouvrir Kairos. Fichiers couverts (prévus) : `kmp/core/src/commonMain/.../core/notes/SharedNote.kt` (corps de la
 note, pur), `kmp/androidApp/.../android/ShareNoteActivity.kt` (réception du partage), `kmp/androidApp/src/main/AndroidManifest.xml`
 (activité et filtre d'intention), `androidApp/src/main/res/values/themes.xml` (thème transparent `Theme.Kairos.Share`),
-`kmp/ui/src/commonMain/composeResources/values*/strings.xml` (textes `share_note_*`, carte du catalogue),
+`kmp/ui/.../notes/ShareTexts.kt` et `composeResources/values*/strings.xml` (textes `share_note_*`, carte du catalogue),
 `kmp/ui/.../guide/FeatureCatalog.kt` (carte `share`), `kmp/tools/make_icons.py` et `KairosIcons` (icône `Share`), `README.md` et
-`README.fr.md`. Le modèle `Note` et `createNote` sont décrits par `notes-capture.md`. Tests (prévus) :
+`README.fr.md`. Le modèle `Note` et `createNote` sont décrits par `notes-capture.md`. Tests :
 `core/.../notes/SharedNoteTest.kt`, `FeatureCatalogTest`, `StringsParityTest`, `ShareTargetManifestTest` (module `ui`, qui lit
 le manifeste sans SDK Android, comme `AndroidStringsParityTest`)._
 
-État : issue #293, **spécifiée le 2026-11-27, non implémentée**. Prévue pour la **4.6.0-beta.2** (milestone 4.6.0).
+État : issue #293, spécifiée et **implémentée le 2026-11-27**, pour la **4.6.0-beta.2** (milestone 4.6.0). Vérification manuelle
+sur appareil à faire avant la finale (voir Critères de succès).
 
 ## 1. Besoin métier (cahier des charges)
 
@@ -101,9 +102,10 @@ retient l'attention doit pouvoir aller en un geste dans la boîte de réception,
     prend pas la place de la tâche Kairos, n'apparaît pas dans les récentes et ne se rouvre pas au retour ;
   - pas de `label` ni d'`icon` propres : elle hérite de ceux de l'application, « Kairos » et le logo.
   Aucune permission n'est ajoutée.
-- **Thème** `Theme.Kairos.Share` (`themes.xml`) : parent `Theme.Kairos`, `windowIsTranslucent`, fond `@android:color/transparent`,
-  sans titre, `windowAnimationStyle` à `@null` : rien n'est visible.
-- **`ShareNoteActivity.onCreate`** : aucun `setContent`.
+- **Thème** `Theme.Kairos.Share` (`values/themes.xml`) : parent explicite `android:Theme.Translucent.NoTitleBar` (fenêtre
+  transparente, sans titre), `windowAnimationStyle` à `@null` : rien n'est visible. Rien du thème de l'application n'y sert, et
+  un seul fichier suffit : pas de variante sombre ni `v31`.
+- **`ShareNoteActivity.onCreate`** (une `Activity` simple, sans Compose) : aucun `setContent`.
   1. `KairosCrash.pending(this) != null` → message d'échec, `finish()`. La base reste fermée, comme pour `MainActivity`
      (`demarrage.md`).
   2. `body = SharedNote.body(getCharSequenceExtra(EXTRA_SUBJECT)?.toString(), getCharSequenceExtra(EXTRA_TEXT)?.toString())`.
@@ -113,12 +115,13 @@ retient l'attention doit pouvoir aller en un geste dans la boîte de réception,
      - `KairosProcess.services(app).await()`, dans un `runCatching` (échec → message d'échec) ;
      - `applyLanguage(UiLanguage.resolve(settings.language, …))`, comme `WidgetSync`, pour un processus ouvert sans
        activité ;
-     - `repository.createNote(body)` ;
+     - `repository.createNote(body)` ; une exception ou un refus donne le message d'échec ;
      - puis, sur `Dispatchers.Main`, le message de succès et `finish()`.
      L'activité attend la fin de l'écriture avant de se fermer : le processus reste au premier plan le temps de l'écriture,
      et le système ne peut pas le tuer avant que la note soit enregistrée.
-- **Message** : `Toast.makeText(applicationContext, texte, LENGTH_SHORT)`, avec un texte lu par `getString` dans les
-  ressources Compose (`Res.string.share_note_added`, `share_note_empty`, `share_note_failed`). Le contexte de l'application
+- **Message** : `Toast.makeText(applicationContext, texte, LENGTH_SHORT)`, avec un texte lu hors composition par
+  `ShareTexts` (`ui/notes`, comme `WidgetTexts`) dans les ressources Compose (`share_note_added`, `share_note_empty`,
+  `share_note_failed`). Le contexte de l'application
   garde le message affiché même si l'activité est déjà fermée.
 - La note passe par `createNote` et son flux d'état. `MainActivity` ouverte, l'écran Notes et la synchronisation du fichier
   lié la voient sans rien de plus. Les notes n'ont pas d'espace Équipe : elle est dans la vue Perso.
@@ -172,14 +175,4 @@ retient l'attention doit pouvoir aller en un geste dans la boîte de réception,
   de suivi, fragments). Pour l'instant, deux partages font deux notes, simples à repérer dans la liste.
 - **Libellé et icône hérités** : la cible s'appelle « Kairos », comme l'application, pour qu'on la reconnaisse. Le message
   dit que c'est une note. Une chaîne Android de plus, à tenir dans six langues, n'apporterait rien.
-
-### Impacts sur les specs existantes (à reporter à l'implémentation)
-
-- `notes-capture.md` : une entrée de plus, la note née d'un partage Android, dans « Décisions et pièges tracés », à côté de
-  la note née d'un dérangement.
-- `distribution.md` § Android : l'activité de partage dans la description du manifeste, toujours sans nouvelle permission. Le
-  commentaire de tête de `AndroidManifest.xml` la cite aussi.
-- `demarrage.md` : le rapport de plantage en attente bloque aussi l'écriture d'une note partagée.
-- `methode-gtd.md` : rien à changer. Le partage arrive dans Notes, qui est déjà l'étape « Capturer » ; le texte du dialogue
-  « La méthode GTD » ne change pas.
-- `README.md` de `docs/spec/` : la ligne de cette spec, marquée 4.6.0 (#293) à l'implémentation.
+- **Impacts reportés** (2026-11-27) dans `notes-capture.md`, `distribution.md` § Android, `demarrage.md` et l'index.

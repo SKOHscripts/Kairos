@@ -277,6 +277,10 @@ converts it: the first line becomes the title, the rest the description, and
 the task lands in "To process". The note is archived, never lost. A note can
 also be edited, archived without follow-up, or deleted.
 
+- **Share to Kairos** (Android): share an article, a link or some text from any
+  app, and choose Kairos. It becomes a note at once, without opening Kairos: the
+  page title on the first line, the link below, so "→ Task" gives a task named
+  after the article. Nothing is fetched online.
 - **GTD explained**: Kairos follows GTD (capture, clarify, organize, reflect,
   engage). Each screen says which step it is, and "The GTD method" on Notes
   explains the five steps, where they are in Kairos and what Kairos does
@@ -756,6 +760,7 @@ version that brought it and the platforms it exists on.
 | Chapter | Feature | Since | Platforms |
 |---|---|---|---|
 | First steps | Capture without thinking | 3.0.0 | All |
+| First steps | Share to Kairos | 4.6.0 | Android |
 | First steps | The GTD method in Kairos | 4.1.0 | All |
 | First steps | Keyboard shortcuts | 3.0.0 | Desktop, Web |
 | First steps | Qualify in one click | 3.0.0 | All |
