@@ -73,6 +73,11 @@ class AppServices(
     val tips: Boolean = false,
     /** Accès au réseau selon le système (Android) : aide et bouton « Réglages de Kairos » après un ajout en `OFFLINE`. */
     val networkAccess: NetworkAccess? = null,
+    /**
+     * Images des notes (docs/spec/notes-images.md) : choix, collage et réduction par la plateforme. `null` (tests d'un écran seul,
+     * doublures) : pas de bouton « Ajouter une image », les images existantes s'affichent quand même.
+     */
+    val images: com.skohscripts.kairos.ui.notes.ImageService? = null,
 )
 
 /** Un widget Kairos est-il posé sur l'écran d'accueil (docs/spec/widgets-android.md, conseil `widgets` de docs/spec/conseils.md) ? */

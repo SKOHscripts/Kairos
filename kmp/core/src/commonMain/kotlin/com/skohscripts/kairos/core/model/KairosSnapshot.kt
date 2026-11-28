@@ -18,6 +18,8 @@ data class KairosSnapshot(
     val dependencies: List<TaskDependency> = emptyList(),
     val workSessions: List<WorkSession> = emptyList(),
     val notes: List<Note> = emptyList(),
+    /** Images des notes (4.6.0, docs/spec/notes-images.md) ; vide tant qu'aucune n'a été ajoutée. Personnelles. */
+    val noteImages: List<NoteImage> = emptyList(),
     val settings: Settings = Settings(),
     /** Membres de l'équipe (espace Équipe) ; toujours vide tant que l'espace n'a jamais servi. */
     val members: List<TeamMember> = emptyList(),

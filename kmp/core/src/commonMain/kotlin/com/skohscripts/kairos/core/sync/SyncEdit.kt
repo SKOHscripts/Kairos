@@ -26,6 +26,7 @@ object SyncEdit {
             RecordKind.DEPENDENCY -> SyncRecords.buildDependency(id, l, ids)?.let { x -> snapshot.copy(dependencies = snapshot.dependencies.map { if (it.id == id) x else it }) }
             RecordKind.DAYMARK -> SyncRecords.buildDayMark(id, l, ids)?.let { x -> snapshot.copy(dayMarks = snapshot.dayMarks.map { if (it.id == id) x else it }) }
             RecordKind.INTERRUPTION -> SyncRecords.buildInterruption(id, l, ids)?.let { x -> snapshot.copy(interruptions = snapshot.interruptions.map { if (it.id == id) x else it }) }
+            RecordKind.NOTE_IMAGE -> SyncRecords.buildNoteImage(id, l, ids)?.let { x -> snapshot.copy(noteImages = snapshot.noteImages.map { if (it.id == id) x else it }) }
         }
     }
 
@@ -44,7 +45,8 @@ object SyncEdit {
                 tasks = snapshot.tasks.filter { it.id != id },
                 dependencies = snapshot.dependencies.filter { it.taskId != id && it.blockerId != id },
             )
-            RecordKind.NOTE -> snapshot.copy(notes = snapshot.notes.filter { it.id != id })
+            // Une note emporte ses images, comme une suppression ordinaire (docs/spec/notes-images.md § Stockage).
+            RecordKind.NOTE -> snapshot.copy(notes = snapshot.notes.filter { it.id != id }, noteImages = snapshot.noteImages.filter { it.noteId != id })
             RecordKind.CALENDAR -> snapshot.copy(
                 calendarSources = snapshot.calendarSources.filter { it.id != id },
                 timeBlocks = snapshot.timeBlocks.filter { (it.source as? com.skohscripts.kairos.core.model.BlockSource.Imported)?.calendarId != id },
@@ -56,6 +58,7 @@ object SyncEdit {
             RecordKind.DEPENDENCY -> snapshot.copy(dependencies = snapshot.dependencies.filter { it.id != id })
             RecordKind.DAYMARK -> snapshot.copy(dayMarks = snapshot.dayMarks.filter { it.id != id })
             RecordKind.INTERRUPTION -> snapshot.copy(interruptions = snapshot.interruptions.filter { it.id != id })
+            RecordKind.NOTE_IMAGE -> snapshot.copy(noteImages = snapshot.noteImages.filter { it.id != id })
         }
     }
 

@@ -119,6 +119,7 @@ object DesktopServices {
             connectionSync = online?.sync,
             // Conseils au bon moment (docs/spec/conseils.md) : pas dans l'auto-test (base en mémoire), dont les captures sont figées.
             tips = !inMemory,
+            images = DesktopImages,
         )
     }
 

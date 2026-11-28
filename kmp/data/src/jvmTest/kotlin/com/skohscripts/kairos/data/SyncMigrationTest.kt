@@ -35,7 +35,7 @@ class SyncMigrationTest {
         val repo = open(file)
         repo.createTask("Rapport")
         val before = repo.snapshot.value
-        sql(file, "ALTER TABLE task DROP COLUMN habit_since", "ALTER TABLE task DROP COLUMN habit_after", "ALTER TABLE task DROP COLUMN habit_score", "DROP TABLE interruption", "ALTER TABLE calendar_source DROP COLUMN counts_as_holidays", "DROP TABLE calendar_connection")
+        sql(file, "DROP TABLE note_image", "ALTER TABLE task DROP COLUMN habit_since", "ALTER TABLE task DROP COLUMN habit_after", "ALTER TABLE task DROP COLUMN habit_score", "DROP TABLE interruption", "ALTER TABLE calendar_source DROP COLUMN counts_as_holidays", "DROP TABLE calendar_connection")
         sql(file, "DROP TABLE sync_state", "DROP TABLE sync_identity", "DROP TABLE sync_mark", "DROP TABLE sync_review", "PRAGMA user_version = 12")
         val reopened = open(file)
         assertEquals(KairosDatabase.Schema.version.toInt(), count(file, "PRAGMA user_version"))

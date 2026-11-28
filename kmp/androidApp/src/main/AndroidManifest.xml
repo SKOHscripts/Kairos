@@ -16,7 +16,8 @@
      téléphone, demandée seulement quand l'utilisateur l'active ; ce n'est pas
      une permission réseau. Les widgets de l'écran d'accueil (3.12.0, docs/spec/widgets-android.md) n'en ajoutent
      aucune : deux fournisseurs, un récepteur d'actions privé et le service de la liste « Journée » (réservé au système
-     par BIND_REMOTEVIEWS, un attribut et non une permission demandée). -->
+     par BIND_REMOTEVIEWS, un attribut et non une permission demandée). La cible de partage (4.6.0, docs/spec/partage-android.md) n'en
+     ajoute aucune non plus. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -45,6 +46,44 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Partager vers Kairos (4.6.0, issue #293, docs/spec/partage-android.md) : un texte ou un lien partagé devient une note,
+             sans ouvrir Kairos. Transparente, hors des récentes, sans historique ni affinité : elle ne touche pas à la tâche
+             Kairos. Libellé et icône hérités de l'application. Aucune permission. -->
+        <activity
+            android:name=".ShareNoteActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Kairos.Share">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <!-- Images partagées (4.6.0, docs/spec/notes-images.md § Partage d'images) : une ou plusieurs. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+        </activity>
+        <!-- Photos des notes (4.6.0, docs/spec/notes-images.md § Android) : l'application photo du système écrit dans
+             cache/camera/, partagé par ce fournisseur le temps de la prise de vue ; non exporté, aucune permission CAMERA. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.skohscripts.kairos.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <receiver
             android:name=".ChronoReceiver"
             android:exported="false" />

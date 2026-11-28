@@ -12,4 +12,10 @@
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
         <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
     </style>
+
+    <!-- Cible de partage (docs/spec/partage-android.md) : fenêtre transparente, sans titre ni animation ; rien n'est
+         visible le temps d'écrire la note. Parent explicite : rien du thème de l'application ne sert ici. -->
+    <style name="Theme.Kairos.Share" parent="android:Theme.Translucent.NoTitleBar">
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
 </resources>

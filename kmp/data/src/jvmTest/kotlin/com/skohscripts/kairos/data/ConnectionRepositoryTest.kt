@@ -206,6 +206,7 @@ class ConnectionRepositoryTest {
     fun schemaThirteenGainsAnEmptyConnectionTable() = runTest {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         KairosStore.open(driver)
+        driver.execute(null, "DROP TABLE note_image", 0).await()
         driver.execute(null, "ALTER TABLE task DROP COLUMN habit_since", 0).await()
         driver.execute(null, "ALTER TABLE task DROP COLUMN habit_after", 0).await()
         driver.execute(null, "ALTER TABLE task DROP COLUMN habit_score", 0).await()

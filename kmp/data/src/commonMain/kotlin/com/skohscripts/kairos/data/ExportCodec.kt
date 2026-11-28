@@ -25,6 +25,8 @@ import com.skohscripts.kairos.core.model.KairosSnapshot
 import com.skohscripts.kairos.core.model.Interruption
 import com.skohscripts.kairos.core.model.InterruptionSource
 import com.skohscripts.kairos.core.model.Note
+import com.skohscripts.kairos.core.model.NoteImage
+import com.skohscripts.kairos.core.notes.ImageBudget
 import com.skohscripts.kairos.core.model.NoteStatus
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
@@ -51,6 +53,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
+import kotlin.io.encoding.Base64
 import kotlin.time.Instant
 
 /**
@@ -155,6 +158,7 @@ object ExportCodec {
         unique(s.workSessions.map { it.id }, "sessions")
         unique(s.notes.map { it.id }, "notes")
         unique(s.interruptions.map { it.id }, "dérangements")
+        unique(s.noteImages.map { it.id }, "images des notes")
         for (i in s.interruptions) require(i.minutes in Interruption.MIN_MINUTES..Interruption.MAX_MINUTES) { "durée d'un dérangement" }
         unique(s.members.map { it.id }, "membres")
         unique(s.absences.map { it.id }, "absences")
@@ -235,6 +239,9 @@ private data class ExportFile(
     val dayMarks: List<DayMarkJson>? = null,
     // Dérangements (4.5.0, docs/spec/derangements.md) : même règle, nuls tant qu'il n'y en a aucun ; une version d'avant les ignore.
     val interruptions: List<InterruptionJson>? = null,
+    // Images des notes (4.6.0, docs/spec/notes-images.md § Export) : même règle, nulles tant qu'il n'y en a aucune ; une version
+    // d'avant les ignore. `data` : le JPEG en Base64 standard.
+    val noteImages: List<NoteImageJson>? = null,
     // Synchronisation (formatVersion 3) : nul, donc omis, pour une base qui ne synchronise pas.
     val sync: SyncJson? = null,
 ) {
@@ -257,7 +264,23 @@ private data class ExportFile(
         calendarSources = calendarSources.orEmpty().map { it.toModel() },
         dayMarks = dayMarks.orEmpty().map { it.toModel() },
         interruptions = interruptions.orEmpty().map { it.toModel() },
+        noteImages = readableImages(),
     )
+
+    /**
+     * Les images lisibles d'un fichier venu d'ailleurs (docs/spec/notes-images.md § Export) : une image sans sa note, sans contenu
+     * Base64 valide ou sans dimensions est ignorée, et une note garde ses [ImageBudget.MAX_IMAGES] premières. Ignorer plutôt que
+     * refuser l'import : une image perdue ne doit pas bloquer la restauration de tout le reste.
+     */
+    private fun readableImages(): List<NoteImage> {
+        val noteIds = notes.mapTo(HashSet()) { it.id }
+        val perNote = HashMap<Long, Int>()
+        return noteImages.orEmpty()
+            .filter { it.noteId in noteIds && it.width > 0 && it.height > 0 && it.data.isNotEmpty() && runCatching { Base64.decode(it.data) }.isSuccess }
+            .mapNotNull { j -> runCatching { j.toModel() }.getOrNull() }
+            .sortedWith(compareBy({ it.createdAt }, { it.id }))
+            .filter { m -> (perNote[m.noteId] ?: 0).let { n -> perNote[m.noteId] = n + 1; n < ImageBudget.MAX_IMAGES } }
+    }
 
     /** La même exportation, en format 3 : chaque enregistrement de la portée porte son `uid` et ses marques, la racine le contexte. */
     fun synced(s: KairosSnapshot, d: SyncData): ExportFile {
@@ -277,6 +300,7 @@ private data class ExportFile(
             calendarSources = calendarSources?.map { j -> tag(RecordKind.CALENDAR, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
             dayMarks = dayMarks?.map { j -> tag(RecordKind.DAYMARK, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
             interruptions = interruptions?.map { j -> tag(RecordKind.INTERRUPTION, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
+            noteImages = noteImages?.map { j -> tag(RecordKind.NOTE_IMAGE, j.id)?.let { j.copy(uid = it.uid, born = it.born, base = it.base, stamps = it.stamps) } ?: j },
             sync = SyncJson(
                 device = d.device,
                 label = d.label,
@@ -316,6 +340,9 @@ private data class ExportFile(
         calendarSources.orEmpty().forEach { take(RecordKind.CALENDAR, it.id, it.uid, it.born, it.base, it.stamps) }
         dayMarks.orEmpty().forEach { take(RecordKind.DAYMARK, it.id, it.uid, it.born, it.base, it.stamps) }
         interruptions.orEmpty().forEach { take(RecordKind.INTERRUPTION, it.id, it.uid, it.born, it.base, it.stamps) }
+        // Seulement les images gardées par la lecture : une image ignorée n'a pas d'identité ici.
+        val kept = s.noteImages.mapTo(HashSet()) { it.id }
+        noteImages.orEmpty().filter { it.id in kept }.forEach { take(RecordKind.NOTE_IMAGE, it.id, it.uid, it.born, it.base, it.stamps) }
         sync.phantoms.orEmpty().forEach { (id, uid) ->
             require(uid.isNotEmpty() && uid.length <= SyncScope.MAX_UID) { "uid" }
             uids.getOrPut(RecordKind.TASK) { HashMap() }[id.toLong()] = uid
@@ -369,6 +396,7 @@ private data class ExportFile(
                 calendarSources = s.calendarSources.takeIf { it.isNotEmpty() }?.map { CalendarSourceJson.from(it) },
                 dayMarks = s.dayMarks.mapNotNull { DayMarkJson.from(it) }.takeIf { it.isNotEmpty() },
                 interruptions = s.interruptions.takeIf { it.isNotEmpty() }?.map { InterruptionJson.from(it) },
+                noteImages = s.noteImages.takeIf { it.isNotEmpty() }?.map { NoteImageJson.from(it) },
             )
         }
     }
@@ -655,6 +683,29 @@ private data class InterruptionJson(
 
     companion object {
         fun from(i: Interruption) = InterruptionJson(i.id, i.at.toString(), i.minutes, i.source?.code, i.taskId, i.noteId, i.createdAt.toString())
+    }
+}
+
+/** Une image de note (docs/spec/notes-images.md § Export) : référence vers la note, JPEG en Base64. */
+@Serializable
+private data class NoteImageJson(
+    val id: Long,
+    val noteId: Long,
+    val createdAt: String,
+    val mime: String = ImageBudget.JPEG,
+    val width: Int,
+    val height: Int,
+    val data: String,
+    // Synchronisation (formatVersion 3, docs/spec/synchronisation.md § Format) : nuls, donc omis, hors synchronisation.
+    val uid: String? = null,
+    val born: String? = null,
+    val base: String? = null,
+    val stamps: Map<String, String>? = null,
+) {
+    fun toModel() = NoteImage(id, noteId, Instant.parse(createdAt), mime, width, height, data)
+
+    companion object {
+        fun from(m: NoteImage) = NoteImageJson(m.id, m.noteId, m.createdAt.toString(), m.mime, m.width, m.height, m.data)
     }
 }
 

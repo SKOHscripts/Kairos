@@ -97,6 +97,8 @@ object AndroidServices {
             online = online,
             connectionSync = online.sync,
             networkAccess = AndroidNetworkAccess(context),
+            // Images des notes (docs/spec/notes-images.md § Android) : galerie, photo, presse-papiers, clavier.
+            images = AndroidImages(context),
             // Conseil « Ta journée sur l'écran d'accueil » (docs/spec/conseils.md) : un widget Kairos est-il posé ? Aucune permission.
             widgets = WidgetProbe {
                 val manager = AppWidgetManager.getInstance(context)

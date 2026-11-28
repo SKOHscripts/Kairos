@@ -20,6 +20,11 @@ enum class RecordKind(val code: String) {
     DAYMARK("daymark"),
     /** Dérangements (4.5.0, docs/spec/derangements.md) : données personnelles, toujours dans la portée. */
     INTERRUPTION("interruption"),
+    /**
+     * Images des notes (4.6.0, docs/spec/notes-images.md § Synchronisation) : **dernier** genre, sa note est construite avant lui ;
+     * immuables, toujours dans la portée. Jamais avant un genre existant : le rang ordonne les `RecordRef`.
+     */
+    NOTE_IMAGE("noteImage"),
     ;
 
     companion object {
@@ -88,6 +93,7 @@ object SyncScope {
             dependencies = snapshot.dependencies.filter { it.taskId in taskIds && it.blockerId in taskIds },
             dayMarks = snapshot.dayMarks.filter { m -> (m.source as? BlockSource.Imported)?.calendarId in calendarIds },
             interruptions = snapshot.interruptions,
+            noteImages = snapshot.noteImages,
         )
     }
 
@@ -102,6 +108,7 @@ object SyncScope {
         val dependencies: List<com.skohscripts.kairos.core.model.TaskDependency>,
         val dayMarks: List<com.skohscripts.kairos.core.model.DayMark>,
         val interruptions: List<com.skohscripts.kairos.core.model.Interruption> = emptyList(),
+        val noteImages: List<com.skohscripts.kairos.core.model.NoteImage> = emptyList(),
     ) {
         /** Identifiants locaux par genre. */
         fun ids(kind: RecordKind): List<Long> = when (kind) {
@@ -114,6 +121,7 @@ object SyncScope {
             RecordKind.DEPENDENCY -> dependencies.map { it.id }
             RecordKind.DAYMARK -> dayMarks.map { it.id }
             RecordKind.INTERRUPTION -> interruptions.map { it.id }
+            RecordKind.NOTE_IMAGE -> noteImages.map { it.id }
         }
 
         val size: Int get() = RecordKind.entries.sumOf { ids(it).size }

@@ -62,7 +62,8 @@ ouvert, `FileService`, `BackupStore`, emplacement des données, fichier lié
 `export-import.md`), calendriers du téléphone (`CalendarService`, Android,
 `connexions-externes.md`), horloge, démonstration jetable (`DemoSource` : chaque plateforme ne fournit qu'une base en
 mémoire, `openDemo` et `AppServices.forDemo` sont communs, `visite-guidee.md` § Visite interactive), widgets posés
-(`WidgetProbe`, Android) et conseils (`tips`, faux par défaut : seules les applications réelles l'activent, pas l'auto-test
+(`WidgetProbe`, Android), images des notes (`ImageService` : choix, collage et réduction par la plateforme,
+`notes-images.md`) et conseils (`tips`, faux par défaut : seules les applications réelles l'activent, pas l'auto-test
 ni les captures des magasins, `conseils.md`)…), construit par chaque
 application et passé à
 `KairosApp(platform) { … }` sous forme de fonction suspendue (ouverture
