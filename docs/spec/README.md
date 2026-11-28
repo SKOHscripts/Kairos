@@ -37,6 +37,8 @@ dans `docs/spec-v3/`, est le seul.
 | [`temps-reel-chrono.md`](temps-reel-chrono.md) | Chrono (une session à la fois), temps passé et temps du jour, trois alertes, garde-fou (arrêt automatique après 4 h, #220), notifications Android (permanente, alarmes, redémarrage), bureau (plateau) et web. | M3 |
 | [`methode-gtd.md`](methode-gtd.md) | La méthode GTD expliquée : étape de chaque écran, dialogue « La méthode GTD », écarts de Kairos avec GTD. | #235 |
 | [`notes-capture.md`](notes-capture.md) | Notes : capture libre, conversion en tâche (titre et description), modification, archivage, suppression. | M4 |
+| [`partage-android.md`](partage-android.md) | Partager vers Kairos (Android) : un lien ou un texte partagé devient une note sans ouvrir Kairos (titre fourni puis texte, hors ligne). | 4.6.0 (#293) |
+| [`notes-images.md`](notes-images.md) | Images dans les notes : quatre au plus, réduites à l'ajout (1 600 px, JPEG, sans métadonnées), galerie, photo, fichier et presse-papiers, vignettes et visionneuse, sur toutes les plateformes ; dans l'export et le fichier lié ; partage d'images sur Android. | 4.6.0 (#295) |
 | [`vue-semaine.md`](vue-semaine.md) | Vue Semaine : sept jours (échéances, fait, créneaux), temps réel de la semaine, navigation vers un autre jour. | M4 |
 | [`vue-mois.md`](vue-mois.md) | Vue Mois (bascule de la destination Bilan, ex-Semaine) : grille du mois, tâches prévues, échéances, surcharge, fériés et jours libres, listes, ouverture d'un jour. | 3.8.0 (#107) |
 | [`statistiques.md`](statistiques.md) | Statistiques : chiffres clés, débit, calibration et biais, temps par type, meilleures heures par type (3.5), flux, complétude ; repères du guide des points ; tests sur fichiers d'or figés. | M4 |

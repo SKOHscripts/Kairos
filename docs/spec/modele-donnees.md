@@ -93,7 +93,8 @@ navigateur : le même modèle et les mêmes règles doivent valoir partout.
   plus une par `(blockId, date)`.
 - `TaskDependency` (`taskId` bloquée par `blockerId`), `WorkSession`
   (`endedAt = null` : en cours), `Note` (`status` `open` / `archived`,
-  `convertedTaskId`).
+  `convertedTaskId` ; corps vide permis s'il a une image), `NoteImage` (4.6.0, `noteId`, `mime`, `width`, `height`,
+  `data` en Base64, immuable, quatre au plus par note, `notes-images.md`).
 - Codes inconnus à la lecture : valeur par défaut (`todo`, `""`, `busy`,
   `open`) plutôt qu'une erreur.
 - `FIBONACCI_SCALE` = 1, 2, 3, 5, 8, 13, 21 ; `PRIORITY_VALUES` = 0, 1, 2.
@@ -218,6 +219,7 @@ Schéma 13 : `12.sqm` ajoute les tables `sync_*` (`synchronisation.md`).
 Schéma 14 : `13.sqm` ajoute la table locale vide `calendar_connection` (`connexions-en-ligne.md`, `ConnectionRepositoryTest`).
 Schéma 15 : `14.sqm` ajoute `calendar_source.counts_as_holidays` (0 par défaut ; `jours-feries.md` § Voie B, `CalendarHolidaysTest`).
 Schéma 16 : `15.sqm` ajoute la table vide `interruption` (dérangements, `derangements.md` § Stockage, `InterruptionRepositoryTest`).
+Schéma 18 : `17.sqm` ajoute la table vide `note_image` (images des notes, `notes-images.md` § Stockage, `NoteImageRepositoryTest`).
 Les fixtures d'ancien schéma construites depuis le schéma courant retirent aussi cette table ; sinon son marqueur saute les migrations.
 Les
 schémas de référence de chaque version
@@ -287,7 +289,8 @@ de SQLDelight.
     sous-tâches et sessions restent (comportement propre de Kairos), y compris
     sur les autres appareils synchronisés (#193, `synchronisation.md`).
   - Notes : `createNote`, `editNote`, `convertNote`, `archiveNote`,
-    `deleteNote` (`notes-capture.md`).
+    `deleteNote` (`notes-capture.md`) ; depuis 4.6.0, `createNote(corps, images)`, `editNote(id, corps, keep, add)` et
+    `deleteNote` portent aussi les images (`notes-images.md` § Stockage).
   - `updateSettings` : si `team` existe sans identité, en pose une (UUID
     tiré dans `data`, gardé si la base en a déjà une) ; rien en mode solo.
   - Membres et absences : `createMember`, `updateMember`, `archiveMember`,

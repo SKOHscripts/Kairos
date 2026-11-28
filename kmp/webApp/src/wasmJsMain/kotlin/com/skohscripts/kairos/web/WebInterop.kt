@@ -33,6 +33,9 @@ external object KairosWeb : JsAny {
     fun ring(dataUri: String)
     fun setLanguage(language: String)
     fun fetchText(url: String, timeoutMillis: Int, maxBytes: Int): Promise<WebFetchResult>
+    fun imagesPick(max: Int, side: Int, maxBytes: Int, qualities: String): Promise<JsString>
+    fun imagesPaste(max: Int, side: Int, maxBytes: Int, qualities: String): Promise<JsString>
+    fun imagesTakePasted(max: Int, side: Int, maxBytes: Int, qualities: String): Promise<JsString>
 }
 
 /** Réponse de `KairosWeb.fetchText` (docs/spec/connexions-en-ligne.md § Web). */

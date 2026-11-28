@@ -184,6 +184,8 @@ l'application : plantage immédiat, sans aucune information exploitable.
   **avant** `KairosProcess.services` (aucune ouverture de base) ; `onResume` ne rouvre pas non plus
   les services. « Partager » : `Intent.ACTION_SEND` `text/plain` dans un sélecteur ; « Ouvrir
   Kairos » : `clear` puis `recreate()`.
+- `ShareNoteActivity` (partage vers Kairos, 4.6.0, `partage-android.md`) : un rapport en attente l'arrête aussi avant
+  `KairosProcess.services` ; rien n'est écrit, et le message invite à ouvrir Kairos, qui montre le rapport.
 
 ### Décisions et pièges tracés
 

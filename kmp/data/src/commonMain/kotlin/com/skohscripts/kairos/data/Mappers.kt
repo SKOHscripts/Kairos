@@ -13,6 +13,7 @@ import com.skohscripts.kairos.core.model.BlockRecurrence
 import com.skohscripts.kairos.core.model.Interruption
 import com.skohscripts.kairos.core.model.InterruptionSource
 import com.skohscripts.kairos.core.model.Note
+import com.skohscripts.kairos.core.model.NoteImage
 import com.skohscripts.kairos.core.model.NoteStatus
 import com.skohscripts.kairos.core.model.Task
 import com.skohscripts.kairos.core.model.TaskDependency
@@ -38,6 +39,7 @@ import kotlin.time.Instant
 import com.skohscripts.kairos.data.db.Member_absence as AbsenceRow
 import com.skohscripts.kairos.data.db.Time_block_exception as BlockExceptionRow
 import com.skohscripts.kairos.data.db.Note as NoteRow
+import com.skohscripts.kairos.data.db.Note_image as NoteImageRow
 import com.skohscripts.kairos.data.db.Interruption as InterruptionRow
 import com.skohscripts.kairos.data.db.Task as TaskRow
 import com.skohscripts.kairos.data.db.Team_event as EventRow
@@ -222,4 +224,14 @@ internal fun NoteRow.toModel() = Note(
     convertedTaskId = converted_task_id,
     createdAt = created_at.instant(),
     updatedAt = updated_at.instant(),
+)
+
+internal fun NoteImageRow.toModel() = NoteImage(
+    id = id,
+    noteId = note_id,
+    createdAt = created_at.instant(),
+    mime = mime,
+    width = width.toInt(),
+    height = height.toInt(),
+    data = data_,
 )

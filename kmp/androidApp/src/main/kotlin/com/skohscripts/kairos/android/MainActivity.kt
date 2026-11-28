@@ -12,7 +12,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
+import com.skohscripts.kairos.core.notes.ImageBudget
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.getValue
@@ -36,6 +39,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.io.File
 
 /** Seule activité : l'interface Compose commune, bord à bord (docs/spec/distribution.md § Android). */
 class MainActivity : ComponentActivity(), FileService {
@@ -53,6 +57,14 @@ class MainActivity : ComponentActivity(), FileService {
     private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) {
         pendingOpen?.complete(it)
     }
+    // Images des notes (docs/spec/notes-images.md § Android) : sélecteur de photos du système (repli sur ACTION_OPEN_DOCUMENT là
+    // où il manque) et appareil photo du système vers un fichier du cache ; aucune autorisation.
+    private var pendingImages: CompletableDeferred<List<Uri>>? = null
+    private val pickVisualMedia = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(ImageBudget.MAX_IMAGES)) {
+        pendingImages?.complete(it)
+    }
+    private var pendingPhoto: CompletableDeferred<Boolean>? = null
+    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { pendingPhoto?.complete(it) }
     /** Destination demandée par un widget, application déjà ouverte (`onNewIntent`) ; remise à `null` une fois ouverte. */
     private var externalDestination by mutableStateOf<Destination?>(null)
     private var pendingPermission: CompletableDeferred<Boolean>? = null
@@ -222,7 +234,33 @@ class MainActivity : ComponentActivity(), FileService {
         return uri
     }
 
+    /** Les images choisies dans le sélecteur de photos du système (quatre au plus) ; vide si l'on annule. */
+    suspend fun pickImages(): List<Uri> = withContext(Dispatchers.Main) {
+        val result = CompletableDeferred<List<Uri>>().also { pendingImages = it }
+        pickVisualMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        result.await()
+    }
+
+    /** Une photo prise par l'application photo du système, dans `cache/camera/` ; `null` si l'on annule. */
+    suspend fun takePhoto(): Uri? = withContext(Dispatchers.Main) {
+        val folder = File(cacheDir, PHOTO_FOLDER).apply { mkdirs() }
+        val file = File(folder, "photo-${System.currentTimeMillis()}.jpg")
+        val uri = FileProvider.getUriForFile(this@MainActivity, FILES_AUTHORITY, file)
+        val result = CompletableDeferred<Boolean>().also { pendingPhoto = it }
+        takePicture.launch(uri)
+        if (result.await() && file.length() > 0) uri else null
+    }
+
+    /** Efface les photos prises une fois lues : seule leur version réduite entre dans la note. */
+    fun clearPhotos() {
+        File(cacheDir, PHOTO_FOLDER).listFiles()?.forEach { it.delete() }
+    }
+
     companion object {
+        /** Autorité du `FileProvider` (manifeste) : photos de l'appareil photo, le temps de les réduire. */
+        const val FILES_AUTHORITY = "com.skohscripts.kairos.files"
+        private const val PHOTO_FOLDER = "camera"
+
         /** Extra des intentions des widgets : nom de la [Destination] à ouvrir (`DAY`, `NOTES`). */
         const val EXTRA_DESTINATION = "com.skohscripts.kairos.DESTINATION"
     }

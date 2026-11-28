@@ -144,6 +144,10 @@ import com.skohscripts.kairos.ui.generated.resources.field_deadline
 import com.skohscripts.kairos.ui.generated.resources.rollup_sheet
 import com.skohscripts.kairos.ui.generated.resources.deadline_floor
 import com.skohscripts.kairos.ui.generated.resources.field_description
+import com.skohscripts.kairos.ui.generated.resources.task_origin_note
+import com.skohscripts.kairos.core.model.NoteImage
+import com.skohscripts.kairos.ui.notes.ImageViewer
+import com.skohscripts.kairos.ui.notes.ShownImage
 import com.skohscripts.kairos.ui.generated.resources.field_minutes
 import com.skohscripts.kairos.ui.generated.resources.field_project
 import com.skohscripts.kairos.ui.generated.resources.field_title
@@ -238,6 +242,8 @@ internal fun EditTaskDialog(
     /** Dépendances existantes et toutes les tâches par identifiant (lignée « A › C › », cycles) : « Bloquée par » ([BlockerChoices]). */
     dependencies: List<TaskDependency>,
     tasksById: Map<Long, Task>,
+    /** Images de la note dont la tâche est née (docs/spec/notes-images.md § Interface) ; vide sinon : pas de lien. */
+    originImages: List<NoteImage> = emptyList(),
     /** Ce que coûtent ses sous-tâches (docs/spec/sous-taches.md § Agrégation), `null` sans sous-tâche. */
     rollup: TaskTree.Rollup? = null,
     /** Historique par niveau de points de son espace, pour le conseil de découpage (§ Conseil) ; `null` : pas de conseil. */
@@ -294,6 +300,8 @@ internal fun EditTaskDialog(
 ) {
     var title by remember { mutableStateOf(task.title) }
     var description by remember { mutableStateOf(task.description) }
+    var viewingOrigin by remember { mutableStateOf(false) }
+    if (viewingOrigin) ImageViewer(originImages.map { ShownImage("image-${it.id}", it.data) }, 0) { viewingOrigin = false }
     var priority by remember { mutableStateOf(task.priority) }
     var points by remember { mutableStateOf(task.fibonacciPoints) }
     var deadline by remember { mutableStateOf(task.deadline?.toString().orEmpty()) }
@@ -421,6 +429,12 @@ internal fun EditTaskDialog(
                             minLines = 2,
                             modifier = Modifier.fillMaxWidth().tabLeavesField().coachField(EditField.DESCRIPTION, coach),
                         )
+                        if (originImages.isNotEmpty()) {
+                            KairosTextButton(onClick = { viewingOrigin = true }, contentPadding = KairosButtonIconPadding) {
+                                Icon(KairosIcons.Image, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Text(stringResource(Res.string.task_origin_note, originImages.size), modifier = Modifier.padding(start = 6.dp))
+                            }
+                        }
                         if (canPropose) ProposalSection(proposalTargets, proposedTo) { proposedTo = it }
                         if (received != null) {
                             ReceivedMark(received.origin, received.removed)

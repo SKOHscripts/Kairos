@@ -33,7 +33,7 @@ class ThemeColorMigrationTest {
     private suspend fun databaseWith(json: String): File {
         val file = Files.createTempFile("kairos-theme", ".db").toFile().also { it.delete() }
         open(file)
-        sql(file, "ALTER TABLE task DROP COLUMN habit_since", "ALTER TABLE task DROP COLUMN habit_after", "ALTER TABLE task DROP COLUMN habit_score", "DROP TABLE interruption", "ALTER TABLE calendar_source DROP COLUMN counts_as_holidays", "DROP TABLE calendar_connection")
+        sql(file, "DROP TABLE note_image", "ALTER TABLE task DROP COLUMN habit_since", "ALTER TABLE task DROP COLUMN habit_after", "ALTER TABLE task DROP COLUMN habit_score", "DROP TABLE interruption", "ALTER TABLE calendar_source DROP COLUMN counts_as_holidays", "DROP TABLE calendar_connection")
         sql(file, "DROP TABLE sync_state", "DROP TABLE sync_identity", "DROP TABLE sync_mark", "DROP TABLE sync_review", "DROP TABLE migration_mark", "INSERT OR REPLACE INTO settings (id, json) VALUES (1, '$json')", "PRAGMA user_version = 11")
         return file
     }

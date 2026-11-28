@@ -74,4 +74,6 @@ fun AppServices.forDemo(session: DemoSession): AppServices = AppServices(
     // Aucun conseil dans la démonstration (docs/spec/conseils.md) : rien à sonder.
     widgets = null,
     tips = false,
+    // Pas d'ajout d'image dans la démonstration (docs/spec/notes-images.md) : ni sélecteur ni presse-papiers de la plateforme.
+    images = null,
 )

@@ -234,7 +234,18 @@ object StoreScreenshots {
         val notifier = object : ChronoNotifier {
             override val state = MutableStateFlow(NotifyState.ACTIVE)
         }
-        return AppServices(repository, files, { _, _ -> }, clock = clock, notifier = notifier)
+        return AppServices(repository, files, { _, _ -> }, clock = clock, notifier = notifier, images = AndroidLikeImages)
+    }
+
+    /** Le bouton « Ajouter une image » de Notes tel que sur un téléphone (docs/spec/notes-images.md) ; rien n'est jamais choisi. */
+    private object AndroidLikeImages : com.skohscripts.kairos.ui.notes.ImageService {
+        override val sources = listOf(
+            com.skohscripts.kairos.ui.notes.ImageSource.GALLERY,
+            com.skohscripts.kairos.ui.notes.ImageSource.CAMERA,
+            com.skohscripts.kairos.ui.notes.ImageSource.CLIPBOARD,
+        )
+        override suspend fun pick(source: com.skohscripts.kairos.ui.notes.ImageSource, max: Int) = com.skohscripts.kairos.ui.notes.ImagePick.NONE
+        override suspend fun paste(max: Int) = com.skohscripts.kairos.ui.notes.ImagePick.NONE
     }
 
     /**
