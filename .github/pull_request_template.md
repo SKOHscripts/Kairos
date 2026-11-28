@@ -10,9 +10,29 @@ Never paste private data: no database export, no real task titles from a persona
 
 Closes #
 
-## Changes
+## Added
 
-<!-- One line per logical change, ideally one per commit. -->
+<!-- One bullet per new thing: start with what is added (function, screen, file, setting, string), then why.
+     "None" if nothing. -->
+
+-
+
+## Changed
+
+<!-- One bullet per behaviour or code that changes: what it did, what it does now, why. "None" if nothing. -->
+
+-
+
+## Removed
+
+<!-- Everything that disappears: code, setting, text, file, permission, dependency. "None" if nothing. -->
+
+-
+
+## Decisions
+
+<!-- Each choice made in this PR: what was chosen, the alternative set aside, and the spec section that traces it.
+     Decisions already traced in docs/spec/ that this PR reopens are listed here too, with the reason. "None" if none. -->
 
 -
 
@@ -20,10 +40,6 @@ Closes #
 
 <!-- Before / after for any visible change: light and dark, desktop and 360 dp phone width when relevant
 (`./gradlew :desktopApp:run --args=--self-test=<dir>`). Check that nothing private shows. -->
-
-## Decisions reopened
-
-<!-- Decisions already traced in docs/spec/ that this PR changes, with the spec section and why. "None" if none. -->
 
 ## Spec and documentation
 
@@ -53,6 +69,7 @@ Closes #
 ## Commits
 
 - [ ] English conventional commits, `type(scope): description [#<issue>]`, one logical change each, no AI attribution (skill `commit`)
+- [ ] Each subject reads as a `CHANGELOG.md` line (the release pull request copies it): what is added, fixed or removed; `!` and `BREAKING CHANGE:` for a file format an older version cannot read
 
 ## Notes for the reviewer
 

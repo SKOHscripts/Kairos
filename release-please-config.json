@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "simple",
+  "include-component-in-tag": false,
+  "skip-github-release": true,
+  "pull-request-title-pattern": "chore(release): Kairos ${version}",
+  "pull-request-header": "Kairos changelog for the next version. Merge this pull request to write CHANGELOG.md, then run « Kairos tag » (docs/spec/distribution.md § Release Please). The version comes from kmp/gradle.properties (kmp/tools/set_version.py).",
+  "changelog-sections": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Bug fixes" },
+    { "type": "perf", "section": "Performance" },
+    { "type": "revert", "section": "Reverts" },
+    { "type": "refactor", "section": "Refactoring" },
+    { "type": "docs", "section": "Specs and documentation" },
+    { "type": "build", "section": "Build" },
+    { "type": "ci", "section": "CI" },
+    { "type": "deps", "section": "Dependencies" },
+    { "type": "chore", "section": "Miscellaneous", "hidden": true },
+    { "type": "test", "section": "Tests", "hidden": true },
+    { "type": "style", "section": "Style", "hidden": true }
+  ],
+  "packages": {
+    ".": {
+      "release-as": "4.6.0-beta.2"
+    }
+  }
+}

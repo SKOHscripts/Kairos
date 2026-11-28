@@ -52,6 +52,13 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   fonctionnalités qui attendent une finale depuis une semaine ou plus sont signalées. Après le tag d'une finale, une PR
   passe `main` à la mineure suivante ; le propriétaire la fusionne, ou la change en beta pour un chantier risqué
   (§ Version attendue).
+- **Journal des modifications et PR de release** (#296, propriétaire, 2026-11-28, repris du dépôt `talos`) : chaque
+  version a sa section dans `CHANGELOG.md`, qui dit précisément ce qu'elle ajoute, corrige, retire et rompt, groupé par
+  type de commit, avec le lien de chaque commit et de chaque issue. Release Please tient ouverte sur `main` une **PR de
+  release** qui écrit cette section pour la version que `main` porte (beta comprise) et la met à jour à chaque fusion.
+  Le numéro reste décidé par Kairos (§ Quel numéro, § Version attendue) et le tag reste manuel : on fusionne la PR de
+  release, puis on lance « Kairos tag », qui refuse une version absente du journal. Les notes de la release GitHub sont
+  la section du journal.
 - **Une beta**, pour ses testeurs : depuis la 4.2.0, **la même app « Kairos »** que la stable (Android, bureau), qu'elle
   remplace en s'installant par-dessus (décision du 2026-11-15 ; avant, une app « Kairos Preview » à côté de la stable),
   et la préversion web sous `preview/` ; jamais sur F-Droid, l'AUR, ni dans la vérification des mises à jour d'une
@@ -96,6 +103,8 @@ remplacer ; une version stable s'installe par-dessus la précédente.
   jusqu'à la 4.1, au précédent **de son canal** : les finales entre elles, les préversions entre elles, identifiant
   `.preview`).
 - Une version finale ne se tague pas sans sa note de version dans les six langues (« Kairos tag »).
+- Aucune version ne se tague sans sa section dans `CHANGELOG.md`, écrite par la PR de release (« Kairos tag ») ; la PR
+  de release propose toujours la version de `kmp/gradle.properties` (`test_set_version.py`).
 - Une PR qui ajoute une fonctionnalité (carte du catalogue) ou change le format du fichier ne passe pas tant que `main`
   ne porte pas la mineure ou la majeure qui convient (job `version` de « Kairos checks »).
 - Chaque image de bureau empaquetée est **lancée en CI** sur son OS (auto-test)
@@ -297,6 +306,37 @@ On choisit le numéro d'après ce que la version **contient depuis la dernière 
   to create and approve pull requests » (Settings → Actions → General) ; sans lui, l'étape échoue sans faire échouer le
   tag, déjà posé, et le résumé donne la commande. Après une beta, rien n'est ouvert : le résumé rappelle les deux
   suites (`beta.N+1` ou la finale).
+
+### Release Please (PR de release et `CHANGELOG.md`, #296, 2026-11-28)
+
+- **Rôle** : tenir la PR de release et `CHANGELOG.md`, rien d'autre. Release Please ne choisit pas le numéro, ne pose
+  pas de tag et ne crée pas de release : « Kairos tag » et `kmp-release.yml` restent seuls à publier.
+- **Configuration** (racine du dépôt, lue par Release Please **sur GitHub**, pas dans la copie du workflow) :
+  - `release-please-config.json` : `release-type` `simple`, `include-component-in-tag` faux (tags `vX.Y.Z…`, ceux de
+    « Kairos tag »), `skip-github-release` vrai, titre de PR `chore(release): Kairos ${version}`, sections du journal
+    (`feat` « Features », `fix` « Bug fixes », `perf` « Performance », `revert` « Reverts », `refactor` « Refactoring »,
+    `docs` « Specs and documentation », `build` « Build », `ci` « CI », `deps` « Dependencies » ; `chore`, `test` et
+    `style` cachés), et `packages["."]["release-as"]` : **la version de `kmp/gradle.properties`** ;
+  - `.release-please-manifest.json` : la dernière version publiée (Release Please la tient à jour en fusionnant sa PR) ;
+  - `version.txt` : écrit par Release Please (stratégie `simple`) dans sa PR ; jamais à la main, jamais lu par le build.
+- **Le numéro** : `kmp/tools/set_version.py X.Y.Z[-beta.N]` écrit aussi `release-as` ; `test_set_version.py` vérifie,
+  sur chaque PR (job `metadata` de « Kairos checks »), que `release-as` vaut `kairos.versionName`. Release Please propose
+  donc la version que `main` porte, beta comprise, et la PR de release suit chaque passage de `set_version.py`.
+- **Workflow** `.github/workflows/release-please.yml` (« Kairos release PR ») : `push` sur `main` et lancement manuel.
+  Si le tag `v<version de main>` existe déjà (juste après un tag, avant la PR « chore(version) »), il ne fait rien et le
+  résumé le dit. Sinon `googleapis/release-please-action` (v4.4.1, épinglé par SHA) ouvre ou met à jour la PR de
+  release (branche `release-please--branches--main`, étiquette `autorelease: pending`) ; une PR ouverte ou mise à jour
+  par le jeton du workflow ne déclenche aucun workflow : il lance `metadata.yml` sur sa branche. Permissions
+  `contents: write`, `pull-requests: write`, `actions: write`.
+- **« Kairos tag »** : refuse une version dont `CHANGELOG.md` n'a pas la section (titre `## [X.Y.Z…]`, ou `### [` que
+  Release Please peut donner à un correctif) : « fusionne la PR de release ». Après le tag, il passe la PR de release fusionnée de
+  `autorelease: pending` à `autorelease: tagged` : sinon Release Please, qui n'a pas créé la release, refuserait
+  d'ouvrir la suivante.
+- **Release GitHub** (`kmp-release.yml`, job `release`) : notes = la section de `CHANGELOG.md` pour ce tag, extraite par
+  `awk` d'une copie partielle du dépôt (`body_path`) ; sans section (build d'un ancien tag), les notes générées comme avant
+  (`generate_release_notes`).
+- **Format des PR** (`CLAUDE.md` § Pull requests, gabarit `.github/pull_request_template.md`) : un résumé, puis
+  « Added », « Changed », « Removed », « Decisions » ; le sujet de chaque commit est la ligne du journal.
 
 ### Identité de l'app (figée, 2026-11-17)
 
@@ -754,6 +794,17 @@ soumise (à faire par le propriétaire, ci-dessous).
 - Aucun job ne publie ni n'écrit dans le dépôt hors d'un tag.
 
 ### Décisions et pièges tracés
+
+- **Release Please pour le journal, pas pour le numéro** (propriétaire, 2026-11-28, #296, repris de `talos`) : la PR de
+  release et `CHANGELOG.md` disent précisément ce que chaque version ajoute, corrige et retire, ce que les notes générées
+  par GitHub (une liste de titres de PR) ne disaient pas. Gardé de Kairos : le numéro (`set_version.py`, `next_version.py`
+  et ses règles : une carte du catalogue fait une mineure, un format une majeure), les betas à la demande, et le tag
+  manuel par « Kairos tag » avec ses vérifications (versionCode, notes Fastlane, CI verte, fériés). Écartés : laisser
+  Release Please calculer le numéro d'après les types de commit (`main` porterait la dernière version publiée, ce qui
+  défait « `main` en avance » et le contrôle de la version attendue) ; tag et release posés à la fusion de la PR de
+  release (deux circuits de publication, et les vérifications de « Kairos tag » à refaire en contrôles de PR).
+  Contreparties : un fichier `version.txt` que le build ne lit pas (la stratégie `simple` l'écrit), et le passage des
+  étiquettes `autorelease: *` à faire dans « Kairos tag ».
 
 - **Microsoft Store en MSIX** (propriétaire, 2026-11-25, #215) : le Store accepte un `.msi` seulement signé Authenticode
   par une autorité reconnue, et la signature SignPath (#117) attend toujours l'acceptation ; le MSIX est signé par le

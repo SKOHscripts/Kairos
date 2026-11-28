@@ -1,0 +1,59 @@
+# PR de release et CHANGELOG.md (docs/spec/distribution.md § Release Please, #296).
+#
+# Release Please tient ouverte sur main la PR « chore(release): Kairos X.Y.Z » : elle écrit la section de CHANGELOG.md de
+# la version que main porte (release-as, posé par kmp/tools/set_version.py), groupée par type de commit. Il ne pose ni tag
+# ni release (skip-github-release) : on fusionne sa PR, puis « Kairos tag » publie, comme avant.
+name: Kairos release PR
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: kairos-release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Juste après un tag, main porte encore la version publiée (avant la PR « chore(version) ») : rien à proposer.
+      - name: Version de main
+        id: version
+        run: |
+          set -euo pipefail
+          name=$(sed -n 's/^kairos.versionName=//p' kmp/gradle.properties)
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/v$name" >/dev/null; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "Kairos $name est déjà publiée : pas de PR de release avant le passage de main à la version suivante (\`python3 kmp/tools/set_version.py …\`)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
+        id: release
+        if: steps.version.outputs.published == 'false'
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+      # Une PR ouverte ou mise à jour avec le jeton du workflow ne déclenche aucun workflow : on lance ses contrôles.
+      - name: Contrôles de la PR de release
+        if: steps.release.outputs.pr
+        env:
+          PR: ${{ steps.release.outputs.pr }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch=$(jq -r '.headBranchName' <<<"$PR")
+          number=$(jq -r '.number' <<<"$PR")
+          gh workflow run metadata.yml --ref "$branch"
+          echo "PR de release #$number (\`$branch\`) pour Kairos ${{ steps.version.outputs.name }} : fusionne-la, puis lance « Kairos tag »." >> "$GITHUB_STEP_SUMMARY"

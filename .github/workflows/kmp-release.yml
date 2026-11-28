@@ -400,11 +400,33 @@ jobs:
       - name: SHA256SUMS
         working-directory: artifacts
         run: sha256sum Kairos-* > SHA256SUMS && cat SHA256SUMS
+      # Notes de la release : la section de CHANGELOG.md pour ce tag (docs/spec/distribution.md § Release Please) ; sans
+      # section (build d'un ancien tag), les notes générées par GitHub comme avant.
+      - uses: actions/checkout@v4
+        with:
+          path: source
+          sparse-checkout: CHANGELOG.md
+          sparse-checkout-cone-mode: false
+      - name: Notes depuis CHANGELOG.md
+        id: notes
+        env:
+          NAME: ${{ needs.resolve.outputs.name }}
+        run: |
+          set -euo pipefail
+          touch release-notes.md
+          if [ -f source/CHANGELOG.md ]; then
+            awk -v v="$NAME" '
+              /^##+ \[/ { if (on) exit; on = index($0, "[" v "]") > 0; if (on) { sub(/^##+ /, "## "); print; next } }
+              on { print }
+            ' source/CHANGELOG.md > release-notes.md
+          fi
+          if [ -s release-notes.md ]; then echo "found=true" >> "$GITHUB_OUTPUT"; else echo "found=false" >> "$GITHUB_OUTPUT"; fi
       - uses: softprops/action-gh-release@v2
         with:
           name: Kairos ${{ needs.resolve.outputs.name }}
           prerelease: ${{ needs.resolve.outputs.prerelease == 'true' }}
-          generate_release_notes: true
+          body_path: ${{ steps.notes.outputs.found == 'true' && 'release-notes.md' || '' }}
+          generate_release_notes: ${{ steps.notes.outputs.found != 'true' }}
           files: |
             artifacts/Kairos-*
             artifacts/SHA256SUMS

@@ -37,7 +37,21 @@ quatre étapes ci-dessous, dans cet ordre.
   sections en anglais.
 - **Messages de commit en anglais** aussi, depuis le 2026-11-11 : conventional commits
   `type(scope): description [#<issue>]`, un changement logique par commit, sans mention
-  d'IA (skill `commit`). Les anciens commits en français ne sont pas réécrits.
+  d'IA (skill `commit`). Les anciens commits en français ne sont pas réécrits. Le sujet
+  **est** la ligne du journal (`CHANGELOG.md`, écrit par la PR de release) : il dit ce qui
+  est ajouté, corrigé ou retiré, du point de vue de l'utilisateur ; le type choisit la
+  section (`feat`, `fix`, `perf`, `revert`, `refactor`, `docs`, `build`, `ci`, `deps`
+  visibles ; `chore`, `test`, `style` cachés) ; un format de fichier qu'une version plus
+  ancienne ne lit plus porte `!` et un pied `BREAKING CHANGE:`.
+- **Description de PR** (gabarit `.github/pull_request_template.md`, 2026-11-28) : un
+  « Summary » de deux à quatre phrases, puis des sections **Added**, **Changed**,
+  **Removed** et **Decisions**, une puce par élément, chacune commençant par ce qui change
+  (nom de fonction, d'écran, de fichier ou de réglage) puis le pourquoi ; « Removed » liste
+  tout ce qui disparaît (code, réglage, texte, fichier), « Decisions » chaque choix tranché
+  avec l'alternative écartée et la spec qui le trace. Une section sans objet porte « None ».
+- **PR de release** (Release Please, `docs/spec/distribution.md` § Release Please) : ouverte
+  et tenue à jour sur `main` par « Kairos release PR » ; ne pas la modifier à la main, ni
+  `CHANGELOG.md`, `version.txt` ou `.release-please-manifest.json`.
 
 ## Où vivent les specs
 
@@ -118,12 +132,15 @@ bureau Windows/Linux/macOS (JVM), web (Kotlin/Wasm).
   des betas `X.Y.0-beta.N` seulement pour un chantier risqué ; `main` porte
   toujours la prochaine version (juste après une finale, la mineure suivante,
   par une PR que « Kairos tag » ouvre ; « Kairos checks » dit à chaque PR la
-  version attendue, `kmp/tools/next_version.py`). Chaque version **finale**
+  version attendue, `kmp/tools/next_version.py`). `set_version.py` écrit aussi la version dans
+  `release-please-config.json` (`release-as`) : la PR de release propose la version de `main`.
+  Chaque version **finale**
   a sa note de version Fastlane dans les six langues
   (`fastlane/metadata/android/*/changelogs/<versionCode>.txt`, `ReleaseNotesTest`) ;
   une beta n'en a pas. Le tag se pose depuis l'onglet Actions (« Kairos tag »,
-  `kmp-tag.yml`), qui vérifie puis lance `kmp-release.yml` ; l'environnement de
-  développement ne peut pas pousser de tag.
+  `kmp-tag.yml`), qui vérifie (dont la section de `CHANGELOG.md` : fusionner d'abord la PR
+  de release) puis lance `kmp-release.yml` ; l'environnement de développement ne peut pas
+  pousser de tag.
 - **Textes** : aucun texte d'interface en dur. Français (`values-fr/`) **et**
   anglais (`values/`, langue de repli) à chaque ajout, apostrophe typographique `’`
   (`StringsParityTest`, `docs/spec/i18n.md`).
