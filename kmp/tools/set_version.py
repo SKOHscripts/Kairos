@@ -8,7 +8,11 @@
 99 pour une finale), une seule app pour la beta et la stable ; avant, X*10000 + Y*100 + Z, −500 + N pour une beta, −1000
 + N pour une alpha. Refuse ce que le cycle n'autorise pas : une préversion d'une version qui ne finit pas par .0, un
 numéro de beta hors de 1 à 98, une alpha à partir de la 4.2.0.
+
+Écrit aussi la même version dans `release-please-config.json` (`release-as`, docs/spec/distribution.md § Release Please) :
+la PR de release propose ainsi la version que `main` porte, beta comprise.
 """
+import json
 import pathlib
 import re
 import sys
@@ -41,6 +45,19 @@ def version_code(name: str) -> int:
     return base - (500 if stage == "beta" else 1000) + int(number)
 
 
+ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
+RELEASE_PLEASE = ROOT / "release-please-config.json"
+
+
+def set_release_as(config: str, name: str) -> str:
+    """Le texte de `release-please-config.json` avec `release-as` = [name] ; le reste du fichier est gardé octet pour octet."""
+    json.loads(config)  # refuse un fichier illisible avant de le réécrire
+    out, count = re.subn(r'("release-as"\s*:\s*)"[^"]*"', lambda m: f'{m.group(1)}"{name}"', config, count=1)
+    if count != 1:
+        sys.exit("release-please-config.json sans release-as (docs/spec/distribution.md § Release Please)")
+    return out
+
+
 def main() -> None:
     if len(sys.argv) != 2:
         sys.exit(__doc__)
@@ -51,6 +68,8 @@ def main() -> None:
     text = re.sub(r"^kairos\.versionName=.*$", f"kairos.versionName={name}", text, flags=re.M)
     text = re.sub(r"^kairos\.versionCode=.*$", f"kairos.versionCode={code}", text, flags=re.M)
     props.write_text(text, encoding="utf-8")
+    if RELEASE_PLEASE.exists():
+        RELEASE_PLEASE.write_text(set_release_as(RELEASE_PLEASE.read_text(encoding="utf-8"), name), encoding="utf-8")
     print(f"{name} ({code})")
 
 

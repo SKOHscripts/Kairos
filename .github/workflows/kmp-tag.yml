@@ -2,7 +2,8 @@
 #
 # Actions → « Kairos tag » → « Run workflow » sur main, en recopiant la version de kmp/gradle.properties : le workflow
 # vérifie tout ce qu'un tag tapé à la main pouvait rater, pose le tag sur le dernier commit de main, puis lance la
-# release. Un tag poussé avec le jeton du workflow (GITHUB_TOKEN) ne déclenche pas les autres workflows : la release est
+# release. Il exige la section de la version dans CHANGELOG.md (PR de release fusionnée, docs/spec/distribution.md
+# § Release Please) et passe ensuite cette PR de « autorelease: pending » à « autorelease: tagged ». Un tag poussé avec le jeton du workflow (GITHUB_TOKEN) ne déclenche pas les autres workflows : la release est
 # donc lancée explicitement (workflow_dispatch sur la référence du tag, qu'elle traite comme un tag poussé). Après une
 # finale, ouvre la PR qui passe main à la mineure suivante (docs/spec/distribution.md § Version attendue).
 name: Kairos tag
@@ -80,6 +81,11 @@ jobs:
               fi
             done
           fi
+          # Le journal (docs/spec/distribution.md § Release Please) : la PR de release de cette version est fusionnée.
+          if ! grep -Eq "^##+ \[${name//./\\.}\]" CHANGELOG.md 2>/dev/null; then
+            echo "::error::CHANGELOG.md n'a pas la section $name : fusionne la PR de release « chore(release): Kairos $name », puis relance."
+            exit 1
+          fi
           # La CI de main ne doit pas être rouge sur ce commit (absente : la release refait tous les tests).
           sha=$(git rev-parse HEAD)
           state=$(gh run list --workflow kmp.yml --commit "$sha" --json status,conclusion --jq '.[0] // empty | "\(.status) \(.conclusion)"' || true)
@@ -133,6 +139,12 @@ jobs:
           git tag -a "v$NAME" "$SHA" -m "Kairos $NAME"
           git push origin "v$NAME"
           gh workflow run kmp-release.yml --ref "v$NAME"
+          # La PR de release fusionnée passe à « tagged » : Release Please, qui ne crée pas la release (skip-github-release),
+          # refuserait sinon d'ouvrir la suivante (docs/spec/distribution.md § Release Please).
+          gh label create "autorelease: tagged" --color EDEDED --force >/dev/null
+          for pr in $(gh pr list --state merged --label "autorelease: pending" --json number --jq '.[].number'); do
+            gh pr edit "$pr" --remove-label "autorelease: pending" --add-label "autorelease: tagged"
+          done
           {
             echo "### Kairos $NAME"
             echo "Tag \`v$NAME\` posé sur \`$SHA\`, release lancée (onglet Actions, « Kairos release »)."
