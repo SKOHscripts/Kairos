@@ -235,6 +235,7 @@ object SnapshotMerge {
             RecordKind.DEPENDENCY -> s.dependencies.maxOfOrNull { it.id }
             RecordKind.DAYMARK -> s.dayMarks.maxOfOrNull { it.id }
             RecordKind.INTERRUPTION -> s.interruptions.maxOfOrNull { it.id }
+            RecordKind.NOTE_IMAGE -> s.noteImages.maxOfOrNull { it.id }
         }.let { snap -> maxOf(snap ?: 0L, known[kind]?.values?.maxOrNull() ?: 0L) }
         // Identifiants de tous les enregistrements fusionnés, avant de construire (les références peuvent pointer en avant).
         val ids = HashMap<RecordKind, HashMap<String, Long>>()
@@ -269,6 +270,8 @@ object SnapshotMerge {
                     RecordKind.DAYMARK -> SyncRecords.buildDayMark(id, r.lifted, idOf)?.let(out.dayMarks::add) ?: false
                     // Dernier genre : ses références (tâche, note) sont déjà construites.
                     RecordKind.INTERRUPTION -> SyncRecords.buildInterruption(id, r.lifted, idOf)?.let(out.interruptions::add) ?: false
+                    // Après les notes : une image dont la note n'est pas dans le résultat ne se construit pas (orpheline).
+                    RecordKind.NOTE_IMAGE -> SyncRecords.buildNoteImage(id, r.lifted, idOf)?.let(out.noteImages::add) ?: false
                 }
                 if (ok) built.getOrPut(kind) { HashMap() }[ref.uid] = id
             }
@@ -292,6 +295,7 @@ object SnapshotMerge {
             dependencies = keep(s.dependencies, inScope.dependencies, out.dependencies).filter { it.taskId in allTaskIds && it.blockerId in allTaskIds },
             dayMarks = keep(s.dayMarks, inScope.dayMarks, out.dayMarks),
             interruptions = keep(s.interruptions, inScope.interruptions, out.interruptions),
+            noteImages = keep(s.noteImages, inScope.noteImages, out.noteImages),
             settings = SyncRecords.buildSettings(sharedSettings, s.settings),
         )
         val uidMaps = built.mapValues { (_, m) -> m.entries.associate { (uid, id) -> id to uid } }.toMutableMap()
@@ -364,5 +368,6 @@ object SnapshotMerge {
         val dependencies = ArrayList<TaskDependency>()
         val dayMarks = ArrayList<DayMark>()
         val interruptions = ArrayList<com.skohscripts.kairos.core.model.Interruption>()
+        val noteImages = ArrayList<com.skohscripts.kairos.core.model.NoteImage>()
     }
 }

@@ -1,0 +1,13 @@
+-- Schéma 17 -> 18 (4.6.0, docs/spec/notes-images.md § Stockage) : additif. Les images des notes, réduites à l'ajout, en JPEG
+-- Base64 (`data`) ; référence molle vers la note, sans clé étrangère (parti pris de Kairos) : le dépôt retire les images d'une
+-- note dans la transaction qui la supprime. Une base d'avant gagne une table vide.
+CREATE TABLE note_image (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    note_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    mime TEXT NOT NULL,
+    width INTEGER NOT NULL,
+    height INTEGER NOT NULL,
+    data TEXT NOT NULL
+);
+CREATE INDEX note_image_note ON note_image(note_id);

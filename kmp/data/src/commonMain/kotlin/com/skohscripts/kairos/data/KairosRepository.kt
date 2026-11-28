@@ -41,6 +41,8 @@ import com.skohscripts.kairos.core.sync.Synced
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.skohscripts.kairos.core.model.NoteStatus
+import com.skohscripts.kairos.core.notes.EncodedImage
+import com.skohscripts.kairos.core.notes.ImageBudget
 import com.skohscripts.kairos.core.notes.NoteConversion
 import com.skohscripts.kairos.core.model.PRIORITY_VALUES
 import com.skohscripts.kairos.core.model.GuideSettings
@@ -92,6 +94,7 @@ import kotlinx.datetime.todayIn
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -1083,20 +1086,54 @@ class KairosRepository(
 
     // --- Notes (docs/spec/notes-capture.md) -----------------------------------
 
-    /** Capture libre : un corps nettoyé, rien d'autre ; vide → rien. */
-    suspend fun createNote(body: String): Boolean {
+    /**
+     * Capture libre : un corps nettoyé et, depuis 4.6.0, ses images déjà réduites (docs/spec/notes-images.md § Stockage). Ni texte
+     * ni image, ou plus de [ImageBudget.MAX_IMAGES] images → rien. Note et images dans une seule transaction.
+     */
+    suspend fun createNote(body: String, images: List<EncodedImage> = emptyList()): Boolean {
         val clean = body.trim()
-        if (clean.isEmpty()) return false
-        write { queries.insertNote(clean, now(), now()) }
+        if (clean.isEmpty() && images.isEmpty()) return false
+        if (images.size > ImageBudget.MAX_IMAGES) return false
+        write {
+            val stamp = now()
+            queries.insertNote(clean, stamp, stamp)
+            if (images.isNotEmpty()) {
+                val noteId = queries.lastInsertedId().awaitAsOneOrNull() ?: error("note sans identifiant")
+                insertImages(noteId, images, stamp)
+            }
+        }
         return true
     }
 
-    /** Nouveau corps d'une note (nettoyé) ; vide → la note garde l'ancien. */
-    suspend fun editNote(noteId: Long, body: String) {
+    /**
+     * Nouveau corps d'une note (nettoyé) et, depuis 4.6.0, ses images : celles de [keep] restent (toutes si `null`), les autres
+     * partent, [add] s'ajoutent. Ni texte ni image, ou plus de [ImageBudget.MAX_IMAGES] images → la note garde son état.
+     */
+    suspend fun editNote(noteId: Long, body: String, keep: List<Long>? = null, add: List<EncodedImage> = emptyList()) {
         val note = state.value.notes.firstOrNull { it.id == noteId } ?: return
+        val current = state.value.noteImages.filter { it.noteId == noteId }
+        val kept = if (keep == null) current else current.filter { it.id in keep }
         val clean = body.trim()
-        if (clean.isEmpty()) return
-        write { queries.updateNote(clean, note.status.code, note.convertedTaskId, now(), noteId) }
+        if (clean.isEmpty() && kept.isEmpty() && add.isEmpty()) return
+        if (kept.size + add.size > ImageBudget.MAX_IMAGES) return
+        write {
+            val stamp = now()
+            if (clean != note.body || kept.size != current.size || add.isNotEmpty()) {
+                queries.updateNote(clean, note.status.code, note.convertedTaskId, stamp, noteId)
+            }
+            for (image in current) if (image !in kept) queries.deleteNoteImage(image.id)
+            // Les nouvelles après les gardées, même si l'horloge n'a pas avancé : l'ordre d'ajout reste celui de l'écran.
+            val after = kept.maxOfOrNull { it.createdAt }?.plus(1.milliseconds)
+            insertImages(noteId, add, if (after != null && after > Instant.parse(stamp)) after.store() else stamp)
+        }
+    }
+
+    /** Les images d'une note, dans l'ordre d'ajout ; l'horodatage gagne une milliseconde par image pour garder cet ordre partout. */
+    private suspend fun insertImages(noteId: Long, images: List<EncodedImage>, stamp: String) {
+        val at = Instant.parse(stamp)
+        images.forEachIndexed { i, image ->
+            queries.insertNoteImage(noteId, (at + i.milliseconds).store(), image.mime, image.width.toLong(), image.height.toLong(), image.data)
+        }
     }
 
     /**
@@ -1122,8 +1159,11 @@ class KairosRepository(
         write { queries.updateNote(note.body, NoteStatus.ARCHIVED.code, note.convertedTaskId, now(), noteId) }
     }
 
-    /** Suppression définitive. */
-    suspend fun deleteNote(noteId: Long) = write { queries.deleteNote(noteId) }
+    /** Suppression définitive, images comprises (docs/spec/notes-images.md § Stockage). */
+    suspend fun deleteNote(noteId: Long) = write {
+        queries.deleteImagesOfNote(noteId)
+        queries.deleteNote(noteId)
+    }
 
     /**
      * Plie ou déplie la carte « Ta journée » (docs/spec/ta-journee.md) : réglage local de l'appareil, écrit nul une fois dépliée pour
@@ -1933,6 +1973,7 @@ class KairosRepository(
         queries.deleteAllDependencies()
         queries.deleteAllWorkSessions()
         queries.deleteAllNotes()
+        queries.deleteAllNoteImages()
         queries.deleteAllInterruptions()
         queries.deleteAllTeamMembers()
         queries.deleteAllMemberAbsences()
@@ -2000,6 +2041,12 @@ class KairosRepository(
         }
         for (i in snapshot.interruptions) {
             queries.insertInterruptionWithId(i.id, i.at.store(), i.minutes.toLong(), i.source?.code, i.taskId, i.noteId, i.createdAt.store())
+        }
+        // Une image sans sa note ne s'écrit pas (docs/spec/notes-images.md § Image orpheline).
+        val noteIds = snapshot.notes.mapTo(HashSet()) { it.id }
+        for (m in snapshot.noteImages) {
+            if (m.noteId !in noteIds) continue
+            queries.insertNoteImageWithId(m.id, m.noteId, m.createdAt.store(), m.mime, m.width.toLong(), m.height.toLong(), m.data)
         }
         queries.writeSettings(json.encodeToString(Settings.serializer(), snapshot.settings))
         queries.deleteOrphanCalendarConnections()
@@ -2428,6 +2475,7 @@ class KairosRepository(
         dependencies = queries.allDependencies().awaitAsList().map { it.toModel() },
         workSessions = queries.allWorkSessions().awaitAsList().map { it.toModel() },
         notes = queries.allNotes().awaitAsList().map { it.toModel() },
+        noteImages = queries.allNoteImages().awaitAsList().map { it.toModel() }.sortedWith(compareBy({ it.createdAt }, { it.id })),
         interruptions = queries.allInterruptions().awaitAsList().map { it.toModel() },
         members = queries.allTeamMembers().awaitAsList().map { it.toModel() },
         absences = queries.allMemberAbsences().awaitAsList().map { it.toModel() },

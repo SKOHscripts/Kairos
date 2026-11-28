@@ -9,6 +9,7 @@ import com.skohscripts.kairos.core.model.DayMark
 import com.skohscripts.kairos.core.model.Interruption
 import com.skohscripts.kairos.core.model.InterruptionSource
 import com.skohscripts.kairos.core.model.Note
+import com.skohscripts.kairos.core.model.NoteImage
 import com.skohscripts.kairos.core.model.NoteStatus
 import com.skohscripts.kairos.core.model.Settings
 import com.skohscripts.kairos.core.model.Task
@@ -60,6 +61,7 @@ object SyncRecords {
         RecordKind.NOTE to mapOf("convertedTaskId" to RecordKind.TASK),
         RecordKind.DAYMARK to mapOf("sourceId" to RecordKind.CALENDAR),
         RecordKind.INTERRUPTION to mapOf("taskId" to RecordKind.TASK, "noteId" to RecordKind.NOTE),
+        RecordKind.NOTE_IMAGE to mapOf("noteId" to RecordKind.NOTE),
     )
 
     // --- Levée ------------------------------------------------------------------------------------------------------
@@ -153,6 +155,21 @@ object SyncRecords {
             "convertedTaskId" to ref(uids, RecordKind.TASK, n.convertedTaskId),
         ),
         n.createdAt, n.updatedAt,
+    )
+
+    /**
+     * Image d'une note (docs/spec/notes-images.md § Synchronisation) : immuable, ses champs ne changent jamais après la naissance ;
+     * `data` porte le JPEG en Base64, tel qu'il est stocké.
+     */
+    fun lift(m: NoteImage, uids: UidOf) = Lifted(
+        linkedMapOf(
+            "noteId" to ref(uids, RecordKind.NOTE, m.noteId),
+            "mime" to str(m.mime),
+            "width" to num(m.width),
+            "height" to num(m.height),
+            "data" to str(m.data),
+        ),
+        m.createdAt,
     )
 
     fun lift(c: CalendarSource) = Lifted(
@@ -280,6 +297,16 @@ object SyncRecords {
             noteId = f.string("noteId")?.let { ids.id(RecordKind.NOTE, it) },
             createdAt = l.createdAt,
         )
+    }
+
+    /** Une image sans sa note (orpheline), sans contenu ou sans dimensions ne se construit pas. */
+    fun buildNoteImage(id: Long, l: Lifted, ids: IdOf): NoteImage? {
+        val f = Fields(l.fields)
+        val noteId = f.string("noteId")?.let { ids.id(RecordKind.NOTE, it) } ?: return null
+        val data = f.string("data")?.takeIf { it.isNotEmpty() } ?: return null
+        val width = f.int("width")?.takeIf { it > 0 } ?: return null
+        val height = f.int("height")?.takeIf { it > 0 } ?: return null
+        return NoteImage(id, noteId, l.createdAt, f.string("mime") ?: "image/jpeg", width, height, data)
     }
 
     fun buildNote(id: Long, l: Lifted, ids: IdOf): Note {

@@ -210,6 +210,7 @@ object SyncReconcile {
             RecordKind.INTERRUPTION to same(now.interruptions, before.interruptions, RecordKind.INTERRUPTION, { it.id }) {
                 touches(RecordKind.TASK, it.taskId) || touches(RecordKind.NOTE, it.noteId)
             },
+            RecordKind.NOTE_IMAGE to same(now.noteImages, before.noteImages, RecordKind.NOTE_IMAGE, { it.id }) { touches(RecordKind.NOTE, it.noteId) },
         )
     }
 
@@ -308,7 +309,7 @@ object SyncReconcile {
         RecordKind.DAYMARK -> scoped.dayMarks.first { it.id == id }.let { m ->
             (m.source as? BlockSource.Imported)?.let { src -> uid(RecordKind.CALENDAR, src.calendarId)?.let { bounded("mark:$it:${src.uid}:${m.start}") } }
         }
-        RecordKind.TASK, RecordKind.NOTE, RecordKind.SESSION, RecordKind.INTERRUPTION -> null
+        RecordKind.TASK, RecordKind.NOTE, RecordKind.SESSION, RecordKind.INTERRUPTION, RecordKind.NOTE_IMAGE -> null
     }
 
     /** Un `uid` déterministe de plus de [SyncScope.MAX_UID] caractères est remplacé par son empreinte, elle aussi déterministe. */
@@ -336,6 +337,7 @@ object SyncReconcile {
             RecordKind.DEPENDENCY to lift(RecordKind.DEPENDENCY, scoped.dependencies, { it.id }) { SyncRecords.lift(it, uids) },
             RecordKind.DAYMARK to lift(RecordKind.DAYMARK, scoped.dayMarks, { it.id }) { SyncRecords.lift(it, uids) },
             RecordKind.INTERRUPTION to lift(RecordKind.INTERRUPTION, scoped.interruptions, { it.id }) { SyncRecords.lift(it, uids) },
+            RecordKind.NOTE_IMAGE to lift(RecordKind.NOTE_IMAGE, scoped.noteImages, { it.id }) { SyncRecords.lift(it, uids) },
         )
     }
 
@@ -349,6 +351,7 @@ object SyncReconcile {
         RecordKind.DEPENDENCY -> scoped.dependencies.associate { it.id to it.createdAt }
         RecordKind.DAYMARK -> scoped.dayMarks.associate { it.id to it.createdAt }
         RecordKind.INTERRUPTION -> scoped.interruptions.associate { it.id to it.createdAt }
+        RecordKind.NOTE_IMAGE -> scoped.noteImages.associate { it.id to it.createdAt }
     }
 
     private fun hashes(fields: Map<String, String>): Map<String, Long> = fields.mapValues { (_, v) -> SyncRecords.hash(v) }

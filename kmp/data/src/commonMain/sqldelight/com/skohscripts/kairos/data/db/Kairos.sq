@@ -183,6 +183,19 @@ CREATE TABLE interruption (
 );
 CREATE INDEX interruption_at ON interruption(at);
 
+-- Images des notes (4.6.0, docs/spec/notes-images.md § Stockage) : réduites à l'ajout, JPEG en Base64 ; immuables. Référence
+-- molle vers la note, sans FOREIGN KEY : le dépôt retire les images d'une note avec elle.
+CREATE TABLE note_image (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    note_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    mime TEXT NOT NULL,
+    width INTEGER NOT NULL,
+    height INTEGER NOT NULL,
+    data TEXT NOT NULL
+);
+CREATE INDEX note_image_note ON note_image(note_id);
+
 -- Membres de l'équipe (espace Équipe, docs/spec/equipe.md) : vide tant que l'espace n'a pas servi.
 -- Référencés par task.assignee_id (sans FOREIGN KEY).
 CREATE TABLE team_member (
@@ -515,6 +528,28 @@ DELETE FROM note WHERE id = ?;
 
 deleteAllNotes:
 DELETE FROM note;
+
+-- Images des notes ------------------------------------------------------------------
+
+-- Ordre d'une note : `createdAt` puis `id`, trié par le dépôt (le texte ISO d'un instant sans millisecondes, « …00Z », passe
+-- après « …00.001Z »).
+allNoteImages:
+SELECT * FROM note_image ORDER BY id;
+
+insertNoteImageWithId:
+INSERT INTO note_image VALUES (?, ?, ?, ?, ?, ?, ?);
+
+insertNoteImage:
+INSERT INTO note_image (note_id, created_at, mime, width, height, data) VALUES (?, ?, ?, ?, ?, ?);
+
+deleteNoteImage:
+DELETE FROM note_image WHERE id = ?;
+
+deleteImagesOfNote:
+DELETE FROM note_image WHERE note_id = ?;
+
+deleteAllNoteImages:
+DELETE FROM note_image;
 
 -- Dérangements ------------------------------------------------------------------
 
