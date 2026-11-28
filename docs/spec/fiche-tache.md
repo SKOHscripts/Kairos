@@ -26,7 +26,8 @@ titre long ou une adresse web prend quatre lignes, et la recherche ne fait que r
 ### Comportement attendu (utilisateur)
 
 - **Titre et description toujours visibles** (l'identité de la tâche ; le titre est requis à la création), puis, pour une
-  tâche reçue, sa marque et son avancement. Tout le reste est rangé dans des **sections repliées par défaut** :
+  tâche née d'une note à images, « Images de la note d’origine (N) », qui les ouvre dans la visionneuse (4.6.0,
+  `notes-images.md`), puis, pour une tâche reçue, sa marque et son avancement. Tout le reste est rangé dans des **sections repliées par défaut** :
   - **« Équipe »** (tâche de l'espace Équipe) : titulaire, effort, avancement, note ;
   - **« Qualification »** : priorité, taille (points) et son guide, type, projet, et « Compter dans l'équipe » s'il existe ;
   - **« Dates et temps »** : échéance et durée estimée, les suggestions de durée, puis date programmée et heure fixe

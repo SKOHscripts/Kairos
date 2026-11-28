@@ -355,7 +355,9 @@ propriétaire du 2026-11-17, après le passage de « Kairos Preview » à « Kai
   `DayWidgetProvider` (exportés, `APPWIDGET_UPDATE`), `WidgetActionReceiver` (non exporté) et `DayWidgetService`
   (réservé au système par `BIND_REMOTEVIEWS`) ;
   la cible de partage (4.6.0, `partage-android.md`), sans permission : `ShareNoteActivity` (exportée, `SEND` sur `text/plain`,
-  transparente, sans historique ni affinité) ;
+  transparente, sans historique ni affinité ; `SEND` et `SEND_MULTIPLE` sur `image/*` pour les images des notes,
+  `notes-images.md`) ; un `FileProvider` non exporté (`com.skohscripts.kairos.files`, `cache/camera/`) pour les photos des
+  notes, sans permission `CAMERA` ;
   activité `singleTop` (la notification du chrono et les widgets la rouvrent) ;
   `enableOnBackInvokedCallback="true"` (geste retour prédictif) ;
   `windowSoftInputMode="adjustResize"`. Base et suivi du chrono ouverts une

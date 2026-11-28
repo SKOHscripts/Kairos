@@ -33,7 +33,9 @@ capture.
   sur le bureau et le web ; sur Android, sans clavier physique, elle dit
   seulement « Rien d’autre à décider maintenant : tu la traiteras plus
   tard. ». Aucun autre champ : ni priorité, ni
-  points, ni échéance.
+  points, ni échéance. Depuis 4.6.0, « Ajouter une image » et le collage
+  ajoutent jusqu'à quatre images, et une note peut n'avoir que des images
+  (`notes-images.md`).
 - Dessous, « Notes (N) » : les notes en attente, la plus récente en tête ;
   « Rien en attente. » si aucune. Chaque note offre :
   - **→ Tâche** : la tâche créée arrive dans « À traiter » de la vue Jour ;
@@ -99,8 +101,8 @@ Depuis le jalon E1 de l'espace Équipe, l'écran Notes lit `repository.personalS
 - **Note née d'un dérangement** (4.5.0, `derangements.md`) : « En faire une note » du panneau crée une note ordinaire, dans la
   même transaction que le dérangement ; « Annuler » la retire.
 - **« Modifier » branché** : chaque note a un bouton d'édition.
-- **Un corps vide à l'édition garde l'ancien** : enregistrer un corps vide
-  donnerait une note blanche, inconvertible. Le dialogue désactive de toute
-  façon « Enregistrer ».
+- **Ni texte ni image à l'édition : rien ne change** (4.6.0, `notes-images.md` ; avant, « un corps vide garde l'ancien »).
+  Enregistrer une note vide donnerait une note blanche, inconvertible ; une note faite d'images seules, elle, est permise, et
+  « → Tâche » y est inactif tant qu'elle n'a pas de texte. Le dialogue désactive « Enregistrer » sans texte ni image.
 - **Lien vers la tâche = vue Jour**, pas la tâche elle-même : elle est dans
   « À traiter », en tête de l'écran.

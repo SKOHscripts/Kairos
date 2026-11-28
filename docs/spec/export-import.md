@@ -174,6 +174,9 @@ JSON UTF-8 indenté :
   du fichier, fin après début quand les deux sont là, sinon « illisible ».
 - **Dérangements** (4.5.0, `derangements.md` § Stockage) : `interruptions` (`[ { "id", "at", "minutes", "source", "taskId",
   "noteId", "createdAt" } ]`), nul donc omis tant qu'il n'y en a aucun ; une durée hors de 1 à 240 refuse le fichier.
+- **Images des notes** (4.6.0, `notes-images.md` § Export) : `noteImages` (`[ { "id", "noteId", "createdAt", "mime", "width",
+  "height", "data" } ]`, `data` = JPEG en Base64), nul donc omis tant qu'il n'y en a aucune, sans changer la version du
+  format ; à l'import, une image orpheline, illisible ou au-delà de quatre par note est ignorée, pas refusée.
 - **Calendriers importés** (3.10.0, `connexions-externes.md` § Stockage) : `calendarSources`
   (`[ { "id", "name", "hideTitles": true, "importedAt", "createdAt" } ]`, `hideTitles` seulement s'il est vrai),
   `dayMarks` (`[ { "id", "title", "start": "2026-10-28", "end": "2026-10-30", "sourceId", "sourceUid", "createdAt" } ]`)

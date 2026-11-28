@@ -25,8 +25,8 @@ retient l'attention doit pouvoir aller en un geste dans la boîte de réception,
 ### Comportement attendu (utilisateur)
 
 - Dans la feuille de partage d'Android (« Partager » d'un navigateur, d'un lecteur RSS, de YouTube, d'un texte sélectionné…),
-  **Kairos** apparaît, avec son icône et son nom, pour le **texte et les liens** seulement. Pour une image ou un fichier, il
-  n'apparaît pas.
+  **Kairos** apparaît, avec son icône et son nom, pour le **texte et les liens** et, depuis les images dans les notes, pour les
+  **images** (`notes-images.md` § Partage d'images). Pour un autre fichier, il n'apparaît pas.
 - Toucher Kairos **crée la note aussitôt**. Rien ne s'ouvre et rien n'est à confirmer. Un message bref du système confirme
   « Note ajoutée à Kairos », et on reste dans l'application d'où l'on a partagé.
 - **Contenu de la note** :
@@ -41,8 +41,8 @@ retient l'attention doit pouvoir aller en un geste dans la boîte de réception,
   se convertit, s'archive ou se supprime comme les autres. Si Kairos est déjà ouvert sur Notes, elle y apparaît tout de suite.
 - **Hors ligne** : Kairos ne télécharge rien. Si l'application d'origine ne donne qu'un lien, la note est le lien.
 - **Cas limites** :
-  - Un partage sans texte, ou fait seulement d'espaces, ne crée rien. Le message dit « Rien à ajouter : le partage ne
-    contenait pas de texte. ».
+  - Un partage sans texte ni image lisible, ou fait seulement d'espaces, ne crée rien. Le message dit « Rien à ajouter : le
+    partage ne contenait ni texte ni image lisible. ».
   - Un texte très long (une sélection de page entière) est gardé jusqu'à 10 000 caractères, puis coupé et terminé par « … ».
   - Si la base ne peut pas s'ouvrir (Kairos a planté au lancement précédent, ou échoue à démarrer), rien n'est écrit. Le
     message dit « Kairos n’a pas pu ajouter la note. Ouvre Kairos pour en savoir plus. ».
@@ -68,8 +68,8 @@ retient l'attention doit pouvoir aller en un geste dans la boîte de réception,
 
 ### Hors périmètre / différé
 
-- Images et partage de plusieurs images (`SEND_MULTIPLE`) : spécifiés à part, avec les images dans les notes
-  (`notes-images.md`, #295). Autres fichiers : une note n'a pas de pièce jointe.
+- Images et partage de plusieurs images (`SEND_MULTIPLE`) : traités par les images dans les notes (`notes-images.md` § Partage
+  d'images, #295), qui ajoutent deux filtres et lisent `EXTRA_STREAM`. Autres fichiers : une note n'a pas de pièce jointe.
 - Récupérer en ligne le titre d'une page quand l'application ne le fournit pas : ce serait une connexion réseau implicite,
   contraire à « hors ligne par défaut » (`connexions-en-ligne.md`).
 - Partager directement comme **tâche**, ou choisir entre note et tâche dans la feuille de partage : la note est l'étape de
@@ -129,7 +129,7 @@ retient l'attention doit pouvoir aller en un geste dans la boîte de réception,
 ### Textes et catalogue (`ui`)
 
 - `share_note_added` : « Note ajoutée à Kairos » ; `share_note_empty` : « Rien à ajouter : le partage ne contenait pas de
-  texte. » ; `share_note_failed` : « Kairos n’a pas pu ajouter la note. Ouvre Kairos pour en savoir plus. ». Les trois dans les
+  texte. », devenu avec les images « Rien à ajouter : le partage ne contenait ni texte ni image lisible. » ; `share_note_failed` : « Kairos n’a pas pu ajouter la note. Ouvre Kairos pour en savoir plus. ». Les trois dans les
   six langues `values*/`, avec l'apostrophe `’`.
 - Carte `FeatureCard("share", GuideChapter.FIRST_STEPS, { KairosIcons.Share }, card_share_title, card_share_body,
   GuideTarget.Personal(Destination.NOTES), since = "4.6.0", platforms = setOf(Platform.ANDROID))`, placée juste après `capture`.
@@ -159,6 +159,8 @@ retient l'attention doit pouvoir aller en un geste dans la boîte de réception,
   une ressemblance approchée, imprévisible.
 - **Texte et liens seulement** (propriétaire, 2026-11-27) : une note n'a pas de pièce jointe. Garder seulement le nom d'un
   fichier ou d'une image n'apporterait rien. Kairos ne se propose donc pas pour ces types : pas de cible qui ne fait rien.
+  Rouvert le même jour pour les images, que les notes portent désormais (`notes-images.md`) ; les autres fichiers restent
+  dehors.
 - **Activité dédiée plutôt que `MainActivity`** : `MainActivity` est `singleTop` et monte toute l'interface. Recevoir le
   partage dans cette activité ouvrirait Kairos, ou poserait une copie de l'application dans la tâche de l'application
   d'origine. Une activité transparente, sans historique et sans affinité, ne montre rien et ne touche pas à la tâche Kairos.
