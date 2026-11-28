@@ -9,8 +9,9 @@ import kotlin.test.assertTrue
 
 /**
  * Cible de partage Android (docs/spec/partage-android.md, issue #293) : une activité dédiée, exportée, avec un filtre `SEND` sur
- * `text/plain`, et rien qui fasse de `MainActivity` une cible de partage. Lu depuis `androidApp`, que ce module ne compile pas
- * (le test tourne sur la JVM, sans SDK Android), comme [AndroidStringsParityTest].
+ * `text/plain` et, depuis les images des notes (#295), `SEND` et `SEND_MULTIPLE` sur les images, et rien qui fasse de
+ * `MainActivity` une cible de partage. Lu depuis `androidApp`, que ce module ne compile pas (le test tourne sur la JVM, sans
+ * SDK Android), comme [AndroidStringsParityTest].
  */
 class ShareTargetManifestTest {
     private val android = "http://schemas.android.com/apk/res/android"
@@ -31,13 +32,21 @@ class ShareTargetManifestTest {
     }
 
     @Test
-    fun theShareActivityAcceptsPlainTextOnly() {
+    fun theShareActivityAcceptsTextAndImagesOnly() {
         val share = activity(".ShareNoteActivity")
         assertEquals("true", share.attr("exported"))
         assertEquals("true", share.attr("noHistory"))
         assertEquals("true", share.attr("excludeFromRecents"))
         assertEquals("", share.attr("taskAffinity"))
-        assertEquals(listOf(listOf("android.intent.action.SEND") to listOf("text/plain")), filters(share))
+        assertEquals(
+            listOf(
+                listOf("android.intent.action.SEND") to listOf("text/plain"),
+                // Images (docs/spec/notes-images.md § Partage d'images).
+                listOf("android.intent.action.SEND") to listOf("image/*"),
+                listOf("android.intent.action.SEND_MULTIPLE") to listOf("image/*"),
+            ),
+            filters(share),
+        )
     }
 
     @Test

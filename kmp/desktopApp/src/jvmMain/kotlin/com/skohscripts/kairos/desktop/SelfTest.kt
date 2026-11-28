@@ -152,6 +152,21 @@ object SelfTest {
             }
         }
         val chrono: @Composable () -> Unit = { KairosApp(Platform.DESKTOP, Destination.DAY) { timed } }
+        // Images des notes (docs/spec/notes-images.md) : une note à texte et deux images, une note faite d'une image seule.
+        val imaged = runBlocking {
+            DesktopServices.open(dataDir, inMemory = true).also { s ->
+                fun sample(color: java.awt.Color, w: Int, h: Int) = checkNotNull(DesktopImages.encode(
+                    java.io.ByteArrayOutputStream().also { out ->
+                        val img = java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_RGB)
+                        img.createGraphics().apply { this.color = color; fillRect(0, 0, w, h); this.color = java.awt.Color.WHITE; fillRect(w / 4, h / 4, w / 2, h / 8); dispose() }
+                        javax.imageio.ImageIO.write(img, "png", out)
+                    }.toByteArray(),
+                ))
+                s.repository.createNote("Whiteboard of the retro\nSort the action items", listOf(sample(java.awt.Color(0x2F6FED), 1200, 900), sample(java.awt.Color(0x8A5A44), 900, 1200)))
+                s.repository.createNote("", listOf(sample(java.awt.Color(0x3C7A4A), 1600, 1000)))
+            }
+        }
+        val notesImages: @Composable () -> Unit = { KairosTheme { Surface { NotesScreen(imaged) {} } } }
         // Synchronisation (docs/spec/synchronisation.md § Interface) : deux bases d'exemple rapprochées, puis la même tâche
         // repriorisée des deux côtés avant de se revoir : un conflit « À revoir » et une dernière fusion dans la carte Données.
         val synced = runBlocking {
@@ -471,6 +486,8 @@ object SelfTest {
             Shot("day-full-narrow", 420, 5000, app),
             Shot("day-chrono", 1200, 1000, chrono),
             Shot("notes", 900, 1000, notes),
+            Shot("notes-images", 900, 1400, notesImages),
+            Shot("notes-images-narrow", 360, 1600, atWidth(360.dp) { NotesScreen(imaged) {} }),
             Shot("week", 1200, 1000, week),
             Shot("week-narrow", 420, 2400, week),
             Shot("edit-sheet", 1200, 2000, editSheet),

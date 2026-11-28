@@ -61,7 +61,29 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
+            <!-- Images partagées (4.6.0, docs/spec/notes-images.md § Partage d'images) : une ou plusieurs. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
         </activity>
+        <!-- Photos des notes (4.6.0, docs/spec/notes-images.md § Android) : l'application photo du système écrit dans
+             cache/camera/, partagé par ce fournisseur le temps de la prise de vue ; non exporté, aucune permission CAMERA. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.skohscripts.kairos.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <receiver
             android:name=".ChronoReceiver"
             android:exported="false" />

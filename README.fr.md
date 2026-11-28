@@ -294,7 +294,16 @@ supprimée.
 - **Partager vers Kairos** (Android) : partage un article, un lien ou un texte
   depuis n’importe quelle appli et choisis Kairos. Il devient aussitôt une note,
   sans ouvrir Kairos : le titre de la page en première ligne, le lien dessous ;
-  « → Tâche » donne donc une tâche au nom de l’article. Rien n’est téléchargé.
+  « → Tâche » donne donc une tâche au nom de l’article. Rien n’est téléchargé. On
+  peut aussi partager des images.
+- **Images dans les notes** : ajoute jusqu’à quatre images à une note quand tu la
+  captures ou la modifies : depuis la galerie ou l’appareil photo sur Android, un
+  fichier sur le bureau et le web, ou le presse-papiers partout (Ctrl/Cmd+V dans le
+  champ, ou « Coller depuis le presse-papiers »). Chaque image est réduite
+  (1 600 px, JPEG) et perd ses métadonnées, lieu compris ; un toucher l’ouvre en
+  plein écran. Les images suivent tes données : export, sauvegardes et
+  synchronisation par fichier lié. « → Tâche » les garde sur la note d’origine,
+  que la fiche de la tâche relie.
 - **GTD expliqué** : Kairos suit GTD (capturer, clarifier, organiser, faire le
   point, faire). Chaque écran dit de quelle étape il s’agit, et « La méthode GTD »
   sur Notes explique les cinq étapes, où elles sont dans Kairos et ce que Kairos
@@ -821,6 +830,7 @@ Toutes les fonctionnalités en un tableau, dans l’ordre de la liste de l’app
 |---|---|---|---|
 | Premiers pas | Capturer sans réfléchir | 3.0.0 | Toutes |
 | Premiers pas | Partager vers Kairos | 4.6.0 | Android |
+| Premiers pas | Images dans les notes | 4.6.0 | Toutes |
 | Premiers pas | La méthode GTD dans Kairos | 4.1.0 | Toutes |
 | Premiers pas | Raccourcis clavier | 3.0.0 | Bureau, Web |
 | Premiers pas | Qualifier en un clic | 3.0.0 | Toutes |

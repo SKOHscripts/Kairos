@@ -13,6 +13,64 @@
 (function () {
   "use strict";
 
+  // Images du dernier collage (Ctrl/Cmd+V), lues par imagesTakePasted ; le texte, lui, se colle comme avant.
+  const pasted = { at: 0, blobs: [] };
+  document.addEventListener("paste", (event) => {
+    const items = Array.from((event.clipboardData && event.clipboardData.items) || []);
+    pasted.blobs = items.filter((i) => i.kind === "file" && i.type.startsWith("image/")).map((i) => i.getAsFile()).filter(Boolean);
+    pasted.at = Date.now();
+  }, true);
+
+  function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // Une image réduite (docs/spec/notes-images.md § Web) : droite, `side` px au plus, sur fond blanc, en JPEG ; null si illisible.
+  // Réencoder par le canevas retire toutes les métadonnées.
+  async function encodeImage(blob, side, maxBytes, qualities) {
+    try {
+      const bitmap = await createImageBitmap(blob, { imageOrientation: "from-image" });
+      let w = bitmap.width;
+      let h = bitmap.height;
+      const longest = Math.max(w, h);
+      if (longest > side) {
+        const scale = side / longest;
+        w = Math.max(1, Math.round(w * scale));
+        h = Math.max(1, Math.round(h * scale));
+      }
+      const canvas = new OffscreenCanvas(w, h);
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(bitmap, 0, 0, w, h);
+      bitmap.close();
+      let out = null;
+      for (const q of qualities.split(",").map(Number)) {
+        out = await canvas.convertToBlob({ type: "image/jpeg", quality: q / 100 });
+        if (out.size <= maxBytes) break;
+      }
+      return { mime: "image/jpeg", width: w, height: h, data: await blobToBase64(out) };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function encodeAll(blobs, side, maxBytes, qualities) {
+    const images = [];
+    let unreadable = 0;
+    for (const blob of blobs) {
+      const image = await encodeImage(blob, side, maxBytes, qualities);
+      if (image) images.push(image); else unreadable++;
+    }
+    return JSON.stringify({ images, unreadable });
+  }
+
   const DB_NAME = "kairos";
   const STORE = "handles";
   const LINK_KEY = "linked-file";
@@ -126,6 +184,50 @@
         input.oncancel = () => resolve(null);
         input.click();
       });
+    },
+
+    // --- Images des notes (docs/spec/notes-images.md § Web) ---------------------------
+    // Le navigateur décode, tourne (orientation EXIF) et réduit lui-même : rien de plus dans le paquet wasm. Chaque fonction
+    // rend le JSON {"images":[{mime,width,height,data}], "unreadable":n} ; `side`, `maxBytes` et `qualities` viennent de
+    // ImageBudget (Kotlin), seule source de ces nombres.
+    imagesPick(max, side, maxBytes, qualities) {
+      return new Promise((resolve) => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/png,image/jpeg,image/webp,image/gif,image/bmp";
+        input.multiple = true;
+        input.onchange = async () => {
+          const files = Array.from(input.files || []).slice(0, max);
+          resolve(await encodeAll(files, side, maxBytes, qualities));
+        };
+        input.oncancel = () => resolve(JSON.stringify({ images: [], unreadable: 0 }));
+        input.click();
+      });
+    },
+    // Entrée « Coller depuis le presse-papiers » : l'API Clipboard, que le navigateur peut faire autoriser à la première fois.
+    async imagesPaste(max, side, maxBytes, qualities) {
+      const blobs = [];
+      try {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          const type = item.types.find((t) => t.startsWith("image/"));
+          if (type) blobs.push(await item.getType(type));
+        }
+      } catch (e) {
+        // Refus, API absente (Firefox ancien) ou presse-papiers vide : pas d'image.
+      }
+      return encodeAll(blobs.slice(0, max), side, maxBytes, qualities);
+    },
+    // Ctrl/Cmd+V dans le champ : les images de l'événement « paste » (sans autorisation), qui suit l'appui de la touche. On
+    // l'attend un court instant.
+    async imagesTakePasted(max, side, maxBytes, qualities) {
+      const since = Date.now();
+      while (Date.now() - since < 400 && (pasted.at < since - 50 || pasted.blobs.length === 0)) {
+        await new Promise((r) => setTimeout(r, 25));
+      }
+      const blobs = pasted.at >= since - 50 ? pasted.blobs.slice(0, max) : [];
+      pasted.blobs = [];
+      return encodeAll(blobs, side, maxBytes, qualities);
     },
 
     // --- Fichier lié ------------------------------------------------------------

@@ -129,6 +129,7 @@ object WebServices {
             tips = true,
             online = online,
             connectionSync = online.sync,
+            images = WebImages,
         )
     }
 }

@@ -280,7 +280,14 @@ also be edited, archived without follow-up, or deleted.
 - **Share to Kairos** (Android): share an article, a link or some text from any
   app, and choose Kairos. It becomes a note at once, without opening Kairos: the
   page title on the first line, the link below, so "→ Task" gives a task named
-  after the article. Nothing is fetched online.
+  after the article. Nothing is fetched online. Images can be shared too.
+- **Images in notes**: add up to four images to a note when you capture or edit
+  it: from the gallery or the camera on Android, a file on the desktop and the
+  web, or the clipboard everywhere (Ctrl/Cmd+V in the field, or "Paste from the
+  clipboard"). Each image is reduced (1600 px, JPEG) and loses its metadata,
+  location included; a tap opens it full screen. Images travel with your data:
+  export, backups and the linked-file sync. "→ Task" keeps them on the original
+  note, which the task sheet links to.
 - **GTD explained**: Kairos follows GTD (capture, clarify, organize, reflect,
   engage). Each screen says which step it is, and "The GTD method" on Notes
   explains the five steps, where they are in Kairos and what Kairos does
@@ -761,6 +768,7 @@ version that brought it and the platforms it exists on.
 |---|---|---|---|
 | First steps | Capture without thinking | 3.0.0 | All |
 | First steps | Share to Kairos | 4.6.0 | Android |
+| First steps | Images in notes | 4.6.0 | All |
 | First steps | The GTD method in Kairos | 4.1.0 | All |
 | First steps | Keyboard shortcuts | 3.0.0 | Desktop, Web |
 | First steps | Qualify in one click | 3.0.0 | All |

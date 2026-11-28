@@ -873,6 +873,9 @@ fun DayScreen(
             EditTaskDialog(
                 habit = habitSheet,
                 openHabit = openHabit,
+                // Images de la note d'où vient la tâche (docs/spec/notes-images.md § Interface) : restées sur la note archivée.
+                originImages = snapshot.notes.firstOrNull { it.convertedTaskId == task.id }
+                    ?.let { note -> snapshot.noteImages.filter { it.noteId == note.id } }.orEmpty(),
                 sessions = taskSessions,
                 now = openedAt,
                 task = task,
